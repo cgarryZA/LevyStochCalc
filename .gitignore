@@ -1,0 +1,4 @@
+.lake/
+_audit.lean
+_mcp_snippet_*.lean
+audit_output.txt
