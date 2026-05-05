@@ -1522,6 +1522,31 @@ lemma simpleIntegral_isometry
   rw [simpleIntegral_sq_lintegral_eq N hT φ h_adapt]
   rw [SimplePredictable.lintegral_eval_sq_outer φ]
 
+/-- **B3 sum form: L² isometry (Bochner) for the compensated-Poisson simple
+integral.** For an adapted simple `φ`,
+`E[(simpleIntegral N φ T)²] = Σ_i ν̂(fullRect i).toReal · E[ξ_i²]`.
+
+Combines `simpleIntegral_eq_sum_fullRect` (sum decomposition of the
+integral at time `T`) with the existing private `simpleIntegral_sq_bochner_eq`. -/
+theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    ∫ ω, (simpleIntegral N φ T ω) ^ 2 ∂P
+      = ∑ i : Fin φ.N,
+        (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i)).toReal *
+        ∫ ω, (φ.ξ i ω) ^ 2 ∂P := by
+  have h_eq : ∀ ω, (simpleIntegral N φ T ω) ^ 2
+      = (∑ i : Fin φ.N, φ.ξ i ω * N.compensated (φ.fullRect i) ω) ^ 2 := by
+    intro ω; rw [simpleIntegral_eq_sum_fullRect]
+  simp_rw [h_eq]
+  exact simpleIntegral_sq_bochner_eq N φ h_adapt
+
 /-- **Pointwise: truncation difference vanishes.** For real `x` and `M ≥ |x|`,
 `x - clip_M x = 0`. So `(‖x - clip_M x‖₊)² → 0` as `M → ∞`.
 Sub-helper for `truncation_L2_converges`. -/
