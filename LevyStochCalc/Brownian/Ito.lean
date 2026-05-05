@@ -913,6 +913,32 @@ lemma simpleIntegral_isometry
   rw [simpleIntegral_sq_lintegral_eq W H h_adapt]
   rw [lintegral_eval_sq_outer H]
 
+/-- **L² isometry on simple integrands (Bochner sum form).**
+For an adapted simple predictable integrand
+`H = ∑_i ξ_i · 1_{(t_i, t_{i+1}]}`,
+`E[(∑_i ξ_i ΔB_i)²] = Σ_i (t_{i+1} - t_i) · E[ξ_i²]`.
+
+Cross terms vanish by `simpleIntegral_offDiagonal` (which is the integral
+form of the Brownian-increment martingale-difference property — see
+`martingale_simpleIntegral_brownian`); the diagonal is computed in
+`simpleIntegral_diagonal_bochner`. -/
+theorem simpleIntegral_L2_isometry_brownian
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    ∫ ω, (simpleIntegral W H T ω) ^ 2 ∂P
+      = ∑ i : Fin H.N, (H.partition i.succ - H.partition i.castSucc) *
+          ∫ ω, (H.ξ i ω) ^ 2 ∂P := by
+  have h_eq : ∀ ω, (simpleIntegral W H T ω) ^ 2
+      = (∑ i : Fin H.N, H.ξ i ω * (W.W (H.partition i.succ) ω
+                                  - W.W (H.partition i.castSucc) ω)) ^ 2 := by
+    intro ω; rw [simpleIntegral_eq_sum]
+  simp_rw [h_eq]
+  exact simpleIntegral_sq_bochner_eq W H h_adapt
+
 /-- **Pointwise truncation tendsto** (Brownian, mirror of Compensated). -/
 private lemma truncation_pointwise_tendsto_brownian (x : ℝ) :
     Filter.Tendsto (fun M : ℕ => (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2)
