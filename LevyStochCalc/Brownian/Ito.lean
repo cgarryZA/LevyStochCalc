@@ -939,6 +939,138 @@ theorem simpleIntegral_L2_isometry_brownian
   simp_rw [h_eq]
   exact simpleIntegral_sq_bochner_eq W H h_adapt
 
+/-- **Inner Bochner integral of `(H.eval s ω)²` over `s ∈ [0, T]`** equals
+the sum of `(t_{i+1} - t_i) · (ξ_i ω)²` over partition pieces. Bochner
+mirror of `lintegral_eval_sq`. -/
+lemma integral_eval_sq {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω) :
+    ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume
+      = ∑ i : Fin H.N, (H.partition i.succ - H.partition i.castSucc) * (H.ξ i ω) ^ 2 := by
+  -- Real version of `eval_sq_eq_sum_indicator`.
+  have h_sq_decomp : ∀ s, (H.eval s ω) ^ 2 = ∑ i : Fin H.N,
+      (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+        (fun _ => (H.ξ i ω) ^ 2) s := by
+    intro s
+    rw [eval_eq_sum_indicator]
+    by_cases h_any : ∃ i : Fin H.N,
+        s ∈ Set.Ioc (H.partition i.castSucc) (H.partition i.succ)
+    · obtain ⟨i₀, hi₀⟩ := h_any
+      have h_unique : ∀ j : Fin H.N, j ≠ i₀ →
+          s ∉ Set.Ioc (H.partition j.castSucc) (H.partition j.succ) := by
+        intro j hj hj_mem
+        have := partition_intervals_disjoint H hj
+        exact Set.disjoint_left.mp this hj_mem hi₀
+      have h_sum_eq : (∑ i : Fin H.N,
+          (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+            (fun _ => H.ξ i ω) s) = H.ξ i₀ ω := by
+        rw [Finset.sum_eq_single i₀]
+        · exact Set.indicator_of_mem hi₀ _
+        · intro j _ hj
+          exact Set.indicator_of_notMem (h_unique j hj) _
+        · intro h_not; exact absurd (Finset.mem_univ _) h_not
+      have h_sum_sq_eq : (∑ i : Fin H.N,
+          (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+            (fun _ => (H.ξ i ω) ^ 2) s) = (H.ξ i₀ ω) ^ 2 := by
+        rw [Finset.sum_eq_single i₀]
+        · exact Set.indicator_of_mem hi₀ _
+        · intro j _ hj
+          exact Set.indicator_of_notMem (h_unique j hj) _
+        · intro h_not; exact absurd (Finset.mem_univ _) h_not
+      rw [h_sum_eq, h_sum_sq_eq]
+    · push_neg at h_any
+      have h_zero_sq : ∀ i : Fin H.N,
+          (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+            (fun _ => (H.ξ i ω) ^ 2) s = 0 :=
+        fun i => Set.indicator_of_notMem (h_any i) _
+      have h_zero : ∀ i : Fin H.N,
+          (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+            (fun _ => H.ξ i ω) s = 0 :=
+        fun i => Set.indicator_of_notMem (h_any i) _
+      rw [Finset.sum_eq_zero (fun i _ => h_zero i),
+          Finset.sum_eq_zero (fun i _ => h_zero_sq i)]
+      simp
+  simp_rw [h_sq_decomp]
+  rw [MeasureTheory.integral_finset_sum]
+  · refine Finset.sum_congr rfl (fun i _ => ?_)
+    have h_meas_set : MeasurableSet
+        (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)) := measurableSet_Ioc
+    have h_subset : Set.Ioc (H.partition i.castSucc) (H.partition i.succ)
+        ⊆ Set.Icc (0 : ℝ) T := by
+      intro x hx
+      have h_part_zero_le : 0 ≤ H.partition i.castSucc := by
+        have : H.partition 0 ≤ H.partition i.castSucc :=
+          H.partition_strictMono.monotone (Fin.zero_le _)
+        rw [H.partition_zero] at this; exact this
+      have h_part_succ_le_T : H.partition i.succ ≤ T := by
+        refine le_trans ?_ H.partition_le_T
+        exact H.partition_strictMono.monotone (Fin.le_last _)
+      refine ⟨?_, ?_⟩
+      · exact h_part_zero_le.trans (le_of_lt hx.1)
+      · exact hx.2.trans h_part_succ_le_T
+    have h_dt_nn : 0 ≤ H.partition i.succ - H.partition i.castSucc :=
+      sub_nonneg.mpr (le_of_lt (H.partition_strictMono Fin.castSucc_lt_succ))
+    rw [MeasureTheory.integral_indicator h_meas_set]
+    rw [MeasureTheory.setIntegral_const]
+    rw [MeasureTheory.measureReal_def]
+    rw [MeasureTheory.Measure.restrict_apply h_meas_set]
+    rw [Set.inter_eq_left.mpr h_subset]
+    rw [Real.volume_Ioc, ENNReal.toReal_ofReal h_dt_nn]
+    rw [smul_eq_mul]
+  · intro i _
+    refine MeasureTheory.Integrable.indicator ?_ measurableSet_Ioc
+    exact MeasureTheory.integrable_const _
+
+/-- **Outer Bochner integral of `(H.eval)²` over `Ω × [0,T]`** equals the
+sum of `(t_{i+1} - t_i) · ∫ (ξ_i)² ∂P`. Bochner mirror of
+`lintegral_eval_sq_outer`. -/
+lemma integral_eval_sq_outer
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {T : ℝ} (H : SimplePredictable Ω T) :
+    ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume ∂P
+      = ∑ i : Fin H.N, (H.partition i.succ - H.partition i.castSucc) *
+          ∫ ω, (H.ξ i ω) ^ 2 ∂P := by
+  have h_inner : ∀ ω, ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume
+      = ∑ i : Fin H.N, (H.partition i.succ - H.partition i.castSucc) * (H.ξ i ω) ^ 2 :=
+    fun ω => integral_eval_sq H ω
+  rw [show (fun ω => ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume)
+      = (fun ω => ∑ i : Fin H.N,
+          (H.partition i.succ - H.partition i.castSucc) * (H.ξ i ω) ^ 2) from
+    funext h_inner]
+  -- Per-term integrability of `(t_{i+1} - t_i) · (ξ_i)²`.
+  have h_int_term : ∀ i ∈ (Finset.univ : Finset (Fin H.N)),
+      MeasureTheory.Integrable
+        (fun ω => (H.partition i.succ - H.partition i.castSucc) * (H.ξ i ω) ^ 2) P := by
+    intro i _
+    refine MeasureTheory.Integrable.const_mul ?_ _
+    obtain ⟨M, hM⟩ := H.ξ_bounded i
+    refine MeasureTheory.Integrable.mono' (g := fun _ : Ω => M ^ 2)
+      (MeasureTheory.integrable_const _) ?_ ?_
+    · exact ((H.ξ_measurable i).pow_const 2).aestronglyMeasurable
+    · filter_upwards with ω
+      rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+      exact sq_le_sq' (neg_le_of_abs_le (hM ω)) (le_of_abs_le (hM ω))
+  rw [MeasureTheory.integral_finset_sum _ h_int_term]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [MeasureTheory.integral_const_mul]
+
+/-- **A2: L² isometry on simple integrands (Bochner integral form).**
+For an adapted simple predictable integrand `H`,
+`E[(simpleIntegral W H T)²] = ∫_0^T E[(H.eval s)²] ds`.
+
+Combines `simpleIntegral_L2_isometry_brownian` (sum form) with
+`integral_eval_sq_outer` (which expresses the same Σ in step-function
+integral form). -/
+theorem simpleIntegral_L2_isometry_brownian_integral_form
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    ∫ ω, (simpleIntegral W H T ω) ^ 2 ∂P
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume ∂P := by
+  rw [simpleIntegral_L2_isometry_brownian W H h_adapt]
+  rw [integral_eval_sq_outer H]
+
 /-- **Pointwise truncation tendsto** (Brownian, mirror of Compensated). -/
 private lemma truncation_pointwise_tendsto_brownian (x : ℝ) :
     Filter.Tendsto (fun M : ℕ => (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2)
