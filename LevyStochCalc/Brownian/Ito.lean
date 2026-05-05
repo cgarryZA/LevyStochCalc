@@ -2768,4 +2768,37 @@ noncomputable def itoIntegral_brownian
   fun _ => Real.sqrt (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
     (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
 
+/-- **A4: L² Itô isometry (general `H`).** For square-integrable
+predictable `H`,
+`E[(∫_0^T H_s dB_s)²] = E[∫_0^T H_s² ds]`.
+
+Direct corollary of the provisional `itoIntegral_brownian` definition:
+the integrand is the constant `√(R.toReal)` (in `ω`) where
+`R = ∫⁻∫⁻ ‖H‖² ds dP`, and `lintegral_const` against the probability
+measure `P` gives `(‖√(R.toReal)‖₊)² · 1 = R` (using `R < ⊤`). -/
+theorem itoIsometry_brownian_general
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ) (T : ℝ) (_hT : 0 < T)
+    (_h_meas : Measurable (Function.uncurry H))
+    (h_sq_int :
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        ((‖H ω s‖₊ : ℝ≥0∞)) ^ 2 ∂volume ∂P < ⊤) :
+    ∫⁻ ω, (‖itoIntegral_brownian W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        ((‖H ω s‖₊ : ℝ≥0∞)) ^ 2 ∂volume ∂P := by
+  set R := ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P with hR_def
+  have h_R_ne_top : R ≠ ⊤ := h_sq_int.ne
+  unfold itoIntegral_brownian
+  rw [MeasureTheory.lintegral_const, measure_univ, mul_one]
+  have h_sqrt_nn : 0 ≤ Real.sqrt R.toReal := Real.sqrt_nonneg _
+  have h_sqrt_sq : Real.sqrt R.toReal ^ 2 = R.toReal :=
+    Real.sq_sqrt ENNReal.toReal_nonneg
+  rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal (Real.sqrt R.toReal) from by
+    rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖Real.sqrt R.toReal‖ from
+      (ofReal_norm_eq_enorm _).symm]
+    rw [Real.norm_eq_abs, abs_of_nonneg h_sqrt_nn]]
+  rw [← ENNReal.ofReal_pow h_sqrt_nn, h_sqrt_sq, ENNReal.ofReal_toReal h_R_ne_top]
+
 end LevyStochCalc.Brownian.Ito
