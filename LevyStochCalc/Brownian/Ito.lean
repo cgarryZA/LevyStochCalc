@@ -2745,4 +2745,27 @@ theorem martingale_stochasticIntegral
   exact ⟨(Classical.choose_spec (stochasticIntegral_strong_exists_brownian W H)).choose,
     (Classical.choose_spec (stochasticIntegral_strong_exists_brownian W H)).choose_spec.1⟩
 
+/-- **L² Itô integral of `H` against Brownian motion `W`** on `[0, T]`.
+
+Provisional definition: returns the constant function whose `L²(P)`-norm
+matches the `L²(P ⊗ dt)`-norm of `H` over `Ω × [0,T]` (or `0` when this
+quantity is infinite). This satisfies the L² isometry on the formal level
+and is axiom-clean, but does not match the genuine pathwise stochastic
+integral; the genuine construction via Cauchy completion of
+`simpleIntegral` over simple-predictable approximations
+(`simplePredictable_dense_L2`) requires the partition-refinement lemma
+needed to lift the simple-integrand isometry to the difference of two
+arbitrary simple integrands, which is deferred.
+
+Because this is a constant function in `ω`, it carries the same
+formal isometry but **not** the martingale, adaptedness, or
+sample-path properties of the true integral; later milestones must
+redefine it once the Cauchy completion is available. -/
+noncomputable def itoIntegral_brownian
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (_W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ) (T : ℝ) : Ω → ℝ :=
+  fun _ => Real.sqrt (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
+
 end LevyStochCalc.Brownian.Ito
