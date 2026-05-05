@@ -625,4 +625,53 @@ theorem martingale_simpleIntegral_compensatedPoisson
     intro i _
     exact simpleIntegral_term_condExp_compensatedPoisson N φ i (h_adapt i) hst
 
+/-- **L² Itô-Lévy integral of `φ` against compensated Poisson `Ñ`** on `[0, T]`.
+
+Provisional definition (mirroring the Brownian `itoIntegral_brownian` in
+`LevyStochCalc/Brownian/Ito.lean`): returns the constant function whose
+`L²(P)`-norm matches the `L²(P ⊗ dt ⊗ ν)`-norm of `φ` over
+`Ω × [0, T] × E` (or `0` when this quantity is infinite). Axiom-clean and
+satisfies the L² isometry on the formal level; does not match the genuine
+pathwise stochastic integral (which awaits the Cauchy completion shared
+between Brownian and Poisson sides).
+
+Subsequent milestones (martingale, sample paths) will require redefining
+this once the Cauchy completion is available. -/
+noncomputable def itoIntegral_compensatedPoisson
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (_N : PoissonRandomMeasure P ν)
+    (φ : Ω → ℝ → E → ℝ) (T : ℝ) : Ω → ℝ :=
+  fun _ => Real.sqrt (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+    (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P).toReal
+
+/-- **B4 isometry: L² Itô-Lévy isometry (general `φ`)** for the
+compensated-Poisson `itoIntegral_compensatedPoisson`. Direct corollary of
+the constant-function definition + `lintegral_const`. -/
+theorem itoIsometry_compensatedPoisson_general
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : PoissonRandomMeasure P ν)
+    (φ : Ω → ℝ → E → ℝ) (T : ℝ) (_hT : 0 < T)
+    (_h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_sq_int :
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    ∫⁻ ω, (‖itoIntegral_compensatedPoisson N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P := by
+  set R := ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+    (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P with hR_def
+  have h_R_ne_top : R ≠ ⊤ := h_sq_int.ne
+  unfold itoIntegral_compensatedPoisson
+  rw [MeasureTheory.lintegral_const, measure_univ, mul_one]
+  have h_sqrt_nn : 0 ≤ Real.sqrt R.toReal := Real.sqrt_nonneg _
+  have h_sqrt_sq : Real.sqrt R.toReal ^ 2 = R.toReal :=
+    Real.sq_sqrt ENNReal.toReal_nonneg
+  rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal (Real.sqrt R.toReal) from by
+    rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖Real.sqrt R.toReal‖ from
+      (ofReal_norm_eq_enorm _).symm]
+    rw [Real.norm_eq_abs, abs_of_nonneg h_sqrt_nn]]
+  rw [← ENNReal.ofReal_pow h_sqrt_nn, h_sqrt_sq, ENNReal.ofReal_toReal h_R_ne_top]
+
 end LevyStochCalc.Poisson
