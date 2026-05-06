@@ -1,42 +1,67 @@
 import LevyStochCalc.Brownian.Ito
 
 /-!
-# WIP: SimplePredictable refinement and diff isometry
+# SimplePredictable refinement and diff isometry (C0b infrastructure)
 
-C0b requires a "diff isometry" on `simpleIntegral`:
-  ‖simpleIntegral W H₁ T - simpleIntegral W H₂ T‖²_{L²(P)}
-    = ‖H₁.eval - H₂.eval‖²_{L²(P ⊗ dt)}.
+This file builds the partition-refinement machinery needed to upgrade
+`itoIntegral_brownian` from its provisional constant-function definition
+(A3/A4) to the genuine L²-completion via `LinearIsometry.extend`.
 
-For this, we need to construct a SimplePredictable `H_diff` with
-* `partition`: union of partitions of `H₁` and `H₂` (sorted, deduped),
-* per-piece `ξ`: `ξ₁_refined - ξ₂_refined` (the refined values of the two
-  inputs aligned to the common partition),
+## Roadmap
 
-and prove
-
-* `simpleIntegral W H_diff T = simpleIntegral W H₁ T - simpleIntegral W H₂ T`
-  (linearity on common partition + telescoping refinement-invariance);
-* `H_diff.eval = H₁.eval - H₂.eval` pointwise (refinement-invariance of `eval`);
-* then apply `simpleIntegral_isometry` to `H_diff`.
-
-The required machinery (~300 LOC):
-
-  1. `SimplePredictable.refine`: refine to a finer partition while preserving
-     `eval` and `simpleIntegral` (telescoping).
-  2. `SimplePredictable.commonRefinement`: pair two SimplePredictables onto a
-     common partition.
-  3. `SimplePredictable.sub`: subtract on a common partition (linear over ξ).
-  4. Diff isometry as a corollary of (3) + the existing
-     `simpleIntegral_isometry` (B's A2).
-
-Once that lands, C0b becomes:
-
-  `noncomputable def itoIntegral_brownian (W) (H) (T) : Ω → ℝ :=`
-    `(Lp.toFun (Cauchy-limit-in-Lp of (simpleIntegral W (Hn n) T).toLp))`
-
-via `simplePredictable_dense_Lp_brownian` + diff isometry + `Lp.completeSpace`.
-
-This file is intentionally empty (no declarations) — it's a documentation
-placeholder marking the C0b blocker. The actual A3/A4 (provisional) and B4
-(provisional) commits remain in force until C0b lands.
+* `SimplePredictable.refine` — lift `H : SimplePredictable Ω T` from its
+  partition `π` onto a finer partition `π'`. The user supplies an index
+  map `idxMap : Fin M → Fin H.N` saying which old piece each new piece
+  belongs to.
+* `SimplePredictable.refine_eval` — `(H.refine ...).eval = H.eval`
+  pointwise.
+* `SimplePredictable.simpleIntegral_refine` — refining preserves
+  `simpleIntegral`.
+* `SimplePredictable.commonRefinement` — common refinement of two
+  `SimplePredictable`s sharing the same final partition point.
+* `simpleIntegral_diff_isometry_simple` — the diff isometry on simples.
+* `cauchy_of_L2_dense_simple` — Cauchy property of the simple integrals
+  for an L²-Cauchy approximating sequence.
 -/
+
+namespace LevyStochCalc.Brownian.Ito
+
+open MeasureTheory
+
+universe u
+variable {Ω : Type u} [MeasurableSpace Ω]
+
+/-- **Refine** a simple predictable to a finer partition. Given
+`H : SimplePredictable Ω T` (on partition `π`) and a finer partition `π'`
+of length `M + 1`, plus an index map `idxMap : Fin M → Fin H.N` and
+inclusion proofs that each new piece `(π' j.castSucc, π' j.succ]` is
+contained in the `idxMap j`-th old piece
+`(H.partition (idxMap j).castSucc, H.partition (idxMap j).succ]`,
+return the refined `SimplePredictable` on `π'` whose `ξ` agrees with `H.ξ`
+under `idxMap`.
+
+Requires `π'` to end at the same point as `H.partition` (`h_last`); the
+common refinement of two `SimplePredictable`s sharing this endpoint
+satisfies this naturally. -/
+noncomputable def SimplePredictable.refine
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (M : ℕ) (π' : Fin (M + 1) → ℝ)
+    (h_zero : π' 0 = 0)
+    (h_last : π' (Fin.last M) = H.partition (Fin.last H.N))
+    (h_strictMono : StrictMono π')
+    (idxMap : Fin M → Fin H.N)
+    (_h_idx_le : ∀ j : Fin M,
+      H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (_h_idx_ge : ∀ j : Fin M,
+      π' j.succ ≤ H.partition (idxMap j).succ) :
+    SimplePredictable Ω T where
+  N := M
+  partition := π'
+  partition_zero := h_zero
+  partition_le_T := h_last ▸ H.partition_le_T
+  partition_strictMono := h_strictMono
+  ξ := fun j ω => H.ξ (idxMap j) ω
+  ξ_bounded := fun j => H.ξ_bounded (idxMap j)
+  ξ_measurable := fun j => H.ξ_measurable (idxMap j)
+
+end LevyStochCalc.Brownian.Ito
