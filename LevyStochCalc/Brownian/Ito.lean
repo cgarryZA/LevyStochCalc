@@ -2745,6 +2745,24 @@ theorem martingale_stochasticIntegral
   exact ⟨(Classical.choose_spec (stochasticIntegral_strong_exists_brownian W H)).choose,
     (Classical.choose_spec (stochasticIntegral_strong_exists_brownian W H)).choose_spec.1⟩
 
+/-- **C0a: Density of simple Brownian-predictable processes in `L²(Ω × [0, T])`.**
+For every `H ∈ L²(Ω × [0, T], dP ⊗ ds)`, there exists a sequence of
+`SimplePredictable` integrands whose `eval`s converge to `H` in
+`L²(P ⊗ ds)`-norm. Public re-export of the existing
+`simplePredictable_dense_L2` under the roadmap's name. -/
+theorem simplePredictable_dense_Lp_brownian
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {T : ℝ} (hT : 0 < T)
+    (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
+    (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∃ Hn : ℕ → SimplePredictable Ω T,
+      Filter.Tendsto
+        (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        Filter.atTop (nhds 0) :=
+  simplePredictable_dense_L2 hT H h_meas h_sq_int
+
 /-- **L² Itô integral of `H` against Brownian motion `W`** on `[0, T]`.
 
 Provisional definition: returns the constant function whose `L²(P)`-norm
