@@ -353,4 +353,26 @@ lemma SimplePredictable.val_mem_Ico_of_idxMap_eq
   · simpa [Fin.castSucc] using h_k_lo_le
   · have := h_succ_le_k_hi; simp [Fin.succ] at this; omega
 
+/-- **Per-fiber telescope (W-version):** define
+`g : ℕ → ℝ := fun n => W (π' ⟨n, h⟩) ω if h : n < M+1 else 0`. Then
+`∑ n ∈ Finset.Ico a b, (g (n+1) - g n) = g b - g a` by
+`sum_Ico_telescope_real`. The `simpleIntegral_refine` general proof
+sets up this `g`, equates the per-fiber Ico-sum to `g (k_hi) - g (k_lo)`,
+then matches `g (k_hi) = W (π' k_hi) ω = W (H.partition i.succ) ω` via
+`hk_hi`. -/
+lemma SimplePredictable.W_telescope_via_g
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {M : ℕ} (π' : Fin (M + 1) → ℝ) (ω : Ω)
+    (a b : ℕ) (hab : a ≤ b) (hb_le : b ≤ M) :
+    (∑ n ∈ Finset.Ico a b,
+      ((fun n : ℕ => if h : n < M + 1 then W.W (π' ⟨n, h⟩) ω else 0) (n + 1)
+        - (fun n : ℕ => if h : n < M + 1 then W.W (π' ⟨n, h⟩) ω else 0) n))
+      = W.W (π' ⟨b, by omega⟩) ω - W.W (π' ⟨a, by omega⟩) ω := by
+  rw [sum_Ico_telescope_real a b hab
+    (fun n : ℕ => if h : n < M + 1 then W.W (π' ⟨n, h⟩) ω else 0)]
+  have h_b_lt : b < M + 1 := by omega
+  have h_a_lt : a < M + 1 := by omega
+  simp only [h_b_lt, h_a_lt, dif_pos]
+
 end LevyStochCalc.Brownian.Ito
