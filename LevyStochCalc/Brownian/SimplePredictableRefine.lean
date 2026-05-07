@@ -737,4 +737,13 @@ private lemma SimplePredictable.exists_mergedIdxMap_right
   have h2 : k.val < j.succ.val := h_k_lt_jsc
   omega
 
+/-- **C0b.4-pre17: left index map.** For each merged tile `j`, the
+unique `H₁` tile whose interval contains it. Extracted via Choice
+from `exists_mergedIdxMap_left`. -/
+noncomputable def SimplePredictable.mergedIdxMap_left
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (j : Fin (H₁.mergedM H₂)) : Fin H₁.N :=
+  (H₁.exists_mergedIdxMap_left H₂ h_eq j).choose
+
 end LevyStochCalc.Brownian.Ito
