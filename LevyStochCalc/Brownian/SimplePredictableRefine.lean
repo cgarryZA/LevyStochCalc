@@ -595,4 +595,20 @@ lemma SimplePredictable.mergedπ_zero
   · exact H₁.mem_mergedPartitionPoints_nonneg H₂
       (Finset.min'_mem _ _)
 
+/-- **C0b.4-pre11: every element ≤ the (shared) endpoint.** Under
+the assumption that both partitions end at the same point. -/
+lemma SimplePredictable.mem_mergedPartitionPoints_le_endpoint
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    {x : ℝ} (hx : x ∈ H₁.mergedPartitionPoints H₂) :
+    x ≤ H₁.partition (Fin.last H₁.N) := by
+  rcases Finset.mem_union.mp hx with h | h
+  · obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
+    rw [← hi]
+    exact H₁.partition_strictMono.monotone (Fin.le_last i)
+  · obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
+    rw [← hi]
+    rw [h_eq]
+    exact H₂.partition_strictMono.monotone (Fin.le_last i)
+
 end LevyStochCalc.Brownian.Ito
