@@ -1056,4 +1056,45 @@ theorem cauchy_of_L2_dense_simple
         (h_eq n m) (h_adapt n) (h_adapt m)]
   exact hN n m hn hm
 
+/-- **C0b.10-pre1: `simpleIntegral` has finite `L²(P)` norm.** For any
+adapted `SimplePredictable`, the squared `lintegral` of the integral
+against `P` is finite. Direct from `simpleIntegral_isometry` (giving
+`= ∫⁻ ω ∫⁻ s ‖H.eval s ω‖²`) plus `lintegral_eval_sq_outer` (giving
+`= ∑_i Δt_i · ∫⁻ ω ‖H.ξ i ω‖²`), each summand bounded by
+`Δt_i · M_i² ≤ T · M_i² < ∞` via `ξ_bounded`.
+
+This is the boundedness fact needed to lift `simpleIntegral W H T` to
+an element of `Lp ℝ 2 P` for the `L²` extension in `C0b.10`. -/
+lemma simpleIntegral_lintegral_sq_finite_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    ∫⁻ ω, (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤ := by
+  rw [simpleIntegral_isometry W hT H h_adapt]
+  rw [lintegral_eval_sq_outer H]
+  refine ENNReal.sum_lt_top.mpr (fun i _ => ?_)
+  refine ENNReal.mul_lt_top ENNReal.ofReal_lt_top ?_
+  obtain ⟨M, hM⟩ := H.ξ_bounded i
+  have h_M_nn : 0 ≤ max M 0 := le_max_right _ _
+  have h_bound : ∀ ω, |H.ξ i ω| ≤ max M 0 :=
+    fun ω => le_trans (hM ω) (le_max_left _ _)
+  have h_norm_le : ∀ ω, (‖H.ξ i ω‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal (max M 0) := by
+    intro ω
+    rw [show (‖H.ξ i ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H.ξ i ω‖
+          from (ofReal_norm_eq_enorm _).symm]
+    exact ENNReal.ofReal_le_ofReal
+      (Real.norm_eq_abs _ ▸ h_bound ω)
+  calc ∫⁻ ω, (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ ∫⁻ _ω, (ENNReal.ofReal (max M 0)) ^ 2 ∂P := by
+        refine MeasureTheory.lintegral_mono (fun ω => ?_)
+        exact pow_le_pow_left' (h_norm_le ω) 2
+    _ = (ENNReal.ofReal (max M 0)) ^ 2 * P Set.univ := by
+        rw [MeasureTheory.lintegral_const]
+    _ < ⊤ := by
+        rw [MeasureTheory.measure_univ, mul_one]
+        exact ENNReal.pow_lt_top ENNReal.ofReal_lt_top
+
 end LevyStochCalc.Brownian.Ito
