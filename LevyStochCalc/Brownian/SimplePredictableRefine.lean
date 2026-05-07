@@ -325,4 +325,32 @@ lemma SimplePredictable.idxMap_of_mem_Ico
     ⟨lt_of_le_of_lt h_idxMap_le h_test_lo, le_trans h_test_hi.le h_idxMap_ge⟩
   exact Set.disjoint_iff.mp (H.partition_Ioc_disjoint_of_ne (Ne.symm h_ne)) ⟨h_in_i, h_in_idx⟩
 
+/-- **Fiber-to-Ico forward direction:** if `j : Fin M` is in the fiber
+`{j | idxMap j = i}` and `π' k_lo = H.partition i.castSucc`,
+`π' k_hi = H.partition i.succ`, then `j.val ∈ [k_lo.val, k_hi.val)`.
+Used by `simpleIntegral_refine` for the bijection between the fiber
+and the Ico. -/
+lemma SimplePredictable.val_mem_Ico_of_idxMap_eq
+    {T : ℝ} (H : SimplePredictable Ω T)
+    {M : ℕ} {π' : Fin (M + 1) → ℝ}
+    (h_strictMono : StrictMono π')
+    {idxMap : Fin M → Fin H.N}
+    (h_idx_le : ∀ j : Fin M, H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (h_idx_ge : ∀ j : Fin M, π' j.succ ≤ H.partition (idxMap j).succ)
+    {i : Fin H.N} {k_lo k_hi : Fin (M + 1)}
+    (hk_lo : π' k_lo = H.partition i.castSucc)
+    (hk_hi : π' k_hi = H.partition i.succ)
+    {j : Fin M} (hj_eq : idxMap j = i) :
+    j.val ∈ Finset.Ico k_lo.val k_hi.val := by
+  have h_le : H.partition (idxMap j).castSucc ≤ π' j.castSucc := h_idx_le j
+  have h_ge : π' j.succ ≤ H.partition (idxMap j).succ := h_idx_ge j
+  rw [hj_eq, ← hk_lo] at h_le
+  rw [hj_eq, ← hk_hi] at h_ge
+  have h_k_lo_le : k_lo.val ≤ j.castSucc.val := h_strictMono.le_iff_le.mp h_le
+  have h_succ_le_k_hi : j.succ.val ≤ k_hi.val := h_strictMono.le_iff_le.mp h_ge
+  rw [Finset.mem_Ico]
+  refine ⟨?_, ?_⟩
+  · simpa [Fin.castSucc] using h_k_lo_le
+  · have := h_succ_le_k_hi; simp [Fin.succ] at this; omega
+
 end LevyStochCalc.Brownian.Ito
