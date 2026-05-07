@@ -525,4 +525,10 @@ lemma SimplePredictable.partition_mem_mergedPartitionPoints_right
   exact Finset.mem_union.mpr (Or.inr
     (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩))
 
+/-- **C0b.4-pre4: number of tiles in the common refinement.** Equals
+the cardinality of the merged set minus one. -/
+noncomputable def SimplePredictable.mergedM
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) : ℕ :=
+  (H₁.mergedPartitionPoints H₂).card - 1
+
 end LevyStochCalc.Brownian.Ito
