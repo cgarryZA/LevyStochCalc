@@ -271,4 +271,58 @@ lemma SimplePredictable.partition_Ioc_disjoint_of_ne {T : ℝ}
   · exact (Set.Ioc_disjoint_Ioc_of_le
       (H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr h))).symm
 
+/-- **Inversion: a Nat in `[k_lo.val, k_hi.val)` lifts to a `Fin M`
+whose `idxMap` is the target old index `i`.** Specifically, when:
+* `π'` refines `H.partition` with `π' k_lo = H.partition i.castSucc`
+  and `π' k_hi = H.partition i.succ`,
+* `π'` is strictly monotone,
+* the inclusion hypotheses `h_idx_le, h_idx_ge` hold,
+* `n ∈ [k_lo.val, k_hi.val)` (so the corresponding `Fin M` element
+  exists),
+
+then `idxMap ⟨n, _⟩ = i` (the unique old piece containing the new piece).
+Used by `simpleIntegral_refine`'s fiber/Ico bijection. -/
+lemma SimplePredictable.idxMap_of_mem_Ico
+    {T : ℝ} (H : SimplePredictable Ω T)
+    {M : ℕ} {π' : Fin (M + 1) → ℝ}
+    (h_strictMono : StrictMono π')
+    {idxMap : Fin M → Fin H.N}
+    (h_idx_le : ∀ j : Fin M, H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (h_idx_ge : ∀ j : Fin M, π' j.succ ≤ H.partition (idxMap j).succ)
+    {i : Fin H.N} {k_lo k_hi : Fin (M + 1)}
+    (hk_lo : π' k_lo = H.partition i.castSucc)
+    (hk_hi : π' k_hi = H.partition i.succ)
+    {n : ℕ} (h_lt : n < M) (hn_lo : k_lo.val ≤ n) (hn_hi : n < k_hi.val) :
+    idxMap ⟨n, h_lt⟩ = i := by
+  let j : Fin M := ⟨n, h_lt⟩
+  have h_le : H.partition i.castSucc ≤ π' j.castSucc := by
+    rw [← hk_lo]
+    apply h_strictMono.monotone
+    rw [Fin.le_iff_val_le_val]
+    show k_lo.val ≤ j.castSucc.val
+    have : j.castSucc.val = n := by simp [Fin.castSucc, j]
+    rw [this]; exact hn_lo
+  have h_ge : π' j.succ ≤ H.partition i.succ := by
+    rw [← hk_hi]
+    apply h_strictMono.monotone
+    rw [Fin.le_iff_val_le_val]
+    show j.succ.val ≤ k_hi.val
+    have : j.succ.val = n + 1 := by simp [Fin.succ, j]
+    rw [this]; omega
+  have h_idxMap_le : H.partition (idxMap j).castSucc ≤ π' j.castSucc := h_idx_le j
+  have h_idxMap_ge : π' j.succ ≤ H.partition (idxMap j).succ := h_idx_ge j
+  by_contra h_ne
+  have h_lt_succ : π' j.castSucc < π' j.succ := h_strictMono Fin.castSucc_lt_succ
+  let s_test : ℝ := (π' j.castSucc + π' j.succ) / 2
+  have h_test_lo : π' j.castSucc < s_test := by
+    show π' j.castSucc < (π' j.castSucc + π' j.succ) / 2; linarith
+  have h_test_hi : s_test < π' j.succ := by
+    show (π' j.castSucc + π' j.succ) / 2 < π' j.succ; linarith
+  have h_in_i : s_test ∈ Set.Ioc (H.partition i.castSucc) (H.partition i.succ) :=
+    ⟨lt_of_le_of_lt h_le h_test_lo, le_trans h_test_hi.le h_ge⟩
+  have h_in_idx : s_test ∈ Set.Ioc (H.partition (idxMap j).castSucc)
+      (H.partition (idxMap j).succ) :=
+    ⟨lt_of_le_of_lt h_idxMap_le h_test_lo, le_trans h_test_hi.le h_idxMap_ge⟩
+  exact Set.disjoint_iff.mp (H.partition_Ioc_disjoint_of_ne (Ne.symm h_ne)) ⟨h_in_i, h_in_idx⟩
+
 end LevyStochCalc.Brownian.Ito
