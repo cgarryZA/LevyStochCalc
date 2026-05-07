@@ -859,4 +859,45 @@ noncomputable def SimplePredictable.sub_on_common
   ξ_measurable := fun j =>
     (H₁.ξ_measurable _).sub (H₂.ξ_measurable _)
 
+/-- **C0b.7: linearity on common refinement.** The simple integral of
+`sub_on_common H₁ H₂` equals the difference of the simple integrals of
+`H₁` and `H₂`.
+
+Proof: expand both `simpleIntegral`s via `simpleIntegral_eq_sum`,
+distribute `(a-b)·c = a·c - b·c`, split the sum, then recognize each
+sub-sum as the simple integral of `H_i` via `simpleIntegral_refine`
+applied with the appropriate `idxMap`. -/
+lemma SimplePredictable.simpleIntegral_sub_on_common
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (ω : Ω) :
+    simpleIntegral W (H₁.sub_on_common H₂ h_eq) T ω
+      = simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω := by
+  rw [simpleIntegral_eq_sum]
+  show (∑ j : Fin (H₁.mergedM H₂),
+        (H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
+          - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω)
+        * (W.W (H₁.mergedπ H₂ j.succ) ω - W.W (H₁.mergedπ H₂ j.castSucc) ω))
+      = simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω
+  simp_rw [sub_mul]
+  rw [Finset.sum_sub_distrib]
+  congr 1
+  · -- LHS sum = simpleIntegral W H₁ T ω
+    have h_left := H₁.simpleIntegral_refine W (H₁.mergedM H₂) (H₁.mergedπ H₂)
+      (H₁.mergedπ_zero H₂) (H₁.mergedπ_last H₂ h_eq) (H₁.mergedπ_strictMono H₂)
+      (H₁.mergedIdxMap_left H₂ h_eq) (H₁.mergedIdxMap_left_idx_le H₂ h_eq)
+      (H₁.mergedIdxMap_left_idx_ge H₂ h_eq) (H₁.mergedπ_refines_left H₂) ω
+    rw [← h_left, simpleIntegral_eq_sum]
+    exact Finset.sum_congr rfl (fun _ _ => rfl)
+  · -- RHS sum = simpleIntegral W H₂ T ω
+    have h_right := H₂.simpleIntegral_refine W (H₁.mergedM H₂) (H₁.mergedπ H₂)
+      (H₁.mergedπ_zero H₂) (h_eq ▸ H₁.mergedπ_last H₂ h_eq)
+      (H₁.mergedπ_strictMono H₂)
+      (H₁.mergedIdxMap_right H₂ h_eq) (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
+      (H₁.mergedIdxMap_right_idx_ge H₂ h_eq) (H₁.mergedπ_refines_right H₂) ω
+    rw [← h_right, simpleIntegral_eq_sum]
+    exact Finset.sum_congr rfl (fun _ _ => rfl)
+
 end LevyStochCalc.Brownian.Ito
