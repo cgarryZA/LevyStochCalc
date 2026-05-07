@@ -943,4 +943,36 @@ lemma SimplePredictable.eval_sub_on_common
   · simp [h_cond]
   · simp [h_cond]
 
+/-- **C0b.8-pre: adaptedness of `sub_on_common`.** If both inputs are
+adapted to the natural filtration of `W`, so is `sub_on_common`. The
+proof: for each merged tile `j`, the input adaptedness gives StronglyMeas
+at `H_k.partition (idxMap_k j).castSucc`. By `Filtration.mono` and
+`mergedIdxMap_k_idx_le` (which says `H_k.partition (idxMap_k j).castSucc
+≤ mergedπ j.castSucc`), this upgrades to StronglyMeas at the merged
+partition point. The difference is StronglyMeas via `StronglyMeasurable.sub`. -/
+lemma SimplePredictable.sub_on_common_adapt
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₁.partition i.castSucc)) (H₁.ξ i))
+    (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+    ∀ j : Fin (H₁.sub_on_common H₂ h_eq).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((H₁.sub_on_common H₂ h_eq).partition j.castSucc))
+        ((H₁.sub_on_common H₂ h_eq).ξ j) := by
+  intro j
+  have h_mono₁ := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+    (H₁.mergedIdxMap_left_idx_le H₂ h_eq j)
+  have h_mono₂ := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+    (H₁.mergedIdxMap_right_idx_le H₂ h_eq j)
+  have h₁ := (h_adapt₁ (H₁.mergedIdxMap_left H₂ h_eq j)).mono h_mono₁
+  have h₂ := (h_adapt₂ (H₁.mergedIdxMap_right H₂ h_eq j)).mono h_mono₂
+  exact h₁.sub h₂
+
 end LevyStochCalc.Brownian.Ito
