@@ -557,4 +557,13 @@ lemma SimplePredictable.mergedπ_strictMono
     StrictMono (H₁.mergedπ H₂) :=
   ((H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂)).strictMono
 
+/-- **C0b.4-pre8: every partition value is non-negative.** Since
+`partition 0 = 0` and `partition` is strictly monotone, every later
+value dominates `0`. -/
+lemma SimplePredictable.partition_nonneg
+    {T : ℝ} (H : SimplePredictable Ω T) (i : Fin (H.N + 1)) :
+    0 ≤ H.partition i := by
+  rw [← H.partition_zero]
+  exact H.partition_strictMono.monotone (Fin.zero_le i)
+
 end LevyStochCalc.Brownian.Ito
