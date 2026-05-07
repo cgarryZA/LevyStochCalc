@@ -705,4 +705,36 @@ private lemma SimplePredictable.exists_mergedIdxMap_left
   have h2 : k.val < j.succ.val := h_k_lt_jsc
   omega
 
+/-- **C0b.4-pre16: existence of right index map.** Mirror of
+`exists_mergedIdxMap_left` for the second SimplePredictable. -/
+private lemma SimplePredictable.exists_mergedIdxMap_right
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (j : Fin (H₁.mergedM H₂)) :
+    ∃ i : Fin H₂.N,
+      H₂.partition i.castSucc ≤ H₁.mergedπ H₂ j.castSucc ∧
+      H₁.mergedπ H₂ j.succ ≤ H₂.partition i.succ := by
+  have h_pos : H₂.partition 0 < H₁.mergedπ H₂ j.succ := by
+    rw [H₂.partition_zero, ← H₁.mergedπ_zero H₂]
+    exact (H₁.mergedπ_strictMono H₂) (Fin.succ_pos j)
+  have h_le_endpt : H₁.mergedπ H₂ j.succ ≤ H₂.partition (Fin.last H₂.N) := by
+    rw [← h_eq, ← H₁.mergedπ_last H₂ h_eq]
+    exact (H₁.mergedπ_strictMono H₂).monotone (Fin.le_last j.succ)
+  obtain ⟨i, h_lt, h_le⟩ :=
+    strictMono_partition_tiles H₂.partition_strictMono h_pos h_le_endpt
+  refine ⟨i, ?_, h_le⟩
+  by_contra h_not
+  push_neg at h_not
+  obtain ⟨k, hk⟩ := H₁.mergedπ_refines_right H₂ i.castSucc
+  rw [← hk] at h_not h_lt
+  have h_jcs_lt_k : j.castSucc < k :=
+    (H₁.mergedπ_strictMono H₂).lt_iff_lt.mp h_not
+  have h_k_lt_jsc : k < j.succ :=
+    (H₁.mergedπ_strictMono H₂).lt_iff_lt.mp h_lt
+  have hj_cs_val : j.castSucc.val = j.val := Fin.val_castSucc j
+  have hj_succ_val : j.succ.val = j.val + 1 := Fin.val_succ j
+  have h1 : j.castSucc.val < k.val := h_jcs_lt_k
+  have h2 : k.val < j.succ.val := h_k_lt_jsc
+  omega
+
 end LevyStochCalc.Brownian.Ito
