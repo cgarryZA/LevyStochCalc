@@ -217,4 +217,12 @@ lemma SimplePredictable.refine_eval
         exact absurd (h_le.trans this) (not_le.mpr hs_gt)
       rw [h_lhs_zero, h_rhs_zero]
 
+/-- **Telescoping helper:** `∑ k ∈ range n, (g (k + 1) - g k) = g n - g 0`.
+Used in `simpleIntegral_refine` for within-fiber telescoping. -/
+private lemma sum_range_telescope_real (n : ℕ) (g : ℕ → ℝ) :
+    ∑ k ∈ Finset.range n, (g (k + 1) - g k) = g n - g 0 := by
+  induction n with
+  | zero => simp
+  | succ m ih => rw [Finset.sum_range_succ, ih]; ring
+
 end LevyStochCalc.Brownian.Ito
