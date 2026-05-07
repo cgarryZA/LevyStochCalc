@@ -242,4 +242,16 @@ private lemma sum_Ico_telescope_real (a b : ℕ) (h : a ≤ b) (g : ℕ → ℝ)
   congr 1
   omega
 
+/-- **Identity refinement preserves `simpleIntegral`:** when `M = H.N`,
+`π' = H.partition`, and `idxMap = id`, the refined SimplePredictable
+is structurally equal to `H`, so the simple integral is trivially
+preserved. -/
+lemma SimplePredictable.simpleIntegral_refine_id
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω) :
+    simpleIntegral W (H.refine H.N H.partition H.partition_zero rfl
+      H.partition_strictMono id (fun _ => le_refl _) (fun _ => le_refl _)) T ω
+      = simpleIntegral W H T ω := rfl
+
 end LevyStochCalc.Brownian.Ito
