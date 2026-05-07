@@ -456,4 +456,41 @@ lemma SimplePredictable.fiber_sum_telescope
   · rw [show (⟨k_hi.val, by omega⟩ : Fin (M + 1)) = k_hi from Fin.ext rfl, hk_hi]
   · rw [show (⟨k_lo.val, by omega⟩ : Fin (M + 1)) = k_lo from Fin.ext rfl, hk_lo]
 
+/-- **C0b.3: `refine` preserves `simpleIntegral` (pointwise).** Under
+the hypothesis that `π'` refines `H.partition` (every `H.partition i`
+is some `π' k`), the simple integral evaluated at time `T` is unchanged
+by refining.
+
+Assembly:
+* `simpleIntegral_eq_sum` reduces both sides to plain sums (no
+  `min ... T` clauses, since `H.partition_le_T`).
+* `Finset.sum_fiberwise_of_maps_to` groups the LHS by `idxMap j = i`.
+* For each `i`, `fiber_sum_telescope` collapses the fiber sum to
+  `H.ξ i ω · (W (H.partition i.succ) ω - W (H.partition i.castSucc) ω)`,
+  which is the `i`-th term of the RHS. -/
+lemma SimplePredictable.simpleIntegral_refine
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (M : ℕ) (π' : Fin (M + 1) → ℝ)
+    (h_zero : π' 0 = 0)
+    (h_last : π' (Fin.last M) = H.partition (Fin.last H.N))
+    (h_strictMono : StrictMono π')
+    (idxMap : Fin M → Fin H.N)
+    (h_idx_le : ∀ j : Fin M, H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (h_idx_ge : ∀ j : Fin M, π' j.succ ≤ H.partition (idxMap j).succ)
+    (h_refines : ∀ i : Fin (H.N + 1), ∃ k : Fin (M + 1), π' k = H.partition i)
+    (ω : Ω) :
+    simpleIntegral W (H.refine M π' h_zero h_last h_strictMono idxMap h_idx_le h_idx_ge) T ω
+      = simpleIntegral W H T ω := by
+  rw [simpleIntegral_eq_sum, simpleIntegral_eq_sum]
+  show (∑ j : Fin M, H.ξ (idxMap j) ω
+        * (W.W (π' j.succ) ω - W.W (π' j.castSucc) ω))
+    = ∑ i : Fin H.N, H.ξ i ω
+        * (W.W (H.partition i.succ) ω - W.W (H.partition i.castSucc) ω)
+  rw [← Finset.sum_fiberwise_of_maps_to (g := idxMap)
+      (fun (j : Fin M) (_ : j ∈ (Finset.univ : Finset (Fin M))) => Finset.mem_univ _)]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  exact H.fiber_sum_telescope W h_strictMono h_idx_le h_idx_ge h_refines i ω
+
 end LevyStochCalc.Brownian.Ito
