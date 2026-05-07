@@ -576,4 +576,23 @@ lemma SimplePredictable.mem_mergedPartitionPoints_nonneg
   · obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
     rw [← hi]; exact H₂.partition_nonneg i
 
+/-- **C0b.4-pre10: `mergedπ 0 = 0`.** Apply `orderEmbOfFin_zero` to
+reduce to `min' = 0`; the latter follows since `0` is in the merged
+set and is a lower bound. -/
+lemma SimplePredictable.mergedπ_zero
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) :
+    H₁.mergedπ H₂ 0 = 0 := by
+  unfold SimplePredictable.mergedπ
+  have hz : (0 : ℕ) < H₁.mergedM H₂ + 1 := Nat.succ_pos _
+  have h_zero_eq : (0 : Fin (H₁.mergedM H₂ + 1)) = ⟨0, hz⟩ := rfl
+  rw [h_zero_eq]
+  rw [Finset.orderEmbOfFin_zero (H₁.mergedM_card_eq H₂) hz]
+  -- Now goal: min' (mergedPartitionPoints) ⋯ = 0
+  have h_zero_mem : (0 : ℝ) ∈ H₁.mergedPartitionPoints H₂ :=
+    H₁.zero_mem_mergedPartitionPoints H₂
+  apply le_antisymm
+  · exact Finset.min'_le _ _ h_zero_mem
+  · exact H₁.mem_mergedPartitionPoints_nonneg H₂
+      (Finset.min'_mem _ _)
+
 end LevyStochCalc.Brownian.Ito
