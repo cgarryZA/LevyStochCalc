@@ -746,4 +746,22 @@ noncomputable def SimplePredictable.mergedIdxMap_left
     (j : Fin (H₁.mergedM H₂)) : Fin H₁.N :=
   (H₁.exists_mergedIdxMap_left H₂ h_eq j).choose
 
+/-- **C0b.4-pre18: left idxMap inclusion (left endpoint).** -/
+lemma SimplePredictable.mergedIdxMap_left_idx_le
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (j : Fin (H₁.mergedM H₂)) :
+    H₁.partition (H₁.mergedIdxMap_left H₂ h_eq j).castSucc
+      ≤ H₁.mergedπ H₂ j.castSucc :=
+  (H₁.exists_mergedIdxMap_left H₂ h_eq j).choose_spec.1
+
+/-- **C0b.4-pre19: left idxMap inclusion (right endpoint).** -/
+lemma SimplePredictable.mergedIdxMap_left_idx_ge
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (j : Fin (H₁.mergedM H₂)) :
+    H₁.mergedπ H₂ j.succ
+      ≤ H₁.partition (H₁.mergedIdxMap_left H₂ h_eq j).succ :=
+  (H₁.exists_mergedIdxMap_left H₂ h_eq j).choose_spec.2
+
 end LevyStochCalc.Brownian.Ito
