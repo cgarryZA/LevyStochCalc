@@ -500,4 +500,13 @@ noncomputable def SimplePredictable.mergedPartitionPoints
     {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) : Finset ℝ :=
   (Finset.univ.image H₁.partition) ∪ (Finset.univ.image H₂.partition)
 
+/-- **C0b.4-pre2: `0` is in the merged set.** Both partitions start at
+`0` (`partition_zero`), so `0 = H₁.partition 0` is a member. -/
+lemma SimplePredictable.zero_mem_mergedPartitionPoints
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) :
+    (0 : ℝ) ∈ H₁.mergedPartitionPoints H₂ := by
+  rw [SimplePredictable.mergedPartitionPoints]
+  exact Finset.mem_union.mpr (Or.inl
+    (Finset.mem_image.mpr ⟨0, Finset.mem_univ _, H₁.partition_zero⟩))
+
 end LevyStochCalc.Brownian.Ito
