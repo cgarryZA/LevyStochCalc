@@ -1097,4 +1097,45 @@ lemma simpleIntegral_lintegral_sq_finite_brownian
         rw [MeasureTheory.measure_univ, mul_one]
         exact ENNReal.pow_lt_top ENNReal.ofReal_lt_top
 
+/-- **C0b.10-pre2: `simpleIntegral W H T` is in `L²(P)`.** Combines
+the AEStronglyMeasurability of `simpleIntegral` (via `Finset.sum`
+of measurable terms) with `simpleIntegral_lintegral_sq_finite_brownian`
+(C0b.10-pre1) to produce a `MemLp 2 P` witness. This is the lift
+of `simpleIntegral` into Mathlib's `Lp` framework, needed for the
+L²-Cauchy completion in C0b.10. -/
+lemma simpleIntegral_memLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    MeasureTheory.MemLp (fun ω => simpleIntegral W H T ω) 2 P := by
+  refine ⟨?_, ?_⟩
+  · -- AEStronglyMeasurable: simpleIntegral W H T = ∑_i ξ_i · ΔW_i
+    -- is a finite sum of products of measurable functions.
+    refine Measurable.aestronglyMeasurable ?_
+    unfold simpleIntegral
+    refine Finset.measurable_sum _ (fun i _ => ?_)
+    refine Measurable.mul (H.ξ_measurable i) ?_
+    exact (W.measurable_eval _).sub (W.measurable_eval _)
+  · -- eLpNorm < ⊤: from C0b.10-pre1 (∫⁻ ‖simpleIntegral‖² < ⊤) via
+    -- eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top.
+    rw [MeasureTheory.eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
+        (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
+    have h_two_toReal : (2 : ℝ≥0∞).toReal = 2 := by simp
+    rw [h_two_toReal]
+    have h_pre := simpleIntegral_lintegral_sq_finite_brownian W hT H h_adapt
+    -- Bridge ‖x‖ₑ ^ (2:ℝ) vs (‖x‖₊ : ℝ≥0∞) ^ (2:ℕ)
+    have h_rewrite : ∀ ω : Ω,
+        (‖simpleIntegral W H T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ)
+          = (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2 := by
+      intro ω
+      rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]
+      rfl
+    rw [show (fun ω => (‖simpleIntegral W H T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+          = (fun ω => (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2) from
+        funext h_rewrite]
+    exact h_pre
+
 end LevyStochCalc.Brownian.Ito
