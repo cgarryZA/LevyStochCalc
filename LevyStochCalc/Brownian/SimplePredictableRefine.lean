@@ -805,4 +805,19 @@ noncomputable def SimplePredictable.commonRefinement_left
     (H₁.mergedIdxMap_left_idx_le H₂ h_eq)
     (H₁.mergedIdxMap_left_idx_ge H₂ h_eq)
 
+/-- **C0b.4: common refinement of `H₂` (the right input).** Mirror of
+`commonRefinement_left`, refining `H₂` onto the same `mergedπ`. The
+two refinements share `N` and `partition` but differ in `ξ`. -/
+noncomputable def SimplePredictable.commonRefinement_right
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N)) :
+    SimplePredictable Ω T :=
+  H₂.refine (H₁.mergedM H₂) (H₁.mergedπ H₂)
+    (H₁.mergedπ_zero H₂)
+    (h_eq ▸ H₁.mergedπ_last H₂ h_eq)
+    (H₁.mergedπ_strictMono H₂)
+    (H₁.mergedIdxMap_right H₂ h_eq)
+    (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
+    (H₁.mergedIdxMap_right_idx_ge H₂ h_eq)
+
 end LevyStochCalc.Brownian.Ito
