@@ -225,4 +225,21 @@ private lemma sum_range_telescope_real (n : ℕ) (g : ℕ → ℝ) :
   | zero => simp
   | succ m ih => rw [Finset.sum_range_succ, ih]; ring
 
+/-- **Shifted real-valued telescoping:**
+`∑ k ∈ Finset.Ico a b, (g (k + 1) - g k) = g b - g a` for `a ≤ b`.
+Direct corollary of `sum_range_telescope_real` via `Finset.sum_Ico_eq_sum_range`. -/
+private lemma sum_Ico_telescope_real (a b : ℕ) (h : a ≤ b) (g : ℕ → ℝ) :
+    ∑ k ∈ Finset.Ico a b, (g (k + 1) - g k) = g b - g a := by
+  rw [Finset.sum_Ico_eq_sum_range]
+  -- ∑ k in range (b - a), (g (a + k + 1) - g (a + k)) = g b - g a
+  have h_eq : (∑ k ∈ Finset.range (b - a),
+      (g (a + k + 1) - g (a + k)))
+      = (fun m => g (a + m)) (b - a) - (fun m => g (a + m)) 0 := by
+    have := sum_range_telescope_real (b - a) (fun m => g (a + m))
+    simpa [add_assoc] using this
+  rw [h_eq]
+  simp
+  congr 1
+  omega
+
 end LevyStochCalc.Brownian.Ito
