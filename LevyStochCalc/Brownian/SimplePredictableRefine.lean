@@ -542,4 +542,12 @@ lemma SimplePredictable.mergedM_card_eq
   rw [SimplePredictable.mergedM]
   omega
 
+/-- **C0b.4-pre6: the common-refinement partition function.** The
+strictly-monotone enumeration of the merged Finset, with domain
+`Fin (mergedM + 1)`. -/
+noncomputable def SimplePredictable.mergedπ
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) :
+    Fin (H₁.mergedM H₂ + 1) → ℝ :=
+  fun k => (H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂) k
+
 end LevyStochCalc.Brownian.Ito
