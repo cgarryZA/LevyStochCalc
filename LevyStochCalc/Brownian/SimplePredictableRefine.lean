@@ -531,4 +531,15 @@ noncomputable def SimplePredictable.mergedM
     {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) : ℕ :=
   (H₁.mergedPartitionPoints H₂).card - 1
 
+/-- **C0b.4-pre5: cardinality vs. `mergedM`.** Since `0` is in the
+merged set, the cardinality is at least 1, so
+`card = mergedM + 1` (rearranging `mergedM = card - 1`). -/
+lemma SimplePredictable.mergedM_card_eq
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) :
+    (H₁.mergedPartitionPoints H₂).card = H₁.mergedM H₂ + 1 := by
+  have h_pos : 0 < (H₁.mergedPartitionPoints H₂).card :=
+    Finset.card_pos.mpr ⟨0, H₁.zero_mem_mergedPartitionPoints H₂⟩
+  rw [SimplePredictable.mergedM]
+  omega
+
 end LevyStochCalc.Brownian.Ito
