@@ -900,4 +900,47 @@ lemma SimplePredictable.simpleIntegral_sub_on_common
     rw [← h_right, simpleIntegral_eq_sum]
     exact Finset.sum_congr rfl (fun _ _ => rfl)
 
+/-- **C0b.7-aux: pointwise evaluation of `sub_on_common`.** The eval
+of the difference SimplePredictable equals the pointwise difference of
+the evals.
+
+Proof: rewrite both `H₁.eval` and `H₂.eval` as evals of their respective
+common refinements (via `refine_eval`), so all three `.eval` expressions
+share the partition `mergedπ`. Then both sides are sums of if-then-else
+indexed by `Fin (mergedM)`; case-splitting on the if-condition reduces
+to a trivial arithmetic equality. -/
+lemma SimplePredictable.eval_sub_on_common
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (s : ℝ) (ω : Ω) :
+    (H₁.sub_on_common H₂ h_eq).eval s ω
+      = H₁.eval s ω - H₂.eval s ω := by
+  rw [← H₁.refine_eval (H₁.mergedM H₂) (H₁.mergedπ H₂)
+        (H₁.mergedπ_zero H₂) (H₁.mergedπ_last H₂ h_eq)
+        (H₁.mergedπ_strictMono H₂) (H₁.mergedIdxMap_left H₂ h_eq)
+        (H₁.mergedIdxMap_left_idx_le H₂ h_eq)
+        (H₁.mergedIdxMap_left_idx_ge H₂ h_eq) s ω]
+  rw [← H₂.refine_eval (H₁.mergedM H₂) (H₁.mergedπ H₂)
+        (H₁.mergedπ_zero H₂) (h_eq ▸ H₁.mergedπ_last H₂ h_eq)
+        (H₁.mergedπ_strictMono H₂) (H₁.mergedIdxMap_right H₂ h_eq)
+        (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
+        (H₁.mergedIdxMap_right_idx_ge H₂ h_eq) s ω]
+  unfold SimplePredictable.eval
+  show (∑ j : Fin (H₁.mergedM H₂),
+        if H₁.mergedπ H₂ j.castSucc < s ∧ s ≤ H₁.mergedπ H₂ j.succ
+        then (H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
+              - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω)
+        else 0)
+      = (∑ j : Fin (H₁.mergedM H₂),
+          if H₁.mergedπ H₂ j.castSucc < s ∧ s ≤ H₁.mergedπ H₂ j.succ
+          then H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω else 0)
+        - (∑ j : Fin (H₁.mergedM H₂),
+          if H₁.mergedπ H₂ j.castSucc < s ∧ s ≤ H₁.mergedπ H₂ j.succ
+          then H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω else 0)
+  rw [← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl (fun j _ => ?_)
+  by_cases h_cond : H₁.mergedπ H₂ j.castSucc < s ∧ s ≤ H₁.mergedπ H₂ j.succ
+  · simp [h_cond]
+  · simp [h_cond]
+
 end LevyStochCalc.Brownian.Ito
