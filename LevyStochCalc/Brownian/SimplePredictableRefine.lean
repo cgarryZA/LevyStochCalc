@@ -611,4 +611,31 @@ lemma SimplePredictable.mem_mergedPartitionPoints_le_endpoint
     rw [h_eq]
     exact H₂.partition_strictMono.monotone (Fin.le_last i)
 
+/-- **C0b.4-pre12: `mergedπ` at the last index equals the (shared)
+endpoint.** Apply `orderEmbOfFin_last` to reduce to `max' = endpoint`;
+the latter follows since the endpoint is in the merged set and is an
+upper bound (via `mem_mergedPartitionPoints_le_endpoint`). -/
+lemma SimplePredictable.mergedπ_last
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N)) :
+    H₁.mergedπ H₂ (Fin.last (H₁.mergedM H₂)) =
+      H₁.partition (Fin.last H₁.N) := by
+  unfold SimplePredictable.mergedπ
+  have hz : (0 : ℕ) < H₁.mergedM H₂ + 1 := Nat.succ_pos _
+  have h_last_eq : (Fin.last (H₁.mergedM H₂) : Fin (H₁.mergedM H₂ + 1))
+      = ⟨H₁.mergedM H₂ + 1 - 1, by omega⟩ := by
+    apply Fin.ext; simp
+  rw [h_last_eq]
+  rw [Finset.orderEmbOfFin_last (H₁.mergedM_card_eq H₂) hz]
+  -- Goal: max' (mergedPartitionPoints) ⋯ = H₁.partition (Fin.last H₁.N)
+  have h_endpt_mem : H₁.partition (Fin.last H₁.N) ∈ H₁.mergedPartitionPoints H₂ :=
+    H₁.partition_mem_mergedPartitionPoints_left H₂ (Fin.last H₁.N)
+  apply le_antisymm
+  · -- max' ≤ endpoint, since endpoint is an upper bound
+    apply Finset.max'_le
+    intro x hx
+    exact H₁.mem_mergedPartitionPoints_le_endpoint H₂ h_eq hx
+  · -- endpoint ≤ max', since endpoint is a member
+    exact Finset.le_max' _ _ h_endpt_mem
+
 end LevyStochCalc.Brownian.Ito
