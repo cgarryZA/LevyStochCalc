@@ -833,4 +833,30 @@ lemma SimplePredictable.commonRefinement_compat
             (H₁.commonRefinement_right H₂ h_eq).partition := by
   refine ⟨rfl, HEq.rfl⟩
 
+/-- **C0b.6: subtraction on common refinement.** Given two
+SimplePredictables sharing endpoint, the difference SimplePredictable
+on the common refinement: same partition (`mergedπ`), with
+`ξ_j ω = H₁.ξ (idxMap_left j) ω - H₂.ξ (idxMap_right j) ω`.
+
+Boundedness uses `abs_sub` (`|a-b| ≤ |a|+|b|`) with the sum of bounds.
+Measurability uses `Measurable.sub`. -/
+noncomputable def SimplePredictable.sub_on_common
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N)) :
+    SimplePredictable Ω T where
+  N := H₁.mergedM H₂
+  partition := H₁.mergedπ H₂
+  partition_zero := H₁.mergedπ_zero H₂
+  partition_le_T := (H₁.mergedπ_last H₂ h_eq) ▸ H₁.partition_le_T
+  partition_strictMono := H₁.mergedπ_strictMono H₂
+  ξ := fun j ω => H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
+    - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω
+  ξ_bounded := fun j => by
+    obtain ⟨C₁, hC₁⟩ := H₁.ξ_bounded (H₁.mergedIdxMap_left H₂ h_eq j)
+    obtain ⟨C₂, hC₂⟩ := H₂.ξ_bounded (H₁.mergedIdxMap_right H₂ h_eq j)
+    exact ⟨C₁ + C₂, fun ω =>
+      (abs_sub _ _).trans (add_le_add (hC₁ ω) (hC₂ ω))⟩
+  ξ_measurable := fun j =>
+    (H₁.ξ_measurable _).sub (H₂.ξ_measurable _)
+
 end LevyStochCalc.Brownian.Ito
