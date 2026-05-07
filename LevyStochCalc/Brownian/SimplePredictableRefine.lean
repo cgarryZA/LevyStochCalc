@@ -550,4 +550,11 @@ noncomputable def SimplePredictable.mergedπ
     Fin (H₁.mergedM H₂ + 1) → ℝ :=
   fun k => (H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂) k
 
+/-- **C0b.4-pre7: `mergedπ` is strictly monotone.** Direct from
+`orderEmbOfFin` being an order embedding. -/
+lemma SimplePredictable.mergedπ_strictMono
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) :
+    StrictMono (H₁.mergedπ H₂) :=
+  ((H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂)).strictMono
+
 end LevyStochCalc.Brownian.Ito
