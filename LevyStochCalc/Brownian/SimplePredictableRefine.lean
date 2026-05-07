@@ -566,4 +566,14 @@ lemma SimplePredictable.partition_nonneg
   rw [← H.partition_zero]
   exact H.partition_strictMono.monotone (Fin.zero_le i)
 
+/-- **C0b.4-pre9: every element of the merged set is non-negative.** -/
+lemma SimplePredictable.mem_mergedPartitionPoints_nonneg
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) {x : ℝ}
+    (hx : x ∈ H₁.mergedPartitionPoints H₂) : 0 ≤ x := by
+  rcases Finset.mem_union.mp hx with h | h
+  · obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
+    rw [← hi]; exact H₁.partition_nonneg i
+  · obtain ⟨i, _, hi⟩ := Finset.mem_image.mp h
+    rw [← hi]; exact H₂.partition_nonneg i
+
 end LevyStochCalc.Brownian.Ito
