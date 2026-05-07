@@ -1138,4 +1138,19 @@ lemma simpleIntegral_memLp_brownian
         funext h_rewrite]
     exact h_pre
 
+/-- **C0b.10-pre3: simpleIntegral lifted to `Lp ℝ 2 P`.** Packages the
+`simpleIntegral_memLp_brownian` witness via `MemLp.toLp` to give a
+genuine `Lp` element. This is the function that gets fed to
+`MeasureTheory.Lp.completeSpace` for the L² limit construction in
+C0b.10. -/
+noncomputable def simpleIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    MeasureTheory.Lp ℝ 2 P :=
+  (simpleIntegral_memLp_brownian W hT H h_adapt).toLp
+
 end LevyStochCalc.Brownian.Ito
