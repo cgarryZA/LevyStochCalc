@@ -27,6 +27,7 @@ This file builds the partition-refinement machinery needed to upgrade
 namespace LevyStochCalc.Brownian.Ito
 
 open MeasureTheory
+open scoped NNReal ENNReal
 
 universe u
 variable {Ω : Type u} [MeasurableSpace Ω]
@@ -974,5 +975,48 @@ lemma SimplePredictable.sub_on_common_adapt
   have h₁ := (h_adapt₁ (H₁.mergedIdxMap_left H₂ h_eq j)).mono h_mono₁
   have h₂ := (h_adapt₂ (H₁.mergedIdxMap_right H₂ h_eq j)).mono h_mono₂
   exact h₁.sub h₂
+
+/-- **C0b.8: L² isometry on the difference of simples (`diff isometry`).**
+For two adapted simple integrands `H₁, H₂` sharing endpoint, the L² norm
+squared of `∫H₁ dW − ∫H₂ dW` equals the (joint) L² norm squared of
+`H₁.eval − H₂.eval` over `[0,T] × Ω`.
+
+Direct consequence of `simpleIntegral_isometry` applied to `sub_on_common`,
+combined with `simpleIntegral_sub_on_common` (LHS rewrite) and
+`eval_sub_on_common` (RHS rewrite). The adaptedness of `sub_on_common`
+follows from `sub_on_common_adapt`. -/
+theorem SimplePredictable.diff_isometry_simple
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₁.partition i.castSucc)) (H₁.ξ i))
+    (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+    ∫⁻ ω, (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have h_LHS :
+      ∫⁻ ω, (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊
+              : ℝ≥0∞) ^ 2 ∂P
+        = ∫⁻ ω, (‖simpleIntegral W (H₁.sub_on_common H₂ h_eq) T ω‖₊
+              : ℝ≥0∞) ^ 2 ∂P := by
+    refine MeasureTheory.lintegral_congr (fun ω => ?_)
+    rw [SimplePredictable.simpleIntegral_sub_on_common W H₁ H₂ h_eq ω]
+  have h_RHS :
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖((H₁.sub_on_common H₂ h_eq).eval s ω)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+    refine MeasureTheory.lintegral_congr (fun ω => ?_)
+    refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc
+      (fun s _ => ?_)
+    rw [SimplePredictable.eval_sub_on_common H₁ H₂ h_eq s ω]
+  rw [h_LHS, h_RHS]
+  exact simpleIntegral_isometry W hT (H₁.sub_on_common H₂ h_eq)
+    (SimplePredictable.sub_on_common_adapt W H₁ H₂ h_eq h_adapt₁ h_adapt₂)
 
 end LevyStochCalc.Brownian.Ito
