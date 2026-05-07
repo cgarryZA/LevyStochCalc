@@ -509,4 +509,20 @@ lemma SimplePredictable.zero_mem_mergedPartitionPoints
   exact Finset.mem_union.mpr (Or.inl
     (Finset.mem_image.mpr ⟨0, Finset.mem_univ _, H₁.partition_zero⟩))
 
+/-- **C0b.4-pre3a: every `H₁.partition i` is in the merged set.** -/
+lemma SimplePredictable.partition_mem_mergedPartitionPoints_left
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) (i : Fin (H₁.N + 1)) :
+    H₁.partition i ∈ H₁.mergedPartitionPoints H₂ := by
+  rw [SimplePredictable.mergedPartitionPoints]
+  exact Finset.mem_union.mpr (Or.inl
+    (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩))
+
+/-- **C0b.4-pre3b: every `H₂.partition i` is in the merged set.** -/
+lemma SimplePredictable.partition_mem_mergedPartitionPoints_right
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) (i : Fin (H₂.N + 1)) :
+    H₂.partition i ∈ H₁.mergedPartitionPoints H₂ := by
+  rw [SimplePredictable.mergedPartitionPoints]
+  exact Finset.mem_union.mpr (Or.inr
+    (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩))
+
 end LevyStochCalc.Brownian.Ito
