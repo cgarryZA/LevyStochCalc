@@ -1019,4 +1019,41 @@ theorem SimplePredictable.diff_isometry_simple
   exact simpleIntegral_isometry W hT (H₁.sub_on_common H₂ h_eq)
     (SimplePredictable.sub_on_common_adapt W H₁ H₂ h_eq h_adapt₁ h_adapt₂)
 
+/-- **C0b.9: Cauchy preservation for `simpleIntegral`.** If an
+eval-sequence of adapted simple integrands sharing a common endpoint is
+`L²(λ⊗P)`-Cauchy (in ε-`N` form on the squared `lintegral`), then the
+sequence of `simpleIntegral`s is `L²(P)`-Cauchy.
+
+Direct corollary of `diff_isometry_simple` applied pairwise: each
+pairwise distance on the integral side equals the corresponding pairwise
+distance on the eval side, so the eval-Cauchy ε-`N` witness `N` works
+verbatim for the integrals. -/
+theorem cauchy_of_L2_dense_simple
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, (‖simpleIntegral W (G n) T ω - simpleIntegral W (G m) T ω‖₊
+              : ℝ≥0∞) ^ 2 ∂P < ε := by
+  intro ε hε
+  obtain ⟨N, hN⟩ := h_cauchy_eval ε hε
+  refine ⟨N, fun n m hn hm => ?_⟩
+  rw [SimplePredictable.diff_isometry_simple W hT (G n) (G m)
+        (h_eq n m) (h_adapt n) (h_adapt m)]
+  exact hN n m hn hm
+
 end LevyStochCalc.Brownian.Ito
