@@ -493,4 +493,11 @@ lemma SimplePredictable.simpleIntegral_refine
   refine Finset.sum_congr rfl (fun i _ => ?_)
   exact H.fiber_sum_telescope W h_strictMono h_idx_le h_idx_ge h_refines i ω
 
+/-- **C0b.4-pre1: Merged partition points.** The union of the two
+SimplePredictables' partition images, as a `Finset ℝ`. The cardinality
+of this Finset will become `M + 1` for the common refinement. -/
+noncomputable def SimplePredictable.mergedPartitionPoints
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) : Finset ℝ :=
+  (Finset.univ.image H₁.partition) ∪ (Finset.univ.image H₂.partition)
+
 end LevyStochCalc.Brownian.Ito
