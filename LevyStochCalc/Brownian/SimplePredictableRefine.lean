@@ -789,4 +789,20 @@ lemma SimplePredictable.mergedIdxMap_right_idx_ge
       ≤ H₂.partition (H₁.mergedIdxMap_right H₂ h_eq j).succ :=
   (H₁.exists_mergedIdxMap_right H₂ h_eq j).choose_spec.2
 
+/-- **C0b.4: common refinement of `H₁` (the left input).** Refine
+`H₁` onto the merged partition `mergedπ`, using `mergedIdxMap_left`
+to map merged tiles back to `H₁`-tiles. The resulting SimplePredictable
+has `N = H₁.mergedM H₂`, partition `mergedπ`, and `ξ_j = H₁.ξ (idxMap j)`. -/
+noncomputable def SimplePredictable.commonRefinement_left
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N)) :
+    SimplePredictable Ω T :=
+  H₁.refine (H₁.mergedM H₂) (H₁.mergedπ H₂)
+    (H₁.mergedπ_zero H₂)
+    (H₁.mergedπ_last H₂ h_eq)
+    (H₁.mergedπ_strictMono H₂)
+    (H₁.mergedIdxMap_left H₂ h_eq)
+    (H₁.mergedIdxMap_left_idx_le H₂ h_eq)
+    (H₁.mergedIdxMap_left_idx_ge H₂ h_eq)
+
 end LevyStochCalc.Brownian.Ito
