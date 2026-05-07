@@ -662,4 +662,47 @@ lemma SimplePredictable.mergedπ_refines_right
     exact_mod_cast H₁.partition_mem_mergedPartitionPoints_right H₂ i
   exact h_in_range
 
+/-- **C0b.4-pre15: existence of left index map.** For each merged tile `j`,
+there is an `H₁` tile `i` whose interval contains the merged tile.
+
+Proof: apply `strictMono_partition_tiles` to `H₁.partition` with
+`s = mergedπ j.succ` to get `i` with `H₁.partition i.castSucc < s` and
+`s ≤ H₁.partition i.succ`. This gives the right inclusion.
+For the left inclusion, suppose for contradiction
+`mergedπ j.castSucc < H₁.partition i.castSucc`. Since `H₁.partition i.castSucc`
+is in the merged set, it equals `mergedπ k` for some `k`. Then
+`mergedπ j.castSucc < mergedπ k < mergedπ j.succ`, so `j.castSucc < k < j.succ`,
+contradicting `j.succ.val = j.castSucc.val + 1`. -/
+private lemma SimplePredictable.exists_mergedIdxMap_left
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (j : Fin (H₁.mergedM H₂)) :
+    ∃ i : Fin H₁.N,
+      H₁.partition i.castSucc ≤ H₁.mergedπ H₂ j.castSucc ∧
+      H₁.mergedπ H₂ j.succ ≤ H₁.partition i.succ := by
+  -- Bounds on s = mergedπ j.succ to apply strictMono_partition_tiles
+  have h_pos : H₁.partition 0 < H₁.mergedπ H₂ j.succ := by
+    rw [H₁.partition_zero, ← H₁.mergedπ_zero H₂]
+    exact (H₁.mergedπ_strictMono H₂) (Fin.succ_pos j)
+  have h_le_endpt : H₁.mergedπ H₂ j.succ ≤ H₁.partition (Fin.last H₁.N) := by
+    rw [← H₁.mergedπ_last H₂ h_eq]
+    exact (H₁.mergedπ_strictMono H₂).monotone (Fin.le_last j.succ)
+  obtain ⟨i, h_lt, h_le⟩ :=
+    strictMono_partition_tiles H₁.partition_strictMono h_pos h_le_endpt
+  refine ⟨i, ?_, h_le⟩
+  by_contra h_not
+  push_neg at h_not
+  -- h_not : H₁.mergedπ H₂ j.castSucc < H₁.partition i.castSucc
+  obtain ⟨k, hk⟩ := H₁.mergedπ_refines_left H₂ i.castSucc
+  rw [← hk] at h_not h_lt
+  have h_jcs_lt_k : j.castSucc < k :=
+    (H₁.mergedπ_strictMono H₂).lt_iff_lt.mp h_not
+  have h_k_lt_jsc : k < j.succ :=
+    (H₁.mergedπ_strictMono H₂).lt_iff_lt.mp h_lt
+  have hj_cs_val : j.castSucc.val = j.val := Fin.val_castSucc j
+  have hj_succ_val : j.succ.val = j.val + 1 := Fin.val_succ j
+  have h1 : j.castSucc.val < k.val := h_jcs_lt_k
+  have h2 : k.val < j.succ.val := h_k_lt_jsc
+  omega
+
 end LevyStochCalc.Brownian.Ito
