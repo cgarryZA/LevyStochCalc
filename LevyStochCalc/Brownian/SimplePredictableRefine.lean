@@ -820,4 +820,17 @@ noncomputable def SimplePredictable.commonRefinement_right
     (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
     (H₁.mergedIdxMap_right_idx_ge H₂ h_eq)
 
+/-- **C0b.5: compatibility of the two common refinements.** They have
+the same `N` (both equal to `mergedM`) and the same `partition` function
+(both equal to `mergedπ`). This is what allows pointwise subtraction
+of their `ξ` values to form `sub_on_common`. -/
+lemma SimplePredictable.commonRefinement_compat
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N)) :
+    (H₁.commonRefinement_left H₂ h_eq).N
+        = (H₁.commonRefinement_right H₂ h_eq).N
+      ∧ HEq (H₁.commonRefinement_left H₂ h_eq).partition
+            (H₁.commonRefinement_right H₂ h_eq).partition := by
+  refine ⟨rfl, HEq.rfl⟩
+
 end LevyStochCalc.Brownian.Ito
