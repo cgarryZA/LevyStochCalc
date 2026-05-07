@@ -638,4 +638,28 @@ lemma SimplePredictable.mergedπ_last
   · -- endpoint ≤ max', since endpoint is a member
     exact Finset.le_max' _ _ h_endpt_mem
 
+/-- **C0b.4-pre13: every `H₁.partition i` is in the range of `mergedπ`.**
+The range of `orderEmbOfFin` is the underlying Finset (via
+`Finset.range_orderEmbOfFin`). -/
+lemma SimplePredictable.mergedπ_refines_left
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) (i : Fin (H₁.N + 1)) :
+    ∃ k : Fin (H₁.mergedM H₂ + 1), H₁.mergedπ H₂ k = H₁.partition i := by
+  unfold SimplePredictable.mergedπ
+  have h_in_range : H₁.partition i ∈ Set.range
+      ⇑((H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂)) := by
+    rw [Finset.range_orderEmbOfFin]
+    exact_mod_cast H₁.partition_mem_mergedPartitionPoints_left H₂ i
+  exact h_in_range
+
+/-- **C0b.4-pre14: every `H₂.partition i` is in the range of `mergedπ`.** -/
+lemma SimplePredictable.mergedπ_refines_right
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T) (i : Fin (H₂.N + 1)) :
+    ∃ k : Fin (H₁.mergedM H₂ + 1), H₁.mergedπ H₂ k = H₂.partition i := by
+  unfold SimplePredictable.mergedπ
+  have h_in_range : H₂.partition i ∈ Set.range
+      ⇑((H₁.mergedPartitionPoints H₂).orderEmbOfFin (H₁.mergedM_card_eq H₂)) := by
+    rw [Finset.range_orderEmbOfFin]
+    exact_mod_cast H₁.partition_mem_mergedPartitionPoints_right H₂ i
+  exact h_in_range
+
 end LevyStochCalc.Brownian.Ito
