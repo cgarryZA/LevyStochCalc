@@ -254,4 +254,21 @@ lemma SimplePredictable.simpleIntegral_refine_id
       H.partition_strictMono id (fun _ => le_refl _) (fun _ => le_refl _)) T ω
       = simpleIntegral W H T ω := rfl
 
+/-- **Disjoint Ioc partition pieces:** for `i ≠ j` in `Fin H.N`, the
+intervals `(H.partition i.castSucc, H.partition i.succ]` and
+`(H.partition j.castSucc, H.partition j.succ]` are disjoint. Used by
+the upcoming `simpleIntegral_refine` to derive `idxMap j = i` from
+the inclusion hypotheses + a witness point. -/
+lemma SimplePredictable.partition_Ioc_disjoint_of_ne {T : ℝ}
+    (H : SimplePredictable Ω T) {i j : Fin H.N} (h_ne : i ≠ j) :
+    Disjoint
+      (Set.Ioc (H.partition i.castSucc) (H.partition i.succ))
+      (Set.Ioc (H.partition j.castSucc) (H.partition j.succ)) := by
+  rcases lt_trichotomy i j with h | h | h
+  · exact Set.Ioc_disjoint_Ioc_of_le
+      (H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr h))
+  · exact absurd h h_ne
+  · exact (Set.Ioc_disjoint_Ioc_of_le
+      (H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr h))).symm
+
 end LevyStochCalc.Brownian.Ito
