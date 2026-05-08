@@ -196,6 +196,10 @@ end-to-end:
 | C0b.10-post5 | `eLpNorm_rpow_simpleIntegralLp_tendsto_brownian` | squared eLpNorm continuity |
 | C0b.10-post6 | `lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian` | pure-lintegral form convergence |
 | **C0b.10-post7** | **`itoIntegralLp_brownian_L2_isometry`** | **headline L² isometry on the L² limit** |
+| C0b.10-post8 | `simpleIntegral_stronglyAdapted_brownian` | `simpleIntegral W H t` is `ℱ_t`-StronglyMeasurable |
+
+Also: `martingale_simpleIntegral_brownian` exposed as public
+(was private) so downstream files can use it.
 
 All in `LevyStochCalc/Brownian/SimplePredictableRefine.lean`. Each
 landed in its own commit, axiom set `[propext, choice, Quot.sound]`.
