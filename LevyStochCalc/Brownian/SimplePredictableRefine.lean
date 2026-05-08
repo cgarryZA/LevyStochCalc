@@ -1280,4 +1280,37 @@ theorem cauchySeq_simpleIntegralLp_brownian
     rw [hδ] at h_lt
     exact (ENNReal.rpow_lt_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp h_lt
 
+/-- **C0b.10: `itoIntegralLp_brownian` — the L²-limit of `simpleIntegralLp_brownian`
+along a Cauchy approximating sequence.**
+
+This is the genuine L²-extended Itô integral against Brownian motion,
+defined as `Filter.limUnder Filter.atTop (simpleIntegralLp_brownian ∘ G)`
+for any approximating sequence `G : ℕ → SimplePredictable` whose evals
+are L²-Cauchy and which are adapted with shared endpoints.
+
+The convergence (and unique-limit identification) follows from
+`Lp.completeSpace` + `cauchySeq_simpleIntegralLp_brownian` (C0b.10-pre6)
++ `CauchySeq.tendsto_limUnder`. Properties of `itoIntegralLp_brownian`
+(L² isometry, etc.) are proved in subsequent lemmas. -/
+noncomputable def itoIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (_hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (_h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (_h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    MeasureTheory.Lp ℝ 2 P :=
+  Filter.limUnder Filter.atTop
+    (fun n => simpleIntegralLp_brownian W _hT (G n) (h_adapt n))
+
 end LevyStochCalc.Brownian.Ito
