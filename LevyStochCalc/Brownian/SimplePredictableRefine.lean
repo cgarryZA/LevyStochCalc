@@ -1214,4 +1214,70 @@ lemma eLpNorm_simpleIntegral_sub_rpow_brownian
   rw [h_pointwise]
   exact SimplePredictable.diff_isometry_simple W hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
 
+/-- **C0b.10-pre6: `simpleIntegralLp_brownian` is a `CauchySeq` in
+`Lp ℝ 2 P` whenever the eval-sequence is L²-Cauchy.**
+
+Direct application of the eLpNorm-form diff isometry
+(`eLpNorm_simpleIntegral_sub_rpow_brownian`) plus
+`ENNReal.rpow_lt_rpow_iff` to convert `eLpNorm^(2:ℝ) < ε^(2:ℝ)` to
+`eLpNorm < ε`. The L²-Cauchy hypothesis on evals provides the matching
+`∫⁻ < ε^(2:ℝ)` bound. -/
+theorem cauchySeq_simpleIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    CauchySeq (fun n => simpleIntegralLp_brownian W hT (G n) (h_adapt n)) := by
+  -- Step 1: establish that edist of the Lp elements equals the eLpNorm of the
+  -- raw simpleIntegral function difference (via Lp.edist_toLp_toLp).
+  have h_edist_eq : ∀ m n : ℕ,
+      edist (simpleIntegralLp_brownian W hT (G m) (h_adapt m))
+            (simpleIntegralLp_brownian W hT (G n) (h_adapt n))
+        = MeasureTheory.eLpNorm
+            (fun ω => simpleIntegral W (G m) T ω - simpleIntegral W (G n) T ω) 2 P := by
+    intro m n
+    show edist
+      ((simpleIntegral_memLp_brownian W hT (G m) (h_adapt m)).toLp)
+      ((simpleIntegral_memLp_brownian W hT (G n) (h_adapt n)).toLp) = _
+    exact MeasureTheory.Lp.edist_toLp_toLp _ _ _ _
+  rw [EMetric.cauchySeq_iff]
+  intro ε hε
+  by_cases hε_top : ε = ⊤
+  · -- ε = ⊤: edist always finite (Lp norms are < ⊤).
+    obtain ⟨N, _⟩ := h_cauchy_eval 1 (by norm_num : (0 : ℝ≥0∞) < 1)
+    refine ⟨N, fun m _ n _ => ?_⟩
+    rw [hε_top, h_edist_eq]
+    -- eLpNorm of MemLp function is finite.
+    have h_memLp : MeasureTheory.MemLp
+        (fun ω => simpleIntegral W (G m) T ω - simpleIntegral W (G n) T ω) 2 P :=
+      (simpleIntegral_memLp_brownian W hT (G m) (h_adapt m)).sub
+        (simpleIntegral_memLp_brownian W hT (G n) (h_adapt n))
+    exact lt_of_le_of_ne le_top h_memLp.eLpNorm_ne_top
+  · -- ε < ⊤. Pick δ = ε ^ (2:ℝ).
+    set δ : ℝ≥0∞ := ε ^ (2 : ℝ) with hδ
+    have hδ_pos : 0 < δ := by
+      rw [hδ]
+      exact ENNReal.rpow_pos hε hε_top
+    obtain ⟨N, hN⟩ := h_cauchy_eval δ hδ_pos
+    refine ⟨N, fun m hm n hn => ?_⟩
+    rw [h_edist_eq]
+    have h_iso := eLpNorm_simpleIntegral_sub_rpow_brownian W hT (G m) (G n)
+      (h_eq m n) (h_adapt m) (h_adapt n)
+    have h_lt := hN m n hm hn
+    rw [← h_iso] at h_lt
+    rw [hδ] at h_lt
+    exact (ENNReal.rpow_lt_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp h_lt
+
 end LevyStochCalc.Brownian.Ito
