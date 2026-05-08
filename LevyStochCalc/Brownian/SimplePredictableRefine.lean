@@ -1387,4 +1387,31 @@ lemma eLpNorm_simpleIntegralLp_brownian_rpow_eq
   -- Step 4: simpleIntegral_isometry.
   exact simpleIntegral_isometry W hT H h_adapt
 
+/-- **C0b.10-post3: ‖simpleIntegralLp_brownian (G n)‖ converges to
+‖itoIntegralLp_brownian‖ in ℝ.** Direct from the convergence of
+`simpleIntegralLp_brownian (G n) → itoIntegralLp_brownian` in `Lp`
+plus continuity of the norm. -/
+theorem norm_simpleIntegralLp_tendsto_norm_itoIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => ‖simpleIntegralLp_brownian W hT (G n) (h_adapt n)‖)
+      Filter.atTop
+      (nhds ‖itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval‖) :=
+  (itoIntegralLp_brownian_tendsto W hT G h_eq h_adapt h_cauchy_eval).norm
+
 end LevyStochCalc.Brownian.Ito
