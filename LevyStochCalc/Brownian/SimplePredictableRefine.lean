@@ -1526,4 +1526,48 @@ theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
   rw [h_eqv] at h_tendsto
   exact h_tendsto
 
+/-- **C0b.10-post7: L² isometry on `itoIntegralLp_brownian`.**
+
+Conditional on the approximating sequence's `lintegral_sq` of `(G n).eval`
+converging to `∫⁻ ω ∫⁻ s ‖H ω s‖₊² ∂vol ∂P`, we obtain
+`eLpNorm² (itoIntegralLp ...) = ∫⁻ ω ∫⁻ s ‖H ω s‖₊² ∂vol ∂P`.
+
+By uniqueness of limits in `ℝ≥0∞`, combining the two `Tendsto` statements
+(the `(G n).eval`-form from `lintegral_sq_eval_tendsto_...` and the
+hypothesised convergence to `∫⁻ ‖H‖²`) forces equality of the limits. -/
+theorem itoIntegralLp_brownian_L2_isometry
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε)
+    (H : Ω → ℝ → ℝ)
+    (h_eval_norm_tendsto : Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P))) :
+    MeasureTheory.eLpNorm
+        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
+          ^ (2 : ℝ)
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  -- Both Tendsto statements have the same source filter and source function;
+  -- their target nhds-points must coincide by uniqueness of limits.
+  have h_to_eLpNorm := lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
+    W hT G h_eq h_adapt h_cauchy_eval
+  exact (tendsto_nhds_unique h_to_eLpNorm h_eval_norm_tendsto)
+
 end LevyStochCalc.Brownian.Ito
