@@ -1313,4 +1313,30 @@ noncomputable def itoIntegralLp_brownian
   Filter.limUnder Filter.atTop
     (fun n => simpleIntegralLp_brownian W _hT (G n) (h_adapt n))
 
+/-- **C0b.10-post1: `simpleIntegralLp_brownian` converges to `itoIntegralLp_brownian`
+in `Lp ℝ 2 P`.** Direct from `cauchySeq_simpleIntegralLp_brownian` +
+`CauchySeq.tendsto_limUnder` (using `Lp.completeSpace`). -/
+theorem itoIntegralLp_brownian_tendsto
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => simpleIntegralLp_brownian W hT (G n) (h_adapt n))
+      Filter.atTop
+      (nhds (itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval)) :=
+  (cauchySeq_simpleIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval).tendsto_limUnder
+
 end LevyStochCalc.Brownian.Ito
