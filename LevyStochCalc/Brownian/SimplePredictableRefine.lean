@@ -1339,4 +1339,52 @@ theorem itoIntegralLp_brownian_tendsto
       (nhds (itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval)) :=
   (cauchySeq_simpleIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval).tendsto_limUnder
 
+/-- **C0b.10-post2: `eLpNorm` of `simpleIntegralLp` rpow-form, the
+single-function version of the diff isometry.**
+
+`eLpNorm (simpleIntegralLp ...) 2 P ^ (2:ℝ) = ∫⁻ ω ∫⁻ s ‖H.eval s ω‖₊² ∂vol ∂P`.
+
+Direct from `simpleIntegral_isometry` (single-function version) plus
+the same `eLpNorm_nnreal_pow_eq_lintegral` bridge as the diff form. -/
+lemma eLpNorm_simpleIntegralLp_brownian_rpow_eq
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_brownian W hT H h_adapt) : Ω → ℝ) 2 P ^ (2 : ℝ)
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  -- Step 1: replace ↑↑(toLp ...) with the original simpleIntegral function (a.e.).
+  have h_aeeq := coeFn_simpleIntegralLp_brownian W hT H h_adapt
+  rw [MeasureTheory.eLpNorm_congr_ae h_aeeq]
+  -- Goal: eLpNorm (fun ω => simpleIntegral W H T ω) 2 P ^ (2:ℝ)
+  --     = ∫⁻ ω, ∫⁻ s, ‖H.eval s ω‖₊² ∂vol ∂P
+  -- Step 2: eLpNorm^(2:ℝ) = ∫⁻ ‖.‖_e² via eLpNorm_nnreal_pow_eq_lintegral.
+  have h_pow_lemma := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral
+    (μ := P) (p := (2 : NNReal))
+    (f := fun ω => simpleIntegral W H T ω)
+    (by norm_num : (2 : NNReal) ≠ 0)
+  have h_two_R : ((2 : NNReal) : ℝ) = (2 : ℝ) := by norm_num
+  have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
+  rw [h_two_ENNReal, h_two_R] at h_pow_lemma
+  rw [h_pow_lemma]
+  -- Goal: ∫⁻ ω, ‖simpleIntegral W H T ω‖_e ^ (2:ℝ) ∂P
+  --     = ∫⁻ ω, ∫⁻ s, ‖H.eval s ω‖₊² ∂vol ∂P
+  -- Step 3: ‖.‖_e ^ (2:ℝ) = (‖.‖₊ : ℝ≥0∞) ^ 2 (via ENNReal.rpow_natCast).
+  have h_pointwise : (fun ω : Ω =>
+        (‖simpleIntegral W H T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+      = (fun ω : Ω => (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2) := by
+    funext ω
+    rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num,
+        ENNReal.rpow_natCast]
+    rfl
+  rw [h_pointwise]
+  -- Goal: ∫⁻ ω, ‖simpleIntegral W H T ω‖₊² ∂P
+  --     = ∫⁻ ω, ∫⁻ s, ‖H.eval s ω‖₊² ∂vol ∂P
+  -- Step 4: simpleIntegral_isometry.
+  exact simpleIntegral_isometry W hT H h_adapt
+
 end LevyStochCalc.Brownian.Ito
