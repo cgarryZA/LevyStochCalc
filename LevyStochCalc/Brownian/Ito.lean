@@ -2587,7 +2587,7 @@ Proof: `simpleIntegral W H t = ∑_i ξ_i · (W_{t_{i+1} ∧ t} - W_{t_i ∧ t})
 Adaptedness reduces to per-term `F_t`-measurability via
 `Finset.stronglyMeasurable_fun_sum`; the cond-exp identity reduces to the
 per-term identity via `condExp_finset_sum` + `eventuallyEq_sum`. -/
-private lemma martingale_simpleIntegral_brownian
+lemma martingale_simpleIntegral_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
     {T : ℝ} (H : SimplePredictable Ω T)

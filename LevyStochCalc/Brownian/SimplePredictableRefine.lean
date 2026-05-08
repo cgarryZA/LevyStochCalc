@@ -1570,4 +1570,25 @@ theorem itoIntegralLp_brownian_L2_isometry
     W hT G h_eq h_adapt h_cauchy_eval
   exact (tendsto_nhds_unique h_to_eLpNorm h_eval_norm_tendsto)
 
+/-- **C0b.10-post8: `simpleIntegral W H t` is StronglyAdapted at `t`
+to `naturalFiltration W`.**
+
+For each `t : ℝ` and adapted SimplePredictable `H`, the function
+`ω ↦ simpleIntegral W H t ω` is StronglyMeasurable wrt the natural
+filtration's σ-algebra at `t`. Direct from
+`martingale_simpleIntegral_brownian` (which establishes adaptedness as
+its first conjunct). -/
+lemma simpleIntegral_stronglyAdapted_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i))
+    (t : ℝ) :
+    @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+      (fun ω => simpleIntegral W H t ω) :=
+  (martingale_simpleIntegral_brownian W H h_adapt).stronglyAdapted t
+
 end LevyStochCalc.Brownian.Ito
