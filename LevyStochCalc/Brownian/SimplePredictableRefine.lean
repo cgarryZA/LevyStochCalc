@@ -1591,4 +1591,22 @@ lemma simpleIntegral_stronglyAdapted_brownian
       (fun ω => simpleIntegral W H t ω) :=
   (martingale_simpleIntegral_brownian W H h_adapt).stronglyAdapted t
 
+/-- **C0b.10-post9: `simpleIntegral W H t` is in `Lp ℝ 1 P`** (integrable).
+
+Direct from `Lp 2 ⊆ Lp 1` for finite measures (`MemLp.mono_exponent`)
+applied to `simpleIntegral_memLp_brownian` (post2). Used in martingale
+property checks where integrability (Lp¹) is required. -/
+lemma simpleIntegral_integrable_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    MeasureTheory.Integrable (fun ω => simpleIntegral W H T ω) P := by
+  have h_memLp := simpleIntegral_memLp_brownian W hT H h_adapt
+  -- MemLp 2 P implies MemLp 1 P (= Integrable) when measure is finite.
+  exact (h_memLp.mono_exponent (by norm_num : (1 : ℝ≥0∞) ≤ 2)).integrable
+    (le_refl 1)
+
 end LevyStochCalc.Brownian.Ito
