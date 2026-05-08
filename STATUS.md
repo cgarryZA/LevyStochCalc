@@ -197,6 +197,9 @@ end-to-end:
 | C0b.10-post6 | `lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian` | pure-lintegral form convergence |
 | **C0b.10-post7** | **`itoIntegralLp_brownian_L2_isometry`** | **headline L² isometry on the L² limit** |
 | C0b.10-post8 | `simpleIntegral_stronglyAdapted_brownian` | `simpleIntegral W H t` is `ℱ_t`-StronglyMeasurable |
+| C0b.10-post9 | `simpleIntegral_integrable_brownian` | `simpleIntegral W H T ∈ Lp 1 P` |
+| C0b.10-post10 | `simpleIntegral_condExp_brownian` | cond-exp identity directly extracted from martingale |
+| **C0b.10-final** | **`exists_itoIntegralL2_brownian`** | **bundled existence: ∃ M ∈ Lp ℝ 2 P, eLpNorm² M = lintegral_sq H** |
 
 Also: `martingale_simpleIntegral_brownian` exposed as public
 (was private) so downstream files can use it.
