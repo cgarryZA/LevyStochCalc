@@ -217,6 +217,24 @@ eLpNorm (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval)) 2 P ^
   = ∫⁻ ω, ∫⁻ s in Set.Icc 0 T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
 ```
 
+### Strong-exists case-split (2026-05-08)
+
+`stochasticIntegral_strong_exists_brownian` now uses a case-split on
+`Measurable (Function.uncurry H)`:
+
+| Branch | Conjunct 1 (Mart F) | Conjunct 2 (Mart F²−∫H²) | Conjunct 3 (cond isom) |
+|---|---|---|---|
+| Case A (measurable) | sorry | sorry | sorry |
+| Case B (¬meas), F=0, Filt=natural | `martingale_zero` ✓ | sorry | `absurd h_meas_T h_meas` ✓ |
+
+So 2 of 3 conjuncts in case B close. Conjunct 2 in case B is genuinely
+non-trivial: for `F = 0`, the conjunct demands `−∫_0^t (H ω s)² ds`
+be a martingale, but the integral is non-decreasing in `t` whenever
+the section is Bochner-integrable — so its negation is non-increasing,
+hence not a martingale unless `H ≡ 0` a.e. Closing this requires a
+**non-trivial F** matching the Itô quadratic-variation property
+(F² − ∫H² is martingale exactly for the Itô integral by Itô's identity).
+
 ### Next steps
 
 - **Close `stochasticIntegral_strong_exists_brownian`** (the underlying
