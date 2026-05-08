@@ -1625,4 +1625,51 @@ lemma simpleIntegral_condExp_brownian
       =ᵐ[P] (fun ω => simpleIntegral W H s ω) :=
   (martingale_simpleIntegral_brownian W H h_adapt).condExp_ae_eq hst
 
+/-- **C0b.10-final: existence of an L²-isometric process for adapted-approximated H.**
+
+Conditional on:
+- `H` being approximated in `L²(λ⊗P)` by an adapted approximating
+  sequence `(G n)` of `SimplePredictable`s sharing common endpoint, AND
+- the lintegral_sq of `(G n).eval` converging to lintegral_sq of `H`,
+
+we get an `L²(P)`-element `M` (the L²-extended Itô integral) satisfying
+the L² isometry `eLpNorm² M = lintegral_sq H` over `[0,T] × Ω`.
+
+This is the existence content extracted from the C0b chain, without
+the additional martingale + quadVar conjuncts of the full strong-exists.
+For closing the full strong-exists, one needs (a) extending C0b.9 to
+general time `t < T`, (b) the limit-of-martingales + limit-of-quadVar
+arguments for the time-parametrized version. -/
+theorem exists_itoIntegralL2_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε)
+    (H : Ω → ℝ → ℝ)
+    (h_eval_norm_tendsto : Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P))) :
+    ∃ M : MeasureTheory.Lp ℝ 2 P,
+      MeasureTheory.eLpNorm (↑↑M : Ω → ℝ) 2 P ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+  ⟨itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval,
+   itoIntegralLp_brownian_L2_isometry W hT G h_eq h_adapt h_cauchy_eval H
+     h_eval_norm_tendsto⟩
+
 end LevyStochCalc.Brownian.Ito
