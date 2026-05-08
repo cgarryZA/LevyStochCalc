@@ -1153,4 +1153,18 @@ noncomputable def simpleIntegralLp_brownian
     MeasureTheory.Lp ℝ 2 P :=
   (simpleIntegral_memLp_brownian W hT H h_adapt).toLp
 
+/-- **C0b.10-pre4: `simpleIntegralLp_brownian` `coeFn` matches `simpleIntegral`.**
+The coercion of `simpleIntegralLp_brownian W hT H h_adapt` back to a
+function `Ω → ℝ` is a.e.-equal to `fun ω => simpleIntegral W H T ω`. -/
+lemma coeFn_simpleIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i)) :
+    (simpleIntegralLp_brownian W hT H h_adapt : Ω → ℝ)
+      =ᵐ[P] (fun ω => simpleIntegral W H T ω) :=
+  MeasureTheory.MemLp.coeFn_toLp _
+
 end LevyStochCalc.Brownian.Ito
