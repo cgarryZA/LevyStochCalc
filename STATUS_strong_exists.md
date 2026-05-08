@@ -161,21 +161,49 @@ The conjuncts then follow:
 
 ## Sub-tasks for closure
 
-- [ ] Step 1 (this note): committed.
-- [ ] Step 2: enumerate callers via `grep`.
-- [ ] Step 3: refactor strong-exists signature; update callers.
+- [x] **Step 1** (this note): committed.
+- [x] **Step 2**: enumerate callers via `grep`. Found 4 callers, all in
+      `LevyStochCalc/Brownian/Ito.lean`: `stochasticIntegral` (def),
+      `itoIsometry`, `quadVar_stochasticIntegral`,
+      `martingale_stochasticIntegral`. No external callers.
+- [x] **Step 3**: refactor strong-exists signature; update callers.
+      Done in commit `16ebbd5` (Option β refactor).
+      Strong-exists now takes `h_meas + h_sq_int_global`. All 4 callers
+      updated to thread the hypotheses through. Public theorems
+      `itoIsometry`, `quadVar_stochasticIntegral`,
+      `martingale_stochasticIntegral` now take `h_meas + h_sq_int_global`.
 - [ ] Step 4: build `F` from `exists_itoIntegralL2_brownian` +
-      time-parametrization.
-- [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales.
+      time-parametrization. **Blocker**: `simplePredictable_dense_L2`
+      doesn't preserve adaptedness; would need a stronger density
+      lemma `simplePredictable_dense_L2_adapted` that takes a
+      predictability hypothesis on `H` and produces adapted simples.
+- [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
+      the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
+      assembly is mechanical given Step 4.
 - [ ] Step 6: prove conjunct 2 — needs `quadVar_simpleIntegral_brownian`
-      (also a baseline-blocking sorry) + L²-limit of quadVar property.
+      (currently sorry'd in `Ito.lean`) + L²-limit of quadVar property.
+      The simples version uses orthogonal-increments machinery
+      (`simpleIntegral_diagonal`, `simpleIntegral_offDiagonal` —
+      already in codebase) plus tower property of cond-exp.
 - [ ] Step 7: prove conjunct 3 via post7 + integrability cast.
+      Direct application of `itoIntegralLp_brownian_L2_isometry`.
 - [ ] Step 8: remove `stochasticIntegral_strong_exists_brownian` from
-      baseline.
+      baseline (sorry replaced by working proof).
 - [ ] Step 9: remove `Brownian.Ito.{itoIsometry,
       quadVar_stochasticIntegral, martingale_stochasticIntegral}`
       from baseline.
 - [ ] Step 10: mirror for compensated Poisson side.
+
+## Current state (as of commit `16ebbd5`)
+
+* Statement: refactored to literature form (provable in principle).
+* Body: `sorry` (single, awaiting Step 4-7 closure).
+* Callers: 4 (all internal), updated.
+* Lint: PASS.
+
+Closing requires: a stronger density lemma producing **adapted**
+simples (Step 4 prerequisite) + closing
+`quadVar_simpleIntegral_brownian` (Step 6 prerequisite).
 
 ## References
 
