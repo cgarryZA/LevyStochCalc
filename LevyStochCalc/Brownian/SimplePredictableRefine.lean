@@ -1167,4 +1167,51 @@ lemma coeFn_simpleIntegralLp_brownian
       =ᵐ[P] (fun ω => simpleIntegral W H T ω) :=
   MeasureTheory.MemLp.coeFn_toLp _
 
+/-- **C0b.10-pre5: `eLpNorm` of the `simpleIntegral` difference,
+rpow-form.** `eLpNorm (...)^(2:ℝ) = ∫⁻ ‖eval diff‖² over [0,T]×Ω`.
+
+This is `diff_isometry_simple` rephrased in `eLpNorm` form using the
+real-valued exponent `(2:ℝ)`, ready for use with the L²-Cauchy
+completion machinery. -/
+lemma eLpNorm_simpleIntegral_sub_rpow_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₁.partition i.castSucc)) (H₁.ξ i))
+    (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+    MeasureTheory.eLpNorm
+        (fun ω => simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω) 2 P ^ (2 : ℝ)
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have h_pow_lemma := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral
+    (μ := P) (p := (2 : NNReal))
+    (f := fun ω => simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω)
+    (by norm_num : (2 : NNReal) ≠ 0)
+  -- h_pow_lemma : eLpNorm f (↑(2:NNReal)) P ^ ↑(2:NNReal)
+  --              = ∫⁻ ω, ‖f ω‖ₑ ^ ↑(2:NNReal) ∂P
+  -- The ↑(2:NNReal) on the LHS-base is (2:ℝ≥0∞); on exponents it's (2:ℝ).
+  have h_two_R : ((2 : NNReal) : ℝ) = (2 : ℝ) := by norm_num
+  have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
+  rw [h_two_ENNReal, h_two_R] at h_pow_lemma
+  rw [h_pow_lemma]
+  -- Goal: ∫⁻ ω, ‖simpleIntegral H₁ - simpleIntegral H₂‖ₑ ^ (2:ℝ) ∂P
+  --     = ∫⁻ ω, ∫⁻ s, ‖eval diff‖₊² ∂vol ∂P
+  -- Convert (2:ℝ) exponent to (2:ℕ) via ENNReal.rpow_natCast,
+  -- then bridge ‖.‖ₑ = (‖.‖₊ : ℝ≥0∞).
+  have h_pointwise : (fun ω : Ω =>
+        (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+      = (fun ω : Ω =>
+        (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊ : ℝ≥0∞) ^ 2) := by
+    funext ω
+    rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num,
+        ENNReal.rpow_natCast]
+    rfl
+  rw [h_pointwise]
+  exact SimplePredictable.diff_isometry_simple W hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
+
 end LevyStochCalc.Brownian.Ito
