@@ -2667,8 +2667,27 @@ private lemma stochasticIntegral_strong_exists_brownian
         ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
           ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
-  -- L²-completion construction: see docstring above.
-  sorry
+  -- L²-completion construction: case-split on Measurable (Function.uncurry H).
+  -- Measurable case: L² extension via simplePredictable_dense_L2 + cauchy
+  --                   completion in Lp(P). Non-measurable case: F = 0 with
+  --                   conjuncts holding via Bochner-integral conventions.
+  classical
+  by_cases h_meas : Measurable (Function.uncurry H)
+  · -- Case A: jointly measurable H. Build F via L² extension.
+    sorry
+  · -- Case B: H not jointly measurable. Take F = 0.
+    refine ⟨fun _ _ => 0, LevyStochCalc.Brownian.Martingale.naturalFiltration W,
+      ?_, ?_, ?_⟩
+    · -- Conjunct 1: Martingale 0.
+      exact MeasureTheory.martingale_zero ℝ
+        (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P
+    · -- Conjunct 2: Martingale (0² − ∫H²) = Martingale (−∫H²). For
+      -- non-measurable H, this argument requires Bochner conventions
+      -- but is genuinely non-trivial -- DEFERRED.
+      sorry
+    · intro T hT h_meas_T h_sq_int
+      -- Conjunct 3: vacuous since h_meas_T contradicts h_meas.
+      exact absurd h_meas_T h_meas
 
 /-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
 
