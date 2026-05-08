@@ -2671,22 +2671,23 @@ private lemma stochasticIntegral_strong_exists_brownian
   -- Measurable case: L² extension via simplePredictable_dense_L2 + cauchy
   --                   completion in Lp(P). Non-measurable case: F = 0 with
   --                   conjuncts holding via Bochner-integral conventions.
+  -- Case-split on Measurable (Function.uncurry H). Measurable case requires
+  -- the L² Itô integral construction (substantial follow-up). Non-measurable
+  -- case takes F = 0; conjunct 1 (martingale 0) closes trivially, conjunct 3
+  -- vacuously since the conditional isometry hypothesis contradicts the
+  -- non-measurable assumption. Conjunct 2 is genuinely non-trivial in both
+  -- cases and deferred.
   classical
   by_cases h_meas : Measurable (Function.uncurry H)
-  · -- Case A: jointly measurable H. Build F via L² extension.
+  · -- Case A: jointly measurable H.
     sorry
-  · -- Case B: H not jointly measurable. Take F = 0.
+  · -- Case B: H not jointly measurable.
     refine ⟨fun _ _ => 0, LevyStochCalc.Brownian.Martingale.naturalFiltration W,
       ?_, ?_, ?_⟩
-    · -- Conjunct 1: Martingale 0.
-      exact MeasureTheory.martingale_zero ℝ
+    · exact MeasureTheory.martingale_zero ℝ
         (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P
-    · -- Conjunct 2: Martingale (0² − ∫H²) = Martingale (−∫H²). For
-      -- non-measurable H, this argument requires Bochner conventions
-      -- but is genuinely non-trivial -- DEFERRED.
-      sorry
+    · sorry
     · intro T hT h_meas_T h_sq_int
-      -- Conjunct 3: vacuous since h_meas_T contradicts h_meas.
       exact absurd h_meas_T h_meas
 
 /-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
