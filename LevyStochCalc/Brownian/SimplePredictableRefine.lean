@@ -1609,4 +1609,20 @@ lemma simpleIntegral_integrable_brownian
   exact (h_memLp.mono_exponent (by norm_num : (1 : ℝ≥0∞) ≤ 2)).integrable
     (le_refl 1)
 
+/-- **C0b.10-post10: cond-exp identity for `simpleIntegral`.** Direct
+extraction of the cond-exp clause from `martingale_simpleIntegral_brownian`
+for downstream use without unpacking the Martingale structure. -/
+lemma simpleIntegral_condExp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i))
+    {s t : ℝ} (hst : s ≤ t) :
+    P[fun ω => simpleIntegral W H t ω
+        | (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s]
+      =ᵐ[P] (fun ω => simpleIntegral W H s ω) :=
+  (martingale_simpleIntegral_brownian W H h_adapt).condExp_ae_eq hst
+
 end LevyStochCalc.Brownian.Ito
