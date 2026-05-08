@@ -1477,4 +1477,53 @@ theorem eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
   (eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
     W hT G h_eq h_adapt h_cauchy_eval).ennrpow_const 2
 
+/-- **C0b.10-post6: lintegral-of-squared-eval converges to `eLpNorm²` of
+`itoIntegralLp_brownian`.**
+
+Substitutes `eLpNorm_simpleIntegralLp_brownian_rpow_eq` (post2) into
+`eLpNorm_rpow_simpleIntegralLp_tendsto_brownian` (post5) to express
+the convergence in pure-lintegral form. -/
+theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop
+      (nhds (MeasureTheory.eLpNorm
+        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P ^ (2 : ℝ))) := by
+  have h_tendsto := eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
+    W hT G h_eq h_adapt h_cauchy_eval
+  -- h_tendsto : Tendsto (fun n => eLpNorm² (simpleIntegralLp (G n))) atTop
+  --              (nhds (eLpNorm² (itoIntegralLp ...)))
+  -- Substitute eLpNorm² = lintegral via post2.
+  have h_subst : ∀ n : ℕ,
+      MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+    fun n => eLpNorm_simpleIntegralLp_brownian_rpow_eq W hT (G n) (h_adapt n)
+  -- Rewrite the function inside the Tendsto.
+  have h_eqv : (fun n => MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
+      = (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) :=
+    funext h_subst
+  rw [h_eqv] at h_tendsto
+  exact h_tendsto
+
 end LevyStochCalc.Brownian.Ito
