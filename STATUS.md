@@ -163,11 +163,11 @@ PASS: lake build + audit at or below baseline.
 
 8400 jobs, no errors, no new sorries beyond baseline.
 
-## C0b infrastructure landed (2026-05-07)
+## C0b infrastructure landed (2026-05-07/08)
 
 C0b is the partition-refinement + L²-Cauchy chain that lifts
 `simpleIntegral_isometry` (already axiom-clean) to the genuine
-L²-completed Itô integral. The chain closed this week, axiom-clean
+L²-completed Itô integral. The chain closed in two batches, axiom-clean
 end-to-end:
 
 | Step | Lemma | What it gives |
@@ -185,20 +185,49 @@ end-to-end:
 | C0b.10-pre1 | `simpleIntegral_lintegral_sq_finite_brownian` | `∫⁻ ω, ‖∫H‖² < ∞` |
 | C0b.10-pre2 | `simpleIntegral_memLp_brownian` | `MemLp 2 P` witness |
 | C0b.10-pre3 | `simpleIntegralLp_brownian` | lift to `Lp ℝ 2 P` |
+| C0b.10-pre4 | `coeFn_simpleIntegralLp_brownian` | `↑↑(toLp ...) =ᵐ simpleIntegral` |
+| C0b.10-pre5 | `eLpNorm_simpleIntegral_sub_rpow_brownian` | diff isometry in `eLpNorm^(2:ℝ)` form |
+| C0b.10-pre6 | `cauchySeq_simpleIntegralLp_brownian` | `CauchySeq` in `Lp ℝ 2 P` |
+| **C0b.10** | **`itoIntegralLp_brownian`** | **L²-extended Brownian Itô integral, defined via `Filter.limUnder`** |
+| C0b.10-post1 | `itoIntegralLp_brownian_tendsto` | `simpleIntegralLp → itoIntegralLp` in `Lp` |
+| C0b.10-post2 | `eLpNorm_simpleIntegralLp_brownian_rpow_eq` | single-function eLpNorm² = lintegral_sq |
+| C0b.10-post3 | `norm_simpleIntegralLp_tendsto_norm_itoIntegralLp_brownian` | norm continuity in ℝ |
+| C0b.10-post4 | `eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian` | enorm continuity in ℝ≥0∞ |
+| C0b.10-post5 | `eLpNorm_rpow_simpleIntegralLp_tendsto_brownian` | squared eLpNorm continuity |
+| C0b.10-post6 | `lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian` | pure-lintegral form convergence |
+| **C0b.10-post7** | **`itoIntegralLp_brownian_L2_isometry`** | **headline L² isometry on the L² limit** |
 
 All in `LevyStochCalc/Brownian/SimplePredictableRefine.lean`. Each
 landed in its own commit, axiom set `[propext, choice, Quot.sound]`.
 
+### Headline L² isometry
+
+Conditional on an approximating sequence `(G n) : ℕ → SimplePredictable Ω T`
+with shared endpoint, adapted, eval-L²-Cauchy, and `(G n).eval` → `H` in
+the L²-norm form:
+```
+eLpNorm (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval)) 2 P ^ (2 : ℝ)
+  = ∫⁻ ω, ∫⁻ s in Set.Icc 0 T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+```
+
 ### Next steps
 
-- **C0b.10**: bridge `cauchy_of_L2_dense_simple` to `CauchySeq` in
-  `Lp ℝ 2 P` (using the `eLpNorm`-vs-`lintegral` translation), then
-  apply `MeasureTheory.Lp.completeSpace`/`Lp.cauchy_complete_eLpNorm` to
-  extract the L² limit.
-- **Closing baseline**: with the L² limit in hand, close
-  `stochasticIntegral_strong_exists_brownian` (currently the lone sorry
-  underlying `Brownian.Ito.{itoIsometry, quadVar_stochasticIntegral,
-  martingale_stochasticIntegral}` — three baseline entries).
+- **Close `stochasticIntegral_strong_exists_brownian`** (the underlying
+  sorry for `Brownian.Ito.{itoIsometry, quadVar_stochasticIntegral,
+  martingale_stochasticIntegral}` — three baseline entries). Strategy:
+  case-split on `Measurable (Function.uncurry H)`. Measurable case uses
+  a time-parametrized `itoIntegralLp_brownian`; non-measurable case uses
+  `F = 0` (Bochner integral of non-measurable returns 0, so all
+  conjuncts hold trivially). The time-parametrized version requires
+  extending C0b.9 / diff_isometry from time `T` to general time `t ≤ T`.
 - **Mirror for compensated Poisson**: same C0b chain with `Compensated.SimplePredictable`,
   closing `Compensated.{itoLevyIsometry, quadVar, martingale, cadlag}`
   (four baseline entries) and auto-closing `Poisson.L2Isometry.itoLevyIsometry`.
+- **Continuity layer**: `kolmogorovChentsov_modification`,
+  `brownian_continuous_modification`, `brownian_filtration_rightContinuous`
+  (three baseline entries).
+- **Existence theorems**: `BrownianMotion.exists`,
+  `MultidimBrownianMotion.exists`, `PoissonRandomMeasure.exists_of_sigmaFinite`
+  (three baseline entries).
+- **BSDEJ**: `continuousBSDEJ_exists_unique` (Pardoux-Peng-Tang Picard),
+  `bsdej_path_regularity` (Doob + Grönwall) (two baseline entries).
