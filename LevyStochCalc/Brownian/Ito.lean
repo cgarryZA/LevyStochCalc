@@ -3020,6 +3020,22 @@ lemma predictableDyadicSimple_brownian_L2_cauchy
     h_meas
     (predictableDyadicSimple_brownian_L2_converges hT g h_meas M h_bound)
 
+/-- **Reverse triangle for eLpNorm (tsub form).** Standard consequence of
+`eLpNorm_add_le`: `eLpNorm f - eLpNorm g ≤ eLpNorm (f - g)` (ENNReal truncated). -/
+private lemma eLpNorm_sub_eLpNorm_le_eLpNorm_sub
+    {α E : Type*} [MeasurableSpace α] [NormedAddCommGroup E]
+    {p : ℝ≥0∞} (hp : 1 ≤ p) {μ : Measure α}
+    {f g : α → E}
+    (hf : MeasureTheory.AEStronglyMeasurable f μ)
+    (hg : MeasureTheory.AEStronglyMeasurable g μ) :
+    MeasureTheory.eLpNorm f p μ - MeasureTheory.eLpNorm g p μ
+      ≤ MeasureTheory.eLpNorm (f - g) p μ := by
+  rw [tsub_le_iff_left]
+  have h_decomp : f = g + (f - g) := by ext x; simp
+  have h_meas_diff : MeasureTheory.AEStronglyMeasurable (f - g) μ := hf.sub hg
+  conv_lhs => rw [h_decomp]
+  exact MeasureTheory.eLpNorm_add_le hg h_meas_diff hp
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **Adapted density (Brownian).** Every progressively-measurable
