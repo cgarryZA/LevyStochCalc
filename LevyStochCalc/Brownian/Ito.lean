@@ -2836,6 +2836,28 @@ lemma predictableDyadicSimple_brownian_partition_last
   show dyadicPartition_brownian T n (Fin.last (2 ^ n)) = T
   exact dyadicPartition_brownian_last T n
 
+/-- **Joint measurability of `predictableDyadicSimple_brownian.eval`.**
+The eval `(p : Ω × ℝ) ↦ (Hn n).eval p.2 p.1` is jointly measurable.
+Uses the indicator-sum decomposition. -/
+lemma predictableDyadicSimple_brownian_eval_jointly_measurable
+    {T : ℝ} (hT : 0 < T) (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) (n : ℕ) :
+    Measurable (fun (p : Ω × ℝ) =>
+      (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1) := by
+  unfold SimplePredictable.eval
+  refine Finset.measurable_sum _ ?_
+  intro i _
+  refine Measurable.ite ?_ ?_ measurable_const
+  · refine MeasurableSet.inter ?_ ?_
+    · exact measurable_snd (measurableSet_Ioi
+        (a := (predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
+          i.castSucc))
+    · exact measurable_snd (measurableSet_Iic
+        (a := (predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
+          i.succ))
+  · exact (dyadicAvg_shifted_brownian_measurable T g h_meas n i).comp measurable_fst
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **L²-Cauchy from L²-tendsto.** If a sequence `(Hn n).eval` converges to `H`
