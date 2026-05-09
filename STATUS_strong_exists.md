@@ -231,19 +231,50 @@ After `h_eval_norm_tendsto`: get `M ∈ Lp ℝ 2 P` with isometry. This delivers
 ## What remains for full closure
 
 - [ ] `h_eval_norm_tendsto` lemma — reverse triangle on L² norms.
+      **Strategy**: convert lintegral form `∫⁻ ω ∫⁻ s ‖f‖²` to `eLpNorm²` on
+      product measure via `MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral` +
+      `MeasureTheory.lintegral_prod` (Tonelli). Apply `MeasureTheory.eLpNorm_sub_le`
+      to derive `|eLpNorm fn - eLpNorm f| ≤ eLpNorm (fn - f)`, then `eLpNorm fn →
+      eLpNorm f`. Square via continuity, convert back to lintegral form. Each step
+      requires careful ENNReal manipulation due to coercions (`(2 : NNReal)` vs
+      `(2 : ℕ)` vs `(2 : ℝ)`) and the `‖·‖ₑ` vs `(‖·‖₊ : ℝ≥0∞)` distinction.
+      Alternative: direct Cauchy-Schwarz on lintegral via
+      `MeasureTheory.lintegral_mul_le_eLpNorm_mul_eLpNorm`, gives
+      `|∫⁻ ‖a_n‖² - ∫⁻ ‖b‖²| ≤ (∫⁻ ‖a_n - b‖²)^{1/2} · (∫⁻ ‖b‖² + ∫⁻ ‖a_n‖²)^{1/2}`
+      → 0.
 - [ ] **F construction across all t**: Lp.coeFn at varying t with consistency.
+      Each `T > 0` gives an Lp element via `itoIntegralLp_brownian` (using the
+      adapted-density pieces above). To get F : ℝ → Ω → ℝ as a single function,
+      need to define F(t)(ω) := ↑↑(itoIntegralLp at time t)(ω) with consistency
+      proofs that the Lp limits agree under partial-T restriction. Substantial
+      technical work involving partition-refinement.
 - [ ] **Conjunct 1** (`Martingale F Filt P`): L²-limit of martingales — uses
-      `martingale_simpleIntegral_brownian` + L¹-continuity of cond-exp.
+      `martingale_simpleIntegral_brownian` + L¹-continuity of cond-exp via
+      `MeasureTheory.condExpL1CLM`. Standard technique but ~150 lines in Lean.
 - [ ] **Conjunct 2** (`Martingale (F² - ∫H²) Filt P`): requires closing
       `quadVar_simpleIntegral_brownian` first (orthogonal-increments machinery
-      via `simpleIntegral_diagonal` + `simpleIntegral_offDiagonal`), then
-      L²-limit of the quadVar identity.
+      via `simpleIntegral_diagonal` + `simpleIntegral_offDiagonal`, plus
+      cond-exp tower property — ~300+ lines). Then L²-limit of the quadVar
+      identity via the same continuity argument as conjunct 1.
 - [ ] **Conjunct 3** (isometry): direct from `itoIntegralLp_brownian_L2_isometry`
-      once F is constructed.
+      once F is constructed and `h_eval_norm_tendsto` is supplied.
 - [ ] Step 8: remove `stochasticIntegral_strong_exists_brownian` from baseline.
 - [ ] Step 9: remove `Brownian.Ito.{itoIsometry,quadVar,martingale}_*` from
       baseline.
-- [ ] Step 10: mirror entire chain for compensated Poisson side.
+- [ ] Step 10: mirror entire chain for compensated Poisson side. The Poisson
+      analog has additional complications: σ-finite intensity decomposition,
+      independence of disjoint Poisson increments, càdlàg-rather-than-continuous
+      paths.
+
+## Realistic effort estimate
+
+Closing the strong-exists chain end-to-end (Brownian + Compensated Poisson +
+auxiliary existence theorems + BSDEJ + Continuity layer) is **multi-week
+work** at typical Lean development speed (~50-200 lines/day for measure-theoretic
+proofs of this complexity). The 13 commits this session built the *predictable
+density infrastructure* (~1000 lines), which was the substantive prerequisite
+that no Mathlib lemma directly provided. The remaining steps are well-defined
+but each requires hundreds of lines of careful Lean.
 - [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
       the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
       assembly is mechanical given Step 4.
