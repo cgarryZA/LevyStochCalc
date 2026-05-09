@@ -194,10 +194,21 @@ The conjuncts then follow:
       — committed `092f9d4`. Combines the predictable construction (def +
       adapted + L²_converges) into a single bounded density lemma producing
       ADAPTED simples for progressively measurable bounded `g`.
-- [ ] Step 4-pre6: extend bounded version to L²-square-integrable
-      progressively measurable case (truncation + diagonal).
+- [x] Step 4-pre6: general adapted-density `adaptedSimple_dense_L2_brownian`
+      — committed `5beddfc`. Truncation + diagonal lifting from bounded to
+      L²-square-integrable progressively measurable case. Uses
+      `truncation_L2_converges_brownian` + diagonal selection. Public lemma.
+- [x] Step 4-pre7: Option β refactor adding `h_progMeas` hypothesis to
+      strong-exists + 4 callers (`stochasticIntegral`, `itoIsometry`,
+      `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`) —
+      committed `e7f6b4b`. Statements now match Karatzas–Shreve 1991 Thm 3.2.6.
 - [ ] Step 4: build `F` from `exists_itoIntegralL2_brownian` +
-      time-parametrization. Need Step 4-pre6 first.
+      time-parametrization. Open challenge: F must be a function `ℝ → Ω → ℝ`
+      with all 3 conjuncts simultaneously. The Lp construction in C0b only
+      gives F at fixed `T`; constructing F as a process requires either
+      (a) a unified Cauchy sequence valid for all `t`, or (b) a per-`t`
+      construction with consistency proofs. Approach (a) needs the
+      time-parametrized version of `cauchy_of_L2_dense_simple` over all `t`.
 - [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
       the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
       assembly is mechanical given Step 4.
