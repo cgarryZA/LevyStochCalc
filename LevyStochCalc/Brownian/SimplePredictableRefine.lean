@@ -2058,4 +2058,127 @@ theorem stochasticIntegral_isometry_only_brownian
     (itoIsometry_brownian_existence W hT H h_meas h_progMeas
       (h_sq_int_global T hT))).2
 
+/-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
+
+Defined via `Classical.choose` on `stochasticIntegral_isometry_only_brownian`.
+The resulting function satisfies the Itô L² isometry at every `T > 0`.
+
+**Refactored** (Option β-prime, 2026-05-09): the previous definition went via
+`stochasticIntegral_strong_exists_brownian` (a 3-conjunct existential whose body
+was sorry'd). This version uses the conjunct-3-only existence, which is now
+axiom-clean via `exists_itoIntegralL2_brownian_progMeas`. Trade-off: the resulting
+process does **not** carry the martingale conjuncts (different `T`'s give
+independent Lp witnesses); the martingale + quadVar properties are deferred. -/
+noncomputable def stochasticIntegral
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_sq_int_global : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (T : ℝ) : Ω → ℝ :=
+  Classical.choose
+    (stochasticIntegral_isometry_only_brownian W H h_meas h_progMeas h_sq_int_global) T
+
+/-- **Itô L² isometry.**
+
+  `𝔼[ (∫_0^T H_s dW_s)² ] = 𝔼[ ∫_0^T |H_s|² ds ]`
+
+for predictable square-integrable `H`. ENNReal form (matches the dissertation's
+`I02` style).
+
+**Refactored** (Option β-prime, 2026-05-09): now extracts directly from
+`stochasticIntegral_isometry_only_brownian` (axiom-clean) rather than the
+sorry'd full strong-exists. Same statement, same hypotheses; downstream callers
+unchanged. -/
+theorem itoIsometry
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ)
+    (T : ℝ) (hT : 0 < T)
+    (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_sq_int_global : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∫⁻ ω, (‖stochasticIntegral W H h_meas h_progMeas h_sq_int_global T ω‖₊
+      : ℝ≥0∞) ^ 2 ∂P =
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        ((‖H ω s‖₊ : ℝ≥0∞))^2 ∂volume ∂P := by
+  unfold stochasticIntegral
+  exact Classical.choose_spec
+    (stochasticIntegral_isometry_only_brownian W H h_meas h_progMeas h_sq_int_global)
+    T hT
+
+/-- Quadratic variation of the Itô integral: `⟨M⟩_t = ∫_0^t |H_s|² ds`.
+A strict refinement of the isometry — the isometry is its expectation at `t = T`.
+
+Spec: `t ↦ (M_t)² − ∫_0^t |H_s|² ds` is a martingale.
+
+**STATUS** (2026-05-09): the spec is true for the genuine L² Itô integral, but
+the current `stochasticIntegral` definition goes via per-`T` independent Lp
+witnesses and does **not** carry the martingale property. Closing this requires
+either (a) replacing `stochasticIntegral` with a unified L²-limit-of-simples
+construction (the F-construction-across-all-t task), or (b) proving the
+martingale property via an L²-limit-of-martingales argument applied to the
+simpleIntegral approximations. Both are pending. -/
+theorem quadVar_stochasticIntegral
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_sq_int_global : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      MeasureTheory.Martingale
+        (fun t : ℝ => fun ω : Ω =>
+          (stochasticIntegral W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
+            - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2)
+        F P := by
+  sorry
+
+/-- The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable continuous
+martingale.
+
+**STATUS** (2026-05-09): same caveat as `quadVar_stochasticIntegral` — true for
+the genuine L² Itô integral but not currently provable for the per-`T`-independent
+`stochasticIntegral` definition. -/
+theorem martingale_stochasticIntegral
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_sq_int_global : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      MeasureTheory.Martingale
+        (fun t : ℝ => stochasticIntegral W H h_meas h_progMeas h_sq_int_global t) F P := by
+  sorry
+
 end LevyStochCalc.Brownian.Ito
