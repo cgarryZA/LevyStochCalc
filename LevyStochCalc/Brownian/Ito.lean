@@ -2792,6 +2792,38 @@ private lemma simplePredictable_dense_L2_bounded_brownian
   ⟨fun n => dyadicSimplePredictable_brownian hT g h_meas M h_bound n,
    dyadicSimplePredictable_brownian_L2_converges hT g h_meas M h_bound⟩
 
+/-- **Adapted bounded density (Brownian).** Bounded progressively measurable
+functions are L²-approximable by ADAPTED `SimplePredictable`s.
+
+Construction via `predictableDyadicSimple_brownian` (the left-shifted dyadic
+average), which is `ℱ_{t_i}`-StronglyMeasurable for progressively measurable `g`. -/
+private lemma adaptedSimple_dense_L2_bounded_brownian
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => g p.1 p.2))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
+    ∃ Hn : ℕ → SimplePredictable Ω T,
+      (∀ n : ℕ, ∀ i : Fin (Hn n).N,
+        @MeasureTheory.StronglyMeasurable Ω ℝ _
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+            ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
+      Filter.Tendsto
+        (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖g ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        Filter.atTop (nhds 0) :=
+  ⟨fun n => predictableDyadicSimple_brownian hT g h_meas M h_bound n,
+   fun n i => predictableDyadicSimple_brownian_adapted W hT g h_meas M h_bound
+     h_progMeas n i,
+   predictableDyadicSimple_brownian_L2_converges hT g h_meas M h_bound⟩
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **Density of simple predictable integrands in L².** Every
