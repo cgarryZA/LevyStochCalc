@@ -2616,7 +2616,7 @@ private lemma predictableDyadicSimple_brownian_ae_tendsto
 /-- **L² convergence of predictable shifted dyadic to g.** Mirror of
 `dyadicSimplePredictable_brownian_L2_converges`, but with `M` replaced by
 `max M 0` for the eval bound, and using `predictable_pointwise_tendsto_per_omega`. -/
-private lemma predictableDyadicSimple_brownian_L2_converges
+lemma predictableDyadicSimple_brownian_L2_converges
     {P : Measure Ω} [IsProbabilityMeasure P]
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ)
@@ -2857,6 +2857,25 @@ lemma predictableDyadicSimple_brownian_eval_jointly_measurable
         (a := (predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
           i.succ))
   · exact (dyadicAvg_shifted_brownian_measurable T g h_meas n i).comp measurable_fst
+
+/-- **Generic joint measurability of `SimplePredictable.eval`.** For any
+`SimplePredictable Ω T`, the function `(p : Ω × ℝ) ↦ H.eval p.2 p.1` is measurable.
+
+Proof: `eval` is a finite sum of indicator-times-coefficient terms, each measurable
+since the indicator's set is `{p | partition i.castSucc < p.2 ≤ partition i.succ}`
+(measurable in `snd`) and the coefficient is `H.ξ i ∘ fst` (measurable since
+`H.ξ_measurable i`). -/
+lemma SimplePredictable.eval_jointly_measurable
+    {T : ℝ} (H : SimplePredictable Ω T) :
+    Measurable (fun (p : Ω × ℝ) => H.eval p.2 p.1) := by
+  unfold SimplePredictable.eval
+  refine Finset.measurable_sum _ ?_
+  intro i _
+  refine Measurable.ite ?_ ?_ measurable_const
+  · refine MeasurableSet.inter ?_ ?_
+    · exact measurable_snd (measurableSet_Ioi (a := H.partition i.castSucc))
+    · exact measurable_snd (measurableSet_Iic (a := H.partition i.succ))
+  · exact (H.ξ_measurable i).comp measurable_fst
 
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
@@ -3104,7 +3123,7 @@ private lemma eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero
 For any `ℝ`-valued `h : Ω × ℝ → ℝ` measurable and `μ`-SFinite,
 `∫⁻ ω, ∫⁻ s in Icc 0 T, ‖h (ω, s)‖₊² ∂vol ∂μ = eLpNorm h 2 (μ.prod (vol.restrict (Icc 0 T))) ^ 2`.
 Tonelli + `eLpNorm_nnreal_pow_eq_lintegral` (instantiated at `p = 2`). -/
-private lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
+lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
     {μ : Measure Ω} [SFinite μ] {T : ℝ} (h : Ω × ℝ → ℝ) (hh : Measurable h) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖h (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
@@ -3143,7 +3162,7 @@ target `H` such that `∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s - ev_n s ω‖₊�
 Proof: bridge to `eLpNorm² _ 2 (μ.prod (vol.restrict (Icc 0 T)))` via Tonelli; the
 square-root step gives `eLpNorm (F - Fn) → 0`; reverse-triangle squeeze
 (`eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero`) closes; square back. -/
-private lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
+lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
     {μ : Measure Ω} [SFinite μ]
     {T : ℝ}
     (H : Ω → ℝ → ℝ) (h_H_meas : Measurable (Function.uncurry H))
@@ -3238,7 +3257,7 @@ private lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
 /-- **Bounded dyadic eval lintegral_sq tendsto.** Specialization of
 `lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian` to the
 `predictableDyadicSimple_brownian` sequence (bounded `g` case). -/
-private lemma predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
+lemma predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
     {P : Measure Ω} [IsProbabilityMeasure P]
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ)

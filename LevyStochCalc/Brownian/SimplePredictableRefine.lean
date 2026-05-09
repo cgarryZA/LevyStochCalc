@@ -1672,4 +1672,66 @@ theorem exists_itoIntegralL2_brownian
    itoIntegralLp_brownian_L2_isometry W hT G h_eq h_adapt h_cauchy_eval H
      h_eval_norm_tendsto⟩
 
+/-- **Bounded progressively-measurable existence.** For bounded progressively-measurable
+`g : Ω → ℝ → ℝ` with explicit bound `M`, there exists an `Lp ℝ 2 P` element whose
+squared `eLpNorm` over `P` equals the full `L²(P × ds)` norm of `g` over `[0,T]`.
+
+Construction: feed the explicit `predictableDyadicSimple_brownian` sequence into
+`exists_itoIntegralL2_brownian`. All four prerequisites are dyadic-specific lemmas
+already in `Brownian.Ito`:
+
+* `_partition_last` for `h_eq` (constant endpoint = T).
+* `_adapted` for `h_adapt` (under progressive measurability).
+* `L2_cauchy_of_L2_tendsto_brownian` applied to `_L2_converges` for `h_cauchy_eval`.
+* `_eval_norm_tendsto_bounded` for `h_eval_norm_tendsto`. -/
+theorem exists_itoIntegralL2_brownian_progMeas_bounded
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => g p.1 p.2))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
+    ∃ Mlp : MeasureTheory.Lp ℝ 2 P,
+      MeasureTheory.eLpNorm (↑↑Mlp : Ω → ℝ) 2 P ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖g ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  set G : ℕ → SimplePredictable Ω T :=
+    fun n => predictableDyadicSimple_brownian hT g h_meas M h_bound n with hG
+  have h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N) := by
+    intro n m
+    rw [predictableDyadicSimple_brownian_partition_last hT g h_meas M h_bound n,
+        predictableDyadicSimple_brownian_partition_last hT g h_meas M h_bound m]
+  have h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((G n).partition i.castSucc)) ((G n).ξ i) :=
+    fun n => predictableDyadicSimple_brownian_adapted W hT g h_meas M h_bound h_progMeas n
+  have h_norm_tendsto :=
+    predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
+      (P := P) hT g h_meas M h_bound
+  -- L²-Cauchy: from L²-Tendsto via the generic helper.
+  have h_L2_diff := predictableDyadicSimple_brownian_L2_converges
+    (P := P) hT g h_meas M h_bound
+  have h_eval_meas : ∀ n,
+      Measurable (fun (p : Ω × ℝ) => (G n).eval p.2 p.1) :=
+    fun n => predictableDyadicSimple_brownian_eval_jointly_measurable
+      hT g h_meas M h_bound n
+  have h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
+      N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε :=
+    L2_cauchy_of_L2_tendsto_brownian (P := P) (T := T)
+      G g h_eval_meas h_meas h_L2_diff
+  exact exists_itoIntegralL2_brownian (P := P) W hT G h_eq h_adapt h_cauchy_eval g
+    h_norm_tendsto
+
 end LevyStochCalc.Brownian.Ito
