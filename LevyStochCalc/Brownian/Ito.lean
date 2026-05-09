@@ -1414,6 +1414,75 @@ private noncomputable def dyadicSimplePredictable_brownian
     ⟨M, fun ω => dyadicAvg_brownian_bounded T hT g M h_bound n i ω⟩
   ξ_measurable := dyadicAvg_brownian_measurable T g h_meas n
 
+/-- **Predictable shifted dyadic ξ.** For `i = 0`, returns `0`; for
+`i ≥ 1`, returns the dyadic average over the PREVIOUS interval
+`(t_{i-1}, t_i]` (so the value depends only on `g` up to time `t_i`,
+hence is `ℱ_{t_i}`-measurable when `g` is adapted).
+
+Used to construct `predictableDyadicSimple_brownian`, the analogue of
+`dyadicSimplePredictable_brownian` whose ξ is predictable. -/
+noncomputable def dyadicAvg_shifted_brownian
+    (T : ℝ) (g : Ω → ℝ → ℝ) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) : ℝ :=
+  if h : i.val = 0 then 0
+  else
+    have h_lt : i.val - 1 < 2 ^ n := by omega
+    dyadicAvg_brownian (T := T) g n ⟨i.val - 1, h_lt⟩ ω
+
+/-- Boundedness of the shifted dyadic average. Bounded by `max M 0` to
+handle the case `i = 0` (which is constant 0) uniformly. -/
+lemma dyadicAvg_shifted_brownian_bounded
+    (T : ℝ) (hT : 0 < T) (g : Ω → ℝ → ℝ) (M : ℝ)
+    (h_bound : ∀ ω s, |g ω s| ≤ M) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) :
+    |dyadicAvg_shifted_brownian T g n i ω| ≤ max M 0 := by
+  unfold dyadicAvg_shifted_brownian
+  by_cases h : i.val = 0
+  · rw [dif_pos h]
+    rw [abs_zero]
+    exact le_max_right _ _
+  · rw [dif_neg h]
+    have h_lt : i.val - 1 < 2 ^ n := by omega
+    exact (dyadicAvg_brownian_bounded T hT g M h_bound n
+      ⟨i.val - 1, h_lt⟩ ω).trans (le_max_left _ _)
+
+/-- Measurability of the shifted dyadic average in `ω`. -/
+lemma dyadicAvg_shifted_brownian_measurable
+    (T : ℝ) (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
+    (n : ℕ) (i : Fin (2 ^ n)) :
+    Measurable (dyadicAvg_shifted_brownian T g n i) := by
+  unfold dyadicAvg_shifted_brownian
+  by_cases h : i.val = 0
+  · simp only [h, ↓reduceDIte]
+    exact measurable_const
+  · simp only [h, ↓reduceDIte]
+    have h_lt : i.val - 1 < 2 ^ n := by omega
+    exact dyadicAvg_brownian_measurable T g h_meas n ⟨i.val - 1, h_lt⟩
+
+/-- **Predictable shifted dyadic SimplePredictable.** Same partition as
+`dyadicSimplePredictable_brownian`, but with ξ values from the
+PREVIOUS dyadic interval (and ξ_0 = 0). When `g` is adapted to a
+filtration that contains the natural filtration of `W` (e.g.,
+`g ω s` is `ℱ_s`-measurable in `ω`), this construction is predictable:
+each `ξ_i` is `ℱ_{t_i}`-measurable.
+
+The L² convergence `(.eval) → g` holds for square-integrable `g`
+(Lebesgue differentiation theorem applied to left-shifted averages,
+deferred). -/
+noncomputable def predictableDyadicSimple_brownian
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) (n : ℕ) :
+    SimplePredictable Ω T where
+  N := 2 ^ n
+  partition := dyadicPartition_brownian T n
+  partition_zero := dyadicPartition_brownian_zero T n
+  partition_le_T := dyadicPartition_brownian_le_T hT n
+  partition_strictMono := dyadicPartition_brownian_strictMono hT n
+  ξ := dyadicAvg_shifted_brownian T g n
+  ξ_bounded := fun i =>
+    ⟨max M 0, fun ω =>
+      dyadicAvg_shifted_brownian_bounded T hT g M h_bound n i ω⟩
+  ξ_measurable := dyadicAvg_shifted_brownian_measurable T g h_meas n
+
 /-- **Step 2 of the density chain (Brownian):** Mathlib `SimpleFunc` approximations
 of bounded `g` can be approximated by step functions of "rectangular" form
 `∑_{i,j} c_{i,j} · 𝟙_{Ω_i × I_j}` in L². This is the bridge from arbitrary product
