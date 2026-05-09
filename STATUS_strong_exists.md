@@ -181,12 +181,23 @@ The conjuncts then follow:
       `predictableDyadicSimple_brownian` is `ℱ_{t_i}`-StronglyMeasurable.
       Proof: case-split on `i = 0` (constant) vs `i ≥ 1` (apply
       `StronglyMeasurable.integral_prod_right'`).
-- [ ] Step 4-pre3: prove L² convergence of `predictableDyadicSimple_brownian.eval`
-      to `g`. Approach: triangle bound via dyadicSimplePredictable_brownian
-      + shift error → 0 (one-sided LDT). The unshifted convergence is
-      already in `dyadicSimplePredictable_brownian_L2_converges`.
+- [x] Step 4-pre3: L² convergence of `predictableDyadicSimple_brownian.eval`
+      to `g` — committed `f36bfd9`. Approach: per-omega Vitali differentiation
+      with `K = 3` (the predictable interval `(t_{i-1}, t_i]` is at distance
+      ≤ 3·δ_n from evaluation point `s ∈ (t_i, t_{i+1}]`), then DCT for the
+      L²-form. Mirror of unshifted's `dyadic_pointwise_tendsto_per_omega +
+      DCT`.
+- [x] Step 4-pre4: bridge `predictableDyadicSimple_brownian.eval` ↔
+      `dyadicAvg_shifted_brownian` at any `s ∈ (0, T]` — committed `eb74774`
+      (via `predictableDyadicSimple_brownian_eval_eq_shifted`).
+- [x] Step 4-pre5: adapted-density lemma `adaptedSimple_dense_L2_bounded_brownian`
+      — committed `092f9d4`. Combines the predictable construction (def +
+      adapted + L²_converges) into a single bounded density lemma producing
+      ADAPTED simples for progressively measurable bounded `g`.
+- [ ] Step 4-pre6: extend bounded version to L²-square-integrable
+      progressively measurable case (truncation + diagonal).
 - [ ] Step 4: build `F` from `exists_itoIntegralL2_brownian` +
-      time-parametrization. Need Step 4-pre3 first.
+      time-parametrization. Need Step 4-pre6 first.
 - [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
       the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
       assembly is mechanical given Step 4.
