@@ -1536,6 +1536,50 @@ lemma dyadicAvg_shifted_brownian_adapted
     -- This is exactly dyadicAvg_brownian g n ⟨i.val - 1, _⟩ ω.
     convert h_const_meas using 1
 
+/-- **Boundedness of the eval of `predictableDyadicSimple_brownian`.**
+The eval at any (s, ω) is bounded by `max M 0`. -/
+lemma predictableDyadicSimple_brownian_eval_bounded
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) (n : ℕ) (s : ℝ) (ω : Ω) :
+    |(predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval s ω|
+      ≤ max M 0 := by
+  set H := predictableDyadicSimple_brownian hT g h_meas M h_bound n
+  unfold SimplePredictable.eval
+  by_cases h_any : ∃ i : Fin H.N,
+      H.partition i.castSucc < s ∧ s ≤ H.partition i.succ
+  · obtain ⟨i₀, hi₀⟩ := h_any
+    have h_unique : ∀ j : Fin H.N, j ≠ i₀ →
+        ¬(H.partition j.castSucc < s ∧ s ≤ H.partition j.succ) := by
+      intro j hj hj_active
+      rcases lt_or_gt_of_ne hj with hlt | hgt
+      · have h_le : H.partition j.succ ≤ H.partition i₀.castSucc :=
+          H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hlt)
+        linarith [hj_active.2, hi₀.1]
+      · have h_le : H.partition i₀.succ ≤ H.partition j.castSucc :=
+          H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hgt)
+        linarith [hi₀.2, hj_active.1]
+    have h_sum_eq : (∑ i : Fin H.N,
+        if H.partition i.castSucc < s ∧ s ≤ H.partition i.succ then H.ξ i ω else 0)
+        = H.ξ i₀ ω := by
+      rw [Finset.sum_eq_single i₀]
+      · simp [hi₀]
+      · intro j _ hj
+        simp [h_unique j hj]
+      · intro h_not; exact absurd (Finset.mem_univ _) h_not
+    rw [h_sum_eq]
+    exact dyadicAvg_shifted_brownian_bounded T hT g M h_bound n i₀ ω
+  · have h_sum_zero : (∑ i : Fin H.N,
+        if H.partition i.castSucc < s ∧ s ≤ H.partition i.succ then H.ξ i ω else 0)
+        = 0 := by
+      apply Finset.sum_eq_zero
+      intro i _
+      by_cases hi : H.partition i.castSucc < s ∧ s ≤ H.partition i.succ
+      · exact absurd ⟨i, hi⟩ h_any
+      · simp [hi]
+    rw [h_sum_zero, abs_zero]
+    exact le_max_right _ _
+
 /-- **Predictability of `predictableDyadicSimple_brownian`.** Each `ξ_i`
 is `ℱ_{t_i}`-StronglyMeasurable when `g` is progressively measurable. -/
 lemma predictableDyadicSimple_brownian_adapted
