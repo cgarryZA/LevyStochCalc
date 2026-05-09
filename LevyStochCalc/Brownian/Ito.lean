@@ -1118,7 +1118,7 @@ private lemma truncation_dominated_brownian (x : ℝ) (M : ℕ) :
 
 set_option maxHeartbeats 800000 in
 /-- **Truncation L² convergence (Brownian).** Mirror of Compensated. -/
-private lemma truncation_L2_converges_brownian
+lemma truncation_L2_converges_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     {T : ℝ}
     (H : Ω → ℝ → ℝ)
@@ -1179,7 +1179,7 @@ private lemma truncation_L2_converges_brownian
 /-- Triangle inequality lifted to ENNReal:
 `(‖x + y‖₊)² ≤ 2 · ((‖x‖₊)² + (‖y‖₊)²)`. Used to lift pointwise bounds to lintegral
 bounds in the diagonal selection of `simplePredictable_dense_L2`. -/
-private lemma sq_nnnorm_add_le_two_mul_brownian (x y : ℝ) :
+lemma sq_nnnorm_add_le_two_mul_brownian (x y : ℝ) :
     (‖x + y‖₊ : ℝ≥0∞) ^ 2 ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
   have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) := fun z => by
     rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from ofReal_norm_eq_enorm z |>.symm]
