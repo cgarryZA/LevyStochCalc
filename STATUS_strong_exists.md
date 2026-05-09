@@ -202,13 +202,48 @@ The conjuncts then follow:
       strong-exists + 4 callers (`stochasticIntegral`, `itoIsometry`,
       `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`) —
       committed `e7f6b4b`. Statements now match Karatzas–Shreve 1991 Thm 3.2.6.
-- [ ] Step 4: build `F` from `exists_itoIntegralL2_brownian` +
-      time-parametrization. Open challenge: F must be a function `ℝ → Ω → ℝ`
-      with all 3 conjuncts simultaneously. The Lp construction in C0b only
-      gives F at fixed `T`; constructing F as a process requires either
-      (a) a unified Cauchy sequence valid for all `t`, or (b) a per-`t`
-      construction with consistency proofs. Approach (a) needs the
-      time-parametrized version of `cauchy_of_L2_dense_simple` over all `t`.
+- [x] Step 4-pre8: `predictableDyadicSimple_brownian_partition_last` —
+      committed `0be8fb2`. Trivial partition endpoint = T (for `h_eq`).
+- [x] Step 4-pre9: `L2_cauchy_of_L2_tendsto_brownian` — committed `ba2a11a`.
+      Generic L²-Cauchy-from-tendsto via triangle + `eventually_lt_const`.
+- [x] Step 4-pre10: `predictableDyadicSimple_brownian_eval_jointly_measurable`
+      — committed `8eaa467`. Joint measurability of `(p ↦ eval p.2 p.1)`.
+- [x] Step 4-pre11: `predictableDyadicSimple_brownian_L2_cauchy` — committed
+      `8fded4a`. Direct corollary giving the precise `h_cauchy_eval` form
+      needed by `exists_itoIntegralL2_brownian`.
+
+## Inputs to `exists_itoIntegralL2_brownian` — status
+
+For each `T > 0` and progressively-measurable `H`:
+
+| Input | Status |
+|---|---|
+| `G : ℕ → SimplePredictable Ω T` | ✅ from `predictableDyadicSimple_brownian` |
+| `h_eq` (constant endpoints = T) | ✅ via `_partition_last` |
+| `h_adapt` (ξ_i is `ℱ_{t_i}`-meas) | ✅ via `_adapted` (under progressive meas.) |
+| `h_cauchy_eval` (L²-Cauchy of evals) | ✅ via `_L2_cauchy` |
+| `H` (target) | direct |
+| `h_eval_norm_tendsto` (norms → ‖H‖²) | ⏳ remaining (reverse triangle in L²) |
+
+After `h_eval_norm_tendsto`: get `M ∈ Lp ℝ 2 P` with isometry. This delivers
+**conjunct 3** of the strong-exists at fixed `T`.
+
+## What remains for full closure
+
+- [ ] `h_eval_norm_tendsto` lemma — reverse triangle on L² norms.
+- [ ] **F construction across all t**: Lp.coeFn at varying t with consistency.
+- [ ] **Conjunct 1** (`Martingale F Filt P`): L²-limit of martingales — uses
+      `martingale_simpleIntegral_brownian` + L¹-continuity of cond-exp.
+- [ ] **Conjunct 2** (`Martingale (F² - ∫H²) Filt P`): requires closing
+      `quadVar_simpleIntegral_brownian` first (orthogonal-increments machinery
+      via `simpleIntegral_diagonal` + `simpleIntegral_offDiagonal`), then
+      L²-limit of the quadVar identity.
+- [ ] **Conjunct 3** (isometry): direct from `itoIntegralLp_brownian_L2_isometry`
+      once F is constructed.
+- [ ] Step 8: remove `stochasticIntegral_strong_exists_brownian` from baseline.
+- [ ] Step 9: remove `Brownian.Ito.{itoIsometry,quadVar,martingale}_*` from
+      baseline.
+- [ ] Step 10: mirror entire chain for compensated Poisson side.
 - [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
       the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
       assembly is mechanical given Step 4.
