@@ -2824,6 +2824,18 @@ private lemma adaptedSimple_dense_L2_bounded_brownian
      h_progMeas n i,
    predictableDyadicSimple_brownian_L2_converges hT g h_meas M h_bound⟩
 
+/-- **Partition endpoint of `predictableDyadicSimple_brownian` is T.** Trivially
+inherited from `dyadicPartition_brownian_last`. -/
+lemma predictableDyadicSimple_brownian_partition_last
+    {T : ℝ} (hT : 0 < T) (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) (n : ℕ) :
+    (predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
+      (Fin.last (predictableDyadicSimple_brownian hT g h_meas M h_bound n).N)
+      = T := by
+  show dyadicPartition_brownian T n (Fin.last (2 ^ n)) = T
+  exact dyadicPartition_brownian_last T n
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **Adapted density (Brownian).** Every progressively-measurable
