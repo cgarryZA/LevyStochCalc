@@ -1936,6 +1936,65 @@ private lemma dyadicSimplePredictable_brownian_eval_eq_dyadicAvg
   · intro h_not_mem
     exact absurd (Finset.mem_univ i) h_not_mem
 
+/-- **Eval of `predictableDyadicSimple_brownian` at `s` equals
+`dyadicAvg_shifted_brownian`.** For `s ∈ (0, T]`, eval at `s` equals the
+shifted dyadic average at index `dyadicIndex n s`. -/
+private lemma predictableDyadicSimple_brownian_eval_eq_shifted
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M)
+    (n : ℕ) (s : ℝ) (hs : 0 < s ∧ s ≤ T) (ω : Ω) :
+    (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval s ω =
+      dyadicAvg_shifted_brownian (T := T) g n (dyadicIndex n T hT s hs) ω := by
+  let φ := predictableDyadicSimple_brownian hT g h_meas M h_bound n
+  let i := dyadicIndex n T hT s hs
+  -- s ∈ (t_i, t_{i+1}], so the i-th indicator fires.
+  have hi_mem := dyadicIndex_mem n T hT s hs
+  have h_partition_castSucc : φ.partition i.castSucc =
+      ((i : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
+    show dyadicPartition_brownian T n i.castSucc = _
+    unfold dyadicPartition_brownian
+    push_cast
+    simp [Fin.coe_castSucc]
+  have h_partition_succ : φ.partition i.succ =
+      (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
+    show dyadicPartition_brownian T n i.succ = _
+    unfold dyadicPartition_brownian
+    push_cast
+    simp [Fin.val_succ]
+  have h_i_fires : φ.partition i.castSucc < s ∧ s ≤ φ.partition i.succ := by
+    rw [h_partition_castSucc, h_partition_succ]
+    exact hi_mem
+  have h_j_not_fires : ∀ j : Fin (2 ^ n), j ≠ i →
+      ¬(φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ) := by
+    intro j hji ⟨hj1, hj2⟩
+    rcases lt_trichotomy i j with hlt | heq | hgt
+    · have h_succ_le : i.succ ≤ j.castSucc := Fin.succ_le_castSucc_iff.mpr hlt
+      have h_part_le : φ.partition i.succ ≤ φ.partition j.castSucc :=
+        φ.partition_strictMono.monotone h_succ_le
+      have hi_le : s ≤ φ.partition i.succ := h_i_fires.2
+      linarith
+    · exact hji heq.symm
+    · have h_succ_le : j.succ ≤ i.castSucc := Fin.succ_le_castSucc_iff.mpr hgt
+      have h_part_le : φ.partition j.succ ≤ φ.partition i.castSucc :=
+        φ.partition_strictMono.monotone h_succ_le
+      have hi_lt : φ.partition i.castSucc < s := h_i_fires.1
+      linarith
+  show (∑ j : Fin φ.N, if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+                       then φ.ξ j ω else 0) = dyadicAvg_shifted_brownian T g n i ω
+  show (∑ j : Fin (2 ^ n), if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+                            then φ.ξ j ω else 0) = dyadicAvg_shifted_brownian T g n i ω
+  rw [Finset.sum_eq_single i]
+  · rw [if_pos h_i_fires]
+    show dyadicAvg_shifted_brownian T g n i ω = dyadicAvg_shifted_brownian T g n i ω
+    rfl
+  · intro j _ hji
+    refine if_neg ?_
+    intro hj
+    exact h_j_not_fires j hji hj
+  · intro h_not_mem
+    exact absurd (Finset.mem_univ i) h_not_mem
+
 /-- **Step A1.0: Apply IsUnifLocDoublingMeasure.ae_tendsto_average to `g(ω, ·)`.**
 For each ω, the average of g(ω, ·) over shrinking closed balls converges to g(ω, ·)
 at almost every point.
