@@ -2999,6 +2999,27 @@ lemma L2_cauchy_of_L2_tendsto_brownian
   rw [h_eq_ε] at h_2_sum_lt
   exact lt_of_le_of_lt h_C_int_le h_2_sum_lt
 
+/-- **L²-Cauchy of `predictableDyadicSimple_brownian` evals.** Direct corollary of
+`predictableDyadicSimple_brownian_L2_converges` + `L2_cauchy_of_L2_tendsto_brownian`. -/
+lemma predictableDyadicSimple_brownian_L2_cauchy
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
+    ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ, N ≤ n → N ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval s ω -
+          (predictableDyadicSimple_brownian hT g h_meas M h_bound m).eval s ω‖₊
+          : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ε :=
+  L2_cauchy_of_L2_tendsto_brownian
+    (fun n => predictableDyadicSimple_brownian hT g h_meas M h_bound n) g
+    (fun n => predictableDyadicSimple_brownian_eval_jointly_measurable hT g h_meas M
+      h_bound n)
+    h_meas
+    (predictableDyadicSimple_brownian_L2_converges hT g h_meas M h_bound)
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **Adapted density (Brownian).** Every progressively-measurable
