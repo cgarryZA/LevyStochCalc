@@ -211,6 +211,10 @@ The conjuncts then follow:
 - [x] Step 4-pre11: `predictableDyadicSimple_brownian_L2_cauchy` — committed
       `8fded4a`. Direct corollary giving the precise `h_cauchy_eval` form
       needed by `exists_itoIntegralL2_brownian`.
+- [x] Step 4-pre12: `eLpNorm_sub_eLpNorm_le_eLpNorm_sub` — committed `d7e03cc`.
+      Reverse triangle for eLpNorm in tsub form (`eLpNorm f - eLpNorm g ≤
+      eLpNorm (f - g)`). Standard consequence of `eLpNorm_add_le`. Building
+      block for L²-norm tendsto.
 
 ## Inputs to `exists_itoIntegralL2_brownian` — status
 
