@@ -3099,6 +3099,164 @@ private lemma eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le
     h_lower_tendsto h_upper_tendsto h_lower h_upper
 
+/-- **Bridge: nested-lintegral-of-squared-norm = `eLpNorm²` on product measure.**
+
+For any `ℝ`-valued `h : Ω × ℝ → ℝ` measurable and `μ`-SFinite,
+`∫⁻ ω, ∫⁻ s in Icc 0 T, ‖h (ω, s)‖₊² ∂vol ∂μ = eLpNorm h 2 (μ.prod (vol.restrict (Icc 0 T))) ^ 2`.
+Tonelli + `eLpNorm_nnreal_pow_eq_lintegral` (instantiated at `p = 2`). -/
+private lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
+    {μ : Measure Ω} [SFinite μ] {T : ℝ} (h : Ω × ℝ → ℝ) (hh : Measurable h) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖h (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+      = MeasureTheory.eLpNorm h 2
+          (μ.prod (volume.restrict (Set.Icc (0 : ℝ) T))) ^ (2 : ℝ) := by
+  set μν := μ.prod (volume.restrict (Set.Icc (0 : ℝ) T)) with hμν
+  have h_aem_sq : AEMeasurable
+      (fun p : Ω × ℝ => (‖h p‖₊ : ℝ≥0∞) ^ 2) μν :=
+    (hh.enorm.pow_const 2).aemeasurable
+  -- Tonelli on the squared integrand.
+  have h_Tonelli :
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖h (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+        = ∫⁻ p, (‖h p‖₊ : ℝ≥0∞) ^ 2 ∂μν := by
+    rw [MeasureTheory.lintegral_prod _ h_aem_sq]
+  rw [h_Tonelli]
+  -- Bridge: ∫⁻ p, (‖h p‖₊ : ℝ≥0∞)^2 ∂μν = eLpNorm h 2 μν ^ (2:ℝ).
+  have h_pow_lemma := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral
+    (μ := μν) (p := (2 : NNReal)) (f := h)
+    (by norm_num : (2 : NNReal) ≠ 0)
+  have h_two_R : ((2 : NNReal) : ℝ) = (2 : ℝ) := by norm_num
+  have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
+  rw [h_two_ENNReal, h_two_R] at h_pow_lemma
+  -- h_pow_lemma : eLpNorm h 2 μν ^ (2:ℝ) = ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μν
+  rw [h_pow_lemma]
+  -- Goal: ∫⁻ p, (‖h p‖₊ : ℝ≥0∞)^2 ∂μν = ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μν
+  refine lintegral_congr (fun p => ?_)
+  rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]
+  rfl
+
+/-- **General eval-norm-tendsto from diff-norm-tendsto, lintegral form.**
+
+For any sequence of jointly-measurable `(p ↦ ev_n p.2 p.1)` and jointly-measurable
+target `H` such that `∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s - ev_n s ω‖₊² → 0`, we have
+`∫⁻ ω, ∫⁻ s in [0,T], ‖ev_n s ω‖₊² → ∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s‖₊²`.
+
+Proof: bridge to `eLpNorm² _ 2 (μ.prod (vol.restrict (Icc 0 T)))` via Tonelli; the
+square-root step gives `eLpNorm (F - Fn) → 0`; reverse-triangle squeeze
+(`eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero`) closes; square back. -/
+private lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
+    {μ : Measure Ω} [SFinite μ]
+    {T : ℝ}
+    (H : Ω → ℝ → ℝ) (h_H_meas : Measurable (Function.uncurry H))
+    (ev : ℕ → ℝ → Ω → ℝ)
+    (h_ev_meas : ∀ n, Measurable (fun (p : Ω × ℝ) => ev n p.2 p.1))
+    (h_L2_diff : Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s - ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ)
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ)) := by
+  set μν := μ.prod (volume.restrict (Set.Icc (0 : ℝ) T)) with hμν
+  set F : Ω × ℝ → ℝ := fun p => H p.1 p.2 with hF_def
+  set Fn : ℕ → Ω × ℝ → ℝ := fun n p => ev n p.2 p.1 with hFn_def
+  have h_F_meas : Measurable F := h_H_meas
+  have h_Fn_meas : ∀ n, Measurable (Fn n) := h_ev_meas
+  have h_F_aestrong : MeasureTheory.AEStronglyMeasurable F μν :=
+    h_F_meas.stronglyMeasurable.aestronglyMeasurable
+  have h_Fn_aestrong : ∀ n, MeasureTheory.AEStronglyMeasurable (Fn n) μν :=
+    fun n => (h_Fn_meas n).stronglyMeasurable.aestronglyMeasurable
+  have h_diff_meas : ∀ n, Measurable (F - Fn n) := fun n => h_F_meas.sub (h_Fn_meas n)
+  -- Bridge each lintegral_sq form to its eLpNorm² counterpart.
+  have h_F_bridge : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+        = MeasureTheory.eLpNorm F 2 μν ^ (2 : ℝ) :=
+    lintegral_sq_eq_eLpNorm_sq_on_prod_brownian (μ := μ) F h_F_meas
+  have h_Fn_bridge : ∀ n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+        = MeasureTheory.eLpNorm (Fn n) 2 μν ^ (2 : ℝ) := fun n =>
+    lintegral_sq_eq_eLpNorm_sq_on_prod_brownian (μ := μ) (Fn n) (h_Fn_meas n)
+  have h_diff_bridge : ∀ n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s - ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+        = MeasureTheory.eLpNorm (F - Fn n) 2 μν ^ (2 : ℝ) := fun n =>
+    lintegral_sq_eq_eLpNorm_sq_on_prod_brownian (μ := μ) (T := T)
+      (F - Fn n) (h_diff_meas n)
+  -- Convert L²-converges (lintegral form) into eLpNorm² → 0.
+  have h_eLpNorm_sq_diff_tendsto : Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (F - Fn n) 2 μν ^ (2 : ℝ))
+      Filter.atTop (nhds 0) := by
+    have h_eq : (fun n => MeasureTheory.eLpNorm (F - Fn n) 2 μν ^ (2 : ℝ))
+        = (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖H ω s - ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ) := by
+      funext n
+      exact (h_diff_bridge n).symm
+    rw [h_eq]
+    exact h_L2_diff
+  -- Square root: eLpNorm² → 0 ⟹ eLpNorm → 0 (via rpow continuity at 0).
+  have h_eLpNorm_diff_tendsto : Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (F - Fn n) 2 μν)
+      Filter.atTop (nhds 0) := by
+    have h_rpow : (fun n => MeasureTheory.eLpNorm (F - Fn n) 2 μν)
+        = (fun n => (MeasureTheory.eLpNorm (F - Fn n) 2 μν ^ (2 : ℝ)) ^ ((1 / 2 : ℝ))) := by
+      funext n
+      rw [← ENNReal.rpow_mul, show ((2 : ℝ) * (1 / 2)) = 1 from by norm_num,
+          ENNReal.rpow_one]
+    rw [h_rpow]
+    have h := h_eLpNorm_sq_diff_tendsto.ennrpow_const (1 / 2 : ℝ)
+    simpa [ENNReal.zero_rpow_of_pos (by norm_num : (0 : ℝ) < 1 / 2)] using h
+  -- Reverse triangle continuity: eLpNorm (Fn n - F) → 0 ⟹ eLpNorm Fn n → eLpNorm F.
+  have h_diff_swap : ∀ n,
+      MeasureTheory.eLpNorm (Fn n - F) 2 μν
+        = MeasureTheory.eLpNorm (F - Fn n) 2 μν := by
+    intro n
+    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add, neg_sub]
+    rw [h_neg, MeasureTheory.eLpNorm_neg]
+  have h_eLpNorm_diff_swap_tendsto : Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (Fn n - F) 2 μν)
+      Filter.atTop (nhds 0) := by
+    have h_eq : (fun n => MeasureTheory.eLpNorm (Fn n - F) 2 μν)
+        = (fun n => MeasureTheory.eLpNorm (F - Fn n) 2 μν) := funext h_diff_swap
+    rw [h_eq]
+    exact h_eLpNorm_diff_tendsto
+  have h_eLpNorm_Fn_tendsto :=
+    eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero
+      (one_le_two : (1 : ℝ≥0∞) ≤ 2) h_F_aestrong h_Fn_aestrong h_eLpNorm_diff_swap_tendsto
+  -- Square back: eLpNorm Fn n → eLpNorm F ⟹ eLpNorm² Fn n → eLpNorm² F.
+  have h_eLpNorm_sq_Fn_tendsto : Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (Fn n) 2 μν ^ (2 : ℝ))
+      Filter.atTop (nhds (MeasureTheory.eLpNorm F 2 μν ^ (2 : ℝ))) :=
+    h_eLpNorm_Fn_tendsto.ennrpow_const 2
+  -- Convert back to lintegral form via the bridges.
+  have h_eq_func : (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖ev n s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ)
+      = (fun n => MeasureTheory.eLpNorm (Fn n) 2 μν ^ (2 : ℝ)) := funext h_Fn_bridge
+  rw [h_eq_func, h_F_bridge]
+  exact h_eLpNorm_sq_Fn_tendsto
+
+/-- **Bounded dyadic eval lintegral_sq tendsto.** Specialization of
+`lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian` to the
+`predictableDyadicSimple_brownian` sequence (bounded `g` case). -/
+private lemma predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
+    Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval s ω‖₊
+          : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖g ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) :=
+  lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian (μ := P) (T := T) g h_meas
+    (fun n => (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval)
+    (fun n => predictableDyadicSimple_brownian_eval_jointly_measurable hT g h_meas
+      M h_bound n)
+    (predictableDyadicSimple_brownian_L2_converges (P := P) hT g h_meas M h_bound)
+
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
 /-- **Adapted density (Brownian).** Every progressively-measurable
