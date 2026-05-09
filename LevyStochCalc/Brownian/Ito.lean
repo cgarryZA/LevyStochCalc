@@ -1483,6 +1483,86 @@ noncomputable def predictableDyadicSimple_brownian
       dyadicAvg_shifted_brownian_bounded T hT g M h_bound n i ω⟩
   ξ_measurable := dyadicAvg_shifted_brownian_measurable T g h_meas n
 
+/-- **Predictability of `dyadicAvg_shifted_brownian`.** When `g` is
+jointly measurable wrt `ℱ_t × Borel(ℝ)` for each `t` (i.e., progressively
+measurable up to each time `t`), `dyadicAvg_shifted_brownian g n i` is
+`ℱ_{t_i}`-StronglyMeasurable, where `t_i = dyadicPartition T n i.castSucc`.
+
+Proof: for `i = 0`, ξ_0 = 0 (constant, trivially measurable). For `i ≥ 1`,
+ξ_i is the dyadic average over `(t_{i-1}, t_i]`, which is the Bochner
+integral of `g(·, s)` over `s ∈ (t_{i-1}, t_i]`. By
+`MeasureTheory.StronglyMeasurable.integral_prod_right'`, the integral
+inherits `ℱ_{t_i}`-measurability from the integrand's joint measurability. -/
+lemma dyadicAvg_shifted_brownian_adapted
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (T : ℝ) (g : Ω → ℝ → ℝ)
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => g p.1 p.2))
+    (n : ℕ) (i : Fin (2 ^ n)) :
+    @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (dyadicPartition_brownian T n i.castSucc))
+      (dyadicAvg_shifted_brownian T g n i) := by
+  unfold dyadicAvg_shifted_brownian
+  by_cases h_i_zero : i.val = 0
+  · -- Case i = 0: ξ_0 = 0, constant, StronglyMeasurable wrt anything.
+    simp only [h_i_zero, ↓reduceDIte]
+    exact MeasureTheory.stronglyMeasurable_const
+  · -- Case i ≥ 1: ξ_i = dyadicAvg over (t_{i-1}, t_i], use integral_prod_right'.
+    simp only [h_i_zero, ↓reduceDIte]
+    -- The integrand: f(p) = g p.1 p.2 is StronglyMeas wrt ℱ_{t_i} × Borel.
+    set t_i : ℝ := dyadicPartition_brownian T n i.castSucc with h_ti_def
+    have h_f_meas := h_progMeas t_i
+    -- Apply StronglyMeasurable.integral_prod_right' explicitly with the
+    -- ℱ_{t_i} σ-algebra on Ω.
+    have h_int_step :=
+      @MeasureTheory.StronglyMeasurable.integral_prod_right' Ω ℝ ℝ
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_i)
+        inferInstance
+        (volume.restrict (Set.Ioc
+          (dyadicPartition_brownian T n
+            (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).castSucc)
+          (dyadicPartition_brownian T n
+            (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).succ)))
+        _ _ inferInstance
+        (fun p : Ω × ℝ => g p.1 p.2) h_f_meas
+    -- Multiply by constant.
+    have h_const_meas := h_int_step.const_mul ((2 ^ n : ℕ) / T : ℝ)
+    -- This is exactly dyadicAvg_brownian g n ⟨i.val - 1, _⟩ ω.
+    convert h_const_meas using 1
+
+/-- **Predictability of `predictableDyadicSimple_brownian`.** Each `ξ_i`
+is `ℱ_{t_i}`-StronglyMeasurable when `g` is progressively measurable. -/
+lemma predictableDyadicSimple_brownian_adapted
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T)
+    (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
+    (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M)
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => g p.1 p.2))
+    (n : ℕ)
+    (i : Fin (predictableDyadicSimple_brownian hT g h_meas M h_bound n).N) :
+    @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
+          i.castSucc))
+      ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).ξ i) := by
+  show @MeasureTheory.StronglyMeasurable Ω ℝ _
+    ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+      (dyadicPartition_brownian T n i.castSucc))
+    (dyadicAvg_shifted_brownian T g n i)
+  exact dyadicAvg_shifted_brownian_adapted W T g h_progMeas n i
+
 /-- **Step 2 of the density chain (Brownian):** Mathlib `SimpleFunc` approximations
 of bounded `g` can be approximated by step functions of "rectangular" form
 `∑_{i,j} c_{i,j} · 𝟙_{Ω_i × I_j}` in L². This is the bridge from arbitrary product
