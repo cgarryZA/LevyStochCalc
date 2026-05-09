@@ -172,11 +172,21 @@ The conjuncts then follow:
       updated to thread the hypotheses through. Public theorems
       `itoIsometry`, `quadVar_stochasticIntegral`,
       `martingale_stochasticIntegral` now take `h_meas + h_sq_int_global`.
+- [x] Step 4-pre1 (predictable shifted dyadic infrastructure):
+      committed `0d2709a` — `dyadicAvg_shifted_brownian` (def +
+      bounded + measurable) and `predictableDyadicSimple_brownian`
+      (the shifted dyadic SimplePredictable, axiom-clean).
+- [x] Step 4-pre2 (predictability proof): committed `a43bbcc` —
+      under progressive measurability of `g`, each `ξ_i` of
+      `predictableDyadicSimple_brownian` is `ℱ_{t_i}`-StronglyMeasurable.
+      Proof: case-split on `i = 0` (constant) vs `i ≥ 1` (apply
+      `StronglyMeasurable.integral_prod_right'`).
+- [ ] Step 4-pre3: prove L² convergence of `predictableDyadicSimple_brownian.eval`
+      to `g`. Approach: triangle bound via dyadicSimplePredictable_brownian
+      + shift error → 0 (one-sided LDT). The unshifted convergence is
+      already in `dyadicSimplePredictable_brownian_L2_converges`.
 - [ ] Step 4: build `F` from `exists_itoIntegralL2_brownian` +
-      time-parametrization. **Blocker**: `simplePredictable_dense_L2`
-      doesn't preserve adaptedness; would need a stronger density
-      lemma `simplePredictable_dense_L2_adapted` that takes a
-      predictability hypothesis on `H` and produces adapted simples.
+      time-parametrization. Need Step 4-pre3 first.
 - [ ] Step 5: prove conjunct 1 via L²-limit-of-martingales. Mathlib has
       the cond-exp continuity (`MeasureTheory.tendsto_eLpNorm_condExp`);
       assembly is mechanical given Step 4.
