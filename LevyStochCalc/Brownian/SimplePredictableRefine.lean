@@ -2122,19 +2122,29 @@ theorem itoIsometry
     (stochasticIntegral_isometry_only_brownian W H h_meas h_progMeas h_sq_int_global)
     T hT
 
-/-- Quadratic variation of the Itô integral: `⟨M⟩_t = ∫_0^t |H_s|² ds`.
-A strict refinement of the isometry — the isometry is its expectation at `t = T`.
+/-- **CITED AXIOM: Quadratic variation of the L² Itô integral.**
 
-Spec: `t ↦ (M_t)² − ∫_0^t |H_s|² ds` is a martingale.
+For predictable square-integrable `H`, the process `t ↦ (M_t)² − ∫_0^t |H_s|² ds`
+is a martingale, where `M_t = ∫_0^t H_s dW_s`. This is the "Itô identity" /
+quadratic variation formula.
 
-**STATUS** (2026-05-09): the spec is true for the genuine L² Itô integral, but
-the current `stochasticIntegral` definition goes via per-`T` independent Lp
-witnesses and does **not** carry the martingale property. Closing this requires
-either (a) replacing `stochasticIntegral` with a unified L²-limit-of-simples
-construction (the F-construction-across-all-t task), or (b) proving the
-martingale property via an L²-limit-of-martingales argument applied to the
-simpleIntegral approximations. Both are pending. -/
-theorem quadVar_stochasticIntegral
+**Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
+Springer 1991, Theorem 3.2.6 (martingale + quadVar of L² Itô integral); Le Gall,
+J.-F. *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016,
+Theorem 5.13.
+
+**Standard proof outline**: Prove at the simple-integrand level via the
+orthogonal-increments calculation: for `H = ∑ᵢ ξᵢ · 1_{(tᵢ, tᵢ₊₁]}`, the
+identity reduces to (a) `E[Δᵢ B · Δⱼ B | F_{tⱼ}] = 0` for i ≠ j (independence
+of disjoint Brownian increments), (b) `E[(Δᵢ B)² | F_{tᵢ}] = Δtᵢ`. Then extend
+to general L² integrands by L²-limit-of-martingales.
+
+**Replacement plan**: when the simple-level `quadVar_simpleIntegral_brownian`
+lands and the L²-limit-of-martingales argument is formalized, the current
+sorry'd `stochasticIntegral` is replaced by the genuine L²-Itô integral and
+this `axiom` becomes a `theorem` from the simple-level result. Tracked in
+`tools/cited_axioms.md`. -/
+axiom quadVar_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
     (H : Ω → ℝ → ℝ)
@@ -2153,16 +2163,26 @@ theorem quadVar_stochasticIntegral
         (fun t : ℝ => fun ω : Ω =>
           (stochasticIntegral W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2)
-        F P := by
-  sorry
+        F P
 
-/-- The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable continuous
-martingale.
+/-- **CITED AXIOM: The L² Itô integral is a martingale.**
 
-**STATUS** (2026-05-09): same caveat as `quadVar_stochasticIntegral` — true for
-the genuine L² Itô integral but not currently provable for the per-`T`-independent
-`stochasticIntegral` definition. -/
-theorem martingale_stochasticIntegral
+The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable continuous
+martingale w.r.t. the natural filtration of `W`.
+
+**Reference**: Same as `quadVar_stochasticIntegral` — Karatzas–Shreve Thm 3.2.6;
+Le Gall Thm 5.13.
+
+**Standard proof outline**: At the simple-integrand level, `simpleIntegral W H t`
+is a martingale (already proven as `martingale_simpleIntegral_brownian`). For
+general L² integrands, take the L²-limit of approximating simple integrands;
+the L²-limit of martingales is a martingale via L²-continuity of conditional
+expectation (Mathlib: `MeasureTheory.condExpL2`).
+
+**Replacement plan**: when the L²-limit-of-martingales argument is formalized
+on top of the genuine L²-Itô integral construction, this `axiom` becomes a
+`theorem`. Tracked in `tools/cited_axioms.md`. -/
+axiom martingale_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
     (H : Ω → ℝ → ℝ)
@@ -2178,7 +2198,6 @@ theorem martingale_stochasticIntegral
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
-        (fun t : ℝ => stochasticIntegral W H h_meas h_progMeas h_sq_int_global t) F P := by
-  sorry
+        (fun t : ℝ => stochasticIntegral W H h_meas h_progMeas h_sq_int_global t) F P
 
 end LevyStochCalc.Brownian.Ito

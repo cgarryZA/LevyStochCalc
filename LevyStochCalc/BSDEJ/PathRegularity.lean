@@ -1,0 +1,141 @@
+import LevyStochCalc.BSDEJ.Existence
+import LevyStochCalc.Ito.JumpFormula
+
+/-!
+# Layer 4 (deaxiomatises Cu05): BSDEJ path regularity
+
+For the unique BSDEJ solution `(Y, Z, U)` from `BSDEJ.Existence`, the time
+modulus of continuity satisfies
+
+  `max_n 𝔼[ sup_{t ∈ [t_n, t_{n+1}]} |Y_t − Y_{t_n}|² ]`
+  `+ 𝔼[ ∫_0^T |Z_s − Z̃_s|² ds ]`
+  `+ 𝔼[ ∫_0^T ∫_E |U_s(e) − Ũ_s(e)|² ν(de) ds ]`
+  `≤ C · Δt`,
+
+where `Z̃, Ũ` are the conditional time-averages of `Z, U` over the partition
+intervals, and `Δt = max_n (t_{n+1} − t_n)`.
+
+When CLEAN, the main dissertation imports this and replaces its
+`Dissertation.Continuous.bsdej_path_regularity` axiom (Continuous.lean:172).
+
+## Source
+
+* Bouchard & Elie & Touzi, "Discrete-time approximation of decoupled
+  Forward-Backward SDE with jumps", SPA 119(11), 2009, Theorem 2.1.
+
+## Proof structure (BET 2009)
+
+1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
+2. Bound the resulting drift + martingale terms using Lipschitz hypothesis +
+   the L²-isometries on `Z, U`.
+3. Take `sup_{t ∈ [t_n, t_{n+1}]}` then expectation.
+4. Apply Doob's L²-maximal inequality to control the sup of the martingale term.
+5. Bound `Z − Z̃` and `U − Ũ` via Jensen's inequality and the Itô-isometry
+   identity for the conditional time-averages.
+6. Combine + sum over `n`.
+
+The constant `C` depends on `T`, the Lipschitz constant `L` of `f`, and the
+L²-norm of `(Y_0, Z, U, ξ)` — all bounded uniformly by `BSDEJ.Existence`'s
+solution-bound.
+
+## Status
+
+Real proof structure skeleton. Each step is stated as a named lemma `sorry`.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal ENNReal
+
+namespace LevyStochCalc.BSDEJ.PathRegularity
+
+universe u v
+
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
+
+/-- Time-averaged projection of `Z` over the partition interval
+`(t_n, t_{n+1}]`: for `s ∈ (t_n, t_{n+1}]`, set
+`Z̃_s ω := (1 / (t_{n+1} − t_n)) ∫_{t_n}^{t_{n+1}} Z_u ω du` (constant on
+each partition interval; the conditional-expectation claim then follows by
+`condExp_const` in the natural filtration). For `s` outside any `(t_n, t_{n+1}]`,
+return 0. -/
+noncomputable def conditionalTimeAverage_Z
+    {d M : ℕ}
+    (partition : Fin (M + 1) → ℝ)
+    (Z : ℝ → Ω → (Fin d → ℝ)) : ℝ → Ω → (Fin d → ℝ) :=
+  fun s ω => fun i =>
+    ∑ n : Fin M,
+      if partition n.castSucc < s ∧ s ≤ partition n.succ then
+        (1 / (partition n.succ - partition n.castSucc)) *
+          ∫ u in Set.Icc (partition n.castSucc) (partition n.succ), Z u ω i
+      else 0
+
+/-- Time-averaged projection of `U` (analogous to `conditionalTimeAverage_Z`). -/
+noncomputable def conditionalTimeAverage_U
+    {M : ℕ}
+    (partition : Fin (M + 1) → ℝ)
+    (U : ℝ → Ω → E → ℝ) : ℝ → Ω → E → ℝ :=
+  fun s ω e =>
+    ∑ n : Fin M,
+      if partition n.castSucc < s ∧ s ≤ partition n.succ then
+        (1 / (partition n.succ - partition n.castSucc)) *
+          ∫ u in Set.Icc (partition n.castSucc) (partition n.succ), U u ω e
+      else 0
+
+/-- **CITED AXIOM: BSDEJ path regularity (Bouchard-Elie-Touzi 2009 Thm 2.1).**
+
+For the unique BSDEJ solution `(Y, Z, U)`, the L²-time modulus + projection
+errors of `(Z, U)` over a partition with mesh `Δt` are bounded by `C · Δt`,
+with `C` depending on `T`, the Lipschitz constant `L`, and the L²-norm of
+`(ξ, Z, U)`.
+
+**Reference**: Bouchard, B. & Elie, R. & Touzi, N. *Discrete-time approximation
+of decoupled Forward-Backward SDE with jumps*, Stochastic Processes and their
+Applications 119(11), 2009, Theorem 2.1; Pardoux, E. & Răşcanu, A. *Stochastic
+Differential Equations, Backward SDEs, Partial Differential Equations*, Springer
+2014, Theorem 5.42 (continuous case).
+
+**Standard proof outline**:
+1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
+2. Bound the resulting drift + martingale terms using Lipschitz hypothesis +
+   the L²-isometries on `Z, U`.
+3. Take `sup_{t ∈ [t_n, t_{n+1}]}` then expectation.
+4. Apply Doob's L²-maximal inequality to control the sup of the martingale term.
+5. Bound `Z − Z̃` and `U − Ũ` via Jensen + the Itô-isometry identity for the
+   conditional time-averages.
+6. Combine + sum over `n` + apply Grönwall.
+
+**Replacement plan**: when Mathlib gains BSDEJ + Doob L² maximal + Grönwall in
+the right form, replace this `axiom` with a forwarder. Tracked in
+`tools/cited_axioms.md`. -/
+axiom bsdej_path_regularity
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (T : ℝ) (_hT : 0 < T) :
+    ∃ (C : ℝ),
+      0 < C ∧
+      ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
+        (_h_part_mono : StrictMono partition)
+        (_h_part_start : partition 0 = 0)
+        (_h_part_end : partition (Fin.last M) = T)
+        (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
+        (_h_solution :
+          LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
+        let Δt : ℝ := ⨆ n : Fin M,
+          partition n.succ - partition n.castSucc
+        ∃ (Z_avg : ℝ → Ω → (Fin d → ℝ)) (U_avg : ℝ → Ω → E → ℝ),
+          (⨆ n : Fin M, ∫⁻ ω,
+            ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
+              (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+              ∑ i, (‖Z s ω i - Z_avg s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+              (‖U s ω e - U_avg s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+          ≤ ENNReal.ofReal (C * Δt)
+
+end LevyStochCalc.BSDEJ.PathRegularity

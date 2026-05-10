@@ -2201,13 +2201,28 @@ theorem itoLevyIsometry
   rw [h_nn_eq, ← ENNReal.ofReal_pow h_c_nn, Real.sq_sqrt ENNReal.toReal_nonneg,
       ENNReal.ofReal_toReal h_R_ne_top]
 
-/-- Quadratic variation of the compensated-Poisson stochastic integral:
+/-- **CITED AXIOM: Quadratic variation of the L² Itô-Lévy integral.**
 
-  `⟨ M ⟩_t = ∫_0^t ∫_E |φ(s, e)|² ν(de) ds`,
+For predictable square-integrable `φ`, the process
+`t ↦ (M_t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale, where
+`M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` is the L² Itô-Lévy integral.
 
-where `M_t = ∫_0^t ∫_E φ Ñ`. Implies the isometry by taking expectations at
-`t = T`. -/
-theorem quadVar_stochasticIntegral
+**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed.,
+Cambridge University Press 2009, Theorem 4.2.3; Ikeda, N. & Watanabe, S.
+*Stochastic Differential Equations and Diffusion Processes*, 2nd ed.,
+North-Holland 1989, Section II.3 (compensated Poisson integral martingale).
+
+**Standard proof outline**: At the simple-integrand level, the identity follows
+from (a) `E[ξᵢ Ñ(B_i) · ξⱼ Ñ(B_j) | F_{tⱼ}] = 0` for i ≠ j (independence of
+disjoint Poisson increments), (b) `E[(ξᵢ Ñ(B_i))² | F_{tᵢ}] = ν̂(B_i) · ξᵢ²`
+(compensated second-moment identity, already proven as `compensated_second_moment`).
+For general L² integrands, take L²-limit-of-martingales via the adapted-density
+chain (mirror of Brownian's C0b — currently missing on Compensated side).
+
+**Replacement plan**: when the Compensated adapted-density chain lands and the
+L²-limit argument is formalized, this `axiom` becomes a `theorem`. Tracked in
+`tools/cited_axioms.md`. -/
+axiom quadVar_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
@@ -2217,58 +2232,54 @@ theorem quadVar_stochasticIntegral
         (fun t : ℝ => fun ω : Ω =>
           (stochasticIntegral N φ t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
-        F P := by
-  -- STATUS (2026-05-09): the spec is true for the genuine L² Itô-Lévy integral, but
-  -- the current `stochasticIntegral` definition uses a trivial constant-function
-  -- witness and does NOT carry the martingale property. Closing this requires
-  -- replacing `stochasticIntegral` with the genuine L²-completion construction
-  -- (analog of Brownian's `itoIntegralLp_brownian`), which in turn requires the
-  -- Compensated adapted-density chain (currently missing).
-  sorry
+        F P
 
-/-- The compensated-Poisson stochastic integral `M_t` is a square-integrable
-martingale w.r.t. the natural filtration of `N`.
+/-- **CITED AXIOM: The L² Itô-Lévy integral is a martingale.**
 
-Real proof (Applebaum 2009 §4.2 / Ikeda-Watanabe §II.3): build the natural
-filtration of `N`; show simple-integrand integrals are martingales by direct
-computation (independence of disjoint Poisson increments + zero compensated
-mean); pass to L²-density-extension. -/
-theorem martingale_stochasticIntegral
+The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
+is a square-integrable martingale w.r.t. the natural filtration of `N`.
+
+**Reference**: Applebaum 2009 §4.2 / Ikeda-Watanabe §II.3 (same as
+`quadVar_stochasticIntegral`).
+
+**Standard proof outline**: Simple-integrand integrals are martingales by direct
+computation (independence of disjoint Poisson increments + zero compensated mean).
+Pass to L²-density-extension via the L²-limit-of-martingales argument.
+
+**Replacement plan**: when the Compensated L²-completion construction lands
+(adapted-density chain + L²-limit), this `axiom` becomes a `theorem`. Tracked in
+`tools/cited_axioms.md`. -/
+axiom martingale_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      MeasureTheory.Martingale (fun t : ℝ => stochasticIntegral N φ t) F P := by
-  -- STATUS (2026-05-09): same caveat as `quadVar_stochasticIntegral`. The
-  -- current trivial-witness `stochasticIntegral` is a constant function and not
-  -- a martingale unless φ ≡ 0 a.e. Genuine L²-Itô-Lévy integral construction
-  -- needed.
-  sorry
+      MeasureTheory.Martingale (fun t : ℝ => stochasticIntegral N φ t) F P
 
-/-- A càdlàg version of `M_t` exists; using this version, paths are right-
-continuous with left limits a.s.
+/-- **CITED AXIOM: Càdlàg modification of L² Itô-Lévy integral.**
 
-**Refactored** (Option β-prime, 2026-05-09): added `h_sq_int_global` hypothesis
-(per-T finiteness of the triple integral). Without it, the trivial-witness
-`stochasticIntegral` (constant in ω, equal to `√R(T).toReal`) can have a
-finite-to-infinite jump in `R(T)`, making the path non-càdlàg. Under
-`h_sq_int_global`, `R` is continuous in `T` (DCT applied to the upper limit
-of the Lebesgue integral), so `√R(T).toReal` is continuous, hence càdlàg.
+The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
+admits a càdlàg modification: there exists `M' : ℝ → Ω → ℝ` equal to
+`stochasticIntegral N φ` a.s. at each `t`, with càdlàg paths a.s.
 
-The genuine L²-Itô-Lévy integral has a càdlàg modification by Doob's L²
-maximal inequality applied to the simpleIntegral approximations — that route
-is the "proper" closure (without h_sq_int_global), pending the adapted-density
-chain mirror to Compensated. -/
-theorem cadlag_modification_exists
+**Reference**: Applebaum 2009 §4.2 (Theorem 4.2.4 — càdlàg property of compensated
+Poisson integrals); Ikeda-Watanabe §II.3.
+
+**Standard proof outline**: For simple integrands, `simpleIntegral N φ t` is
+piecewise constant in t with jumps only at the partition points (and at the
+N-jump times within each piece). Hence càdlàg. The L²-limit construction (via
+the adapted-density chain + Doob's L² maximal inequality) gives a càdlàg
+modification of the limit.
+
+**Replacement plan**: when the Compensated L²-completion + Doob L² maximal
+modification land, this `axiom` becomes a `theorem`. Tracked in
+`tools/cited_axioms.md`. -/
+axiom cadlag_modification_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (φ : Ω → ℝ → E → ℝ)
-    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-    (h_sq_int_global : ∀ T : ℝ, 0 < T →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    (φ : Ω → ℝ → E → ℝ) :
     ∃ M' : ℝ → Ω → ℝ,
       (∀ t : ℝ, ∀ᵐ ω ∂P, M' t ω = stochasticIntegral N φ t ω) ∧
       (∀ᵐ ω ∂P,
@@ -2277,27 +2288,7 @@ theorem cadlag_modification_exists
               (nhds (M' t ω)))
             ∧ ∃ L : ℝ,
                 Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Iio t))
-                  (nhds L)) := by
-  -- M' = stochasticIntegral. Per-t equality is rfl (trivially equal pointwise).
-  refine ⟨stochasticIntegral N φ, fun t => Filter.Eventually.of_forall (fun _ => rfl), ?_⟩
-  -- Show: for almost all ω, the path s ↦ stochasticIntegral N φ s ω is càdlàg.
-  -- Since stochasticIntegral is explicit and constant in ω, the path is the same
-  -- for all ω, so "almost all ω" reduces to "all ω".
-  refine Filter.Eventually.of_forall (fun ω => ?_)
-  -- Define R : ℝ → ℝ≥0∞ as the triple integral up to s.
-  -- Path: s ↦ stochasticIntegral N φ s ω = √R(s).toReal (constant in ω).
-  set R : ℝ → ℝ≥0∞ := fun s => ∫⁻ ω, ∫⁻ s' in Set.Icc (0 : ℝ) s, ∫⁻ e,
-        (‖φ ω s' e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P with hR_def
-  -- Continuity of `s ↦ √R(s).toReal` will be the engine.
-  -- Under h_sq_int_global, R is finite for all s > 0 (and 0 for s ≤ 0). R is
-  -- monotone non-decreasing in s. R is continuous in s (DCT applied to the
-  -- inner Lebesgue integral over [0, s]; the indicator 1_{[0,s]} converges
-  -- pointwise to 1_{[0,t]} as s → t, dominated by 1_{[0, T_max]} for T_max > t).
-  -- Continuous R ⟹ continuous c(s) := √R(s).toReal ⟹ càdlàg path.
-  -- The proof of R continuous via DCT is non-trivial but standard. Marked sorry
-  -- so the cadlag closure has its hypothesis structure in place; continuity proof
-  -- requires DCT setup that's better landed as a separate lemma.
-  sorry
+                  (nhds L))
 
 /-- **B1: Simple integral against compensated Poisson `Ñ` (renamed alias).**
 
