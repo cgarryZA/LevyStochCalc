@@ -2246,6 +2246,310 @@ lemma coeFn_simpleIntegralLp_compensated
       =ᵐ[P] (fun ω => simpleIntegral N φ T ω) :=
   MeasureTheory.MemLp.coeFn_toLp _
 
+/-- **CITED AXIOM: Cauchy property of `simpleIntegralLp_compensated` under Cauchy
+of evals.**
+
+For an adapted sequence `G : ℕ → SimplePredictable Ω E ν T` with shared
+endpoint and `(G n).eval` Cauchy in `L²(P × ds × dν)`, the lifted
+`simpleIntegralLp_compensated (G n)` is Cauchy in `Lp ℝ 2 P`.
+
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
+CUP 2009, Equation 4.3.1 + Lemma 4.2.5 (the L²-isometry on simple integrands,
+applied to differences via common refinement of partitions); Ikeda–Watanabe,
+*SDEs and Diffusion Processes*, 2nd ed., North-Holland 1989, Lemma II.3.4.
+
+**Standard proof outline**: refine `(G n)` and `(G m)` to a common partition
+(combining all partition points + mark-set algebra). On the common refinement,
+the difference `simpleIntegral N (G n - G m) T = simpleIntegral N (G n) T -
+simpleIntegral N (G m) T` is itself a simple integral (with difference
+coefficients). Apply `simpleIntegral_isometry` to get
+`‖simpleIntegralLp(G n) - simpleIntegralLp(G m)‖²_{Lp 2 P} = ∫⁻ ‖(G n).eval -
+(G m).eval‖² → 0` via `h_cauchy_eval`.
+
+**Replacement plan**: when the Compensated common-refinement chain (mirror of
+`Brownian.SimplePredictableRefine.commonRefinement_*` lemmas) is formalized,
+this `axiom` becomes a `theorem`. Tracked in `tools/cited_axioms.md` Tier 1
+(the underlying refinement-isometry identity is genuinely cited; the Lean
+mechanization is what's missing). -/
+axiom cauchySeq_simpleIntegralLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε) :
+    CauchySeq (fun n => simpleIntegralLp_compensated N hT (G n) (h_adapt n))
+
+/-- **L²-extended Itô-Lévy integral against compensated Poisson `Ñ`.**
+
+Defined as `Filter.limUnder atTop (simpleIntegralLp_compensated ∘ G)` for any
+adapted Cauchy approximating sequence `G`. The L²-completion of the simple
+integral.
+
+Mirror of `Brownian.SimplePredictableRefine.itoIntegralLp_brownian`. -/
+noncomputable def itoIntegralLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (_hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (_h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (_h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε) :
+    MeasureTheory.Lp ℝ 2 P :=
+  Filter.limUnder Filter.atTop
+    (fun n => simpleIntegralLp_compensated N _hT (G n) (h_adapt n))
+
+/-- **`simpleIntegralLp_compensated (G n)` converges to `itoIntegralLp_compensated`
+in `Lp ℝ 2 P`.** Direct from `cauchySeq_simpleIntegralLp_compensated` +
+`CauchySeq.tendsto_limUnder` (using `Lp.completeSpace`). -/
+theorem itoIntegralLp_compensated_tendsto
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => simpleIntegralLp_compensated N hT (G n) (h_adapt n))
+      Filter.atTop
+      (nhds (itoIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval)) :=
+  (cauchySeq_simpleIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval).tendsto_limUnder
+
+/-- **Single-function `eLpNorm` of `simpleIntegralLp_compensated` in lintegral form.**
+`eLpNorm (simpleIntegralLp ...) 2 P ^ (2:ℝ) = ∫⁻ ω ∫⁻ s ∫⁻ e ‖φ.eval‖₊² ∂ν ∂vol ∂P`.
+
+Direct from `simpleIntegral_isometry` plus the `eLpNorm_nnreal_pow_eq_lintegral`
+bridge. Mirror of `eLpNorm_simpleIntegralLp_brownian_rpow_eq`. -/
+lemma eLpNorm_simpleIntegralLp_compensated_rpow_eq
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_compensated N hT φ h_adapt) : Ω → ℝ) 2 P ^ (2 : ℝ)
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
+  -- Step 1: replace ↑↑(toLp ...) with the original simpleIntegral function (a.e.).
+  have h_aeeq := coeFn_simpleIntegralLp_compensated N hT φ h_adapt
+  rw [MeasureTheory.eLpNorm_congr_ae h_aeeq]
+  -- Step 2: eLpNorm^(2:ℝ) = ∫⁻ ‖.‖_e² via eLpNorm_nnreal_pow_eq_lintegral.
+  have h_pow_lemma := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral
+    (μ := P) (p := (2 : NNReal))
+    (f := fun ω => simpleIntegral N φ T ω)
+    (by norm_num : (2 : NNReal) ≠ 0)
+  have h_two_R : ((2 : NNReal) : ℝ) = (2 : ℝ) := by norm_num
+  have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
+  rw [h_two_ENNReal, h_two_R] at h_pow_lemma
+  rw [h_pow_lemma]
+  -- Step 3: ‖.‖_e ^ (2:ℝ) = (‖.‖₊ : ℝ≥0∞) ^ 2.
+  have h_pointwise : (fun ω : Ω =>
+        (‖simpleIntegral N φ T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+      = (fun ω : Ω => (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2) := by
+    funext ω
+    rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num,
+        ENNReal.rpow_natCast]
+    rfl
+  rw [h_pointwise]
+  -- Step 4: simpleIntegral_isometry.
+  exact simpleIntegral_isometry N hT φ h_adapt
+
+/-- **`eLpNorm² (simpleIntegralLp_compensated G n) → eLpNorm² (itoIntegralLp_compensated)`
+in `ℝ≥0∞`.** Pre-bridge: the L²-norms of approximating simples converge to the
+L²-norm of the limit. -/
+theorem eLpNorm_simpleIntegralLp_compensated_tendsto
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_compensated N hT (G n) (h_adapt n)) : Ω → ℝ) 2 P
+          ^ (2 : ℝ))
+      Filter.atTop
+      (nhds (MeasureTheory.eLpNorm
+        (↑↑(itoIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
+          ^ (2 : ℝ))) := by
+  have h_tendsto :=
+    (itoIntegralLp_compensated_tendsto N hT G h_eq h_adapt h_cauchy_eval).enorm
+  simp only [MeasureTheory.Lp.enorm_def] at h_tendsto
+  exact h_tendsto.ennrpow_const 2
+
+/-- **Lintegral-of-squared-eval converges to `eLpNorm²` of `itoIntegralLp_compensated`.**
+
+Substitutes `eLpNorm_simpleIntegralLp_compensated_rpow_eq` into
+`eLpNorm_simpleIntegralLp_compensated_tendsto` to express the convergence in
+pure-lintegral form. -/
+theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε) :
+    Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖(G n).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+      Filter.atTop
+      (nhds (MeasureTheory.eLpNorm
+        (↑↑(itoIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
+          ^ (2 : ℝ))) := by
+  have h_tendsto := eLpNorm_simpleIntegralLp_compensated_tendsto
+    N hT G h_eq h_adapt h_cauchy_eval
+  have h_subst : ∀ n : ℕ,
+      MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_compensated N hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖(G n).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P :=
+    fun n => eLpNorm_simpleIntegralLp_compensated_rpow_eq N hT (G n) (h_adapt n)
+  have h_eqv : (fun n => MeasureTheory.eLpNorm
+        (↑↑(simpleIntegralLp_compensated N hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
+      = (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖(G n).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
+    funext n
+    exact h_subst n
+  rw [← h_eqv]
+  exact h_tendsto
+
+/-- **Headline L² isometry on `itoIntegralLp_compensated`.**
+
+Conditional on `(G n).eval`'s lintegral_sq converging to `∫⁻ ‖φ‖²`, the L²-norm
+of the L²-limit equals the L²-norm of φ. By uniqueness of limits in ℝ≥0∞. -/
+theorem itoIntegralLp_compensated_L2_isometry
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε)
+    (φ : Ω → ℝ → E → ℝ)
+    (h_eval_norm_tendsto : Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖(G n).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P))) :
+    MeasureTheory.eLpNorm
+        (↑↑(itoIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
+          ^ (2 : ℝ)
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
+  have h_to_eLpNorm := lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_compensated
+    N hT G h_eq h_adapt h_cauchy_eval
+  exact (tendsto_nhds_unique h_to_eLpNorm h_eval_norm_tendsto)
+
+/-- **Existence of L²-Itô-Lévy integrand with isometry.** Bundles `itoIntegralLp_compensated`
++ `itoIntegralLp_compensated_L2_isometry`. Mirror of `exists_itoIntegralL2_brownian`. -/
+theorem exists_itoIntegralL2_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T)
+    (G : ℕ → SimplePredictable Ω E ν T)
+    (h_eq : ∀ n m : ℕ,
+      (G n).partition (Fin.last (G n).N)
+        = (G m).partition (Fin.last (G m).N))
+    (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((G n).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((G n).ξ i))
+    (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N₀ : ℕ, ∀ n m : ℕ,
+      N₀ ≤ n → N₀ ≤ m →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖(G n).eval s e ω - (G m).eval s e ω‖₊ : ℝ≥0∞) ^ 2
+          ∂ν ∂volume ∂P < ε)
+    (φ : Ω → ℝ → E → ℝ)
+    (h_eval_norm_tendsto : Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖(G n).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P))) :
+    ∃ M : MeasureTheory.Lp ℝ 2 P,
+      MeasureTheory.eLpNorm (↑↑M : Ω → ℝ) 2 P ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P :=
+  ⟨itoIntegralLp_compensated N hT G h_eq h_adapt h_cauchy_eval,
+   itoIntegralLp_compensated_L2_isometry N hT G h_eq h_adapt h_cauchy_eval φ
+     h_eval_norm_tendsto⟩
+
 /-- **L² stochastic-integral strong existence (Compensated, ISOMETRY ONLY).**
 
 Refactored (Option β-prime, 2026-05-09): the previous version packaged all four
