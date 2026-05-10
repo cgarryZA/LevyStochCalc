@@ -2116,6 +2116,136 @@ lemma simplePredictable_dense_L2
         rw [← two_mul, ← mul_assoc, show (2 : ℝ≥0∞) * 2 = 4 from by norm_num]
         exact ENNReal.mul_div_cancel (by norm_num : (4 : ℝ≥0∞) ≠ 0) (by simp)
 
+/-! ## C0b-Compensated mirror chain (in progress)
+
+The `simpleIntegral N φ T` lifted into `Lp ℝ 2 P` framework, mirroring
+`Brownian.SimplePredictableRefine.simpleIntegralLp_brownian` etc. -/
+
+/-- **Finite L²-norm of `simpleIntegral N φ T`.** Combines `simpleIntegral_isometry`
+(which gives `∫⁻ ‖simpleIntegral‖² = ∑_i ν̂(rect_i) · ∫⁻ ξ_i²`) with the
+boundedness of `ξ_i` and finiteness of `ν̂(rect_i) = (t_{i+1} - t_i) · ν(A_i)`. -/
+lemma simpleIntegral_lintegral_sq_finite_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    ∫⁻ ω, (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤ := by
+  rw [simpleIntegral_isometry N hT φ h_adapt]
+  rw [SimplePredictable.lintegral_eval_sq_outer φ]
+  -- Goal: ∑ i, ν̂(fullRect i) * ∫⁻ ‖ξ i‖₊² ∂P < ⊤
+  refine ENNReal.sum_lt_top.mpr (fun i _ => ?_)
+  refine ENNReal.mul_lt_top ?_ ?_
+  · -- ν̂(fullRect i) < ⊤. fullRect i = (partition i.castSucc, partition i.succ] × A_i.
+    -- referenceIntensity = vol.restrict [0, ∞) ⊗ ν.
+    -- ν̂(rect) = (length of time interval) · ν(A_i). Both finite.
+    unfold LevyStochCalc.Poisson.referenceIntensity SimplePredictable.fullRect
+    rw [MeasureTheory.Measure.prod_prod]
+    refine ENNReal.mul_lt_top ?_ ?_
+    · -- vol.restrict [0,∞) (Ioc s t) ≤ vol (Ioc s t) = ENNReal.ofReal (t - s) < ⊤.
+      refine lt_of_le_of_lt
+        (MeasureTheory.Measure.restrict_apply_le (Set.Ici (0 : ℝ)) _) ?_
+      rw [Real.volume_Ioc]
+      exact ENNReal.ofReal_lt_top
+    · exact lt_of_le_of_ne le_top (φ.A_finite i)
+  · -- ∫⁻ ω, ‖ξ i ω‖₊² ∂P < ⊤. ξ_i bounded ⟹ integrand bounded ⟹ finite on probability.
+    obtain ⟨M, hM⟩ := φ.ξ_bounded i
+    have h_bound : ∀ ω, |φ.ξ i ω| ≤ max M 0 :=
+      fun ω => le_trans (hM ω) (le_max_left _ _)
+    have h_M_nn : 0 ≤ max M 0 := le_max_right _ _
+    have h_norm_le : ∀ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal (max M 0) := by
+      intro ω
+      rw [show (‖φ.ξ i ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖φ.ξ i ω‖
+            from (ofReal_norm_eq_enorm _).symm]
+      exact ENNReal.ofReal_le_ofReal (Real.norm_eq_abs _ ▸ h_bound ω)
+    calc ∫⁻ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+        ≤ ∫⁻ _ω, (ENNReal.ofReal (max M 0)) ^ 2 ∂P := by
+          refine MeasureTheory.lintegral_mono (fun ω => ?_)
+          exact pow_le_pow_left' (h_norm_le ω) 2
+      _ = (ENNReal.ofReal (max M 0)) ^ 2 * P Set.univ := by
+          rw [MeasureTheory.lintegral_const]
+      _ < ⊤ := by
+          rw [MeasureTheory.measure_univ, mul_one]
+          exact ENNReal.pow_lt_top ENNReal.ofReal_lt_top
+
+/-- **`simpleIntegral N φ T` is in `L²(P)`.** Combines AEStronglyMeasurability
+(via `Finset.sum` of measurable terms) with `simpleIntegral_lintegral_sq_finite_compensated`
+to produce a `MemLp 2 P` witness. Lifts the simple integral into Mathlib's `Lp`
+framework, needed for L²-Cauchy completion. -/
+lemma simpleIntegral_memLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    MeasureTheory.MemLp (fun ω => simpleIntegral N φ T ω) 2 P := by
+  refine ⟨?_, ?_⟩
+  · -- AEStronglyMeasurable.
+    refine Measurable.aestronglyMeasurable ?_
+    unfold simpleIntegral
+    refine Finset.measurable_sum _ (fun i _ => ?_)
+    refine Measurable.mul (φ.ξ_measurable i) ?_
+    -- N.compensated B = (N.N · B).toReal - ν̂(B).toReal. Measurable in ω.
+    unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+    refine Measurable.sub ?_ measurable_const
+    have h_meas_NB : Measurable (fun ω => N.N ω (φ.timeRect i T)) := by
+      apply N.measurable_eval
+      -- timeRect i T is measurable (Ioc × A_i with A_i measurable).
+      unfold SimplePredictable.timeRect
+      exact MeasurableSet.prod measurableSet_Ioc (φ.A_measurable i)
+    exact ENNReal.measurable_toReal.comp h_meas_NB
+  · -- eLpNorm < ⊤.
+    rw [MeasureTheory.eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
+        (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
+    have h_two_toReal : (2 : ℝ≥0∞).toReal = 2 := by simp
+    rw [h_two_toReal]
+    have h_pre := simpleIntegral_lintegral_sq_finite_compensated N hT φ h_adapt
+    have h_rewrite : ∀ ω : Ω,
+        (‖simpleIntegral N φ T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ)
+          = (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 := by
+      intro ω
+      rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]
+      rfl
+    rw [show (fun ω => (‖simpleIntegral N φ T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+          = (fun ω => (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2) from
+        funext h_rewrite]
+    exact h_pre
+
+/-- **`simpleIntegral N φ T` lifted to `Lp ℝ 2 P`.** Packages the
+`simpleIntegral_memLp_compensated` witness via `MemLp.toLp` to give a genuine
+`Lp` element. Mirror of `simpleIntegralLp_brownian`. -/
+noncomputable def simpleIntegralLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    MeasureTheory.Lp ℝ 2 P :=
+  (simpleIntegral_memLp_compensated N hT φ h_adapt).toLp
+
+/-- **`simpleIntegralLp_compensated` `coeFn` matches `simpleIntegral`.** -/
+lemma coeFn_simpleIntegralLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
+                                  ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+    (simpleIntegralLp_compensated N hT φ h_adapt : Ω → ℝ)
+      =ᵐ[P] (fun ω => simpleIntegral N φ T ω) :=
+  MeasureTheory.MemLp.coeFn_toLp _
+
 /-- **L² stochastic-integral strong existence (Compensated, ISOMETRY ONLY).**
 
 Refactored (Option β-prime, 2026-05-09): the previous version packaged all four
