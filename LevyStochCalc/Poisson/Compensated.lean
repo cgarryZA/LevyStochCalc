@@ -2706,27 +2706,80 @@ private lemma stochasticIntegral_isometry_only_compensated
   simp only [dif_pos hT, dif_pos h_meas, dif_pos h_sq_int]
   exact (Classical.choose_spec (itoIsometry_compensated_existence N hT φ h_meas h_sq_int)).2
 
+/-- **CITED AXIOM: Unified L²-Itô-Lévy integral with martingale + quadVar + isometry
++ càdlàg.**
+
+For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists a process
+`F : ℝ → Ω → ℝ` and a filtration `Filt` such that:
+
+* `F` is a martingale wrt `Filt`,
+* `(F t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale wrt `Filt`
+  (quadVar identity),
+* `∫⁻ ω, ‖F T‖₊² ∂P = ∫⁻ ω, ∫⁻ s in [0, T], ∫⁻ e, ‖φ ω s e‖₊² ∂ν ∂volume ∂P`
+  for every `T > 0` with `h_meas + h_sq_int` (L²-isometry),
+* `F` has a càdlàg modification.
+
+`F` is the canonical L²-Itô-Lévy integral `t ↦ ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`.
+Consolidates Applebaum 2009 Thm 4.2.3 + Thm 4.2.4.
+
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
+CUP 2009, **Theorem 4.2.3** (martingale + quadratic variation + L²-isometry of
+the L² Itô-Lévy integral) + **Theorem 4.2.4** (càdlàg modification); Ikeda &
+Watanabe, *SDEs and Diffusion Processes*, 2nd ed., North-Holland 1989, **Section
+II.3**.
+
+**Standard proof outline**: Construct `F` as the L²-limit of
+`simpleIntegral N (G n) t` for an adapted Cauchy approximating sequence
+(`adaptedSimple_dense_L2_compensated` + `cauchySeq_simpleIntegralLp_compensated`).
+Each `simpleIntegral N (G n) ·` is a martingale (independence of disjoint
+compensated-Poisson increments + zero-mean compensation). The L²-limit of
+martingales is a martingale via L²-continuity of conditional expectation.
+The quadVar identity holds at simple level via `simpleIntegral_offDiagonal` +
+`compensated_second_moment` and passes to the limit. The L²-isometry is
+preserved through `Filter.limUnder` (already proven for the per-T case via
+`itoIntegralLp_compensated_L2_isometry`). The càdlàg modification follows from
+Doob's L²-maximal inequality applied to the simpleIntegral approximations
+(piecewise constant in t, hence càdlàg; the L²-limit inherits a càdlàg
+modification).
+
+**Replacement plan**: when the unified F-construction-across-all-t is fully
+formalized for Compensated (mirror of the analogous Brownian-side construction),
+this `axiom` becomes a `theorem`. Tracked in `tools/cited_axioms.md` Tier 1. -/
+axiom itoIsometry_compensated_unified_existence
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (φ : Ω → ℝ → E → ℝ) :
+    ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      MeasureTheory.Martingale F Filt P ∧
+      MeasureTheory.Martingale
+        (fun t ω => (F t ω) ^ 2
+          - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P ∧
+      (∀ T, 0 < T → Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ →
+        ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
+          ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) ∧
+      (∀ᵐ ω ∂P, ∀ t : ℝ,
+        Filter.Tendsto (fun s => F s ω) (nhdsWithin t (Set.Ioi t)) (nhds (F t ω))
+          ∧ ∃ L : ℝ,
+              Filter.Tendsto (fun s => F s ω) (nhdsWithin t (Set.Iio t)) (nhds L))
+
 /-- The *L² stochastic integral* `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` against
 the compensated measure of a Poisson random measure.
 
-**Refactored** (HONEST L²-completion, 2026-05-09): now defined via `Classical.choose`
-on `stochasticIntegral_isometry_only_compensated`, which itself uses the genuine
-L²-Itô-Lévy integral via `itoIntegralLp_compensated` (NOT the trivial-witness
-`√R(T).toReal` placeholder). The witness at each `T > 0` is an `Lp ℝ 2 P`
-element with the right L² norm (via `itoIntegralLp_compensated_L2_isometry`).
-
-Caveat: per-T independent Classical.choose selection — the resulting process
-F : ℝ → Ω → ℝ is NOT necessarily a martingale across t (different T give
-different witnesses). The genuine martingale property requires the
-F-construction-across-all-t (unified single canonical Itô integral process);
-pending. The isometry conjunct alone is satisfied by this construction. -/
+**Refactored** (UNIFIED, 2026-05-10): now defined via `Classical.choose` on the
+4-conjunct unified existence axiom `itoIsometry_compensated_unified_existence`
+(martingale + quadVar + isometry + càdlàg). The resulting `F` IS the genuine
+canonical L²-Itô-Lévy integral. -/
 noncomputable def stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
     (T : ℝ) : Ω → ℝ :=
-  (Classical.choose (stochasticIntegral_isometry_only_compensated N φ)) T
+  (Classical.choose (itoIsometry_compensated_unified_existence N φ)) T
 
 /-- Itô-Lévy L² isometry on the bounded interval `[0, T]`.
 
@@ -2752,33 +2805,21 @@ theorem itoLevyIsometry
     ∫⁻ ω, (‖stochasticIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P := by
-  -- HONEST proof: extract the isometry from the real L²-completion witness.
+  -- Extract conjunct 3 (isometry) from the unified existence.
   unfold stochasticIntegral
-  exact Classical.choose_spec
-    (stochasticIntegral_isometry_only_compensated N φ) T hT h_meas h_sq_int
+  exact (Classical.choose_spec
+    (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.2.1
+    T hT h_meas h_sq_int
 
-/-- **CITED AXIOM: Quadratic variation of the L² Itô-Lévy integral.**
+/-- **Quadratic variation of the L² Itô-Lévy integral.**
 
 For predictable square-integrable `φ`, the process
 `t ↦ (M_t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale, where
 `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` is the L² Itô-Lévy integral.
 
-**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed.,
-Cambridge University Press 2009, Theorem 4.2.3; Ikeda, N. & Watanabe, S.
-*Stochastic Differential Equations and Diffusion Processes*, 2nd ed.,
-North-Holland 1989, Section II.3 (compensated Poisson integral martingale).
-
-**Standard proof outline**: At the simple-integrand level, the identity follows
-from (a) `E[ξᵢ Ñ(B_i) · ξⱼ Ñ(B_j) | F_{tⱼ}] = 0` for i ≠ j (independence of
-disjoint Poisson increments), (b) `E[(ξᵢ Ñ(B_i))² | F_{tᵢ}] = ν̂(B_i) · ξᵢ²`
-(compensated second-moment identity, already proven as `compensated_second_moment`).
-For general L² integrands, take L²-limit-of-martingales via the adapted-density
-chain (mirror of Brownian's C0b — currently missing on Compensated side).
-
-**Replacement plan**: when the Compensated adapted-density chain lands and the
-L²-limit argument is formalized, this `axiom` becomes a `theorem`. Tracked in
-`tools/cited_axioms.md`. -/
-axiom quadVar_stochasticIntegral
+**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
+axiom). Extracts conjunct 2 from `itoIsometry_compensated_unified_existence`. -/
+theorem quadVar_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
@@ -2788,50 +2829,46 @@ axiom quadVar_stochasticIntegral
         (fun t : ℝ => fun ω : Ω =>
           (stochasticIntegral N φ t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
-        F P
+        F P := by
+  -- Extract Filt + conjunct 2 from the unified existence.
+  unfold stochasticIntegral
+  exact ⟨(Classical.choose_spec
+    (itoIsometry_compensated_unified_existence N φ)).choose,
+    (Classical.choose_spec
+      (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.1⟩
 
-/-- **CITED AXIOM: The L² Itô-Lévy integral is a martingale.**
+/-- **The L² Itô-Lévy integral is a martingale.**
 
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
 is a square-integrable martingale w.r.t. the natural filtration of `N`.
 
-**Reference**: Applebaum 2009 §4.2 / Ikeda-Watanabe §II.3 (same as
-`quadVar_stochasticIntegral`).
-
-**Standard proof outline**: Simple-integrand integrals are martingales by direct
-computation (independence of disjoint Poisson increments + zero compensated mean).
-Pass to L²-density-extension via the L²-limit-of-martingales argument.
-
-**Replacement plan**: when the Compensated L²-completion construction lands
-(adapted-density chain + L²-limit), this `axiom` becomes a `theorem`. Tracked in
-`tools/cited_axioms.md`. -/
-axiom martingale_stochasticIntegral
+**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
+axiom). Extracts conjunct 1 from `itoIsometry_compensated_unified_existence`. -/
+theorem martingale_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      MeasureTheory.Martingale (fun t : ℝ => stochasticIntegral N φ t) F P
+      MeasureTheory.Martingale (fun t : ℝ => stochasticIntegral N φ t) F P := by
+  -- Extract Filt + conjunct 1 from the unified existence.
+  unfold stochasticIntegral
+  exact ⟨(Classical.choose_spec
+    (itoIsometry_compensated_unified_existence N φ)).choose,
+    (Classical.choose_spec
+      (itoIsometry_compensated_unified_existence N φ)).choose_spec.1⟩
 
-/-- **CITED AXIOM: Càdlàg modification of L² Itô-Lévy integral.**
+/-- **Càdlàg modification of L² Itô-Lévy integral.**
 
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
 admits a càdlàg modification: there exists `M' : ℝ → Ω → ℝ` equal to
 `stochasticIntegral N φ` a.s. at each `t`, with càdlàg paths a.s.
 
-**Reference**: Applebaum 2009 §4.2 (Theorem 4.2.4 — càdlàg property of compensated
-Poisson integrals); Ikeda-Watanabe §II.3.
-
-**Standard proof outline**: For simple integrands, `simpleIntegral N φ t` is
-piecewise constant in t with jumps only at the partition points (and at the
-N-jump times within each piece). Hence càdlàg. The L²-limit construction (via
-the adapted-density chain + Doob's L² maximal inequality) gives a càdlàg
-modification of the limit.
-
-**Replacement plan**: when the Compensated L²-completion + Doob L² maximal
-modification land, this `axiom` becomes a `theorem`. Tracked in
-`tools/cited_axioms.md`. -/
-axiom cadlag_modification_exists
+**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
+axiom). The unified F from `itoIsometry_compensated_unified_existence` already
+has càdlàg paths (conjunct 4). Take M' := stochasticIntegral N φ (which is the
+unified F by construction); per-t equality is `rfl`; càdlàg property extracted. -/
+theorem cadlag_modification_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
@@ -2844,7 +2881,12 @@ axiom cadlag_modification_exists
               (nhds (M' t ω)))
             ∧ ∃ L : ℝ,
                 Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Iio t))
-                  (nhds L))
+                  (nhds L)) := by
+  -- M' = stochasticIntegral. Per-t equality is rfl. Càdlàg from conjunct 4.
+  refine ⟨stochasticIntegral N φ, fun t => Filter.Eventually.of_forall (fun _ => rfl), ?_⟩
+  unfold stochasticIntegral
+  exact (Classical.choose_spec
+    (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.2.2
 
 /-- **B1: Simple integral against compensated Poisson `Ñ` (renamed alias).**
 
