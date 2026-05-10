@@ -35,6 +35,33 @@ three stages:
 Real construction in progress. Simple-integrand and density-extension stages
 stated as named lemmas (`sorry`); the headline `itoLevyIsometry` reduces to
 them.
+
+## ⚠️ TIER 2 PLACEHOLDER WARNING
+
+**The current `stochasticIntegral` definition (line ~2149) is a TRIVIAL WITNESS,
+not a real Itô-Lévy integral.** It returns `fun _ω => √R(T).toReal` —
+constant in ω. Consequences for downstream theorems in this file:
+
+* `itoLevyIsometry` is a **tautology** under the placeholder (the L² norm
+  equation holds by construction; provides no probabilistic content).
+* `quadVar_stochasticIntegral` and `martingale_stochasticIntegral` are
+  **morally false** under the placeholder (constant-in-ω + monotone-in-T
+  cannot be a martingale unless trivial). They are stated as `axiom` —
+  asserting them under the placeholder introduces in-principle inconsistency
+  at the LevyStochCalc level (currently no dissertation theorem uses them).
+* `cadlag_modification_exists` is **vacuously true** under the placeholder.
+
+These are tracked in `tools/cited_axioms.md` Tier 2. The fix punch list:
+
+1. Replace `stochasticIntegral` with the real L²-completion `itoIntegralLp_compensated`
+   (mirror of `Brownian.SimplePredictableRefine.itoIntegralLp_brownian`).
+2. Re-prove `itoLevyIsometry` honestly via `Filter.limUnder` of the simple-level isometry.
+3. Convert the three axioms (quadVar, martingale, cadlag) to theorems using
+   the L²-limit-of-martingales + Doob L² maximal arguments.
+
+Do NOT cite these placeholder closures in publications. The Brownian-side
+analogues (in `Brownian.Ito` / `Brownian.SimplePredictableRefine`) ARE honest
+closures because the Brownian `stochasticIntegral` is a real L²-completion.
 -/
 
 open MeasureTheory ProbabilityTheory
