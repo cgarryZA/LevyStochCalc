@@ -33,11 +33,13 @@
 'LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
- LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique]
+ LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique,
+ LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence]
 'LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
- LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity]
+ LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity,
+ LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence]
 'LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
@@ -85,7 +87,10 @@
  Quot.sound,
  LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence]
 'LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique' depends on axioms: [propext, Classical.choice, Quot.sound]
-'LevyStochCalc.Ito.JumpFormula.itoLevyFormula' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LevyStochCalc.Ito.JumpFormula.itoLevyFormula' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ LevyStochCalc.Ito.JumpFormula.itoLevyFormula]
 'LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
