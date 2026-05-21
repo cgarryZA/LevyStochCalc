@@ -97,10 +97,16 @@ the BSDEJ has a unique adapted solution triple `(Y, Z, U) ∈ S² × H² × H²_
 
 **Reference**: Tang, S. & Li, X. *Necessary conditions for optimal control of
 stochastic systems with random jumps*, SIAM J. Control Optim. 32(5), 1994,
-Theorem 3.1; Gnoatto, A. *A primer on backward stochastic differential equations
-with jumps*, Quantitative Finance 25, 2025, Theorem 2.2; Pardoux, E. & Răşcanu,
-A. *Stochastic Differential Equations, Backward SDEs, Partial Differential
-Equations*, Springer 2014, Theorem 4.79.
+**Theorem 3.1**; Andersson, A.-K., Gnoatto, A., Patacca, A. & Picarelli, A.
+*A deep solver for BSDEs with jumps*, SIAM J. Financial Math. / arXiv:2211.04349,
+2025, **Theorem 2.4** (correcting the previous fabricated citation
+"Gnoatto 2025 Quantitative Finance primer" flagged by red-team P11);
+Delong, Ł. *Backward Stochastic Differential Equations with Jumps and their
+Actuarial and Financial Applications*, Springer EAA Series, 2017,
+**Theorem 4.1.3** (continuous case extends to jumps via standard L²-isometry).
+Pardoux, E. & Răşcanu, A. *Stochastic Differential Equations, Backward SDEs,
+Partial Differential Equations*, Springer 2014, **Theorem 4.79** (continuous
+case).
 
 **Standard proof outline**: Banach fixed-point theorem applied to the Picard
 map in the Banach space `S² × H² × H²_N` with weighted norm `e^{-βt}` for

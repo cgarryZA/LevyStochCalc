@@ -20,10 +20,16 @@ When CLEAN, the main dissertation imports this and replaces its
 
 ## Source
 
-* Bouchard & Elie & Touzi, "Discrete-time approximation of decoupled
-  Forward-Backward SDE with jumps", SPA 119(11), 2009, Theorem 2.1.
+* Bouchard, B. & Elie, R., "Discrete-time approximation of decoupled
+  Forward-Backward SDE with jumps", Stochastic Processes Appl. **118(1)**,
+  **2008**, pp. 53–75. (Correcting the previous misattribution to
+  "Bouchard, Elie & Touzi 2009 SPA 119(11)" — flagged by red-team P06,
+  P07, P10, P11; verified via Bouchard's slides + HAL archive
+  hal-00015486 + Kharroubi–Lim 2018 citing "Bouchard and Elie [4]".)
+  Touzi is not an author. The 2009 paper "Bouchard–Touzi" was a
+  different (Brownian-only Monte Carlo) result.
 
-## Proof structure (BET 2009)
+## Proof structure (Bouchard–Elie 2008)
 
 1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
 2. Bound the resulting drift + martingale terms using Lipschitz hypothesis +
@@ -82,18 +88,22 @@ noncomputable def conditionalTimeAverage_U
           ∫ u in Set.Icc (partition n.castSucc) (partition n.succ), U u ω e
       else 0
 
-/-- **CITED AXIOM: BSDEJ path regularity (Bouchard-Elie-Touzi 2009 Thm 2.1).**
+/-- **CITED AXIOM: BSDEJ path regularity (Bouchard–Elie 2008 Thm 2.1).**
 
 For the unique BSDEJ solution `(Y, Z, U)`, the L²-time modulus + projection
 errors of `(Z, U)` over a partition with mesh `Δt` are bounded by `C · Δt`,
 with `C` depending on `T`, the Lipschitz constant `L`, and the L²-norm of
 `(ξ, Z, U)`.
 
-**Reference**: Bouchard, B. & Elie, R. & Touzi, N. *Discrete-time approximation
-of decoupled Forward-Backward SDE with jumps*, Stochastic Processes and their
-Applications 119(11), 2009, Theorem 2.1; Pardoux, E. & Răşcanu, A. *Stochastic
-Differential Equations, Backward SDEs, Partial Differential Equations*, Springer
-2014, Theorem 5.42 (continuous case).
+**Reference**: Bouchard, B. & Elie, R. *Discrete-time approximation of
+decoupled Forward-Backward SDE with jumps*, Stochastic Processes Appl.
+**118(1)**, **2008**, pp. 53–75, **Theorem 2.1**. (Correcting the previous
+misattribution to "Bouchard, Elie & Touzi 2009 SPA 119(11)" — Touzi is
+not an author and that volume/year combination does not exist; flagged
+by red-team P06/P07/P10/P11 and verified via Bouchard's slides + HAL
+hal-00015486.) Pardoux, E. & Răşcanu, A. *Stochastic Differential
+Equations, Backward SDEs, Partial Differential Equations*, Springer
+2014, **Theorem 5.42** (continuous case, extends to jumps).
 
 **Standard proof outline**:
 1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
