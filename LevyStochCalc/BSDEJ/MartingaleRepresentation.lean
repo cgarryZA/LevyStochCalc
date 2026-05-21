@@ -1,4 +1,5 @@
 import LevyStochCalc.BSDEJ.Definition
+import LevyStochCalc.Brownian.MultidimIto
 
 /-!
 # Layer 3a: Jacod-Yor martingale representation for `(W, Ñ)`
@@ -54,33 +55,53 @@ representation
 
   `ξ = 𝔼[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)  a.s.`
 
-with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
+with predictable square-integrable integrands `Z : ℝ → Ω → (Fin d → ℝ)`
+and `U : ℝ → Ω → E → ℝ`, where the Brownian and compensated-Poisson
+integrals are the **canonical** ones (`MultidimBrownianMotion.stochasticIntegral`
+and `Compensated.stochasticIntegral`).
 
 **Reference**: Jacod 1975 / Jacod-Shiryaev Thm III.4.34.
 
-**Status (2026-05-21)**: proof is `sorry`. The literature proof requires a
-predictable-projection / chaos-decomposition argument and the multidim
-Brownian Itô + compensated-Poisson stochastic integrals as functionals of
-`(Z, U)`. Both are out-of-scope downstream work. -/
+**Status (2026-05-21)**: signature strengthened so the BM_integral and
+jump_integral are **pinned** to the actual stochastic integrals (no
+longer unbound existentials). Proof is `sorry`. The literature proof
+requires a predictable-projection / chaos-decomposition argument. -/
 theorem jacodYor_representation
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (T : ℝ) (_hT : 0 < T)
     (ξ : Ω → ℝ)
     (_h_meas : Measurable ξ)
     (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-    ∃ (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
-      (BM_integral jump_integral : Ω → ℝ),
-      Measurable (Function.uncurry Z) ∧
+    -- Existence of predictable square-integrable (Z, U) with the
+    -- progressively-measurable hypotheses needed by the multidim
+    -- Brownian Itô integral, such that ξ equals its mean plus the
+    -- canonical Brownian Itô integral of Z plus the canonical
+    -- compensated-Poisson integral of U.
+    ∃ (Z : ℝ → Ω → (Fin d → ℝ))
+      (h_Z_meas : ∀ i : Fin d,
+        Measurable (Function.uncurry (fun ω s => Z s ω i)))
+      (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => Z p.2 p.1 i))
+      (h_Z_sq_int : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (U : ℝ → Ω → E → ℝ),
       Measurable (fun (p : ℝ × Ω × E) => U p.1 p.2.1 p.2.2) ∧
-      (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) ∧
       (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) ∧
-      (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P) + BM_integral ω + jump_integral ω) := by
+      (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P)
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+            W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (fun ω' s e => U s ω' e) T ω) := by
   sorry
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation

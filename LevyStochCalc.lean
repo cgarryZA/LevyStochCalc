@@ -17,6 +17,7 @@ import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Ito
 import LevyStochCalc.Brownian.SimplePredictableRefine
+import LevyStochCalc.Brownian.MultidimIto
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
