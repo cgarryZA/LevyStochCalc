@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (11 entries)
+## Tier 1: Honest cited axioms (12 entries)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -90,9 +90,17 @@ to the Mathlib version, no other changes needed downstream.
 
 * **Statement**: For a `C^{1,2}` function `u` and a jump diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, there exist four processes `(drift_term, diff_mart, jump_mart, comp_drift)` summing to `u(T, X_T) − u(0, X_0)` almost surely. Each term corresponds to a literature integral form: drift via `∫(∂_t u + 𝓛u) ds`, Brownian martingale via `∫ ∇uᵀ σ dW`, jump martingale via `∫∫(u(·+γ) − u) Ñ`, compensator drift via `∫∫(u(·+γ) − u − γᵀ∇u) ν ds`, where `𝓛u = μᵀ∇u + ½Tr(σσᵀ∇²u)`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.7**; Cont & Tankov, *Financial Modelling with Jump Processes*, Chapman & Hall/CRC 2003, **Proposition 8.18**.
-* **Predicate state (2026-05-11 — newly DEMOTED)**: Previously declared as `theorem` whose proof body was the trivial-witness pattern `refine ⟨0, 0, 0, fun ω => u T (X T ω) - u 0 (X 0 ω), ?_⟩; simp` — three identically-zero processes with the entire change stuffed into the fourth term. That satisfied the existential vacuously. Per the recursive audit standard, downgraded to a documented `axiom` with the literature citation. Better an honest axiom than a fake theorem.
+* **Predicate state (2026-05-11 — newly DEMOTED)**: Previously declared as `theorem` whose proof body was the trivial-witness pattern `refine ⟨0, 0, 0, fun ω => u T (X T ω) - u 0 (X 0 ω), ?_⟩; simp` — three identically-zero processes with the entire change stuffed into the fourth term. That satisfied the existential vacuously. Per the recursive audit standard, downgraded to a documented `axiom` with the literature citation. Better an honest axiom than a fake theorem. **HOLE NOT FIXED (red-team P01/P04/P05/P07/P10/P12, 2026-05-20)**: the axiom *statement* itself (`∃ four reals : Ω → ℝ summing to change`) is satisfiable by the trivial decomposition `⟨change, 0, 0, 0⟩` — the demotion was cosmetic, not a strengthening of the statement. Tracked as the "statement strengthening" follow-up — needs each of the four terms pinned to its literature integral form before this axiom becomes substantive.
 * **Mathlib status (May 2026)**: No general Itô-with-jumps formula in Mathlib (waits on the full jump-SDE apparatus). `Mathlib.Probability.IteFormula`-style infrastructure exists for the continuous (Brownian-only) case, but not for the jump case.
 * **Replacement plan**: `theorem itoLevyFormula := <Applebaum 4.4.7 derivation>` when the four primitives (Brownian stochastic integral, compensated-Poisson stochastic integral, Lebesgue integrals against `μ, ½σσᵀ, γ`, jump-diffusion semimartingale apparatus) are all in place. Multi-session work.
+
+### 12. `LevyStochCalc.Ito.Setting.JumpDiffusion.exists`
+
+* **Statement**: Under Lipschitz hypotheses on `(μ, σ, γ)`, the jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de), X_0 = x_0` admits a càdlàg adapted L²-bounded strong solution. Stated in Lean as `Nonempty (JumpDiffusion W N coeffs x₀)`.
+* **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 6.2.9**; Ikeda–Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, Chapter IV.
+* **Predicate state (2026-05-21 — newly DEMOTED per red-team)**: previously a `theorem` whose proof was the trivial-witness pattern `refine ⟨{X := fun _ _ => x₀, …, is_solution := trivial}⟩` — a constant path `X t ω = x₀` populating the `JumpDiffusion` structure whose `is_solution : True` field accepts anything. Caught by 8 of 12 red-team personas (P01, P02, P03, P04, P05, P07, P10, P12) on 2026-05-20. Renamed from `exists_unique` to `exists` (the old name claimed uniqueness which was not proved). **HOLE NOT FIXED**: the `JumpDiffusion` structure's `is_solution : True` field is still a stub; the demotion makes the existence claim explicit as an axiom but does not strengthen the underlying structure. Tracked as the "structure strengthening" follow-up.
+* **Mathlib status (May 2026)**: No general jump-diffusion SDE existence theorem in Mathlib. Brownian-only SDEs are in development (Degenne et al.); jump diffusion is further out.
+* **Replacement plan**: when (a) `JumpDiffusion.is_solution` is upgraded from `True` to the actual SDE integral equation, and (b) the multidim Brownian + compensated-Poisson stochastic integrals are pinned to `(Z, U)` for the path-dependent integrands, this `axiom` can be replaced by a real Picard iteration proof. Multi-session work.
 
 ## Honest derivative theorems (proven from cited axioms)
 
