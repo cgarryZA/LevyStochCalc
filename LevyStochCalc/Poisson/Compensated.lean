@@ -2752,9 +2752,20 @@ axiom itoIsometry_compensated_unified_existence
     (φ : Ω → ℝ → E → ℝ) :
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
       MeasureTheory.Martingale F Filt P ∧
-      MeasureTheory.Martingale
-        (fun t ω => (F t ω) ^ 2
-          - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P ∧
+      -- Red-team H5 + P12 fix (2026-05-21): the quadratic-variation conjunct
+      -- is now CONDITIONAL on (h_meas ∧ h_sq_int), matching the Brownian
+      -- counterpart and matching the isometry conjunct below. For non-L²
+      -- φ, Mathlib's `integral_undef` collapses ∫∫φ² to 0, which previously
+      -- made `(F t)² − 0 = 0` a trivial martingale for `F ≡ 0` and admitted
+      -- F ≡ 0 as a vacuous witness. Gating quadVar on the integrability
+      -- hypothesis closes that exploit (the conjunct now only constrains F
+      -- when φ is genuinely L²-integrable).
+      (Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
+       (∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) →
+       MeasureTheory.Martingale
+         (fun t ω => (F t ω) ^ 2
+           - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P) ∧
       (∀ T, 0 < T → Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ →
@@ -2823,19 +2834,27 @@ theorem quadVar_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (φ : Ω → ℝ → E → ℝ) :
+    (φ : Ω → ℝ → E → ℝ)
+    -- Red-team H5 fix (2026-05-21): hypotheses h_meas + h_sq_int now required
+    -- to extract the quadratic-variation conjunct from the strengthened
+    -- unified-existence axiom (the conjunct is gated on these to close the
+    -- F ≡ 0 exploit for non-L² φ).
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_sq_int : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
         (fun t : ℝ => fun ω : Ω =>
           (stochasticIntegral N φ t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
         F P := by
-  -- Extract Filt + conjunct 2 from the unified existence.
+  -- Extract Filt + conjunct 2 (now gated) from the unified existence.
   unfold stochasticIntegral
   exact ⟨(Classical.choose_spec
     (itoIsometry_compensated_unified_existence N φ)).choose,
     (Classical.choose_spec
-      (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.1⟩
+      (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.1 h_meas h_sq_int⟩
 
 /-- **The L² Itô-Lévy integral is a martingale.**
 
