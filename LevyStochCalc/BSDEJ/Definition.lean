@@ -25,44 +25,54 @@ version had a vacuous per-`(t, ω)` existential
 
   `∃ (BM_term jump_term : ℝ), Y t ω = g + ∫f - BM_term - jump_term`
 
-which is satisfiable by ANY L²-bounded `(Y, Z, U)` — pick `BM_term := g
-+ ∫f - Y t ω`, `jump_term := 0` to make the equation trivially hold.
-Under that predicate, `Y = 0` and `Y = 1` BOTH "solve" the BSDEJ
-trivially, and the `continuousBSDEJ_exists_unique` axiom asserts a
-uniqueness claim that's mathematically false (the existential of a
-unique `Y` whose a.e.-equals every other "solution" can't be satisfied
-when multiple distinct "solutions" exist).
+which is satisfiable by ANY L²-bounded `(Y, Z, U)`. Replaced with an
+OUTER existential `∃ M_W M_N : ℝ → Ω → ℝ` of process martingales
+pinned to `Z, U`.
 
-Replaced with an OUTER existential `∃ M_W M_N : ℝ → Ω → ℝ` (one pair of
-processes for the whole equation, not one pair of reals per `(t, ω)`):
+**Re-strengthened (2026-05-21, red-team P05 + P12 fix).** The
+2026-05-11 strengthening was incomplete. Persona 12 of the 12-persona
+red team constructed a concrete counterexample to the
+`continuousBSDEJ_exists_unique` axiom for `(f=0, g=0)`:
 
-* `M_N` is pinned to equal the canonical compensated-Poisson stochastic
-  integral of `U` (via `LevyStochCalc.Poisson.Compensated.stochasticIntegral`).
-  This rules out arbitrary `M_N` with vacuous values.
-* `M_W` is constrained by the multidim Brownian Itô L²-isometry against
-  `Z`: `𝔼[‖M_W(T')‖²] = 𝔼[∫_0^{T'} ‖Z_s‖² ds]` for every `T' > 0`. (We
-  don't pin `M_W` to a specific functional of `Z` because the multidim
-  Brownian stochastic integral primitive would need `h_progMeas` threaded
-  through; the isometry constraint together with the martingale
-  requirement is enough to exclude the trivial witnesses.)
-* Both `M_W` and `M_N` must be martingales w.r.t. a common filtration.
-* The BSDEJ equation `Y t ω = g(X_T) + ∫_t^T f - (M_W T − M_W t) - (M_N
-  T − M_N t)` holds at every `t ∈ [0, T]` simultaneously, using the
-  *same* `M_W, M_N` (not freshly-chosen per `(t, ω)`).
+* `Y₁ t ω := 0` with `Z = U = 0`, `M_W = M_N = 0`,
+* `Y₂ t ω := W₁_T ω - W₁_t ω` with `Z s ω = 1`, `U = 0`,
+  `M_W = -W₁`, `M_N = 0`.
 
-Under this strengthening, `Y = 0` no longer satisfies the predicate for
-generic `(g, f, X)`: the equation forces `(M_W T − M_W t) + (M_N T − M_N
-t) = g(X_T) + ∫_t^T f(s, X_s, 0, 0, 0)` to be a difference of
-martingales — which requires `g + ∫f` to be of the form `const −
-martingale_drift`, which fails for non-zero `f` integrated
-deterministically.
+Both `(Y₁, Z₁, U₁)` and `(Y₂, Z₂, U₂)` satisfy the 2026-05-11
+strengthened predicate (Y is L²-bounded; M_W is L²-isometric to Z and a
+martingale; M_N pins to `Compensated.stochasticIntegral N 0 ≡ 0`; the
+equation holds). So the predicate had multiple distinct "solutions",
+and `continuousBSDEJ_exists_unique`'s `∃ Y, ∀ Y', sol Y' → Y =ᵃᵉ Y'`
+clause was unsatisfiable — i.e. the axiom was **mathematically false
+as stated**.
 
-The strengthened predicate is still slightly weaker than the literature
-(it doesn't pin `M_W` to be literally `∫ Z · dW`, only an isometric
-martingale), but it is non-vacuous: the literature solution satisfies
-it, and trivial constant `Y` does not. Sufficient for the cited axioms
-`continuousBSDEJ_exists_unique` and `bsdej_path_regularity` to assert
-substantive content. -/
+The 2026-05-21 fix adds an **adaptedness** layer: an outer
+`∃ Filt : Filtration ℝ ‹MeasurableSpace Ω›` such that
+
+* `Y` is `Filt`-adapted (each `Y t` is `(Filt t)`-measurable),
+* `Z` is `Filt`-adapted (each `Z t` is `(Filt t)`-measurable, valued in
+  `Fin d → ℝ` with its product σ-algebra),
+* `U` is pointwise-in-mark `Filt`-adapted: for every `e : E`, the
+  process `s ↦ U s · e` is `Filt`-adapted,
+* `M_W, M_N` are both `Filt`-adapted and `Filt`-martingales.
+
+`Y₂ t ω = W₁_T ω - W₁_t ω` is excluded because for `t < T`, `W₁_T` is
+not `(Filt t)`-measurable for any filtration containing `W`'s natural
+filtration. Under adaptedness, the BSDEJ equation `Y_t = -(M_W T − M_W
+t) - (M_N T − M_N t)` (for `f=0, g=0`) combined with `M_W, M_N` being
+`Filt`-martingales forces `Y_t = E[Y_t | (Filt t)] = -E[M_W T − M_W t
+| (Filt t)] - E[M_N T − M_N t | (Filt t)] = 0`. Uniqueness for `(f=0,
+g=0)` is therefore restored at the predicate level; the literature
+Tang–Li uniqueness covers the general Lipschitz case once the
+predicate is honest.
+
+**Remaining slack acknowledged in `tools/cited_axioms.md` #9**:
+`M_W` is still only L²-isometric to `Z`, not pinned to literally
+`∑_i ∫_0^t Z_i dW_i`. Tightening this requires a multidim Brownian
+stochastic integral primitive with progressively-measurable
+integrands; tracked as follow-up. The adaptedness fix is sufficient
+to close the soundness defect (uniqueness is now formally derivable
+from adaptedness + martingale property as sketched above). -/
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
@@ -106,30 +116,40 @@ def IsBSDEJSolution
         ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    -- Strengthened equation conjunct: one pair of martingales (M_W, M_N)
-    -- pinned to (Z, U), satisfying the BSDEJ equation at every t.
-    ∧ (∃ M_W M_N : ℝ → Ω → ℝ,
-        Measurable (Function.uncurry M_W) ∧
-        Measurable (Function.uncurry M_N) ∧
-        -- M_W satisfies the multidim Brownian L²-Itô isometry against Z:
-        (∀ T', 0 < T' →
-          ∫⁻ ω, (‖M_W T' ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-            ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-              ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) ∧
-        -- M_N is pinned to the canonical compensated-Poisson L² integral of U:
-        (∀ T' : ℝ, ∀ᵐ ω ∂P,
-          M_N T' ω =
-            LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-              (fun ω' s e => U s ω' e) T' ω) ∧
-        -- M_W and M_N are martingales w.r.t. a common filtration:
-        (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+    -- Strengthened (2026-05-21): adaptedness layer added — the
+    -- existential filtration is hoisted to the OUTER level, and (Y, Z, U)
+    -- plus (M_W, M_N) must all be `Filt`-adapted. This excludes the
+    -- 2026-05-21 counterexample `Y t ω = W₁_T ω - W₁_t ω` (not adapted
+    -- to W's natural filtration for t < T) and restores uniqueness for
+    -- the (f=0, g=0) case via the standard `Y_t = E[Y_t | F_t] = 0`
+    -- argument from martingale property of M_W, M_N.
+    ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+        MeasureTheory.Adapted Filt Y ∧
+        MeasureTheory.Adapted Filt Z ∧
+        (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧
+        ∃ M_W M_N : ℝ → Ω → ℝ,
+          Measurable (Function.uncurry M_W) ∧
+          Measurable (Function.uncurry M_N) ∧
+          MeasureTheory.Adapted Filt M_W ∧
+          MeasureTheory.Adapted Filt M_N ∧
+          -- M_W satisfies the multidim Brownian L²-Itô isometry against Z:
+          (∀ T', 0 < T' →
+            ∫⁻ ω, (‖M_W T' ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
+              ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+                ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) ∧
+          -- M_N is pinned to the canonical compensated-Poisson L² integral of U:
+          (∀ T' : ℝ, ∀ᵐ ω ∂P,
+            M_N T' ω =
+              LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+                (fun ω' s e => U s ω' e) T' ω) ∧
+          -- M_W and M_N are martingales w.r.t. the same Filt:
           MeasureTheory.Martingale M_W Filt P ∧
-          MeasureTheory.Martingale M_N Filt P) ∧
-        -- BSDEJ equation at every t, with the same (M_W, M_N):
-        (∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P,
-          Y t ω = bsdej.g (X T ω)
-            + ∫ s in Set.Icc t T,
-                bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω)
-            - (M_W T ω - M_W t ω) - (M_N T ω - M_N t ω)))
+          MeasureTheory.Martingale M_N Filt P ∧
+          -- BSDEJ equation at every t, with the same (M_W, M_N):
+          (∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P,
+            Y t ω = bsdej.g (X T ω)
+              + ∫ s in Set.Icc t T,
+                  bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω)
+              - (M_W T ω - M_W t ω) - (M_N T ω - M_N t ω)))
 
 end LevyStochCalc.BSDEJ.Definition
