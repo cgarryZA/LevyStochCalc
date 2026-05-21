@@ -5,11 +5,11 @@ axiom sets for every public theorem + cited axiom.
 Run via:  lake env lean tools/full_audit.lean 2>&1 | tee tools/full_audit_output.txt
 
 Every theorem listed should have axiom set ⊆ {propext, Classical.choice, Quot.sound}
-∪ {the 12 Tier 1 cited axioms documented in tools/cited_axioms.md}.
+∪ {the 11 Tier 1 cited axioms documented in tools/cited_axioms.md}.
 
 No `sorryAx` should appear anywhere.
 
-The 12 Tier 1 cited axioms:
+The 11 Tier 1 cited axioms:
 1.  LevyStochCalc.Brownian.BrownianMotion.exists
 2.  LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 3.  LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification
@@ -20,8 +20,7 @@ The 12 Tier 1 cited axioms:
 8.  LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated
 9.  LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 10. LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
-11. LevyStochCalc.Ito.JumpFormula.itoLevyFormula        (DEMOTED 2026-05-11 from cosmetic theorem)
-12. LevyStochCalc.Ito.Setting.JumpDiffusion.exists      (DEMOTED 2026-05-21 from cosmetic theorem, red-team P01/P02/P03/P04/P05/P07/P10/P12)
+11. LevyStochCalc.Ito.JumpFormula.itoLevyFormula  (DEMOTED 2026-05-11 from cosmetic theorem)
 -/
 
 import LevyStochCalc
@@ -38,7 +37,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula  -- DEMOTED 2026-05-11
-#print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists  -- DEMOTED 2026-05-21
 
 -- ===== Honest derivative theorems (axiom set should be std + Tier 1) =====
 
@@ -67,7 +65,8 @@ import LevyStochCalc
 -- Layer 1: I02 forwarder
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
 
--- Layer 2: Itô-Lévy formula (itoLevyFormula + JumpDiffusion.exists both moved to Tier 1 above)
+-- Layer 2: Itô-Lévy formula (itoLevyFormula moved to Tier 1 above, 2026-05-11 demotion)
+#print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
 
 -- Layer 3: BSDEJ
 #print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
