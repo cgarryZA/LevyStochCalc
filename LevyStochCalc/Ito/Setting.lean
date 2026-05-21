@@ -16,18 +16,17 @@ adapted solution with `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞`.
 
 Reference: Applebaum 2009 Ch 6; Ikeda-Watanabe IV.
 
-## Status (2026-05-21, Rule-0 restoration after revert)
+## Status
 
-Restored with `sorry` in the existence/uniqueness theorem. The claim is the
-Applebaum 6.2.9 / Ikeda-Watanabe IV existence-and-uniqueness theorem. Per
-the user's Rule 0 (`CRITICAL_RULES.md`): never weaken claims, always
-strengthen content. The proof is the next concrete strengthening step.
+`JumpDiffusion.exists_unique` claims Applebaum 6.2.9 / Ikeda-Watanabe IV
+existence-and-uniqueness with proof body `sorry` (the literature proof
+is Picard iteration in `S²([0,T]; ℝⁿ)`).
 
-**Structural HOLE still open**: `is_solution : True` is a placeholder. The
-real SDE integral equation involves stochastic integrals along the X-path
-(`∫ μ(s, X_s) ds`, `∫ σ(s, X_s) dW_s`, `∫∫ γ(s, X_s, e) Ñ(ds, de)`). Pinning
-requires the multidim Brownian Itô integral and compensated-Poisson integral
-to accept path-dependent integrands; both are downstream construction work.
+The `is_solution` field of the `JumpDiffusion` structure was strengthened
+on 2026-05-21 from `True` to the actual SDE integral equation (bundled
+with hypotheses on `σ(s, X_s)` for the multidim Brownian integral to be
+defined). Constant-path X = x₀ no longer satisfies the structure for
+generic non-zero coefficients.
 -/
 
 open MeasureTheory ProbabilityTheory
