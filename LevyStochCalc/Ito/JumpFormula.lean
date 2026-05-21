@@ -98,10 +98,22 @@ axiom itoLevyFormula
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (T : ℝ) (_hT : 0 < T) :
-    -- Exists four processes giving the integral-form decomposition.
-    ∃ (drift_term diff_mart jump_mart comp_drift : Ω → ℝ),
+    -- 2026-05-21 strengthening (red-team C2 + P12 + statement-level fix):
+    -- the `jump_mart` term is now PINNED to the canonical compensated-Poisson
+    -- stochastic integral of the jump increment `u(s, X_s + γ(s, X_s, e)) −
+    -- u(s, X_s)`. Previously all four reals were unbound existentials, admitting
+    -- the trivial witness `drift = change, diff_mart = jump_mart = comp_drift = 0`.
+    -- Pinning jump_mart removes one degree of freedom from the trivial-witness
+    -- attack. (The remaining `drift_term, diff_mart, comp_drift` are still
+    -- unbound — future strengthening will pin those to their literature
+    -- integral forms once the Mathlib derivative apparatus is threaded in.)
+    ∃ (drift_term diff_mart comp_drift : Ω → ℝ),
       (∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
-          drift_term ω + diff_mart ω + jump_mart ω + comp_drift ω)
+          drift_term ω + diff_mart ω
+          + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+              (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                              - u s (X.X s ω')) T ω
+          + comp_drift ω)
 
 end LevyStochCalc.Ito.JumpFormula
