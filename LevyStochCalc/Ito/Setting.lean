@@ -1,4 +1,5 @@
 import LevyStochCalc.Brownian.Ito
+import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Poisson.L2Isometry
 
 /-!
@@ -53,15 +54,22 @@ Fields:
 * `measurable_path` — joint measurability.
 * `initial_value` — `X_0 = x_0` a.s.
 * `sup_L2` — `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T > 0`.
-* `is_solution` — **TODO(Rule-0 strengthening)**: currently `True`. The real
-  SDE integral equation requires stochastic integrals along `X`, which are
-  not yet defined in this library. Tracked in `CRITICAL_RULES.md`. -/
+* `is_solution` — the SDE integral equation (red-team P12 strengthening
+  2026-05-21): for almost every `ω` and every `t ≥ 0` and component `i`,
+  `X t ω i` equals `x₀ i` plus the drift integral `∫_0^t μ(s, X_s) ds`
+  plus the multidim Brownian Itô integral `∫_0^t σ(s, X_s) · dW_s` (row `i`)
+  plus the compensated-Poisson integral `∫_0^t ∫_E γ(s, X_s, e) Ñ(ds, de)` (row `i`).
+  The Brownian integral requires existence of measurability /
+  progressive-measurability / L²-bounds on `(s, ω) ↦ σ(s, X_s)`; these
+  are bundled inside the existential. The constant-path witness
+  `X t ω = x₀` fails this constraint for generic `(μ, σ, γ)` because
+  the integrals don't vanish. -/
 structure JumpDiffusion
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (coeffs : JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ) where
   /-- The path map. -/
@@ -73,9 +81,31 @@ structure JumpDiffusion
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
     ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
-  /-- The SDE integral equation. **TODO**: currently `True`; needs the actual
-  jump-diffusion integral equation once stochastic integrals along `X` exist. -/
-  is_solution : True
+  /-- The SDE integral equation. Bundles the per-row Brownian-integrand
+  hypotheses (h_σ_meas, h_σ_progMeas, h_σ_sq) inside the existential
+  alongside the equation itself. -/
+  is_solution :
+    ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+        Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+      (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+      (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+    ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
+      X t ω i = x₀ i
+        + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+            W (fun s ω => coeffs.σ s (X s ω) i)
+            (fun j => h_σ_meas i j)
+            (fun j => h_σ_progMeas i j)
+            (fun j => h_σ_sq i j) t ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (fun ω' s e => coeffs.γ s (X s ω') e i) t ω
 
 /-- **Existence and uniqueness of the jump-diffusion SDE.**
 
