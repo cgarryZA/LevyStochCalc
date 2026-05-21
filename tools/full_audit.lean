@@ -5,11 +5,11 @@ axiom sets for every public theorem + cited axiom.
 Run via:  lake env lean tools/full_audit.lean 2>&1 | tee tools/full_audit_output.txt
 
 Every theorem listed should have axiom set ⊆ {propext, Classical.choice, Quot.sound}
-∪ {the 12 Tier 1 cited axioms documented in tools/cited_axioms.md}.
+∪ {the 13 Tier 1 cited axioms documented in tools/cited_axioms.md}.
 
 No `sorryAx` should appear anywhere.
 
-The 12 Tier 1 cited axioms:
+The 13 Tier 1 cited axioms:
 1.  LevyStochCalc.Brownian.BrownianMotion.exists
 2.  LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 3.  LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification
@@ -22,6 +22,7 @@ The 12 Tier 1 cited axioms:
 10. LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
 11. LevyStochCalc.Ito.JumpFormula.itoLevyFormula        (DEMOTED 2026-05-11 from cosmetic theorem)
 12. LevyStochCalc.Ito.Setting.JumpDiffusion.exists      (DEMOTED 2026-05-21 from cosmetic theorem, red-team P01/P02/P03/P04/P05/P07/P10/P12)
+13. LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation  (DEMOTED 2026-05-21 from cosmetic theorem, red-team P01/P02/P03/P04/P05/P07/P10/P12)
 -/
 
 import LevyStochCalc
@@ -39,6 +40,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula  -- DEMOTED 2026-05-11
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists  -- DEMOTED 2026-05-21
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation  -- DEMOTED 2026-05-21
 
 -- ===== Honest derivative theorems (axiom set should be std + Tier 1) =====
 
@@ -69,5 +71,4 @@ import LevyStochCalc
 
 -- Layer 2: Itô-Lévy formula (itoLevyFormula + JumpDiffusion.exists both moved to Tier 1 above)
 
--- Layer 3: BSDEJ
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
+-- Layer 3: BSDEJ (jacodYor_representation moved to Tier 1 above, 2026-05-21 demotion)

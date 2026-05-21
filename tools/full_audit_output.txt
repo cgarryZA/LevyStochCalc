@@ -48,6 +48,10 @@
  Classical.choice,
  Quot.sound,
  LevyStochCalc.Ito.Setting.JumpDiffusion.exists]
+'LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation]
 'LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
@@ -94,6 +98,3 @@
  Classical.choice,
  Quot.sound,
  LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence]
-'LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation' depends on axioms: [propext,
- Classical.choice,
- Quot.sound]
