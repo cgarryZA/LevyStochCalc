@@ -126,7 +126,12 @@ axiom bsdej_path_regularity
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
     (X : ℝ → Ω → (Fin n → ℝ))
-    (T : ℝ) (_hT : 0 < T) :
+    (_hX_meas : Measurable (Function.uncurry X))
+    (T : ℝ) (_hT : 0 < T)
+    -- Lipschitz hypothesis (BET 2008 requirement; added 2026-05-21 per
+    -- red-team H4 — the bound `C` depends polynomially on `L`):
+    {L : ℝ} (_hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
+    (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     ∃ (C : ℝ),
       0 < C ∧
       ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
@@ -138,14 +143,22 @@ axiom bsdej_path_regularity
           LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
         let Δt : ℝ := ⨆ n : Fin M,
           partition n.succ - partition n.castSucc
-        ∃ (Z_avg : ℝ → Ω → (Fin d → ℝ)) (U_avg : ℝ → Ω → E → ℝ),
-          (⨆ n : Fin M, ∫⁻ ω,
+        -- Red-team P07/P12 fix (2026-05-21): `Z_avg, U_avg` are now PINNED to
+        -- the conditional time-average projections defined above, not
+        -- existentially quantified. Previously the axiom said `∃ Z_avg U_avg,
+        -- bound holds`, which a witness could satisfy by picking `Z_avg := Z`
+        -- (the projection-error terms zero out trivially). Pinning excludes
+        -- that route — the literature Bouchard–Elie bound now actually has
+        -- to control the deviation of Z, U from their canonical time-averages.
+        (⨆ n : Fin M, ∫⁻ ω,
             ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
               (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
           + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-              ∑ i, (‖Z s ω i - Z_avg s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+              ∑ i, (‖Z s ω i - conditionalTimeAverage_Z partition Z s ω i‖₊
+                : ℝ≥0∞) ^ 2 ∂volume ∂P)
           + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-              (‖U s ω e - U_avg s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+              (‖U s ω e - conditionalTimeAverage_U partition U s ω e‖₊
+                : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
           ≤ ENNReal.ofReal (C * Δt)
 
 end LevyStochCalc.BSDEJ.PathRegularity

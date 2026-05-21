@@ -124,7 +124,18 @@ axiom continuousBSDEJ_exists_unique
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
     (X : ℝ → Ω → (Fin n → ℝ))
-    (T : ℝ) (_hT : 0 < T) :
+    -- Joint measurability of the forward process X (required for the SDE
+    -- equation in IsBSDEJSolution to be well-typed):
+    (_hX_meas : Measurable (Function.uncurry X))
+    (T : ℝ) (_hT : 0 < T)
+    -- Lipschitz hypothesis (Tang-Li / Pardoux-Răşcanu requirement;
+    -- added 2026-05-21 per red-team H4 — without this, the axiom claims
+    -- existence-uniqueness for arbitrary drivers including non-Lipschitz
+    -- ones like `f(s,x,y,z,u) = y²`, which the literature does NOT cover):
+    {L : ℝ} (_hL : Lipschitz bsdej ν L)
+    -- L² terminal data hypothesis (`g(X_T)` is L²-bounded — required for
+    -- the solution to live in `S² × H² × H²_N`):
+    (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     ∃ (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ),
       LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T ∧
       ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ)) (U' : ℝ → Ω → E → ℝ),
