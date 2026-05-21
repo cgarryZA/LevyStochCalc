@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (13 entries)
+## Tier 1: Honest cited axioms (12 entries)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -101,14 +101,6 @@ to the Mathlib version, no other changes needed downstream.
 * **Predicate state (2026-05-21 — newly DEMOTED per red-team)**: previously a `theorem` whose proof was the trivial-witness pattern `refine ⟨{X := fun _ _ => x₀, …, is_solution := trivial}⟩` — a constant path `X t ω = x₀` populating the `JumpDiffusion` structure whose `is_solution : True` field accepts anything. Caught by 8 of 12 red-team personas (P01, P02, P03, P04, P05, P07, P10, P12) on 2026-05-20. Renamed from `exists_unique` to `exists` (the old name claimed uniqueness which was not proved). **HOLE NOT FIXED**: the `JumpDiffusion` structure's `is_solution : True` field is still a stub; the demotion makes the existence claim explicit as an axiom but does not strengthen the underlying structure. Tracked as the "structure strengthening" follow-up.
 * **Mathlib status (May 2026)**: No general jump-diffusion SDE existence theorem in Mathlib. Brownian-only SDEs are in development (Degenne et al.); jump diffusion is further out.
 * **Replacement plan**: when (a) `JumpDiffusion.is_solution` is upgraded from `True` to the actual SDE integral equation, and (b) the multidim Brownian + compensated-Poisson stochastic integrals are pinned to `(Z, U)` for the path-dependent integrands, this `axiom` can be replaced by a real Picard iteration proof. Multi-session work.
-
-### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
-
-* **Statement**: Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a representation `ξ = 𝔼[ξ] + ∫_0^T Z_s·dW_s + ∫_0^T∫_E U_s(e) Ñ(ds,de)` a.s. with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
-* **Reference**: Jacod, J. "Multivariate point processes: predictable projection, Radon-Nikodym derivatives, representation of martingales", *Z. Wahrsch. Verw. Gebiete* 31(3), 1975, pp 235–253; Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34**.
-* **Predicate state (2026-05-21 — newly DEMOTED per red-team)**: previously a `theorem` whose proof body was `refine ⟨0, 0, 0, fun ω => ξ ω - ∫ ω', ξ ω' ∂P, …⟩; ring` — three identically-zero processes plus `ξ - 𝔼[ξ]` stuffed into the fourth slot. A ring identity passed off as Jacod–Yor. Caught by 8 of 12 red-team personas (P01, P02, P03, P04, P05, P07, P10, P12) on 2026-05-20. The theorem was NOT in this ledger before the demotion (red-team P07 explicitly flagged the omission). **HOLE NOT FIXED**: the existential `∃ Z U BM_integral jump_integral, …, ξ = 𝔼[ξ] + BM_integral + jump_integral` does NOT pin `BM_integral, jump_integral` to the actual stochastic integrals; statement strengthening is the follow-up.
-* **Mathlib status (May 2026)**: No martingale representation theorem in Mathlib for jump-diffusion filtrations. Brownian martingale representation is also absent (would land with the Degenne et al. stochastic-integration arc).
-* **Replacement plan**: real proof requires (a) the Brownian Itô integral and compensated-Poisson integral both as functional of `(Z, U)`, (b) a predictable-projection / chaos-decomposition argument identifying `Z, U` as the unique predictable integrands. Multi-session work.
 
 ## Honest derivative theorems (proven from cited axioms)
 
