@@ -1,4 +1,15 @@
 .lake/
-_audit.lean
 _mcp_snippet_*.lean
 audit_output.txt
+
+# IDE / editor / agent caches
+.claude/
+.codex/
+.mcp.json
+.vscode/
+.idea/
+__pycache__/
+
+# Note: _audit.lean and tools/full_audit_output.txt are TRACKED — they
+# are the lint script's input/output and need to be in version control
+# for tools/lint.sh to work on a fresh clone (red-team finding C9).
