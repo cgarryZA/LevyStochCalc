@@ -115,13 +115,27 @@ to the Mathlib version, no other changes needed downstream.
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
 
-## Status snapshot (2026-05-11, post-recursive-audit)
+## Status snapshot (2026-05-22, post-red-team cleanup)
 
-`tools/sorry_baseline.txt` is **empty**. Every previously sorry'd theorem is
-either:
+`tools/sorry_baseline.txt` contains **2 entries** for theorems whose proofs
+are deferred to substantial classical infrastructure (Picard iteration for
+SDE existence, predictable-projection chaos decomposition for martingale
+representation). Every other previously sorry'd theorem is either:
 * Proven from Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`)
   plus possibly one or more Tier 1 cited axioms documented here, OR
 * A Tier 1 cited axiom itself.
+
+Baseline entries (the two genuinely-deferred classical theorems):
+* `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` — Picard
+  iteration in `S²([0,T]; ℝⁿ)` for the jump-diffusion SDE
+  (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV). Real theorem statement
+  with sorry'd proof body.
+* `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
+  — Jacod 1976 martingale representation theorem for `(W, Ñ)` filtrations
+  (Jacod-Shiryaev Thm III.4.34). Real theorem statement with sorry'd proof
+  body. The integrand pinning to `MultidimBrownianMotion.stochasticIntegral`
+  and `Compensated.stochasticIntegral` (canonical integrals) is at the
+  statement level — no trivial-witness leakage.
 
 ### Recursive audit (2026-05-11) — internal classification
 
@@ -132,19 +146,95 @@ forwards into were classified:
 | Theorem | Classification | Action taken |
 |---|---|---|
 | `Poisson.L2Isometry.itoLevyIsometry` | (R) Real | Leave alone (extracts from Tier 1 unified-existence axiom with non-trivial quadVar conjunct that rules out constant witnesses) |
-| `BSDEJ.Existence.continuousBSDEJ_exists_unique` | (C) Cosmetic predicate | `IsBSDEJSolution` strengthened: replaced vacuous per-`(t, ω)` existential `∃ BM jump : ℝ` with outer existential `∃ M_W M_N : ℝ → Ω → ℝ` of martingales pinned to Z (L²-isometry) and U (direct `=` to `Compensated.stochasticIntegral`) |
-| `Ito.JumpFormula.itoLevyFormula` | (C) Cosmetic theorem | DEMOTED from `theorem` (trivial-witness proof) to `axiom` (Tier 1 #11, this file) |
-| `BSDEJ.PathRegularity.bsdej_path_regularity` | (C) Cosmetic predicate | Same as `continuousBSDEJ_exists_unique` — fixed by the `IsBSDEJSolution` strengthening |
+| `BSDEJ.Existence.continuousBSDEJ_exists_unique` | (C) Cosmetic predicate | `IsBSDEJSolution` strengthened: replaced vacuous per-`(t, ω)` existential `∃ BM jump : ℝ` with outer existential `∃ M_W M_N : ℝ → Ω → ℝ` of martingales pinned to Z (L²-isometry) and U (direct `=` to `Compensated.stochasticIntegral`); adaptedness layer added 2026-05-21 (closes red-team C1); `M_W` pinned to canonical multidim Brownian Itô integral 2026-05-22 (closes red-team H2). |
+| `Ito.JumpFormula.itoLevyFormula` | (C) Cosmetic theorem | DEMOTED from `theorem` (trivial-witness proof) to `axiom`; all 4 terms pinned to literature integral forms 2026-05-22 (closes red-team C2) |
+| `BSDEJ.PathRegularity.bsdej_path_regularity` | (C) Cosmetic predicate | Same as `continuousBSDEJ_exists_unique` — fixed by the `IsBSDEJSolution` strengthening; `Z_avg`/`U_avg` pinned to `conditionalTimeAverage_*` 2026-05-22 (closes red-team H3) |
 
-### Net audit (verifiable via `tools/full_audit.lean`)
+### Red-team audit fix log (2026-05-20 audit, fixes through 2026-05-22)
+
+The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
+
+**CRITICAL (all closed):**
+* **C1** (BSDEJ unsoundness): closed by `IsBSDEJSolution` adaptedness +
+  `M_W` canonical-integral pinning (commits 2d9309e, 1b1f69f).
+* **C2** (itoLevyFormula trivial-witness statement): closed by pinning
+  all 4 terms (commits 7d232bf, 09687cf, 9675e44, 94f0155).
+* **C3** (JumpDiffusion trivial-witness): closed — `is_solution` field
+  strengthened from `True` to real SDE integral equation; proof now
+  honestly sorry'd in baseline (commit 62e124a).
+* **C4** (jacodYor trivial-witness): closed — signature strengthened to
+  pin BM/jump integrals to canonical forms; proof now honestly sorry'd
+  in baseline.
+* **C5** (3 public sorryAx hidden from audit): closed — `kolmogorov_modification_ae_eq`
+  fully proved (commit 259d2d2); `poissonRandomMeasure_finite_exists`
+  forwarded to σ-finite axiom (commit 2a88b87); `simplePredictable_dense_L2`
+  deleted as dead code (commit 6b25dfc).
+* **C6** (Gnoatto 2025 fabrication): closed — replaced with real
+  Andersson-Gnoatto-Patacca-Picarelli 2025 citation.
+* **C7** (BET 2009 misattribution): closed — replaced with Bouchard-Elie
+  2008 SPA 118(1).
+* **C8** (518 lines untracked): closed by `git add` of all source +
+  build configs.
+* **C9** (lint.sh silently passing): closed — hardened to fail when audit
+  output is missing/empty.
+
+**HIGH (all closed):**
+* **H1, H2** (BSDEJ adaptedness / M_W pinning): closed (see C1).
+* **H3** (Z_avg/U_avg loose existential): closed by pinning to
+  `conditionalTimeAverage_*`.
+* **H4** (missing Lipschitz / L² / measurability on BSDEJ axioms): closed.
+* **H5** (Compensated unified-existence asymmetric vs Brownian): closed
+  by adding `h_meas` + `h_sq_int` outer hypotheses (commit 359beda).
+* **H7, H8** (Le Gall citation theorem-number errors): closed (commit b065b7d).
+* **H9** (Pardoux-Răşcanu continuous-case in BSDEJ citations): retained
+  with explicit `(continuous case)` parenthetical to honestly mark the
+  scope.
+* **H10** (lake-manifest project-name + toolchain): closed.
+
+**MEDIUM:**
+* **M1** (7+ `True := trivial` lemmas): closed — all 8 stubs deleted
+  (commit 638b21d).
+* **M2** (4 dead-code `sorry` privates): closed by direct proof
+  (`kolmogorov_modification_ae_eq`, `poissonRandomMeasure_finite_exists`)
+  or deletion (`quadVar_simpleIntegral_brownian`,
+  `simplePredictable_dense_L2_bounded`).
+* **M3** (677-line orphan `Poisson/Martingale.lean`): closed (commit eb707a4).
+* **M4** (Tier 1 #7 + #8 dead post-refactor): retained pending careful
+  walk-up deletion of the intertwined dead chain (substantial follow-up).
+* **M6** (this file's "No trivial-witness theorems remain" claim): closed
+  by this update.
+* **M13** (Le Gall Thm 2.1 citation for BM existence): closed (commit b065b7d).
+
+**Open / deferred:**
+* **H6** (Predictable vs. Measurable hypothesis): predictable σ-algebra
+  scaffolding not yet built; deferred.
+* **M5** (`adaptedSimple_dense_L2_compensated` docstring vs signature):
+  paired with M4 (the axiom itself is candidate for deletion).
+* **M8** (path-regularity constant parameterization): style; deferred.
+* **M9** (multidim Brownian primitive): closed in spirit — built as
+  `Brownian/MultidimIto.lean`.
+* **M10** (scalar-Y BSDEJData): scope; not a defect, generalization.
+* **M11** (`IsBSDEJSolution` filtration trivial-constant): the natural-
+  filtration-pin requires `joint_past_future_independent` exposure
+  through the BSDEJSolution structure; deferred.
+* **M12** (`integral_undef` exploit on Compensated quadVar): closed
+  alongside H5.
+
+### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
 * **11 Tier 1 cited axioms** total, each with paper reference + Mathlib status + replacement plan.
-* **10 honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
-* No `sorryAx` anywhere in the public API.
-* No trivial-witness theorems remain. Dissertation forwarders now transitively surface real Tier 1 cited axioms in their audit, including the newly-demoted #11 `itoLevyFormula`.
+* **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
+* No `sorryAx` in the public API outside the 2 baseline-acknowledged entries.
+* No `True := trivial` stub lemmas remain in the project.
+* Dissertation forwarders transitively surface only real Tier 1 cited axioms
+  in their audit, including the now-fully-pinned #11 `itoLevyFormula`.
 
 ## Convention
 
-* `tools/sorry_baseline.txt` — sorry-blocked theorems. Currently empty.
+* `tools/sorry_baseline.txt` — sorry-blocked theorems (currently 2: see
+  status snapshot above).
 * `tools/cited_axioms.md` (this file) — Tier 1 cited axioms with citations + Mathlib status + replacement plans.
-* `tools/full_audit.lean` — `#print axioms` on every public theorem; runs as part of CI to verify the axiom budget.
+* `tools/lint.sh` — runs `_audit.lean` and fails on new sorryAx beyond
+  the baseline.
+* `_audit.lean` — `#print axioms` on every load-bearing theorem; runs as
+  part of CI to verify the axiom budget.
