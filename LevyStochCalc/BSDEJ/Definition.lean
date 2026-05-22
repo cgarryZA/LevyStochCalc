@@ -1,4 +1,5 @@
 import LevyStochCalc.Brownian.Ito
+import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Poisson.L2Isometry
 
 /-!
@@ -102,7 +103,7 @@ def IsBSDEJSolution
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (bsdej : BSDEJData n d E)
     (X : ℝ → Ω → (Fin n → ℝ))
@@ -116,13 +117,13 @@ def IsBSDEJSolution
         ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    -- Strengthened (2026-05-21): adaptedness layer added — the
-    -- existential filtration is hoisted to the OUTER level, and (Y, Z, U)
-    -- plus (M_W, M_N) must all be `Filt`-adapted. This excludes the
-    -- 2026-05-21 counterexample `Y t ω = W₁_T ω - W₁_t ω` (not adapted
-    -- to W's natural filtration for t < T) and restores uniqueness for
-    -- the (f=0, g=0) case via the standard `Y_t = E[Y_t | F_t] = 0`
-    -- argument from martingale property of M_W, M_N.
+    -- 2026-05-21 strengthening 1: adaptedness layer (rules out
+    -- Y = W₁_T − W₁_t counterexample).
+    -- 2026-05-22 strengthening 2 (H2 fix): M_W is now PINNED to the
+    -- canonical multidim Brownian Itô integral of Z (not just L²-isometric).
+    -- This requires the per-component Z hypotheses (joint measurability,
+    -- progressive measurability w.r.t. W's component natural filtrations,
+    -- per-component L² bound) to be bundled inside the existential.
     ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
         MeasureTheory.Adapted Filt Y ∧
         MeasureTheory.Adapted Filt Z ∧
@@ -132,11 +133,25 @@ def IsBSDEJSolution
           Measurable (Function.uncurry M_N) ∧
           MeasureTheory.Adapted Filt M_W ∧
           MeasureTheory.Adapted Filt M_N ∧
-          -- M_W satisfies the multidim Brownian L²-Itô isometry against Z:
-          (∀ T', 0 < T' →
-            ∫⁻ ω, (‖M_W T' ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-              ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-                ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) ∧
+          -- M_W is PINNED to the canonical multidim Brownian Itô integral of Z.
+          -- Hypotheses on Z (per-component measurability / progressive measurability
+          -- / L²-bound) are bundled inside this existential so that
+          -- `MultidimBrownianMotion.stochasticIntegral W Z ... T'` is well-typed.
+          (∃ (h_Z_meas : ∀ i : Fin d,
+                Measurable (Function.uncurry (fun ω s => Z s ω i)))
+             (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
+                @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+                  (@Prod.instMeasurableSpace Ω ℝ
+                    ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
+                    inferInstance)
+                  (fun p : Ω × ℝ => Z p.2 p.1 i))
+             (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
+                ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+                  (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+            ∀ T' : ℝ, ∀ᵐ ω ∂P,
+              M_W T' ω =
+                LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+                  W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
           -- M_N is pinned to the canonical compensated-Poisson L² integral of U:
           (∀ T' : ℝ, ∀ᵐ ω ∂P,
             M_N T' ω =
