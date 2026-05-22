@@ -767,8 +767,6 @@ theorem brownian_quadVar
           have hWs_zero : ∀ᵐ ω ∂P, W.W s ω = 0 := W.negative_zero s hs_nn
           filter_upwards [h_tower, h_outer_zero, hWs_zero]
             with ω h_tower_ω h_outer_ω hWs_ω
-          change P[(fun ω => (W.W t ω)^2 - max t 0)
-            | (naturalFiltration W).seq s] ω = (W.W s ω)^2 - max s 0
           rw [← h_tower_ω, h_outer_ω, h_zero_inner]
           change (0 : ℝ) = (W.W s ω)^2 - max s 0
           rw [hWs_ω, h_max_s_zero]; ring
@@ -786,8 +784,6 @@ theorem brownian_quadVar
           have h_const := MeasureTheory.condExp_const (μ := P)
             ((naturalFiltration W).le' s) (0 : ℝ)
           filter_upwards [h_eq, hWs_zero] with ω h_eq_ω hWs_ω
-          change P[(fun ω => (W.W t ω)^2 - max t 0)
-            | (naturalFiltration W).seq s] ω = (W.W s ω)^2 - max s 0
           rw [h_eq_ω, h_const]
           change (0 : ℝ) = (W.W s ω)^2 - max s 0
           rw [hWs_ω, h_max_s_zero]; ring
