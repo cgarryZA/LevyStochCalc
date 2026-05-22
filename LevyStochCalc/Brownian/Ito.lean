@@ -3966,22 +3966,18 @@ lemma martingale_simpleIntegral_brownian
     intro i _
     exact simpleIntegral_term_condExp_brownian W H i (h_adapt i) hst
 
-/-- **Quadratic variation of `simpleIntegral` (Brownian)** — for adapted simple
-predictable integrands `H`, `t ↦ (simpleIntegral W H t)^2 - ∫_0^t (H.eval s)^2 ds`
-is a martingale (Itô-type quadratic variation identity). -/
-private lemma quadVar_simpleIntegral_brownian
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
-    {T : ℝ} (H : SimplePredictable Ω T)
-    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
-    MeasureTheory.Martingale
-      (fun t : ℝ => fun ω : Ω =>
-        (simpleIntegral W H t ω) ^ 2
-          - ∫ s in Set.Icc (0 : ℝ) t, (H.eval s ω) ^ 2)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
-  sorry
+-- 2026-05-22 (deleted): the `private lemma quadVar_simpleIntegral_brownian`
+-- (Itô-type quadratic variation identity for simple integrands) was a
+-- dead-code `sorry` — no internal callers, no public re-export. The
+-- public quadratic variation theorem
+-- `LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral`
+-- is delivered directly from the Tier 1 cited axiom
+-- `itoIsometry_brownian_unified_existence` (which packages martingale +
+-- quadVar + L²-isometry on the full L² Itô integral, not just simple
+-- integrands), bypassing the simple-level quadVar step entirely. The
+-- private lemma was a planned intermediate step that the unified-existence
+-- approach made redundant. Removed per red-team finding C2.B (private
+-- sorry'd lemma misrepresenting the library's proof state).
 
 /-- **C0a: Density of simple Brownian-predictable processes in `L²(Ω × [0, T])`.**
 For every `H ∈ L²(Ω × [0, T], dP ⊗ ds)`, there exists a sequence of
