@@ -104,9 +104,11 @@ structure JumpDiffusion
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
     ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
-  /-- The SDE integral equation. Bundles the per-row Brownian-integrand
-  hypotheses (h_σ_meas, h_σ_progMeas, h_σ_sq) inside the existential
-  alongside the equation itself. -/
+  /-- The SDE integral equation. Bundles per-row Brownian + per-row Compensated
+  integrand hypotheses inside the existential alongside the equation itself.
+  H6 fix (red-team 2nd audit 2026-05-23): γ-side hypotheses now bundled too
+  (mirror of σ-side bundling), required by the strengthened
+  `Compensated.stochasticIntegral` signature. -/
   is_solution :
     ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
         Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
@@ -118,7 +120,20 @@ structure JumpDiffusion
           (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
       (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-          (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+          (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (h_γ_meas : ∀ i : Fin n,
+        Measurable (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => coeffs.γ s (X s ω') e i) p.1 p.2.1 p.2.2))
+      (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E =>
+            (fun ω' s e => coeffs.γ s (X s ω') e i) p.1 p.2.1 p.2.2))
+      (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
     ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
       X t ω i = x₀ i
         + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i
@@ -128,7 +143,8 @@ structure JumpDiffusion
             (fun j => h_σ_progMeas i j)
             (fun j => h_σ_sq i j) t ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => coeffs.γ s (X s ω') e i) t ω
+            (fun ω' s e => coeffs.γ s (X s ω') e i)
+            (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
 /-- **Existence and uniqueness of the jump-diffusion SDE.**
 

@@ -64,15 +64,23 @@ theorem itoLevyIsometry
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
-    (T : ℝ) (hT : 0 < T)
     (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-    (h_sq_int :
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P < ⊤) :
-    ∫⁻ ω, (‖LevyStochCalc.Poisson.Compensated.stochasticIntegral N φ T ω‖₊
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (T : ℝ) (hT : 0 < T) :
+    ∫⁻ ω, (‖LevyStochCalc.Poisson.Compensated.stochasticIntegral N φ
+            h_meas h_progMeas h_sq_int_global T ω‖₊
         : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P :=
-  LevyStochCalc.Poisson.Compensated.itoLevyIsometry N φ T hT h_meas h_sq_int
+  LevyStochCalc.Poisson.Compensated.itoLevyIsometry N φ
+    h_meas h_progMeas h_sq_int_global T hT
 
 end LevyStochCalc.Poisson.L2Isometry
