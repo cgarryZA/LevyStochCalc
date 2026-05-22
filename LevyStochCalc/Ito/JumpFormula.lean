@@ -75,6 +75,15 @@ noncomputable def diffusionIntegrand {n d : ℕ}
     (s : ℝ) (x : Fin n → ℝ) : Fin d → ℝ :=
   fun j => ∑ i : Fin n, gradient u s x i * σ s x i j
 
+/-- Compensator-drift integrand `u(s, x + γ(s, x, e)) − u(s, x) − γ(s, x, e)ᵀ ∇u(s, x)`.
+This is the inner integrand of the compensator-drift term in the Itô–Lévy
+formula (the Lévy-generator correction integrated against `ν(de) ds`). -/
+noncomputable def compensatorDriftIntegrand {n : ℕ} {E : Type v}
+    (u : ℝ → (Fin n → ℝ) → ℝ)
+    (γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ))
+    (s : ℝ) (x : Fin n → ℝ) (e : E) : ℝ :=
+  u s (x + γ s x e) - u s x - ∑ i : Fin n, γ s x e i * gradient u s x i
+
 /-- **Cu03 (Itô-Lévy formula for jump diffusions, Applebaum 2009 Thm 4.4.7).**
 
 For `C^{1,2}` functions `u` and a jump diffusion `X = (μ, σ, γ)`-driven by
@@ -116,15 +125,16 @@ axiom itoLevyFormula
     (T : ℝ) (_hT : 0 < T) :
     -- 2026-05-22 strengthening (continuation of C2):
     -- * `jump_mart` PINNED to `Compensated.stochasticIntegral` of the jump
-    --   increment `u(s, X_s + γ) − u(s, X_s)` (2026-05-21 commit 7d232bf).
-    -- * `diff_mart` NOW PINNED to the multidim Brownian Itô integral of
-    --   `diffusionIntegrand := ∇uᵀ σ` along X (2026-05-22, this commit).
-    --   The hypotheses on the integrand (joint / progressive measurability
-    --   + L²-bound) are bundled inside the existential.
-    -- Remaining unbound: `drift_term` (Lévy generator integral, needs
-    -- Hessian + a separate Lévy-generator definition) and `comp_drift`
-    -- (also Lévy-generator integral with γᵀ∇u correction).
-    ∃ (drift_term comp_drift : Ω → ℝ)
+    --   increment `u(s, X_s + γ) − u(s, X_s)` (2026-05-21).
+    -- * `diff_mart` PINNED to the multidim Brownian Itô integral of
+    --   `diffusionIntegrand := ∇uᵀ σ` along X (2026-05-22 earlier).
+    -- * `comp_drift` PINNED to the Lebesgue integral of the Lévy-generator
+    --   correction `u(s, X_s + γ) − u(s, X_s) − γᵀ ∇u(s, X_s)` against
+    --   `ν(de) ds` (2026-05-22, this commit).
+    -- Remaining unbound: only `drift_term` (the `(∂_t u + Lu)(s, X_s) ds`
+    -- Lebesgue integral, where `Lu = μᵀ∇u + ½Tr(σσᵀ∇²u)` needs the Hessian
+    -- ∇²u which isn't yet defined as a helper).
+    ∃ (drift_term : Ω → ℝ)
       (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
@@ -147,6 +157,7 @@ axiom itoLevyFormula
           + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
               (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                               - u s (X.X s ω')) T ω
-          + comp_drift ω)
+          + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+              compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν)
 
 end LevyStochCalc.Ito.JumpFormula
