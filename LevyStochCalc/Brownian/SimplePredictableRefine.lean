@@ -80,14 +80,14 @@ private lemma strictMono_partition_tiles
   have h_s_le_pi : s ≤ π' k_min := (Finset.mem_filter.mp h_k_min_in).2
   have h_k_min_pos : 0 < k_min.val := by
     by_contra h_not
-    push_neg at h_not
+    push Not at h_not
     have h_zero_val : k_min.val = 0 := Nat.le_zero.mp h_not
     have h_eq : k_min = (0 : Fin (M + 1)) := Fin.ext (by simp [h_zero_val])
     rw [h_eq] at h_s_le_pi
     exact absurd hs_pos (not_lt.mpr h_s_le_pi)
   have h_M_pos : 0 < M := by
     by_contra h_not
-    push_neg at h_not
+    push Not at h_not
     interval_cases M
     -- M = 0: Fin (0 + 1) = Fin 1; the only Fin 1 element is 0 (by val).
     have : k_min.val = 0 := Nat.lt_one_iff.mp k_min.isLt
@@ -101,7 +101,7 @@ private lemma strictMono_partition_tiles
   have hj_succ_eq : (j.succ : Fin (M + 1)) = k_min := Fin.ext hj_succ_val
   have h_castSucc_lt : π' j.castSucc < s := by
     by_contra h_not
-    push_neg at h_not
+    push Not at h_not
     have h_in : j.castSucc ∈ validSet := by
       simp [validSet, h_not]
     have h_ge : k_min ≤ j.castSucc := validSet.min'_le _ h_in
@@ -191,7 +191,7 @@ lemma SimplePredictable.refine_eval
     -- Use `strictMono_partition_tiles` to derive `s ≤ π' 0` or `s > π' Fin.last`.
     have hs_out : s ≤ π' 0 ∨ π' (Fin.last M) < s := by
       by_contra h_inside
-      push_neg at h_inside
+      push Not at h_inside
       obtain ⟨hs_pos, hs_le_last⟩ := h_inside
       exact h_any_new (strictMono_partition_tiles h_strictMono hs_pos hs_le_last)
     rcases hs_out with hs_le0 | hs_gt_last
@@ -692,7 +692,7 @@ private lemma SimplePredictable.exists_mergedIdxMap_left
     strictMono_partition_tiles H₁.partition_strictMono h_pos h_le_endpt
   refine ⟨i, ?_, h_le⟩
   by_contra h_not
-  push_neg at h_not
+  push Not at h_not
   -- h_not : H₁.mergedπ H₂ j.castSucc < H₁.partition i.castSucc
   obtain ⟨k, hk⟩ := H₁.mergedπ_refines_left H₂ i.castSucc
   rw [← hk] at h_not h_lt
@@ -725,7 +725,7 @@ private lemma SimplePredictable.exists_mergedIdxMap_right
     strictMono_partition_tiles H₂.partition_strictMono h_pos h_le_endpt
   refine ⟨i, ?_, h_le⟩
   by_contra h_not
-  push_neg at h_not
+  push Not at h_not
   obtain ⟨k, hk⟩ := H₁.mergedπ_refines_right H₂ i.castSucc
   rw [← hk] at h_not h_lt
   have h_jcs_lt_k : j.castSucc < k :=

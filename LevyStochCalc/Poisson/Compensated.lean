@@ -266,7 +266,7 @@ lemma SimplePredictable.eval_sq_eq_sum_indicator
         exact Set.indicator_of_notMem (h_unique j hj) _
       · intro h_not; exact absurd (Finset.mem_univ _) h_not
     rw [h_sum_eq, h_sum_sq_eq]
-  · push_neg at h_any
+  · push Not at h_any
     have h_zero : ∀ i : Fin φ.N, (φ.fullRect i).indicator (fun _ => φ.ξ i ω) (s, e) = 0 :=
       fun i => Set.indicator_of_notMem (h_any i) _
     have h_zero_sq : ∀ i : Fin φ.N,
@@ -302,7 +302,7 @@ lemma SimplePredictable.lintegral_eval_sq
         = (fun s : ℝ => ∑ i : Fin φ.N, ∫⁻ e,
             (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν) from by
     funext s
-    exact MeasureTheory.lintegral_finset_sum _ (fun i _ => h_inner_meas s i)]
+    exact MeasureTheory.lintegral_finsetSum _ (fun i _ => h_inner_meas s i)]
   -- Pull outer sum out.
   have h_outer_meas : ∀ i : Fin φ.N,
       Measurable (fun s : ℝ => ∫⁻ e,
@@ -315,7 +315,7 @@ lemma SimplePredictable.lintegral_eval_sq
         ((φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2)) :=
       Measurable.indicator measurable_const h_meas_fullRect
     exact h_meas_ind.lintegral_prod_right'
-  rw [MeasureTheory.lintegral_finset_sum _ (fun i _ => h_outer_meas i)]
+  rw [MeasureTheory.lintegral_finsetSum _ (fun i _ => h_outer_meas i)]
   -- Apply per-term identity.
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [SimplePredictable.lintegral_indicator_fullRect φ i]
@@ -345,7 +345,7 @@ lemma SimplePredictable.lintegral_eval_sq_outer
     intro i
     refine Measurable.pow_const ?_ 2
     exact ENNReal.continuous_coe.measurable.comp (φ.ξ_measurable i).nnnorm
-  rw [MeasureTheory.lintegral_finset_sum]
+  rw [MeasureTheory.lintegral_finsetSum]
   · refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [MeasureTheory.lintegral_mul_const _ (h_sq_meas i)]
     ring
@@ -1408,12 +1408,12 @@ private lemma simpleIntegral_sq_bochner_eq
             (φ.ξ i ω * N.compensated (φ.fullRect i) ω) *
             (φ.ξ j ω * N.compensated (φ.fullRect j) ω) from funext h_expand]
   -- Pull out outer sum (by linearity of Bochner integral over finite sums)
-  rw [MeasureTheory.integral_finset_sum _
-    (fun i _ => MeasureTheory.integrable_finset_sum _
+  rw [MeasureTheory.integral_finsetSum _
+    (fun i _ => MeasureTheory.integrable_finsetSum _
       (fun j _ => cross_sq_integrable N φ i j))]
   refine Finset.sum_congr rfl (fun i _ => ?_)
   -- Pull out inner sum
-  rw [MeasureTheory.integral_finset_sum _
+  rw [MeasureTheory.integral_finsetSum _
     (fun j _ => cross_sq_integrable N φ i j)]
   -- Now: ∑ j, ∫ (a_i a_j) ∂P. Split via Finset.sum_eq_single i.
   rw [Finset.sum_eq_single i]
@@ -1482,8 +1482,8 @@ lemma simpleIntegral_sq_lintegral_eq
           = fun ω => ∑ i : Fin φ.N, ∑ j : Fin φ.N,
               (φ.ξ i ω * N.compensated (φ.fullRect i) ω) *
               (φ.ξ j ω * N.compensated (φ.fullRect j) ω) from funext h_eq]
-    refine MeasureTheory.integrable_finset_sum _ (fun i _ => ?_)
-    refine MeasureTheory.integrable_finset_sum _ (fun j _ => ?_)
+    refine MeasureTheory.integrable_finsetSum _ (fun i _ => ?_)
+    refine MeasureTheory.integrable_finsetSum _ (fun j _ => ?_)
     exact cross_sq_integrable N φ i j
   have h_nn_sum_sq :
       0 ≤ᵐ[P] fun ω => (∑ i, φ.ξ i ω * N.compensated (φ.fullRect i) ω)^2 := by

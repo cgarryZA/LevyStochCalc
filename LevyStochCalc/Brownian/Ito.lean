@@ -181,7 +181,7 @@ lemma eval_sq_eq_sum_indicator
       · intro h_not; exact absurd (Finset.mem_univ _) h_not
     rw [h_sum_eq, h_sum_sq_eq]
   · -- s is in none of the intervals; both sides are 0.
-    push_neg at h_any
+    push Not at h_any
     have h_zero : ∀ i : Fin H.N,
         (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
           (fun _ => H.ξ i ω) s = 0 :=
@@ -208,7 +208,7 @@ lemma lintegral_eval_sq {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω) :
             (fun _ => (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) s) from
     funext (eval_sq_eq_sum_indicator H · ω)]
   -- Step 2: pull sum out of lintegral.
-  rw [MeasureTheory.lintegral_finset_sum]
+  rw [MeasureTheory.lintegral_finsetSum]
   · -- Step 3: each summand evaluates to (t_{i+1} - t_i) · ‖ξ_i‖²
     refine Finset.sum_congr rfl (fun i _ => ?_)
     -- ∫⁻ s in [0, T], indicator (t_i, t_{i+1}] · |ξ_i|² ds = |ξ_i|² · vol((t_i, t_{i+1}])
@@ -261,7 +261,7 @@ lemma lintegral_eval_sq_outer
           ENNReal.ofReal (H.partition i.succ - H.partition i.castSucc) *
           (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) from
     funext (fun ω => lintegral_eval_sq H ω)]
-  rw [MeasureTheory.lintegral_finset_sum]
+  rw [MeasureTheory.lintegral_finsetSum]
   · refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [MeasureTheory.lintegral_const_mul']
     exact ENNReal.ofReal_ne_top
@@ -776,11 +776,11 @@ private lemma simpleIntegral_sq_bochner_eq
                       - W.W (H.partition i.castSucc) ω)) *
             (H.ξ j ω * (W.W (H.partition j.succ) ω
                       - W.W (H.partition j.castSucc) ω)) from funext h_expand]
-  rw [MeasureTheory.integral_finset_sum _
-    (fun i _ => MeasureTheory.integrable_finset_sum _
+  rw [MeasureTheory.integral_finsetSum _
+    (fun i _ => MeasureTheory.integrable_finsetSum _
       (fun j _ => cross_sq_integrable W H i j))]
   refine Finset.sum_congr rfl (fun i _ => ?_)
-  rw [MeasureTheory.integral_finset_sum _
+  rw [MeasureTheory.integral_finsetSum _
     (fun j _ => cross_sq_integrable W H i j)]
   rw [Finset.sum_eq_single i]
   · -- j = i: diagonal Bochner
@@ -857,8 +857,8 @@ lemma simpleIntegral_sq_lintegral_eq
                         - W.W (H.partition i.castSucc) ω)) *
               (H.ξ j ω * (W.W (H.partition j.succ) ω
                         - W.W (H.partition j.castSucc) ω)) from funext h_eq]
-    refine MeasureTheory.integrable_finset_sum _ (fun i _ => ?_)
-    refine MeasureTheory.integrable_finset_sum _ (fun j _ => ?_)
+    refine MeasureTheory.integrable_finsetSum _ (fun i _ => ?_)
+    refine MeasureTheory.integrable_finsetSum _ (fun j _ => ?_)
     exact cross_sq_integrable W H i j
   have h_nn_sum_sq :
       0 ≤ᵐ[P] fun ω => (∑ i : Fin H.N, H.ξ i ω * (W.W (H.partition i.succ) ω
@@ -976,7 +976,7 @@ lemma integral_eval_sq {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω) :
           exact Set.indicator_of_notMem (h_unique j hj) _
         · intro h_not; exact absurd (Finset.mem_univ _) h_not
       rw [h_sum_eq, h_sum_sq_eq]
-    · push_neg at h_any
+    · push Not at h_any
       have h_zero_sq : ∀ i : Fin H.N,
           (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
             (fun _ => (H.ξ i ω) ^ 2) s = 0 :=
@@ -989,7 +989,7 @@ lemma integral_eval_sq {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω) :
           Finset.sum_eq_zero (fun i _ => h_zero_sq i)]
       simp
   simp_rw [h_sq_decomp]
-  rw [MeasureTheory.integral_finset_sum]
+  rw [MeasureTheory.integral_finsetSum]
   · refine Finset.sum_congr rfl (fun i _ => ?_)
     have h_meas_set : MeasurableSet
         (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)) := measurableSet_Ioc
@@ -1048,7 +1048,7 @@ lemma integral_eval_sq_outer
     · filter_upwards with ω
       rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
       exact sq_le_sq' (neg_le_of_abs_le (hM ω)) (le_of_abs_le (hM ω))
-  rw [MeasureTheory.integral_finset_sum _ h_int_term]
+  rw [MeasureTheory.integral_finsetSum _ h_int_term]
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [MeasureTheory.integral_const_mul]
 
@@ -1097,15 +1097,15 @@ private lemma truncation_dominated_brownian (x : ℝ) (M : ℕ) :
     · by_cases hxM : x ≤ M
       · rw [min_eq_right hxM, max_eq_right (by linarith)]
         simp [abs_nonneg]
-      · push_neg at hxM
+      · push Not at hxM
         rw [min_eq_left (le_of_lt hxM), max_eq_right (by linarith : -(M : ℝ) ≤ M)]
         rw [abs_of_nonneg (by linarith : 0 ≤ x - M), abs_of_nonneg hx]
         linarith
-    · push_neg at hx
+    · push Not at hx
       by_cases hxM : -(M : ℝ) ≤ x
       · rw [min_eq_right (by linarith : x ≤ M), max_eq_right hxM]
         simp
-      · push_neg at hxM
+      · push Not at hxM
         rw [min_eq_right (by linarith : x ≤ M), max_eq_left (le_of_lt hxM)]
         rw [show x - -(M : ℝ) = x + M from by ring]
         rw [abs_of_nonpos (by linarith : x + (M : ℝ) ≤ 0), abs_of_neg hx]
@@ -1328,7 +1328,7 @@ private lemma dyadicPartition_brownian_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)
     simp [Fin.val_succ]
   have hi_castSucc : ((i.castSucc : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) := by
     push_cast
-    simp [Fin.coe_castSucc]
+    simp [Fin.val_castSucc]
   rw [hi_succ, hi_castSucc]
   ring
 
@@ -1857,7 +1857,7 @@ private lemma dyadicSimplePredictable_brownian_eval_eq_dyadicAvg
     show dyadicPartition_brownian T n i.castSucc = _
     unfold dyadicPartition_brownian
     push_cast
-    simp [Fin.coe_castSucc]
+    simp [Fin.val_castSucc]
   have h_partition_succ : φ.partition i.succ =
       (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
     show dyadicPartition_brownian T n i.succ = _
@@ -1919,7 +1919,7 @@ private lemma predictableDyadicSimple_brownian_eval_eq_shifted
     show dyadicPartition_brownian T n i.castSucc = _
     unfold dyadicPartition_brownian
     push_cast
-    simp [Fin.coe_castSucc]
+    simp [Fin.val_castSucc]
   have h_partition_succ : φ.partition i.succ =
       (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
     show dyadicPartition_brownian T n i.succ = _
@@ -2079,7 +2079,7 @@ private lemma dyadic_pointwise_tendsto_per_omega
       show dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc < x
       unfold dyadicPartition_brownian
       push_cast at h ⊢
-      simpa [Fin.coe_castSucc] using h
+      simpa [Fin.val_castSucc] using h
     have h_x2 : x ≤ t_succ := by
       have h := h_mem.2
       show x ≤ dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ
@@ -2423,7 +2423,7 @@ private lemma predictable_pointwise_tendsto_per_omega
     -- If i.val = 0, then t_i = 0 and t_{i+1} = T/2^n. Since t_{i+1} ≥ x means
     -- T/2^n ≥ x, contradicting hn.
     by_contra h_not_pos
-    push_neg at h_not_pos
+    push Not at h_not_pos
     have h_i_zero : (dyadicIndex n T hT x hx).val = 0 := Nat.eq_zero_of_le_zero h_not_pos
     have hi_mem := dyadicIndex_mem n T hT x hx
     have h_x_le : x ≤ T / ((2 ^ n : ℕ) : ℝ) := by
@@ -2625,7 +2625,7 @@ lemma predictableDyadicSimple_brownian_L2_converges
         · rw [max_eq_right hM]
           have : (0 : ℝ) ≤ |M| := abs_nonneg _
           linarith
-        · push_neg at hM
+        · push Not at hM
           rw [max_eq_left hM.le]
           linarith [le_abs_self M]
       have h12 : |g p.1 p.2 -
@@ -3689,7 +3689,7 @@ private lemma simpleIntegral_term_adapted_brownian
       h_adapt_i.mono (ℱ.mono ht_pre)
     exact h_xi.mul (h_W_post.sub h_W_pre)
   · -- `t < pre_t`: integrand is identically 0.
-    push_neg at ht_pre
+    push Not at ht_pre
     have h_t_lt_post : t < H.partition i.succ := lt_trans ht_pre hpre_lt_post
     have h_min_pre_t : min (H.partition i.castSucc) t = t := min_eq_right (le_of_lt ht_pre)
     have h_min_post_t : min (H.partition i.succ) t = t := min_eq_right (le_of_lt h_t_lt_post)
@@ -3781,7 +3781,7 @@ private lemma simpleIntegral_term_condExp_brownian_main
           have h_s_le_t' : s ≤ t' := le_min hs_post hst
           have h_t'_eq_s : t' = s := le_antisymm ht'_s h_s_le_t'
           rw [h_t'_eq_s, h_s'_eq_s]
-        · push_neg at hs_post
+        · push Not at hs_post
           have h_s'_post : s' = H.partition i.succ := min_eq_left hs_post.le
           have hpost_le_t : H.partition i.succ ≤ t := hs_post.le.trans hst
           have h_t'_post : t' = H.partition i.succ := min_eq_left hpost_le_t
@@ -3793,7 +3793,7 @@ private lemma simpleIntegral_term_condExp_brownian_main
       have h_self := MeasureTheory.condExp_of_stronglyMeasurable h_le_F h_W_t'_self h_int_W_t'
       rw [h_self, h_t'_eq_s']
     · -- `s < t'`: Brownian martingale at `s ≤ t'`, then identify `W_s = W_{s'}`.
-      push_neg at ht'_s
+      push Not at ht'_s
       have h_post_gt_s : s < H.partition i.succ := lt_of_lt_of_le ht'_s (min_le_left _ _)
       have h_s'_eq_s : s' = s := min_eq_right h_post_gt_s.le
       have h_W_eq := condExp_W_eq_W_aux W hs_nn (le_of_lt ht'_s)
@@ -3847,7 +3847,7 @@ private lemma simpleIntegral_term_condExp_brownian
     ring
   by_cases hs_pre : H.partition i.castSucc ≤ s
   · exact simpleIntegral_term_condExp_brownian_main W H i h_adapt_i hs_pre hst
-  · push_neg at hs_pre
+  · push Not at hs_pre
     have hs_lt_pre : s ≤ H.partition i.castSucc := hs_pre.le
     have h_g_s_zero := h_g_zero_le_pre s hs_lt_pre
     by_cases ht_pre : H.partition i.castSucc ≤ t
@@ -3870,7 +3870,7 @@ private lemma simpleIntegral_term_condExp_brownian
       filter_upwards [h_tower, h_outer_zero] with ω h_tower_ω h_outer_zero_ω
       rw [← h_tower_ω, h_outer_zero_ω, h_zero_const]
     · -- Case C: `t < pre_t`. Both `g_s` and `g_t` are `0`.
-      push_neg at ht_pre
+      push Not at ht_pre
       have ht_lt_pre : t ≤ H.partition i.castSucc := ht_pre.le
       have h_g_t_zero := h_g_zero_le_pre t ht_lt_pre
       rw [h_g_t_zero, h_g_s_zero]
@@ -3924,7 +3924,7 @@ lemma martingale_simpleIntegral_brownian
           (W.W (min (H.partition i.succ) t) ω
             - W.W (min (H.partition i.castSucc) t) ω)) P :=
       fun i _ => simpleIntegral_term_integrable_brownian W H i t
-    have h_step1 := MeasureTheory.condExp_finset_sum h_int (m := ℱ.seq s)
+    have h_step1 := MeasureTheory.condExp_finsetSum h_int (m := ℱ.seq s)
     refine h_step1.trans ?_
     refine eventuallyEq_sum ?_
     intro i _

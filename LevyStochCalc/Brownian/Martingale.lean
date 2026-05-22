@@ -69,7 +69,7 @@ lemma brownianMotion_integrable
       rw [hω]; simp
     rw [MeasureTheory.lintegral_congr_ae h_nn]
     simp
-  push_neg at hs_neg
+  push Not at hs_neg
   -- s ≥ 0
   have hs := hs_neg
   by_cases hs_zero : s = 0
@@ -115,7 +115,7 @@ lemma brownianMotion_memLp_2
       rw [hω]; simp
     rw [MeasureTheory.lintegral_congr_ae h_zero]
     simp
-  push_neg at hs_neg
+  push Not at hs_neg
   have hs := hs_neg
   by_cases hs_zero : s = 0
   · subst hs_zero
@@ -159,7 +159,7 @@ lemma brownianMotion_sq_integrable
       rw [hω]; simp
     rw [MeasureTheory.lintegral_congr_ae h_nn]
     simp
-  push_neg at hs_neg
+  push Not at hs_neg
   have hs := hs_neg
   by_cases hs_zero : s = 0
   · subst hs_zero
@@ -496,7 +496,7 @@ theorem brownian_martingale
       by_cases hs_nn : 0 ≤ s
       swap
       · -- s < 0: handle subcases on t.
-        push_neg at hs_nn
+        push Not at hs_nn
         by_cases ht_nn : 0 ≤ t
         · -- s < 0 ≤ t: tower through F_0.
           -- F_s ≤ F_0 (filtration monotone). P[P[W_t | F_0] | F_s] = P[W_t | F_s].
@@ -523,7 +523,7 @@ theorem brownian_martingale
           show (0 : ℝ) = W.W s ω
           rw [hWs_ω]
         · -- s < t < 0: both W_s and W_t are 0 a.s.
-          push_neg at ht_nn
+          push Not at ht_nn
           have hWs_zero : ∀ᵐ ω ∂P, W.W s ω = 0 := W.negative_zero s hs_nn
           have hWt_zero : ∀ᵐ ω ∂P, W.W t ω = 0 := W.negative_zero t ht_nn
           have h_Wt_ae_zero : (W.W t : Ω → ℝ) =ᵐ[P] (fun _ => 0 : Ω → ℝ) := by
@@ -736,7 +736,7 @@ theorem brownian_quadVar
       by_cases hs_nn : 0 ≤ s
       swap
       · -- s < 0: subcases on t. With the `max t 0` integrand, both subcases work.
-        push_neg at hs_nn
+        push Not at hs_nn
         have h_max_s_zero : max s 0 = 0 := max_eq_right hs_nn.le
         by_cases ht_nn : 0 ≤ t
         · -- s < 0 ≤ t: tower through F_0.
@@ -769,7 +769,7 @@ theorem brownian_quadVar
           show (0 : ℝ) = (W.W s ω)^2 - max s 0
           rw [hWs_ω, h_max_s_zero]; ring
         · -- s < t < 0: both W_s = 0 and W_t = 0 a.s., so M_s = M_t = 0.
-          push_neg at ht_nn
+          push Not at ht_nn
           have h_max_t_zero : max t 0 = 0 := max_eq_right ht_nn.le
           have hWs_zero : ∀ᵐ ω ∂P, W.W s ω = 0 := W.negative_zero s hs_nn
           have hWt_zero : ∀ᵐ ω ∂P, W.W t ω = 0 := W.negative_zero t ht_nn
