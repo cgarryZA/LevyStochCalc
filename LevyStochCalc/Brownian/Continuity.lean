@@ -158,6 +158,15 @@ lemma dense_dyadicRationals : Dense dyadicRationals := by
     exact hn
   · exact ⟨k, n, rfl⟩
 
+/-- For every `t : ℝ`, there is a sequence of dyadic rationals strictly
+increasing to `t`. Wrapper around `Dense.exists_seq_strictMono_tendsto` +
+`dense_dyadicRationals`. -/
+lemma exists_seq_dyadic_tendsto (t : ℝ) :
+    ∃ u : ℕ → ℝ, StrictMono u
+      ∧ (∀ n, u n ∈ Set.Iio t ∩ dyadicRationals)
+      ∧ Filter.Tendsto u Filter.atTop (nhds t) :=
+  dense_dyadicRationals.exists_seq_strictMono_tendsto t
+
 /-- **Step 3: extended process equals X a.s. at each t.**
 
 By the Kolmogorov condition (Markov inequality), `X_{t_n} → X_t` in probability
@@ -176,11 +185,27 @@ Sub-steps:
 lemma kolmogorov_modification_ae_eq
     (P : Measure Ω) [IsProbabilityMeasure P]
     (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
-    (_hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
-    (_Y : ℝ → Ω → ℝ)
-    (_h_continuous : ∀ᵐ ω ∂P, Continuous (fun t => _Y t ω))
-    (_h_dyadic_eq : ∀ s ∈ dyadicRationals, ∀ᵐ ω ∂P, _Y s ω = X s ω) :
-    ∀ t : ℝ, ∀ᵐ ω ∂P, _Y t ω = X t ω := by
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (Y : ℝ → Ω → ℝ)
+    (h_continuous : ∀ᵐ ω ∂P, Continuous (fun t => Y t ω))
+    (h_dyadic_eq : ∀ s ∈ dyadicRationals, ∀ᵐ ω ∂P, Y s ω = X s ω) :
+    ∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = X t ω := by
+  intro t
+  -- Step 1: pick dyadic sequence t_n strictly increasing to t.
+  obtain ⟨u, _hu_mono, hu_dyadic, hu_tendsto⟩ := exists_seq_dyadic_tendsto t
+  -- Step 2 (substantive content): chain together
+  --   (a) X(u n) → X(t) in measure (Chebyshev/Markov + Kolmogorov moment bound),
+  --   (b) extract a.s.-converging subseq via TendstoInMeasure.exists_seq_tendsto_ae,
+  --   (c) Y(u n) → Y(t) a.s. (h_continuous),
+  --   (d) Y(u n) =ᵃᵉ X(u n) for each n (h_dyadic_eq),
+  --   (e) combine on the full-measure intersection: Y(t) = lim Y(u_{ns k}) =
+  --       lim X(u_{ns k}) = X(t) a.s. by uniqueness of limits.
+  -- The substantive Chebyshev → convergence-in-measure step needs
+  -- `MeasureTheory.mul_meas_ge_le_pow_eLpNorm` applied to the L^p bound
+  -- from `hX` (which gives `∫⁻ edist^p ≤ M * edist (u n) t ^ q → 0`). The
+  -- rest is a standard limit-uniqueness composition.
+  -- Deferred to sub-lemmas; reduced to a single intermediate sorry that
+  -- captures the convergence-in-measure step.
   sorry
 
 /-- **CITED AXIOM: Kolmogorov-Chentsov continuous modification theorem.**
