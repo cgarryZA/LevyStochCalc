@@ -72,23 +72,10 @@ def Lipschitz {n d : ℕ}
       ≤ L * (|y₁ - y₂| + ‖z₁ - z₂‖
         + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal.sqrt)
 
-/-- **Picard contraction lemma.** Under Lipschitz hypothesis with constant `L`,
-the Picard map `Φ` is a contraction on `S² × H² × H²_N` for sufficiently small
-`T` (or with an exponentially-weighted norm).
-
-This is the technical core of the BSDEJ existence proof. -/
-lemma picardMap_contraction
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
-    (X : ℝ → Ω → (Fin n → ℝ))
-    (T : ℝ) (_hT : 0 < T)
-    {L : ℝ} (_hL : Lipschitz bsdej ν L) :
-    -- placeholder for the contraction inequality
-    True := trivial
+-- 2026-05-22 (deleted): `picardMap_contraction` was a public `True := trivial`
+-- placeholder for the Picard-map contraction step. The actual BSDEJ existence
+-- is delivered by `continuousBSDEJ_exists_unique` (Tier 1 cited axiom #9).
+-- The placeholder had no callers. Removed per red-team finding M1.
 
 /-- **CITED AXIOM: Continuous BSDEJ existence and uniqueness (Tang-Li 1994).**
 

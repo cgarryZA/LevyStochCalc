@@ -128,32 +128,12 @@ noncomputable def brownianKernel (v : ℝ≥0) :
   toFun x := ProbabilityTheory.gaussianReal x v
   measurable' := measurable_gaussianReal v
 
-/-- **Step 2: existence of the dyadic-time Brownian process via
-Ionescu-Tulcea.** Given the Brownian kernel + dyadic step sizes
-`h_n := 2^{-n}`, `Probability.Kernel.IonescuTulcea.Traj` produces a
-probability measure on `ℝ^ℕ`. The coordinate process `n ↦ ω n` represents
-Brownian motion at dyadic times `t_n := ∑_{k < n} h_k = 1 - 2^{-n+1}`.
-
-The current spec is `True`-valued because the actual content (the
-finite-dim Brownian distribution match) is delivered by
-`BrownianMotion.exists` directly using `IonescuTulcea.Traj`. The
-existence-of-probability-space part is satisfied by any non-empty space;
-we provide a trivial witness here. -/
-lemma brownian_dyadicTime_exists :
-    ∃ (Ω' : Type u) (_ : MeasurableSpace Ω') (P' : Measure Ω')
-      (_ : IsProbabilityMeasure P'),
-      True :=
-  ⟨PUnit, ⊤, MeasureTheory.Measure.dirac PUnit.unit, inferInstance, trivial⟩
-
-/-- **Step 3: extension to all of `ℝ`.** A process defined on dyadic times
-can be extended to `[0, ∞)` by continuity (after KC modification, which is
-in `LevyStochCalc.Brownian.Continuity`). The extended process satisfies
-the Brownian increment law on all of `ℝ`.
-
-Spec is `True`-valued; the actual extension is delivered inline within
-`BrownianMotion.exists` using `holder_dense_extends_continuous` (proved)
-plus the KC modification result. -/
-lemma brownian_extend_to_real : True := trivial
+-- 2026-05-22 (deleted): two `True`-valued / trivial-witness stub lemmas
+-- (`brownian_dyadicTime_exists`, `brownian_extend_to_real`). Both were
+-- documentation placeholders for stages of the KC construction; both had
+-- no callers; both contributed only vacuous proof-state misrepresentation.
+-- The actual Brownian construction is delivered by `BrownianMotion.exists`
+-- (Tier 1 cited axiom #1). Removed per red-team finding M1.
 
 /-- **CITED AXIOM: Wiener measure construction.**
 

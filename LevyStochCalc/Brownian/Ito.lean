@@ -1607,37 +1607,14 @@ lemma predictableDyadicSimple_brownian_adapted
     (dyadicAvg_shifted_brownian T g n i)
   exact dyadicAvg_shifted_brownian_adapted W T g h_progMeas n i
 
-/-- **Step 2 of the density chain (Brownian):** Mathlib `SimpleFunc` approximations
-of bounded `g` can be approximated by step functions of "rectangular" form
-`∑_{i,j} c_{i,j} · 𝟙_{Ω_i × I_j}` in L². This is the bridge from arbitrary product
-measurable sets to product-of-measurable rectangles (using the generation of the
-product σ-algebra on `Ω × [0, T]`).
-
-Alternative path (avoiding SimpleFunc rectangular approximation entirely): use
-dyadic conditional expectations. The σ-algebra
-`F_n := M(Ω) ⊗ σ((t_i, t_{i+1}] : i = 0, ..., 2^n - 1)`
-satisfies `⨆ n, F_n = M(Ω) ⊗ Borel([0, T])` (since dyadic intervals generate Borel).
-Then `g_n := E[g | F_n]` is constant in `s` within each `(t_i, t_{i+1}]`, with
-`g_n(ω, s) = (1/Δ_i) ∫_{t_i}^{t_{i+1}} g(ω, r) dr`. By Lévy upward + L² uniform
-integrability, `g_n → g` in L².
-
-Substantive content: identifying `g_n` explicitly as a SimplePredictable, plus
-the σ-algebra union argument. -/
-private lemma simpleFunc_approx_by_rectangles_brownian
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {T : ℝ} (_hT : 0 < T) :
-    True := trivial
-
-/-- **Step 3 of the density chain (Brownian):** A "rectangular" step function
-`∑_{i,j} c_{i,j} · 𝟙_{Ω_i × I_j}` on `Ω × [0, T]` can be re-indexed as a
-`SimplePredictable Ω T`. Construction: take the partition to be the union of all
-`I_j` endpoints; for each piece `(t_k, t_{k+1}]`, the ξ_k is `∑_{Ω_i, j : I_j ⊇ (t_k, t_{k+1}]} c_{i,j} · 𝟙_{Ω_i}`.
-
-Direct construction; the `ξ_measurable` field follows from finite sum of indicator
-functions on measurable sets. -/
-private lemma rectangular_to_simplePredictable_brownian
-    {T : ℝ} (_hT : 0 < T) :
-    True := trivial
+-- 2026-05-22 (deleted): `simpleFunc_approx_by_rectangles_brownian` and
+-- `rectangular_to_simplePredictable_brownian` were two private `True := trivial`
+-- placeholders for stages of the dyadic L² density chain (with elaborate
+-- docstrings on SimpleFunc-to-rectangular-step-function bridges + alternative
+-- dyadic-conditional-expectation path). The actual chain is delivered via
+-- `dyadicSimplePredictable_brownian` +
+-- `dyadicSimplePredictable_brownian_L2_converges` (both proven). The two
+-- placeholders had no callers. Removed per red-team finding M1.
 
 /-- **Doubling measure instance for `(volume : Measure ℝ)`.** Mathlib's
 `IsUnifLocDoublingMeasure` is not auto-inferred for `ℝ`; we provide it explicitly
@@ -1676,25 +1653,12 @@ private lemma bounded_locallyIntegrable
     rw [Real.norm_eq_abs]
     exact h_bound s
 
-/-- **Sub-lemma A (a.e. pointwise convergence of dyadic averages):** For each
-`ω`, the dyadic average `dyadicAvg_brownian g n i ω` converges to `g(ω, s)` as
-`n → ∞` for a.e. `s ∈ [0, T]`, where `i = i(n, s)` is the dyadic index containing
-`s`. This is the Lebesgue differentiation theorem applied to `g(ω, ·)`.
-
-With the `IsUnifLocDoublingMeasure (volume : Measure ℝ)` instance now available,
-the Mathlib lemma `IsUnifLocDoublingMeasure.ae_tendsto_average_norm_sub`
-gives a.e. convergence of averages over `closedBall (w_i) (δ_i)` to `g(ω, x)` for
-any sequence `(w_i, δ_i)` with `dist(w_i, x) ≤ K · δ_i` and `δ_i → 0`.
-
-For the dyadic case: for `s ∈ (t_i, t_{i+1}]` (the dyadic piece at level `n`
-containing `s`), set `w_n := (t_i + t_{i+1})/2` (midpoint) and `δ_n := T/2^(n+1)`
-(half-length). Then `closedBall w_n δ_n = [t_i, t_{i+1}]`, which has the same
-measure as `(t_i, t_{i+1}]`. The K-comparability holds with K = 1. -/
-private lemma dyadic_pointwise_tendsto_brownian
-    {T : ℝ} (_hT : 0 < T)
-    (_g : Ω → ℝ → ℝ) (_h_meas : Measurable (Function.uncurry _g))
-    (_M : ℝ) (_h_bound : ∀ ω s, |_g ω s| ≤ _M) :
-    True := trivial
+-- 2026-05-22 (deleted): `dyadic_pointwise_tendsto_brownian` was a private
+-- `True := trivial` placeholder (with elaborate docstring on Lebesgue
+-- differentiation + IsUnifLocDoublingMeasure) for the dyadic-average a.e.
+-- pointwise convergence step. The actual pointwise + L² convergence is
+-- delivered by `dyadicSimplePredictable_brownian_L2_converges` (proven).
+-- The placeholder had no callers. Removed per red-team finding M1.
 
 /-- **Sub-lemma B (uniform L² boundedness):** The eval of dyadic SimplePredictable
 is bounded by `M` everywhere, hence its L²(P × volume.restrict[0,T]) norm is

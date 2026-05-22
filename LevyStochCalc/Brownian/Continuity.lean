@@ -23,24 +23,15 @@ universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
 
-/-- **Step 1 of KC modification: dyadic Hölder bound.**
-
-Given `X` satisfying the Kolmogorov condition with exponents `(p, q)`,
-`q > 1`, and any `α ∈ (0, (q-1)/p)`, the process `X` is uniformly
-α-Hölder-continuous on the dyadic times `Dn := {k/2^n : 0 ≤ k ≤ N·2^n}`
-of `[0, N]`, almost surely.
-
-Proof: Markov inequality applied to `𝔼[|X_{(k+1)/2^n} − X_{k/2^n}|^p]`
-gives `P(|X_{(k+1)/2^n} − X_{k/2^n}| ≥ 2^{-α n}) ≤ M / 2^{n(q - α p)}`.
-Borel-Cantelli over `n` (sum is finite when `q − α p > 1`, i.e.,
-`α < (q-1)/p`) gives the uniform bound. -/
-lemma kolmogorov_dyadic_holder
-    (P : Measure Ω) [IsProbabilityMeasure P]
-    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
-    (_hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
-    (_hq : 1 < q) (_α : ℝ) (_hα_pos : 0 < _α) (_hα_lt : _α * p < q - 1) :
-    -- placeholder for: ∀ᵐ ω ∂P, ∃ K, ∀ s t ∈ dyadics, |X t ω - X s ω| ≤ K |t-s|^α
-    True := trivial
+-- 2026-05-22 (deleted): `kolmogorov_dyadic_holder` was a `True := trivial`
+-- placeholder for the dyadic Hölder bound (KC modification Step 1). Never
+-- referenced outside its declaration site and contributed nothing to the
+-- audit beyond a substantive docstring with vacuous body — exactly the
+-- trivial-witness pattern Rule 0 forbids. The KC modification theorem is
+-- delivered via the cited axiom `kolmogorovChentsov_modification` (Tier 1
+-- #3); the dyadic-Hölder intermediate step (Markov + Borel-Cantelli) is
+-- subsumed by the axiom and tracked in `tools/cited_axioms.md`.
+-- Removed per red-team finding M1.
 
 /-- **Step 2: uniform Hölder on a dense set → continuous extension.**
 

@@ -175,13 +175,10 @@ lemma poissonRandomMeasure_finite_exists
       (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) :=
   PoissonRandomMeasure.exists_of_sigmaFinite E ν
 
-/-- **Step 3: combine independently across the σ-finite decomposition.**
-Use product measure `Measure.pi` + `iIndepFun_pi`.
-
-Spec is `True`-valued; the actual combination is delivered inline within
-`PoissonRandomMeasure.exists_of_sigmaFinite`. -/
-lemma poissonRandomMeasure_combine
-    {E : Type v} [MeasurableSpace E] (_ν : Measure E) [SigmaFinite _ν] :
-    True := trivial
+-- 2026-05-22 (deleted): `poissonRandomMeasure_combine` was a public
+-- `True := trivial` placeholder for the σ-finite-piece combination step.
+-- The actual combination is delivered inline within
+-- `PoissonRandomMeasure.exists_of_sigmaFinite` (Tier 1 cited axiom #2).
+-- The placeholder had no callers. Removed per red-team finding M1.
 
 end LevyStochCalc.Poisson
