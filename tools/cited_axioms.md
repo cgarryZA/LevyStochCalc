@@ -88,11 +88,16 @@ to the Mathlib version, no other changes needed downstream.
 
 ### 11. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula`
 
-* **Statement**: For a `C^{1,2}` function `u` and a jump diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, there exist four processes `(drift_term, diff_mart, jump_mart, comp_drift)` summing to `u(T, X_T) − u(0, X_0)` almost surely. Each term corresponds to a literature integral form: drift via `∫(∂_t u + 𝓛u) ds`, Brownian martingale via `∫ ∇uᵀ σ dW`, jump martingale via `∫∫(u(·+γ) − u) Ñ`, compensator drift via `∫∫(u(·+γ) − u − γᵀ∇u) ν ds`, where `𝓛u = μᵀ∇u + ½Tr(σσᵀ∇²u)`.
+* **Statement**: For a `C^{1,2}` function `u` and a jump diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, the chain-rule decomposition (Applebaum 2009 Thm 4.4.7) — `u(T, X_T) − u(0, X_0) = drift + diff_mart + jump_mart + comp_drift` — with ALL FOUR terms pinned to their literature integral forms:
+  * `drift = ∫_0^T (∂_t u + 𝓛u)(s, X_s) ds` using `driftIntegrand` (which uses `timeDeriv`, `gradient`, `hessian`, `levyGenerator` helpers).
+  * `diff_mart = MultidimBrownianMotion.stochasticIntegral W (diffusionIntegrand := ∇uᵀσ along X) T` (multidim Brownian Itô integral).
+  * `jump_mart = Compensated.stochasticIntegral N (jump increment u(·+γ) − u along X) T`.
+  * `comp_drift = ∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ∂ν(de) ds` using `compensatorDriftIntegrand`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.7**; Cont & Tankov, *Financial Modelling with Jump Processes*, Chapman & Hall/CRC 2003, **Proposition 8.18**.
-* **Predicate state (2026-05-11 — newly DEMOTED)**: Previously declared as `theorem` whose proof body was the trivial-witness pattern `refine ⟨0, 0, 0, fun ω => u T (X T ω) - u 0 (X 0 ω), ?_⟩; simp` — three identically-zero processes with the entire change stuffed into the fourth term. That satisfied the existential vacuously. Per the recursive audit standard, downgraded to a documented `axiom` with the literature citation. Better an honest axiom than a fake theorem.
+* **Predicate state (2026-05-22 — fully pinned)**: Originally a `theorem` with the trivial-witness proof body `refine ⟨0, 0, 0, change, ?_⟩; simp`. Demoted to `axiom` on 2026-05-11 (commit db582f9). Statement then fully pinned in 4 commits today (2026-05-22): `jump_mart` pinned 7d232bf, `diff_mart` pinned 09687cf, `comp_drift` pinned 9675e44, `drift_term` pinned 94f0155. No existential reals remain. Axiom asserts the exact Applebaum identity.
+* **Transitive axiom dependency**: now surfaces Tier 1 #5 (`itoIsometry_brownian_unified_existence`, via multidim Brownian integral) and Tier 1 #6 (`itoIsometry_compensated_unified_existence`, via Compensated.stochasticIntegral).
 * **Mathlib status (May 2026)**: No general Itô-with-jumps formula in Mathlib (waits on the full jump-SDE apparatus). `Mathlib.Probability.IteFormula`-style infrastructure exists for the continuous (Brownian-only) case, but not for the jump case.
-* **Replacement plan**: `theorem itoLevyFormula := <Applebaum 4.4.7 derivation>` when the four primitives (Brownian stochastic integral, compensated-Poisson stochastic integral, Lebesgue integrals against `μ, ½σσᵀ, γ`, jump-diffusion semimartingale apparatus) are all in place. Multi-session work.
+* **Replacement plan**: `theorem itoLevyFormula := <Applebaum 4.4.7 derivation>` when (a) the multidim Brownian + compensated-Poisson integrals along the X-path are usable on the right hypothesis class, and (b) the Bochner integrals of the time-derivative + Lévy generator can be controlled (Sobolev estimates on u). Multi-session work.
 
 ## Honest derivative theorems (proven from cited axioms)
 
