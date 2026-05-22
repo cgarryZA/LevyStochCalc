@@ -1735,6 +1735,7 @@ theorem exists_itoIntegralL2_brownian_progMeas_bounded
     h_norm_tendsto
 
 set_option maxHeartbeats 1600000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Unbounded progressively-measurable existence.** For progressively-measurable
 `H : Ω → ℝ → ℝ` in `L²(Ω × [0,T], dP ⊗ ds)` (no bound assumed), there exists an
 `Lp ℝ 2 P` element whose squared `eLpNorm` over `P` equals the full `L²(P × ds)`

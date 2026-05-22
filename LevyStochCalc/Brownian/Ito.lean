@@ -746,6 +746,7 @@ private lemma cross_sq_integrable
     (le_trans (hM_j ω) (le_abs_self _)) (abs_nonneg _) (abs_nonneg _)
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Bochner LHS reduction for Brownian.** -/
 private lemma simpleIntegral_sq_bochner_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
@@ -813,6 +814,7 @@ private lemma simpleIntegral_sq_bochner_eq
   · intro h_not; exact absurd (Finset.mem_univ _) h_not
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **LHS reduction for Brownian Itô isometry on simples.** -/
 lemma simpleIntegral_sq_lintegral_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
@@ -1117,6 +1119,7 @@ private lemma truncation_dominated_brownian (x : ℝ) (M : ℕ) :
   exact pow_le_pow_left' (ENNReal.coe_le_coe.mpr h_nn) 2
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Truncation L² convergence (Brownian).** Mirror of Compensated. -/
 lemma truncation_L2_converges_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
@@ -2841,6 +2844,7 @@ lemma SimplePredictable.eval_jointly_measurable
 
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **L²-Cauchy from L²-tendsto.** If a sequence `(Hn n).eval` converges to `H`
 in `L²` (lintegral form), then `(Hn n).eval` is L²-Cauchy.
 
@@ -3240,6 +3244,7 @@ lemma predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
 
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Adapted density (Brownian).** Every progressively-measurable
 `H ∈ L²(Ω × [0,T], dP ⊗ ds)` is the L²-limit of ADAPTED simple predictable
 integrands.
@@ -3433,6 +3438,7 @@ lemma adaptedSimple_dense_L2_brownian
 
 -- maxHeartbeats: triangle-inequality lift through nested lintegrals + Tonelli.
 set_option maxHeartbeats 1600000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Density of simple predictable integrands in L².** Every
 `H ∈ L²(Ω × [0,T], dP ⊗ ds)` is the L²-limit of simple predictable integrands. -/
 lemma simplePredictable_dense_L2

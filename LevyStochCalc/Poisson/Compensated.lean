@@ -411,6 +411,7 @@ private lemma poisson_term_succ_eq (r : ℝ) (n : ℕ) :
   field_simp
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Series identity for Poisson mean.** `∑' n, r^n / n! · n = r · exp(r)`. -/
 private lemma tsum_pow_div_factorial_mul_nat (r : ℝ) :
     ∑' n : ℕ, r ^ n / (n.factorial : ℝ) * (n : ℝ) = r * Real.exp r := by
@@ -429,6 +430,7 @@ private lemma tsum_pow_div_factorial_mul_nat (r : ℝ) :
   rw [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Mean of `poissonMeasure r` is `r`.** Derived from `integral_poissonMeasure`
 + the series identity `∑' n, r^n / n! · n = r · exp(r)`. -/
 private lemma poissonMeasure_integral_id (r : ℝ≥0) :
@@ -463,6 +465,7 @@ private lemma summable_pow_div_factorial_mul_nat (r : ℝ) :
   exact (summable_nat_add_iff 1).mp h_summable_succ
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Compensated-Poisson mean is zero.** For a measurable set `B` with finite
 intensity, `∫ ω, Ñ(B, ω) ∂P = 0`. Follows from `E[N(B)] = ν̂(B)` (Poisson mean,
 proved via `poissonMeasure_integral_id`). -/
@@ -565,6 +568,7 @@ private lemma summable_pow_div_factorial_mul_nat_sq (r : ℝ) :
   exact (summable_nat_add_iff 1).mp h_summable_succ
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Series identity:** `∑' n, r^n / n! · n² = (r² + r) · exp(r)`. -/
 private lemma tsum_pow_div_factorial_mul_nat_sq (r : ℝ) :
     ∑' n : ℕ, r ^ n / (n.factorial : ℝ) * (n : ℝ) ^ 2 = (r ^ 2 + r) * Real.exp r := by
@@ -610,6 +614,7 @@ private lemma tsum_pow_div_factorial_mul_nat_sq (r : ℝ) :
   ring
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Second moment of `poissonMeasure r`:** `∫ n, (n : ℝ)² ∂poissonMeasure r = r² + r`. -/
 private lemma poissonMeasure_integral_id_sq (r : ℝ≥0) :
     ∫ n : ℕ, (n : ℝ) ^ 2 ∂(ProbabilityTheory.poissonMeasure r)
@@ -659,6 +664,7 @@ private lemma integrable_id_sq_poissonMeasure (r : ℝ≥0) :
   exact (summable_pow_div_factorial_mul_nat_sq (↑r)).mul_left _
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Variance of `poissonMeasure r`:** `∫ n, ((n:ℝ) − r)² ∂poissonMeasure r = r`.
 Mean `r`, second moment `r²+r`, variance `(r²+r) − r² = r`. -/
 private lemma poissonMeasure_variance (r : ℝ≥0) :
@@ -708,6 +714,7 @@ private lemma poissonMeasure_variance (r : ℝ≥0) :
   ring
 
 set_option maxHeartbeats 400000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 lemma compensated_second_moment
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -1381,6 +1388,7 @@ private lemma simpleIntegral_offDiagonal_fullRect
   exact simpleIntegral_offDiagonal N φ hij h_adapt_i h_adapt_j
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **Bochner LHS reduction.** Expand `(∑ a_i)² = ∑_{i,j} a_i a_j` via `Finset.sum_mul_sum`,
 apply linearity, then split into diagonal (i = j) and off-diagonal (i ≠ j) terms. -/
 private lemma simpleIntegral_sq_bochner_eq
@@ -1442,6 +1450,7 @@ private lemma simpleIntegral_sq_bochner_eq
   · intro h_not; exact absurd (Finset.mem_univ _) h_not
 
 set_option maxHeartbeats 800000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **LHS reduction for the Itô-Lévy isometry on simples.** The L²-norm-squared
 of the simple integral equals the canonical sum form. Combines diagonal +
 offDiagonal via Bochner expansion. -/
