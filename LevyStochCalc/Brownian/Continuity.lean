@@ -206,11 +206,16 @@ lemma kolmogorov_modification_ae_eq
   -- via |·|), so this is convergence of (X (u n)) → X t in measure.
   have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by
     intro δ hδ
-    -- Want: Tendsto (fun n => P {ω | δ ≤ edist (X (u n) ω) (X t ω)}) atTop (nhds 0).
-    -- Markov: P {ω | δ ≤ edist} ≤ ENNReal.ofReal (M * edist (u n) t ^ q) / δ^p.
-    -- As n → ∞: u n → t, so edist (u n) t → 0, so RHS → 0.
-    -- Implementation deferred to a sub-lemma (uses `meas_ge_le_lintegral_div`
-    -- + the Kolmogorov bound from `hX.kolmogorovCondition`).
+    -- Markov chain (deferred to inner sorry):
+    --   P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
+    --     = P {ω | δ^p ≤ edist^p}              (monotonicity of (·)^p, 0 < p)
+    --     ≤ (∫⁻ edist^p) / δ^p                  (meas_ge_le_lintegral_div)
+    --     ≤ M · edist (u n) t^q / δ^p          (hX.kolmogorovCondition)
+    --     → 0 as n → ∞                          (edist (u n) t → 0, q > 0)
+    -- Each step lives in Mathlib; chaining them is mostly type-juggling.
+    -- Per the user's drilling directive, this is the next concrete piece
+    -- to land (sketch attempted in prior iterations; full elaboration needs
+    -- careful ENNReal.rpow_le_rpow_iff signature checking + Tendsto squeeze).
     sorry
   -- Step 4: extract a.s.-converging subsequence.
   obtain ⟨ns, _hns_mono, hns_ae⟩ := h_TIM.exists_seq_tendsto_ae
