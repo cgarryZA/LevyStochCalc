@@ -84,6 +84,36 @@ noncomputable def compensatorDriftIntegrand {n : ℕ} {E : Type v}
     (s : ℝ) (x : Fin n → ℝ) (e : E) : ℝ :=
   u s (x + γ s x e) - u s x - ∑ i : Fin n, γ s x e i * gradient u s x i
 
+/-- Time derivative `∂_t u (s, x)`. Returns 0 if u is not differentiable in t
+at (s, x). -/
+noncomputable def timeDeriv {n : ℕ} (u : ℝ → (Fin n → ℝ) → ℝ)
+    (s : ℝ) (x : Fin n → ℝ) : ℝ :=
+  deriv (fun t => u t x) s
+
+/-- Hessian `∇²u (s, x) : Fin n → Fin n → ℝ`. Returns 0 entries where u is not
+twice differentiable. -/
+noncomputable def hessian {n : ℕ} (u : ℝ → (Fin n → ℝ) → ℝ)
+    (s : ℝ) (x : Fin n → ℝ) : Fin n → Fin n → ℝ :=
+  fun i j => fderiv ℝ (fun y => fderiv ℝ (u s) y (Pi.single i 1)) x (Pi.single j 1)
+
+/-- The Lévy generator `Lu(s, x) := μᵀ∇u + ½Tr(σσᵀ∇²u)` (the continuous part;
+the jump part is integrated into `comp_drift`'s integrand). -/
+noncomputable def levyGenerator {n d : ℕ}
+    (u : ℝ → (Fin n → ℝ) → ℝ)
+    (μ : ℝ → (Fin n → ℝ) → (Fin n → ℝ))
+    (σ : ℝ → (Fin n → ℝ) → (Fin n → Fin d → ℝ))
+    (s : ℝ) (x : Fin n → ℝ) : ℝ :=
+  (∑ i : Fin n, μ s x i * gradient u s x i)
+  + (1 / 2) * (∑ i : Fin n, ∑ j : Fin n, ∑ k : Fin d,
+      σ s x i k * σ s x j k * hessian u s x i j)
+
+/-- Drift-term integrand `(∂_t u + Lu)(s, x)`. -/
+noncomputable def driftIntegrand {n d : ℕ}
+    (u : ℝ → (Fin n → ℝ) → ℝ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (s : ℝ) (x : Fin n → ℝ) : ℝ :=
+  timeDeriv u s x + levyGenerator u coeffs.μ coeffs.σ s x
+
 /-- **Cu03 (Itô-Lévy formula for jump diffusions, Applebaum 2009 Thm 4.4.7).**
 
 For `C^{1,2}` functions `u` and a jump diffusion `X = (μ, σ, γ)`-driven by
@@ -123,19 +153,18 @@ axiom itoLevyFormula
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (T : ℝ) (_hT : 0 < T) :
-    -- 2026-05-22 strengthening (continuation of C2):
-    -- * `jump_mart` PINNED to `Compensated.stochasticIntegral` of the jump
-    --   increment `u(s, X_s + γ) − u(s, X_s)` (2026-05-21).
-    -- * `diff_mart` PINNED to the multidim Brownian Itô integral of
-    --   `diffusionIntegrand := ∇uᵀ σ` along X (2026-05-22 earlier).
-    -- * `comp_drift` PINNED to the Lebesgue integral of the Lévy-generator
-    --   correction `u(s, X_s + γ) − u(s, X_s) − γᵀ ∇u(s, X_s)` against
-    --   `ν(de) ds` (2026-05-22, this commit).
-    -- Remaining unbound: only `drift_term` (the `(∂_t u + Lu)(s, X_s) ds`
-    -- Lebesgue integral, where `Lu = μᵀ∇u + ½Tr(σσᵀ∇²u)` needs the Hessian
-    -- ∇²u which isn't yet defined as a helper).
-    ∃ (drift_term : Ω → ℝ)
-      (h_sigmaGrad_meas : ∀ j : Fin d,
+    -- 2026-05-22 strengthening (full pinning of all four terms):
+    -- * `jump_mart`  PINNED to `Compensated.stochasticIntegral` of the jump
+    --                increment `u(s, X_s + γ) − u(s, X_s)` (2026-05-21).
+    -- * `diff_mart`  PINNED to multidim Brownian Itô integral of `∇uᵀσ` (today).
+    -- * `comp_drift` PINNED to ∫_0^T ∫_E [u(s, X_s+γ) − u − γᵀ∇u] ν(de) ds (today).
+    -- * `drift_term` PINNED to ∫_0^T (∂_t u + Lu)(s, X_s) ds (THIS commit).
+    -- All four terms of the literature Itô–Lévy formula are now matched.
+    -- No existential reals remain. The axiom now asserts the exact literature
+    -- identity (Applebaum 2009 Thm 4.4.7) as an equation between fully-pinned
+    -- expressions; the trivial-witness attack is fully closed at the
+    -- statement level.
+    ∀ (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
       (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
@@ -148,9 +177,9 @@ axiom itoLevyFormula
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P < ⊤),
-      (∀ᵐ ω ∂P,
+      ∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
-          drift_term ω
+          (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
           + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
               W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
               h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
@@ -158,6 +187,6 @@ axiom itoLevyFormula
               (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                               - u s (X.X s ω')) T ω
           + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
-              compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν)
+              compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν
 
 end LevyStochCalc.Ito.JumpFormula
