@@ -27,7 +27,8 @@ dissertation imports this module and replaces its
 
 * Applebaum 2009, Theorem 4.4.7.
 * User's dissertation
-  [ch02_mathematical_framework.tex](D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
+  [ch02_mathematical_framework.tex](
+  D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
   eq (jump-ito) at lines 51-56.
 
 ## Status

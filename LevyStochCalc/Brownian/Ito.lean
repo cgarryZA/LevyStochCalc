@@ -1339,6 +1339,7 @@ private lemma dyadicPartition_brownian_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)
   rw [hi_succ, hi_castSucc]
   ring
 
+set_option linter.unusedSectionVars false in
 /-- Boundedness of `dyadicAvg_brownian`: if `|g| ≤ M`, then `|dyadicAvg ω| ≤ M`. -/
 private lemma dyadicAvg_brownian_bounded
     (T : ℝ) (hT : 0 < T) (g : Ω → ℝ → ℝ)
@@ -1799,6 +1800,7 @@ private lemma dyadicIndex_mem (n : ℕ) (T : ℝ) (hT : 0 < T) (s : ℝ)
     rw [div_le_iff₀ hT] at hk_ge
     linarith
 
+set_option linter.unusedSectionVars false in
 /-- **Average bridge:** `dyadicAvg n i ω = ⨍ y in closedBall(midpoint, halfLen), g(ω, y) ∂volume`.
 
 Here `midpoint := (t_i + t_{i+1})/2`, `halfLen := (t_{i+1} - t_i)/2 = T/2^(n+1)`.
@@ -2060,8 +2062,10 @@ private lemma dyadic_pointwise_tendsto_per_omega
     have h_eq : δ = fun n => T / (2 * (2 ^ n : ℕ)) := funext h_delta_eq
     rw [h_eq]
     -- 2 * (2^n : ℕ) → ∞ as n → ∞.
-    have h_2pow : Filter.Tendsto (fun n : ℕ => 2 * ((2 ^ n : ℕ) : ℝ)) Filter.atTop Filter.atTop := by
-      have h_pow_atTop : Filter.Tendsto (fun n : ℕ => ((2 ^ n : ℕ) : ℝ)) Filter.atTop Filter.atTop := by
+    have h_2pow : Filter.Tendsto (fun n : ℕ => 2 * ((2 ^ n : ℕ) : ℝ))
+        Filter.atTop Filter.atTop := by
+      have h_pow_atTop : Filter.Tendsto (fun n : ℕ => ((2 ^ n : ℕ) : ℝ))
+          Filter.atTop Filter.atTop := by
         have : Filter.Tendsto (fun n : ℕ => (2 ^ n : ℕ)) Filter.atTop Filter.atTop :=
           tendsto_pow_atTop_atTop_of_one_lt (by norm_num : 1 < 2)
         exact tendsto_natCast_atTop_iff.mpr this
@@ -2229,7 +2233,8 @@ private lemma dyadicSimplePredictable_brownian_L2_converges
       have h_abs_M : M ≤ |M| := le_abs_self _
       have h12 : |g p.1 p.2 -
           (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1|
-          ≤ |g p.1 p.2| + |(dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1| :=
+          ≤ |g p.1 p.2|
+            + |(dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1| :=
         abs_sub _ _
       rw [hCC]; linarith
     have h_norm_nn : 0 ≤ ‖g p.1 p.2 -
@@ -3202,7 +3207,7 @@ lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
       MeasureTheory.eLpNorm (Fn n - F) 2 μν
         = MeasureTheory.eLpNorm (F - Fn n) 2 μν := by
     intro n
-    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add, neg_sub]
+    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add]
     rw [h_neg, MeasureTheory.eLpNorm_neg]
   have h_eLpNorm_diff_swap_tendsto : Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm (Fn n - F) 2 μν)
@@ -3420,7 +3425,8 @@ lemma adaptedSimple_dense_L2_brownian
           have h_meas_A_pair : Measurable (fun (q : Ω × ℝ) => A q.1 q.2) := by
             simp only [hA]
             exact ((by fun_prop : Measurable (fun (q : Ω × ℝ) =>
-              ‖H q.1 q.2 - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
+              ‖H q.1 q.2
+                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
           exact (Measurable.lintegral_prod_right'
             (ν := volume.restrict (Set.Icc (0:ℝ) T)) h_meas_A_pair).aemeasurable
   have h_first : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -3437,7 +3443,7 @@ lemma adaptedSimple_dense_L2_brownian
         ∂volume ∂P)
       ≤ 2 * (ε / 4 + ε / 4) := by
         refine h_double_le.trans ?_
-        exact mul_le_mul_left' (add_le_add h_first h_second) _
+        exact mul_le_mul_right (add_le_add h_first h_second) _
     _ = ε := by
         rw [← two_mul, ← mul_assoc, show (2 : ℝ≥0∞) * 2 = 4 from by norm_num]
         exact ENNReal.mul_div_cancel (by norm_num : (4 : ℝ≥0∞) ≠ 0) (by simp)
@@ -3579,7 +3585,8 @@ lemma simplePredictable_dense_L2
           have h_meas_A_pair : Measurable (fun (q : Ω × ℝ) => A q.1 q.2) := by
             simp only [hA]
             exact ((by fun_prop : Measurable (fun (q : Ω × ℝ) =>
-              ‖H q.1 q.2 - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
+              ‖H q.1 q.2
+                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
           exact (Measurable.lintegral_prod_right'
             (ν := volume.restrict (Set.Icc (0:ℝ) T)) h_meas_A_pair).aemeasurable
   -- Apply bounds.
@@ -3597,7 +3604,7 @@ lemma simplePredictable_dense_L2
         ∂volume ∂P)
       ≤ 2 * (ε / 4 + ε / 4) := by
         refine h_double_le.trans ?_
-        exact mul_le_mul_left' (add_le_add h_first h_second) _
+        exact mul_le_mul_right (add_le_add h_first h_second) _
     _ = ε := by
         rw [← two_mul, ← mul_assoc, show (2 : ℝ≥0∞) * 2 = 4 from by norm_num]
         exact ENNReal.mul_div_cancel (by norm_num : (4 : ℝ≥0∞) ≠ 0) (by simp)

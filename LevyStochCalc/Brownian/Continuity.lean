@@ -214,8 +214,7 @@ lemma kolmogorov_modification_ae_eq
         intro n; ext ω
         simp [h_edist_ne_top n ω]
       simp_rw [h_set_empty]
-      simpa using (tendsto_const_nhds : Filter.Tendsto (fun _ : ℕ => (0 : ℝ≥0∞))
-        Filter.atTop (nhds 0))
+      simp
     -- Now δ ≠ ⊤. Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
     have h_set_eq : ∀ n,
         {ω | δ ≤ edist (X (u n) ω) (X t ω)}

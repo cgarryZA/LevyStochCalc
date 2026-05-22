@@ -240,7 +240,8 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
     refine (measurable_pi_iff.mpr ?_).aemeasurable
     intro t
     exact W₀.measurable_eval t
-  have := ProbabilityTheory.iIndepFun_pi (X := fun _ : Fin d => fun ω₀ : Ω₀ => fun t : ℝ => W₀.W t ω₀)
+  have := ProbabilityTheory.iIndepFun_pi
+    (X := fun _ : Fin d => fun ω₀ : Ω₀ => fun t : ℝ => W₀.W t ω₀)
     (μ := fun _ : Fin d => P₀) h_meas_W₀
   convert this using 1
 

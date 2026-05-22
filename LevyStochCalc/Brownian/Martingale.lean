@@ -286,7 +286,7 @@ lemma gaussianReal_second_moment (v : NNReal) :
       (ProbabilityTheory.gaussianReal 0 v) = v :=
     ProbabilityTheory.variance_fun_id_gaussianReal
   rw [ProbabilityTheory.variance_eq_integral measurable_id'.aemeasurable] at h_var
-  simp [ProbabilityTheory.integral_id_gaussianReal] at h_var
+  simp only [ProbabilityTheory.integral_id_gaussianReal, sub_zero] at h_var
   exact h_var
 
 /-- **Conditional expectation of squared increment is `t - s`.** Combines:

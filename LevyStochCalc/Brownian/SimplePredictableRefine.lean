@@ -1936,7 +1936,9 @@ theorem exists_itoIntegralL2_brownian_progMeas
             have h_meas_A_pair : Measurable (fun (q : Ω × ℝ) => A q.1 q.2) := by
               simp only [hA]
               exact ((by fun_prop : Measurable (fun (q : Ω × ℝ) =>
-                ‖H q.1 q.2 - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
+                ‖H q.1 q.2
+                  - max (-(n : ℝ))
+                      (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
             exact (Measurable.lintegral_prod_right'
               (ν := volume.restrict (Set.Icc (0:ℝ) T)) h_meas_A_pair).aemeasurable
     have h_first : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -1953,7 +1955,7 @@ theorem exists_itoIntegralL2_brownian_progMeas
           ∂volume ∂P)
         ≤ 2 * (ε / 4 + ε / 4) := by
           refine h_double_le.trans ?_
-          exact mul_le_mul_left' (add_le_add h_first h_second) _
+          exact mul_le_mul_right (add_le_add h_first h_second) _
       _ = ε := by
           rw [← two_mul, ← mul_assoc, show (2 : ℝ≥0∞) * 2 = 4 from by norm_num]
           exact ENNReal.mul_div_cancel (by norm_num : (4 : ℝ≥0∞) ≠ 0) (by simp)
@@ -2002,7 +2004,8 @@ theorem itoIsometry_brownian_existence
   obtain ⟨Mlp, h_isometry⟩ :=
     exists_itoIntegralL2_brownian_progMeas W hT H h_meas h_progMeas h_sq_int
   refine ⟨↑↑Mlp, (MeasureTheory.Lp.aestronglyMeasurable Mlp), ?_⟩
-  -- ∫⁻ ‖↑↑Mlp ω‖₊² ∂P = eLpNorm² Mlp 2 P (via eLpNorm_nnreal_pow_eq_lintegral) = ∫⁻ ‖H‖² (h_isometry).
+  -- ∫⁻ ‖↑↑Mlp ω‖₊² ∂P = eLpNorm² Mlp 2 P (via eLpNorm_nnreal_pow_eq_lintegral)
+  -- = ∫⁻ ‖H‖² (h_isometry).
   rw [show (∫⁻ ω, (‖(↑↑Mlp : Ω → ℝ) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
         = MeasureTheory.eLpNorm (↑↑Mlp : Ω → ℝ) 2 P ^ (2 : ℝ) from ?_]
   · exact h_isometry

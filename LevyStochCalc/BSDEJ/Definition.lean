@@ -22,7 +22,8 @@ and `g : ℝⁿ → ℝ` is the *terminal condition*. `Y` is scalar, `Z` is `d`-
 matching `W`, `U_s : E → ℝ` is the *jump integrand*.
 
 Reference: User's dissertation
-[ch02_mathematical_framework.tex](D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
+[ch02_mathematical_framework.tex](
+D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
 Definition 2 (line 238 onwards).
 
 ## Status

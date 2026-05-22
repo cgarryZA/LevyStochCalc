@@ -880,8 +880,10 @@ lemma simpleIntegral_diagonal
     -- ÑB is a measurable function of N(B), so its σ-algebra is contained in σ(N(B)).
     intro u hu
     obtain ⟨v, hv, rfl⟩ := hu
-    -- ÑB = N(B).toReal - ν̂(B).toReal, so ÑB⁻¹(v) = N(B)⁻¹((·.toReal - c)⁻¹(v)) for c = ν̂(B).toReal
-    refine ⟨(fun x : ℝ≥0∞ => x.toReal - (LevyStochCalc.Poisson.referenceIntensity ν B).toReal) ⁻¹' v,
+    -- ÑB = N(B).toReal - ν̂(B).toReal, so ÑB⁻¹(v) = N(B)⁻¹((·.toReal - c)⁻¹(v))
+    -- for c = ν̂(B).toReal
+    refine ⟨(fun x : ℝ≥0∞ =>
+        x.toReal - (LevyStochCalc.Poisson.referenceIntensity ν B).toReal) ⁻¹' v,
       ?_, ?_⟩
     · exact (ENNReal.measurable_toReal.sub_const _) hv
     · ext ω; rfl

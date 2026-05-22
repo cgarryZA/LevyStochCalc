@@ -25,7 +25,8 @@ When CLEAN, the main dissertation imports this and replaces its
 * Becherer, "Bounded solutions to backward SDEs with jumps for utility
   optimization and indifference hedging", AAP 16(4), 2006.
 * User's dissertation
-  [ch02_mathematical_framework.tex](D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
+  [ch02_mathematical_framework.tex](
+  D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
   Theorem (bsdej-well-posed) at lines 270-273.
 
 ## Status
