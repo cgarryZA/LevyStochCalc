@@ -2074,7 +2074,10 @@ existence consolidates Karatzas–Shreve Thm 3.2.6.
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, **Theorem 3.2.6** (unified martingale + quadratic variation +
 L²-isometry of the L² Itô integral); Le Gall, J.-F. *Brownian Motion, Martingales
-and Stochastic Calculus*, Springer 2016, **Theorem 5.13**.
+and Stochastic Calculus*, Springer 2016, **Theorem 5.4** + equation **(5.8)**
+(correcting the previous "Theorem 5.13" citation — Le Gall 2016 p. 121
+"Theorem 5.13" is Dambis–Dubins–Schwarz, not the L² Itô isometry; see red-team
+finding H8 / P11).
 
 **Standard proof outline**: Construct `F` as the L²-limit (across the natural
 filtration's progressive σ-algebras) of `simpleIntegral W (G n) t` for an adapted

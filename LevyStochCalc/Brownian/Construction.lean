@@ -141,7 +141,10 @@ There exists a probability space carrying a 1-dimensional Brownian motion.
 
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, Theorem 2.1.5; Le Gall, J.-F. *Brownian Motion, Martingales and
-Stochastic Calculus*, Springer 2016, Theorem 2.1.
+Stochastic Calculus*, Springer 2016, Definition 2.1 / Definition 2.12 / Corollary 2.11
+(correcting the previous "Theorem 2.1" citation — Le Gall 2016 has no "Theorem 2.1";
+the existence is stated through the definition + the Wiener-measure construction
+in Chapter 2; see red-team finding M13 / P11).
 
 **Standard proof outline**: Apply the Kolmogorov extension theorem (Mathlib:
 `MeasureTheory.IsProjectiveLimit`) to the projective family of finite-dimensional

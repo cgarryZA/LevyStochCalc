@@ -17,7 +17,7 @@ to the Mathlib version, no other changes needed downstream.
 ### 1. `LevyStochCalc.Brownian.BrownianMotion.exists`
 
 * **Statement**: There exists a probability space carrying a 1-dimensional Brownian motion.
-* **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 2.1.5**; Le Gall, *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, **Theorem 2.1**. Wiener measure construction via Kolmogorov extension + KC modification.
+* **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 2.1.5**; Le Gall, *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, **Definition 2.1** / **Definition 2.12** / **Corollary 2.11** (the Brownian-motion construction; correcting the previous "Theorem 2.1" citation flagged by red-team P11 — Le Gall 2016 has no "Theorem 2.1"; the existence statement combines the definition + the explicit Wiener-measure construction in Chapter 2). Wiener measure construction via Kolmogorov extension + KC modification.
 * **Mathlib status (May 2026)**: No current `MeasureTheory.WienerMeasure` or `BrownianMotion` definition. Adjacent infrastructure exists: `ProbabilityTheory.gaussianReal` (Real Gaussian distribution), `ProbabilityTheory.IsGaussianProcess`, `MeasureTheory.IsProjectiveLimit`, `Probability.Kernel.IonescuTulcea.trajMeasure` (dyadic-time Markov chains). The "Degenne et al stochastic integration" effort (arXiv:2511.20118, late 2025) is the most active push toward Mathlib-Brownian; no Mathlib PR merged at time of writing.
 * **Replacement plan**: `theorem BrownianMotion.exists := <Mathlib forwarder>` when `MeasureTheory.WienerMeasure` lands.
 
@@ -38,14 +38,14 @@ to the Mathlib version, no other changes needed downstream.
 ### 4. `LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont`
 
 * **Statement**: Brownian motion is a martingale w.r.t. the right-continuous augmentation of its natural filtration (consequence of Blumenthal 0-1 law).
-* **Reference**: Karatzas–Shreve **Theorem 2.7.7** (Blumenthal 0-1) + **Theorem 2.7.9** (right-continuity of augmented filtration); Le Gall **Proposition 2.10**.
+* **Reference**: Karatzas–Shreve **Theorem 2.7.7** (Blumenthal 0-1) + **Theorem 2.7.9** (right-continuity of augmented filtration); Le Gall **Theorem 2.13** (Blumenthal 0-1 for Brownian motion; correcting the previous "Proposition 2.10" citation flagged by red-team P11 — Le Gall 2016 p. 25 "Lemma 2.10" is a deterministic real-analysis Hölder lemma; Blumenthal is Le Gall p. 30 Theorem 2.13).
 * **Mathlib status (May 2026)**: `MeasureTheory.Filtration.rightCont` is defined; `MeasureTheory.Filtration.IsRightContinuous` predicate available. Blumenthal 0-1 law is NOT in Mathlib for Brownian motion (waits on BM construction). No current activity.
 * **Replacement plan**: `theorem brownian_martingale_rightCont := <Blumenthal 0-1 corollary>` when Blumenthal 0-1 for BM lands.
 
 ### 5. `LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence`
 
 * **Statement**: For predictable square-integrable `H`, there is a process `F` and filtration `Filt` such that `F` is a `Filt`-martingale, `(F t)² − ∫_0^t H² ds` is a `Filt`-martingale (quadratic variation identity), and the L²-isometry `∫⁻ ‖F T‖₊² = ∫⁻ ∫⁻ ‖H‖² over [0,T]` holds at every `T > 0`.
-* **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.13**.
+* **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.4** + equation **(5.8)** (Itô isometry; correcting the previous "Theorem 5.13" citation flagged by red-team P11 — Le Gall 2016 p. 121 "Theorem 5.13" is Dambis–Dubins–Schwarz, not Itô isometry; L² Itô isometry is Le Gall Thm 5.4 with the explicit norm-equality at eq. (5.8)).
 * **Mathlib status (May 2026)**: No general L²-Itô integral against Brownian motion in Mathlib (waits on BM construction). `MeasureTheory.condExpL2_continuous` and `MeasureTheory.Martingale` provide the analytic glue for the L²-limit-of-martingales argument; the simple-level martingale + quadVar + L²-isometry combine via that glue. arXiv:2511.20118 (Degenne et al, late 2025) is targeting this.
 * **Replacement plan**: `theorem itoIsometry_brownian_unified_existence := <Mathlib forwarder>` when Mathlib gains the L²-Itô integral with these properties.
 
