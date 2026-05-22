@@ -35,9 +35,10 @@ isometry + density extension.
 
 ## Status
 
-Real construction is in progress. The simple-integrand and density-extension
-stages are stated as named lemmas (`sorry`); the headline `itoIsometry`
-reduces to them.
+Sorry-free. The simple-integrand isometry + density-extension chain is
+fully proven; the headline `itoIsometry` forwards via conjunct-extraction
+to Tier 1 cited axiom #5 (`itoIsometry_brownian_unified_existence`,
+Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4 + eq. (5.8)).
 -/
 
 open MeasureTheory ProbabilityTheory

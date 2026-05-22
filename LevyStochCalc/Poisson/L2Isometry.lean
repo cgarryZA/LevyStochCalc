@@ -33,9 +33,10 @@ Theorem 4.2.3.
 
 ## Status
 
-Phase 2 spec: clean wrapper around `Compensated.itoLevyIsometry`. ENNReal-norm
-form matches the dissertation's `I02` axiom exactly. Currently inherits the
-underlying `sorry` transitively.
+Clean wrapper around `Compensated.itoLevyIsometry`. ENNReal-norm form
+matches the dissertation's `I02` axiom exactly. Sorry-free; transitively
+depends only on Tier 1 cited axiom #6
+(`itoIsometry_compensated_unified_existence`, Applebaum 2009 Thm 4.2.3).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -54,9 +55,8 @@ integrand `φ : Ω × [0,T] × E → ℝ`,
 This is the headline theorem that the main dissertation will pull in (via
 Lake-dep) to replace its `Dissertation.Continuous.itoLevyIsometry` axiom.
 
-Currently a wrapper around
-`LevyStochCalc.Poisson.Compensated.itoLevyIsometry`, which carries the
-substantive `sorry`. -/
+Wrapper around `LevyStochCalc.Poisson.Compensated.itoLevyIsometry`,
+which forwards to Tier 1 cited axiom #6. -/
 theorem itoLevyIsometry
     {Ω : Type u} [MeasurableSpace Ω]
     {E : Type v} [MeasurableSpace E]

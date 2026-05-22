@@ -91,6 +91,6 @@
    "inputRev": "v4.30.0-rc2",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "Dissertation",
+ "name": "LevyStochCalc",
  "lakeDir": ".lake",
- "fixedToolchain": false}
+ "fixedToolchain": true}
