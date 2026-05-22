@@ -14,10 +14,12 @@ import LevyStochCalc
 
 -- ===== Layer 0: Compensated Poisson =====
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
+#print axioms LevyStochCalc.Poisson.poissonRandomMeasure_finite_exists
 #print axioms LevyStochCalc.Poisson.Compensated.itoLevyIsometry
 #print axioms LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.cadlag_modification_exists
+#print axioms LevyStochCalc.Poisson.Compensated.simplePredictable_dense_L2
 
 -- ===== Layer 1: Itô-Lévy isometry (→ deaxiomatises I02) =====
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
@@ -28,6 +30,7 @@ import LevyStochCalc
 -- 1.5b: Kolmogorov-Chentsov continuous modification
 #print axioms LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification
 #print axioms LevyStochCalc.Brownian.Continuity.brownian_continuous_modification
+#print axioms LevyStochCalc.Brownian.Continuity.kolmogorov_modification_ae_eq
 -- 1.5c: martingale property + quadratic variation
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_martingale
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_quadVar

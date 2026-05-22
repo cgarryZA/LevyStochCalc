@@ -130,23 +130,6 @@ lemma sigmaFinite_decomposition
   · rw [iUnion_disjointed]
     exact MeasureTheory.iUnion_spanningSets ν
 
-/-- **Step 2: Poisson random measure with finite intensity exists.** -/
-lemma poissonRandomMeasure_finite_exists
-    (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
-    (ν : Measure E) [SigmaFinite ν] (_h_finite : ν Set.univ ≠ ⊤) :
-    ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
-      (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) := by
-  sorry
-
-/-- **Step 3: combine independently across the σ-finite decomposition.**
-Use product measure `Measure.pi` + `iIndepFun_pi`.
-
-Spec is `True`-valued; the actual combination is delivered inline within
-`PoissonRandomMeasure.exists_of_sigmaFinite`. -/
-lemma poissonRandomMeasure_combine
-    {E : Type v} [MeasurableSpace E] (_ν : Measure E) [SigmaFinite _ν] :
-    True := trivial
-
 /-- **CITED AXIOM: Poisson random measure construction.**
 
 For every σ-finite intensity `ν` on a standard Borel space `E`, there exists a
@@ -172,5 +155,33 @@ axiom PoissonRandomMeasure.exists_of_sigmaFinite
     (ν : Measure E) [SigmaFinite ν] :
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
       (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν)
+
+/-- **Step 2: Poisson random measure with finite intensity exists.**
+
+Forwarded to the σ-finite case (`PoissonRandomMeasure.exists_of_sigmaFinite`,
+Tier 1 cited axiom #2): any finite measure is automatically σ-finite (witnessed
+by the `[SigmaFinite ν]` instance already in the signature), so the σ-finite
+axiom gives the conclusion directly. The `_h_finite : ν Set.univ ≠ ⊤` argument
+is retained in the signature for documentation of the original staging plan
+(`sigmaFinite_decomposition` → finite-piece construction → combine), but the
+present proof discharges by direct forward — the explicit Poisson-recipe
+construction outlined in the axiom's docstring is what *would* discharge this
+lemma without invoking the σ-finite axiom; that route is multi-week downstream
+work tracked in `tools/cited_axioms.md` #2. -/
+lemma poissonRandomMeasure_finite_exists
+    (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
+    (ν : Measure E) [SigmaFinite ν] (_h_finite : ν Set.univ ≠ ⊤) :
+    ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
+      (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) :=
+  PoissonRandomMeasure.exists_of_sigmaFinite E ν
+
+/-- **Step 3: combine independently across the σ-finite decomposition.**
+Use product measure `Measure.pi` + `iIndepFun_pi`.
+
+Spec is `True`-valued; the actual combination is delivered inline within
+`PoissonRandomMeasure.exists_of_sigmaFinite`. -/
+lemma poissonRandomMeasure_combine
+    {E : Type v} [MeasurableSpace E] (_ν : Measure E) [SigmaFinite _ν] :
+    True := trivial
 
 end LevyStochCalc.Poisson

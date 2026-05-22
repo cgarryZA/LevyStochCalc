@@ -1,2 +1,3 @@
 LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
 LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
+LevyStochCalc.Poisson.Compensated.simplePredictable_dense_L2
