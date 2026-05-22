@@ -2062,7 +2062,7 @@ private lemma dyadic_pointwise_tendsto_per_omega
     have h_2pow : Filter.Tendsto (fun n : ℕ => 2 * ((2 ^ n : ℕ) : ℝ)) Filter.atTop Filter.atTop := by
       have h_pow_atTop : Filter.Tendsto (fun n : ℕ => ((2 ^ n : ℕ) : ℝ)) Filter.atTop Filter.atTop := by
         have : Filter.Tendsto (fun n : ℕ => (2 ^ n : ℕ)) Filter.atTop Filter.atTop :=
-          Nat.tendsto_pow_atTop_atTop_of_one_lt (by norm_num : 1 < 2)
+          tendsto_pow_atTop_atTop_of_one_lt (by norm_num : 1 < 2)
         exact tendsto_natCast_atTop_iff.mpr this
       exact h_pow_atTop.atTop_mul_const' (by norm_num : (0 : ℝ) < 2) |>.congr
         (fun n => by ring)
