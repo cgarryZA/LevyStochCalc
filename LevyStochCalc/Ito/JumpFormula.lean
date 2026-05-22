@@ -59,6 +59,22 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
+/-- Gradient of `u : ℝ → (Fin n → ℝ) → ℝ` in its space argument, returning a
+`Fin n → ℝ` vector. Equals `fderiv ℝ (u s) x (Pi.single i 1)` for each
+component i; for non-differentiable u, Mathlib's `fderiv` returns 0 so
+the gradient is 0. -/
+noncomputable def gradient {n : ℕ} (u : ℝ → (Fin n → ℝ) → ℝ)
+    (s : ℝ) (x : Fin n → ℝ) : Fin n → ℝ :=
+  fun i => fderiv ℝ (u s) x (Pi.single i 1)
+
+/-- Row product `(∇u)ᵀ σ : Fin d → ℝ` of the gradient row vector with the
+diffusion matrix `σ : Fin n → Fin d → ℝ`. -/
+noncomputable def diffusionIntegrand {n d : ℕ}
+    (u : ℝ → (Fin n → ℝ) → ℝ)
+    (σ : ℝ → (Fin n → ℝ) → (Fin n → Fin d → ℝ))
+    (s : ℝ) (x : Fin n → ℝ) : Fin d → ℝ :=
+  fun j => ∑ i : Fin n, gradient u s x i * σ s x i j
+
 /-- **Cu03 (Itô-Lévy formula for jump diffusions, Applebaum 2009 Thm 4.4.7).**
 
 For `C^{1,2}` functions `u` and a jump diffusion `X = (μ, σ, γ)`-driven by
@@ -98,19 +114,36 @@ axiom itoLevyFormula
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (T : ℝ) (_hT : 0 < T) :
-    -- 2026-05-21 strengthening (red-team C2 + P12 + statement-level fix):
-    -- the `jump_mart` term is now PINNED to the canonical compensated-Poisson
-    -- stochastic integral of the jump increment `u(s, X_s + γ(s, X_s, e)) −
-    -- u(s, X_s)`. Previously all four reals were unbound existentials, admitting
-    -- the trivial witness `drift = change, diff_mart = jump_mart = comp_drift = 0`.
-    -- Pinning jump_mart removes one degree of freedom from the trivial-witness
-    -- attack. (The remaining `drift_term, diff_mart, comp_drift` are still
-    -- unbound — future strengthening will pin those to their literature
-    -- integral forms once the Mathlib derivative apparatus is threaded in.)
-    ∃ (drift_term diff_mart comp_drift : Ω → ℝ),
+    -- 2026-05-22 strengthening (continuation of C2):
+    -- * `jump_mart` PINNED to `Compensated.stochasticIntegral` of the jump
+    --   increment `u(s, X_s + γ) − u(s, X_s)` (2026-05-21 commit 7d232bf).
+    -- * `diff_mart` NOW PINNED to the multidim Brownian Itô integral of
+    --   `diffusionIntegrand := ∇uᵀ σ` along X (2026-05-22, this commit).
+    --   The hypotheses on the integrand (joint / progressive measurability
+    --   + L²-bound) are bundled inside the existential.
+    -- Remaining unbound: `drift_term` (Lévy generator integral, needs
+    -- Hessian + a separate Lévy-generator definition) and `comp_drift`
+    -- (also Lévy-generator integral with γᵀ∇u correction).
+    ∃ (drift_term comp_drift : Ω → ℝ)
+      (h_sigmaGrad_meas : ∀ j : Fin d,
+        Measurable (Function.uncurry
+          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
+      (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
+      (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P < ⊤),
       (∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
-          drift_term ω + diff_mart ω
+          drift_term ω
+          + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+              W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+              h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
           + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
               (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                               - u s (X.X s ω')) T ω
