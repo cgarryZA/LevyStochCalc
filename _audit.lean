@@ -19,7 +19,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.cadlag_modification_exists
-#print axioms LevyStochCalc.Poisson.Compensated.simplePredictable_dense_L2
 
 -- ===== Layer 1: Itô-Lévy isometry (→ deaxiomatises I02) =====
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
