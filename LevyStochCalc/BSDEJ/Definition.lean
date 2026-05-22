@@ -92,7 +92,23 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- BSDEJ data: terminal condition `g`, generator `f`. -/
+/-- BSDEJ data: terminal condition `g`, generator `f`.
+
+**Scope note (red-team M10, 2026-05-22)**: `Y` is scalar-valued
+(`g : (Fin n → ℝ) → ℝ` and the `f` driver returns `ℝ`). This matches the
+literature references actually used by this library:
+
+* Tang & Li 1994 SIAM J. Control Optim. 32(5), Theorem 3.1 — scalar `Y`.
+* Andersson-Gnoatto-Patacca-Picarelli 2025 arXiv:2211.04349 Theorem 2.4 —
+  scalar `Y`.
+* Bouchard & Elie 2008 SPA 118(1) Theorem 2.1 — scalar `Y`.
+
+Vector-`Y` BSDEJs (reflected, quadratic-growth, FBSDEJ couples) require a
+different existence-uniqueness apparatus and are **outside the current
+scope**. A vector-`Y` generalization would parameterize this structure by
+an additional `m : ℕ` (the `Y`-dimension) and change `g : (Fin n → ℝ) →
+(Fin m → ℝ)`, `f : … → (Fin m → ℝ)`. Tracked as future work; not a defect
+in the present scalar-`Y` chain. -/
 structure BSDEJData (n d : ℕ) (E : Type v) where
   /-- Generator `f(t, x, y, z, u)`. -/
   f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ

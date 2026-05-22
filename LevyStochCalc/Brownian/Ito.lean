@@ -3978,60 +3978,15 @@ theorem simplePredictable_dense_Lp_brownian
         Filter.atTop (nhds 0) :=
   simplePredictable_dense_L2 hT H h_meas h_sq_int
 
-/-- **L² Itô integral of `H` against Brownian motion `W`** on `[0, T]`.
-
-Provisional definition: returns the constant function whose `L²(P)`-norm
-matches the `L²(P ⊗ dt)`-norm of `H` over `Ω × [0,T]` (or `0` when this
-quantity is infinite). This satisfies the L² isometry on the formal level
-and is axiom-clean, but does not match the genuine pathwise stochastic
-integral; the genuine construction via Cauchy completion of
-`simpleIntegral` over simple-predictable approximations
-(`simplePredictable_dense_L2`) requires the partition-refinement lemma
-needed to lift the simple-integrand isometry to the difference of two
-arbitrary simple integrands, which is deferred.
-
-Because this is a constant function in `ω`, it carries the same
-formal isometry but **not** the martingale, adaptedness, or
-sample-path properties of the true integral; later milestones must
-redefine it once the Cauchy completion is available. -/
-noncomputable def itoIntegral_brownian
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (_W : LevyStochCalc.Brownian.BrownianMotion P)
-    (H : Ω → ℝ → ℝ) (T : ℝ) : Ω → ℝ :=
-  fun _ => Real.sqrt (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
-
-/-- **A4: L² Itô isometry (general `H`).** For square-integrable
-predictable `H`,
-`E[(∫_0^T H_s dB_s)²] = E[∫_0^T H_s² ds]`.
-
-Direct corollary of the provisional `itoIntegral_brownian` definition:
-the integrand is the constant `√(R.toReal)` (in `ω`) where
-`R = ∫⁻∫⁻ ‖H‖² ds dP`, and `lintegral_const` against the probability
-measure `P` gives `(‖√(R.toReal)‖₊)² · 1 = R` (using `R < ⊤`). -/
-theorem itoIsometry_brownian_general
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
-    (H : Ω → ℝ → ℝ) (T : ℝ) (_hT : 0 < T)
-    (_h_meas : Measurable (Function.uncurry H))
-    (h_sq_int :
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        ((‖H ω s‖₊ : ℝ≥0∞)) ^ 2 ∂volume ∂P < ⊤) :
-    ∫⁻ ω, (‖itoIntegral_brownian W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        ((‖H ω s‖₊ : ℝ≥0∞)) ^ 2 ∂volume ∂P := by
-  set R := ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P with hR_def
-  have h_R_ne_top : R ≠ ⊤ := h_sq_int.ne
-  unfold itoIntegral_brownian
-  rw [MeasureTheory.lintegral_const, measure_univ, mul_one]
-  have h_sqrt_nn : 0 ≤ Real.sqrt R.toReal := Real.sqrt_nonneg _
-  have h_sqrt_sq : Real.sqrt R.toReal ^ 2 = R.toReal :=
-    Real.sq_sqrt ENNReal.toReal_nonneg
-  rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal (Real.sqrt R.toReal) from by
-    rw [show (‖Real.sqrt R.toReal‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖Real.sqrt R.toReal‖ from
-      (ofReal_norm_eq_enorm _).symm]
-    rw [Real.norm_eq_abs, abs_of_nonneg h_sqrt_nn]]
-  rw [← ENNReal.ofReal_pow h_sqrt_nn, h_sqrt_sq, ENNReal.ofReal_toReal h_R_ne_top]
+-- 2026-05-22 (deleted): the constant-witness `itoIntegral_brownian`
+-- (`fun _ => sqrt R.toReal`) and its companion `itoIsometry_brownian_general`
+-- (which trivially satisfied the L² isometry by virtue of the constant
+-- function's eLpNorm) were the trivial-witness pattern Rule 0 forbids.
+-- They had no callers outside their own pairing. The genuine L²-Itô
+-- integral is delivered by `stochasticIntegral W H T` in
+-- `Brownian/SimplePredictableRefine.lean`, via `Classical.choose` on
+-- the unified-existence axiom (Tier 1 #5). Removed per red-team L2
+-- (naming-drift cleanup: this was one of the variant names that did
+-- nothing distinct).
 
 end LevyStochCalc.Brownian.Ito
