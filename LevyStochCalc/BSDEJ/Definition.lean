@@ -147,16 +147,18 @@ def IsBSDEJSolution
     -- This requires the per-component Z hypotheses (joint measurability,
     -- progressive measurability w.r.t. W's component natural filtrations,
     -- per-component L² bound) to be bundled inside the existential.
+    -- 2026-05-23 strengthening 3 (M11-CRIT fix per red-team 2nd-audit P12):
+    -- `Filt` was previously existential with the constraint
+    -- `naturalFiltration ≤ Filt`, but that constraint is satisfied vacuously
+    -- by `Filt = ⊤` (the maximal filtration), defeating the stated
+    -- "rule out trivial constant filtrations" purpose. Now pinned EXACTLY
+    -- to the join of natural filtrations via `Filt = joint_natural` inside
+    -- the existential, where `joint_natural := (⨆ i, naturalFiltration (W.W i))
+    -- ⊔ naturalFiltration N` (literature `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)`).
+    -- The equality-pin rules out BOTH `⊥` and `⊤` trivial filtrations.
     ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-        -- 2026-05-22 (M11 fix per red-team P12): pin Filt to a filtration
-        -- CONTAINING the joint natural filtration of `(W, N)`, ruling out
-        -- trivial constant filtrations. Specifically, `Filt` must be finer
-        -- than the natural filtration of each Brownian component `W.W i`
-        -- and finer than `N`'s natural filtration. (The two together generate
-        -- the joint filtration `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)` to which the
-        -- BSDEJ adaptedness conventionally refers.)
-        (∀ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i) ≤ Filt) ∧
-        LevyStochCalc.Poisson.naturalFiltration N ≤ Filt ∧
+        Filt = (⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N ∧
         MeasureTheory.Adapted Filt Y ∧
         MeasureTheory.Adapted Filt Z ∧
         (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧

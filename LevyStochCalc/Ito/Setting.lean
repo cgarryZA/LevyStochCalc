@@ -51,6 +51,25 @@ structure JumpDiffusionCoeffs (n d : ℕ) (E : Type v) where
   σ : ℝ → (Fin n → ℝ) → (Fin n → Fin d → ℝ)
   γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ)
 
+/-- Joint Lipschitz hypothesis on the jump-diffusion coefficients
+`(μ, σ, γ)`. Required for `JumpDiffusion.exists_unique` (Applebaum 2009
+Thm 6.2.9 — without this, Tanaka's example shows uniqueness can fail,
+e.g. `dX_t = |X_t|^α dW_t` for `α < 1/2` has infinitely many strong
+solutions; cf. Karatzas-Shreve 5.3.2). -/
+def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
+    (coeffs : JumpDiffusionCoeffs n d E) (ν : Measure E) (L : ℝ) : Prop :=
+  0 ≤ L ∧
+  -- μ uniformly Lipschitz in x:
+  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ‖coeffs.μ s x₁ - coeffs.μ s x₂‖ ≤ L * ‖x₁ - x₂‖) ∧
+  -- σ uniformly Lipschitz in x (with the Frobenius / Euclidean norm on matrices):
+  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
+    (∑ i, ∑ j, (coeffs.σ s x₁ i j - coeffs.σ s x₂ i j) ^ 2)
+      ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2) ∧
+  -- γ uniformly Lipschitz in x (L²-in-e sense):
+  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
+    (∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal
+      ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2)
+
 /-- A *jump diffusion* solution.
 
 Fields:
@@ -127,10 +146,16 @@ Cambridge University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S.
 *Stochastic Differential Equations and Diffusion Processes*, North-Holland,
 1989, Chapter IV.
 
-**Status (2026-05-21)**: proof is `sorry`. The literature proof (Picard
+**Status (2026-05-23)**: proof is `sorry`. The literature proof (Picard
 iteration in `S²([0,T]; ℝⁿ)`) requires multidim Brownian + compensated-Poisson
-stochastic integrals along the path. Both are out-of-scope downstream work
-that needs to be built before this `sorry` can be eliminated. -/
+stochastic integrals along the path; both are out-of-scope downstream work.
+
+**2nd red-team audit (P12 CRIT F3) fix**: the previous signature claimed
+unconditional uniqueness, but for non-Lipschitz coefficients uniqueness can
+fail (Tanaka 1979 / Karatzas-Shreve 5.3.2: `dX_t = |X_t|^α dW_t` for
+`α < 1/2` has infinitely many strong solutions). Lipschitz hypothesis on
+`(μ, σ, γ)` now required as an outer hypothesis, matching the literature
+Applebaum 6.2.9 / Ikeda-Watanabe IV. -/
 theorem JumpDiffusion.exists_unique
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -138,7 +163,11 @@ theorem JumpDiffusion.exists_unique
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (coeffs : JumpDiffusionCoeffs n d E)
-    (x₀ : Fin n → ℝ) :
+    (x₀ : Fin n → ℝ)
+    -- Lipschitz hypothesis (P12 CRIT F3 fix 2026-05-23 — without this,
+    -- Tanaka's example exhibits multiple strong solutions, so the
+    -- uniqueness claim below is unprovable for arbitrary `(μ, σ, γ)`):
+    {L : ℝ} (_hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     -- Existence + a.s. uniqueness (strengthened from `Nonempty` per Rule 0):
     ∃ (jd : JumpDiffusion W N coeffs x₀),
       ∀ (jd' : JumpDiffusion W N coeffs x₀),
