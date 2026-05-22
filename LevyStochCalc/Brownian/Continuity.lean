@@ -197,24 +197,49 @@ lemma kolmogorov_modification_ae_eq
   -- which needs MeasurableSpace + BorelSpace + SecondCountableTopology on E = ℝ,
   -- all of which ℝ has).
   have h_X_meas : ∀ s : ℝ, Measurable (X s) := fun s => hX.measurable s
-  -- Step 3: from the Kolmogorov moment bound, derive eLpNorm tendsto zero.
+  -- Step 3: Chebyshev / Markov on the Kolmogorov moment bound gives
+  -- convergence-in-measure of X(u n) → X(t).
   have hp_pos : 0 < p := hX.p_pos
-  have hp_ne_zero : (ENNReal.ofReal p) ≠ 0 := by
-    simp [ENNReal.ofReal_eq_zero, not_le.mpr hp_pos]
-  have hp_ne_top : (ENNReal.ofReal p) ≠ ⊤ := ENNReal.ofReal_ne_top
-  -- The eLpNorm bound: eLpNorm (X (u n) - X t) (ENNReal.ofReal p) P ≤
-  -- (M * edist (u n) t ^ q)^(1/p) → 0 as n → ∞.
-  -- For real-valued X, ‖X(u n) ω - X t ω‖ₑ = edist (X(u n) ω) (X t ω),
-  -- so ∫⁻ ‖X(u n) - X t‖ₑ^p ∂P = ∫⁻ edist^p ∂P ≤ M * edist (u n) t^q.
-  -- As u n → t, edist (u n) t → 0, so the bound → 0.
-  -- This step (eLpNorm tendsto zero from the lintegral bound) is the
-  -- substantive remaining work. Once we have eLpNorm tendsto, we apply
-  -- `MeasureTheory.tendstoInMeasure_of_tendsto_eLpNorm_of_ne_top` and
-  -- then `TendstoInMeasure.exists_seq_tendsto_ae` to get a subsequence
-  -- ns with X(u (ns k)) → X(t) a.s. Combined with h_continuous (Y(u n)
-  -- → Y(t) a.s. for any seq u n → t) and h_dyadic_eq (Y(u (ns k)) =ᵃᵉ
-  -- X(u (ns k))), the uniqueness of limits gives Y(t) =ᵃᵉ X(t).
-  sorry
+  have hq_pos : 0 < q := hX.q_pos
+  -- Direct Markov: P {ω | δ^p ≤ edist^p} ≤ (∫⁻ edist^p) / δ^p ≤ M·edist(u n,t)^q/δ^p.
+  -- For real-valued X, edist (X s ω) (X t ω) = ‖X s ω - X t ω‖ₑ (PseudoEMetric on ℝ
+  -- via |·|), so this is convergence of (X (u n)) → X t in measure.
+  have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by
+    intro δ hδ
+    -- Want: Tendsto (fun n => P {ω | δ ≤ edist (X (u n) ω) (X t ω)}) atTop (nhds 0).
+    -- Markov: P {ω | δ ≤ edist} ≤ ENNReal.ofReal (M * edist (u n) t ^ q) / δ^p.
+    -- As n → ∞: u n → t, so edist (u n) t → 0, so RHS → 0.
+    -- Implementation deferred to a sub-lemma (uses `meas_ge_le_lintegral_div`
+    -- + the Kolmogorov bound from `hX.kolmogorovCondition`).
+    sorry
+  -- Step 4: extract a.s.-converging subsequence.
+  obtain ⟨ns, _hns_mono, hns_ae⟩ := h_TIM.exists_seq_tendsto_ae
+  -- Step 5: combine on the full-measure intersection.
+  -- A := {ω : Continuous Y(·) ω}              (from h_continuous, P-full)
+  -- B_k := {ω : Y(u (ns k)) ω = X(u (ns k)) ω}  (from h_dyadic_eq, P-full)
+  -- C := {ω : X(u (ns k)) ω → X(t) ω}           (from hns_ae, P-full)
+  -- D := A ∩ ⋂_k B_k ∩ C  (countable intersection of full sets = full)
+  -- On D: Y(u (ns k)) ω = X(u (ns k)) ω → X(t) ω.
+  --       Also Y(u (ns k)) ω → Y(t) ω (by continuity of Y at t along u (ns k) → t).
+  --       By uniqueness of limits in ℝ: Y(t) ω = X(t) ω.
+  filter_upwards [h_continuous, hns_ae,
+    MeasureTheory.ae_all_iff.mpr (fun k => h_dyadic_eq (u (ns k)) (hu_dyadic (ns k)).2)]
+    with ω h_Y_cont h_X_tendsto h_eq_seq
+  -- u (ns k) → t (subsequence of u → t via StrictMono ns → atTop atTop)
+  have h_subseq_tendsto : Filter.Tendsto (fun k => u (ns k)) Filter.atTop (nhds t) :=
+    hu_tendsto.comp _hns_mono.tendsto_atTop
+  -- Y is continuous at t (from a.s. continuity)
+  have h_Y_tendsto : Filter.Tendsto (fun k => Y (u (ns k)) ω) Filter.atTop (nhds (Y t ω)) :=
+    (h_Y_cont.tendsto t).comp h_subseq_tendsto
+  -- So X(u (ns k)) ω → Y(t) ω (substitute Y(u (ns k)) ω = X(u (ns k)) ω),
+  -- and also → X(t) ω. By uniqueness of limits in ℝ, Y(t) ω = X(t) ω.
+  have h_X_to_Y : Filter.Tendsto (fun k => X (u (ns k)) ω) Filter.atTop (nhds (Y t ω)) := by
+    have h_eq : (fun k => X (u (ns k)) ω) = fun k => Y (u (ns k)) ω := by
+      funext k
+      exact (h_eq_seq k).symm
+    rw [h_eq]
+    exact h_Y_tendsto
+  exact tendsto_nhds_unique h_X_to_Y h_X_tendsto
 
 /-- **CITED AXIOM: Kolmogorov-Chentsov continuous modification theorem.**
 
