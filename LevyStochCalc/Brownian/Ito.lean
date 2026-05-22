@@ -1287,7 +1287,7 @@ private lemma dyadicPartition_brownian_strictMono {T : ℝ} (hT : 0 < T) (n : �
   rw [div_lt_div_iff_of_pos_right h_pos]
   exact mul_lt_mul_of_pos_right h_lt hT
 
-private lemma dyadicPartition_brownian_le_T {T : ℝ} (hT : 0 < T) (n : ℕ) :
+private lemma dyadicPartition_brownian_le_T {T : ℝ} (_hT : 0 < T) (n : ℕ) :
     dyadicPartition_brownian T n (Fin.last (2 ^ n)) ≤ T :=
   le_of_eq (dyadicPartition_brownian_last T n)
 
@@ -1324,10 +1324,8 @@ private lemma dyadicPartition_brownian_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)
       = T / (2 ^ n : ℕ) := by
   unfold dyadicPartition_brownian
   have hi_succ : ((i.succ : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) + 1 := by
-    push_cast
     simp [Fin.val_succ]
   have hi_castSucc : ((i.castSucc : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) := by
-    push_cast
     simp [Fin.val_castSucc]
   rw [hi_succ, hi_castSucc]
   ring

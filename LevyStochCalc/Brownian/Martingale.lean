@@ -674,7 +674,6 @@ lemma brownian_quadVar_zero_aux
       ring
     filter_upwards [h_add1, h_add2, h_zero_B, h_zero_C, W.initial_zero]
       with ω h_add1_ω h_add2_ω h_B_ω h_C_ω hW0_ω
-    change P[A + (B + C) | (naturalFiltration W).seq 0] ω = 0
     rw [h_add1_ω]
     change P[A | (naturalFiltration W).seq 0] ω
       + P[B + C | (naturalFiltration W).seq 0] ω = 0
@@ -888,7 +887,6 @@ theorem brownian_quadVar
       change A ω + (P[B | (naturalFiltration W).seq s] ω
                     + P[C | (naturalFiltration W).seq s] ω) = A ω
       rw [h_B_ω, h_C_ω]
-      change A ω + (0 + 0) = A ω
       ring
 
 /-- **CITED AXIOM: Brownian motion is a martingale w.r.t. the right-continuous
