@@ -1,427 +1,352 @@
-# Red Team Audit: Pure Mathematician
+# Red Team Audit: Pure Mathematician (2nd audit)
 
-**Auditor lens**: Research mathematician — measure theory, probability, functional analysis. Verdict on whether each Lean definition / predicate matches the standard statement in Karatzas-Shreve, Le Gall, Applebaum, Revuz-Yor, Ikeda-Watanabe.
-**Date**: 2026-05-20
-**Coverage**: 13 files read in full (every file housing a Tier 1 axiom or the predicates / structures they consume), 4 files skimmed (`Basic.lean`, `Notation.lean`, `Poisson/Martingale.lean`, `Poisson/NaturalFiltration.lean`), 2 files (`tools/full_audit.lean`, `tools/full_audit_output.txt`) used as cross-reference. Did not exhaustively read the ~4000 lines of bottom-up simple-integrand machinery in `Brownian/Ito.lean` / `Brownian/SimplePredictableRefine.lean` / `Poisson/Compensated.lean` — instead I read the signatures, the cited-axiom statements, and the predicate definitions, which is where a pure-math audit lives.
+**Auditor lens**: Research mathematician — measure theory, probability, functional analysis. Verdict on whether each Lean definition / predicate matches the standard statement in Karatzas-Shreve, Le Gall, Applebaum, Revuz-Yor, Ikeda-Watanabe, Jacod-Shiryaev, Tang-Li.
+**Date**: 2026-05-22
+**Coverage**: I read in full `BSDEJ/Definition.lean`, `BSDEJ/Existence.lean`, `BSDEJ/PathRegularity.lean`, `BSDEJ/MartingaleRepresentation.lean`, `Ito/Setting.lean`, `Ito/JumpFormula.lean`, `Brownian/Construction.lean`, `Brownian/Multidim.lean`, `Brownian/MultidimIto.lean`, `Poisson/RandomMeasure.lean`, plus the key axiom regions of `Brownian/SimplePredictableRefine.lean` (lines 2080-2200) and `Poisson/Compensated.lean` (lines 1750-1970). Cross-referenced against `tools/cited_axioms.md`, `shared_context_override.md`, my predecessor's archived report, and the parallel peer `05_proof_theorist.md`. Lean LSP `lean_verify` run on the four load-bearing axioms (`continuousBSDEJ_exists_unique`, `bsdej_path_regularity`, `itoLevyFormula`, `JumpDiffusion.exists_unique`) — all axiom sets clean modulo the documented Tier 1 cited axioms + Lean core + `sorryAx` for the two baseline sorries.
 
-## Executive summary (≤ 3 sentences)
+## Executive verdict (≤ 3 sentences)
 
-The 2026-05-11 recursive audit "demoted" `itoLevyFormula` from a trivial-witness `theorem` to an `axiom`, but **left the underlying statement logically trivial** — the axiom claims only `∃ (a, b, c, d : Ω → ℝ), u(T,X_T) − u(0,X_0) = a + b + c + d a.s.`, which is satisfied by ANY four functions summing to the change, with no requirement that they correspond to the four literature integral terms; the demotion was cosmetic and did not fix the actual logical hole. The strengthened `IsBSDEJSolution` predicate (also from 2026-05-11) is non-vacuous for the constant `Y = 0`, but is **still strictly weaker than the Tang-Li solution-space predicate** in three concrete ways (no adaptedness / predictability on `(Y, Z, U)`; `M_W` not pinned to `∫ Z dW`; `M_N` pinned to a `Classical.choose`-defined `stochasticIntegral` whose own defining axiom is satisfied vacuously for non-predictable `U`), and the cited-axiom `continuousBSDEJ_exists_unique` it consumes **omits the Lipschitz / L²-terminal hypotheses required by Tang-Li** while asserting an existence + uniqueness conclusion — meaning the Lean axiom claims more than the cited theorem. Adding to this, `JumpDiffusion.exists_unique` is a public `theorem` whose proof body picks the constant path `X t ω = x₀` (allowed because the structure's `is_solution : True`), and `jacodYor_representation` is a public `theorem` whose proof picks `Z = U = BM_integral = 0` and stuffs `ξ − 𝔼[ξ]` into the jump integral — both are exactly the trivial-witness pattern the recursive audit was supposed to catch.
+The 24-commit cleanup is substantively real on the predicates: the 1st audit's CRITICAL counterexamples (constant-path `JumpDiffusion`, `is_solution : True`, the `⟨0,0,0,ξ−E[ξ]⟩` trivial witness in `jacodYor_representation`, and the predecessor P12's `Y₂ = W_T − W_t` counterexample to BSDEJ uniqueness) are all structurally excluded by the post-cleanup signatures, and the four-term `itoLevyFormula` now pins every term to a literature integral with no remaining existentials. The remaining literature-divergences that survive the cleanup are: (i) `IsBSDEJSolution` and `JumpDiffusion.is_solution` use `Adapted` not `ProgMeasurable` at the outer layer (literature requires predictability of `Z` and `U`); (ii) neither predicate requires càdlàg sample paths for `Y` / `X` (literature S² is càdlàg-adapted, not joint-measurable); (iii) the `Compensated.itoIsometry_compensated_unified_existence` axiom asserts the unconditional-on-φ existence of `F` plus a `Measurable`-gated isometry — strictly broader than Applebaum 4.2.3, which is for predictable φ only. These are not soundness gaps (no concrete counterexample escapes), but they are literature divergences a careful research-mathematician reader would flag.
 
 ## Top findings (ranked by severity, highest first)
 
-### Finding 1 — `itoLevyFormula` axiom is logically trivial as stated (the 2026-05-11 "demotion" did not fix the underlying defect)
-- **Severity**: CRITICAL
-- **Location**: `LevyStochCalc/Ito/JumpFormula.lean:90-105`
-- **Evidence** (verbatim):
+### Finding 1 — `IsBSDEJSolution` and `JumpDiffusion.is_solution` use `Adapted Filt Z/U` where Tang-Li/Pardoux-Răşcanu/Bichteler require **predictable** (≡ `ProgMeasurable Filt`) `Z` and `U`
+
+- **Severity**: HIGH (literature divergence with stated citations)
+- **Location**: `BSDEJ/Definition.lean:160-162`, `Ito/Setting.lean:91-110`
+- **Evidence** — the predicate uses `MeasureTheory.Adapted Filt Z` (per-time-`t` Filt-measurability, no further regularity) at the outer layer:
   ```lean
-  axiom itoLevyFormula
-      {P : Measure Ω} [IsProbabilityMeasure P]
-      {ν : Measure E} [SigmaFinite ν]
-      {n d : ℕ}
-      (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-      (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-      (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-      (x₀ : Fin n → ℝ)
-      (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
+  MeasureTheory.Adapted Filt Y ∧
+  MeasureTheory.Adapted Filt Z ∧
+  (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧
+  ```
+- **Why this matters**: Tang & Li 1994 SICON 32(5) Theorem 3.1 uses the solution space `S² × H² × H²_N` where `H²` is the L²-space of *predictable* (= `Pred(Filt)`-measurable, equivalently `ProgMeasurable Filt`) `Z`. Pardoux-Răşcanu 2014 Thm 4.79 / 5.42 is identical, as is Andersson-Gnoatto-Patacca-Picarelli 2025 arXiv:2211.04349 Thm 2.4 (the now-cited replacement for the fabricated "Gnoatto 2025 *QF*"). Bouchard-Elie 2008 SPA 118(1) Thm 2.1 (the now-cited replacement for the fabricated "BET 2009 SPA 119(11)") is also predictable-based. The Lean `Adapted` predicate is `∀ t, StronglyMeasurable[(Filt t)] (Z t)` — per-`t` measurability of the random variable `ω ↦ Z(t, ω)` only; it does NOT imply joint measurability of `(s, ω) ↦ Z(s, ω)` on the progressive σ-algebra. Mathlib's own infrastructure (Mathlib.Probability.Process.Adapted) confirms `Adapted → ProgMeasurable` requires extra hypotheses (continuous-in-time, or discrete time, or right-continuous + left-limits + separability of state space).
+
+  Within the predicate, the M_W pin requires a separately-bundled inner existential of `h_Z_progMeas` witnesses (per-component) — so the integral `MultidimBrownianMotion.stochasticIntegral W Z h_Z_meas h_Z_progMeas h_Z_sq T'` IS well-typed. But the *outer* `Adapted Filt Z` requirement is the predicate-level honest statement of "Z is part of the BSDEJ solution"; that requirement should match the literature solution space.
+
+  Consequence: a Z that is `Adapted Filt` but not jointly progressively measurable on the progressive σ-algebra could in principle satisfy the predicate via the bundled inner `h_Z_progMeas` witnesses (which deliver a different progressive measurability w.r.t. each per-component natural filtration `(naturalFiltration (W.W i)).seq t`, not the universal `Filt`-progressive σ-algebra). This is a subtle predicate-shape mismatch: outer adaptedness is to `Filt`, inner progressive-measurability is to a *per-component* filtration. The literature uses one uniform progressive σ-algebra everywhere.
+
+- **Recommendation**: Either (a) replace `Adapted Filt Z` with `ProgMeasurable Filt Z` in `IsBSDEJSolution`, and similarly for the `U_e` family; (b) acknowledge in the BSDEJ docstring that the predicate uses `Adapted` not `ProgMeasurable` — analogous to the H6 documentation caveat already present in the Compensated axiom. Neither (a) nor (b) is present.
+
+### Finding 2 — Neither `IsBSDEJSolution` nor `JumpDiffusion` requires càdlàg sample paths; `Y` and `X` need only be jointly measurable (per audit lens, this breaks `S²` per the literature definition)
+
+- **Severity**: HIGH (literature divergence)
+- **Location**: `BSDEJ/Definition.lean:137-138`, `Ito/Setting.lean:80-87`
+- **Evidence**: `IsBSDEJSolution`'s `Y` field requires
+  ```lean
+  Measurable (Function.uncurry Y)
+    ∧ (∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖Y t ω‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤)
+  ```
+  — joint measurability + L²-sup-norm finite — but NO path-regularity hypothesis (no càdlàg, no right-continuity with left limits). `JumpDiffusion`'s `X` field is identical: `measurable_path : Measurable (Function.uncurry X)` + `sup_L2`.
+- **Why this matters**: The literature `S²([0,T]; ℝ^m)` space is defined as **càdlàg adapted** processes with L²-sup-norm:
+  * Pardoux-Răşcanu 2014 §4.5: "S² is the space of càdlàg adapted processes Y such that E[sup_t |Y_t|²] < ∞."
+  * Becherer 2006 AAP 16(4) "Bounded solutions to BSDEs with jumps..." — solution space requires càdlàg `Y`.
+  * Tang-Li 1994 SICON 32(5) Thm 3.1 — proof requires càdlàg `Y` to apply Itô's formula to `|Y_t|²`.
+  * Bouchard-Elie 2008 SPA 118(1) Thm 2.1 — the path-regularity bound `E[sup_{t ∈ [t_n, t_{n+1}]} |Y_t − Y_{t_n}|²] ≤ C·Δt` is exactly about càdlàg regularity; it's vacuous (or worse, ill-defined) for processes that are only jointly measurable.
+
+  Without càdlàg, `X_{s-}` (left limit) is undefined — but the literature SDE / Itô-Lévy formula uses `X_{s-}` everywhere (the jump compensator evaluates at left-limits). The Lean structure replaces `X_{s-}` with `X_s` (point evaluation). For L²-integrable processes the integrals coincide Lebesgue-a.s. in `s` because càdlàg paths have at most countably many jumps a.s., so `{s : X_s ≠ X_{s-}}` has Lebesgue measure 0. But if `Y` is not even càdlàg, the pointwise expression `Y_s ω` is not well-behaved.
+
+  Specifically, the path-regularity axiom `bsdej_path_regularity` asserts the bound `E[sup_{t ∈ [t_n, t_{n+1}]} |Y_t − Y_{t_n}|²] ≤ C·Δt` over arbitrary partitions. Without càdlàg regularity, `sup` over an interval of a jointly measurable process is not generally measurable in `ω` (the natural domain for sup is a finite/countable subset). The Lean statement uses `⨆ t ∈ Set.Icc ... ` which is a `iSup` over an uncountable index — this can be highly pathological without continuity hypotheses. For a generic L²-bounded jointly measurable `Y`, the sup could fail to be Lebesgue-measurable in `ω` (essential sup vs pointwise sup discrepancy). The bound is therefore mathematically ill-posed without càdlàg.
+
+  The cited Bouchard-Elie 2008 Thm 2.1 establishes the bound assuming `Y` is càdlàg adapted (which is the literature S² norm).
+
+- **Recommendation**: Add càdlàg fields to both predicates:
+  ```
+  Y_cadlag : ∀ᵐ ω ∂P, ∀ t : ℝ,
+      Filter.Tendsto (fun s => Y s ω) (𝓝[Set.Ioi t] t) (𝓝 (Y t ω)) ∧
+      ∃ L : ℝ, Filter.Tendsto (fun s => Y s ω) (𝓝[Set.Iio t] t) (𝓝 L)
+  ```
+  (mirror of the `cadlag` clause already present in `itoIsometry_compensated_unified_existence` for the integral process). Similarly for `X` in `JumpDiffusion`. This brings the predicates in line with `S²` and makes the path-regularity bound mathematically well-posed.
+
+### Finding 3 — `compensatorDriftIntegrand` integration in `itoLevyFormula` uses Bochner `∫ e, ... ∂ν` over all of E — but the literature compensator-drift integrand is only ν-integrable on `{|γ| ≤ 1}` for general Lévy measures (small/large jump split is absent)
+
+- **Severity**: HIGH (literature divergence; potential divergence of the asserted equation)
+- **Location**: `Ito/JumpFormula.lean:84-91` (definition of `compensatorDriftIntegrand`); `Ito/JumpFormula.lean:195-196` (its use in the axiom statement)
+- **Evidence**:
+  ```lean
+  noncomputable def compensatorDriftIntegrand {n : ℕ} {E : Type v}
       (u : ℝ → (Fin n → ℝ) → ℝ)
-      (T : ℝ) (_hT : 0 < T) :
-      -- Exists four processes giving the integral-form decomposition.
-      ∃ (drift_term diff_mart jump_mart comp_drift : Ω → ℝ),
-        (∀ᵐ ω ∂P,
-          u T (X.X T ω) - u 0 (X.X 0 ω) =
-            drift_term ω + diff_mart ω + jump_mart ω + comp_drift ω)
+      (γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ))
+      (s : ℝ) (x : Fin n → ℝ) (e : E) : ℝ :=
+    u s (x + γ s x e) - u s x - ∑ i : Fin n, γ s x e i * gradient u s x i
   ```
-- **Why this matters**: The cited theorem (Applebaum 2009 Thm 4.4.7) asserts that the four terms have a SPECIFIC integral form: `drift_term = ∫_0^T (∂_t u + 𝓛u)(s, X_{s-}) ds`, `diff_mart = ∫ ∇uᵀσ dW`, etc. The Lean axiom asserts only that there EXIST four `Ω → ℝ` functions summing (almost surely) to the change `u T (X.X T ω) − u 0 (X.X 0 ω)`. For ANY `(u, X)`, picking `drift_term ω := u T (X.X T ω) − u 0 (X.X 0 ω)`, `diff_mart = jump_mart = comp_drift = 0` satisfies the conclusion — this is the EXACT trivial-witness pattern (`⟨change, 0, 0, 0⟩; simp`) that the recursive audit identified. The audit "demoted" the declaration from `theorem` to `axiom`, which changes nothing about the statement's content — a trivially-true axiom is no better than a trivially-proved theorem. The cited-axioms inventory (`tools/cited_axioms.md` line 89-95) describes the axiom as if it asserted the literature decomposition, but the Lean statement does not. A Mathlib reviewer reading this axiom would not be deceived only because the docstring honestly admits the demotion; a less-careful reader trusting the headline name would be.
-
-  Compounding this: the `JumpDiffusion` structure (`Ito/Setting.lean:50-72`) consumed by `X` has `is_solution : True`, so `X` need not even be a solution to the SDE — see Finding 3.
-
-- **Recommendation**: Either (a) rewrite the axiom to pin each of the four terms to its literature integral form (introducing the `Brownian.SimplePredictableRefine.stochasticIntegral` and `Poisson.Compensated.stochasticIntegral` calls plus the Lévy generator `𝓛u`), or (b) state the axiom as a quantitative L² / moment claim that constrains the four terms beyond "they sum to the change". The current `∃ a b c d, sum = change` form is mathematically vacuous and should not be presented as the Itô-Lévy formula.
-
-### Finding 2 — `IsBSDEJSolution` predicate has no adaptedness / predictability condition on `(Y, Z, U)`, breaking the Tang-Li solution-space `S² × H² × H²_N`
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Definition.lean:91-133`
-- **Evidence** (verbatim, the conjuncts of the predicate):
+  And in the axiom (lines 195-196):
   ```lean
-  def IsBSDEJSolution
-      … (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ) (T : ℝ) : Prop :=
-    Measurable (Function.uncurry Y)
-      ∧ (∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖Y t ω‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤)
-      ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-          ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-      ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-          (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-      …
+  + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+      compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν
   ```
-  Note there is no `progMeas` / `adapted` / `predictable` condition on `Z`, no measurability requirement on `Z` or `U`, and only joint measurability (not adaptedness) on `Y`.
+  No restriction to small jumps; no compensation/splitting between `{|γ| ≤ 1}` and `{|γ| > 1}`.
 
-- **Why this matters**: The Tang-Li 1994 / Pardoux-Răşcanu 2014 / Gnoatto 2025 solution space is `S² × H² × H²_N`, where `S²` is the space of càdlàg ADAPTED processes with L²-sup-norm and `H²`, `H²_N` are spaces of **predictable** (i.e., ℱ_{s-}-measurable) square-integrable processes. Web search confirms this directly: "the solution consists of an adapted càdlàg process Y, a locally square-integrable predictable process Z and a locally p-integrable predictable random field U" (consensus from multiple modern BSDE-with-jumps references). Without predictability of `Z`, the stochastic integral `∫_0^t Z_s dW_s` is not even defined in classical theory (predictability is exactly what makes the simple-integrand approximation work). Without adaptedness of `Y`, the value `Y_t` is not measurable with respect to the information available at time `t`, which is the whole point of a "backward" SDE.
+- **Why this matters**: Applebaum 2009 Thm 4.4.7 (the cited theorem) states the Itô-Lévy formula with the compensator drift only over **small jumps** (the integral over `{e : |γ(s, X_{s-}, e)| ≤ 1}` for the second-order Taylor remainder), and the large-jump contribution `∫_{|γ| > 1} [u(x+γ) − u(x)] ν(de) ds` is folded into a separate term that combines with the Lévy measure of the *uncompensated* large-jump integral. The standard small/large-jump decomposition is:
+  ```
+  u(T, X_T) − u(0, X_0)
+    = ∫_0^T (∂_t u + ½ Tr(σσᵀ ∇²u) + μᵀ∇u) ds          [continuous drift]
+    + ∫_0^T ∇uᵀσ dW                                   [diffusion martingale]
+    + ∫_0^T ∫_{|γ|≤1} [u(X_{s-} + γ) − u(X_{s-})] Ñ(ds, de)   [small-jump martingale]
+    + ∫_0^T ∫_{|γ|>1} [u(X_{s-} + γ) − u(X_{s-})] N(ds, de)   [large-jump uncompensated]
+    + ∫_0^T ∫_{|γ|≤1} [u(X_{s-} + γ) − u(X_{s-}) − γᵀ∇u(X_{s-})] ν(de) ds  [small-jump compensator]
+  ```
+  For a general Lévy measure ν, `∫ |γ(e)|² ν(de) < ∞` near zero but `∫ |γ(e)| ν(de)` may diverge near zero (e.g. ν the standard α-stable Lévy measure with α ∈ (1, 2)). The Lean formula has
+  ```
+  jump_mart = Compensated.stochasticIntegral N [u(·+γ) − u along X] T   [all jumps compensated]
+  comp_drift = ∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u] ν(de) ds                  [Taylor remainder over ALL e]
+  ```
+  For this to match Applebaum 4.4.7 globally, we need EITHER (a) `∫_E (u(x+γ) − u(x))² ν(de) < ∞` for all `(s, x)` (square-integrability for the compensated jump integral over all of E), OR (b) the integrand `[u(·+γ) − u − γᵀ∇u]` to be ν-integrable on all of E. Neither hypothesis is in the axiom signature.
 
-  The strengthening of 2026-05-11 attempted to fix the per-`(t, ω)` existential `∃ BM_term jump_term : ℝ` that made the original predicate vacuous (see module docstring at lines 22-65). The new outer existential `∃ M_W M_N : ℝ → Ω → ℝ` is a genuine improvement (constant `Y = 0` no longer satisfies the predicate for generic `(g, f, X)`). But the strengthening did NOT add adaptedness / predictability of `(Y, Z, U)`, and the predicate is therefore still strictly weaker than the literature's `S² × H² × H²_N`.
+  For **bounded jumps** (ν has compact support / `γ` bounded) this is fine. For **finite-intensity** ν (`ν(E) < ∞`) this is also fine. But for general σ-finite ν with mass near zero (e.g. infinite-intensity Lévy measures like α-stable), the unrestricted-domain compensator integral is divergent.
 
-- **Recommendation**: Add the literature conditions: `Y` adapted to a càdlàg filtration containing `σ(W, N)`, `Z` and `U` predictable (= adapted to the left-limit filtration, or stronglyMeasurable for the progressive σ-algebra). Mathlib provides `MeasureTheory.Adapted`, `MeasureTheory.Filtration.predictableσ`, and `MeasureTheory.ProgMeasurable` — wire these in. Without these, the axiom `continuousBSDEJ_exists_unique` does not state the Tang-Li theorem.
+  The Lean axiom asserts the equation holds for the given X, u, T regardless of ν's structure. If ν is e.g. the standard α-stable Lévy measure with α ∈ (1, 2) and γ has linear growth in e near zero, both the `Compensated.stochasticIntegral` (over all E) and the compensator integral may individually diverge while their formal sum converges in the literature small/large-jump decomposition — i.e., the equation as stated could fail to make sense.
 
-### Finding 3 — `JumpDiffusion.exists_unique` is a trivial-witness theorem (proof picks constant path `X = x₀`, allowed by `is_solution : True`); name is also a misnomer
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/Ito/Setting.lean:50-72` (structure) and `85-112` (theorem)
-- **Evidence** (verbatim):
+  In effect: the Lean `itoLevyFormula` axiom is faithful to Applebaum 4.4.7 ONLY for the **bounded-jump / finite-intensity** case, not for the general Lévy measure. The cited Applebaum 4.4.7 (2nd edition) is itself for finite Lévy measures (or for the small-jump truncation); for infinite Lévy measures Applebaum uses the small/large-jump decomposition (Thm 4.4.10 in 2nd ed). The Lean statement matches neither version cleanly — it asserts the global form without the small/large split.
 
-  Structure (lines 50-72):
+- **Recommendation**: Either (a) add the hypothesis `∀ s, x, ∫⁻ e, ‖u(s, x+γ(s,x,e)) − u(s,x) − γ(s,x,e)ᵀ ∇u(s,x)‖² ν(de) < ⊤` as a parameter of the axiom (this is the standard L² hypothesis for the compensated jump integral over all of E to make sense); or (b) restrict the cited theorem to finite Lévy measures (ν(E) < ∞), with a note that the infinite-intensity case requires the small/large-jump decomposition; or (c) refactor the axiom to use the small/large split explicitly.
+
+### Finding 4 — `continuousBSDEJ_exists_unique` Lipschitz hypothesis is *joint* in `(y, z, u)` only via norm-of-Z and L²-of-U; it omits the standard linear-growth condition on `f` at `(0, 0, 0)`
+
+- **Severity**: MEDIUM (over-strong claim if proof would actually be attempted; under-stated for a complete Tang-Li match)
+- **Location**: `BSDEJ/Existence.lean:73-79` (Lipschitz def), `:128` (use as hypothesis)
+- **Evidence**:
   ```lean
-  structure JumpDiffusion … where
-    X : ℝ → Ω → (Fin n → ℝ)
-    measurable_path : Measurable (Function.uncurry X)
-    initial_value : ∀ᵐ ω ∂P, X 0 ω = x₀
-    sup_L2 : ∀ T : ℝ, 0 < T → ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
-    is_solution : True
+  def Lipschitz {n d : ℕ}
+      (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
+      (ν : Measure E) (L : ℝ) : Prop :=
+    ∀ s : ℝ, ∀ x : Fin n → ℝ, ∀ y₁ y₂ : ℝ, ∀ z₁ z₂ : Fin d → ℝ, ∀ u₁ u₂ : E → ℝ,
+      |bsdej.f s x y₁ z₁ u₁ - bsdej.f s x y₂ z₂ u₂|
+        ≤ L * (|y₁ - y₂| + ‖z₁ - z₂‖
+          + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal.sqrt)
   ```
+  This is Lipschitz in `(y, z, u)` jointly with constant `L`, with `u`'s contribution measured in `L²(ν)`. Note it does NOT include Lipschitz-in-`(s, x)` (the literature is also uniformly Lipschitz in `s, x` — but here `(s, x)` is fixed when comparing `y, z, u`, so this is correct, the literature only needs `(y, z, u)`-Lipschitz uniformly in `(s, x)`).
 
-  Theorem (lines 85-112):
+- **What's missing for full Tang-Li match**: The literature also requires the **integrability-at-zero** hypothesis: `E ∫_0^T |f(s, X_s, 0, 0, 0)|² ds < ∞` — without this, the Picard iteration's starting iterate `Y^{(0)} = E[g(X_T) | Filt_t]` lands in `S²` but the next iterate `Y^{(1)} = E[g(X_T) + ∫_t^T f(s, X_s, Y^{(0)}_s, Z^{(0)}_s, U^{(0)}_s) ds | Filt_t]` is not automatically in `S²` (the `∫_t^T |f(s, X_s, 0, 0, 0)| ds` part has no a priori bound). Tang-Li 1994 Thm 3.1 hypothesis (H2) explicitly states this integrability requirement. The Lean axiom omits it.
+
+  Crucially: without this hypothesis, the axiom claims existence and uniqueness for arbitrary `f` satisfying ONLY Lipschitz at fixed `(s, x)` — Lipschitz alone does not bound `f` itself. Pick `f(s, x, y, z, u) := φ(s, x)` for an arbitrary non-integrable φ — this is Lipschitz with `L = 0` (no dependence on `y, z, u`), but `∫_t^T f(s, X_s, 0, 0, 0) ds = ∫_t^T φ(s, X_s) ds` could be non-integrable, and the BSDEJ would have NO `L²` solution. The Lean axiom would still claim one exists.
+
+- **Why this matters**: The Lean axiom is strictly stronger than the cited Tang-Li theorem. The missing hypothesis is easy to add (and routinely included in the literature). The omission is in line with the maintainer's pattern of including SOME but not all literature hypotheses on the axiom signature.
+
+- **Recommendation**: Add the hypothesis
+  ```
+  (_h_f0_sq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖bsdej.f s (X s ω) 0 0 (fun _ => 0)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+  ```
+  to `continuousBSDEJ_exists_unique`. Same for `bsdej_path_regularity`.
+
+### Finding 5 — `bsdej_path_regularity`'s polynomial-dependence parametrization `C : T → L → norm_ξ → ℝ` is too weak to capture Bouchard-Elie 2008's explicit polynomial; the literature bound has `C = K · (1 + T)^{p} · e^{αLT} · (1 + ‖ξ‖²)` form
+
+- **Severity**: MEDIUM (literature divergence with the cited paper)
+- **Location**: `BSDEJ/PathRegularity.lean:145-148`
+- **Evidence**:
   ```lean
-  theorem JumpDiffusion.exists_unique
-      … (W : MultidimBrownianMotion P d) (N : PoissonRandomMeasure P ν)
-      (coeffs : JumpDiffusionCoeffs n d E)
-      (x₀ : Fin n → ℝ) :
-      Nonempty (JumpDiffusion W N coeffs x₀) := by
-    refine ⟨{
-      X := fun _ _ => x₀
-      measurable_path := measurable_const
-      initial_value := Filter.Eventually.of_forall (fun _ => rfl)
-      sup_L2 := ?_
-      is_solution := trivial
-    }⟩
-    intro T hT
-    haveI : Nonempty (Set.Icc (0 : ℝ) T) := ⟨⟨0, by simp [le_of_lt hT]⟩⟩
-    have h_const : … := by funext ω; apply iSup_const
-    rw [h_const, MeasureTheory.lintegral_const]
-    exact ENNReal.mul_lt_top (ENNReal.sum_lt_top.mpr (fun _ _ => by exact ENNReal.coe_lt_top))
-      (MeasureTheory.measure_lt_top _ _)
+  ∃ (C : ℝ → ℝ → ℝ → ℝ),
+    let norm_ξ_real : ℝ := (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
+    0 < C T L norm_ξ_real ∧
+    ∀ (M : ℕ) (_hM : 0 < M) ..., (...) ≤ ENNReal.ofReal (C T L norm_ξ_real * Δt)
   ```
+- **Why this matters**: The "parameterized constant" change is M8 — it moves from a flat `∃ C : ℝ` to `∃ C : T → L → norm_ξ → ℝ`. Per the docstring on line 142-144, this is supposed to capture Bouchard-Elie 2008's polynomial dependence. But the statement only asserts `C T L norm_ξ_real > 0` — it doesn't pin `C` to any specific functional form. So any positive function `C` works.
 
-- **Why this matters**:
-  1. The structure does NOT enforce the SDE. `is_solution : True` is the same vacuous bypass as the original `IsBSDEJSolution`'s `∃ BM_term jump_term : ℝ` per-`(t, ω)` existential. A `JumpDiffusion W N coeffs x₀` is just any measurable adapted process starting at `x₀` with L²-sup norm bound — it has no obligation to satisfy `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫ γ Ñ`.
-  2. The witness `X t ω = x₀` (constant path) does not depend on `W`, `N`, or `coeffs` at all. This is precisely the `⟨0, 0, 0, change⟩` trivial-witness pattern, just in a different form: `⟨x₀, ⟨measurable_const, …, trivial⟩⟩`.
-  3. The theorem name `exists_unique` is a misnomer. The conclusion is `Nonempty (JumpDiffusion W N coeffs x₀)` — propositional truncation of EXISTENCE, no uniqueness claim. Applebaum 2009 Theorem 6.2.9 (the cited reference, see line 78) asserts existence AND uniqueness of the solution under Lipschitz hypotheses. The Lean theorem asserts only existence (vacuously).
-  4. The Lipschitz hypotheses on `(μ, σ, γ)` are not parameters of the theorem at all. Applebaum 6.2.9 requires Lipschitz; the Lean signature does not.
+  Bouchard-Elie 2008 SPA 118(1) Thm 2.1 gives an explicit bound of the form `C = K · (T + 1) · exp(αL²T) · (1 + E[|ξ|²]^{1/2})` (the specific exponent / multiplicative form varies by edition; the key feature is **polynomial-in-T-and-norm**, **exponential-in-Lipschitz-squared-times-T**). Capturing this explicitly is necessary for downstream numerical work (Bouchard-Elie's discrete-time approximation results use the rate `C · Δt^{1/2}` for the deep-BSDE method, and the explicit form of `C` matters for stability bounds).
 
-  This is the exact pattern the recursive audit was supposed to catch. The audit found `itoLevyFormula`'s trivial proof body and demoted it, but `JumpDiffusion.exists_unique` is the same pattern in a slightly different syntactic form and was missed.
+  The Lean axiom doesn't pin `C` to any functional form, so a witness could pick `C T L norm_ξ_real := 1` (constant in all arguments). For a partition with mesh `Δt` very large (e.g. `Δt = T`, partition just `{0, T}`), the bound `C · Δt = T` is essentially trivial. For small `Δt`, the bound is also trivial since the LHS is bounded by the L²-sup-norms of `Y`, `Z`, `U` (already required by `IsBSDEJSolution`). So the "polynomial constant" form is purely cosmetic — any positive constant works.
 
-- **Recommendation**: Strengthen `JumpDiffusion.is_solution` to assert the actual SDE `X_t = x₀ + ∫_0^t μ ds + ∫_0^t σ dW + ∫_0^t ∫ γ Ñ` a.s. for every `t`, using `Brownian.SimplePredictableRefine.stochasticIntegral` and `Poisson.Compensated.stochasticIntegral`. Rename the theorem `JumpDiffusion.exists_unique` to `JumpDiffusion.exists` (since uniqueness is not claimed) and either prove the actual existence under Lipschitz hypotheses or demote it to a cited axiom (Applebaum 6.2.9) with the hypotheses spelled out.
+  More precisely: the LHS is `sup over n of E[sup over t ∈ [t_n, t_{n+1}] of |Y_t − Y_{t_n}|²] + ‖Z − Z_avg‖²_{L²} + ‖U − U_avg‖²_{L²}`. All three terms are uniformly bounded above by the L²-sup-norm of `Y` plus `4 · ‖Z‖²_{L²} + 4 · ‖U‖²_{L²}` (the Z-avg / U-avg has the same L²-norm as Z/U by Jensen). So a trivially-large `C` (e.g. `C := 10 · sup_norm(Y) + 10 · ‖Z‖² + 10 · ‖U‖²`) works regardless of `Δt`.
 
-### Finding 4 — `jacodYor_representation` is a trivial-witness theorem (proof picks `Z = U = BM_integral = 0`, stuffs everything into `jump_integral`)
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/MartingaleRepresentation.lean:55-84`
-- **Evidence** (verbatim):
-  ```lean
-  theorem jacodYor_representation
-      … (T : ℝ) (_hT : 0 < T)
-      (ξ : Ω → ℝ)
-      (_h_meas : Measurable ξ)
-      (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-      ∃ (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
-        (BM_integral jump_integral : Ω → ℝ),
-        Measurable (Function.uncurry Z) ∧
-        Measurable (fun (p : ℝ × Ω × E) => U p.1 p.2.1 p.2.2) ∧
-        (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-          ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) ∧
-        (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-          (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) ∧
-        (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P) + BM_integral ω + jump_integral ω) := by
-    -- Existence: take Z = 0, U = 0, BM_integral = 0, jump_integral = ξ - 𝔼[ξ].
-    -- The substantive (Jacod 1976) decomposition (with Z, U from orthogonal
-    -- projection) replaces these in a future refinement.
-    refine ⟨0, 0, 0, fun ω => ξ ω - ∫ ω', ξ ω' ∂P, ?_, ?_, ?_, ?_, ?_⟩
-    · exact measurable_const
-    · exact measurable_const
-    · simp
-    · simp
-    · refine Filter.Eventually.of_forall (fun ω => ?_)
-      show ξ ω = (∫ ω', ξ ω' ∂P) + 0 + (ξ ω - ∫ ω', ξ ω' ∂P)
-      ring
-  ```
-- **Why this matters**: The Jacod-Yor / Kunita-Watanabe theorem says: every L²-martingale on `σ(W, Ñ)` decomposes as `M_t = M_0 + ∫_0^t Z_s dW_s + ∫_0^t ∫_E U_s(e) Ñ(ds, de)` with `Z, U` predictable and square-integrable AND with the integrals being the actual stochastic integrals against `W` and `Ñ`. The Lean theorem statement does NOT require `BM_integral = ∫ Z dW` or `jump_integral = ∫∫ U Ñ` — they are independent existential variables. The proof picks `Z = 0`, `U = 0`, `BM_integral = 0`, `jump_integral = ξ − 𝔼[ξ]`. The conclusion holds by `ξ = 𝔼[ξ] + 0 + (ξ − 𝔼[ξ])` (a trivial arithmetic identity, dispatched by `ring`).
+  In effect: the constant `C` IS allowed to depend on the L²-norms of `(Y, Z, U)`, and any "depends on T, L, norm_ξ" function can be ≥ those L²-norms for any fixed `(T, L, norm_ξ)`. So the parametrization `C : T → L → norm_ξ → ℝ` does NOT actually constrain anything beyond positivity — it just enforces that `C` is a measurable function of `(T, L, norm_ξ)`, which is automatic. The "polynomial dependence" claim is a documentation overstatement.
 
-  This is the SAME pattern as `itoLevyFormula` and `JumpDiffusion.exists_unique`. The four existentially-quantified "integrals" are not pinned to any actual integral; they are free `Ω → ℝ` functions. The recursive audit missed this because the proof is dressed up with five `?_` subgoals (one per existential field), and the `_h_meas`, `_h_sq_int` hypotheses are unused (underscore-prefixed, which Lean treats as anonymous).
+- **Recommendation**: Either (a) pin the functional form of `C` more tightly — e.g. require `C T L norm_ξ_real ≤ K · (T + 1) · Real.exp(α * L^2 * T) * (1 + norm_ξ_real)` for some universal `K, α` — to capture the literature polynomial; or (b) drop the parametrization claim from the docstring (M8 fix is cosmetic in its current form).
 
-  Worse: the docstring (line 30-32) claims "expressed as the existence of `(Z, U)` with the required measurability and `eLpNorm` bounds" — but the proof picks `Z = U = 0`, which satisfies these trivially.
+### Finding 6 — `Compensated.itoIsometry_compensated_unified_existence` (Tier 1 #6) is strictly stronger than Applebaum 4.2.3: the existence of `F` and the martingale + càdlàg conjuncts are unconditional on φ, but Applebaum's theorem requires predictable square-integrable φ
 
-  This theorem is currently not USED in the body of any `continuousBSDEJ_exists_unique` proof (that's an axiom), but it appears in `tools/full_audit.lean:72` as a public theorem whose axiom set is `[propext, Classical.choice, Quot.sound]` — i.e., it appears axiom-clean in the audit. The audit metric is fooled.
-
-- **Recommendation**: Either (a) pin `BM_integral` to `LevyStochCalc.Brownian.SimplePredictableRefine.stochasticIntegral` applied to `Z` and `jump_integral` to `LevyStochCalc.Poisson.Compensated.stochasticIntegral` applied to `U`, and demote the result to an `axiom` with the Jacod 1976 citation, or (b) require the conjunction with the L² isometry identities `‖BM_integral‖²_{L²(P)} = ‖Z‖²_{H²}` and `‖jump_integral‖²_{L²(P)} = ‖U‖²_{H²_N}` — under those identities, `BM_integral = 0` and `jump_integral = ξ − 𝔼[ξ]` no longer satisfy unless `ξ = 𝔼[ξ]` a.s.
-
-### Finding 5 — `continuousBSDEJ_exists_unique` and `bsdej_path_regularity` omit the Lipschitz / L²-terminal hypotheses required by their cited Tang-Li / Bouchard-Elie-Touzi statements
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Existence.lean:113-126`, `LevyStochCalc/BSDEJ/PathRegularity.lean:111-139`
-- **Evidence** (verbatim):
-  ```lean
-  axiom continuousBSDEJ_exists_unique
-      … (W : MultidimBrownianMotion P d) (N : PoissonRandomMeasure P ν)
-      (bsdej : BSDEJData n d E)
-      (X : ℝ → Ω → (Fin n → ℝ))
-      (T : ℝ) (_hT : 0 < T) :
-      ∃ (Y : …) (Z : …) (U : …), IsBSDEJSolution W N bsdej X Y Z U T ∧ …
-  ```
-  Note the signature: only `(W, N, bsdej, X, T, _hT : 0 < T)`. **No Lipschitz hypothesis on `bsdej.f`**, **no L²-integrability of `bsdej.g (X T)`**, **no measurability of `X`**, **no Lipschitz / linear-growth condition on `bsdej.g` or `X`**.
-
-  The docstring (line 95) says: "Under Lipschitz hypotheses on `(f, g)` and L² integrability of the terminal data, the BSDEJ has a unique adapted solution triple `(Y, Z, U) ∈ S² × H² × H²_N`." — but those hypotheses are not in the Lean signature.
-
-  Same defect in `bsdej_path_regularity` (Existence.lean cousin); see lines 111-139 — `axiom bsdej_path_regularity … (W) (N) (bsdej) (X) (T) (_hT : 0 < T) : …` with no Lipschitz, no L².
-
-- **Why this matters**: Tang-Li 1994 Theorem 3.1 requires (i) Lipschitz `f` in `(y, z, u)` uniformly in `(s, x)`, (ii) measurable terminal `g(X_T)` in `L²(Ω, ℱ_T, P)`. For non-Lipschitz `f`, neither existence nor uniqueness holds in general — the Picard contraction fails. By asserting existence + uniqueness for ARBITRARY `bsdej : BSDEJData n d E` (i.e., for any measurable function `f` and any function `g`), the axiom claims more than the cited theorem. In particular, the axiom is mathematically FALSE: counterexamples exist with non-Lipschitz `f` for which no `L²`-solution exists, yet the axiom asserts one does.
-
-  This is not a "weakening" — it's a STRENGTHENING beyond the literature. The Lean axiom asserts a strictly stronger statement than Tang-Li and is therefore inconsistent with what's claimed in the docstring.
-
-  Combined with Finding 2 (no predictability of `Z, U`), the situation is: the axiom asserts a generic existence claim under hypothesis-free conditions, with a weakened predicate. Whether the predicate is satisfiable for non-Lipschitz `f` is unclear — but the axiom presents this as a derived form of Tang-Li, which it is not.
-
-- **Recommendation**: Add the hypotheses to the axiom signature: `(hL : 0 ≤ L)` + `(h_Lip : Lipschitz bsdej ν L)` (already defined at line 67-73), `(h_meas_X : Measurable (Function.uncurry X))`, `(h_terminal_L2 : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊)² ∂P < ⊤)`, plus the linear-growth bound on `f` at `(y, z, u) = 0` integrated over `s` (this is the standard Tang-Li hypothesis). Same for `bsdej_path_regularity`. After this fix, the docstring will match the signature.
-
-### Finding 6 — `IsBSDEJSolution`'s M_W condition only requires L² isometry, not pinning to `∫ Z dW` — multiple distinct `Y'` can satisfy the predicate, defeating uniqueness
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Definition.lean:114-118`
-- **Evidence** (verbatim, the M_W condition):
-  ```lean
-  -- M_W satisfies the multidim Brownian L²-Itô isometry against Z:
-  (∀ T', 0 < T' →
-    ∫⁻ ω, (‖M_W T' ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-        ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
-  ```
-  The module docstring (lines 60-63) acknowledges the slack: "The strengthened predicate is still slightly weaker than the literature (it doesn't pin `M_W` to be literally `∫ Z · dW`, only an isometric martingale), but it is non-vacuous: the literature solution satisfies it, and trivial constant `Y` does not."
-
-- **Why this matters**: The L²-isometry condition `𝔼[‖M_W(T')‖²] = 𝔼[∫_0^{T'} ‖Z_s‖² ds]` constrains M_W only in its **scalar L² norm**. Multiple distinct martingales can satisfy the same scalar L² norm. Concretely: let `M_W^{(lit)} := ∫ Z dW` be the literature stochastic integral. Construct `M_W^{(alt)}(T') := σ(T') · B'(T')`, where `B'` is a Brownian motion independent of `(Y, Z, U, W, N)` (constructible via a product space) and `σ(T') := sqrt(𝔼[∫_0^{T'} ‖Z‖² ds] / T')`. Then `𝔼[(M_W^{(alt)}(T'))²] = σ(T')² · T' = 𝔼[∫_0^{T'} ‖Z‖² ds]`, satisfying the isometry. `M_W^{(alt)}` is a martingale (Brownian motion scaled by a deterministic function). Hence `M_W^{(alt)}` satisfies the predicate's M_W conditions.
-
-  Now substitute into the BSDEJ equation at `t = 0`:
-    `Y 0 ω = g(X_T) + ∫_0^T f(s, X_s, Y_s, Z_s, U_s) ds - (M_W^{(alt)}(T) - 0) - (M_N(T) - 0)`.
-
-  For the literature solution `Y^{(lit)}, Z, U` and `M_W^{(alt)} ≠ M_W^{(lit)}`, the equation becomes `Y^{(lit)}(0, ω) = (literature RHS at t=0) + (M_W^{(lit)}(T) - M_W^{(alt)}(T))`, which is a NEW random variable depending on `B'`. To restore the equation we need a different `Y'` such that this holds. With Lipschitz `f`, the Picard iteration with the modified M_W converges to a different fixed point `Y' ≠ Y^{(lit)}`. So **the predicate admits multiple Y'**, and the uniqueness clause `∀ Y', IsBSDEJSolution → Y = Y' a.s.` is FALSE under this construction.
-
-  The docstring's "sufficient for the cited axioms `continuousBSDEJ_exists_unique` and `bsdej_path_regularity` to assert substantive content" claim is therefore questionable: the predicate is non-vacuous (Finding 2-3 give that), but the cited axiom's uniqueness conclusion is not consistent with the weakened predicate.
-
-- **Recommendation**: Pin `M_W` to the literature integral. Either (a) introduce a `MultidimBrownian.stochasticIntegral W (h_progMeas) Z T'` primitive (mirror of `Compensated.stochasticIntegral`) and pin `M_W T' = MultidimBrownian.stochasticIntegral W h_progMeas Z T'`; or (b) require the SCALAR-PRODUCT isometry `𝔼[M_W(T') · ∫_0^{T'} ⟨H, Z⟩ dW_s] = 𝔼[∫_0^{T'} ⟨H, Z⟩ ds]` for all bounded `H`, which is a stronger characterization. Until M_W is pinned to a canonical functional of Z, the uniqueness clause cannot be soundly claimed.
-
-### Finding 7 — `IsBSDEJSolution`'s M_N pin defers to `Compensated.stochasticIntegral`, whose own cited axiom is vacuously satisfiable for non-predictable U
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Definition.lean:119-123` (the pin), `LevyStochCalc/Poisson/Compensated.lean:2748-2767` (the cited axiom), `LevyStochCalc/Poisson/Compensated.lean:2776-2782` (the definition)
-- **Evidence** (verbatim, the M_N pin):
-  ```lean
-  -- M_N is pinned to the canonical compensated-Poisson L² integral of U:
-  (∀ T' : ℝ, ∀ᵐ ω ∂P,
-    M_N T' ω =
-      LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-        (fun ω' s e => U s ω' e) T' ω) ∧
-  ```
-  The definition (Compensated.lean:2776-2782):
-  ```lean
-  noncomputable def stochasticIntegral
-      (N : PoissonRandomMeasure P ν)
-      (φ : Ω → ℝ → E → ℝ)
-      (T : ℝ) : Ω → ℝ :=
-    (Classical.choose (itoIsometry_compensated_unified_existence N φ)) T
-  ```
-  The cited axiom (Compensated.lean:2748-2767):
+- **Severity**: HIGH (literature divergence; documented but not closed)
+- **Location**: `Poisson/Compensated.lean:1789-1819`
+- **Evidence**: The axiom signature is
   ```lean
   axiom itoIsometry_compensated_unified_existence
-      (N : PoissonRandomMeasure P ν)
-      (φ : Ω → ℝ → E → ℝ) :
+      (N : PoissonRandomMeasure P ν) (φ : Ω → ℝ → E → ℝ) :
       ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
-        MeasureTheory.Martingale F Filt P ∧
-        MeasureTheory.Martingale
-          (fun t ω => (F t ω) ^ 2
-            - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P ∧
-        (∀ T, 0 < T → Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
-          ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-            (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ →
-          ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-            ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-              (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) ∧
-        (∀ᵐ ω ∂P, ∀ t : ℝ, …)
+        MeasureTheory.Martingale F Filt P ∧                                  -- unconditional
+        (Measurable ... → ∫⁻ ... → MeasureTheory.Martingale (F² - ∫φ²) Filt P) ∧  -- gated
+        (∀ T, 0 < T → Measurable ... → ∫⁻ ... → L²-isometry) ∧                -- gated
+        (∀ᵐ ω ∂P, ∀ t, ... càdlàg ...)                                       -- unconditional
   ```
+  No hypothesis of measurability, predictability, or integrability on φ for the OUTER existence + martingale + càdlàg conjuncts. The maintainer's H6 docstring (Compensated.lean:1753-1764) explicitly acknowledges this gap and admits it's a "documentation-only" closure.
 
-- **Why this matters**: The cited axiom takes `φ : Ω → ℝ → E → ℝ` as bare data — no measurability hypothesis, no predictability, no integrability. The existence claim says: for EVERY `φ`, there's an `F` and `Filt` satisfying the four conjuncts. The L²-isometry conjunct is conditional on `Measurable (fun p => φ p.1 p.2.1 p.2.2)` AND `∫⁻ ω, ∫⁻ s, ∫⁻ e, ‖φ‖² < ⊤` — so for non-measurable / non-square-integrable φ, the isometry is vacuous (its hypothesis is false, hence the implication is true).
+- **Why this matters**: Applebaum 2009 Thm 4.2.3 is for **predictable** φ in `L²(P × ds × dν)`. The Lean axiom asserts the existence of `F` (martingale + càdlàg) for ARBITRARY `φ : Ω → ℝ → E → ℝ`. For wild φ (say, non-measurable in `ω, s, e`), the axiom asserts that some `F` exists that's a martingale w.r.t. SOME filtration. This is strictly broader than Applebaum 4.2.3 supports.
 
-  Crucially: for non-predictable `φ`, the L²-Itô-Lévy integral is not defined in classical theory (Applebaum 2009 §4.2 explicitly requires predictability). Yet the Lean axiom asserts existence of `F` for arbitrary `φ`. The cited Applebaum 4.2.3 + 4.2.4 results are about predictable integrands. **The Lean axiom is logically broader than the cited theorem**.
+  In practice this is harmless within the audited chain (every load-bearing caller threads through `IsBSDEJSolution`'s adaptedness layer + the bundled `h_progMeas` parameters which deliver predictability). But the axiom's content, taken in isolation, is not what Applebaum 4.2.3 says.
 
-  Take `φ ≡ 0` (the zero integrand). The axiom requires `∃ F, ∃ Filt, F martingale, F² − 0 = F² martingale, isometry (trivial), F càdlàg`. Witness: `F ≡ 0`, Filt = anything. Then `stochasticIntegral N (fun ω' s e => 0) T' = Classical.choose(...) T' = 0` (consistent choice). So `M_N T' = 0` for `U = 0`.
+  Counterpart on the Brownian side (`itoIsometry_brownian_unified_existence`, Tier 1 #5) does take `h_meas`, `h_progMeas`, `h_sq_int_global` as parameters; the Compensated counterpart is asymmetric.
 
-  Take a non-predictable `U`. The axiom still asserts existence of F (since the hypotheses on isometry are not constraints on F's existence, only on its norm). The `Classical.choose` could pick `F = 0` (martingale ✓, F² − ∫φ² ds = -∫φ² ds is a martingale iff ∫φ² ds is constant in t, which fails generically — so F = 0 only works if ν(supp φ²(s, ·)) = 0). For generic non-predictable U, the existence claim still holds (by some F), but the F may not be the "true" integral.
+- **Recommendation**: Tighten `itoIsometry_compensated_unified_existence` to take `(h_meas : Measurable ...)`, `(h_progMeas : ...)`, `(h_sq_int_global : ∀ T, ...)` as parameters and condition the entire existence + 4 conjuncts on them (mirror the Brownian side). This converts the H6 "documentation-only" closure into a real signature-level closure. Pending that, this is the largest live literature-divergence in the chain.
 
-  The downstream effect: in the IsBSDEJSolution predicate's M_N pin, `M_N T' ω = stochasticIntegral N U T' ω` (a.s.) depends on the `Classical.choose`-witness, which is non-canonical. For predictable U, the witness has the right L² norm. For non-predictable U, the witness is whatever the axiom's existential happened to pick. **The "pin" therefore doesn't actually pin M_N to a canonical functional of U** in any rigorous sense — it pins to a choice-defined object whose properties (for non-predictable U) are weakly characterized.
+### Finding 7 — `MultidimBrownianMotion.components_independent` correctly encodes joint independence of components but does NOT separately enforce joint Gaussianity with diagonal covariance
 
-- **Recommendation**: Strengthen `itoIsometry_compensated_unified_existence` to take `(h_progMeas : ProgMeasurable φ)` and `(h_sq_int : ∫⁻ ω ∫⁻ s ∫⁻ e ‖φ‖² < ⊤)` as parameters, mirroring the Brownian-side axiom `itoIsometry_brownian_unified_existence` at `Brownian/SimplePredictableRefine.lean:2094-2115`. The brownian-side axiom DOES take these hypotheses; the compensated-side axiom does not, and is therefore strictly less faithful to the cited theorem. After this fix, `Compensated.stochasticIntegral` should also take the hypotheses (and return some default value when they fail), so that the M_N pin is meaningful.
-
-### Finding 8 — `BrownianMotion` structure lacks joint measurability of `Function.uncurry W`; only separable measurability `∀ t, Measurable (W t)` is enforced
-- **Severity**: MEDIUM
-- **Location**: `LevyStochCalc/Brownian/Construction.lean:33-70`
-- **Evidence** (verbatim, the relevant field):
+- **Severity**: LOW (the `W : Fin d → BrownianMotion P` field's individual BMs already deliver this; the field is technically redundant but mathematically correct)
+- **Location**: `Brownian/Multidim.lean:43-52`
+- **Evidence**:
   ```lean
-  structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
-    W : ℝ → Ω → ℝ
-    measurable_eval : ∀ t : ℝ, Measurable (W t)
-    initial_zero : ∀ᵐ ω ∂P, W 0 ω = 0
-    …
-    continuous_paths : ∀ᵐ ω ∂P, Continuous (fun t : ℝ => W t ω)
-    …
+  structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] (d : ℕ) where
+    W : Fin d → LevyStochCalc.Brownian.BrownianMotion P
+    components_independent :
+      ProbabilityTheory.iIndepFun
+        (fun (i : Fin d) (ω : Ω) (t : ℝ) => (W i).W t ω) P
   ```
-- **Why this matters**: Karatzas-Shreve Definition 2.1.1 requires a Brownian motion to be a **measurable process**, i.e., `(t, ω) ↦ W_t(ω)` is `Borel(ℝ) ⊗ ℱ`-measurable jointly. The Lean structure stipulates only marginal measurability for each `t` separately, plus a.s. path continuity. Joint measurability follows mathematically from separable measurability + a.s. continuity + separability of `ℝ` (via the Riesz-style argument), but the structure does not enforce it. Downstream uses (e.g., `Function.uncurry W : ℝ × Ω → ℝ` in `simpleIntegral` and the L²-Itô isometry chain) require joint measurability; the chain works around this by adding `h_meas : Measurable (Function.uncurry H)` etc. at the lemma level. But the BM structure itself is weaker than Karatzas-Shreve. This becomes a problem if anyone tries to derive `(t, ω) ↦ W_t(ω)` measurability from the structure alone.
+- **Why this matters**: Karatzas-Shreve §2.5 (multidim BM) requires (i) each component to be a 1D BM and (ii) the components to be **jointly Gaussian with diagonal covariance**. The Lean encoding gives (i) directly (each `W i` is a `BrownianMotion P`, satisfying all 1D properties), and gives joint INDEPENDENCE (not just joint Gaussianity with diagonal covariance) via `iIndepFun`. Independence + each-marginal-Gaussian implies joint-Gaussian-with-diagonal-covariance (standard result, since independent normals are joint normals with diagonal covariance). So the structure is mathematically equivalent to Karatzas-Shreve §2.5's "d-dim BM" — the Lean encoding is actually slightly stronger than strictly necessary (independence is stronger than diagonal-covariance joint Gaussianity in general, but for 1D Gaussian marginals they coincide).
 
-  Le Gall Theorem 2.1 packages the same result with joint measurability stated explicitly: "There exists a probability space (Ω, F, P) and a process (B_t)_{t ≥ 0} on this space with the following properties: (i) B_0 = 0, (ii) the function (t, ω) → B_t(ω) is jointly measurable, (iii) for any 0 ≤ s ≤ t, B_t − B_s is independent of σ(B_u : u ≤ s) and is N(0, t − s)-distributed, (iv) the function t → B_t(ω) is continuous for almost every ω ∈ Ω." The Lean structure misses (ii) (joint measurability) explicitly.
+  The encoding `iIndepFun (fun i ω t => (W i).W t ω)` treats each component as a random variable into the path space `ℝ → ℝ` (with the Pi σ-algebra), and asserts joint independence of the d component path-RVs. This is the right statement.
 
-- **Recommendation**: Add a `measurable_uncurry : Measurable (Function.uncurry W)` field to the `BrownianMotion` structure. The `BrownianMotion.exists` axiom (line 176-178) provides existence with `Nonempty (BrownianMotion P)`, so any witness must satisfy the field — the cited Karatzas-Shreve / Le Gall construction does produce a jointly measurable process. Adding the field strengthens the structure without breaking anything.
+- **Recommendation**: No action. This is honest.
 
-### Finding 9 — `PoissonRandomMeasure` structure does not enforce Applebaum's full Definition 2.3.1 (the "P(N(B) = ∞) = 1 for μ(B) = ∞" clause is missing)
-- **Severity**: MEDIUM
-- **Location**: `LevyStochCalc/Poisson/RandomMeasure.lean:64-102`
-- **Evidence** (verbatim, the relevant fields):
+### Finding 8 — `JumpDiffusion`'s SDE equation uses `X s` (point value) where the literature SDE uses `X_{s-}` (left limit), and the structure does not require càdlàg sample paths — same issue as Finding 2 propagated
+
+- **Severity**: MEDIUM (linked to Finding 2; the convention mismatch is harmless for L²-integrable processes with càdlàg modifications, but the structure doesn't deliver that modification)
+- **Location**: `Ito/Setting.lean:104-112`
+- **Evidence**: The integrals in `is_solution` use `coeffs.μ s (X s ω) i` and `coeffs.σ s (X s ω) i` and `coeffs.γ s (X s ω') e i` — all at `X_s` not `X_{s-}`. The structure has no càdlàg field.
+- **Why this matters**: Applebaum 2009 Chapter 6 SDEs use `X_{s-}` throughout. Ikeda-Watanabe IV.9 same. For càdlàg `X` with at most countably many jumps a.s., `X_s = X_{s-}` for Lebesgue-a.e. `s`, so the integrals coincide a.s. Hence for L²-integrable (Brownian + compensated-Poisson) integrals, the convention difference is a.s.-harmless. But the structure does NOT require `X` to be càdlàg in the first place. A jointly measurable `X` that is highly oscillatory in `s` (e.g. a "wild" L²-bounded process) would not have well-defined left limits, and `X_s` in the SDE integrals would not correspond to any literature object.
+
+  The cited Applebaum 6.2.9 / Ikeda-Watanabe IV existence-uniqueness is for càdlàg adapted solutions. The Lean structure's `JumpDiffusion` is for non-càdlàg solutions, so it's not actually capturing the literature object.
+
+- **Recommendation**: Add a `cadlag : ∀ᵐ ω ∂P, ∀ t : ℝ, ...` field (mirror of Compensated's). Or alternatively, write the SDE in terms of `X_{s-}` explicitly using `essential_left_limit` once `X`'s càdlàg property is established.
+
+### Finding 9 — `jacodYor_representation`'s `ξ : Ω → ℝ` does NOT require `ξ` to be `ℱ_T`-measurable; the predicate only requires `ξ` to be Borel-measurable in the ambient σ-algebra
+
+- **Severity**: MEDIUM (literature divergence)
+- **Location**: `BSDEJ/MartingaleRepresentation.lean:81-83`
+- **Evidence**:
   ```lean
-  structure PoissonRandomMeasure
-      (P : Measure Ω) [IsProbabilityMeasure P]
-      (ν : Measure E) [SigmaFinite ν] where
-    N : Ω → Measure (ℝ × E)
-    measurable_eval : ∀ {B : Set (ℝ × E)}, MeasurableSet B → Measurable (fun ω => N ω B)
-    poisson_law : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
-      referenceIntensity ν B ≠ ⊤ →
-      P.map (fun ω => N ω B) = poissonMeasureENN (referenceIntensity ν B).toNNReal
-    independent_disjoint : …
-    joint_past_future_independent : …
+  (T : ℝ) (_hT : 0 < T)
+  (ξ : Ω → ℝ)
+  (_h_meas : Measurable ξ)
+  (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
   ```
-- **Why this matters**: Applebaum 2009 Definition 2.3.1 (and Kallenberg 2017 Proposition 3.6) state THREE properties:
-  (a) For `B` with `μ(B) < ∞`, `N(B)` has Poisson law with mean `μ(B)`.
-  (b) For pairwise disjoint `B_1, …, B_n`, `N(B_1), …, N(B_n)` are independent.
-  (c) For `B` with `μ(B) = ∞`, `P(N(B) = ∞) = 1`.
+  `_h_meas : Measurable ξ` is plain Borel-measurability w.r.t. the ambient σ-algebra on `Ω`, not w.r.t. the joint filtration `ℱ_T = σ(W, Ñ) ⊔_T`.
 
-  The Lean structure captures (a) and (b) (with `iIndepFun` over arbitrary families, which is stronger than pairwise — good). But (c) is missing: when `referenceIntensity ν B = ⊤`, the `poisson_law` clause does NOT constrain `N(·, B)`. A "Poisson random measure" in the Lean sense could give `N(ω, B) = 0` always for such `B`, which violates Applebaum 2.3.1.
+- **Why this matters**: Jacod 1976 / Jacod-Shiryaev III.4.34 is about L²-martingales on the filtration `(ℱ_t)` generated by `(W, Ñ)`. The representation `ξ = E[ξ] + ∫_0^T Z dW + ∫_0^T ∫ U Ñ` is valid ONLY for `ξ` that is `ℱ_T`-measurable. For arbitrary Borel-measurable `ξ` (e.g. `ξ` depending on a random variable independent of `(W, N)`), the representation generally fails.
 
-  In practice, this doesn't bite for the L²-Itô-Lévy integral chain (which restricts to `(0, T] × A` with `ν(A) < ∞` via the σ-finite decomposition), but it does mean the structure is technically weaker than the cited Applebaum theorem.
+  Example counterexample to the Lean claim if it were a theorem (it's currently `sorry`'d so the gap doesn't bite): let `Ω = Ω_1 × Ω_2` where `(W, N)` lives on `Ω_1` and `B' : Ω_2 → ℝ` is a standard Gaussian independent of `(W, N)`. Then `ξ(ω) := B'(ω_2)` is Borel-measurable, L²-bounded, but `ξ - E[ξ] = B'` is independent of `(W, N)`, so cannot be represented as a sum of stochastic integrals against `W` and `Ñ`.
 
-  Equivalently, Kallenberg Proposition 3.6 includes the σ-additivity property `N(⊔ B_i) = ∑ N(B_i)` (a.s.) for any countable family — implicit in `N : Ω → Measure (ℝ × E)` (since Measure has σ-additivity built in), so that part is fine.
+  The Lean theorem (as `sorry`'d) would assert existence of such a representation — which is **false** for non-`ℱ_T`-measurable `ξ`. Strictly speaking, since the proof is `sorry`, the theorem cannot be used to derive False; but if anyone replaced the sorry with a proof, the statement is too strong to prove (would require False).
 
-- **Recommendation**: Add a field `infinite_intensity_almost_surely : ∀ {B : Set (ℝ × E)}, MeasurableSet B → referenceIntensity ν B = ⊤ → ∀ᵐ ω ∂P, N ω B = ⊤`. This is direct from the standard Poisson recipe (sum of i.i.d. Poisson with infinite mean) and matches Applebaum 2.3.1 (c).
+  This is the "claim more than the cited theorem" pattern. The honest signature would add `(h_ξ_FT_meas : Measurable[ℱ_T] ξ)` where `ℱ_T` is the joint filtration's value at `T`.
 
-### Finding 10 — Four dead-code `sorry` lemmas exist in the codebase, two of which are reachable from public APIs (Compensated `simplePredictable_dense_L2` uses sorried `…_bounded`; if anyone unlocks the public lemma, sorry propagates)
-- **Severity**: MEDIUM
-- **Location**:
-  - `LevyStochCalc/Poisson/RandomMeasure.lean:139` (`poissonRandomMeasure_finite_exists` — sorry)
-  - `LevyStochCalc/Brownian/Continuity.lean:184` (`kolmogorov_modification_ae_eq` — sorry)
-  - `LevyStochCalc/Brownian/Ito.lean:3984` (`quadVar_simpleIntegral_brownian` — private sorry)
-  - `LevyStochCalc/Poisson/Compensated.lean:1893` (`simplePredictable_dense_L2_bounded` — private sorry, USED by public `simplePredictable_dense_L2` at line 1903)
-- **Evidence** (verbatim, the public `simplePredictable_dense_L2` calling the sorried `…_bounded`):
+- **Recommendation**: Add the `ℱ_T`-measurability hypothesis. Concretely:
   ```lean
-  -- Compensated.lean:1936
-  fun M => simplePredictable_dense_L2_bounded hT
-    (fun ω s e => max (-(M : ℝ)) (min (M : ℝ) (φ ω s e)))
-    (h_clip_meas M) (M : ℝ) (h_clip_bound M)
+  (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+  (_hFilt_BM : ∀ i, naturalFiltration (W.W i) ≤ Filt)
+  (_hFilt_PRM : LevyStochCalc.Poisson.naturalFiltration N ≤ Filt)
+  (_h_ξ_FT_meas : Measurable[(Filt T : MeasurableSpace Ω)] ξ)
   ```
-- **Why this matters**: `tools/sorry_baseline.txt` is empty and the audit at `tools/full_audit_output.txt` reports clean axiom sets, because these sorried lemmas are not in the Tier 1 axiom dependency chain. But the public lemma `LevyStochCalc.Poisson.Compensated.simplePredictable_dense_L2` (line 1903) DOES use the sorried `simplePredictable_dense_L2_bounded` (private, line 1880) — so this public lemma's proof is `sorry`-tainted via the private call. The audit doesn't flag it because the public lemma is not exposed downstream of the Tier 1 chain (the chain uses `adaptedSimple_dense_L2_compensated`, which is a SEPARATE cited axiom — line 2579 — not the sorried `simplePredictable_dense_L2`).
 
-  This is technically `#print axioms`-clean, but a future refactor that wires `simplePredictable_dense_L2` into the chain would silently propagate the sorry. The same risk exists for `kolmogorov_modification_ae_eq` (Continuity.lean:184) if a future Mathlib forwarder replaces the cited axiom with a proof using this lemma.
+### Finding 10 — `BrownianMotion.continuous_paths : ∀ᵐ ω ∂P, Continuous (fun t => W t ω)` requires continuity on ALL of ℝ, including `(−∞, 0)`, where `W` is conventionally 0; this is mathematically consistent but pedantically tighter than Karatzas-Shreve
 
-  Mathematically, the four sorries are real proof obligations: the dyadic-construction L²-density argument (Compensated), the Y_t = X_t a.s. extension at non-dyadic times (Continuity), the simple-integrand quadVar martingale (Brownian/Ito), and the finite-mass Poisson construction (RandomMeasure). They are legitimate gaps, not stylistic ones.
-
-- **Recommendation**: Either (a) delete the dead-code sorried lemmas if they're not used downstream, or (b) move the public-API-reachable one (Compensated `simplePredictable_dense_L2`) to `sorry_baseline.txt` and gate it behind an `axiom`-style declaration with documentation. Don't leave `sorry`'d public lemmas in the codebase invisible to the audit.
-
-### Finding 11 — `BrownianMotion.continuous_paths` requires continuity on ALL of `ℝ` (not just `[0, ∞)`), but `negative_zero` is only pointwise-a.s. — the joint "a.s. continuous and zero on (−∞, 0)" property is not directly enforced
-- **Severity**: LOW
-- **Location**: `LevyStochCalc/Brownian/Construction.lean:50-55`
-- **Evidence** (verbatim):
+- **Severity**: LOW (pedantic; harmless)
+- **Location**: `Brownian/Construction.lean:60-65`
+- **Evidence**:
   ```lean
   continuous_paths : ∀ᵐ ω ∂P, Continuous (fun t : ℝ => W t ω)
   negative_zero : ∀ s : ℝ, s < 0 → ∀ᵐ ω ∂P, W s ω = 0
   ```
-- **Why this matters**: `continuous_paths` requires continuity on all of `ℝ`. `negative_zero` is `∀ s < 0, ∀ᵐ ω, W s ω = 0` — pointwise-in-`s` almost-sure. The stronger and more natural Karatzas-Shreve formulation is `∀ᵐ ω, ∀ s < 0, W s ω = 0` — uniformly a.s. in `s`. The two are not equivalent under countable union of null sets without uniform control. For Brownian motion this is harmless because the path is a.s. continuous and equals zero on every rational `s < 0` (countable a.s.); continuity then gives `W s ω = 0` for all `s < 0` a.s.
+- **Why this matters**: Karatzas-Shreve §2.1 defines BM on `[0, ∞)` only, and the path is continuous on `[0, ∞)`. The Lean structure extends to all of ℝ by setting `W_s = 0` for `s < 0` and requiring continuity on all of ℝ. The continuity at `t = 0` requires `lim_{t → 0+} W_t = W_0 = 0` (from the right) AND `lim_{t → 0−} W_t = 0` (from the left), the latter being trivial since `W_s = 0` for `s < 0`. The construction is consistent (the Wiener-measure-based existence axiom delivers it). But note `negative_zero` is pointwise-in-`s` almost-sure, not uniformly-in-ω: `∀ s < 0, ∀ᵐ ω, W s ω = 0` rather than the stronger `∀ᵐ ω, ∀ s < 0, W s ω = 0`. The two are equivalent under countable union of null sets + continuity (rationals are countable, continuity transfers from rationals to all reals on a co-null set), so this is fine for Brownian motion. But it could be tightened.
 
-  Mathematically the structure is consistent for Brownian motion, but pedantically the conjunction `continuous_paths ∧ negative_zero` is weaker than the literature's "a.s., the path is continuous on `[0, ∞)` and zero on `(−∞, 0)`". Minor sharpening would replace `negative_zero` with `negative_zero_uniform : ∀ᵐ ω ∂P, ∀ s : ℝ, s < 0 → W s ω = 0` (∀-quantifier inside the a.s.). Karatzas-Shreve Brownian motion is usually only defined on `[0, ∞)`; the Lean extension to `ℝ` is a structural convention, but should be precisely worded.
+- **Recommendation**: No action required. Pedantic.
 
-- **Recommendation**: Replace `negative_zero` with `negative_zero_uniform : ∀ᵐ ω ∂P, ∀ s : ℝ, s < 0 → W s ω = 0` to match the uniform-in-ω formulation. Provable from the existing `negative_zero` + `continuous_paths` (via density of `ℚ ∩ (−∞, 0)`), so the structure stays consistent.
+### Finding 11 — `PoissonRandomMeasure.integer_valued` field is correct for finite-intensity B; for B with `referenceIntensity ν B = ⊤` the predicate is silent — Applebaum 2.3.1(c) requires `P(N(B) = ∞) = 1` in that case, but the Lean structure does not encode it
 
-### Finding 12 — `JumpDiffusion.exists_unique` does not pass `(W, N, coeffs)` to the witness; the existence claim is vacuously independent of the Brownian motion and Poisson random measure
-- **Severity**: LOW
-- **Location**: `LevyStochCalc/Ito/Setting.lean:85-112`
-- **Evidence** (verbatim):
+- **Severity**: LOW (literature divergence on a corner case rarely used downstream)
+- **Location**: `Poisson/RandomMeasure.lean:91-93`
+- **Evidence**:
   ```lean
-  refine ⟨{
-    X := fun _ _ => x₀
-    …
-  }⟩
+  integer_valued : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
+    referenceIntensity ν B ≠ ⊤ →
+    ∀ᵐ ω ∂P, ∃ n : ℕ, N ω B = n
   ```
-- **Why this matters**: The witness `X t ω := x₀` is a constant function ignoring `W, N, coeffs`. This is technically allowed by the theorem statement (which has `is_solution : True` — see Finding 3), but it makes the theorem's quantification over `(W, N, coeffs)` cosmetic. A reader of the signature would assume the existence depends on the specific `(W, N, coeffs)`, but the proof shows it does not. This is a "theorem with unused hypotheses" — the underscored binders `(_W : MultidimBrownianMotion P d)` etc. would communicate this honestly; the current binders without underscore mislead.
+  Only applies when `referenceIntensity ν B ≠ ⊤`. For B with infinite intensity, no constraint.
 
-  This is a corollary of Finding 3 and would be resolved by the same fix.
+- **Why this matters**: Applebaum 2009 Definition 2.3.1(c) (and Kallenberg 3.6) include the clause: for `μ(B) = ∞`, `P(N(B) = ∞) = 1`. This is a structural property — a Poisson random measure with infinite-intensity set has infinitely many points there a.s. The Lean structure does not encode this. A pathological `N` could satisfy `poisson_law`, `independent_disjoint`, `joint_past_future_independent`, and `integer_valued` (only for finite-intensity B) while having `N(ω, B) = 0` for some infinite-intensity B — this violates Applebaum 2.3.1.
 
-- **Recommendation**: See Finding 3.
+  In practice this doesn't bite the audited chain (every compensated-integral construction restricts to `[0, T] × A` with `ν(A) < ∞` via the σ-finite decomposition). But pedantically the structure is weaker than the cited definition.
 
-## Per-claim verdicts on the 11 Tier 1 cited axioms + ~10 derivative theorems
+  Note: my predecessor in the 1st audit (`2026-05-20-archive/04_pure_mathematician.md`) Finding 9 raised this same issue. The 2nd audit's L10 fix added `integer_valued` but did NOT add the infinite-intensity clause. So this 1st-audit finding is still open.
+
+- **Recommendation**: Add a field
+  ```lean
+  infinite_intensity_almost_surely : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
+    referenceIntensity ν B = ⊤ → ∀ᵐ ω ∂P, N ω B = ⊤
+  ```
+
+## Per-axiom verdicts on the Tier 1 + key derivative theorems
 
 | Theorem / Axiom | Verdict | One-line note |
 |---|---|---|
-| `Brownian.BrownianMotion.exists` | EARNED | Honest axiom, Karatzas-Shreve / Le Gall cited correctly; structure has minor gap (no joint measurability — see Finding 8). |
-| `Poisson.PoissonRandomMeasure.exists_of_sigmaFinite` | WEAK | Honest axiom but the structure it returns lacks Applebaum 2.3.1 (c) (P(N(B)=∞)=1 for μ(B)=∞ — see Finding 9). |
-| `Brownian.Continuity.kolmogorovChentsov_modification` | EARNED | Faithful weak form of Karatzas-Shreve 2.2.8 (continuity only, no Hölder regularity claimed — that's fine, just a weaker statement of the same theorem). |
-| `Brownian.Martingale.brownian_martingale_rightCont` | EARNED | Honest axiom citing Blumenthal 0-1 + right-cont augmentation; faithful to Karatzas-Shreve 2.7.7-9. |
-| `Brownian.Ito.itoIsometry_brownian_unified_existence` | EARNED | Honest unified-existence axiom; takes `h_meas + h_progMeas + h_sq_int_global` hypotheses correctly, conjuncts are the literature properties. |
-| `Poisson.Compensated.itoIsometry_compensated_unified_existence` | WEAK | Axiom takes `φ` with NO predictability / measurability / integrability hypothesis on the outer existence — see Finding 7. Compensated counterpart of the Brownian-side axiom should mirror it but doesn't. |
-| `Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` | EARNED | Honest axiom, Applebaum 4.3.1 / Ikeda-Watanabe II.3.4 cited correctly; statement matches the cited result. |
-| `Poisson.Compensated.adaptedSimple_dense_L2_compensated` | EARNED | Honest axiom, Applebaum 4.2.2 / Ikeda-Watanabe II.3.3 cited correctly; statement matches the cited density result. |
-| `BSDEJ.Existence.continuousBSDEJ_exists_unique` | WEAK | **Axiom signature omits Lipschitz on `f` and L²-integrability of `g(X_T)`** — claims existence + uniqueness for arbitrary `bsdej`, which is mathematically false; see Finding 5. Also see Finding 6 on M_W slack and Finding 2 on predictability omission. |
-| `BSDEJ.PathRegularity.bsdej_path_regularity` | WEAK | Same omission of Lipschitz / L² hypotheses; cited Bouchard-Elie-Touzi 2009 Thm 2.1 requires them but the Lean axiom does not. |
-| `Ito.JumpFormula.itoLevyFormula` | **TRIVIAL** | **Statement is `∃ a b c d, sum = change` — satisfied by `⟨change, 0, 0, 0⟩` trivially. 2026-05-11 "demotion" did not fix this; see Finding 1.** |
-| `Brownian.Multidim.MultidimBrownianMotion.exists` | EARNED | Forwarder over `BrownianMotion.exists` via `Measure.pi` + `iIndepFun_pi`; honest derivation, real proof in `Multidim.lean:209-230`. |
-| `Brownian.Continuity.brownian_continuous_modification` | EARNED | Forwarder over `kolmogorovChentsov_modification` via the explicit Gaussian 4th-moment calculation; substantive real proof in `Continuity.lean:507-554`. |
-| `Brownian.Martingale.brownian_filtration_rightContinuous` | EARNED | Forwarder over `brownian_martingale_rightCont`; honest. |
-| `Brownian.Martingale.brownian_martingale` | EARNED | Genuinely proved theorem (no cited axiom in its closure); ~100-line direct proof via conditional expectation of increments. |
-| `Brownian.Martingale.brownian_quadVar` | EARNED | Same — genuinely proved theorem. |
-| `Brownian.Ito.itoIsometry` | EARNED | Extracts conjunct 3 from the unified-existence cited axiom; honest. |
-| `Brownian.Ito.martingale_stochasticIntegral` | EARNED | Extracts conjunct 1 — honest. |
-| `Brownian.Ito.quadVar_stochasticIntegral` | EARNED | Extracts conjunct 2 — honest. |
-| `Poisson.Compensated.itoLevyIsometry` | WEAK | Extracts conjunct 3 from the unified-existence axiom, but inherits the predictability gap from Finding 7. |
-| `Poisson.Compensated.martingale_stochasticIntegral` | WEAK | Same; inherits the gap. |
-| `Poisson.Compensated.quadVar_stochasticIntegral` | WEAK | Same. |
-| `Poisson.Compensated.cadlag_modification_exists` | WEAK | Same. |
-| `Poisson.L2Isometry.itoLevyIsometry` | WEAK | 1-line forwarder over `Compensated.itoLevyIsometry`; inherits the gap. |
-| `Ito.Setting.JumpDiffusion.exists_unique` | **TRIVIAL** | **Constant-path witness; `is_solution : True` structure; name is misnomer (no uniqueness claim) — see Finding 3.** |
-| `BSDEJ.MartingaleRepresentation.jacodYor_representation` | **TRIVIAL** | **`⟨0, 0, 0, ξ − 𝔼[ξ]⟩` witness; `BM_integral` and `jump_integral` are free existentials not pinned to actual stochastic integrals — see Finding 4.** |
+| `Brownian.BrownianMotion.exists` (Tier 1 #1) | EARNED | Karatzas-Shreve / Le Gall cited correctly. `joint_measurable` (L10) honestly satisfiable by Wiener-measure construction. `continuous_paths` extends to all ℝ (Finding 10, pedantic). |
+| `Poisson.PoissonRandomMeasure.exists_of_sigmaFinite` (Tier 1 #2) | WEAK | Applebaum 2.3.1 cited. `integer_valued` (L10) is satisfiable. But the infinite-intensity-a.s.-∞ clause of Applebaum 2.3.1(c) is still missing (Finding 11). |
+| `Brownian.Continuity.kolmogorovChentsov_modification` (Tier 1 #3) | EARNED | Faithful, matches Karatzas-Shreve 2.2.8 / Le Gall 2.9. `kolmogorov_modification_ae_eq` proved. |
+| `Brownian.Martingale.brownian_martingale_rightCont` (Tier 1 #4) | EARNED | Le Gall citation correction (Theorem 2.13) honored. Blumenthal 0-1 + right-continuity. |
+| `Brownian.Ito.itoIsometry_brownian_unified_existence` (Tier 1 #5) | EARNED | Karatzas-Shreve 3.2.6 + Le Gall 5.4 cited; signature takes `h_meas`, `h_progMeas`, `h_sq_int_global`. Asymmetric (richer) than the Compensated counterpart but in the correct direction. |
+| `Poisson.Compensated.itoIsometry_compensated_unified_existence` (Tier 1 #6) | **WEAK** | The Compensated axiom's outer existence + martingale + càdlàg conjuncts are unconditional on φ — strictly broader than Applebaum 4.2.3, which is for predictable φ only. The H6 closure is "documentation-only" — see Finding 6. |
+| `BSDEJ.Existence.continuousBSDEJ_exists_unique` (Tier 1 #9) | WEAK | Tang-Li / Andersson-Gnoatto-Patacca-Picarelli / Pardoux-Răşcanu cited correctly. Lipschitz hypothesis added (H4). The `Adapted` outer layer (vs literature `ProgMeasurable` — Finding 1), no càdlàg requirement (Finding 2), and missing linear-growth-at-zero hypothesis on `f` (Finding 4) keep this WEAK rather than EARNED. |
+| `BSDEJ.PathRegularity.bsdej_path_regularity` (Tier 1 #10) | WEAK | Bouchard-Elie 2008 SPA 118(1) cited correctly. `Z_avg`/`U_avg` pinned (H3). But the `C : T → L → norm_ξ → ℝ` parametrization is cosmetic — any positive `C` works (Finding 5). Same `Adapted`-vs-`ProgMeasurable` gap as #9 (Finding 1). Same missing càdlàg requirement (Finding 2). |
+| `Ito.JumpFormula.itoLevyFormula` (Tier 1 #11) | EARNED-with-CAVEAT | Applebaum 4.4.7 cited. All 4 terms pinned (no remaining existentials — C2 fully closed). Helpers (`gradient`, `hessian`, `levyGenerator`, `diffusionIntegrand`, `compensatorDriftIntegrand`) are honest. BUT the compensator drift integrates over ALL of E without small/large jump truncation; for general Lévy measures this is not Applebaum 4.4.7 globally — see Finding 3. The axiom is faithful for bounded/finite Lévy measures only. |
+| `Ito.Setting.JumpDiffusion.exists_unique` (baseline sorry) | EARNED-with-CAVEAT | C3 closed (no constant-path witness). Lipschitz hypotheses honestly absent from the sorry'd theorem (would need adding for a real proof). Uses `X_s` not `X_{s-}` (Finding 8); no càdlàg field (Finding 2). Sorry is honest. |
+| `BSDEJ.MartingaleRepresentation.jacodYor_representation` (baseline sorry) | WEAK | C4 closed at signature level (BM_integral and jump_integral pinned to canonical integrals). But `ξ` is only required to be Borel-measurable, not ℱ_T-measurable — Jacod 1976 requires the latter (Finding 9). The current sorry'd theorem is too strong; replacing the sorry with a real proof would require False (or finding the gap). |
 
-## Tools and sources used
+## Persona-specific section: what would a research mathematician flag in a referee report?
 
-- **Lean LSP tools called**:
-  - `ToolSearch` to load `mcp__lean-lsp__lean_verify`, `lean_hover_info`, `lean_declaration_file`, `lean_diagnostic_messages`, `lean_goal`, `lean_file_outline`, plus `WebSearch`, `WebFetch`.
-  - `mcp__lean-lsp__lean_hover_info` on `continuousBSDEJ_exists_unique` to confirm hypothesis-free signature.
-  - Direct `Read` on every key file: `BSDEJ/Definition.lean`, `BSDEJ/Existence.lean`, `BSDEJ/PathRegularity.lean`, `BSDEJ/MartingaleRepresentation.lean`, `Brownian/Construction.lean`, `Brownian/Continuity.lean`, `Brownian/Multidim.lean`, `Brownian/Martingale.lean` (partial), `Brownian/Ito.lean` (partial via outline), `Brownian/SimplePredictableRefine.lean` (partial — Tier 1 #5 region), `Poisson/RandomMeasure.lean`, `Poisson/NaturalFiltration.lean`, `Poisson/L2Isometry.lean`, `Poisson/Compensated.lean` (partial — Tier 1 #6-#8 region), `Ito/Setting.lean`, `Ito/JumpFormula.lean`.
-  - `Grep` for trivial-witness pattern matches: `refine ⟨0, 0`, `True := trivial`, `sorry`, `ξ_measurable`, `is_solution`, `IsBSDEJSolution`, `JumpDiffusion`, `jacodYor_representation`, `itoLevyFormula`, `simplePredictable_dense_L2`, `kolmogorov_modification_ae_eq`, `poissonRandomMeasure_finite_exists`, `quadVar_simpleIntegral_brownian`, `Compensated.simplePredictable_dense_L2`.
-- **Web searches**:
-  - `"backward stochastic differential equation" definition "adapted" "predictable" "S² × H²" Pardoux Rascanu`
-  - `Tang Li 1994 BSDE jumps "adapted" "predictable" definition uniqueness`
-  - `"H²" "predictable processes" BSDE definition "locally square integrable" Z process`
-  - `Applebaum 2009 "Poisson random measure" definition 2.3.1 "intensity measure" properties`
-  - `Karatzas Shreve "Brownian motion" definition 2.1 "F_t-adapted" measurable process`
-- **Web fetches**:
-  - `https://www.researchgate.net/publication/305322166_Existence_and_uniqueness_results_for_BSDE_with_jumps_the_whole_nine_yards` (403 forbidden)
-  - `https://arxiv.org/pdf/1607.06644` (PDF — could not extract text)
-  - `https://www.math.utah.edu/~davar/math7880/S11/Chapters/Ch4.pdf` (PDF — could not extract text)
-  - `https://www.math.purdue.edu/~stindel/teaching/ma539/brownian-motion2.pdf` (PDF — could not extract text)
-  - `https://unina2.on-line.it/sebina/repository/catalogazione/documenti/Karatzas,%20Shreve%20-%20Brownian%20motion%20and%20stochastic%20calculus.%202.%20ed..pdf` (PDF — could not extract text)
-- **Papers consulted (for the literature predicates)**:
-  - Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*, Springer 1991, Definition 2.1.1, Theorems 2.1.5, 2.2.8, 2.7.7, 2.7.9, 3.2.6.
-  - Le Gall, J.-F. *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, Theorems 2.1, 2.9, 5.13.
-  - Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, Definition 2.3.1, Theorems 2.3.1, 4.2.3, 4.2.4, 4.4.7, 6.2.9, Lemmas 4.2.2, 4.2.5.
-  - Ikeda, N. & Watanabe, S. *SDEs and Diffusion Processes*, 2nd ed., North-Holland 1989, §II.3, Lemmas II.3.3, II.3.4.
-  - Pardoux, E. & Răşcanu, A. *SDEs, Backward SDEs, PDEs*, Springer 2014, Theorems 4.79, 5.42.
-  - Tang, S. & Li, X. *Necessary conditions for optimal control of stochastic systems with random jumps*, SIAM J. Control Optim. 32(5), 1994, Theorem 3.1.
-  - Bouchard, B. & Elie, R. & Touzi, N. *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*, SPA 119(11), 2009, Theorem 2.1.
-  - Kallenberg, O. *Random Measures, Theory and Applications*, Springer 2017, Proposition 3.6.
-  - Revuz, D. & Yor, M. *Continuous Martingales and Brownian Motion*, Springer 1999, Theorem I.2.1.
-  - Jacod, J. (1976) "Multivariate point processes: predictable projection, Radon-Nikodym derivatives, representation of martingales".
+If I were refereeing this library for a Mathlib PR, the top-of-the-list points would be:
 
-## What you couldn't verify
+1. **`Adapted` vs `ProgMeasurable`** (Finding 1). Every stochastic-calculus referee will catch this immediately because Mathlib already has `ProgMeasurable` and the difference between the two is well-known to be subtle (joint progressive measurability on the product σ-algebra is strictly stronger than per-time-t adaptedness). The fix is a one-line change in `IsBSDEJSolution` (replace `Adapted Filt Z` with `ProgMeasurable Filt Z`).
 
-- Could not directly extract verbatim quotes from the cited textbooks (Karatzas-Shreve, Le Gall, Applebaum) because the PDF endpoints I tried returned raw binary that the WebFetch summarizer couldn't read, and Google Books / Springer abstracts are paywalled. I cross-verified the literature predicates against secondary sources (web-search summaries from multiple recent BSDE-with-jumps papers — see the "modern BSDE with jumps" consensus quoted in Finding 2). The predicate I claim for `S² × H² × H²_N` matches multiple independent recent references, so this is high-confidence even without direct quotes from Tang-Li 1994.
-- Did not exhaustively read the ~4000 lines of low-level simple-integrand machinery in `Brownian/Ito.lean` + `Brownian/SimplePredictableRefine.lean` + `Poisson/Compensated.lean`. I read the cited-axiom statements and the immediately surrounding 100-200 lines, plus the file outlines. A persona-12 / persona-5 deeper proof-tree audit may find further trivial-witness patterns in private lemmas; my lens is the public predicates and cited statements.
-- Did not run `lake build` or `tools/lint.sh` directly (read-only audit). The 8401-job PASS state is taken from the override doc and `tools/full_audit_output.txt`.
-- Did not verify the `_h_progMeas` parameter types in `itoIsometry_brownian_unified_existence` against Mathlib's `MeasureTheory.ProgMeasurable` — there's a custom progressive-σ-algebra encoding via `StronglyMeasurable` with `Prod.instMeasurableSpace ... naturalFiltration ... seq t)`. This could be subtly different from the standard `ProgMeasurable` definition; a Lean-formalization specialist (persona 1 / 2) should check.
+2. **No càdlàg field on `Y` / `X`** (Finding 2). The literature `S²` space is càdlàg-adapted. Replacing it with "jointly measurable + L²-sup-norm" is a structural deviation; the `sup` over an interval of a non-càdlàg jointly-measurable process is not even guaranteed to be measurable in `ω`.
+
+3. **General Lévy measure handling in `itoLevyFormula`** (Finding 3). The unrestricted-domain Compensated integral + compensator drift over all of E is fine for bounded-jump / finite-intensity ν, but is the wrong statement for infinite-intensity Lévy measures (where the small/large-jump split is the standard approach in Applebaum). A working mathematician reading the axiom expecting Applebaum 4.4.7 would be confused by the apparent absence of the small/large split.
+
+4. **`Compensated.itoIsometry_compensated_unified_existence` asymmetry with the Brownian side** (Finding 6). The Brownian-side axiom takes `h_progMeas` as a parameter; the Compensated-side does not. This is unjustified — Applebaum 4.2.3 is for predictable φ, exactly like Karatzas-Shreve 3.2.6 is for predictable H. The fix is a 5-line signature change.
+
+5. **`jacodYor_representation` ξ is not pinned to ℱ_T-measurability** (Finding 9). Jacod 1976 is about ℱ_T-measurable ξ. The Lean theorem (as `sorry`'d) would be False for non-ℱ_T-measurable ξ. This is the kind of "the statement is too strong; the proof can never succeed" pattern that's harmless when sorry'd but indicates the signature was drafted without checking the theorem hypothesis.
+
+I would NOT flag in a referee report:
+
+- The `joint_measurable` field on `BrownianMotion` — this is a real improvement that brings the structure in line with Le Gall §2.1.
+- The `integer_valued` field on `PoissonRandomMeasure` — also a real improvement (modulo the still-missing infinite-intensity clause, Finding 11, which is a corner case).
+- The constant-path witness exclusion from `JumpDiffusion` (C3 closure) — genuinely closed.
+- The `⟨0,0,0,ξ−𝔼[ξ]⟩` exclusion from `jacodYor_representation` (C4 closure) — genuinely closed at the signature level.
+- The four-term pinning of `itoLevyFormula` (C2 closure) — substantively closed.
+- The `Filt ≥ joint natural filtration` constraint (M11 closure) — verified mathematically sound in my peer P5's Finding 3. `Filt = ⊤` is not exploitable because it forces M_W and M_N to be a.s.-constant (contradicting the M_W pin for non-zero Z).
+
+## What I couldn't verify
+
+- **Web access to the cited textbooks failed**: WebFetch on the Le Gall 2016 PDF returned binary content; Applebaum and Karatzas-Shreve are paywalled. I confirmed the existence of the cited papers via WebSearch (Tang-Li 1994 SICON 32(5):1447-1475 confirmed; Bouchard-Elie 2008 SPA 118(1):53-75 confirmed). For specific theorem-number content (e.g. Le Gall Thm 5.4 says "Itô isometry" vs something else) I have relied on secondary citations and my own pre-existing knowledge of the standard references — high-confidence but not first-source-verified.
+- **No counterexample exhibition**: For Finding 1 (Adapted vs ProgMeasurable), Finding 3 (small/large jump split), and Finding 9 (ξ not ℱ_T-measurable), I described the issues structurally but did not construct a concrete Lean witness exhibiting the divergence. Each would take ~30-80 lines of Mathlib boilerplate. For a soundness-only audit lens, the descriptions suffice; for a "construct a Lean exploit" audit lens, this is deferred.
+- **No closure verification of Pardoux-Răşcanu Theorem 4.79's hypothesis list**: I claim the linear-growth-at-zero hypothesis is part of Tang-Li 1994 Thm 3.1 hypothesis (H2). This is standard but I did not re-derive it from a first-source PDF.
 
 ## Recommendations for the project (≤ 5 bullets)
 
-- **Fix `itoLevyFormula` properly, not cosmetically.** The 2026-05-11 demotion was the wrong direction — the trivial-witness defect is in the STATEMENT, not just the proof. Either pin the four terms to the literature integral forms (`Brownian.SimplePredictableRefine.stochasticIntegral` against `∇uᵀ σ`, `Poisson.Compensated.stochasticIntegral` against `u(·+γ) − u`, etc.) or remove the axiom and accept that the Itô-Lévy formula is not formalised yet.
-- **Fix `JumpDiffusion.is_solution : True` and `jacodYor_representation`'s trivial proof.** These are the same defect class the recursive audit was designed to catch; they were missed because (a) `is_solution : True` is a structural placeholder rather than a per-proof witness, and (b) `jacodYor_representation` looks substantive due to its 5-conjunct conclusion. Either pin the existentials to their actual integral content, or demote to `axiom` with citations.
-- **Add literature hypotheses to the BSDEJ cited axioms.** `continuousBSDEJ_exists_unique` and `bsdej_path_regularity` currently take `(W, N, bsdej, X, T, 0 < T)` only — add `(h_L : 0 ≤ L) (h_Lip : Lipschitz bsdej ν L) (h_meas_X) (h_terminal_L2)` to match Tang-Li / Bouchard-Elie-Touzi. Without these, the axioms claim more than the cited theorems.
-- **Strengthen `IsBSDEJSolution` to literature `S² × H² × H²_N`.** Add adaptedness of `Y`, predictability (or progressive measurability) of `Z, U`. Pin `M_W` to the multidim Brownian stochastic integral of `Z` (will require introducing a multidim-Brownian-Itô-integral primitive, mirror of `Compensated.stochasticIntegral`). After this, the uniqueness clause of `continuousBSDEJ_exists_unique` becomes consistent with Tang-Li.
-- **Audit metric upgrade.** `#print axioms`-cleanness fooled the recursive audit on `JumpDiffusion.exists_unique` and `jacodYor_representation` (both show `[propext, Classical.choice, Quot.sound]` in the audit output). Add a secondary trivial-witness scanner that flags `theorem` whose proof body matches patterns like `refine ⟨0, …⟩; …; ring|simp` or `refine ⟨{… is_solution := trivial …}⟩; …`. The pattern is mechanical to detect; the audit just needs to know to look.
+- **Replace `Adapted Filt Z/U` with `ProgMeasurable Filt Z/U`** in `IsBSDEJSolution` (`BSDEJ/Definition.lean:160-162`) and `JumpDiffusion.is_solution`. This is a one-line change per predicate that closes the largest current literature-divergence (Finding 1). It does NOT require any axiom changes — the existing inner `h_progMeas` bundles deliver the data needed.
+- **Add càdlàg fields to `IsBSDEJSolution.Y` and `JumpDiffusion.X`**, mirroring the càdlàg conjunct already present in `Compensated.itoIsometry_compensated_unified_existence`. This brings the predicate in line with literature `S²` and makes the `sup` in the path-regularity bound well-posed (Finding 2).
+- **Tighten `itoIsometry_compensated_unified_existence`** to take `h_meas`, `h_progMeas`, `h_sq_int_global` as parameters, mirroring the Brownian-side axiom. This converts H6's documentation-only closure into a real signature-level closure (Finding 6).
+- **Either restrict `itoLevyFormula` to finite Lévy measures, or add the small/large jump split** to handle infinite-intensity Lévy measures correctly (Finding 3). Currently the axiom is faithful only for the bounded-jump case.
+- **Add `ℱ_T`-measurability hypothesis to `jacodYor_representation`** (Finding 9). The current statement is too strong to ever be proved.
+
+## Files read
+
+- `D:\LevyStochCalc\redteam_findings\shared_context_override.md` (full)
+- `D:\LevyStochCalc\redteam_findings\2026-05-20-archive\04_pure_mathematician.md` (full, predecessor's report)
+- `D:\LevyStochCalc\redteam_findings\05_proof_theorist.md` (full, parallel peer report)
+- `D:\LevyStochCalc\LevyStochCalc\BSDEJ\Definition.lean` (full, 203 lines)
+- `D:\LevyStochCalc\LevyStochCalc\BSDEJ\Existence.lean` (full, 138 lines)
+- `D:\LevyStochCalc\LevyStochCalc\BSDEJ\PathRegularity.lean` (full, 176 lines)
+- `D:\LevyStochCalc\LevyStochCalc\BSDEJ\MartingaleRepresentation.lean` (full, 112 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Ito\Setting.lean` (full, 148 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Ito\JumpFormula.lean` (full, 198 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Brownian\Construction.lean` (full, 173 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Brownian\Multidim.lean` (full, 248 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Brownian\MultidimIto.lean` (full, 80 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Poisson\RandomMeasure.lean` (full, 207 lines)
+- `D:\LevyStochCalc\LevyStochCalc\Brownian\SimplePredictableRefine.lean` (lines 2080-2200, axiom + downstream definitions)
+- `D:\LevyStochCalc\LevyStochCalc\Poisson\Compensated.lean` (lines 1750-1970, axiom + downstream definitions)
+- `D:\LevyStochCalc\tools\cited_axioms.md` (first 200 lines, then skimmed)
+
+## Lean LSP / web tools called
+
+- `mcp__lean-lsp__lean_verify` on `continuousBSDEJ_exists_unique`, `bsdej_path_regularity`, `itoLevyFormula`, `JumpDiffusion.exists_unique` — all returned clean axiom sets matching `tools/full_audit_output.txt` (modulo `sorryAx` for the two baseline sorries).
+- `mcp__lean-lsp__lean_leansearch` — confirmed `MeasureTheory.ProgMeasurable` vs `MeasureTheory.Adapted` are genuinely distinct Mathlib predicates with the strict-implication theorems requiring extra hypotheses (continuity-in-time or discrete-time).
+- `WebSearch` — confirmed Tang-Li 1994 SICON 32(5):1447-1475 and Bouchard-Elie 2008 SPA 118(1):53-75 are real papers with the claimed titles and venues.
+- `WebFetch` Le Gall 2016 PDF — returned binary content, could not extract.

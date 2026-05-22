@@ -1,307 +1,255 @@
-# Red Team Audit: Library quality reviewer (Mathlib-acceptability lens)
+# Red Team Audit: Library quality reviewer (Mathlib-acceptability lens, 2nd audit)
 
-**Auditor lens**: Library quality reviewer for a stand-alone Lean 4 stochastic calculus library; would a Mathlib reviewer accept this as-is, and could a fresh user pick it up?
-**Date**: 2026-05-20
-**Coverage**: 27 files read in full (`cited_axioms.md`, `full_audit.lean`, `full_audit_output.txt`, `lint.sh`, `_audit.lean`, `audit_output.txt`, `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`, `LevyStochCalc.lean`, `STATUS.md`, `STATUS_strong_exists.md`, `Basic.lean`, `Notation.lean`, `Construction.lean`, `Continuity.lean`, `Martingale.lean`, `Multidim.lean`, `SimplePredictableRefine.lean` (partial 1-200, 1750-2250), `Ito.lean` (partial 1100-1180, 3360-4060), `Compensated.lean` (partial 1-200, 1870-2050, 2240-2900), `L2Isometry.lean`, `RandomMeasure.lean`, `Setting.lean`, `JumpFormula.lean`, `Definition.lean`, `Existence.lean`, `PathRegularity.lean`, `MartingaleRepresentation.lean`); 4 files skimmed via `Grep` only (`shared_context_override.md`, `output_template.md`, `shared_context.md`, persona file); persona 8 / 9 / 6 / 2 / 11 / 12 redteam_findings/ files not read (independent audit). `docs/` directory is empty so no docs read. No README.md anywhere in the repo.
+**Auditor lens**: Library quality reviewer for a stand-alone Lean 4 stochastic calculus library; would a Mathlib reviewer accept this, and could a fresh user pick it up?
+**Date**: 2026-05-22 (2nd audit)
+**Branch / commit audited**: `master` @ `237cc19` ("Close red-team L2, M10, H6 (naming drift, vector-Y scope, predictable caveat)")
+**Coverage**: 21 files Read in full or in load-bearing range (`README.md`, `LICENSE` (verified Apache 2.0 boilerplate complete), `CONTRIBUTING.md`, `STATUS.md`, `LevyStochCalc.lean`, `lakefile.toml`, `lake-manifest.json`, `.github/workflows/ci.yml`, `_audit.lean`, `audit_output.txt`, `tools/cited_axioms.md` (full), `tools/full_audit.lean`, `tools/full_audit_output.txt`, `tools/lint.sh`, `tools/sorry_baseline.txt`, `Basic.lean`, `Notation.lean`, `Brownian/Construction.lean`, `Brownian/Multidim.lean`, `Brownian/Continuity.lean` (partial), `Brownian/SimplePredictableRefine.lean` (axiom site), `Poisson/RandomMeasure.lean`, `Poisson/Compensated.lean` (axiom site + docstring + master HEAD diff), `Poisson/L2Isometry.lean`, `Ito/Setting.lean`, `Ito/JumpFormula.lean`, `BSDEJ/Definition.lean`, `BSDEJ/Existence.lean`, `BSDEJ/PathRegularity.lean`, `BSDEJ/MartingaleRepresentation.lean`, `_mcp_snippet_952bdcfd68b74942a7ef219170b0f2aa.lean`). Git history scanned (recent 25 commits). 1st-audit archived persona-10 report read in full. Live `lake build` run on master HEAD (clean) and on the worktree's uncommitted modifications (BROKEN). Other personas' findings (05, 07, 11, 12) sampled to avoid redundancy.
 
-## Executive summary (≤ 3 sentences)
+## Executive summary
 
-The library would not be acceptable to Mathlib as a PR — both because it sits on 11 user-introduced axioms (which Mathlib does not merge) and because three theorems claiming non-trivial published content (`itoLevyFormula`, `jacodYor_representation`, `JumpDiffusion.exists_unique`) have **trivial-witness proofs / vacuous existential statements** that the 2026-05-11 recursive audit caught for one of them (`itoLevyFormula` was demoted to `axiom`) but missed for the other two. Three of the eleven Tier 1 cited axioms — `bsdej_path_regularity`, `continuousBSDEJ_exists_unique`, and `itoIsometry_compensated_unified_existence` — have signatures that **omit the literature hypotheses** (no Lipschitz, no progressive-measurability, no L²-integrability on the inputs), making them mathematically overstated relative to the cited paper theorems; the citation for `bsdej_path_regularity` is also defective on author, year, and volume number. There is no README, no user-facing documentation in the empty `docs/` folder, and the only orientation a new user has is the `STATUS.md` developer log.
+The library has come a long way in two days: a respectable Apache-2.0 boilerplate is in place, a hand-written `README.md` + `CONTRIBUTING.md` exist, a CI workflow runs `lake build` + `tools/lint.sh`, the audit output enumerates exactly 9 Tier 1 cited axioms (matching the post-deletion claim), and `lake build` on master HEAD genuinely lands at "8402 jobs, 2 warnings" (= the two sorry baseline entries). **None of that is, by itself, enough.** A Mathlib reviewer would still reject this library at first contact for three reasons: (1) the project orientation files (README.md, STATUS.md, tools/full_audit.lean, top-level LevyStochCalc.lean module docstring) are mutually inconsistent — they variously claim 9 vs 11 Tier 1 axioms, list two file names (`Brownian/BrownianMotion.lean`, `Brownian/NaturalFiltration.lean`) that DO NOT EXIST in the source tree, and the top-level module docstring still cites the FABRICATED "Bouchard-Elie-Touzi 2009 Thm 2.1" reference whose correction was supposedly the headline of the citation cleanup; (2) the library ships ZERO examples or tests demonstrating its API — every "public" theorem is either an axiom, a forwarder around an axiom, or a derivative of an axiom, with no `example` block anywhere showing a user how to invoke `Compensated.stochasticIntegral` or instantiate `BrownianMotion`; (3) the H6 "closure" of the predictable-vs-measurable gap is documentation-only at the master HEAD signature — the docstring honestly admits the over-claim, but the BSDEJ + Itô-Lévy chain still propagates the over-claim into every load-bearing caller, so a Mathlib reviewer cross-checking the axiom signature against the cited Applebaum statement would note the literature requires predictable σ-algebra and the Lean axiom does not.
 
 ## Top findings (ranked by severity, highest first)
 
-### Finding 1 — `jacodYor_representation` is a trivial-witness "theorem" of the same shape as the demoted `itoLevyFormula`
+### Finding 1 — Top-level module docstring `LevyStochCalc.lean:44` STILL cites the fabricated "Bouchard-Elie-Touzi 2009 Thm 2.1" reference whose correction is the project's headline citation fix
 
 - **Severity**: CRITICAL
-- **Location**: `LevyStochCalc/BSDEJ/MartingaleRepresentation.lean:55-84`
-- **Evidence** (verbatim proof body):
-  ```
-  theorem jacodYor_representation … :
-      ∃ (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
-        (BM_integral jump_integral : Ω → ℝ),
-        Measurable (Function.uncurry Z) ∧
-        Measurable (fun (p : ℝ × Ω × E) => U p.1 p.2.1 p.2.2) ∧
-        (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-          ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) ∧
-        (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-          (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) ∧
-        (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P) + BM_integral ω + jump_integral ω) := by
-    -- Existence: take Z = 0, U = 0, BM_integral = 0, jump_integral = ξ - 𝔼[ξ].
-    refine ⟨0, 0, 0, fun ω => ξ ω - ∫ ω', ξ ω' ∂P, ?_, ?_, ?_, ?_, ?_⟩
-    · exact measurable_const
-    · exact measurable_const
-    · simp
-    · simp
-    · refine Filter.Eventually.of_forall (fun ω => ?_)
-      show ξ ω = (∫ ω', ξ ω' ∂P) + 0 + (ξ ω - ∫ ω', ξ ω' ∂P)
-      ring
-  ```
-  `mcp__lean-lsp__lean_verify` confirms axiom set is `{propext, Classical.choice, Quot.sound}` — i.e., the theorem reads as "axiom-clean derivative."
-- **Why this matters**: This is the **exact pattern the 2026-05-11 recursive audit was set up to catch** (and which caught `itoLevyFormula`). The existentials `BM_integral`, `jump_integral` are named to look like "the Brownian integral of `Z` against `W`" and "the jump integral of `U` against `Ñ`" — but the Lean signature contains no constraint that ties them to integrals of `Z, U`. Setting `Z = 0, U = 0, BM_integral = 0, jump_integral = ξ − E[ξ]` makes the only non-trivial conjunct `ξ = E[ξ] + 0 + (ξ − E[ξ])` (true by `ring`). The "honest derivative theorem" listed in `tools/cited_axioms.md` is in fact a tautology dressed as "Jacod-Yor martingale representation". A Mathlib reviewer reading the docstring "Every L²-martingale on the filtration generated by Brownian motion `W` and Poisson random measure `N` … admits a unique two-source predictable representation" would see this is not what is being proved.
-- **Recommendation**: Either (a) demote to an `axiom` with a proper citation (Jacod 1976, *Multivariate point processes…*) — the same treatment `itoLevyFormula` received — or (b) strengthen the existential to constrain `BM_integral` to equal `Brownian.SimplePredictableRefine.stochasticIntegral W Z` (and `jump_integral` to `Compensated.stochasticIntegral N U`). Add to `tools/cited_axioms.md` Tier 1 inventory if (a).
+- **Location**: `D:\LevyStochCalc\LevyStochCalc.lean:44` (verbatim):
+  > `* `Cu05` — BSDEJ path regularity (Bouchard-Elie-Touzi 2009 Thm 2.1)`
+- **Evidence**: `grep -rn "Bouchard-Elie-Touzi"` in the live source tree returns:
+  - `LevyStochCalc.lean:44` (top-level project docstring; the FIRST thing a Mathlib reviewer reads)
+  - `STATUS.md:59` (acceptable — narrating the fix)
+  - Multiple historical references in `BSDEJ/PathRegularity.lean` (acceptable — quoting the fix narrative)
+- **Why this matters**: The 1st audit's `_REDTEAM_SUMMARY.md` listed "C7. Tier 1 #10 citation 'Bouchard, Elie & Touzi 2009 SPA 119(11)' is wrong on every field" as a CRITICAL finding. The `cited_axioms.md` line 102 fix is correct (Bouchard-Elie 2008 SPA 118(1)), `STATUS.md:58-60` narrates the fix correctly, the in-axiom docstring at `PathRegularity.lean:103` is correct, AND the `tools/cited_axioms.md` `Red-team audit fix log` line 192-193 says "C7 closed". But the project root module file `LevyStochCalc.lean` — the file that re-exports every public-facing identifier and is the most-visible "what is this library?" surface — STILL CARRIES THE OLD FABRICATED CITATION. A Mathlib reviewer running `head -50 LevyStochCalc.lean` (the standard first action when reading a Lean library) sees the bad citation and concludes the citation cleanup was not consistently applied. The shared-context-override.md claims "Tier 1 #10: 'Bouchard-Elie-Touzi 2009 SPA 119(11)' (Touzi not an author; no such SPA volume) → Bouchard-Elie 2008 SPA 118(1) pp. 53-75." — but the project's own front door doesn't reflect that.
+- **Recommendation**: Update `LevyStochCalc.lean:44` to `* `Cu05` — BSDEJ path regularity (Bouchard-Elie 2008 SPA 118(1) Thm 2.1)`.
 
-### Finding 2 — `JumpDiffusion.exists_unique` is also a trivial-witness "theorem"; structure carries `is_solution : True`
-
-- **Severity**: CRITICAL
-- **Location**: `LevyStochCalc/Ito/Setting.lean:85-112` (theorem) and `:46-72` (structure with `is_solution : True`)
-- **Evidence** (verbatim):
-  ```
-  /-- A *jump diffusion* solution. The `is_adapted` field asserts the path map
-  is measurable in `ω` for each `t`; the full SDE-satisfaction predicate is
-  layered on top once the Itô + compensated-Poisson integrals are
-  defined (Phase 3). -/
-  structure JumpDiffusion … where
-    X : ℝ → Ω → (Fin n → ℝ)
-    measurable_path : Measurable (Function.uncurry X)
-    initial_value : ∀ᵐ ω ∂P, X 0 ω = x₀
-    sup_L2 : ∀ T : ℝ, 0 < T → … < ⊤
-    /-- The SDE itself: stubbed, since the integrals along `X` require Phase 3
-    development. -/
-    is_solution : True
-
-  /-- **Existence and uniqueness of the jump-diffusion SDE.** … Reference: Applebaum 2009 Thm 6.2.9 … -/
-  theorem JumpDiffusion.exists_unique … :
-      Nonempty (JumpDiffusion W N coeffs x₀) := by
-    -- Existence witness: the constant path X t ω = x₀.
-    refine ⟨{ X := fun _ _ => x₀, … is_solution := trivial }⟩
-    …
-  ```
-  Verified axiom-clean by `mcp__lean-lsp__lean_verify`.
-- **Why this matters**: The theorem is named `exists_unique` but only an existence witness is provided. The structure's `is_solution : True` field is the dead giveaway — there is no SDE-validity predicate, so the "jump diffusion" structure is just a stochastic process with measurable path, the right initial value, and a sup-L² bound. The constant process `X t ω := x₀` trivially witnesses existence. The cited literature theorem (Applebaum 2009 Thm 6.2.9) requires Lipschitz coefficients and gives a *càdlàg* solution to a specific SDE; this Lean theorem provides neither. The name "exists_unique" is also actively misleading — there is no uniqueness conjunct. This pattern is morally indistinguishable from the demoted `itoLevyFormula`.
-- **Recommendation**: Either (a) demote to a Tier 1 cited axiom with the proper Applebaum 6.2.9 citation (the path the project has chosen for `itoLevyFormula`) and remove the `is_solution : True` field as misleading, or (b) actually layer in the SDE-validity predicate. Rename to `JumpDiffusion.exists` (drop `_unique` since uniqueness isn't asserted).
-
-### Finding 3 — `continuousBSDEJ_exists_unique` axiom signature omits all literature hypotheses (Lipschitz, X-progressive-meas, terminal-L²)
+### Finding 2 — `STATUS.md`, `tools/full_audit.lean`, and (in spirit) `README.md` are mutually inconsistent on the Tier 1 axiom count (9 vs 11)
 
 - **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Existence.lean:113-127`
-- **Evidence** (verbatim signature):
-  ```
-  axiom continuousBSDEJ_exists_unique
-      {P : Measure Ω} [IsProbabilityMeasure P]
-      {ν : Measure E} [SigmaFinite ν]
-      {n d : ℕ}
-      (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-      (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-      (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
-      (X : ℝ → Ω → (Fin n → ℝ))
-      (T : ℝ) (_hT : 0 < T) :
-      ∃ (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ),
-        IsBSDEJSolution W N bsdej X Y Z U T ∧ …
-  ```
-  Docstring on the axiom says "Under Lipschitz hypotheses on (f, g) and L² integrability of the terminal data, the BSDEJ has a unique adapted solution triple…"
-- **Why this matters**: The signature has **no Lipschitz hypothesis on `bsdej.f`, no growth condition on `bsdej.g`, no measurability/adaptedness/integrability hypothesis on the forward process `X`**. So the axiom asserts: for every `bsdej` and every `X : ℝ → Ω → (Fin n → ℝ)` whatsoever, a unique BSDEJ solution exists. Tang–Li 1994 Thm 3.1 absolutely requires the Lipschitz + L²-terminal-data hypotheses; without them the BSDEJ can fail to have any solution (e.g., super-linear `f(s, x, y, z, u) = y²` produces finite-time explosion in `Y`). The axiom is therefore **stronger than the cited paper theorem** — it asserts existence for cases the paper does not cover and where the conclusion is mathematically false. The docstring lies about what's being assumed. Same issue applies verbatim to `bsdej_path_regularity` (`PathRegularity.lean:111-139`).
-- **Recommendation**: Add the literature hypotheses to the axiom signatures:
-  - `Lipschitz bsdej ν L` (the predicate already exists at `BSDEJ/Existence.lean:67-73`),
-  - measurability and adaptedness of `X` to the natural filtration of `(W, N)`,
-  - `∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞)^2 ∂P < ⊤`.
-  If left unfixed, the citation "Tang–Li 1994 Thm 3.1" misrepresents what the axiom claims.
+- **Locations**:
+  - `STATUS.md:24` (header): "Tier 1 cited axioms (11)"
+  - `STATUS.md:31-37`: enumerates "Compensated-Poisson foundations (3 axioms): ... plus two dead density-chain axioms (`cauchySeq_simpleIntegralLp_compensated`, `adaptedSimple_dense_L2_compensated`) that the 2026-05-10 unified-existence refactor made redundant; **flagged for follow-up removal as red-team finding M4.**"
+  - `tools/full_audit.lean:8`: "every theorem listed should have axiom set ⊆ {propext, Classical.choice, Quot.sound} ∪ {the **11 Tier 1 cited axioms** documented in tools/cited_axioms.md}"
+  - `tools/full_audit.lean:12`: "The **9 currently-live Tier 1 cited axioms** (axioms #7 and #8 were deleted 2026-05-22..."
+  - `tools/cited_axioms.md:10` (header): "Tier 1: Honest cited axioms (**9 currently live; #7 and #8 deleted 2026-05-22**)"
+  - `tools/cited_axioms.md:220-221` (`MEDIUM` fix log): "**M4** (Tier 1 #7 + #8 dead post-refactor): retained pending careful walk-up deletion of the intertwined dead chain (substantial follow-up)."
+  - `README.md:60`: "9 axioms total"
+  - `audit_output.txt`: enumerates exactly 9 distinct cited axioms (verified count).
+- **Why this matters**: Three different files give three different answers on the same factual question. `STATUS.md` (dated 2026-05-22) says 11 axioms AND that the two extra are "flagged for follow-up removal" — but `cited_axioms.md` (also dated 2026-05-22) says the two were DELETED on that day. `full_audit.lean`'s docstring CONTRADICTS ITSELF — line 8 says 11, line 12 says 9. The audit script and the README correctly say 9. A Mathlib reviewer who reads STATUS.md first ("Status: Tier 1 cited axioms (11)") will form a mistaken model of the library's axiom budget, then notice the discrepancy with audit_output.txt and lose trust in the documentation. The honest count is 9.
+- **Recommendation**: One edit to `STATUS.md` (the "Tier 1 cited axioms" header and bullet list); one edit to `tools/full_audit.lean:8` (change `11` → `9`); one edit to `tools/cited_axioms.md:220-221` (M4 already closed by deletion; mark as such).
 
-### Finding 4 — `itoIsometry_compensated_unified_existence` axiom omits the predictability + L²-integrability hypotheses on φ that its Brownian counterpart correctly carries
+### Finding 3 — `README.md` and `STATUS.md` list TWO file names that do not exist in the source tree
 
 - **Severity**: HIGH
-- **Location**: `LevyStochCalc/Poisson/Compensated.lean:2748-2767`
-- **Evidence** (verbatim signature):
-  ```
-  axiom itoIsometry_compensated_unified_existence
-      {P : Measure Ω} [IsProbabilityMeasure P]
-      {ν : Measure E} [SigmaFinite ν]
-      (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-      (φ : Ω → ℝ → E → ℝ) :
-      ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
-        MeasureTheory.Martingale F Filt P ∧
-        MeasureTheory.Martingale
-          (fun t ω => (F t ω) ^ 2
-            - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P ∧
-        (∀ T, 0 < T → Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
-          ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-            (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ →
-          ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
-            ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-              (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) ∧
-        (∀ᵐ ω ∂P, ∀ t : ℝ,
-          Filter.Tendsto (fun s => F s ω) (nhdsWithin t (Set.Ioi t)) (nhds (F t ω)) ∧ …)
-  ```
-  Compare the Brownian counterpart, which is correctly hypothesised:
-  ```
-  axiom itoIsometry_brownian_unified_existence
-      … (W : LevyStochCalc.Brownian.BrownianMotion P)
-      (H : Ω → ℝ → ℝ)
-      (h_meas : Measurable (Function.uncurry H))
-      (h_progMeas : ∀ t : ℝ, @StronglyMeasurable (Ω × ℝ) ℝ _ … (fun p : Ω × ℝ => H p.1 p.2))
-      (h_sq_int_global : ∀ T, 0 < T → … < ⊤) :
-      ∃ (F : ℝ → Ω → ℝ) (Filt : Filtration ℝ _),
-        Martingale F Filt P ∧ … (no inner-conditional in isometry conjunct)
-  ```
-  (`Brownian/SimplePredictableRefine.lean:2094-2115`)
-- **Why this matters**: The Compensated axiom states *unconditionally* for every `φ : Ω → ℝ → E → ℝ` (with no predictability, no progressive measurability, no L² assumption) that there exists a process `F` and filtration `Filt` such that the martingale + quadratic-variation conjuncts hold and `F` is càdlàg. The literature theorem (Applebaum 2009 Thm 4.2.3 + 4.2.4) is a statement about **predictable square-integrable** integrands. For an arbitrary non-predictable `φ`, no L² Itô–Lévy integral exists in the literature sense; the axiom asserts its existence anyway. By way of example: with `φ ω s e := 1` and `ν` finite, the Bochner integrand `∫ e, (φ ω s e)^2 ∂ν = ν(E)` is a positive constant, so conjunct 2 demands `F²_t − t·ν(E)` to be a `Filt`-martingale; this forces `F` to be a martingale with quadratic variation `⟨F⟩_t = t·ν(E)`. Such an `F` exists (Brownian-like), so the axiom is satisfiable here, but for general `φ` outside the predictable class the existence claim is overstated. The asymmetry with the Brownian-side axiom (which does correctly hypothesise `h_meas + h_progMeas + h_sq_int_global`) is the smoking gun — somebody knew the right hypotheses for the Brownian side and forgot to apply them on the Compensated side. The isometry conjunct's `Measurable → h_sq_int < ⊤ → …` conditional doesn't compensate, because conjuncts 1, 2, 4 are unconditional.
-- **Recommendation**: Mirror the Brownian-side hypothesis pattern. Add `h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2)`, `h_predMeas` (the Compensated analog of `h_progMeas`, parametrised on the natural filtration of `N`), and `h_sq_int_global : ∀ T, 0 < T → … < ⊤` as `axiom` parameters. Promote conjunct 3's isometry to the unconditional form (the existing inner conditional becomes vestigial once the hypotheses are at the axiom level).
+- **Locations**:
+  - `README.md:34`: `│   ├── BrownianMotion.lean                    — structure + Tier 1 #1 axiom`
+  - `README.md:36`: `│   ├── NaturalFiltration.lean                 — filtration definition`
+  - `STATUS.md:82`: same two non-existent files
+- **Evidence**: `ls D:/LevyStochCalc/LevyStochCalc/Brownian/` returns: `Construction.lean Continuity.lean Ito.lean Martingale.lean Multidim.lean MultidimIto.lean SimplePredictableRefine.lean`. There is no `Brownian/BrownianMotion.lean`; the `BrownianMotion` structure + Tier 1 #1 `BrownianMotion.exists` axiom both live in `Brownian/Construction.lean`. There is no `Brownian/NaturalFiltration.lean`; the natural-filtration definition lives in `Brownian/Martingale.lean` (line 54). The Poisson counterpart `Poisson/NaturalFiltration.lean` does exist, which is probably why the README author assumed the Brownian one would mirror.
+- **Why this matters**: A new user running through the README's "Layout" section will `cat LevyStochCalc/Brownian/BrownianMotion.lean` and get a `cat: No such file or directory` error. The layout block is the orientation tool for new contributors; getting the file names wrong defeats its purpose. Same issue for the docstring on `LevyStochCalc.lean`'s self-described layer scheme.
+- **Recommendation**: In both `README.md` and `STATUS.md`, change the "Brownian/" layout block to reflect the actual files (`Construction.lean — structure + Tier 1 #1 axiom`, then list `Continuity.lean`, `Martingale.lean — naturalFiltration + Tier 1 #4 axiom`, `Multidim.lean`, `MultidimIto.lean`, `Ito.lean`, `SimplePredictableRefine.lean`).
 
-### Finding 5 — Citation for `bsdej_path_regularity`: wrong authors, wrong year, wrong volume
+### Finding 4 — Library ships ZERO examples or tests demonstrating the public API
 
 - **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/PathRegularity.lean:91-95` and `tools/cited_axioms.md:84`
-- **Evidence** (verbatim from the Lean docstring and `cited_axioms.md`):
-  > **Reference**: Bouchard, B. & Elie, R. & Touzi, N. *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*, Stochastic Processes and their Applications 119(11), 2009, Theorem 2.1
-- **Why this matters**: Web verification (search "Discrete-time approximation of decoupled Forward-Backward SDE with jumps") shows the paper is by **Bouchard & Elie** (no Touzi), published in **SPA volume 118 (issue 1), pages 53-75, January 2008** — not "Bouchard-Elie-Touzi, SPA 119(11), 2009." Confusing factor: Bouchard & Touzi (2004), *Discrete-time approximation and Monte-Carlo simulation of backward stochastic differential equations*, SPA 111:175-206 is a separate paper; some BSDE-jumps work by Touzi exists elsewhere. The citation in `cited_axioms.md` has the authors, year, and journal volume all wrong, and a Mathlib reviewer (or any honest reader) trying to look up the original theorem will not find "BET 2009 SPA 119(11)" because it does not exist. The same flawed citation appears in (i) the Lean axiom docstring, (ii) `tools/cited_axioms.md` Tier 1 entry #10, and (iii) `D:/Dissertation/Dissertation/Continuous.lean` line 363 (`Bouchard-Elie-Touzi 2009 Thm 2.1`). The mistake is duplicated everywhere downstream depends on this entry.
-- **Recommendation**: Replace the citation with: "Bouchard, B. & Elie, R. *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*, Stochastic Processes and their Applications **118**(1), 2008, pp. 53–75, Theorem 2.1" (verify the theorem number against the published version — the docstring's "Theorem 2.1" claim was inherited along with the wrong publication metadata and should be re-checked). Or, if the intended reference truly is some later Bouchard-Elie-Touzi joint work, identify it precisely. The Pardoux–Răşcanu 2014 secondary citation is plausible but should be cross-checked.
+- **Evidence**: `glob "D:/LevyStochCalc/**/example*.lean"` returns nothing; `glob "D:/LevyStochCalc/**/test*.lean"` returns nothing (only Mathlib's own); `grep -rn "^example" LevyStochCalc/` returns no in-project example blocks demonstrating how to USE the public API. The `tools/` folder contains `lint.sh`, `full_audit.lean`, `cited_axioms.md`, `sorry_baseline.txt` — no `tools/examples/`. The `docs/` folder is empty (verified by `ls -la`).
+- **Why this matters**: A Mathlib PR reviewer's third action (after "does it build" and "are there sorries") is to look for `example` blocks demonstrating the API. For a library that claims to "discharge the four cited continuous-time axioms" of a downstream dissertation, the reviewer expects at least: (a) an `example` showing how to construct a Brownian motion via `BrownianMotion.exists`, (b) an `example` constructing a Poisson random measure via `PoissonRandomMeasure.exists_of_sigmaFinite`, (c) an `example` showing the Itô isometry `itoLevyIsometry` applied to a specific predictable integrand, (d) an `example` instantiating `IsBSDEJSolution` for a trivial driver (e.g. `f = 0, g = 0`). None exist. The closest thing to a usage example is the downstream sister repo `D:/Dissertation/Dissertation/Continuous.lean` — but that's out-of-scope per the shared context. A library with zero in-repo `example` blocks signals to a reviewer that the API is unused externally, hence (a) untested in practice and (b) liable to break under refactoring.
+- **Recommendation**: Add `LevyStochCalc/Examples.lean` (or a `tests/` directory) with at minimum the four examples above. Each `example` block doubles as a smoke test: if a future Mathlib API rename breaks the type signature, the example block will fail to compile and CI will catch it.
 
-### Finding 6 — `IsBSDEJSolution` predicate does not require Y, Z, U to be adapted; allows non-adapted "solutions"
+### Finding 5 — H6 "closure" is documentation-only; the axiom signature still over-claims predictability-vs-measurability per the docstring's own admission
 
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/BSDEJ/Definition.lean:91-133`
-- **Evidence**: The predicate `IsBSDEJSolution` requires `Measurable (Function.uncurry Y)` and four L²-finiteness conditions plus the outer existential of martingales `(M_W, M_N)`, but it never demands `Y, Z, U` to be progressively measurable wrt any filtration. From the file:
-  > A *Backward Stochastic Differential Equation with Jumps* (BSDEJ) is a triple `(Y, Z, U)` of adapted processes …
-  But the actual Lean predicate only requires joint measurability of `Y` (line 103). `grep "adapted\|Adapted\|Progressively\|progressively\|progMeas" LevyStochCalc/BSDEJ/Definition.lean` returns only docstring matches — the predicate proper has no adaptedness constraint.
-- **Why this matters**: The standard literature definition (Tang–Li 1994 §2, Pardoux–Răşcanu 2014 Defn 4.78) requires `Y` to be `(ℱ_t)`-adapted (or stronger: `Y ∈ S²([0,T])`) and `Z, U` to be predictable. Without these constraints, a non-adapted `Y` can pretend to be a BSDEJ solution. The 2026-05-11 strengthening tightened *one* hole in the predicate (the per-`(t, ω)` existential of dummy `BM_term, jump_term`) but did not add the adaptedness constraint that the literature definition requires. The outer existential of martingales `(M_W, M_N)` partially covers this — `M_N` is pinned to `Compensated.stochasticIntegral N U` which is filtration-aware via the axiom — but `Y` and `Z` directly remain unconstrained by any filtration. A Mathlib reviewer would not accept "BSDEJ solution" as the name of this predicate.
-- **Recommendation**: Add adaptedness conjuncts:
-  - `Y` is `ℱ_t`-progressively measurable wrt the natural filtration of `(W, N)`
-  - `Z` is `ℱ_t`-predictable (or progressively measurable)
-  - `U` is `ℱ_t`-predictable
-  where `ℱ` is the augmented filtration of `(W, N)`. The strengthening notes in the module docstring already hint at this ("Further predicate-tightening… is a separate downstream item — needs `h_progMeas` threaded through `IsBSDEJSolution`"); make it part of the live predicate, not a known TODO.
+- **Severity**: HIGH (literature-divergence misleading a reviewer)
+- **Location**: `Poisson/Compensated.lean:1755-1764` (docstring) and `:1793-1819` (axiom signature, master HEAD)
+- **Evidence** (verbatim docstring, master HEAD 237cc19):
+  > **Hypothesis-strength caveat (red-team H6, 2026-05-22)**: the signature gates conjuncts on `Measurable (Function.uncurry φ)` rather than on `ProgMeasurable Filt φ` (predictable in the literature sense). The literature claim is for **predictable** φ; the present signature is strictly weaker on this axis (it asserts the conjuncts for arbitrary joint-measurable φ, not just predictable). In practice this gap is harmless: every load-bearing caller (the BSDEJ + Itô-Lévy formula chain) provides φ via `IsBSDEJSolution`'s adaptedness layer, which delivers progressive measurability. Strengthening the axiom to require ProgMeasurable is a multi-file signature refactor tracked as future work; **the present axiom over-claims by one σ-algebra but the over-claim is not exploited anywhere in the audited chain.**
+- **Why this matters**: The shared-context override claims "H6 added a documented caveat noting the signature uses `Measurable` not `ProgMeasurable`." That's true — the docstring was added — but the underlying gap is that the **axiom signature is mathematically over-strong** relative to Applebaum 2009 Thm 4.2.3. Applebaum's theorem is about predictable (σ(𝒫)-measurable) integrands; the Lean axiom asserts the same conclusion for arbitrary jointly-measurable integrands. A Mathlib reviewer comparing the Lean axiom statement against Applebaum 4.2.3 would correctly observe that the Lean version asserts something stronger than the cited paper proves. The "harmless in practice" claim is true (no caller exploits the gap) but does not change the fact that the axiom AS STATED claims more than its citation supports. For a project that has set up an explicit `tools/cited_axioms.md` precisely to ensure axiom statements faithfully match cited theorems, this is a Rule-0 violation by the project's own standard. The 1st audit's persona-10 Finding 4 made the same observation; the 2026-05-22 fix only added the caveat docstring, leaving the soundness/literature gap open.
+- **Recommendation**: Either (a) make H6 a real fix by adding `(h_predMeas : ProgMeasurable ... φ)` to the axiom signature and threading it through the BSDEJ + Itô-Lévy callers (multi-file refactor, per the docstring's own admission), or (b) restate the cited axiom as the "L²-Itô-Lévy integral for jointly-measurable integrands" with a separate downstream theorem proving that when φ is genuinely predictable the cited Applebaum 4.2.3 form is recovered. The current state — claim that Applebaum 4.2.3 supports the Lean axiom signature — is a literature divergence.
 
-### Finding 7 — `itoLevyFormula` axiom statement is mathematically vacuous (tautology), despite citing Applebaum Thm 4.4.7
+### Finding 6 — `Brownian/SimplePredictableRefine.lean` houses Tier 1 axiom #5 but is named after a notion (`simplePredictableRefine`) that the axiom bypasses
 
-- **Severity**: HIGH
-- **Location**: `LevyStochCalc/Ito/JumpFormula.lean:90-105`
-- **Evidence** (verbatim axiom):
-  ```
-  axiom itoLevyFormula
-      {P : Measure Ω} [IsProbabilityMeasure P]
-      {ν : Measure E} [SigmaFinite ν]
-      {n d : ℕ}
-      (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-      (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-      (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-      (x₀ : Fin n → ℝ)
-      (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
-      (u : ℝ → (Fin n → ℝ) → ℝ)
-      (T : ℝ) (_hT : 0 < T) :
-      ∃ (drift_term diff_mart jump_mart comp_drift : Ω → ℝ),
-        (∀ᵐ ω ∂P,
-          u T (X.X T ω) - u 0 (X.X 0 ω) =
-            drift_term ω + diff_mart ω + jump_mart ω + comp_drift ω)
-  ```
-- **Why this matters**: The axiom statement is provable as a Lean theorem in three lines with the trivial witness `⟨0, 0, 0, fun ω => u T (X.X T ω) - u 0 (X.X 0 ω)⟩` (which is exactly the body that got the previous `theorem` form demoted to `axiom` on 2026-05-11). Declaring this **same tautological statement** as an `axiom` does not make it a non-trivial mathematical statement — it just papers over the fact with the `axiom` keyword. The docstring identifies the four terms as `drift_term = ∫(∂_t u + 𝓛u) ds`, `diff_mart = ∫ ∇uᵀσ dW`, `jump_mart = ∫∫(u(·+γ) − u) Ñ`, `comp_drift = ∫∫(u(·+γ) − u − γᵀ∇u) ν ds` — but the Lean axiom signature has no constraint that ties any of the four existentials to those specific integral forms. The names are decorative. There is also no `C^{1,2}` hypothesis on `u`, no Lipschitz/growth hypothesis on the coefficients, no measurability constraint on `u`. The axiom as written asserts: for any `u`, four real-valued processes summing to `u(T, X_T) − u(0, X_0)` exist; which is the content of `a + b + c + d = X` for any `X` (always true). The project's "better an honest axiom than a fake theorem" comment is correct in spirit, but the `axiom` form is just as vacuous as the `theorem` form was — both assert a tautology.
-- **Recommendation**: Either (a) strengthen the axiom to pin the four existentials to specific integral forms (Bochner integral for `drift_term`, `Brownian.stochasticIntegral` for `diff_mart`, `Compensated.stochasticIntegral` for `jump_mart`, double-Bochner for `comp_drift`), and add the `C^{1,2}` hypothesis on `u`; or (b) explicitly mark the axiom as a placeholder / aspirational form and remove the Applebaum 4.4.7 citation until the strengthening lands. The current state — citing Applebaum 4.4.7 against a tautological statement — would mislead a Mathlib reviewer or a citation-checking auditor.
+- **Severity**: MEDIUM (naming + organization hygiene)
+- **Location**: `LevyStochCalc/Brownian/SimplePredictableRefine.lean:2106` (axiom site)
+- **Evidence**: The Tier 1 axiom #5 `itoIsometry_brownian_unified_existence` lives in a file named `SimplePredictableRefine.lean`, but the axiom statement makes no reference to simple-predictable refinement — it's the unified-existence statement for the L² Itô integral, in the same shape as the Compensated counterpart in `Poisson/Compensated.lean`. The shared-context override doc says `Brownian/Ito.lean` is "L² Itô integral chain (4000+ lines)" while `SimplePredictableRefine.lean` is the cited-axiom site. A Mathlib reviewer reading the layout in `README.md` (which says: "├── Ito.lean — L² Itô integral (4000+ lines) ├── SimplePredictableRefine.lean — Tier 1 #5 axiom") would expect `Ito.lean` to contain the canonical integral and `SimplePredictableRefine.lean` to be a supporting density-chain module. The Tier 1 axiom for the L² Itô isometry living there is naming-confusing.
+- **Why this matters**: For a library wanting Mathlib acceptance, the file naming convention follows the module's purpose. `SimplePredictableRefine.lean` literally describes "refining the simple-predictable density chain" — but the file's load-bearing content is the unified-existence axiom that *bypasses* the density chain entirely (the cited-axiom approach was taken precisely because the density chain wasn't completed). The file would be more honestly named `UnifiedItoIsometry.lean` or `ItoIsometryAxiom.lean`. Mathlib reviewers care about file/module hygiene because it determines downstream import patterns.
+- **Recommendation**: Rename `Brownian/SimplePredictableRefine.lean` to something that reflects its actual content (Tier 1 axiom + the `stochasticIntegral` definition via `Classical.choose`). Or move the axiom into `Brownian/Ito.lean` (which already imports SimplePredictableRefine.lean for the same Classical.choose chain) and delete the standalone file.
 
-### Finding 8 — Empty `docs/` folder and no README; only `STATUS.md` as orientation, which is a developer log not a user guide
+### Finding 7 — Top-level repo contains an `_mcp_snippet_*.lean` debris file that should never be committed
 
-- **Severity**: HIGH
-- **Location**: Repository root and `D:\LevyStochCalc\docs\`
+- **Severity**: MEDIUM (code-hygiene)
+- **Location**: `D:\LevyStochCalc\_mcp_snippet_952bdcfd68b74942a7ef219170b0f2aa.lean`
+- **Evidence**: An 18-line file with `example (g : ℝ → ℝ) (h_meas ...) : LocallyIntegrable g volume := by ...` sits at the project root. The filename starts with `_mcp_snippet_` and ends with a UUID — this is artifact debris from an MCP-tool session (`mcp__lean-lsp__lean_run_code` writes snippets to such files). It is present in the working tree at the project root.
+- **Why this matters**: Mathlib reviewers run `ls D:/LevyStochCalc/` first to understand the project surface. An `_mcp_snippet_*.lean` file at the project root signals (a) the maintainer doesn't sweep MCP-generated debris, (b) the `.gitignore` patterns are not catching `_mcp_*` files, (c) the file may have been accidentally committed and forgotten. The file isn't imported by `LevyStochCalc.lean` so it's harmless to the build, but it's visible debris that should be swept.
+- **Recommendation**: `rm _mcp_snippet_952bdcfd68b74942a7ef219170b0f2aa.lean; echo "_mcp_snippet_*.lean" >> .gitignore`.
+
+### Finding 8 — `BSDEJ/MartingaleRepresentation.lean` module docstring (lines 34-43) claims "Signature HOLE still open" — but the signature was actually closed (canonical-integral pinning at lines 105-109)
+
+- **Severity**: MEDIUM (stale docstring contradicting code; misleads a reviewer)
+- **Location**: `LevyStochCalc/BSDEJ/MartingaleRepresentation.lean:35-43`
 - **Evidence**:
-  ```
-  $ ls -la D:/LevyStochCalc/docs/
-  total 4
-  drwxr-xr-x 1 Christian 197121 0 May  2 16:35 .
-  drwxr-xr-x 1 Christian 197121 0 May 20 21:07 ..
-  ```
-  `find D:\LevyStochCalc -maxdepth 1 -name "README*"` returns nothing; the only project-root markdown files are `STATUS.md` (last updated 2026-05-03, reads as a dev journal) and `STATUS_strong_exists.md` (a refactor design doc).
-- **Why this matters**: Mathlib expects each contributed file to have a module docstring that orients the reader; the per-file docstrings here are mostly decent. But there is no top-level orientation — `LevyStochCalc.lean` is a 49-line file with an `import` list and a brief module docstring listing the four "exposed" headline targets. A fresh reader cannot discover (a) the intended ordering of modules, (b) which results are user-facing vs scaffolding, (c) which 11 axioms are introduced (this is in `tools/cited_axioms.md` but a new user would not know to look there), (d) the build/lint instructions (lint.sh only mentioned implicitly in `STATUS.md`). For a library that wants to be taken seriously as a Mathlib precursor, this is below the standard. A Mathlib reviewer's first action would be to read README → fail to find one → look at the directory tree → find empty `docs/` → conclude the library is internally focused, not externally usable.
-- **Recommendation**: Add a `README.md` covering: (i) one-paragraph project description, (ii) `lake build` / `bash tools/lint.sh` workflow, (iii) link to `tools/cited_axioms.md` as the canonical axiom inventory, (iv) link to `LevyStochCalc.lean` as the module map, (v) explicit "Mathlib status: this library introduces 11 axioms documented in `tools/cited_axioms.md`. It is not intended for direct Mathlib merge; once Mathlib gains Brownian motion + L² stochastic integration, individual axioms become forwarders." Also delete the empty `docs/` folder (or fill it).
-
-### Finding 9 — `IsBSDEJSolution`'s `M_W` is constrained only by L²-isometry against `Z`; not tied to the actual Brownian stochastic integral
-
-- **Severity**: MEDIUM
-- **Location**: `LevyStochCalc/BSDEJ/Definition.lean:111-127`
-- **Evidence**: The module docstring at line 39-47 explicitly acknowledges this:
-  > `M_W` is constrained by the multidim Brownian Itô L²-isometry against `Z`: `𝔼[‖M_W(T')‖²] = 𝔼[∫_0^{T'} ‖Z_s‖² ds]` for every `T' > 0`. (We don't pin `M_W` to a specific functional of `Z` because the multidim Brownian stochastic integral primitive would need `h_progMeas` threaded through; the isometry constraint together with the martingale requirement is enough to exclude the trivial witnesses.)
-- **Why this matters**: The literature predicate `(Y, Z, U)` is a BSDEJ solution iff `Y_t = g(X_T) + ∫_t^T f − ∫_t^T Z_s dW_s − ∫_t^T ∫_E U_s(e) Ñ(ds, de)`, where the two stochastic integrals are the **specific** Itô and Itô–Lévy integrals of `Z, U`. The Lean predicate weakens this to: there exist *some* martingales `M_W, M_N` with the right L²-isometry and pinning to `Compensated.stochasticIntegral N U` (for `M_N`) but only the isometry constraint (for `M_W`). The set of L²-isometric Brownian martingales is much bigger than `{∫ Z · dW : Z ∈ L²}` — multiple distinct Wiener martingales can share an L² norm. So the predicate is genuinely weaker than the literature. The module docstring acknowledges this as a known gap. The existence half of `continuousBSDEJ_exists_unique` is still satisfiable (literature solution satisfies the weak predicate); uniqueness in `Y` is still plausibly satisfied — but the "Y is the BSDEJ solution" claim is downstream-misleading because users get a `(Y, Z, U)` triple where `M_W` is not pinned to `∫ Z dW`.
-- **Recommendation**: Either (a) tighten the predicate to pin `M_W` to the actual multidim Brownian Itô integral (requires `h_progMeas` of `Z` against the multidim filtration, which adds a hypothesis to the existence axiom), or (b) add a more visible comment / warning in `cited_axioms.md` entry #9's "Predicate state" subsection that this gap is open. The module docstring's parenthetical is buried.
-
-### Finding 10 — `cauchySeq_simpleIntegralLp_compensated` axiom cites "Applebaum 2009 Equation 4.3.1" rather than a proposition / theorem
-
-- **Severity**: MEDIUM
-- **Location**: `LevyStochCalc/Poisson/Compensated.lean:2253-2256` and `tools/cited_axioms.md:62`
-- **Evidence** (verbatim):
-  > **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Equation 4.3.1** + **Lemma 4.2.5** (the L²-isometry on simple integrands, applied to differences via common refinement of partitions); Ikeda–Watanabe, *SDEs and Diffusion Processes*, 2nd ed., North-Holland 1989, **Lemma II.3.4**.
-- **Why this matters**: Citing an *equation* number (4.3.1) is unusual — equations are not theorems and `tools/cited_axioms.md`'s replacement plan in this entry frankly says "the underlying mathematical content (L²-isometry on differences via partition refinement) is a finite-sum calculation; the missing piece is mechanizing the common-refinement chain." That suggests this is a Lean-mechanization artifact — the Cauchy-of-simples claim is not actually a named theorem in Applebaum; it's a corollary of `simpleIntegral_isometry` once the common-refinement chain is in place. The Brownian-side mirror (`itoIntegralLp_brownian` chain at `SimplePredictableRefine.lean:2050+`) does have this chain fully proved. So this axiom is mechanization-pending, not literature-pending. The citation should make that explicit, otherwise a Mathlib reviewer reading Applebaum would search for "Equation 4.3.1" and find a multi-line equation rather than a theorem statement. The "Lemma 4.2.5" sub-citation is more precise but Lemma 4.2.5 in Applebaum is about square-integrability of compensated-Poisson integrals (single-function isometry), not about Cauchy sequences of differences.
-- **Recommendation**: Reword the citation as "Standard consequence of Applebaum 2009 §4.2 / Lemma 4.2.5 (single-integrand L²-isometry) applied to the difference via partition refinement; same chain as the Brownian-side `cauchy_of_L2_dense_simple` at `Brownian/SimplePredictableRefine.lean` C0b.9." Mark this entry's Mathlib status as "INTERNAL — to be discharged by mirror of Brownian's `commonRefinement` chain; no external Mathlib dependency."
-
-### Finding 11 — `L2Isometry.lean` docstring is stale ("carries the substantive sorry")
-
-- **Severity**: LOW
-- **Location**: `LevyStochCalc/Poisson/L2Isometry.lean:32-34` and `:52-54`
-- **Evidence** (verbatim):
-  ```
-  /-- … Currently a wrapper around
-  `LevyStochCalc.Poisson.Compensated.itoLevyIsometry`, which carries the
-  substantive `sorry`. -/
-  ```
-- **Why this matters**: As of the 2026-05-10 "honest L²-completion" refactor (commit `f0af0d6`), `Compensated.itoLevyIsometry` is no longer `sorry`'d — it extracts conjunct 3 from the `itoIsometry_compensated_unified_existence` axiom (verified in `audit_output.txt`). The L2Isometry forwarder file still claims the downstream theorem "carries the substantive sorry." This is a minor inaccuracy but the kind of thing a Mathlib reviewer notices when cross-checking the docstring against the audit output. (`STATUS.md` is also dated 2026-05-03 and refers to a 19-line sorry baseline that is now empty.)
-- **Recommendation**: Update `L2Isometry.lean` docstrings to "wrapper around `Compensated.itoLevyIsometry` which extracts conjunct 3 of the cited unified-existence axiom `itoIsometry_compensated_unified_existence` (Applebaum 2009 Thm 4.2.3 + 4.2.4)." Update `STATUS.md` to reflect the post-2026-05-11 state, or replace with a one-paragraph current-state pointer. Files `STATUS.md` and `STATUS_strong_exists.md` are useful historical artifacts but they pretend to be the project status — they should either be archived (e.g. into `docs/history/`) or updated.
-
-### Finding 12 — Private sorry'd helper lemmas exist but their existence is undisclosed in any user-facing surface
-
-- **Severity**: LOW
-- **Location**: `LevyStochCalc/Poisson/Compensated.lean:1880-1893`, `LevyStochCalc/Poisson/RandomMeasure.lean:134-139`, `LevyStochCalc/Brownian/Continuity.lean:176-184`, `LevyStochCalc/Brownian/Ito.lean:3972-3984`
-- **Evidence**: Each of these is a `private lemma … := by … sorry`. The audit script `lint.sh` only checks `#print axioms` on the public theorems listed in `_audit.lean`. None of these private sorries leak into a public theorem (verified: zero `sorryAx` in `audit_output.txt`). But a Mathlib reviewer running `grep -rn "sorry" LevyStochCalc/` would find them and conclude (correctly) that the library has not in fact eliminated all sorries. The `STATUS.md` line "8400 jobs, no errors, no new sorries beyond baseline" is technically true under the project's narrow definition, but `tools/sorry_baseline.txt` is empty, so the natural reading "no sorries" is overly generous to the project.
-- **Why this matters**: The sorries are in `quadVar_simpleIntegral_brownian`, `simplePredictable_dense_L2_bounded` (Brownian + Compensated variants), `poissonRandomMeasure_finite_exists`, `kolmogorov_modification_ae_eq`. They are all *unused* by the public API — the public API instead bypasses them via the cited Tier 1 axioms (`itoIsometry_brownian_unified_existence`, etc.). So the library is internally consistent. But the existence of these dead-end sorries inside file bodies is a code-hygiene issue: dead sorry'd code suggests work that was started, then abandoned in favour of axioms, and never cleaned up. A new contributor reading these files would find sorries in the source, which contradicts the project's "no sorryAx anywhere in the public API" headline.
-- **Recommendation**: Either (a) delete the sorry'd private lemmas as dead code, since they're not called by any public theorem; or (b) move them to a `LevyStochCalc/Drafts/` subfolder excluded from the main library build; or (c) update `tools/sorry_baseline.txt` to list them honestly (rather than being empty). Option (a) is cleanest.
-
-### Finding 13 — `Compensated.lean` `stochasticIntegral` definition has a "per-T independent Classical.choose" caveat that's a real semantic gap
-
-- **Severity**: MEDIUM
-- **Location**: `LevyStochCalc/Poisson/Compensated.lean:42-61` (module docstring) and `:2776-2783` (definition)
-- **Evidence** (verbatim from the module docstring):
-  > Caveat: the per-T independent Classical.choose selection in `stochasticIntegral_isometry_only_compensated` means the process F : ℝ → Ω → ℝ is not necessarily a martingale wrt any filtration (different T give independent witnesses).
+  > **Signature HOLE still open**: the existential `∃ Z U BM_integral jump_integral, … ∧ ξ = 𝔼[ξ] + BM_integral + jump_integral` does NOT pin `BM_integral` to `∫ Z·dW` or `jump_integral` to `∫∫ U Ñ`. Per Rule 0, that pinning is required for the claim to match the content. Pinning `jump_integral` to `Compensated.stochasticIntegral N U T` is feasible immediately ... Pinning `BM_integral` to `∑_i ∫ Zⁱ dWⁱ` requires the multidim Brownian Itô integral, which is downstream work.
   >
-  > The cited axioms assert properties of the GENUINE canonical L²-Itô-Lévy integral; making them PROVEN theorems requires the F-construction-across-all-t (unified canonical integral process), pending — mirror of the analogous Brownian-side work.
-- **Why this matters**: This is honest disclosure — but it means the `stochasticIntegral N φ T` (the definition at line 2776, `:= (Classical.choose …) T`) is the value at time `T` of the witness chosen *for that particular `T`*. The witness for `T = 1` and the witness for `T = 2` need not agree on `[0, 1]`. So the function `t ↦ stochasticIntegral N φ t` is, structurally, a per-t-independent point process, not the canonical Itô-Lévy integral process. The 2026-05-10 "UNIFIED" refactor changed the definition to use the unified existence axiom which DOES claim a single F satisfying all conjuncts — so the "per-T independent" caveat in the module docstring at line 53-55 is now stale (the unified axiom gives a single F). Let me re-read… Actually re-reading line 53-55, the docstring says this caveat applies to `stochasticIntegral_isometry_only_compensated` (the OLD definition, still in the file at line 2682), but the actual `stochasticIntegral` at line 2776 now uses the unified existence axiom. So the docstring is partially stale but the actual definition is fine. The `IsBSDEJSolution.M_N` pin at line 122-123 points to the correct `Compensated.stochasticIntegral` which uses the unified axiom. The leftover `stochasticIntegral_isometry_only_compensated` private lemma at line 2682-2707 is dead code.
-- **Recommendation**: Delete the dead `stochasticIntegral_isometry_only_compensated` private lemma and update the module docstring to remove the per-T-independent caveat (which doesn't apply to the current definition). Or, if there's a reason to keep the lemma, clarify in the docstring why.
+  > The signature strengthening + proof completion is the next step.
 
-## Per-claim verdicts on the headline theorems
+  But the actual `jacodYor_representation` signature (lines 74-109, master HEAD) ALREADY pins both integrals: `MultidimBrownianMotion.stochasticIntegral W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω` and `Compensated.stochasticIntegral N (fun ω' s e => U s ω' e) T ω`. The shared-context override confirms: "jacodYor_representation signature: BM_integral pinned to `MultidimBrownianMotion.stochasticIntegral W Z`, jump_integral pinned to `Compensated.stochasticIntegral N U` (C4 fix)."
+- **Why this matters**: A Mathlib reviewer reading the module docstring concludes the signature is still vacuous (trivial-witness exploitable). That contradicts the actual signature. The 1st-audit's C4 fix is complete in the Lean code but the narrative was not updated to match. This pattern of "code fixed, docstring stale" recurs elsewhere (Finding 2's STATUS.md inconsistency, Finding 1's stale top-level docstring).
+- **Recommendation**: Update the module docstring to "Signature pinned 2026-05-21 (C4 closure): both `BM_integral` and `jump_integral` are now CANONICAL — `MultidimBrownianMotion.stochasticIntegral W Z ...` and `Compensated.stochasticIntegral N U`. The remaining work is the proof body (predictable-projection chaos decomposition)."
 
-Mapping the original 43-headline template to LevyStochCalc's 11 Tier 1 cited axioms + the honest derivative theorems listed in `tools/cited_axioms.md`.
+### Finding 9 — Empty `docs/` directory persists despite 1st audit Finding 8 explicit recommendation to delete or fill
+
+- **Severity**: MEDIUM
+- **Location**: `D:\LevyStochCalc\docs\` (verified empty by `ls -la`: 0 files)
+- **Evidence**: 1st audit persona-10 Finding 8 said: "Add a `README.md` ... Also delete the empty `docs/` folder (or fill it)." The README was added — good — but the empty `docs/` folder persists with date `May 2 16:35` (untouched since project bootstrap).
+- **Why this matters**: An empty `docs/` directory is a "documentation TODO" smell. A Mathlib reviewer reading the project layout sees the `docs/` directory in `ls D:/LevyStochCalc/` and expects content; opening it and finding nothing signals abandoned documentation effort. Either fill it (with the per-axiom long-form documentation referenced in `cited_axioms.md`) or delete it.
+- **Recommendation**: `rmdir D:/LevyStochCalc/docs/` (empty directory should not be committed); add `docs/` ignore to `.gitignore` only if documentation is genuinely planned.
+
+### Finding 10 — `STATUS.md` references a moved file path: `redteam_findings/_REDTEAM_SUMMARY.md` does not exist at that path (the file is in `redteam_findings/2026-05-20-archive/_REDTEAM_SUMMARY.md`)
+
+- **Severity**: LOW
+- **Location**: `STATUS.md:119-120`
+- **Evidence**:
+  - `STATUS.md:119`: `* `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-20 red-team audit (meta-summary across 12 personas).`
+  - Actual location: `redteam_findings/2026-05-20-archive/_REDTEAM_SUMMARY.md`
+- **Why this matters**: Broken cross-reference in user-facing documentation. A reviewer trying to follow the link to understand the audit context gets a stale path.
+- **Recommendation**: Update `STATUS.md:119` to the correct archive path.
+
+### Finding 11 — `README.md`'s Tier 1 enumeration jumps from 6 to 9, with the deletion-explanation buried below — confusing on first read
+
+- **Severity**: LOW
+- **Location**: `README.md:63-73`
+- **Evidence** (verbatim):
+  ```
+  1. `BrownianMotion.exists` — ...
+  2. `PoissonRandomMeasure.exists_of_sigmaFinite` — ...
+  3. `kolmogorovChentsov_modification` — ...
+  4. `brownian_martingale_rightCont` — ...
+  5. `itoIsometry_brownian_unified_existence` — ...
+  6. `itoIsometry_compensated_unified_existence` — ...
+  9. `continuousBSDEJ_exists_unique` — ...
+  10. `bsdej_path_regularity` — ...
+  11. `itoLevyFormula` — ...
+
+  (Original Tier 1 #7 + #8 were deleted 2026-05-22 as dead post-refactor.)
+  ```
+- **Why this matters**: A reader scanning the headline list assumes "9 axioms total" (per the line 60 sentence), then sees the numbering 1..6, 9, 10, 11 and stops to wonder if axioms 7 and 8 were missed. The explanatory parenthetical comes AFTER the list — by then the reader has already lost the flow. Either renumber the live axioms 1..9 consecutively (and keep the historical numbering in `cited_axioms.md` for git-blame continuity), OR move the deletion note to BEFORE the list.
+- **Recommendation**: Renumber to 1..9 consecutively in `README.md`; keep `cited_axioms.md`'s 11-slot numbering scheme as the canonical historical reference. Or invert: list axioms by name only (no numbers) in `README.md`, keeping the numbered scheme in `cited_axioms.md`.
+
+### Finding 12 — `cited_axioms.md`'s fix log internally contradicts itself on M4 and M11
+
+- **Severity**: LOW
+- **Location**: `tools/cited_axioms.md:220-237`
+- **Evidence**:
+  - Lines 220-221 (`MEDIUM` section): "**M4** (Tier 1 #7 + #8 dead post-refactor): retained pending careful walk-up deletion of the intertwined dead chain (substantial follow-up)."
+  - Lines 235-237 (`Open / deferred`): "**M11** (`IsBSDEJSolution` filtration trivial-constant): the natural-filtration-pin requires `joint_past_future_independent` exposure through the BSDEJSolution structure; deferred."
+
+  Both claims are stale. M4 is closed (#7 and #8 are deleted per cited_axioms.md's own header line 10, per `audit_output.txt` showing only 9 cited axioms, per commit `123e32e Delete dead Tier 1 #7/#8 axiom chain — ~490 lines`). M11 is closed per commit `9b693c5 Close red-team L9, L10, M11`. The fix log doesn't reflect either closure.
+- **Why this matters**: Same stale-narrative class as Findings 2, 8. A Mathlib reviewer reading the fix log to understand the project's red-team responsiveness sees "M4 retained pending..." and concludes that the dead chain is still present — then notices the cited_axioms.md elsewhere says it's deleted. The fix log lies about its own current state.
+- **Recommendation**: Update lines 220-221 to "M4 closed by commit `123e32e` — Tier 1 #7 + #8 chain deleted, ~490 lines removed"; update lines 235-237 to "M11 closed by commit `9b693c5` — `IsBSDEJSolution` Filt now constrained by `naturalFiltration W ≤ Filt ∧ naturalFiltration N ≤ Filt`".
+
+### Finding 13 — `CONTRIBUTING.md` Rule 0 list is good but omits the most important practical guidance: "How to add a new Tier 1 axiom citation"
+
+- **Severity**: LOW (gap in the contributor guide)
+- **Location**: `CONTRIBUTING.md:43-49`
+- **Evidence**: The `Adding a new cited axiom` section reads:
+  > 1. The axiom statement must match a published theorem citation precisely.
+  > 2. Add a Tier 1 entry to `tools/cited_axioms.md` with paper reference, Mathlib status, and replacement plan.
+  > 3. Update `_audit.lean` and `tools/full_audit.lean` to include it.
+  > 4. Verify `bash tools/lint.sh` still passes.
+- **Why this matters**: The checklist is good but doesn't specify *what counts as a precise citation match*. A new contributor adding `axiom myFavoriteTheorem` could correctly add a citation to `cited_axioms.md` and pass `lint.sh` — without anyone catching that the citation's Theorem 4.2.3 actually says something slightly different from the Lean axiom statement (the FIRST-audit citation defects were of this type: "Le Gall Thm 2.1" — no such theorem). The guidance "must match precisely" doesn't tell the contributor *how* to verify the match.
+- **Recommendation**: Add a "Citation-verification checklist" subsection: "(a) Open the cited textbook/paper, locate the named theorem/proposition by exact number; (b) cross-check the Lean axiom's quantifier structure, hypotheses, and conclusion against the published statement; (c) for ambiguous cases (e.g., 'Definition + Theorem combo'), list all locations; (d) if the citation can't be cross-checked from a freely available source (open-access paper, author's webpage), also list a secondary citation from a different source confirming the same theorem; (e) ensure the citation has author + year + venue + page/theorem-number, not just 'Applebaum 2009'."
+
+### Finding 14 — Positive verification — `Compensated.lean` per-T independent caveat from 1st audit Finding 13 is correctly resolved on master HEAD
+
+- **Severity**: VERIFIED (1st-audit issue correctly closed)
+- **Location**: `LevyStochCalc/Poisson/Compensated.lean:38-69` (module docstring)
+- **Evidence**: The module docstring lines 44-69 honestly state the post-2026-05-10 unified-existence refactor and explicitly note that the previous per-T-independent caveat is now closed. Reading the docstring lines 60-69 confirms it discusses the historical state, not the current one. The `stochasticIntegral` definition at line 1825 uses the unified existence axiom.
+- **Why this matters**: This is one of the few places where the docstring narrative is consistent with the code. Highlighting as a positive: shows the project CAN do this when attention is paid.
+
+## Per-claim verdicts on the public API surface
+
+Mapping the 9 live Tier 1 cited axioms + 11 honest-derivative theorems listed in `cited_axioms.md`:
 
 | Theorem / axiom | Verdict | One-line note |
 |---|---|---|
-| **Tier 1 #1** `BrownianMotion.exists` | EARNED | Honest axiom; citation K-S Thm 2.1.5 / Le Gall Thm 2.1 plausible; module docstring explains the strategy clearly. |
-| **Tier 1 #2** `PoissonRandomMeasure.exists_of_sigmaFinite` | EARNED | Honest axiom; citation Applebaum 2.3.1 / Kallenberg Prop 3.6 plausible. |
-| **Tier 1 #3** `kolmogorovChentsov_modification` | EARNED | Honest axiom; well-cited. `brownian_continuous_modification` derived from it. |
-| **Tier 1 #4** `brownian_martingale_rightCont` | EARNED | Honest axiom; Blumenthal 0-1 corollary. Used only by `brownian_filtration_rightContinuous` which is honest. |
-| **Tier 1 #5** `itoIsometry_brownian_unified_existence` | EARNED | Honest axiom; correctly hypothesised (`h_meas + h_progMeas + h_sq_int_global`); citation K-S Thm 3.2.6 plausible. |
-| **Tier 1 #6** `itoIsometry_compensated_unified_existence` | **WEAK** | See Finding 4: omits the literature predictability + L² hypotheses that the Brownian-side counterpart correctly carries. |
-| **Tier 1 #7** `cauchySeq_simpleIntegralLp_compensated` | WEAK | See Finding 10: citation references "Equation 4.3.1" rather than a proposition; should be reworded as a mechanization-pending entry. |
-| **Tier 1 #8** `adaptedSimple_dense_L2_compensated` | EARNED | Honest axiom; cited to Applebaum Lemma 4.2.2 / Ikeda-Watanabe Lemma II.3.3; clearly a mechanization-pending mirror of the proved Brownian side. |
-| **Tier 1 #9** `continuousBSDEJ_exists_unique` | **WEAK** | See Finding 3 (axiom signature omits Lipschitz hypothesis) + Finding 6 (predicate lacks adaptedness) + Finding 9 (M_W not pinned to actual integral). Citation Tang-Li 1994 correct. |
-| **Tier 1 #10** `bsdej_path_regularity` | **WEAK** | See Finding 3 (no Lipschitz / X-meas hypothesis) + Finding 5 (citation wrong on authors, year, volume). |
-| **Tier 1 #11** `itoLevyFormula` | **TRIVIAL** | See Finding 7: axiom statement is a Lean-provable tautology with the trivial-witness pattern. Citing Applebaum 4.4.7 against this statement is misleading. |
-| `MultidimBrownianMotion.exists` (derived) | EARNED | Honest derivative of #1; via `Measure.pi` + `iIndepFun_pi`. Substantive proof. |
-| `brownian_continuous_modification` (derived) | EARNED | Honest derivative of #3 with explicit Gaussian-fourth-moment Kolmogorov-condition check. |
-| `brownian_filtration_rightContinuous` (derived) | EARNED | Honest derivative of #4; right-cont augmentation properties are real. |
-| `brownian_martingale` (substrate, no Tier 1) | EARNED | Real proof, axiom-clean modulo Lean std; ≈ 500 lines of cond-exp work. |
-| `brownian_quadVar` (substrate, no Tier 1) | EARNED | Real proof, axiom-clean. |
-| `Brownian.Ito.itoIsometry` (derived) | EARNED | Conjunct-3 extraction from #5, honest. |
-| `Brownian.Ito.martingale_stochasticIntegral` (derived) | EARNED | Conjunct-1 extraction from #5, honest. |
-| `Brownian.Ito.quadVar_stochasticIntegral` (derived) | EARNED | Conjunct-2 extraction from #5, honest. |
-| `Compensated.itoLevyIsometry` (derived) | EARNED (modulo Finding 4) | Conjunct-3 extraction from #6; substantive but inherits the over-strong axiom signature of #6. |
-| `Compensated.martingale_stochasticIntegral` (derived) | EARNED (modulo Finding 4) | Conjunct-1 extraction from #6. |
-| `Compensated.quadVar_stochasticIntegral` (derived) | EARNED (modulo Finding 4) | Conjunct-2 extraction from #6. |
-| `Compensated.cadlag_modification_exists` (derived) | EARNED (modulo Finding 4) | Conjunct-4 extraction from #6. |
-| `L2Isometry.itoLevyIsometry` (derived) | EARNED | 1-line forwarder over `Compensated.itoLevyIsometry`; honest. (Stale docstring per Finding 11.) |
-| `JumpDiffusion.exists_unique` (substrate, no Tier 1) | **TRIVIAL** | See Finding 2: constant-path witness against `is_solution : True` field; cites Applebaum 6.2.9. |
-| `jacodYor_representation` (substrate, no Tier 1) | **TRIVIAL** | See Finding 1: trivial-witness `⟨0, 0, 0, ξ - 𝔼[ξ]⟩` pattern, same shape as demoted `itoLevyFormula`. |
+| **Tier 1 #1** `BrownianMotion.exists` | EARNED | Honest axiom; citation now correct (Definition 2.1 / 2.12 / Cor 2.11); replacement plan clear. |
+| **Tier 1 #2** `PoissonRandomMeasure.exists_of_sigmaFinite` | EARNED | Honest axiom; integer_valued field added per L10; PRM structure honest. |
+| **Tier 1 #3** `kolmogorovChentsov_modification` | EARNED | Honest axiom; `kolmogorov_modification_ae_eq` now proved (no sorryAx). |
+| **Tier 1 #4** `brownian_martingale_rightCont` | EARNED | Honest axiom; citation now correctly Thm 2.13 (not Prop 2.10). |
+| **Tier 1 #5** `itoIsometry_brownian_unified_existence` | EARNED | Honest axiom; correctly hypothesised (h_meas + h_progMeas + h_sq_int_global). |
+| **Tier 1 #6** `itoIsometry_compensated_unified_existence` | **WEAK** | H6 documentation-only closure leaves the signature over-claiming on predictability vs measurability. See Finding 5. |
+| **Tier 1 #9** `continuousBSDEJ_exists_unique` | EARNED | Now correctly hypothesised with Lipschitz + L²-terminal; `IsBSDEJSolution` predicate adaptedness-strengthened. |
+| **Tier 1 #10** `bsdej_path_regularity` | EARNED | Citation fixed (Bouchard-Elie 2008 SPA 118(1)); constant C now (T, L, ‖ξ‖)-parameterised per M8. |
+| **Tier 1 #11** `itoLevyFormula` | EARNED | All 4 terms pinned to literature integrals; no more trivial-witness escape. |
+| `BrownianMotion.exists` derived: `MultidimBrownianMotion.exists` | EARNED | Honest derivative; joint_measurable field constructed in project_BM. |
+| `kolmogorovChentsov_modification` derived: `brownian_continuous_modification` | EARNED | Honest derivative. |
+| `brownian_martingale_rightCont` derived: `brownian_filtration_rightContinuous` | EARNED | Honest derivative. |
+| `#5` derived: `Brownian.Ito.{itoIsometry,martingale_stochasticIntegral,quadVar_stochasticIntegral}` | EARNED | Conjunct extractions, honest. |
+| `#6` derived: `Compensated.{itoLevyIsometry,martingale_stochasticIntegral,quadVar_stochasticIntegral,cadlag_modification_exists}` | EARNED (modulo Finding 5) | Conjunct extractions; inherit the H6 over-claim. |
+| `L2Isometry.itoLevyIsometry` | EARNED | 1-line forwarder; stale "carries substantive sorry" docstring is now removed. |
+| `JumpDiffusion.exists_unique` (baseline sorry) | EARNED (baseline) | `is_solution` field strengthened from `True` to real SDE integral equation; sorry'd proof; in baseline. |
+| `jacodYor_representation` (baseline sorry) | EARNED (baseline modulo Finding 8) | Signature pinned to canonical integrals; sorry'd proof; in baseline. Module docstring stale (claims signature hole still open). |
 
-## Tools and sources used
+## Mathlib-PR-acceptability assessment
 
-- **Lean tools called**: `mcp__lean-lsp__lean_verify` on `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` and `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` (both confirmed axiom-clean — `[propext, Classical.choice, Quot.sound]`).
-- **Web searches**: "Tang Li 1994 'necessary conditions for optimal control'…", "Bouchard Elie Touzi 2009 'Discrete-time approximation' decoupled FBSDE jumps Theorem 2.1", "Applebaum 'Levy Processes and Stochastic Calculus' 2nd edition 2009 Theorem 4.2.3", "Bouchard Elie 'decoupled Forward-Backward' jumps SPA 2008 path regularity", "Bouchard Elie Touzi discrete-time approximation decoupled FBSDE jumps", "Stochastic Processes and their Applications 118 53 Bouchard Elie 2008 jumps", "SPA 119 (11) 2009 BSDE jumps Bouchard", "Karatzas Shreve Brownian Motion and Stochastic Calculus Theorem 2.1.5", "Karatzas Shreve Brownian Motion and Stochastic Calculus Theorem 2.2.8 Kolmogorov Chentsov", "Degenne Mathlib stochastic integration arXiv 2511.20118 2025", "Mathlib4 Brownian motion stochastic integral 2026 PR status WienerMeasure", "Mathlib4 IsGaussianProcess ProbabilityTheory 2026", "Mathlib4 poissonMeasure ProbabilityTheory measure", "Mathlib4 IsKolmogorovProcess exists_continuous_modification 2026".
-- **Web fetches**: `https://hal.science/hal-00015486`, `https://www.sciencedirect.com/science/article/pii/S030441490700052X` (403), `https://hal.science/hal-00015486v1/document`, `https://arxiv.org/abs/2511.20118`, `https://github.com/RemyDegenne/brownian-motion`, `https://unina2.on-line.it/sebina/repository/catalogazione/documenti/Karatzas,%20Shreve%20-%20Brownian%20motion%20and%20stochastic%20calculus.%202.%20ed..pdf` (binary), `https://www.gbv.de/dms/ilmenau/toc/236624210.PDF` (binary).
-- **Papers consulted**: Bouchard, B. & Elie, R. *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*, SPA 118(1):53-75, 2008 (citation verified — not "Bouchard-Elie-Touzi 2009 SPA 119(11)" as the codebase claims). Tang, S. & Li, X. *Necessary conditions for optimal control of stochastic systems with random jumps*, SIAM JCO 32(5):1447-1475, 1994 (citation as stated is plausible; could not verify Theorem 3.1 content). Degenne, R.; Ledvinka, D.; Marion, E.; Pfaffelhuber, P. *Formalization of Brownian motion in Lean*, arXiv:2511.20118v1 (2025-11-25) — confirms Mathlib does NOT yet have Wiener measure or the Kolmogorov-Chentsov modification theorem as of paper writing; the Degenne et al. project (`github.com/RemyDegenne/brownian-motion`) is "in the process of migrating our results to Mathlib." Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009 — could not verify specific theorem numbers (4.2.3, 4.2.4, 4.4.7, 2.3.1, 6.2.9, Lemma 4.2.5) against the published text (PDFs were binary-only via WebFetch); citations are plausible based on common usage in the literature.
+Would this library be acceptable as a Mathlib PR? **No, and the reason is structural, not cosmetic.**
+
+A Mathlib PR fundamentally cannot introduce user-facing axioms. The 9 Tier 1 axioms — even if each is a faithful encoding of a published theorem — must be reduced to `theorem`s built on Mathlib's existing primitives (`MeasureTheory.IsProjectiveLimit`, `ProbabilityTheory.gaussianReal`, `ProbabilityTheory.poissonMeasure`, `MeasureTheory.Filtration`, `MeasureTheory.IsKolmogorovProcess`, `MeasureTheory.condExpL2_continuous`) before any merger can happen. The project's own `cited_axioms.md` acknowledges this with explicit "Replacement plan" sections per axiom — but those are aspirational, not actionable today. The Degenne et al. `arXiv:2511.20118` work on Brownian-motion-in-Lean is the closest active push toward unblocking #1 / #3 / #5; the Poisson side has no equivalent active push (cited_axioms.md notes "No current Mathlib activity for Poisson random measures or general Lévy processes" under #2 and #6).
+
+So the realistic Mathlib-acceptance path is: the LevyStochCalc library remains a *downstream consumer* of Mathlib, gradually replacing its Tier 1 axioms with theorem forwarders as Mathlib gains the corresponding infrastructure. The README correctly frames this. But there are several additional Mathlib-acceptability blockers that would apply even to the *derivative theorems*:
+
+- **`BrownianMotion` structure design**: the project uses a bespoke `structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where W : ℝ → Ω → ℝ; measurable_eval : ...; joint_measurable : ...; initial_zero : ...; increment_gaussian : ...; increment_independent : ...; continuous_paths : ...; negative_zero : ...; joint_increment_independent : ...`. Mathlib's typeclass-first style would prefer `class IsBrownianMotion (W : ℝ → Ω → ℝ) (P : Measure Ω) : Prop where ...` so the BM structure inherits / interacts with existing `IsGaussianProcess`, `IsMarkovKernel`, etc. The 8-field structure also bundles `joint_increment_independent` and `negative_zero` as auxiliary fields that smell of "added because the proof of X failed without them" — a Mathlib reviewer would push back on those.
+- **`MultidimBrownianMotion`**: defined as `structure ... where W : Fin d → BrownianMotion P; components_independent : iIndepFun ...`. Mathlib's idiom would be: `def MultidimBrownianMotion P d := ∀ i : Fin d, IsBrownianMotion (Wi i) P ∧ iIndepFun (fun i => Wi i)`, or a typeclass extending the scalar one over a finite product. The current structure makes the multidim BM a *list* of independent BMs rather than a vector-valued process; downstream usage in BSDEJ requires the latter view.
+- **`Compensated.stochasticIntegral` definition**: `noncomputable def stochasticIntegral N φ T := (Classical.choose ...) T` — Mathlib accepts `Classical.choose` definitions but reviewers usually push toward `Lp.toLinearMap` / `condExpL2`-style API that's compatible with the `Lp` typeclass machinery. The current definition returns `Ω → ℝ` rather than a `Lp ℝ 2 P` element, so downstream Lp-norm reasoning has to manually re-derive ENNReal forms.
+- **Comparison to Mathlib's `MeasureTheory.IsProjectiveLimit`**: the BM construction story would naturally route through `IsProjectiveLimit` applied to the finite-dimensional Gaussian families. The project's `Brownian/Construction.lean` mentions this in the docstring (line 159-161: "Apply the Kolmogorov extension theorem (Mathlib: `MeasureTheory.IsProjectiveLimit`)") but doesn't actually invoke it — the axiom is bare. A Mathlib PR would have to do the actual `IsProjectiveLimit`-style construction.
+- **Comparison to Mathlib's `ProbabilityTheory.poissonMeasure`**: this is the ℕ-valued Poisson distribution (one-dimensional). The PRM structure in this project wraps a different concept (random measure on `ℝ × E`). The connection is mentioned in cited_axioms.md but not exploited — `poissonMeasure` is used only in the `poisson_law` field as the *marginal* distribution. A Mathlib reviewer would ask for a clearer link.
+
+Beyond the design issues, the items that would block PR acceptance even after axiom-replacement:
+
+1. **Per-file copyright headers**: present and Mathlib-style (verified on 6 files). Good.
+2. **Module docstrings**: most are present and substantive, though several are stale (per Findings 1, 8, 12).
+3. **Naming conventions**: mostly Mathlib-style; some camelCase vs snake_case drift in private lemmas (visible by grepping `_` patterns in `Brownian/Ito.lean`).
+4. **`Basic.lean` umbrella import**: the file does `import Mathlib` (a 2GB blob). Mathlib's contribution guidelines explicitly discourage this. The file's docstring acknowledges this is a known L3 finding and explains the trade-off. A PR reviewer would still flag it.
+5. **No `set_option autoImplicit false`**: lakefile has `relaxedAutoImplicit = false`. Verified, good.
+6. **No examples/tests demonstrating API**: see Finding 4.
+7. **CI workflow exists**: see `.github/workflows/ci.yml`. Good, but it only runs `lake build` + `lint.sh` — no upstream-Mathlib-update test, no doc-gen check, no taintness test for the per-file axiom budget.
+
+## Comparison to Mathlib's existing infrastructure (per the audit prompt)
+
+| Mathlib API | LevyStochCalc's usage | Verdict |
+|---|---|---|
+| `MeasureTheory.IsProjectiveLimit` | Mentioned in docstrings (Brownian/Construction.lean:159-161) but not invoked; the BM axiom is bare. | Wraparound, not consumption. |
+| `ProbabilityTheory.gaussianReal` | Used directly in `BrownianMotion.increment_gaussian` field (Construction.lean:54). | Consumed. |
+| `ProbabilityTheory.poissonMeasure` (via `poissonMeasureENN`) | Used in `PoissonRandomMeasure.poisson_law` field (RandomMeasure.lean:98). | Consumed. |
+| `MeasureTheory.Filtration` | Used everywhere (BSDEJ/Definition.lean, Compensated.lean, etc.). | Consumed. |
+| `MeasureTheory.Filtration.natural` | Used in `Brownian.Martingale.naturalFiltration` (Martingale.lean:54). | Consumed. |
+| `ProbabilityTheory.IsKolmogorovProcess` | Mentioned in `cited_axioms.md` #3 but the in-project `kolmogorovChentsov_modification` axiom does NOT take an `IsKolmogorovProcess` hypothesis — it states the conclusion directly. | Wraparound. |
+| `MeasureTheory.Adapted` | Used in `IsBSDEJSolution` (Definition.lean:160). | Consumed. |
+| `MeasureTheory.Martingale` | Used everywhere. | Consumed. |
+| `MeasureTheory.condExpL2_continuous` | Mentioned in cited_axioms.md #5 but not invoked. | Wraparound. |
+| `MeasureTheory.iIndepFun_pi` | Used in `MultidimBrownianMotion.exists` derivative (Multidim.lean). | Consumed. |
+| `MeasureTheory.Measure.pi` | Used in `MultidimBrownianMotion.exists` derivative. | Consumed. |
+| `Probability.Kernel.IonescuTulcea.trajMeasure` | Not used; bypassed by the Tier 1 #1 axiom. | Wraparound. |
+
+The library consumes Mathlib measure-theory primitives in the right places, but the load-bearing axioms WRAP the gaps where Mathlib doesn't yet have BM / PRM / IsKolmogorovProcess-modification. The pattern is appropriate for a "downstream library waiting on Mathlib" — but is not yet ready to be merged INTO Mathlib.
 
 ## What you couldn't verify
 
-- **Exact theorem numbers in Karatzas–Shreve 1991** (Thm 2.1.5, 2.2.8, 2.7.7, 2.7.9, 3.2.6) and **Applebaum 2009** (Thm 4.2.3, 4.2.4, 4.4.7, 2.3.1, 6.2.9; Lemma 4.2.2, 4.2.5). PDFs of these books were not text-extractable via WebFetch; the citations are plausible based on chapter structure (K-S Ch 2 is BM construction; Ch 3 is Itô; Applebaum Ch 4 is stochastic integrals; Ch 6 is SDEs). A citation-verifier persona with library access should cross-check.
-- **Whether the strengthened `IsBSDEJSolution` predicate is genuinely satisfiable by the literature solution.** I argued informally that `Y = 0` does not satisfy for generic `(f, g)`, but I did not construct a concrete witness for a non-trivial BSDEJ. The 2026-05-11 strengthening note in the module docstring asserts this but the actual demonstration relies on the literature solution existing.
-- **`lake build` status**. I did not re-run `bash tools/lint.sh` because the prior `audit_output.txt` artifact is recent and shows the public-API theorems passing the axiom audit. The 8401-jobs claim in the override doc appears consistent.
-- **Whether the `convert this using 1` step in `MultidimBrownianMotion.exists` at `Multidim.lean:230` is genuinely closing the goal or introducing a coercion gap.** The structure of `project_BM W₀ d i` makes the two `iIndepFun` claims definitionally equal modulo a single function-unfolding step, so this is plausible; not exhaustively verified by tracing the goal.
-- **Persona 8, 9, 6, 2, 11, 12 findings**. I did not read them (independent audit per shared_context).
-- **Whether `M_N`'s pin to `Compensated.stochasticIntegral N U` is type-coherent under the `Fin d` versus scalar shape.** The integral is scalar-valued (`Ω → ℝ`) and the predicate's pin uses `Ω → ℝ` as well — that matches. But the docstring suggests `Z` is `Fin d`-valued; the L²-isometry of `M_W` is summed over `Fin d`. Cross-checking that all type indices line up is left to a Lean-specialist reviewer.
+- **Whether the H6 over-claim is actually exploitable by a malicious caller**: the docstring says "the over-claim is not exploited anywhere in the audited chain." I did not write a counter-example caller that constructs a non-progressive-measurable `φ`, calls `itoIsometry_compensated_unified_existence` to get an `F`, and uses the unconditional martingale + quadVar + càdlàg conjuncts to derive something mathematically false. P12 (adversarial hole hunter) should check this.
+- **Whether the `_mcp_snippet_*.lean` debris file's content (a `LocallyIntegrable` lemma) is actually useful and should be promoted into the library**, or is truly debris.
+- **Whether the dependency graph in `LevyStochCalc.lean` (the `import` order) is acyclic and minimal**: did not run `lean4-import-graph`.
+- **Whether `tools/full_audit_output.txt` matches the live output of `tools/full_audit.lean`**: did not re-run; assumed the committed file is recent.
+- **Whether the Mathlib version pinned in `lakefile.toml` (rev `0e208554a6143756c125878a8fe8b17a331d39f7`) is currently the master branch**: did not check upstream.
+- **Whether the documented commits referenced in `cited_axioms.md`'s fix log (e.g. `2d9309e`, `1b1f69f`, `7d232bf`) are real commits**: spot-checked `123e32e`, `9b693c5`, `b065b7d`, `eb707a4`, `638b21d` against `git log --all --oneline` and confirmed those five exist; did not spot-check all 17 referenced commits.
 
-## Recommendations for the project (≤ 5 bullets)
+## Recommendations for the project (≤ 5 bullets, prioritised)
 
-- **Run the 2026-05-11 recursive trivial-witness audit on the remaining "honest derivative theorem" list**, not just the four explicit dissertation forwarders. `jacodYor_representation` and `JumpDiffusion.exists_unique` both currently sit in the same trivial-witness state that `itoLevyFormula` was demoted for. They should be either demoted to documented Tier 1 axioms (Jacod 1976 / Applebaum 6.2.9) or strengthened to non-trivial statements. Both are listed as axiom-clean in `audit_output.txt`, which is misleading.
-- **Add the standard literature hypotheses to the three over-strong axioms**: `continuousBSDEJ_exists_unique` and `bsdej_path_regularity` need `Lipschitz bsdej ν L` + measurability/adaptedness of `X` + L²-terminal-data; `itoIsometry_compensated_unified_existence` needs `h_meas + h_predMeas + h_sq_int_global` matching the Brownian-side axiom shape. The Brownian-side template at `SimplePredictableRefine.lean:2094-2107` is the model.
-- **Fix the BET 2008 citation everywhere it appears**: `bsdej_path_regularity` docstring, `cited_axioms.md` Tier 1 #10, and the downstream dissertation forwarder. The actual paper is Bouchard & Elie (no Touzi), SPA **118**(1), 2008, pp. 53-75. Cross-check the "Theorem 2.1" number against the published version (it was inherited along with the wrong authors/year/volume).
-- **Strengthen `IsBSDEJSolution` with adaptedness conjuncts on `Y`, `Z`, `U`**. The predicate's docstring says "adapted processes" but the predicate doesn't enforce that. Adding the conjuncts may force re-proving downstream usage, but the predicate is currently too weak to capture the literature definition.
-- **Write a `README.md`** with: project description, build instructions, axiom inventory pointer, and an explicit statement that the library introduces 11 axioms and is not directly Mathlib-mergeable yet. Delete or fill `docs/`. Archive `STATUS.md` and `STATUS_strong_exists.md` (or update them) since they have drifted from current state (e.g., `STATUS.md`'s 19-line sorry baseline list is no longer accurate; `tools/sorry_baseline.txt` is empty).
+- **Fix `LevyStochCalc.lean:44`'s fabricated citation (Finding 1)** as the highest-priority single-line edit. The top-level module docstring is the front door of the library; leaving the fabricated "Bouchard-Elie-Touzi 2009 Thm 2.1" there after the citation cleanup completely undermines the project's claim that the citation defects are closed.
+- **Reconcile the 9 vs 11 Tier 1 axiom count across `README.md`, `STATUS.md`, `tools/full_audit.lean`, and `tools/cited_axioms.md` (Findings 2, 11, 12)**. The correct count is 9 (verified by `audit_output.txt`). STATUS.md is the most-stale; `full_audit.lean`'s docstring contradicts itself on lines 8 and 12. Run a `grep -rn '11 Tier 1\|axioms (11)\|^11\.'` sweep and fix everywhere.
+- **Fix the README.md and STATUS.md "Layout" sections (Finding 3)** to reflect the actual `Brownian/` directory contents. `Brownian/BrownianMotion.lean` and `Brownian/NaturalFiltration.lean` do not exist; the contents live in `Brownian/Construction.lean` and `Brownian/Martingale.lean` respectively. This is a new-user blocker.
+- **Add at least 4 `example` blocks demonstrating the public API (Finding 4)**, ideally as `LevyStochCalc/Examples.lean`. The examples double as smoke tests against upstream Mathlib API drift. Without any examples, the library reads as "a collection of axiom statements" rather than "a usable formalisation."
+- **Decide on the H6 closure strategy (Finding 5)**: either commit to the multi-file ProgMeasurable refactor and actually close the gap in the axiom signature, or restate the cited axiom as "L²-Itô-Lévy integral for jointly-measurable integrands" with an honest scope note. The current "documentation-only" closure makes Tier 1 #6 the weakest link in the cited-axioms chain.
+
+## Files read (selection — full traversal)
+
+`D:\LevyStochCalc\README.md`, `D:\LevyStochCalc\LICENSE` (lines 1-30 + 175-201 verified Apache 2.0 boilerplate complete), `D:\LevyStochCalc\CONTRIBUTING.md`, `D:\LevyStochCalc\STATUS.md`, `D:\LevyStochCalc\LevyStochCalc.lean`, `D:\LevyStochCalc\_audit.lean`, `D:\LevyStochCalc\audit_output.txt`, `D:\LevyStochCalc\lakefile.toml`, `D:\LevyStochCalc\lake-manifest.json`, `D:\LevyStochCalc\.github\workflows\ci.yml`, `D:\LevyStochCalc\_mcp_snippet_952bdcfd68b74942a7ef219170b0f2aa.lean`, `D:\LevyStochCalc\tools\cited_axioms.md` (full), `D:\LevyStochCalc\tools\full_audit.lean`, `D:\LevyStochCalc\tools\full_audit_output.txt`, `D:\LevyStochCalc\tools\lint.sh`, `D:\LevyStochCalc\tools\sorry_baseline.txt`, `D:\LevyStochCalc\LevyStochCalc\Basic.lean`, `D:\LevyStochCalc\LevyStochCalc\Notation.lean`, `D:\LevyStochCalc\LevyStochCalc\Brownian\Construction.lean` (lines 1-173), `D:\LevyStochCalc\LevyStochCalc\Brownian\Continuity.lean` (lines 1-100), `D:\LevyStochCalc\LevyStochCalc\Brownian\Multidim.lean` (lines 1-180), `D:\LevyStochCalc\LevyStochCalc\Brownian\Martingale.lean` (axiom site grep), `D:\LevyStochCalc\LevyStochCalc\Brownian\SimplePredictableRefine.lean` (axiom site), `D:\LevyStochCalc\LevyStochCalc\Brownian\Ito.lean` (declaration count grep), `D:\LevyStochCalc\LevyStochCalc\Poisson\RandomMeasure.lean` (lines 70-205), `D:\LevyStochCalc\LevyStochCalc\Poisson\Compensated.lean` (lines 1-80 + 1750-1834 axiom + diff vs master), `D:\LevyStochCalc\LevyStochCalc\Poisson\L2Isometry.lean`, `D:\LevyStochCalc\LevyStochCalc\Poisson\NaturalFiltration.lean` (existence confirmation only), `D:\LevyStochCalc\LevyStochCalc\Ito\Setting.lean` (lines 35-150), `D:\LevyStochCalc\LevyStochCalc\Ito\JumpFormula.lean` (lines 1-198 axiom site), `D:\LevyStochCalc\LevyStochCalc\BSDEJ\Definition.lean` (full), `D:\LevyStochCalc\LevyStochCalc\BSDEJ\Existence.lean` (axiom site), `D:\LevyStochCalc\LevyStochCalc\BSDEJ\PathRegularity.lean` (lines 1-150), `D:\LevyStochCalc\LevyStochCalc\BSDEJ\MartingaleRepresentation.lean` (full), `D:\LevyStochCalc\redteam_findings\shared_context_override.md` (full), `D:\LevyStochCalc\redteam_findings\2026-05-20-archive\10_dissertation_examiner.md` (full).
+
+**Live build verification**: `cd D:/LevyStochCalc && git stash && lake build` → "Build completed successfully (8402 jobs)" with 2 sorry warnings (= baseline). Master HEAD `237cc19` builds clean. (Worktree-local uncommitted modifications to `Poisson/Compensated.lean` were observed BREAKING the build with two type errors at `Compensated.lean:1795` and `:1797`; this is a transient working-tree state, not master HEAD. The worktree's `Compensated.lean` attempt to mirror the Brownian-side hypothesis pattern as a strengthened axiom signature appears to be in-progress work that doesn't compile against the existing `naturalFiltration` namespace.)
