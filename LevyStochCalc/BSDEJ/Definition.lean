@@ -186,11 +186,28 @@ def IsBSDEJSolution
               M_W T' ω =
                 LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
                   W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
-          -- M_N is pinned to the canonical compensated-Poisson L² integral of U:
-          (∀ T' : ℝ, ∀ᵐ ω ∂P,
-            M_N T' ω =
-              LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-                (fun ω' s e => U s ω' e) T' ω) ∧
+          -- M_N is pinned to the canonical compensated-Poisson L² integral of U.
+          -- H6 fix (red-team 2nd audit, 2026-05-23): U-side hypotheses bundled
+          -- here (mirror of how M_W bundles h_Z hypotheses). Closes the prior
+          -- "hollow M_N pin" issue (Persona 7 F1+F2) where per-e adaptedness
+          -- of U was insufficient.
+          (∃ (h_U_meas : Measurable
+                (fun (p : Ω × ℝ × E) =>
+                  (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+             (h_U_progMeas : ∀ t : ℝ,
+                @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+                  (@Prod.instMeasurableSpace Ω (ℝ × E)
+                    ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+                    inferInstance)
+                  (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+             (h_U_sq : ∀ T' : ℝ, 0 < T' →
+                ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+                  (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
+                    ∂ν ∂volume ∂P < ⊤),
+            ∀ T' : ℝ, ∀ᵐ ω ∂P,
+              M_N T' ω =
+                LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+                  (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω) ∧
           -- M_W and M_N are martingales w.r.t. the same Filt:
           MeasureTheory.Martingale M_W Filt P ∧
           MeasureTheory.Martingale M_N Filt P ∧
