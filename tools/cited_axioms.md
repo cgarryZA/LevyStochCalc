@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (11 entries)
+## Tier 1: Honest cited axioms (9 currently live; #7 and #8 deleted 2026-05-22)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -56,19 +56,37 @@ to the Mathlib version, no other changes needed downstream.
 * **Mathlib status (May 2026)**: No compensated-Poisson L² integral in Mathlib (waits on Poisson random measure construction). No current activity.
 * **Replacement plan**: `theorem itoIsometry_compensated_unified_existence := <Mathlib forwarder>` when Mathlib gains compensated-Poisson L² integration.
 
-### 7. `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated`
+### 7. `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` (DELETED 2026-05-22)
 
-* **Statement**: For an adapted sequence `(G n)` of `SimplePredictable Ω E ν T` with shared endpoint and `(G n).eval` Cauchy in `L²(P × ds × dν)`, the lifted `simpleIntegralLp_compensated (G n)` is Cauchy in `Lp ℝ 2 P`.
-* **Reference**: Applebaum 2009 **Equation 4.3.1** + **Lemma 4.2.5** (L²-isometry on simple integrands, applied to differences via common refinement of partitions); Ikeda–Watanabe **Lemma II.3.4**.
-* **Mathlib status (May 2026)**: No current Mathlib activity for compensated-Poisson simple integrals or their common refinement. The underlying mathematical content (L²-isometry on differences via partition refinement) is a finite-sum calculation; the missing piece is mechanizing the common-refinement chain for `SimplePredictable Ω E ν T` (mirror of the Brownian `commonRefinement_*` C0b chain).
-* **Replacement plan**: This axiom becomes a theorem once the Compensated common-refinement chain is mechanized — independent of any Mathlib activity. Standalone follow-up.
+This axiom was deleted on 2026-05-22 as dead code. It was the Compensated
+Cauchy-completion step in the L² Itô-Lévy construction route that was
+superseded by the 2026-05-10 unified-existence axiom refactor. Per
+red-team finding M4, neither this axiom nor its downstream chain
+(`simpleIntegralLp_compensated` → `itoIntegralLp_compensated` →
+`exists_itoIntegralL2_compensated` → `itoIsometry_compensated_existence`
+→ `stochasticIntegral_isometry_only_compensated`) was reachable from any
+audited load-bearing theorem; the public `Compensated.stochasticIntegral`
+is built directly from `itoIsometry_compensated_unified_existence`
+(Tier 1 #6).
 
-### 8. `LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated`
+Original statement (recoverable from git history before commit deleting
+the chain): for an adapted sequence `(G n)` of `SimplePredictable Ω E ν T`
+with shared endpoint and `(G n).eval` Cauchy in `L²(P × ds × dν)`, the
+lifted `simpleIntegralLp_compensated (G n)` is Cauchy in `Lp ℝ 2 P`
+(Applebaum 2009 Equation 4.3.1 + Lemma 4.2.5).
 
-* **Statement**: For progressively-measurable `φ : Ω → ℝ → E → ℝ` with finite L² norm on `[0, T]`, there exists a sequence of adapted simple predictables `G n` with `(G n).eval` converging to `φ` in `L²(P × ds × dν)`, plus the shared endpoint + joint measurability properties needed by `exists_itoIntegralL2_compensated`.
-* **Reference**: Applebaum 2009 **Lemma 4.2.2** (density of adapted simple predictable functions in L²); Ikeda–Watanabe **Lemma II.3.3**.
-* **Mathlib status (May 2026)**: No Mathlib activity for the Compensated case. The Brownian analog `adaptedSimple_dense_L2_brownian` is fully proven via `predictableDyadicSimple_brownian` (dyadic averaging over (s_{i-1}, s_i] blocks). The Compensated extension to the mark dimension `E` (dyadic averaging over (s_{i-1}, s_i] × E_j with `(E_j)` from the σ-finite decomposition of ν) is the missing piece.
-* **Replacement plan**: This axiom becomes a theorem once the Compensated dyadic predictable construction lands (mirror of the Brownian `predictableDyadicSimple_brownian` chain) — independent of any Mathlib activity. Standalone follow-up.
+### 8. `LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated` (DELETED 2026-05-22)
+
+This axiom was deleted on 2026-05-22 as dead code, alongside #7. It was
+the Compensated L²-density-of-adapted-simple-predictables step in the
+same superseded chain. Per red-team finding M4, not reachable from any
+audited load-bearing theorem.
+
+Original statement (recoverable from git history): for progressively-
+measurable `φ : Ω → ℝ → E → ℝ` with finite L² norm on `[0, T]`, there
+exists a sequence of adapted simple predictables `G n` with `(G n).eval`
+converging to `φ` in `L²(P × ds × dν)` plus the shared endpoint + joint
+measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 
 ### 9. `LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique`
 

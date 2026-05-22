@@ -9,15 +9,14 @@ Every theorem listed should have axiom set ⊆ {propext, Classical.choice, Quot.
 
 No `sorryAx` should appear anywhere.
 
-The 11 Tier 1 cited axioms:
+The 9 currently-live Tier 1 cited axioms (axioms #7 and #8 were
+deleted 2026-05-22 as dead post-refactor — see red-team finding M4):
 1.  LevyStochCalc.Brownian.BrownianMotion.exists
 2.  LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 3.  LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification
 4.  LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont
 5.  LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence
 6.  LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence
-7.  LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated
-8.  LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated
 9.  LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 10. LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
 11. LevyStochCalc.Ito.JumpFormula.itoLevyFormula  (DEMOTED 2026-05-11 from cosmetic theorem)
@@ -32,8 +31,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont
 #print axioms LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence
 #print axioms LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence
-#print axioms LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated
-#print axioms LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated
+-- Axioms #7 (cauchySeq_simpleIntegralLp_compensated) and #8
+-- (adaptedSimple_dense_L2_compensated) were deleted 2026-05-22 as dead
+-- post-2026-05-10 unified-existence refactor. See red-team M4 + cited_axioms.md.
 #print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula  -- DEMOTED 2026-05-11
