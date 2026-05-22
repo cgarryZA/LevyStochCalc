@@ -449,7 +449,7 @@ lemma brownian_martingale_zero_aux
     filter_upwards [h_add, h_inc_zero, W.initial_zero]
       with ω h_add_ω h_zero_ω hW0_ω
     rw [h_add_ω, Pi.add_apply, h_zero_ω, h_self]
-    show W.W 0 ω + 0 = 0
+    change W.W 0 ω + 0 = 0
     rw [hW0_ω]; ring
 
 /-- Brownian motion `W` is a martingale w.r.t. its natural filtration.
@@ -520,7 +520,7 @@ theorem brownian_martingale
           filter_upwards [h_tower, h_outer_zero, hWs_zero]
             with ω h_tower_ω h_outer_ω hWs_ω
           rw [← h_tower_ω, h_outer_ω, h_zero_inner]
-          show (0 : ℝ) = W.W s ω
+          change (0 : ℝ) = W.W s ω
           rw [hWs_ω]
         · -- s < t < 0: both W_s and W_t are 0 a.s.
           push Not at ht_nn
@@ -534,7 +534,7 @@ theorem brownian_martingale
             ((naturalFiltration W).le' s) (0 : ℝ)
           filter_upwards [h_eq, hWs_zero] with ω h_eq_ω hWs_ω
           rw [h_eq_ω, h_const]
-          show (0 : ℝ) = W.W s ω
+          change (0 : ℝ) = W.W s ω
           rw [hWs_ω]
       -- Now 0 ≤ s < t.
       have h_int_s : MeasureTheory.Integrable (W.W s) P :=
@@ -682,7 +682,7 @@ lemma brownian_quadVar_zero_aux
     change A ω + (P[B | (naturalFiltration W).seq 0] ω
                   + P[C | (naturalFiltration W).seq 0] ω) = 0
     rw [h_B_ω, h_C_ω]
-    show (W.W 0 ω)^2 - 0 + (0 + 0) = 0
+    change (W.W 0 ω)^2 - 0 + (0 + 0) = 0
     rw [hW0_ω]; ring
 
 /-- Quadratic variation of Brownian motion: `⟨W⟩_t = t`.
@@ -766,7 +766,7 @@ theorem brownian_quadVar
           change P[(fun ω => (W.W t ω)^2 - max t 0)
             | (naturalFiltration W).seq s] ω = (W.W s ω)^2 - max s 0
           rw [← h_tower_ω, h_outer_ω, h_zero_inner]
-          show (0 : ℝ) = (W.W s ω)^2 - max s 0
+          change (0 : ℝ) = (W.W s ω)^2 - max s 0
           rw [hWs_ω, h_max_s_zero]; ring
         · -- s < t < 0: both W_s = 0 and W_t = 0 a.s., so M_s = M_t = 0.
           push Not at ht_nn
@@ -785,7 +785,7 @@ theorem brownian_quadVar
           change P[(fun ω => (W.W t ω)^2 - max t 0)
             | (naturalFiltration W).seq s] ω = (W.W s ω)^2 - max s 0
           rw [h_eq_ω, h_const]
-          show (0 : ℝ) = (W.W s ω)^2 - max s 0
+          change (0 : ℝ) = (W.W s ω)^2 - max s 0
           rw [hWs_ω, h_max_s_zero]; ring
       -- Now 0 ≤ s < t.
       have ht_nn : 0 ≤ t := hs_nn.trans hst_lt.le

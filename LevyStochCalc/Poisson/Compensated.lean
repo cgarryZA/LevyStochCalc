@@ -780,7 +780,7 @@ private lemma compensated_sq_integrable
   have h_simp : ((fun x : ℝ≥0∞ => (x.toReal - c)^2) ∘ (fun n : ℕ => (n : ℝ≥0∞)))
               = fun n : ℕ => ((n : ℝ) - (r : ℝ))^2 := by
     funext n
-    show (((n : ℝ≥0∞)).toReal - c)^2 = ((n : ℝ) - (r : ℝ))^2
+    change (((n : ℝ≥0∞)).toReal - c)^2 = ((n : ℝ) - (r : ℝ))^2
     rw [show ((n : ℝ≥0∞)).toReal = (n : ℝ) from by simp, h_c_eq_r]
   rw [h_simp]
   -- Expand (n - r)² = (n² - 2rn) + r².
@@ -839,7 +839,7 @@ lemma simpleIntegral_diagonal
     measurableSet_Ioc.prod (φ.A_measurable i)
   have h_ξi_meas : Measurable ξi := φ.ξ_measurable i
   have h_ÑB_meas : Measurable ÑB := by
-    show Measurable (fun ω => (N.N ω B).toReal -
+    change Measurable (fun ω => (N.N ω B).toReal -
       (LevyStochCalc.Poisson.referenceIntensity ν B).toReal)
     refine Measurable.sub ?_ ?_
     · exact ENNReal.measurable_toReal.comp (N.measurable_eval h_B_meas)
@@ -1016,11 +1016,11 @@ lemma simpleIntegral_offDiagonal
   have h_ξi_meas : Measurable ξi := φ.ξ_measurable i
   have h_ξj_meas : Measurable ξj := φ.ξ_measurable j
   have h_ÑB_i_meas : Measurable ÑB_i := by
-    show Measurable (fun ω => (N.N ω B_i).toReal -
+    change Measurable (fun ω => (N.N ω B_i).toReal -
       (LevyStochCalc.Poisson.referenceIntensity ν B_i).toReal)
     exact (ENNReal.measurable_toReal.comp (N.measurable_eval h_B_i_meas)).sub_const _
   have h_ÑB_j_meas : Measurable ÑB_j := by
-    show Measurable (fun ω => (N.N ω B_j).toReal -
+    change Measurable (fun ω => (N.N ω B_j).toReal -
       (LevyStochCalc.Poisson.referenceIntensity ν B_j).toReal)
     exact (ENNReal.measurable_toReal.comp (N.measurable_eval h_B_j_meas)).sub_const _
   -- B_i ⊆ Set.Iic t_j_pre × Set.univ (since t_i ≤ t_j_pre)
@@ -1085,7 +1085,7 @@ lemma simpleIntegral_offDiagonal
   have h_factored : (fun ω => (ξi ω * ÑB_i ω) * (ξj ω * ÑB_j ω))
       = fun ω => f ω * ÑB_j ω := by
     funext ω
-    show (ξi ω * ÑB_i ω) * (ξj ω * ÑB_j ω) = ξi ω * ÑB_i ω * ξj ω * ÑB_j ω
+    change (ξi ω * ÑB_i ω) * (ξj ω * ÑB_j ω) = ξi ω * ÑB_i ω * ξj ω * ÑB_j ω
     ring
   rw [show (fun ω => (φ.ξ i ω * N.compensated (Set.Ioc t_i_pre t_i ×ˢ A_i) ω) *
               (φ.ξ j ω * N.compensated (Set.Ioc t_j_pre t_j ×ˢ A_j) ω))
@@ -1292,11 +1292,11 @@ private lemma cross_sq_integrable
   have h_int_NN : MeasureTheory.Integrable
       (fun ω => N.compensated (φ.fullRect i) ω * N.compensated (φ.fullRect j) ω) P := by
     have h_meas_i : Measurable (fun ω => N.compensated (φ.fullRect i) ω) := by
-      show Measurable (fun ω => (N.N ω (φ.fullRect i)).toReal -
+      change Measurable (fun ω => (N.N ω (φ.fullRect i)).toReal -
         (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i)).toReal)
       exact (ENNReal.measurable_toReal.comp (N.measurable_eval h_B_i_meas)).sub_const _
     have h_meas_j : Measurable (fun ω => N.compensated (φ.fullRect j) ω) := by
-      show Measurable (fun ω => (N.N ω (φ.fullRect j)).toReal -
+      change Measurable (fun ω => (N.N ω (φ.fullRect j)).toReal -
         (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect j)).toReal)
       exact (ENNReal.measurable_toReal.comp (N.measurable_eval h_B_j_meas)).sub_const _
     refine MeasureTheory.Integrable.mono'

@@ -60,7 +60,7 @@ lemma measurable_random_measure_of_le
     (hB_subset : B ⊆ Set.Iic t ×ˢ Set.univ) (hB_meas : MeasurableSet B) :
     Measurable[(naturalFiltration N).seq t] (fun ω => N.N ω B) := by
   refine Measurable.of_comap_le (m₁ := (naturalFiltration N).seq t) ?_
-  show MeasurableSpace.comap (fun ω => N.N ω B) inferInstance ≤ (naturalFiltration N).seq t
+  change MeasurableSpace.comap (fun ω => N.N ω B) inferInstance ≤ (naturalFiltration N).seq t
   exact le_iSup_of_le B (le_iSup_of_le ⟨hB_subset, hB_meas⟩ le_rfl)
 
 /-- **Filtration σ-algebra equals the supremum used in `joint_past_future_independent`.**

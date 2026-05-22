@@ -586,7 +586,7 @@ lemma simpleIntegral_offDiagonal
   set f : Ω → ℝ := fun ω => ξ_i ω * ΔW_i ω * ξ_j ω
   have h_factored : (fun ω => (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω))
       = fun ω => f ω * ΔW_j ω := by
-    funext ω; show (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω) = ξ_i ω * ΔW_i ω * ξ_j ω * ΔW_j ω
+    funext ω; change (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω) = ξ_i ω * ΔW_i ω * ξ_j ω * ΔW_j ω
     ring
   rw [show (fun ω => (H.ξ i ω * (W.W (H.partition i.succ) ω
                       - W.W (H.partition i.castSucc) ω))
@@ -1084,7 +1084,7 @@ private lemma truncation_pointwise_tendsto_brownian (x : ℝ) :
     have h_min : min (M : ℝ) x = x := min_eq_right (le_trans (le_abs_self _) h_M_ge)
     rw [h_min]
     exact max_eq_right (by linarith [neg_abs_le x])
-  show (0 : ℝ≥0∞) = (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2
+  change (0 : ℝ≥0∞) = (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2
   rw [h_clip, sub_self]
   simp
 
@@ -1601,7 +1601,7 @@ lemma predictableDyadicSimple_brownian_adapted
         ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
           i.castSucc))
       ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).ξ i) := by
-  show @MeasureTheory.StronglyMeasurable Ω ℝ _
+  change @MeasureTheory.StronglyMeasurable Ω ℝ _
     ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
       (dyadicPartition_brownian T n i.castSucc))
     (dyadicAvg_shifted_brownian T g n i)
@@ -1674,7 +1674,7 @@ private lemma dyadicSimplePredictable_brownian_eval_bounded
   have h_M_nn : (0 : ℝ) ≤ M := le_trans (abs_nonneg (g ω 0)) (h_bound ω 0)
   -- ξ bound for each i: dyadicAvg bounded by M.
   have h_each_bound : ∀ i : Fin φ.N, |φ.ξ i ω| ≤ M := fun i => by
-    show |dyadicAvg_brownian (T := T) g n i ω| ≤ M
+    change |dyadicAvg_brownian (T := T) g n i ω| ≤ M
     exact dyadicAvg_brownian_bounded T hT g M h_bound n i ω
   -- At most one index i has `partition i.castSucc < s ∧ s ≤ partition i.succ`.
   have h_at_most_one : ∀ i j : Fin φ.N, i ≠ j →
@@ -1854,13 +1854,13 @@ private lemma dyadicSimplePredictable_brownian_eval_eq_dyadicAvg
   have hi_mem := dyadicIndex_mem n T hT s hs
   have h_partition_castSucc : φ.partition i.castSucc =
       ((i : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
-    show dyadicPartition_brownian T n i.castSucc = _
+    change dyadicPartition_brownian T n i.castSucc = _
     unfold dyadicPartition_brownian
     push_cast
     simp [Fin.val_castSucc]
   have h_partition_succ : φ.partition i.succ =
       (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
-    show dyadicPartition_brownian T n i.succ = _
+    change dyadicPartition_brownian T n i.succ = _
     unfold dyadicPartition_brownian
     push_cast
     simp [Fin.val_succ]
@@ -1885,13 +1885,13 @@ private lemma dyadicSimplePredictable_brownian_eval_eq_dyadicAvg
       have hi_lt : φ.partition i.castSucc < s := h_i_fires.1
       linarith
   -- Now collapse the sum.
-  show (∑ j : Fin φ.N, if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+  change (∑ j : Fin φ.N, if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
                        then φ.ξ j ω else 0) = dyadicAvg_brownian g n i ω
-  show (∑ j : Fin (2 ^ n), if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+  change (∑ j : Fin (2 ^ n), if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
                             then φ.ξ j ω else 0) = dyadicAvg_brownian g n i ω
   rw [Finset.sum_eq_single i]
   · rw [if_pos h_i_fires]
-    show dyadicAvg_brownian (T := T) g n i ω = dyadicAvg_brownian g n i ω
+    change dyadicAvg_brownian (T := T) g n i ω = dyadicAvg_brownian g n i ω
     rfl
   · intro j _ hji
     refine if_neg ?_
@@ -1916,13 +1916,13 @@ private lemma predictableDyadicSimple_brownian_eval_eq_shifted
   have hi_mem := dyadicIndex_mem n T hT s hs
   have h_partition_castSucc : φ.partition i.castSucc =
       ((i : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
-    show dyadicPartition_brownian T n i.castSucc = _
+    change dyadicPartition_brownian T n i.castSucc = _
     unfold dyadicPartition_brownian
     push_cast
     simp [Fin.val_castSucc]
   have h_partition_succ : φ.partition i.succ =
       (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
-    show dyadicPartition_brownian T n i.succ = _
+    change dyadicPartition_brownian T n i.succ = _
     unfold dyadicPartition_brownian
     push_cast
     simp [Fin.val_succ]
@@ -1944,13 +1944,13 @@ private lemma predictableDyadicSimple_brownian_eval_eq_shifted
         φ.partition_strictMono.monotone h_succ_le
       have hi_lt : φ.partition i.castSucc < s := h_i_fires.1
       linarith
-  show (∑ j : Fin φ.N, if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+  change (∑ j : Fin φ.N, if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
                        then φ.ξ j ω else 0) = dyadicAvg_shifted_brownian T g n i ω
-  show (∑ j : Fin (2 ^ n), if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
+  change (∑ j : Fin (2 ^ n), if φ.partition j.castSucc < s ∧ s ≤ φ.partition j.succ
                             then φ.ξ j ω else 0) = dyadicAvg_shifted_brownian T g n i ω
   rw [Finset.sum_eq_single i]
   · rw [if_pos h_i_fires]
-    show dyadicAvg_shifted_brownian T g n i ω = dyadicAvg_shifted_brownian T g n i ω
+    change dyadicAvg_shifted_brownian T g n i ω = dyadicAvg_shifted_brownian T g n i ω
     rfl
   · intro j _ hji
     refine if_neg ?_
@@ -2039,7 +2039,7 @@ private lemma dyadic_pointwise_tendsto_per_omega
      dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc) / 2
   have h_delta_eq : ∀ n, δ n = T / (2 * (2 ^ n : ℕ)) := by
     intro n
-    show (dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ -
+    change (dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ -
           dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc) / 2 = _
     rw [dyadicPartition_brownian_diff n (dyadicIndex n T hT x hx)]
     ring
@@ -2070,23 +2070,23 @@ private lemma dyadic_pointwise_tendsto_per_omega
   have h_x_in_ball : ∀ n, x ∈ Metric.closedBall (w n) (1 * δ n) := by
     intro n
     rw [one_mul]
-    show |x - w n| ≤ δ n
+    change |x - w n| ≤ δ n
     have h_mem := dyadicIndex_mem n T hT x hx
     set t_i := dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc with ht_i
     set t_succ := dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ with ht_succ
     have h_x1 : t_i < x := by
       have h := h_mem.1
-      show dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc < x
+      change dyadicPartition_brownian T n (dyadicIndex n T hT x hx).castSucc < x
       unfold dyadicPartition_brownian
       push_cast at h ⊢
       simpa [Fin.val_castSucc] using h
     have h_x2 : x ≤ t_succ := by
       have h := h_mem.2
-      show x ≤ dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ
+      change x ≤ dyadicPartition_brownian T n (dyadicIndex n T hT x hx).succ
       unfold dyadicPartition_brownian
       push_cast at h ⊢
       simpa [Fin.val_succ] using h
-    show |x - (t_i + t_succ) / 2| ≤ (t_succ - t_i) / 2
+    change |x - (t_i + t_succ) / 2| ≤ (t_succ - t_i) / 2
     rw [abs_le]
     refine ⟨by linarith, by linarith⟩
   -- Apply the Mathlib lemma.
@@ -2227,7 +2227,7 @@ private lemma dyadicSimplePredictable_brownian_L2_converges
       rw [hCC]; linarith
     have h_norm_nn : 0 ≤ ‖g p.1 p.2 -
         (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖ := norm_nonneg _
-    show (‖g p.1 p.2 -
+    change (‖g p.1 p.2 -
        (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (CC ^ 2)
     have : ((‖g p.1 p.2 -
@@ -2242,7 +2242,7 @@ private lemma dyadicSimplePredictable_brownian_L2_converges
   -- AEMeasurable of F n on the product.
   have h_F_meas : ∀ n, Measurable (F n) := by
     intro n
-    show Measurable (fun (p : Ω × ℝ) => (‖g p.1 p.2 -
+    change Measurable (fun (p : Ω × ℝ) => (‖g p.1 p.2 -
        (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2)
     have h_eval_meas : Measurable (fun p : Ω × ℝ =>
@@ -2273,7 +2273,7 @@ private lemma dyadicSimplePredictable_brownian_L2_converges
     have h_ae := dyadicSimplePredictable_brownian_ae_tendsto (P := P) hT g h_meas M h_bound
     filter_upwards [h_ae] with p hp
     -- F n p = ‖g - eval‖² → 0 since ‖g - eval‖ → 0 (from eval → g).
-    show Filter.Tendsto (fun n => (‖g p.1 p.2 -
+    change Filter.Tendsto (fun n => (‖g p.1 p.2 -
        (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2) Filter.atTop (nhds 0)
     have h_diff_zero : Filter.Tendsto
@@ -2385,7 +2385,7 @@ private lemma predictable_pointwise_tendsto_per_omega
     with hw_def
   -- δ → 0 in nhdsWithin 0 (Ioi 0).
   have h_delta_pos : ∀ n, 0 < δ n := fun n => by
-    show 0 < T / (2 * (2 ^ n : ℕ))
+    change 0 < T / (2 * (2 ^ n : ℕ))
     have : (0 : ℝ) < 2 * (2 ^ n : ℕ) := by positivity
     exact div_pos hT this
   have h_delta_to_zero : Filter.Tendsto δ Filter.atTop (nhds 0) := by
@@ -2435,7 +2435,7 @@ private lemma predictable_pointwise_tendsto_per_omega
   have h_x_in_ball_eventually : ∀ᶠ n in Filter.atTop,
       x ∈ Metric.closedBall (w n) (3 * δ n) := by
     filter_upwards [h_eventually_i_pos] with n hn_i_pos
-    show |x - w n| ≤ 3 * δ n
+    change |x - w n| ≤ 3 * δ n
     have hi_mem := dyadicIndex_mem n T hT x hx
     have h_x_lower : ((dyadicIndex n T hT x hx).val : ℝ) * T / ((2 ^ n : ℕ) : ℝ) < x :=
       hi_mem.1
@@ -2444,7 +2444,7 @@ private lemma predictable_pointwise_tendsto_per_omega
     set i_val : ℝ := ((dyadicIndex n T hT x hx).val : ℝ) with hi_val
     have h_pos_real : (0 : ℝ) < (2 ^ n : ℕ) := by positivity
     have h_pow_ne : ((2 ^ n : ℕ) : ℝ) ≠ 0 := ne_of_gt h_pos_real
-    show |x - (i_val - 1/2) * (T / ((2 ^ n : ℕ) : ℝ))| ≤ 3 * (T / (2 * (2 ^ n : ℕ)))
+    change |x - (i_val - 1/2) * (T / ((2 ^ n : ℕ) : ℝ))| ≤ 3 * (T / (2 * (2 ^ n : ℕ)))
     rw [abs_le]
     constructor
     · -- Lower bound: x - w_n ≥ -(3 * δ_n).
@@ -2480,7 +2480,7 @@ private lemma predictable_pointwise_tendsto_per_omega
     have h_w_eq : w n =
         (dyadicPartition_brownian T n i'.castSucc +
           dyadicPartition_brownian T n i'.succ) / 2 := by
-      show (((dyadicIndex n T hT x hx).val : ℝ) - 1/2) *
+      change (((dyadicIndex n T hT x hx).val : ℝ) - 1/2) *
           (T / ((2 ^ n : ℕ) : ℝ)) = _
       unfold dyadicPartition_brownian
       simp only [Fin.val_succ, Fin.val_castSucc]
@@ -2503,7 +2503,7 @@ private lemma predictable_pointwise_tendsto_per_omega
     have h_delta_eq : δ n = (dyadicPartition_brownian T n i'.succ -
         dyadicPartition_brownian T n i'.castSucc) / 2 := by
       rw [dyadicPartition_brownian_diff n i']
-      show T / (2 * ((2 ^ n : ℕ) : ℝ)) = T / ((2 ^ n : ℕ) : ℝ) / 2
+      change T / (2 * ((2 ^ n : ℕ) : ℝ)) = T / ((2 ^ n : ℕ) : ℝ) / 2
       field_simp
     rw [h_w_eq, h_delta_eq]
   refine Filter.Tendsto.congr' ?_ h_avg_to_g
@@ -2637,7 +2637,7 @@ lemma predictableDyadicSimple_brownian_L2_converges
     have h_norm_nn : 0 ≤ ‖g p.1 p.2 -
         (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖ :=
       norm_nonneg _
-    show (‖g p.1 p.2 -
+    change (‖g p.1 p.2 -
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (CC ^ 2)
     have : ((‖g p.1 p.2 -
@@ -2651,7 +2651,7 @@ lemma predictableDyadicSimple_brownian_L2_converges
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1)]
   have h_F_meas : ∀ n, Measurable (F n) := by
     intro n
-    show Measurable (fun (p : Ω × ℝ) => (‖g p.1 p.2 -
+    change Measurable (fun (p : Ω × ℝ) => (‖g p.1 p.2 -
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2)
     have h_eval_meas : Measurable (fun p : Ω × ℝ =>
@@ -2682,7 +2682,7 @@ lemma predictableDyadicSimple_brownian_L2_converges
       Filter.Tendsto (fun n => F n p) Filter.atTop (nhds 0) := by
     have h_ae := predictableDyadicSimple_brownian_ae_tendsto (P := P) hT g h_meas M h_bound
     filter_upwards [h_ae] with p hp
-    show Filter.Tendsto (fun n => (‖g p.1 p.2 -
+    change Filter.Tendsto (fun n => (‖g p.1 p.2 -
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞) ^ 2) Filter.atTop (nhds 0)
     have h_diff_zero : Filter.Tendsto
@@ -2797,7 +2797,7 @@ lemma predictableDyadicSimple_brownian_partition_last
     (predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
       (Fin.last (predictableDyadicSimple_brownian hT g h_meas M h_bound n).N)
       = T := by
-  show dyadicPartition_brownian T n (Fin.last (2 ^ n)) = T
+  change dyadicPartition_brownian T n (Fin.last (2 ^ n)) = T
   exact dyadicPartition_brownian_last T n
 
 /-- **Joint measurability of `predictableDyadicSimple_brownian.eval`.**
@@ -2907,7 +2907,7 @@ lemma L2_cauchy_of_L2_tendsto_brownian
     rw [h_eq]
     exact hN n hn
   have h_int_B_lt : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, B ω s ∂volume ∂P) < ε / 4 := by
-    show ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    change ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s - (Hn m).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε / 4
     exact hN m hm
   have h_meas_A_s : ∀ ω, Measurable (fun s => A ω s) := by
@@ -3627,7 +3627,7 @@ private lemma condExp_W_eq_W_aux
     have h_self := MeasureTheory.condExp_of_stronglyMeasurable h_le h_adapt_s h_int_s
     filter_upwards [h_add, h_inc_zero] with ω h_add_ω h_zero_ω
     rw [h_add_ω, Pi.add_apply, h_zero_ω, h_self]
-    show W.W s ω + 0 = W.W s ω
+    change W.W s ω + 0 = W.W s ω
     ring
 
 /-- **Per-term integrability** for `simpleIntegral`: each summand
@@ -3898,7 +3898,7 @@ lemma martingale_simpleIntegral_brownian
   refine ⟨?_, ?_⟩
   · -- StronglyAdapted: per-term + `Finset.stronglyMeasurable_fun_sum`.
     intro t
-    show @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t)
+    change @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t)
       (fun ω => ∑ i : Fin H.N,
         H.ξ i ω * (W.W (min (H.partition i.succ) t) ω
                   - W.W (min (H.partition i.castSucc) t) ω))
@@ -3916,7 +3916,7 @@ lemma martingale_simpleIntegral_brownian
       ext ω
       rw [Finset.sum_apply]
       rfl
-    show P[fun ω => simpleIntegral W H t ω | ℱ.seq s] =ᵐ[P]
+    change P[fun ω => simpleIntegral W H t ω | ℱ.seq s] =ᵐ[P]
       fun ω => simpleIntegral W H s ω
     rw [h_unfold_pi t, h_unfold_pi s]
     have h_int : ∀ i ∈ (Finset.univ : Finset (Fin H.N)),

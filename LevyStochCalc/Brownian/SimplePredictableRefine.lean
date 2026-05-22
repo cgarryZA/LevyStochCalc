@@ -128,7 +128,7 @@ lemma SimplePredictable.refine_eval
     (s : ℝ) (ω : Ω) :
     (H.refine M π' h_zero h_last h_strictMono idxMap h_idx_le h_idx_ge).eval s ω
       = H.eval s ω := by
-  show (∑ j : Fin M, if π' j.castSucc < s ∧ s ≤ π' j.succ
+  change (∑ j : Fin M, if π' j.castSucc < s ∧ s ≤ π' j.succ
       then H.ξ (idxMap j) ω else 0)
     = ∑ i : Fin H.N, if H.partition i.castSucc < s ∧ s ≤ H.partition i.succ
         then H.ξ i ω else 0
@@ -316,9 +316,9 @@ lemma SimplePredictable.idxMap_of_mem_Ico
   have h_lt_succ : π' j.castSucc < π' j.succ := h_strictMono Fin.castSucc_lt_succ
   let s_test : ℝ := (π' j.castSucc + π' j.succ) / 2
   have h_test_lo : π' j.castSucc < s_test := by
-    show π' j.castSucc < (π' j.castSucc + π' j.succ) / 2; linarith
+    change π' j.castSucc < (π' j.castSucc + π' j.succ) / 2; linarith
   have h_test_hi : s_test < π' j.succ := by
-    show (π' j.castSucc + π' j.succ) / 2 < π' j.succ; linarith
+    change (π' j.castSucc + π' j.succ) / 2 < π' j.succ; linarith
   have h_in_i : s_test ∈ Set.Ioc (H.partition i.castSucc) (H.partition i.succ) :=
     ⟨lt_of_le_of_lt h_le h_test_lo, le_trans h_test_hi.le h_ge⟩
   have h_in_idx : s_test ∈ Set.Ioc (H.partition (idxMap j).castSucc)
@@ -437,7 +437,7 @@ lemma SimplePredictable.fiber_sum_telescope
     rw [hj_eq, h_succ_eq, h_castSucc_eq]
     -- Goal: H.ξ i ω · (W (π' ⟨j.val + 1, _⟩) ω - W (π' ⟨j.val, _⟩) ω)
     --     = H.ξ i ω · (g (j.val + 1) - g j.val)
-    show H.ξ i ω * (W.W (π' ⟨j.val + 1, h_succ_lt⟩) ω
+    change H.ξ i ω * (W.W (π' ⟨j.val + 1, h_succ_lt⟩) ω
         - W.W (π' ⟨j.val, h_lt_M1⟩) ω)
       = H.ξ i ω * (g (j.val + 1) - g j.val)
     have hg_succ : g (j.val + 1) = W.W (π' ⟨j.val + 1, h_succ_lt⟩) ω := by
@@ -485,7 +485,7 @@ lemma SimplePredictable.simpleIntegral_refine
     simpleIntegral W (H.refine M π' h_zero h_last h_strictMono idxMap h_idx_le h_idx_ge) T ω
       = simpleIntegral W H T ω := by
   rw [simpleIntegral_eq_sum, simpleIntegral_eq_sum]
-  show (∑ j : Fin M, H.ξ (idxMap j) ω
+  change (∑ j : Fin M, H.ξ (idxMap j) ω
         * (W.W (π' j.succ) ω - W.W (π' j.castSucc) ω))
     = ∑ i : Fin H.N, H.ξ i ω
         * (W.W (H.partition i.succ) ω - W.W (H.partition i.castSucc) ω)
@@ -877,7 +877,7 @@ lemma SimplePredictable.simpleIntegral_sub_on_common
     simpleIntegral W (H₁.sub_on_common H₂ h_eq) T ω
       = simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω := by
   rw [simpleIntegral_eq_sum]
-  show (∑ j : Fin (H₁.mergedM H₂),
+  change (∑ j : Fin (H₁.mergedM H₂),
         (H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
           - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω)
         * (W.W (H₁.mergedπ H₂ j.succ) ω - W.W (H₁.mergedπ H₂ j.castSucc) ω))
@@ -927,7 +927,7 @@ lemma SimplePredictable.eval_sub_on_common
         (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
         (H₁.mergedIdxMap_right_idx_ge H₂ h_eq) s ω]
   unfold SimplePredictable.eval
-  show (∑ j : Fin (H₁.mergedM H₂),
+  change (∑ j : Fin (H₁.mergedM H₂),
         if H₁.mergedπ H₂ j.castSucc < s ∧ s ≤ H₁.mergedπ H₂ j.succ
         then (H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
               - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω)
@@ -1248,7 +1248,7 @@ theorem cauchySeq_simpleIntegralLp_brownian
         = MeasureTheory.eLpNorm
             (fun ω => simpleIntegral W (G m) T ω - simpleIntegral W (G n) T ω) 2 P := by
     intro m n
-    show edist
+    change edist
       ((simpleIntegral_memLp_brownian W hT (G m) (h_adapt m)).toLp)
       ((simpleIntegral_memLp_brownian W hT (G n) (h_adapt n)).toLp) = _
     exact MeasureTheory.Lp.edist_toLp_toLp _ _ _ _

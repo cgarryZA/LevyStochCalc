@@ -269,7 +269,7 @@ lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian_shape
       MeasureTheory.eLpNorm (Fn n - F) 2 μν
         = MeasureTheory.eLpNorm (F - Fn n) 2 μν := by
     intro n
-    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add, neg_sub]
+    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add]
     rw [h_neg, MeasureTheory.eLpNorm_neg]
   have h_eLpNorm_diff_swap_tendsto : Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm (Fn n - F) 2 μν)
@@ -376,7 +376,7 @@ lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_compensated_shape
       MeasureTheory.eLpNorm (Fn n - F) 2 μνη
         = MeasureTheory.eLpNorm (F - Fn n) 2 μνη := by
     intro n
-    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add, neg_sub]
+    have h_neg : Fn n - F = -(F - Fn n) := by ext p; simp [sub_eq_neg_add]
     rw [h_neg, MeasureTheory.eLpNorm_neg]
   have h_eLpNorm_diff_swap_tendsto : Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm (Fn n - F) 2 μνη)
