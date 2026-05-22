@@ -43,7 +43,7 @@ Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4 + eq. (5.8)).
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
-open Classical
+-- 2026-05-22: removed `open Classical`; using explicit decidability
 
 namespace LevyStochCalc.Brownian.Ito
 

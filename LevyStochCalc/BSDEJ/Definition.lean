@@ -6,6 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Brownian.Ito
 import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Poisson.L2Isometry
+import LevyStochCalc.Poisson.NaturalFiltration
 
 /-!
 # Layer 3 substrate: Continuous BSDEJ structure
@@ -130,6 +131,15 @@ def IsBSDEJSolution
     -- progressive measurability w.r.t. W's component natural filtrations,
     -- per-component L² bound) to be bundled inside the existential.
     ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+        -- 2026-05-22 (M11 fix per red-team P12): pin Filt to a filtration
+        -- CONTAINING the joint natural filtration of `(W, N)`, ruling out
+        -- trivial constant filtrations. Specifically, `Filt` must be finer
+        -- than the natural filtration of each Brownian component `W.W i`
+        -- and finer than `N`'s natural filtration. (The two together generate
+        -- the joint filtration `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)` to which the
+        -- BSDEJ adaptedness conventionally refers.)
+        (∀ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i) ≤ Filt) ∧
+        LevyStochCalc.Poisson.naturalFiltration N ≤ Filt ∧
         MeasureTheory.Adapted Filt Y ∧
         MeasureTheory.Adapted Filt Z ∧
         (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧

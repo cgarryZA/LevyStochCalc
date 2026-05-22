@@ -40,6 +40,11 @@ structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
   W : ℝ → Ω → ℝ
   /-- For each `t : ℝ`, `ω ↦ W_t(ω)` is measurable. -/
   measurable_eval : ∀ t : ℝ, Measurable (W t)
+  /-- The path map is jointly measurable in `(t, ω)`. Required for the
+  L²-Itô integral against `W` (Karatzas-Shreve §3.2 implicitly assumes
+  this; L10 fix 2026-05-22 per red-team P04). The Wiener-measure construction
+  delivers this directly via the projective limit's product σ-algebra. -/
+  joint_measurable : Measurable (Function.uncurry W)
   /-- `W₀ = 0` almost surely under `P`. -/
   initial_zero : ∀ᵐ ω ∂P, W 0 ω = 0
   /-- For `0 ≤ s < t`, the law of the increment `W_t − W_s` is `𝒩(0, t − s)`. -/

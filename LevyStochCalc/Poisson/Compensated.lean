@@ -71,7 +71,8 @@ Consequences:
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
-open Classical
+-- 2026-05-22 (L9 fix): `open Classical` removed at file scope; the few sites
+-- that need it use `open Classical in` per declaration instead.
 
 namespace LevyStochCalc.Poisson.Compensated
 
@@ -103,6 +104,7 @@ structure SimplePredictable
   ξ_bounded : ∀ i : Fin N, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M
   ξ_measurable : ∀ i : Fin N, Measurable (ξ i)
 
+open Classical in
 /-- Evaluate a simple predictable integrand at fixed `(s, e)`. -/
 noncomputable def SimplePredictable.eval
     {ν : Measure E} [SigmaFinite ν] {T : ℝ}

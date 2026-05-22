@@ -126,6 +126,16 @@ private noncomputable def project_BM
   W := fun t (ω : Fin d → Ω₀) => W₀.W t (ω i)
   measurable_eval := fun t =>
     (W₀.measurable_eval t).comp (measurable_pi_apply i)
+  joint_measurable := by
+    -- Joint measurability inherits from 1D BM's joint measurability via
+    -- the measurable evaluation map at coordinate i.
+    have h₀ := W₀.joint_measurable
+    -- Function.uncurry (fun t ω => W₀.W t (ω i)) = (fun p => W₀.W p.1 (p.2 i))
+    -- = h₀ ∘ (fun p => (p.1, p.2 i))
+    have h_eval_meas : Measurable (fun (p : ℝ × (Fin d → Ω₀)) => (p.1, p.2 i)) := by
+      refine Measurable.prodMk (measurable_fst) ?_
+      exact (measurable_pi_apply i).comp measurable_snd
+    exact h₀.comp h_eval_meas
   initial_zero := by
     -- W₀.initial_zero : ∀ᵐ ω₀ ∂P₀, W₀.W 0 ω₀ = 0; lift via measure-preserving eval i.
     have mp : MeasureTheory.MeasurePreserving (Function.eval i)

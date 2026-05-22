@@ -65,7 +65,15 @@ noncomputable def referenceIntensity {E : Type v} [MeasurableSpace E]
   (volume.restrict (Set.Ici (0 : ℝ))).prod ν
 
 /-- A *Poisson random measure on `[0, ∞) × E`* with intensity
-`volume.restrict [0,∞) ⊗ ν`, defined over a probability space `(Ω, P)`. -/
+`volume.restrict [0,∞) ⊗ ν`, defined over a probability space `(Ω, P)`.
+
+The Applebaum (2009) Definition 2.3.1 properties are: (a) `N(·, A)` is
+Poisson-distributed (captured by `poisson_law`); (b) disjoint-family values
+are independent (captured by `independent_disjoint`); (c) `N` is an
+integer-valued atomic measure (encoded by `integer_valued` below — which
+follows from (a) since Poisson distributions are supported on `ℕ`, but is
+made explicit here as an a.s. claim because Mathlib's `Measure` type
+allows non-integer values in general). -/
 structure PoissonRandomMeasure
     (P : Measure Ω) [IsProbabilityMeasure P]
     (ν : Measure E) [SigmaFinite ν] where
@@ -74,6 +82,15 @@ structure PoissonRandomMeasure
   /-- For each measurable `B ⊆ ℝ × E`, the map `ω ↦ N(ω, B)` is measurable. -/
   measurable_eval : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
     Measurable (fun ω => N ω B)
+  /-- **Applebaum 2.3.1(c).** For measurable `B` with finite intensity,
+  `N(·, B)` is a.s. `ℕ`-valued (in the natural embedding `ℕ ↪ ℝ≥0∞`).
+  Follows from `poisson_law` since the Poisson distribution is supported
+  on `ℕ`, but is exposed as a structural field so downstream code can use
+  it without having to re-derive it through the Poisson-law characterisation
+  each time (L10 fix 2026-05-22 per red-team P04). -/
+  integer_valued : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
+    referenceIntensity ν B ≠ ⊤ →
+    ∀ᵐ ω ∂P, ∃ n : ℕ, N ω B = n
   /-- `N(·, B)` has `Poisson` law with mean `(referenceIntensity ν)(B)` under
   `P`, for every measurable `B` with finite intensity. -/
   poisson_law : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
