@@ -45,7 +45,7 @@ bash tools/lint.sh    # checks build + sorry baseline
 1. The axiom statement must match a published theorem citation precisely.
 2. Add a Tier 1 entry to `tools/cited_axioms.md` with paper reference,
    Mathlib status, and replacement plan.
-3. Update `_audit.lean` and `tools/full_audit.lean` to include it.
+3. Update `_audit.lean` to include it.
 4. Verify `bash tools/lint.sh` still passes.
 
 ## Style

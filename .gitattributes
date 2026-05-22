@@ -1,0 +1,22 @@
+# Force LF line endings for text files to avoid CRLF-vs-LF mismatches
+# on Windows clones (red-team 2nd audit C1 + C2). Otherwise Windows
+# default `core.autocrlf=true` produces CRLF working trees and tools/lint.sh's
+# `BASELINE=$(sort -u ...)` comparison fails when sorry_baseline.txt has
+# trailing \r on each line.
+
+* text=auto eol=lf
+
+# Lean source: always LF.
+*.lean text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files: leave alone.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.olean binary

@@ -1,4 +1,8 @@
 /-
+Copyright (c) 2026 Christian Garry. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Garry
+
 Master audit script. Imports every active LevyStochCalc module, then prints
 axiom sets for every load-bearing theorem.
 

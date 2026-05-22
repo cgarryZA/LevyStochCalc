@@ -58,7 +58,7 @@ if [[ ! -f "$BASELINE_FILE" ]]; then
   echo "ERROR: missing $BASELINE_FILE — cannot compare against baseline."
   exit 1
 fi
-BASELINE=$(sort -u "$BASELINE_FILE")
+BASELINE=$(tr -d '\r' < "$BASELINE_FILE" | sort -u)
 
 # New sorries = current minus baseline.
 NEW_SORRIES=$(comm -23 <(echo "$CURRENT_SORRIES") <(echo "$BASELINE"))

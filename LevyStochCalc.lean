@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Christian Garry. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Garry
+-/
+
 -- Substrate
 import LevyStochCalc.Basic
 import LevyStochCalc.Notation
@@ -41,7 +47,9 @@ to discharge the four cited continuous-time axioms of the main dissertation
 * `I02`  — Itô-Lévy L² isometry (Applebaum 2009 Thm 4.2.3)
 * `Cu01` — Continuous BSDEJ existence/uniqueness (Tang-Li 1994)
 * `Cu03` — Itô-Lévy formula for jump diffusions (Applebaum 2009 Thm 4.4.7)
-* `Cu05` — BSDEJ path regularity (Bouchard-Elie-Touzi 2009 Thm 2.1)
+* `Cu05` — BSDEJ path regularity (Bouchard-Elie 2008 SPA 118(1) pp 53-75 Thm 2.1;
+  correcting the previous fabricated "Bouchard-Elie-Touzi 2009 SPA 119(11)"
+  citation flagged by red-team 1st audit P11 + 2nd audit P10)
 
 Each layer below targets one axiom (or builds machinery used by the next layer).
 Modules are stubs (`sorry`) at bootstrap; they fill in incrementally per the

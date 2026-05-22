@@ -31,11 +31,9 @@ LevyStochCalc/
 ├── Basic.lean                                 — common imports
 ├── Notation.lean                              — local notation (empty)
 ├── Brownian/
-│   ├── BrownianMotion.lean                    — structure + Tier 1 #1 axiom
-│   ├── Construction.lean                      — KC + Wiener glue
+│   ├── Construction.lean                      — BrownianMotion structure + Tier 1 #1 axiom
 │   ├── Continuity.lean                        — KC modification + ae_eq (proven)
-│   ├── NaturalFiltration.lean                 — filtration definition
-│   ├── Martingale.lean                        — Tier 1 #4 axiom
+│   ├── Martingale.lean                        — naturalFiltration W + Tier 1 #4 axiom
 │   ├── Ito.lean                               — L² Itô integral (4000+ lines)
 │   ├── SimplePredictableRefine.lean           — Tier 1 #5 axiom
 │   ├── Multidim.lean                          — multidim BM structure
