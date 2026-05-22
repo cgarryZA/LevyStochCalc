@@ -182,7 +182,26 @@ axiom itoLevyFormula
       (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
-            ∂volume ∂P < ⊤),
+            ∂volume ∂P < ⊤)
+      -- H6 fix (red-team 2nd audit 2026-05-23): jump-mart integrand hypotheses
+      -- bundled here too (mirror of σ-side bundling), required by the
+      -- strengthened `Compensated.stochasticIntegral` signature.
+      (h_jumpInt_meas : Measurable
+        (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                          - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+      (h_jumpInt_progMeas : ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E =>
+            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                            - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+      (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
+              - u s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
       ∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
           (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
@@ -191,7 +210,8 @@ axiom itoLevyFormula
               h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
           + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
               (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
-                              - u s (X.X s ω')) T ω
+                              - u s (X.X s ω'))
+              h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
           + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
               compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν
 

@@ -98,15 +98,29 @@ theorem jacodYor_representation
       (h_Z_sq_int : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-      (U : ℝ → Ω → E → ℝ),
-      Measurable (fun (p : ℝ × Ω × E) => U p.1 p.2.1 p.2.2) ∧
-      (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) ∧
+      (U : ℝ → Ω → E → ℝ)
+      -- H6 fix (red-team 2nd audit 2026-05-23): U-side joint Ω×ℝ×E measurability,
+      -- progressive measurability, and global L²-bound are now bundled together
+      -- (mirror of Z-side hypotheses), required by the strengthened
+      -- `Compensated.stochasticIntegral` signature.
+      (h_U_meas : Measurable
+        (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_progMeas : ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
+            ∂ν ∂volume ∂P < ⊤),
       (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P)
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => U s ω' e) T ω) := by
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) := by
   sorry
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation
