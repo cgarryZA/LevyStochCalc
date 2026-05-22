@@ -205,19 +205,34 @@ lemma kolmogorov_modification_ae_eq
   -- For real-valued X, edist (X s ω) (X t ω) = ‖X s ω - X t ω‖ₑ (PseudoEMetric on ℝ
   -- via |·|), so this is convergence of (X (u n)) → X t in measure.
   have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by
-    -- Concrete Mathlib chain (each step's lemma identified, full elaboration
-    -- needs careful ENNReal/EReal/NNReal type-juggling that I'm leaving for
-    -- a focused follow-up rather than landing partially-correct code):
-    --
-    --   Step A: {δ ≤ edist} = {δ^p ≤ edist^p}    (ENNReal.rpow_le_rpow_iff hp_pos)
-    --   Step B: δ^p · P{δ^p ≤ edist^p} ≤ ∫⁻ edist^p
-    --                                            (MeasureTheory.mul_meas_ge_le_lintegral₀)
-    --   Step C: ∫⁻ edist^p ≤ M · edist (u n) t^q (hX.kolmogorovCondition)
-    --   Step D: edist (u n) t → 0 from hu_tendsto + Metric.tendsto_atTop → ENNReal.tendsto_atTop_zero
-    --   Step E: (·)^q is continuous on ENNReal, so edist^q → 0
-    --   Step F: M · (· → 0) → 0 (ENNReal.Tendsto.const_mul with M ≠ ⊤)
-    --   Step G: (· → 0) / δ^p → 0 (ENNReal.Tendsto.div_const with δ^p ≠ ⊤)
-    --   Step H: squeeze 0 ≤ P {δ ≤ edist} ≤ (... → 0) with tendsto_of_tendsto_of_tendsto_of_le_of_le
+    intro δ hδ
+    -- Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
+    have h_set_eq : ∀ n,
+        {ω | δ ≤ edist (X (u n) ω) (X t ω)}
+          = {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p} := by
+      intro n; ext ω
+      exact (ENNReal.rpow_le_rpow_iff hp_pos).symm
+    -- Steps B + C: Markov on lintegral + Kolmogorov bound.
+    have h_edist_aemeas : ∀ n, AEMeasurable
+        (fun ω => edist (X (u n) ω) (X t ω) ^ p) P := fun n =>
+      ((hX.measurable_edist (s := u n) (t := t)).pow_const p).aemeasurable
+    have h_Kol : ∀ n, ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P
+        ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := fun n =>
+      hX.kolmogorovCondition (u n) t
+    have h_Markov : ∀ n,
+        δ ^ p * P {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p}
+          ≤ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P := fun n =>
+      MeasureTheory.mul_meas_ge_le_lintegral₀ (h_edist_aemeas n) (δ ^ p)
+    -- Combine: δ^p · P{δ ≤ edist} ≤ M · edist (u n) t^q.
+    have h_chain : ∀ n,
+        δ ^ p * P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
+          ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := by
+      intro n
+      rw [h_set_eq n]
+      exact le_trans (h_Markov n) (h_Kol n)
+    -- Steps D-H deferred (need careful ENNReal arithmetic + tendsto squeeze).
+    -- The key inequality is h_chain; dividing by δ^p and using
+    -- edist (u n) t → 0 + q > 0 gives the result.
     sorry
   -- Step 4: extract a.s.-converging subsequence.
   obtain ⟨ns, _hns_mono, hns_ae⟩ := h_TIM.exists_seq_tendsto_ae
