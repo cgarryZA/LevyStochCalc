@@ -137,8 +137,15 @@ axiom bsdej_path_regularity
     -- red-team H4 — the bound `C` depends polynomially on `L`):
     {L : ℝ} (_hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
     (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-    ∃ (C : ℝ),
-      0 < C ∧
+    -- 2026-05-22 (M8 fix per red-team P06): the constant `C` is exposed as a
+    -- function of `(T, L, ‖ξ‖_L²)` rather than a bare `ℝ`, so downstream
+    -- numerical work can read off the literature Bouchard-Elie 2008
+    -- polynomial dependence directly. The (T, L, norm_ξ_real) → ℝ shape
+    -- matches BET 2008 Thm 2.1's `C = C(T, L, ‖ξ‖_L²)` explicitly.
+    ∃ (C : ℝ → ℝ → ℝ → ℝ),
+      let norm_ξ_real : ℝ :=
+        (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
+      0 < C T L norm_ξ_real ∧
       ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
         (_h_part_mono : StrictMono partition)
         (_h_part_start : partition 0 = 0)
@@ -164,6 +171,6 @@ axiom bsdej_path_regularity
           + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
               (‖U s ω e - conditionalTimeAverage_U partition U s ω e‖₊
                 : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
-          ≤ ENNReal.ofReal (C * Δt)
+          ≤ ENNReal.ofReal (C T L norm_ξ_real * Δt)
 
 end LevyStochCalc.BSDEJ.PathRegularity

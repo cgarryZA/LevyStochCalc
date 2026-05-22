@@ -3,7 +3,9 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import Mathlib
+-- No imports needed: this module is a notation-reservation placeholder
+-- (currently empty). Narrowed from `import Mathlib` 2026-05-22 per
+-- red-team L3 — there is no Mathlib content being used here.
 
 /-!
 # LevyStochCalc.Notation
