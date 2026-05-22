@@ -1834,8 +1834,19 @@ noncomputable def stochasticIntegral
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (T : ℝ) : Ω → ℝ :=
-  (Classical.choose (itoIsometry_compensated_unified_existence N φ)) T
+  (Classical.choose
+    (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)) T
 
 /-- Itô-Lévy L² isometry on the bounded interval `[0, T]`.
 
@@ -1852,20 +1863,25 @@ theorem itoLevyIsometry
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
-    (T : ℝ) (hT : 0 < T)
-    (h_meas :
-      Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-    (h_sq_int :
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P < ⊤) :
-    ∫⁻ ω, (‖stochasticIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (T : ℝ) (hT : 0 < T) :
+    ∫⁻ ω, (‖stochasticIntegral N φ h_meas h_progMeas h_sq_int_global T ω‖₊
+        : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P := by
-  -- Extract conjunct 3 (isometry) from the unified existence.
   unfold stochasticIntegral
   exact (Classical.choose_spec
-    (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.2.1
-    T hT h_meas h_sq_int
+    (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+      ).choose_spec.2.2.1 T hT
 
 /-- **Quadratic variation of the L² Itô-Lévy integral.**
 
@@ -1880,26 +1896,29 @@ theorem quadVar_stochasticIntegral
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
-    -- Red-team H5 fix (2026-05-21): hypotheses h_meas + h_sq_int now required
-    -- to extract the quadratic-variation conjunct from the strengthened
-    -- unified-existence axiom (the conjunct is gated on these to close the
-    -- F ≡ 0 exploit for non-L² φ).
     (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-    (h_sq_int : ∀ T, 0 < T →
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
         (fun t : ℝ => fun ω : Ω =>
-          (stochasticIntegral N φ t ω) ^ 2
+          (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
         F P := by
-  -- Extract Filt + conjunct 2 (now gated) from the unified existence.
   unfold stochasticIntegral
   exact ⟨(Classical.choose_spec
-    (itoIsometry_compensated_unified_existence N φ)).choose,
+    (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+      ).choose,
     (Classical.choose_spec
-      (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.1 h_meas h_sq_int⟩
+      (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+        ).choose_spec.2.1⟩
 
 /-- **The L² Itô-Lévy integral is a martingale.**
 
@@ -1912,15 +1931,27 @@ theorem martingale_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (φ : Ω → ℝ → E → ℝ) :
+    (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      MeasureTheory.Martingale (fun t : ℝ => stochasticIntegral N φ t) F P := by
-  -- Extract Filt + conjunct 1 from the unified existence.
+      MeasureTheory.Martingale
+        (fun t : ℝ => stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t) F P := by
   unfold stochasticIntegral
   exact ⟨(Classical.choose_spec
-    (itoIsometry_compensated_unified_existence N φ)).choose,
+    (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+      ).choose,
     (Classical.choose_spec
-      (itoIsometry_compensated_unified_existence N φ)).choose_spec.1⟩
+      (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+        ).choose_spec.1⟩
 
 /-- **Càdlàg modification of L² Itô-Lévy integral.**
 
@@ -1936,9 +1967,20 @@ theorem cadlag_modification_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (φ : Ω → ℝ → E → ℝ) :
+    (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
     ∃ M' : ℝ → Ω → ℝ,
-      (∀ t : ℝ, ∀ᵐ ω ∂P, M' t ω = stochasticIntegral N φ t ω) ∧
+      (∀ t : ℝ, ∀ᵐ ω ∂P,
+        M' t ω = stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ∧
       (∀ᵐ ω ∂P,
         ∀ t : ℝ,
           (Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Ioi t))
@@ -1946,11 +1988,12 @@ theorem cadlag_modification_exists
             ∧ ∃ L : ℝ,
                 Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Iio t))
                   (nhds L)) := by
-  -- M' = stochasticIntegral. Per-t equality is rfl. Càdlàg from conjunct 4.
-  refine ⟨stochasticIntegral N φ, fun t => Filter.Eventually.of_forall (fun _ => rfl), ?_⟩
+  refine ⟨stochasticIntegral N φ h_meas h_progMeas h_sq_int_global,
+    fun t => Filter.Eventually.of_forall (fun _ => rfl), ?_⟩
   unfold stochasticIntegral
   exact (Classical.choose_spec
-    (itoIsometry_compensated_unified_existence N φ)).choose_spec.2.2.2
+    (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
+      ).choose_spec.2.2.2
 
 /-- **B1: Simple integral against compensated Poisson `Ñ` (renamed alias).**
 
