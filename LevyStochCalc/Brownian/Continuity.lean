@@ -206,7 +206,21 @@ lemma kolmogorov_modification_ae_eq
   -- via |·|), so this is convergence of (X (u n)) → X t in measure.
   have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by
     intro δ hδ
-    -- Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
+    -- Handle δ = ⊤ separately: edist : ENNReal-valued from real-valued X is
+    -- always < ⊤, so {ω | ⊤ ≤ edist} is empty, P = 0, tendsto trivially.
+    by_cases hδ_top : δ = ⊤
+    · subst hδ_top
+      simp_rw [top_le_iff]
+      have h_edist_ne_top : ∀ n ω,
+          edist (X (u n) ω) (X t ω) ≠ ⊤ := fun n ω => edist_ne_top _ _
+      have h_set_empty : ∀ n,
+          {ω | edist (X (u n) ω) (X t ω) = ⊤} = ∅ := by
+        intro n; ext ω
+        simp [h_edist_ne_top n ω]
+      simp_rw [h_set_empty]
+      simpa using (tendsto_const_nhds : Filter.Tendsto (fun _ : ℕ => (0 : ℝ≥0∞))
+        Filter.atTop (nhds 0))
+    -- Now δ ≠ ⊤. Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
     have h_set_eq : ∀ n,
         {ω | δ ≤ edist (X (u n) ω) (X t ω)}
           = {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p} := by
@@ -230,10 +244,45 @@ lemma kolmogorov_modification_ae_eq
       intro n
       rw [h_set_eq n]
       exact le_trans (h_Markov n) (h_Kol n)
-    -- Steps D-H deferred (need careful ENNReal arithmetic + tendsto squeeze).
-    -- The key inequality is h_chain; dividing by δ^p and using
-    -- edist (u n) t → 0 + q > 0 gives the result.
-    sorry
+    -- Step D: edist (u n) t → 0 from u n → t.
+    have h_edist_tendsto : Filter.Tendsto (fun n => edist (u n) t)
+        Filter.atTop (nhds 0) :=
+      (tendsto_iff_edist_tendsto_0.mp hu_tendsto)
+    -- Step E: edist (u n) t ^ q → 0 (continuity of x^q at 0, with 0^q = 0 for q > 0).
+    have h_pow_tendsto : Filter.Tendsto (fun n => edist (u n) t ^ q)
+        Filter.atTop (nhds 0) := by
+      have := h_edist_tendsto.ennrpow_const q
+      rwa [ENNReal.zero_rpow_of_pos hq_pos] at this
+    -- Step F: M · edist^q → 0 (M ≠ ⊤ since M : ℝ≥0).
+    have hM_ne_top : (M : ℝ≥0∞) ≠ ⊤ := ENNReal.coe_ne_top
+    have h_M_pow_tendsto : Filter.Tendsto
+        (fun n => (M : ℝ≥0∞) * edist (u n) t ^ q)
+        Filter.atTop (nhds 0) := by
+      have := ENNReal.Tendsto.const_mul h_pow_tendsto (Or.inr hM_ne_top)
+      simpa using this
+    -- Step G: divide both sides of h_chain by δ^p. Need δ^p ≠ 0 ∧ δ^p ≠ ⊤.
+    have hδp_pos : 0 < δ ^ p := by
+      apply ENNReal.rpow_pos_of_nonneg hδ
+      exact hp_pos.le
+    -- δ^p ≠ ⊤ (since δ ≠ ⊤).
+    have hδp_ne_top : δ ^ p ≠ ⊤ := ENNReal.rpow_ne_top_of_nonneg hp_pos.le hδ_top
+    -- The bound on P {δ ≤ edist}: divide both sides of h_chain by δ^p.
+    have h_set_bound : ∀ n, P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
+        ≤ ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p := by
+      intro n
+      have h := h_chain n
+      rw [ENNReal.le_div_iff_mul_le (Or.inl hδp_pos.ne') (Or.inl hδp_ne_top),
+          mul_comm]
+      exact h
+    -- Step G applied: (M · edist^q) / δ^p → 0 from h_M_pow_tendsto (constant division).
+    have h_bound_tendsto : Filter.Tendsto
+        (fun n => ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p)
+        Filter.atTop (nhds 0) := by
+      have := ENNReal.Tendsto.div_const h_M_pow_tendsto (Or.inr hδp_pos.ne')
+      simpa using this
+    -- Step H: squeeze 0 ≤ P {δ ≤ edist} ≤ bound → 0.
+    exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+      tendsto_const_nhds h_bound_tendsto (fun _ => bot_le) h_set_bound
   -- Step 4: extract a.s.-converging subsequence.
   obtain ⟨ns, _hns_mono, hns_ae⟩ := h_TIM.exists_seq_tendsto_ae
   -- Step 5: combine on the full-measure intersection.
