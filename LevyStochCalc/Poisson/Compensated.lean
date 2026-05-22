@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.RandomMeasure
+import LevyStochCalc.Poisson.NaturalFiltration
 
 /-!
 # Layer 0 (BOTTOM-UP #1): Compensated Poisson integral
@@ -1790,26 +1791,29 @@ axiom itoIsometry_compensated_unified_existence
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (φ : Ω → ℝ → E → ℝ) :
+    (φ : Ω → ℝ → E → ℝ)
+    -- H6 closure (red-team 2nd audit, 2026-05-23): outer h_meas + h_progMeas
+    -- + h_sq_int_global hypotheses mirror the Brownian-side axiom. Closes
+    -- the hollow M_N pin route (P7 F1, F2): IsBSDEJSolution's U lacks joint
+    -- Ω×ℝ×E measurability under the old `Adapted Filt (fun s ω => U s ω e)`
+    -- per-e adaptedness; under the new signature, callers MUST supply joint
+    -- measurability + progressive measurability + global L²-bound.
+    (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_sq_int_global : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
       MeasureTheory.Martingale F Filt P ∧
-      -- Red-team H5 + P12 fix (2026-05-21): the quadratic-variation conjunct
-      -- is now CONDITIONAL on (h_meas ∧ h_sq_int), matching the Brownian
-      -- counterpart and matching the isometry conjunct below. For non-L²
-      -- φ, Mathlib's `integral_undef` collapses ∫∫φ² to 0, which previously
-      -- made `(F t)² − 0 = 0` a trivial martingale for `F ≡ 0` and admitted
-      -- F ≡ 0 as a vacuous witness. Gating quadVar on the integrability
-      -- hypothesis closes that exploit (the conjunct now only constrains F
-      -- when φ is genuinely L²-integrable).
-      (Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
-       (∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) →
-       MeasureTheory.Martingale
-         (fun t ω => (F t ω) ^ 2
-           - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P) ∧
-      (∀ T, 0 < T → Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2) →
-        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-          (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ →
+      MeasureTheory.Martingale
+        (fun t ω => (F t ω) ^ 2
+          - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν) Filt P ∧
+      (∀ T : ℝ, 0 < T →
         ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
           ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
             (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) ∧
