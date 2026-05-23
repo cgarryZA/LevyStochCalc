@@ -362,6 +362,88 @@ lemma integral_sq_le_mul_integral_sq_on_Icc
         rw [h_rpow_half_sq _ h_sq_int_nn, h_rpow_half_sq _ ht]
     _ = t * ∫ a, (f a) ^ 2 ∂μ := by ring
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Per-component L² Lipschitz bound on the drift step.**
+
+Combining the L¹ Lipschitz bound `|drift X i - drift Y i| ≤
+L_μ · ∫_0^t ‖X-Y‖` with the L² Cauchy-Schwarz `(∫ g)² ≤ t · ∫ g²`
+applied to `g = ‖X - Y‖`:
+
+  `|drift X i - drift Y i|² ≤ L_μ² · t · ∫_0^t ‖X_s - Y_s‖² ds`.
+
+This is the per-(t, ω) bound. Taking `E[·]` over ω gives the L²-norm
+Lipschitz bound, which is the ingredient for the Bielecki β-norm
+contraction. -/
+lemma picardStep_drift_diff_lipschitz_sq_componentwise
+    {n d : ℕ}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_μ : ℝ} (hL_μ_nn : 0 ≤ L_μ)
+    (h_μ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ∀ i : Fin n,
+      |coeffs.μ s x₁ i - coeffs.μ s x₂ i| ≤ L_μ * ‖x₁ - x₂‖)
+    (X Y : ℝ → Ω → (Fin n → ℝ))
+    (x₀ : Fin n → ℝ)
+    (t : ℝ) (ht : 0 ≤ t) (ω : Ω) (i : Fin n)
+    (h_X_int : MeasureTheory.IntegrableOn
+      (fun s => coeffs.μ s (X s ω) i) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_Y_int : MeasureTheory.IntegrableOn
+      (fun s => coeffs.μ s (Y s ω) i) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_XY_diff_int : MeasureTheory.IntegrableOn
+      (fun s => ‖X s ω - Y s ω‖) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_XY_diff_sq_L2 : MeasureTheory.MemLp
+      (fun s => ‖X s ω - Y s ω‖) 2
+      (MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t))) :
+    ((picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i) ^ 2
+      ≤ L_μ ^ 2 * t *
+          ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := by
+  -- Step 1: L¹ Lipschitz bound (proven).
+  have h_L1 := picardStep_drift_diff_lipschitz_componentwise
+    coeffs hL_μ_nn h_μ_lip X Y x₀ t ω i h_X_int h_Y_int h_XY_diff_int
+  -- The L¹ bound's |·| is the abs of the i-th component diff.
+  -- Square both sides (LHS² = (|·|)² = (·)², RHS² = L² · (∫‖X-Y‖)²).
+  have h_abs_sq : ((picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i) ^ 2
+      = |(picardStep_drift (E := E) coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i| ^ 2 := by
+    rw [sq_abs]
+  rw [h_abs_sq]
+  -- |·|² ≤ (L_μ · ∫‖X-Y‖)² by squaring h_L1 (both sides nonneg).
+  have h_abs_nn : 0 ≤ |(picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i| := abs_nonneg _
+  have h_int_nn : 0 ≤ ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ :=
+    MeasureTheory.integral_nonneg_of_ae
+      (Filter.Eventually.of_forall fun _ => norm_nonneg _)
+  have h_RHS_nn : 0 ≤ L_μ * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ :=
+    mul_nonneg hL_μ_nn h_int_nn
+  have h_sq_bound := mul_self_le_mul_self h_abs_nn h_L1
+  -- h_sq_bound: |·| * |·| ≤ (L_μ · ∫‖X-Y‖) * (L_μ · ∫‖X-Y‖)
+  -- Convert ·*· to ·^2 on both sides:
+  have h_LHS_sq_eq : |(picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i| *
+      |(picardStep_drift coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i|
+      = |(picardStep_drift coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i| ^ 2 := by ring
+  have h_RHS_sq_eq : (L_μ * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖) *
+      (L_μ * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖)
+      = L_μ ^ 2 * (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖) ^ 2 := by ring
+  rw [h_LHS_sq_eq, h_RHS_sq_eq] at h_sq_bound
+  -- Apply Cauchy-Schwarz: (∫ ‖X-Y‖)² ≤ t · ∫ ‖X-Y‖².
+  have h_CS := integral_sq_le_mul_integral_sq_on_Icc
+    (fun s => ‖X s ω - Y s ω‖) t ht
+    (Filter.Eventually.of_forall fun _ => norm_nonneg _)
+    h_XY_diff_sq_L2
+  -- Chain: |·|² ≤ L_μ² · (∫‖X-Y‖)² ≤ L_μ² · t · ∫‖X-Y‖².
+  have h_L_sq_nn : 0 ≤ L_μ ^ 2 := sq_nonneg _
+  have h_CS_mul : L_μ ^ 2 * (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖) ^ 2
+      ≤ L_μ ^ 2 * (t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) :=
+    mul_le_mul_of_nonneg_left h_CS h_L_sq_nn
+  calc |(picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i| ^ 2
+      ≤ L_μ ^ 2 * (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖) ^ 2 := h_sq_bound
+    _ ≤ L_μ ^ 2 * (t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) := h_CS_mul
+    _ = L_μ ^ 2 * t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := by ring
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
