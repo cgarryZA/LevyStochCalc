@@ -878,6 +878,57 @@ noncomputable def picardStep_jump
     (fun ω' s e => coeffs.γ s (X s ω') e i)
     (h_meas i) (h_progMeas i) (h_sq i) t ω
 
+/-- **The full Picard map.** Combines the drift, diffusion (Brownian),
+and jump (compensated-Poisson) components:
+
+  `Φ X t ω = x₀ + ∫_0^t μ(s, X_s) ds + ∫_0^t σ(s, X_s) dW_s
+          + ∫_0^t ∫_E γ(s, X_s, e) Ñ(ds, de)`
+
+The `x₀ +` is already in `picardStep_drift`; here we add the diffusion
+and jump components.
+
+This is the literature Picard map for the jump-diffusion SDE (Applebaum
+6.2.9 / Ikeda-Watanabe IV). The hypotheses required to make all three
+components well-typed are bundled as explicit parameters. -/
+noncomputable def picardStep
+    {P : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure P]
+    {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (x₀ : Fin n → ℝ)
+    -- σ-side hypotheses for the Brownian integral.
+    (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    -- γ-side hypotheses for the compensated-Poisson integral.
+    (h_γ_meas : ∀ i : Fin n,
+      Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (t : ℝ) (ω : Ω) : Fin n → ℝ :=
+  picardStep_drift coeffs X x₀ t ω
+    + picardStep_diffusion W coeffs X h_σ_meas h_σ_progMeas h_σ_sq t ω
+    + picardStep_jump N coeffs X h_γ_meas h_γ_progMeas h_γ_sq t ω
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
