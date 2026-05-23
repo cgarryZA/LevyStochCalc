@@ -115,5 +115,7 @@ bash tools/lint.sh   # checks build + sorry baseline
 * `tools/cited_axioms.md` — full Tier 1 axiom inventory with paper references.
 * `tools/sorry_baseline.txt` — currently-sorry'd theorems.
 * `_audit.lean` — load-bearing axiom-budget audit.
-* `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-20 red-team audit
-  (meta-summary across 12 personas).
+* `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-22 (2nd audit)
+  meta-summary across 12 personas; the 1st-audit (2026-05-20) version
+  is archived at `redteam_findings/2026-05-20-archive/_REDTEAM_SUMMARY.md`
+  (P10 F10 fix per red-team 2nd audit 2026-05-23).

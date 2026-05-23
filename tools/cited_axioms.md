@@ -260,35 +260,84 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
   or deletion (`quadVar_simpleIntegral_brownian`,
   `simplePredictable_dense_L2_bounded`).
 * **M3** (677-line orphan `Poisson/Martingale.lean`): closed (commit eb707a4).
-* **M4** (Tier 1 #7 + #8 dead post-refactor): retained pending careful
-  walk-up deletion of the intertwined dead chain (substantial follow-up).
+* **M4** (Tier 1 #7 + #8 dead post-refactor): CLOSED 2026-05-22 — both
+  dead axioms deleted along with the intertwined dead chain
+  (`cauchySeq_simpleIntegralLp_compensated`, `adaptedSimple_dense_L2_
+  compensated`, plus the supporting `_existence` + density chain).
+  P10 F12 fix (red-team 2nd audit 2026-05-23): the previous "retained
+  pending careful walk-up deletion" wording contradicted the M4 closure
+  elsewhere in this file; corrected.
+* **M5** (`adaptedSimple_dense_L2_compensated` docstring vs signature):
+  CLOSED 2026-05-22 alongside M4 (axiom deleted).
 * **M6** (this file's "No trivial-witness theorems remain" claim): closed
   by this update.
+* **M8** (path-regularity constant parameterization): CLOSED 2026-05-23 —
+  C polynomial-pinned to BET 2008 exponential form `K · (1+T)^p · exp(αLT)
+  · (1+ξ)` (P4 F5 fix).
+* **M9** (multidim Brownian primitive): CLOSED — built as
+  `Brownian/MultidimIto.lean`.
+* **M10** (scalar-Y BSDEJData): scope-note; not a defect, generalization
+  tracked in `BSDEJData` docstring.
+* **M11** (`IsBSDEJSolution` filtration trivial-constant): CLOSED
+  2026-05-23 — Filt PINNED to `((⨆ i, naturalFiltration W_i) ⊔
+  naturalFiltration N).rightCont` inside the existential. P10 F12 fix:
+  the previous "deferred" wording was stale.
+* **M12** (`integral_undef` exploit on Compensated quadVar): closed
+  alongside H5.
 * **M13** (Le Gall Thm 2.1 citation for BM existence): closed (commit b065b7d).
 
 **Open / deferred:**
-* **H6** (Predictable vs. Measurable hypothesis): predictable σ-algebra
-  scaffolding not yet built; deferred.
-* **M5** (`adaptedSimple_dense_L2_compensated` docstring vs signature):
-  paired with M4 (the axiom itself is candidate for deletion).
-* **M8** (path-regularity constant parameterization): style; deferred.
-* **M9** (multidim Brownian primitive): closed in spirit — built as
-  `Brownian/MultidimIto.lean`.
-* **M10** (scalar-Y BSDEJData): scope; not a defect, generalization.
-* **M11** (`IsBSDEJSolution` filtration trivial-constant): the natural-
-  filtration-pin requires `joint_past_future_independent` exposure
-  through the BSDEJSolution structure; deferred.
-* **M12** (`integral_undef` exploit on Compensated quadVar): closed
-  alongside H5.
+* **H6** (Predictable vs. Measurable hypothesis): CLOSED 2026-05-23 —
+  outer h_meas + h_progMeas + h_sq_int_global hypotheses on
+  `itoIsometry_compensated_unified_existence` mirror the Brownian-side
+  signature exactly.
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **11 Tier 1 cited axioms** total, each with paper reference + Mathlib status + replacement plan.
+* **9 Tier 1 cited axioms currently live** (M4 deleted #7 + #8), each with
+  paper reference + Mathlib status + replacement plan.
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
 * No `sorryAx` in the public API outside the 2 baseline-acknowledged entries.
 * No `True := trivial` stub lemmas remain in the project.
 * Dissertation forwarders transitively surface only real Tier 1 cited axioms
   in their audit, including the now-fully-pinned #11 `itoLevyFormula`.
+
+## How to add a new Tier 1 cited axiom
+
+P10 F13 fix (red-team 2nd audit 2026-05-23): explicit guidance for
+contributors.
+
+1. **Identify the literature theorem.** Find the textbook/paper reference
+   (Karatzas-Shreve, Le Gall, Applebaum, Tang-Li, Bouchard-Elie,
+   Pardoux-Răşcanu, etc.) with **specific theorem/equation number**.
+   Verify the number against the actual book (P11 found 4 wrong
+   theorem-number citations in the 1st audit; check the body text, not
+   just the TOC).
+2. **Write the axiom in the right file.**
+   * Brownian foundations → `LevyStochCalc/Brownian/`
+   * Poisson foundations → `LevyStochCalc/Poisson/`
+   * BSDEJ → `LevyStochCalc/BSDEJ/`
+   * Itô-Lévy formula → `LevyStochCalc/Ito/`
+3. **Strengthen the statement per Rule 0.** The axiom MUST pin every
+   existential to a literature object — no `∃ F BM_integral, ...`
+   unbound existentials that admit trivial witnesses. If pinning to a
+   `Classical.choose`-d object, document where the choose chain
+   bottoms out.
+4. **Make the signature load-bearing.** Outer hypotheses (`h_meas`,
+   `h_progMeas`, `h_sq_int_global`, Lipschitz, L²-terminal) must
+   appear in the signature, not gate conjuncts inside the existential.
+5. **Add to `tools/cited_axioms.md`** with: name, statement (1
+   sentence), reference (1 sentence with paper + thm #), Mathlib
+   status, replacement plan.
+6. **Add to `_audit.lean`** so `#print axioms` covers it.
+7. **Build + lint must still pass.** New sorryAx-tainted theorems
+   require a baseline entry in `tools/sorry_baseline.txt` AND a
+   commit-message rationale; the lint script's typo-defense (P2
+   HIGH-2 fix) will FAIL on baseline entries that don't match any
+   theorem name.
+8. **Commit message format**: include the Tier 1 number + the
+   paper citation in the body. Example:
+   `Add Tier 1 #12: predictable-projection theorem (Jacod-Shiryaev I.2.13)`
 
 ## Convention
 

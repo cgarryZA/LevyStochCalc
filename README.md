@@ -56,19 +56,25 @@ LevyStochCalc/
 ## Tier 1 cited axioms
 
 9 axioms total, each a published theorem from the literature with paper
-references in `tools/cited_axioms.md`. Headlines:
+references in `tools/cited_axioms.md`. Numbering matches the inventory
+file's original order (gap-numbered after the 2026-05-22 M4 cleanup
+deleted the dead Tier 1 #7 and #8 axioms — `cauchySeq_simpleIntegralLp_
+compensated` and `adaptedSimple_dense_L2_compensated`, both made
+redundant by the 2026-05-10 unified-F refactor). P10 F11 fix
+(red-team 2nd audit 2026-05-23): note added explaining the numbering
+gap (6 → 9) for first-time readers.
 
-1. `BrownianMotion.exists` — Karatzas-Shreve Thm 2.1.5 / Le Gall Def 2.1+2.12+Cor 2.11.
+1. `BrownianMotion.exists` — Karatzas-Shreve Thm 2.2.2+2.2.8 / Le Gall Def 2.1+2.12+Cor 2.11.
 2. `PoissonRandomMeasure.exists_of_sigmaFinite` — Applebaum 2009 Thm 2.3.1.
 3. `kolmogorovChentsov_modification` — Karatzas-Shreve Thm 2.2.8 / Le Gall Thm 2.9.
 4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.
 5. `itoIsometry_brownian_unified_existence` — Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4.
 6. `itoIsometry_compensated_unified_existence` — Applebaum 2009 Thm 4.2.3+4.2.4.
+7. (deleted: `cauchySeq_simpleIntegralLp_compensated` — dead post-refactor 2026-05-22)
+8. (deleted: `adaptedSimple_dense_L2_compensated` — dead post-refactor 2026-05-22)
 9. `continuousBSDEJ_exists_unique` — Tang-Li 1994 / Andersson-Gnoatto-Patacca-Picarelli 2025.
 10. `bsdej_path_regularity` — Bouchard-Elie 2008 SPA 118(1) pp 53-75.
 11. `itoLevyFormula` — Applebaum 2009 Thm 4.4.7.
-
-(Original Tier 1 #7 + #8 were deleted 2026-05-22 as dead post-refactor.)
 
 ## Sorry baseline
 

@@ -1339,7 +1339,10 @@ private lemma dyadicPartition_brownian_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)
   rw [hi_succ, hi_castSucc]
   ring
 
-set_option linter.unusedSectionVars false in
+-- P1 F4 fix (red-team 2nd audit 2026-05-23): use idiomatic `omit` instead
+-- of `set_option linter.unusedSectionVars false in`. The [MeasurableSpace Ω]
+-- section variable is unused by this lemma (g : Ω → ℝ → ℝ doesn't need it).
+omit [MeasurableSpace Ω] in
 /-- Boundedness of `dyadicAvg_brownian`: if `|g| ≤ M`, then `|dyadicAvg ω| ≤ M`. -/
 private lemma dyadicAvg_brownian_bounded
     (T : ℝ) (hT : 0 < T) (g : Ω → ℝ → ℝ)
@@ -1436,6 +1439,9 @@ noncomputable def dyadicAvg_shifted_brownian
     have h_lt : i.val - 1 < 2 ^ n := by omega
     dyadicAvg_brownian (T := T) g n ⟨i.val - 1, h_lt⟩ ω
 
+-- P1 F4 fix (red-team 2nd audit 2026-05-23): use idiomatic `omit` instead
+-- of `set_option linter.unusedSectionVars false`. [MeasurableSpace Ω] unused.
+omit [MeasurableSpace Ω] in
 /-- Boundedness of the shifted dyadic average. Bounded by `max M 0` to
 handle the case `i = 0` (which is constant 0) uniformly. -/
 lemma dyadicAvg_shifted_brownian_bounded
@@ -1800,7 +1806,8 @@ private lemma dyadicIndex_mem (n : ℕ) (T : ℝ) (hT : 0 < T) (s : ℝ)
     rw [div_le_iff₀ hT] at hk_ge
     linarith
 
-set_option linter.unusedSectionVars false in
+-- P1 F4 fix (red-team 2nd audit 2026-05-23): omit instead of set_option.
+omit [MeasurableSpace Ω] in
 /-- **Average bridge:** `dyadicAvg n i ω = ⨍ y in closedBall(midpoint, halfLen), g(ω, y) ∂volume`.
 
 Here `midpoint := (t_i + t_{i+1})/2`, `halfLen := (t_{i+1} - t_i)/2 = T/2^(n+1)`.
