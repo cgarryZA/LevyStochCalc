@@ -108,12 +108,32 @@ different existence-uniqueness apparatus and are **outside the current
 scope**. A vector-`Y` generalization would parameterize this structure by
 an additional `m : ℕ` (the `Y`-dimension) and change `g : (Fin n → ℝ) →
 (Fin m → ℝ)`, `f : … → (Fin m → ℝ)`. Tracked as future work; not a defect
-in the present scalar-`Y` chain. -/
+in the present scalar-`Y` chain.
+
+**Measurability invariants (red-team 2nd audit P12 F4, 2026-05-23)**:
+`BSDEJData` now carries `f_measurable` and `g_measurable` as structural
+fields, so that downstream `IsBSDEJSolution` cannot be evaluated on
+pathological non-measurable drivers (where the Bochner integral
+`integral_undef`-defaults to 0, making the BSDEJ equation `Y_t = g + 0`
+trivially solvable). Both fields use the joint measurability appropriate
+for the integrand role:
+- `g : (Fin n → ℝ) → ℝ` is jointly Borel-measurable in `x`.
+- `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly
+  measurable in its 5 arguments (modulo the (E → ℝ) slot which uses the
+  product σ-algebra on E-indexed reals — appropriate for the
+  `Ψ_t = ∫ U_t(z) ν(dz)` channel). -/
 structure BSDEJData (n d : ℕ) (E : Type v) where
   /-- Generator `f(t, x, y, z, u)`. -/
   f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ
   /-- Terminal condition `g(x)`. -/
   g : (Fin n → ℝ) → ℝ
+  /-- `g` is Borel-measurable. -/
+  g_measurable : Measurable g
+  /-- `f` is jointly measurable in `(t, x, y, z, u)`. The 5-arg product
+  σ-algebra is the canonical one on
+  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)`. -/
+  f_measurable : Measurable (fun (p : ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)) =>
+    f p.1 p.2.1 p.2.2.1 p.2.2.2.1 p.2.2.2.2)
 
 /-- Predicate: `(Y, Z, U)` solves the BSDEJ with data `bsdej`, driven by
 `(W, N)` and the forward process `X`, on the time horizon `[0, T]`.
