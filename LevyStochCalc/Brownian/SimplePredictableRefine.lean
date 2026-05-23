@@ -2117,7 +2117,14 @@ axiom itoIsometry_brownian_unified_existence
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    -- P1 M3 fix (red-team 2nd audit, 2026-05-23): `Filt` is now PINNED to
+    -- `(naturalFiltration W).rightCont` instead of being a loose existential.
+    -- Closes the trivial-Filt-witness route at the axiom layer (parallel to
+    -- the M11 fix for IsBSDEJSolution). Karatzas-Shreve 3.2.6 specifically
+    -- asserts the L²-Itô integral is a `(naturalFiltration W).rightCont`-
+    -- martingale.
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont ∧
       MeasureTheory.Martingale F Filt P ∧
       MeasureTheory.Martingale
         (fun t ω => (F t ω) ^ 2 - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2) Filt P ∧
@@ -2184,7 +2191,7 @@ theorem itoIsometry
   unfold stochasticIntegral
   exact (Classical.choose_spec
     (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-      h_sq_int_global)).choose_spec.2.2 T hT
+      h_sq_int_global)).choose_spec.2.2.2 T hT
 
 /-- **Quadratic variation of the L² Itô integral.**
 
@@ -2220,7 +2227,7 @@ theorem quadVar_stochasticIntegral
       h_sq_int_global)).choose,
     (Classical.choose_spec
       (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-        h_sq_int_global)).choose_spec.2.1⟩
+        h_sq_int_global)).choose_spec.2.2.1⟩
 
 /-- **The L² Itô integral is a martingale.**
 
@@ -2253,6 +2260,6 @@ theorem martingale_stochasticIntegral
       h_sq_int_global)).choose,
     (Classical.choose_spec
       (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-        h_sq_int_global)).choose_spec.1⟩
+        h_sq_int_global)).choose_spec.2.1⟩
 
 end LevyStochCalc.Brownian.Ito
