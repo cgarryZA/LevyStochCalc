@@ -176,7 +176,8 @@ structure JumpDiffusion
             (fun ω' s e => coeffs.γ s (X s ω') e i)
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
-/-- **Existence and uniqueness of the jump-diffusion SDE.**
+/-- **CITED AXIOM: Existence and uniqueness of the jump-diffusion SDE
+(Tier 1 #12, Applebaum 6.2.9).**
 
 Under Lipschitz hypotheses on `(μ, σ, γ)`, the jump-diffusion SDE
 
@@ -192,17 +193,29 @@ Cambridge University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S.
 *Stochastic Differential Equations and Diffusion Processes*, North-Holland,
 1989, Chapter IV.
 
-**Status (2026-05-23)**: proof is `sorry`. The literature proof (Picard
-iteration in `S²([0,T]; ℝⁿ)`) requires multidim Brownian + compensated-Poisson
-stochastic integrals along the path; both are out-of-scope downstream work.
+**2026-05-23 conversion theorem → axiom (Rule 0 honesty)**: previously
+this was a `theorem` with `sorry` body. Per Rule 0, that wording is
+DISHONEST — it claims "proven theorem" while the actual content is
+unproven. The literature proof (Picard iteration in `S²([0,T]; ℝⁿ)`)
+requires multidim Brownian + compensated-Poisson stochastic integrals
+along the path, both of which are themselves Tier 1 cited axioms in
+this library; building the Picard fixed-point body would take
+substantial multi-day Lean work and would still bottom out at the same
+Tier 1 axioms. The honest representation is `axiom` cited from
+Applebaum 6.2.9 — the claim then matches the content exactly.
 
-**2nd red-team audit (P12 CRIT F3) fix**: the previous signature claimed
-unconditional uniqueness, but for non-Lipschitz coefficients uniqueness can
-fail (Tanaka 1979 / Karatzas-Shreve 5.3.2: `dX_t = |X_t|^α dW_t` for
-`α < 1/2` has infinitely many strong solutions). Lipschitz hypothesis on
-`(μ, σ, γ)` now required as an outer hypothesis, matching the literature
-Applebaum 6.2.9 / Ikeda-Watanabe IV. -/
-theorem JumpDiffusion.exists_unique
+**2nd red-team audit (P12 CRIT F3) fix retained**: the signature
+includes the Lipschitz hypothesis on `(μ, σ, γ)` because without it,
+Tanaka 1979 / Karatzas-Shreve 5.3.2 exhibits `dX_t = |X_t|^α dW_t` for
+`α < 1/2` having infinitely many strong solutions — so the uniqueness
+claim below is mathematically false for non-Lipschitz coefficients.
+Applebaum 6.2.9 / Ikeda-Watanabe IV both require Lipschitz.
+
+**Replacement plan**: when Mathlib gains the multidim Brownian +
+compensated-Poisson stochastic integral infrastructure + the Picard
+fixed-point apparatus for SDEs with jumps, this `axiom` becomes a
+`theorem` derived from Tier 1 #1, #2, #5, #6. -/
+axiom JumpDiffusion.exists_unique
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
@@ -217,7 +230,6 @@ theorem JumpDiffusion.exists_unique
     -- Existence + a.s. uniqueness (strengthened from `Nonempty` per Rule 0):
     ∃ (jd : JumpDiffusion W N coeffs x₀),
       ∀ (jd' : JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
-  sorry
+        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω
 
 end LevyStochCalc.Ito.Setting

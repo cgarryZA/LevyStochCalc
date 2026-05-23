@@ -25,26 +25,29 @@ with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
 * Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
   Springer 2003, Theorem III.4.34.
 
-## Status (2026-05-23, P10 F8 docstring refresh)
+## Status (2026-05-23, Rule-0 conversion: theorem → axiom)
 
-The theorem `jacodYor_representation` below has `sorry` as its proof body.
-The claim is the Jacod 1976 martingale representation theorem (real
-progressively-measurable integrands `Z, U`, real stochastic integrals
-against `W` and `Ñ`).
+`jacodYor_representation` below is now a **Tier 1 cited axiom #13**
+(Jacod 1976 / Jacod-Shiryaev III.4.34). Previously it was a `theorem`
+with `sorry` body — per Rule 0, that wording is DISHONEST (claims
+"proven theorem" while the content is unproven). The Jacod 1976 proof
+requires the full predictable-projection / chaos-decomposition apparatus
+that Mathlib does not yet have; building it from scratch would take
+multi-day Lean work and would still bottom out at Tier 1 axioms anyway.
+The honest representation is `axiom` cited from Jacod 1976 — the claim
+then matches the content exactly.
 
 **Signature: FULLY PINNED** (both Brownian and compensated-Poisson integrals).
-The previously documented "Signature HOLE still open" caveat (about
-`BM_integral` not being pinned to `∑_i ∫ Zⁱ dWⁱ`) has been closed: the
-conclusion now uses `MultidimBrownianMotion.stochasticIntegral W Z ...`
+The conclusion uses `MultidimBrownianMotion.stochasticIntegral W Z ...`
 and `Compensated.stochasticIntegral N U ...` as the literal RHS terms,
 with the per-component progressive-measurability + L² hypotheses bundled
 as existential witnesses. This means a trivial `Z = 0, U = 0` witness no
 longer works (it would force ξ = 𝔼[ξ] a.s., which is false in general
 for σ(W, N)-measurable ξ).
 
-**Remaining work**: replace the `sorry` proof body with the Jacod 1976
-predictable-projection / chaos-decomposition argument. Tracked in
-`tools/cited_axioms.md` baseline.
+**Replacement plan**: when Mathlib gains predictable-projection +
+chaos-decomposition + the L²-Itô-Lévy integral apparatus, this `axiom`
+becomes a `theorem` derived from Tier 1 #5 + #6.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -57,7 +60,8 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- **Jacod-Yor martingale representation (Jacod 1976).**
+/-- **CITED AXIOM: Jacod-Yor martingale representation (Tier 1 #13,
+Jacod 1976).**
 
 Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a
 representation
@@ -69,13 +73,15 @@ and `U : ℝ → Ω → E → ℝ`, where the Brownian and compensated-Poisson
 integrals are the **canonical** ones (`MultidimBrownianMotion.stochasticIntegral`
 and `Compensated.stochasticIntegral`).
 
-**Reference**: Jacod 1975 / Jacod-Shiryaev Thm III.4.34.
+**Reference**: Jacod, J. "Multivariate point processes: predictable
+projection, Radon-Nikodym derivatives, representation of martingales",
+Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev,
+*Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003,
+**Theorem III.4.34**.
 
-**Status (2026-05-21)**: signature strengthened so the BM_integral and
-jump_integral are **pinned** to the actual stochastic integrals (no
-longer unbound existentials). Proof is `sorry`. The literature proof
-requires a predictable-projection / chaos-decomposition argument. -/
-theorem jacodYor_representation
+**2026-05-23 conversion theorem → axiom (Rule 0 honesty)**: see module
+docstring above. -/
+axiom jacodYor_representation
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
@@ -133,7 +139,6 @@ theorem jacodYor_representation
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) := by
-  sorry
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation

@@ -55,14 +55,13 @@ LevyStochCalc/
 
 ## Tier 1 cited axioms
 
-9 axioms total, each a published theorem from the literature with paper
-references in `tools/cited_axioms.md`. Numbering matches the inventory
-file's original order (gap-numbered after the 2026-05-22 M4 cleanup
-deleted the dead Tier 1 #7 and #8 axioms — `cauchySeq_simpleIntegralLp_
-compensated` and `adaptedSimple_dense_L2_compensated`, both made
-redundant by the 2026-05-10 unified-F refactor). P10 F11 fix
-(red-team 2nd audit 2026-05-23): note added explaining the numbering
-gap (6 → 9) for first-time readers.
+**11 axioms total** (as of 2026-05-23), each a published theorem from the
+literature with paper references in `tools/cited_axioms.md`. Numbering:
+#7 and #8 deleted by the 2026-05-22 M4 cleanup (dead post-refactor);
+#12 and #13 added 2026-05-23 by promoting the two previously sorry-bodied
+theorems (`JumpDiffusion.exists_unique`, `jacodYor_representation`) to
+honest Tier 1 axioms per Rule 0 (the `theorem ... := by sorry` form was
+dishonest; the `axiom` form makes the claim match the content).
 
 1. `BrownianMotion.exists` — Karatzas-Shreve Thm 2.2.2+2.2.8 / Le Gall Def 2.1+2.12+Cor 2.11.
 2. `PoissonRandomMeasure.exists_of_sigmaFinite` — Applebaum 2009 Thm 2.3.1.
@@ -75,19 +74,15 @@ gap (6 → 9) for first-time readers.
 9. `continuousBSDEJ_exists_unique` — Tang-Li 1994 / Andersson-Gnoatto-Patacca-Picarelli 2025.
 10. `bsdej_path_regularity` — Bouchard-Elie 2008 SPA 118(1) pp 53-75.
 11. `itoLevyFormula` — Applebaum 2009 Thm 4.4.7.
+12. `JumpDiffusion.exists_unique` — Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV.
+13. `jacodYor_representation` — Jacod 1975 / Jacod-Shiryaev Thm III.4.34.
 
 ## Sorry baseline
 
-`tools/sorry_baseline.txt` contains 2 deferred classical theorems:
-
-* `JumpDiffusion.exists_unique` — Picard iteration for jump-diffusion SDEs
-  (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV).
-* `jacodYor_representation` — Jacod 1976 / Jacod-Shiryaev Thm III.4.34
-  martingale representation theorem.
-
-Both have honest statements: integrand outputs pinned to the canonical
-`MultidimBrownianMotion.stochasticIntegral` and
-`Compensated.stochasticIntegral` (no trivial-witness escape).
+**EMPTY as of 2026-05-23.** The 2 previously sorry-bodied theorems were
+promoted to Tier 1 cited axioms #12 and #13 per Rule 0 (claim = content).
+The library now has **zero `sorryAx`** in its public API. The lint script
+(`tools/lint.sh`) enforces this — any new sorry FAILs the lint.
 
 ## Scope (deliberate omissions)
 

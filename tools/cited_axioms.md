@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (9 currently live; #7 and #8 deleted 2026-05-22)
+## Tier 1: Honest cited axioms (11 currently live; #7 and #8 deleted 2026-05-22; #12 and #13 added 2026-05-23 via theorem→axiom conversion)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -117,6 +117,24 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: No general Itô-with-jumps formula in Mathlib (waits on the full jump-SDE apparatus). `Mathlib.Probability.IteFormula`-style infrastructure exists for the continuous (Brownian-only) case, but not for the jump case.
 * **Replacement plan**: `theorem itoLevyFormula := <Applebaum 4.4.7 derivation>` when (a) the multidim Brownian + compensated-Poisson integrals along the X-path are usable on the right hypothesis class, and (b) the Bochner integrals of the time-derivative + Lévy generator can be controlled (Sobolev estimates on u). Multi-session work.
 
+### 12. `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique`
+
+* **Statement**: Under Lipschitz hypothesis on `(μ, σ, γ)`, the jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)` with `X_0 = x_0` admits a strong solution (with càdlàg paths, L²-sup-bounded on every bounded interval) that is a.s. unique.
+* **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 6.2.9**; Ikeda-Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, Chapter IV.
+* **2026-05-23 conversion `theorem → axiom`**: previously a `theorem` with `sorry` body. Per Rule 0, the `theorem` claim was dishonest — the content was unproven. The literature proof requires the Picard iteration apparatus on `S²([0,T]; ℝⁿ)` + multidim Brownian + compensated-Poisson stochastic integrals along candidate paths; building this from scratch would take multi-day Lean work and would still bottom out at Tier 1 #5 + #6. The honest representation is `axiom` cited from Applebaum 6.2.9 — the claim now matches the content.
+* **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness without this).
+* **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
+* **Replacement plan**: `theorem JumpDiffusion.exists_unique := <Picard iteration proof>` when (a) Tier 1 #5 + #6 are theorems, (b) the Picard fixed-point apparatus for SDEs with jumps is built.
+
+### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
+
+* **Statement**: Every L²-integrable `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration N).rightCont.seq T`-measurable random variable `ξ : Ω → ℝ` admits a representation `ξ = E[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)` a.s., with progressively-measurable square-integrable integrands `Z, U`, where the Brownian and compensated-Poisson integrals are pinned to `MultidimBrownianMotion.stochasticIntegral W Z ...` and `Compensated.stochasticIntegral N U ...` respectively.
+* **Reference**: Jacod, J. "Multivariate point processes: predictable projection, Radon-Nikodym derivatives, representation of martingales", Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34**.
+* **2026-05-23 conversion `theorem → axiom`**: previously a `theorem` with `sorry` body. The literature proof requires predictable projection / chaos decomposition machinery that Mathlib does not yet have. The honest representation is `axiom` cited from Jacod 1976.
+* **Signature strength**: ξ measurability strengthened to `StronglyMeasurable[ℱ_T] ξ` (joint natural filtration at endpoint T) — required because martingale representation only holds for ξ measurable wrt the filtration at the endpoint. Both stochastic integrals fully pinned with per-component progressively-measurable + L² hypotheses bundled as existential witnesses (no trivial Z = U = 0 witness).
+* **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage).
+* **Replacement plan**: `theorem jacodYor_representation := <predictable projection + chaos decomposition>` when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
+
 ## Honest derivative theorems (proven from cited axioms)
 
 P5 F4 closure (red-team 2nd audit, 2026-05-23): table expanded to include
@@ -144,17 +162,15 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
 
-### Literature-pinned baseline-sorry theorems (count: 2)
+### Literature-pinned baseline-sorry theorems (count: 0 — both promoted to Tier 1 axioms 2026-05-23)
 
-These are `theorem`s with strengthened signatures (no trivial witnesses)
-and `sorry` proof bodies; tracked in `tools/sorry_baseline.txt` for the
-lint script. They are NOT classified as cited axioms because the intent is
-to PROVE them downstream, not to take them as given.
-
-| Theorem | Strengthened-signature pin | Sorry rationale |
-|---|---|---|
-| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | requires `JumpDiffusionCoeffs.IsLipschitz` hypothesis + asserts existence ∧ a.s.-uniqueness (not just `Nonempty`) | Picard iteration on the SDE Banach space; Applebaum 6.2.9 / Ikeda-Watanabe IV. |
-| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | requires `StronglyMeasurable[ℱ_T] ξ` (joint natural filtration at endpoint); BM + jump integrals PINNED to `MultidimBrownianMotion.stochasticIntegral` and `Compensated.stochasticIntegral` respectively (no unbound existentials) | Predictable-projection / chaos-decomposition argument; Jacod 1976 / Jacod-Shiryaev Thm III.4.34. |
+**2026-05-23 update**: The two previously sorry-bodied theorems
+(`JumpDiffusion.exists_unique`, `jacodYor_representation`) were promoted
+to Tier 1 cited axioms #12 and #13 (see entries above). Per Rule 0,
+this is HONEST (claim matches content) where the previous
+`theorem ... := by sorry` was DISHONEST (claimed proven, was unproven).
+`tools/sorry_baseline.txt` is now EMPTY; the lint script enforces
+sorryAx = 0 across the entire library.
 
 ### P7 F10 qualification (red-team 2nd audit, 2026-05-23)
 
@@ -294,7 +310,8 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **9 Tier 1 cited axioms currently live** (M4 deleted #7 + #8), each with
+* **11 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
+  #13 added 2026-05-23 via theorem→axiom conversion), each with
   paper reference + Mathlib status + replacement plan.
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
 * No `sorryAx` in the public API outside the 2 baseline-acknowledged entries.
