@@ -1885,7 +1885,7 @@ theorem itoLevyIsometry
   unfold stochasticIntegral
   exact (Classical.choose_spec
     (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
-      ).choose_spec.2.2.2.2.1 T hT
+      ).choose_spec.2.2.2.1 T hT
 
 /-- **Quadratic variation of the L² Itô-Lévy integral.**
 
@@ -1997,7 +1997,7 @@ theorem cadlag_modification_exists
   unfold stochasticIntegral
   exact (Classical.choose_spec
     (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
-      ).choose_spec.2.2.2
+      ).choose_spec.2.2.2.2
 
 /-- **B1: Simple integral against compensated Poisson `Ñ` (renamed alias).**
 
