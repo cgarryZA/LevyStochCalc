@@ -25,22 +25,26 @@ with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
 * Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
   Springer 2003, Theorem III.4.34.
 
-## Status (2026-05-21, Rule-0 restoration after revert)
+## Status (2026-05-23, P10 F8 docstring refresh)
 
-The theorem `jacodYor_representation` below is restored with `sorry` in place
-of the previous trivial-witness proof body. The claim is the Jacod 1976
-martingale representation theorem (real predictable integrands `Z, U`,
-real stochastic integrals against `W` and `Ñ`).
+The theorem `jacodYor_representation` below has `sorry` as its proof body.
+The claim is the Jacod 1976 martingale representation theorem (real
+progressively-measurable integrands `Z, U`, real stochastic integrals
+against `W` and `Ñ`).
 
-**Signature HOLE still open**: the existential `∃ Z U BM_integral
-jump_integral, … ∧ ξ = 𝔼[ξ] + BM_integral + jump_integral` does NOT pin
-`BM_integral` to `∫ Z·dW` or `jump_integral` to `∫∫ U Ñ`. Per Rule 0, that
-pinning is required for the claim to match the content. Pinning `jump_integral`
-to `Compensated.stochasticIntegral N U T` is feasible immediately (the
-compensated-Poisson integral exists). Pinning `BM_integral` to `∑_i ∫ Zⁱ dWⁱ`
-requires the multidim Brownian Itô integral, which is downstream work.
+**Signature: FULLY PINNED** (both Brownian and compensated-Poisson integrals).
+The previously documented "Signature HOLE still open" caveat (about
+`BM_integral` not being pinned to `∑_i ∫ Zⁱ dWⁱ`) has been closed: the
+conclusion now uses `MultidimBrownianMotion.stochasticIntegral W Z ...`
+and `Compensated.stochasticIntegral N U ...` as the literal RHS terms,
+with the per-component progressive-measurability + L² hypotheses bundled
+as existential witnesses. This means a trivial `Z = 0, U = 0` witness no
+longer works (it would force ξ = 𝔼[ξ] a.s., which is false in general
+for σ(W, N)-measurable ξ).
 
-The signature strengthening + proof completion is the next step.
+**Remaining work**: replace the `sorry` proof body with the Jacod 1976
+predictable-projection / chaos-decomposition argument. Tracked in
+`tools/cited_axioms.md` baseline.
 -/
 
 open MeasureTheory ProbabilityTheory

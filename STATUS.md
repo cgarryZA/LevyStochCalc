@@ -21,20 +21,21 @@ canonical `MultidimBrownianMotion.stochasticIntegral` /
 `Compensated.stochasticIntegral` (the SDE coefficients and BSDEJ
 integrands are bundled in existentials inside the predicate).
 
-## Tier 1 cited axioms (11)
+## Tier 1 cited axioms (9 currently live)
 
-See `tools/cited_axioms.md` for the full inventory. Summary:
+See `tools/cited_axioms.md` for the full inventory. P10 F2 fix
+(red-team 2nd audit, 2026-05-23): previous count of "11" included the
+two dead density-chain axioms (`cauchySeq_simpleIntegralLp_compensated`,
+`adaptedSimple_dense_L2_compensated`) that the 2026-05-10
+unified-existence refactor made redundant; both were deleted per M4.
+Current count: 9. Summary:
 
 * **Brownian foundations** (4 axioms): `BrownianMotion.exists`,
   `kolmogorovChentsov_modification`, `brownian_martingale_rightCont`,
   `itoIsometry_brownian_unified_existence`.
-* **Compensated-Poisson foundations** (3 axioms):
+* **Compensated-Poisson foundations** (2 axioms):
   `PoissonRandomMeasure.exists_of_sigmaFinite`,
-  `itoIsometry_compensated_unified_existence` plus two dead
-  density-chain axioms (`cauchySeq_simpleIntegralLp_compensated`,
-  `adaptedSimple_dense_L2_compensated`) that the 2026-05-10
-  unified-existence refactor made redundant; flagged for follow-up
-  removal as red-team finding M4.
+  `itoIsometry_compensated_unified_existence`.
 * **BSDEJ + Itô-Lévy** (3 axioms): `continuousBSDEJ_exists_unique`,
   `bsdej_path_regularity`, `itoLevyFormula`.
 
