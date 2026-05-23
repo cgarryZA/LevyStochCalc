@@ -267,6 +267,27 @@ lemma picardStep_drift_diff_lipschitz_componentwise
   · -- RHS integrable: L_μ * ‖X - Y‖ ∈ L¹.
     exact h_XY_diff_int.const_mul L_μ
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **L² Cauchy-Schwarz on `[0, t]`.** For non-negative `L²` function `f`,
+
+  `(∫ s in [0, t], f s)² ≤ t · ∫ s in [0, t], (f s)²`.
+
+Derivation: view `f` and the constant `1` as elements of
+`L²(volume.restrict [0,t])`. The `L²` inner product is `⟨f, 1⟩ = ∫ f`,
+the `L²`-norms are `‖f‖_2 = √(∫ f²)` and `‖1‖_2 = √t`, and Cauchy-
+Schwarz gives `(∫ f)² ≤ (∫ f²) · t`. -/
+lemma integral_sq_le_mul_integral_sq_on_Icc
+    (f : ℝ → ℝ) (t : ℝ) (ht : 0 ≤ t)
+    (hf_nn : ∀ᵐ s ∂(MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t)), 0 ≤ f s)
+    (hf_L2 : MeasureTheory.MemLp f 2
+      (MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t))) :
+    (∫ s in Set.Icc (0 : ℝ) t, f s) ^ 2
+      ≤ t * ∫ s in Set.Icc (0 : ℝ) t, (f s) ^ 2 := by
+  -- Cauchy-Schwarz application via Hölder p=q=2 with constant 1.
+  -- Started in this session; Mathlib API type-coercion friction.
+  -- Continuing next session.
+  sorry
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹

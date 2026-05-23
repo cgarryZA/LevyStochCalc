@@ -48,6 +48,12 @@ import LevyStochCalc
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
+-- Picard framework lemmas (active construction toward JumpDiffusion proof):
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_lipschitz_componentwise
+#print axioms LevyStochCalc.Ito.Picard.integral_sq_le_mul_integral_sq_on_Icc
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
