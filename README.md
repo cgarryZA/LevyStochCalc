@@ -89,6 +89,43 @@ Both have honest statements: integrand outputs pinned to the canonical
 `MultidimBrownianMotion.stochasticIntegral` and
 `Compensated.stochasticIntegral` (no trivial-witness escape).
 
+## Scope (deliberate omissions)
+
+P3 F7-F9, P8, P9 F1-F2 (red-team 2nd audit 2026-05-23): documented
+out-of-scope items so downstream readers don't expect content the
+library doesn't claim.
+
+* **`BSDEJData` is scalar-Y, Lipschitz-driver only.** Vector-Y BSDEJ
+  (FBSDEJ couples, multi-Y systems), quadratic-growth drivers
+  (Becherer 2006 utility hedging), and reflected/constrained BSDEJ
+  are NOT covered. The current scope matches Tang-Li 1994 + AGPP 2025
+  + Delong 2013 + Bouchard-Elie 2008 exactly.
+* **`X` in `IsBSDEJSolution` is exogenous.** The predicate takes `X`
+  as a bare jointly-measurable function without requiring it to be
+  the strong solution of any forward SDE. Decoupled FBSDEJ structure
+  (where `X` solves a forward jump-SDE driven by the SAME `(W, N)`)
+  is delivered separately by the `JumpDiffusion W N coeffs x₀`
+  structure and `JumpDiffusion.exists_unique`; combining them into a
+  single FBSDEJ predicate is a downstream extension.
+* **No Lévy-process structure.** `PoissonRandomMeasure` is the
+  underlying building block; the Lévy-measure integrability condition
+  `∫(1 ∧ |x|²) ν(dx) < ∞` is NOT required (we only need σ-finite ν
+  per Applebaum 2.3.1). Specific Lévy processes (α-stable, variance-
+  gamma, CGMY, etc.) are not constructed — they are downstream
+  applications of the PRM + compensated-integral toolkit.
+* **No deep-learning code.** The dissertation that motivates this
+  formalization includes deep-BSDE training code; that code lives in
+  `D:/DeepBSDE/` and is OUT of `LevyStochCalc`'s scope. LevyStochCalc
+  provides the literature-pinned axiom layer (Tier 1 cited axioms +
+  honest derivative theorems) that the dissertation imports.
+* **`Classical.choose`-based `noncomputable`.** The stochasticIntegral
+  definitions use `Classical.choose` on the unified-existence axioms,
+  hence are `noncomputable`. This is mathematically correct (no
+  algorithm extracts the L²-Itô integral from its defining axiom) but
+  means future numerical extraction layers must wrap them with
+  separate computable approximations (e.g., simpleIntegral on a
+  partition).
+
 ## Lint
 
 `tools/lint.sh` runs `lake build` + `_audit.lean` and fails on any new
