@@ -1808,7 +1808,11 @@ axiom itoIsometry_compensated_unified_existence
     (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    -- P1 M3 fix (red-team 2nd audit, 2026-05-23): `Filt` PINNED to
+    -- `(naturalFiltration N).rightCont` (parallel to Brownian-side fix);
+    -- closes trivial-Filt-witness route at axiom layer.
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = (LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
       MeasureTheory.Martingale F Filt P ∧
       MeasureTheory.Martingale
         (fun t ω => (F t ω) ^ 2
@@ -1881,7 +1885,7 @@ theorem itoLevyIsometry
   unfold stochasticIntegral
   exact (Classical.choose_spec
     (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
-      ).choose_spec.2.2.1 T hT
+      ).choose_spec.2.2.2.2.1 T hT
 
 /-- **Quadratic variation of the L² Itô-Lévy integral.**
 
@@ -1918,7 +1922,7 @@ theorem quadVar_stochasticIntegral
       ).choose,
     (Classical.choose_spec
       (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
-        ).choose_spec.2.1⟩
+        ).choose_spec.2.2.1⟩
 
 /-- **The L² Itô-Lévy integral is a martingale.**
 
@@ -1951,7 +1955,7 @@ theorem martingale_stochasticIntegral
       ).choose,
     (Classical.choose_spec
       (itoIsometry_compensated_unified_existence N φ h_meas h_progMeas h_sq_int_global)
-        ).choose_spec.1⟩
+        ).choose_spec.2.1⟩
 
 /-- **Càdlàg modification of L² Itô-Lévy integral.**
 
