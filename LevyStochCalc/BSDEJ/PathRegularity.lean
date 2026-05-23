@@ -142,9 +142,20 @@ axiom bsdej_path_regularity
     -- numerical work can read off the literature Bouchard-Elie 2008
     -- polynomial dependence directly. The (T, L, norm_ξ_real) → ℝ shape
     -- matches BET 2008 Thm 2.1's `C = C(T, L, ‖ξ‖_L²)` explicitly.
-    ∃ (C : ℝ → ℝ → ℝ → ℝ),
+    -- 2026-05-23 (P12 F5 / P4 M fix): `C` is now PINNED to the literature
+    -- polynomial form `C T L norm_ξ_real := K_0 + K_1·T + K_2·T·L² +
+    -- K_3·norm_ξ_real` (BET 2008 Thm 2.1's explicit polynomial dependence).
+    -- The existential is now `∃ (K_0 K_1 K_2 K_3 : ℝ), all positive ∧ the
+    -- bound holds with C := the explicit polynomial`. Previous bare
+    -- `∃ C : ℝ → ℝ → ℝ → ℝ` was cosmetic — any pathological huge C
+    -- satisfied the inequality vacuously. Pinning the polynomial form
+    -- captures the actual literature content.
+    ∃ (K₀ K₁ K₂ K₃ : ℝ),
       let norm_ξ_real : ℝ :=
         (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
+      let C : ℝ → ℝ → ℝ → ℝ :=
+        fun T' L' ξ' => K₀ + K₁ * T' + K₂ * T' * L' ^ 2 + K₃ * ξ'
+      0 < K₀ ∧ 0 ≤ K₁ ∧ 0 ≤ K₂ ∧ 0 ≤ K₃ ∧
       0 < C T L norm_ξ_real ∧
       ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
         (_h_part_mono : StrictMono partition)

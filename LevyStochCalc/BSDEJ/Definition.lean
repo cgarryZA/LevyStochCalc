@@ -182,13 +182,21 @@ def IsBSDEJSolution
     -- `naturalFiltration ≤ Filt`, but that constraint is satisfied vacuously
     -- by `Filt = ⊤` (the maximal filtration), defeating the stated
     -- "rule out trivial constant filtrations" purpose. Now pinned EXACTLY
-    -- to the join of natural filtrations via `Filt = joint_natural` inside
-    -- the existential, where `joint_natural := (⨆ i, naturalFiltration (W.W i))
-    -- ⊔ naturalFiltration N` (literature `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)`).
-    -- The equality-pin rules out BOTH `⊥` and `⊤` trivial filtrations.
+    -- to the **right-continuous augmentation** of the join of natural
+    -- filtrations via `Filt = joint_natural.rightCont` inside the existential,
+    -- where `joint_natural := (⨆ i, naturalFiltration (W.W i)) ⊔ naturalFiltration N`
+    -- (literature `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)`).
+    -- P7 F4 closure (red-team 2nd audit, 2026-05-23): Tang-Li 1994 /
+    -- Pardoux-Răşcanu solution space uses the right-continuous augmented
+    -- filtration (needed for Doob's L²-maximal, optional stopping, càdlàg
+    -- modification). Previous version used the RAW natural filtration —
+    -- strictly weaker than literature. `.rightCont` is the Mathlib operator
+    -- for right-continuization; the P-null-set augmentation step is a
+    -- separate strengthening (deferred — Mathlib lacks a clean primitive).
     ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-        Filt = (⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N ∧
+        Filt = ((⨆ i : Fin d,
+                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
         MeasureTheory.Adapted Filt Y ∧
         MeasureTheory.Adapted Filt Z ∧
         (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧
