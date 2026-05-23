@@ -68,6 +68,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_generic
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
+-- σ-side L² Lipschitz bound (Agent 1, PicardSigmaLipschitz.lean; depends on
+-- new Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
+#print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_diff_lipschitz_sq_componentwise
+-- γ-side L² Lipschitz bound (Agent 2, PicardGammaLipschitz.lean):
+#print axioms LevyStochCalc.Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise
+-- Bielecki β-norm contraction assembly (Agent 3, PicardContraction.lean):
+#print axioms LevyStochCalc.Ito.Picard.sq_add_three_le
+#print axioms LevyStochCalc.Ito.Picard.sum_sq_add_three_le
+#print axioms LevyStochCalc.Ito.Picard.picardStep_diff_sum_sq_le
+#print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
+#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
+#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
