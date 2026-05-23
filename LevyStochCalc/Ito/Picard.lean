@@ -773,6 +773,39 @@ lemma sigma_along_X_measurable
   -- σ along the path: σ p.2 (X p.2 p.1) i j = (h_eval_ij ∘ Function.uncurry σ ∘ h_prod_meas).
   exact h_eval_ij.comp (hσ_meas.comp h_prod_meas)
 
+/-- **Joint measurability of γ-along-X.** Analog of `sigma_along_X_measurable`
+for the jump coefficient `γ : ℝ → (Fin n → ℝ) → E → Fin n → ℝ`.
+
+The composite `(ω, s, e) ↦ γ s (X s ω) e i` is jointly measurable on
+`Ω × ℝ × E`, given joint measurability of X and γ. This is what makes
+the γ component of the Picard step well-typed for the
+`Compensated.stochasticIntegral` integrand. -/
+lemma gamma_along_X_measurable
+    {n : ℕ}
+    (γ : ℝ → (Fin n → ℝ) → E → Fin n → ℝ)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (hX_meas : Measurable (Function.uncurry X))
+    (hγ_meas : Measurable
+      (fun (p : ℝ × (Fin n → ℝ) × E) => γ p.1 p.2.1 p.2.2))
+    (i : Fin n) :
+    Measurable (fun (p : Ω × ℝ × E) => γ p.2.1 (X p.2.1 p.1) p.2.2 i) := by
+  -- The composite extracts (ω, s, e), evaluates X at (ω, s), and feeds (s, X s ω, e) into γ.
+  -- Step 1: (p : Ω × ℝ × E) ↦ X p.2.1 p.1 measurable.
+  have h_X_along_meas : Measurable (fun p : Ω × ℝ × E => X p.2.1 p.1) := by
+    have : (fun p : Ω × ℝ × E => X p.2.1 p.1)
+        = (Function.uncurry X) ∘ (fun p : Ω × ℝ × E => (p.2.1, p.1)) := by
+      funext p; rfl
+    rw [this]
+    exact hX_meas.comp ((measurable_snd.comp measurable_id).fst.prodMk measurable_fst)
+  -- Step 2: (p : Ω × ℝ × E) ↦ (p.2.1, X p.2.1 p.1, p.2.2) measurable.
+  have h_triple_meas : Measurable
+      (fun p : Ω × ℝ × E => (p.2.1, X p.2.1 p.1, p.2.2)) := by
+    exact ((measurable_snd.comp measurable_id).fst.prodMk
+      (h_X_along_meas.prodMk (measurable_snd.comp measurable_id).snd))
+  -- Step 3: γ evaluation gives Fin n → ℝ; take component i.
+  have h_eval_i : Measurable (fun (v : Fin n → ℝ) => v i) := measurable_pi_apply i
+  exact h_eval_i.comp (hγ_meas.comp h_triple_meas)
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
