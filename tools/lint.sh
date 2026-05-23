@@ -60,6 +60,32 @@ if [[ ! -f "$BASELINE_FILE" ]]; then
 fi
 BASELINE=$(tr -d '\r' < "$BASELINE_FILE" | sort -u)
 
+# P2 HIGH-2 fix (red-team 2nd audit, 2026-05-23): validate every baseline
+# entry corresponds to a real theorem that _audit.lean reports.  A typo'd
+# entry like `JumpDiffusion.exits_unique` (missing the `s`) would otherwise
+# be silently treated as a "resolved" sorry by the comm -13 below, while
+# the real theorem's still-active sorry would appear as a NEW finding and
+# break the lint.  A motivated saboteur could then swap a real baseline
+# entry for a typo'd one and "fix" the resulting failure by appending the
+# typo to the baseline — at which point the typo accumulates and the
+# unaudited sorry escapes detection.  By verifying baseline entries exist
+# in the audit output we close that escape route.
+INVALID_BASELINE=""
+while IFS= read -r baseline_name; do
+  [[ -z "$baseline_name" ]] && continue
+  if ! grep -qF "'$baseline_name' depends on axioms:" audit_output.txt; then
+    INVALID_BASELINE+="$baseline_name"$'\n'
+  fi
+done <<< "$BASELINE"
+if [[ -n "$INVALID_BASELINE" ]]; then
+  echo "FAIL: baseline entries do not match any theorem in audit_output.txt:"
+  echo "$INVALID_BASELINE" | sed 's/^/  /'
+  echo ""
+  echo "Likely a typo or stale entry. Either fix the spelling or remove from"
+  echo "$BASELINE_FILE."
+  exit 1
+fi
+
 # New sorries = current minus baseline.
 NEW_SORRIES=$(comm -23 <(echo "$CURRENT_SORRIES") <(echo "$BASELINE"))
 

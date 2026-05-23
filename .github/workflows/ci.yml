@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [master, main]
 
+# P2 MEDIUM-2 fix (red-team 2nd audit 2026-05-23): cancel in-progress runs
+# when a new push for the same ref lands. Saves a full Mathlib rebuild on
+# rapid-fire pushes to the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-lint:
     runs-on: ubuntu-latest
@@ -13,6 +20,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # P2 MEDIUM-1 fix (red-team 2nd audit 2026-05-23): cache `~/.elan`
+      # in addition to `.lake`. Without this, the Lean toolchain (~200 MB)
+      # is re-downloaded on every CI run, burning ~30s of bandwidth/decomp
+      # per run for no benefit. Key off `lean-toolchain` so cache invalidates
+      # when the toolchain pin changes.
+      - name: Cache ~/.elan (Lean toolchain)
+        uses: actions/cache@v4
+        with:
+          path: ~/.elan
+          key: elan-${{ runner.os }}-${{ hashFiles('lean-toolchain') }}
+          restore-keys: |
+            elan-${{ runner.os }}-
 
       - name: Install elan (Lean toolchain manager)
         run: |
