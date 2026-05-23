@@ -90,7 +90,15 @@ the BSDEJ has a unique adapted solution triple `(Y, Z, U) ∈ S² × H² × H²_
 
 **Reference**: Tang, S. & Li, X. *Necessary conditions for optimal control of
 stochastic systems with random jumps*, SIAM J. Control Optim. 32(5), 1994,
-**Theorem 3.1**; Andersson, A.-K., Gnoatto, A., Patacca, A. & Picarelli, A.
+DOI 10.1137/S0363012992233858, pp. 1447-1475. The paper introduced the
+BSDEJ existence/uniqueness as a tool inside the maximum-principle proof
+(Papapantoleon-Possamaï-Saplaouras 2018 §1 confirms Tang-Li as the
+historical first BSDEJ existence reference). The specific theorem number
+inside Tang-Li 1994 is paywalled; P11 2nd audit 2026-05-23 flagged
+the theorem-number "Theorem 3.1" as plausible but unverifiable — kept
+without "Theorem X.Y" pin since the paper-level attribution is sound and
+the SUBSTANTIVE theorem-numbered citation is AGPP 2025 Theorem 2.4 below.
+Andersson, A.-K., Gnoatto, A., Patacca, A. & Picarelli, A.
 *A deep solver for BSDEs with jumps*, SIAM J. Financial Math. / arXiv:2211.04349,
 2025, **Theorem 2.4** (correcting the previous fabricated citation
 "Gnoatto 2025 Quantitative Finance primer" flagged by red-team P11);
@@ -143,8 +151,29 @@ axiom continuousBSDEJ_exists_unique
     (_hf_zero_sq_int :
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖bsdej.f s (X s ω) 0 0 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
-    ∃ (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ),
+    -- P6 F5 fix (red-team 2nd audit 2026-05-23): expose Tang-Li 1994 /
+    -- Pardoux-Răşcanu Thm 4.79 quantitative bound on the solution norm.
+    -- The literature theorem yields not just existence + uniqueness but
+    -- an a-priori bound `‖(Y, Z, U)‖_{S²×H²×H²_ν}² ≤ K(L, T) · (‖ξ‖² +
+    -- ‖f(·, ·, 0, 0, 0)‖_{L²(P×dt)}²)`. The constant `K(L, T)` is
+    -- polynomial in T and exponential in `L·T` (from the Grönwall step
+    -- of the Tang-Li proof). Without exposing this bound, downstream
+    -- numerical work (P6 numerical_analyst lens) cannot control
+    -- discretisation error on the solution norm.
+    ∃ (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
+      (K_TL : ℝ),
+      0 < K_TL ∧
       LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T ∧
+      -- Tang-Li a-priori bound on the S²×H²×H²_ν solution norm:
+      ((∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖Y t ω‖₊ : ℝ≥0∞) ^ 2) ∂P).toReal
+        + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
+        + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P).toReal)
+        ≤ K_TL *
+          ((∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
+            + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+                (‖bsdej.f s (X s ω) 0 0 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal) ∧
       ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ)) (U' : ℝ → Ω → E → ℝ),
         LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y' Z' U' T →
         (∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = Y' t ω)
