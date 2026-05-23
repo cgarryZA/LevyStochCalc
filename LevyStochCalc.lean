@@ -30,6 +30,7 @@ import LevyStochCalc.Brownian.MultidimIto
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
+import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.JumpFormula
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

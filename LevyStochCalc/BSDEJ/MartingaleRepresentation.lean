@@ -60,8 +60,7 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- **CITED AXIOM: Jacod-Yor martingale representation (Tier 1 #13,
-Jacod 1976).**
+/-- **Jacod-Yor martingale representation (Jacod 1976).**
 
 Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a
 representation
@@ -79,9 +78,11 @@ Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev,
 *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003,
 **Theorem III.4.34**.
 
-**2026-05-23 conversion theorem → axiom (Rule 0 honesty)**: see module
-docstring above. -/
-axiom jacodYor_representation
+**Status (2026-05-23, Rule-1 START)**: predictable-projection / chaos-
+decomposition framework being built in
+`LevyStochCalc/BSDEJ/PredictableProjection.lean`. Current state: sorry,
+proof in active construction. -/
+theorem jacodYor_representation
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
@@ -139,6 +140,7 @@ axiom jacodYor_representation
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) := by
+  sorry
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation
