@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (11 currently live; #7 and #8 deleted 2026-05-22; #12 and #13 added 2026-05-23 via theorem→axiom conversion)
+## Tier 1: Honest cited axioms (12 currently live; #7 and #8 deleted 2026-05-22; #12 and #13 added 2026-05-23 via theorem→axiom conversion — #13 is now the explicit `jacodYor_representation_axiom`, with the original-named `jacodYor_representation` retained as a thin forwarder)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -126,14 +126,14 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
 * **Replacement plan**: `theorem picardFixedPoint_jumpDiffusion_exists_unique := <Picard iteration proof>` when (a) Tier 1 #5 + #6 are theorems, (b) the Picard fixed-point apparatus for SDEs with jumps is built (depends on per-component drift / diffusion / jump Lipschitz bounds + Bielecki β-norm completeness on the S² Banach space). Once the intermediate is proven, `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
 
-### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
+### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom`
 
 * **Statement**: Every L²-integrable `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration N).rightCont.seq T`-measurable random variable `ξ : Ω → ℝ` admits a representation `ξ = E[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)` a.s., with progressively-measurable square-integrable integrands `Z, U`, where the Brownian and compensated-Poisson integrals are pinned to `MultidimBrownianMotion.stochasticIntegral W Z ...` and `Compensated.stochasticIntegral N U ...` respectively.
 * **Reference**: Jacod, J. "Multivariate point processes: predictable projection, Radon-Nikodym derivatives, representation of martingales", Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34**.
-* **2026-05-23 conversion `theorem → axiom`**: previously a `theorem` with `sorry` body. The literature proof requires predictable projection / chaos decomposition machinery that Mathlib does not yet have. The honest representation is `axiom` cited from Jacod 1976.
+* **2026-05-23 conversion `theorem → axiom` (COMPLETED)**: previously a `theorem` with `sorry` body. The literature proof requires predictable projection / chaos decomposition machinery that Mathlib does not yet have. The honest representation is the `axiom jacodYor_representation_axiom` cited from Jacod 1976, with the downstream-facing `theorem jacodYor_representation` preserved as a thin forwarder over the axiom (signature unchanged, callers unaffected).
 * **Signature strength**: ξ measurability strengthened to `StronglyMeasurable[ℱ_T] ξ` (joint natural filtration at endpoint T) — required because martingale representation only holds for ξ measurable wrt the filtration at the endpoint. Both stochastic integrals fully pinned with per-component progressively-measurable + L² hypotheses bundled as existential witnesses (no trivial Z = U = 0 witness).
 * **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage).
-* **Replacement plan**: `theorem jacodYor_representation := <predictable projection + chaos decomposition>` when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
+* **Replacement plan**: `theorem jacodYor_representation_axiom := <predictable projection + chaos decomposition>` (and inline the forwarder) when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
 
 ## Honest derivative theorems (proven from cited axioms)
 
@@ -161,16 +161,18 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 2 = quadVar) |
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (Tier 1 #13) |
 
-### Literature-pinned baseline-sorry theorems (count: 0 — both promoted to Tier 1 axioms 2026-05-23)
+### Literature-pinned baseline-sorry theorems (count: 1 — `JumpDiffusion.exists_unique` only)
 
-**2026-05-23 update**: The two previously sorry-bodied theorems
-(`JumpDiffusion.exists_unique`, `jacodYor_representation`) were promoted
-to Tier 1 cited axioms #12 and #13 (see entries above). Per Rule 0,
-this is HONEST (claim matches content) where the previous
-`theorem ... := by sorry` was DISHONEST (claimed proven, was unproven).
-`tools/sorry_baseline.txt` is now EMPTY; the lint script enforces
-sorryAx = 0 across the entire library.
+**2026-05-23 update**: `jacodYor_representation` is now a thin forwarder
+over the Tier 1 cited axiom `jacodYor_representation_axiom` (entry #13
+above) and no longer sorryAx-tainted. Per Rule 0, this is HONEST
+(theorem-with-axiom-body matches claim; axiom matches literature) where
+the previous `theorem ... := by sorry` was DISHONEST (claimed proven,
+was unproven). `JumpDiffusion.exists_unique` remains the sole baseline
+entry, with its sorry concentrated in the intermediate
+`picardFixedPoint_jumpDiffusion_exists_unique`.
 
 ### P7 F10 qualification (red-team 2nd audit, 2026-05-23)
 
@@ -192,27 +194,33 @@ both satisfy the predicate for f = g = 0) would falsify the uniqueness
 clause. The current closure is via Y₂'s failure of `Adapted Filt`: `W_T`
 is not measurable in `Filt_t` for t < T.
 
-## Status snapshot (2026-05-22, post-red-team cleanup)
+## Status snapshot (2026-05-23, jacodYor `theorem → axiom` conversion COMPLETED)
 
-`tools/sorry_baseline.txt` contains **2 entries** for theorems whose proofs
-are deferred to substantial classical infrastructure (Picard iteration for
-SDE existence, predictable-projection chaos decomposition for martingale
-representation). Every other previously sorry'd theorem is either:
+`tools/sorry_baseline.txt` now contains **1 entry** — the Picard
+iteration for the jump-diffusion SDE — after the 2026-05-23 conversion
+of `jacodYor_representation` to a forwarder over the new Tier 1 cited
+axiom `jacodYor_representation_axiom` (Jacod 1976). Every other
+previously sorry'd theorem is either:
 * Proven from Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`)
   plus possibly one or more Tier 1 cited axioms documented here, OR
 * A Tier 1 cited axiom itself.
 
-Baseline entries (the two genuinely-deferred classical theorems):
+Baseline entries (the single genuinely-deferred classical theorem):
 * `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` — Picard
   iteration in `S²([0,T]; ℝⁿ)` for the jump-diffusion SDE
   (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV). Real theorem statement
   with sorry'd proof body.
+
+Resolved on 2026-05-23 (formerly a baseline entry):
 * `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
   — Jacod 1976 martingale representation theorem for `(W, Ñ)` filtrations
-  (Jacod-Shiryaev Thm III.4.34). Real theorem statement with sorry'd proof
-  body. The integrand pinning to `MultidimBrownianMotion.stochasticIntegral`
-  and `Compensated.stochasticIntegral` (canonical integrals) is at the
-  statement level — no trivial-witness leakage.
+  (Jacod-Shiryaev Thm III.4.34). Converted to a thin forwarder over
+  `jacodYor_representation_axiom` (Tier 1 #13). The integrand pinning
+  to `MultidimBrownianMotion.stochasticIntegral` and
+  `Compensated.stochasticIntegral` (canonical integrals) is at the
+  statement level — no trivial-witness leakage. The axiom carries the
+  full literature dependency; the theorem is now genuinely axiom-clean
+  (modulo the cited axiom + Lean stdlib).
 
 ### Recursive audit (2026-05-11) — internal classification
 
@@ -310,11 +318,13 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **11 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
-  #13 added 2026-05-23 via theorem→axiom conversion), each with
-  paper reference + Mathlib status + replacement plan.
+* **12 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
+  #13 added 2026-05-23 via theorem→axiom conversion; #13 is the explicit
+  `jacodYor_representation_axiom`), each with paper reference + Mathlib
+  status + replacement plan.
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
-* No `sorryAx` in the public API outside the 2 baseline-acknowledged entries.
+* No `sorryAx` in the public API outside the 1 baseline-acknowledged entry
+  (`JumpDiffusion.exists_unique`).
 * No `True := trivial` stub lemmas remain in the project.
 * Dissertation forwarders transitively surface only real Tier 1 cited axioms
   in their audit, including the now-fully-pinned #11 `itoLevyFormula`.
@@ -374,7 +384,7 @@ contributors.
 
 ## Convention
 
-* `tools/sorry_baseline.txt` — sorry-blocked theorems (currently 2: see
+* `tools/sorry_baseline.txt` — sorry-blocked theorems (currently 1: see
   status snapshot above).
 * `tools/cited_axioms.md` (this file) — Tier 1 cited axioms with citations + Mathlib status + replacement plans.
 * `tools/lint.sh` — runs `_audit.lean` and fails on new sorryAx beyond

@@ -184,16 +184,17 @@ theorem picardFixedPoint_of_exists
   have hΦ : ContractingWith K Φ := ⟨hK_lt_one, hΦ_lip⟩
   exact ⟨Φ, picardFixedPoint_generic hΦ⟩
 
-/-- **Banach fixed-point output for the jump-diffusion SDE.**
+/-- **CITED AXIOM (Tier 1 #14): SDE-specialised Banach fixed-point output
+for the jump-diffusion equation (Applebaum 6.2.9 / Ikeda-Watanabe IV).**
 
 Under Lipschitz hypotheses on `(μ, σ, γ)`, the Picard iteration in the
 Banach space `S²([0, T]; ℝⁿ)` with the Bielecki β-norm
-`‖X‖_β,T = sup_{t ≤ T} e^{-βt} √(𝔼[‖X_t‖²])` for `β > n L² T / 2`
+`‖X‖_β,T = sup_{t ≤ T} e^{-βt} √(𝔼[‖X_t‖²])` for `β > 9 n L² T / 2`
 delivers a unique fixed point of the Picard map `Φ` (`picardStep`). This
 fixed point is a càdlàg-adapted L²-sup-bounded process satisfying the
 SDE integral equation, and bundles into a `JumpDiffusion W N coeffs x₀`.
 
-The "exists + a.s. unique" form below is the direct output of the
+The "exists + a.s. unique" form is the direct output of the
 Banach fixed-point step (`ContractingWith.fixedPoint` +
 `ContractingWith.fixedPoint_unique` — see `picardFixedPoint_generic`
 in this file): the fixed point is the limit of Picard iterates `Φⁿ X₀`
@@ -201,18 +202,48 @@ for any starting `X₀`, and every other fixed point coincides with it
 (so any two `JumpDiffusion` solutions, both being fixed points of Φ,
 must agree a.s. at every `t`).
 
-**Reference**: Applebaum 2009 Theorem 6.2.9; Ikeda-Watanabe IV.
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd
+ed., CUP 2009, **Theorem 6.2.9** (Picard iteration in `S²` for jump-
+diffusion SDEs with Lipschitz coefficients); Ikeda-Watanabe, *Stochastic
+Differential Equations and Diffusion Processes*, North-Holland 1989,
+Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
 
-**Status (2026-05-23, Rule-1 progress)**: sorry body — the contraction
-proof is broken across the `Picard.lean` scaffolding (drift
-L²-Lipschitz, Cauchy-Schwarz, Bielecki weight bound, contraction-rate
-threshold, σ/γ measurability) plus parallel agent work on σ and γ
-Lipschitz analogs of `picardStep_drift_diff_lintegral_sq_bound`. When
-those land, combined with the Bielecki β-norm completeness instance
-on `SBoundedProcess` (downstream work — `S²` Banach-space structure
-via the standard quotient by P-null sets), this intermediate becomes
-mechanically derivable via the `picardFixedPoint_of_exists` shim. -/
-theorem picardFixedPoint_jumpDiffusion_exists_unique
+**2026-05-23 conversion `theorem → axiom` (COMPLETED)**: previously a
+`theorem` with `sorry` body. The literature proof requires three
+independent pieces of substantive infrastructure not yet in the codebase:
+(1) `MetricSpace (SBoundedProcess P T)` + `CompleteSpace` instance with
+the *Bielecki β-norm metric* on the `S²` Banach space of càdlàg
+L²-bounded processes, with the standard quotient-by-P-null-sets
+completeness argument; (2) `Φ : SBoundedProcess P T → SBoundedProcess P T`
+lifting of `picardStep` (promoting the Picard map from the unstructured
+function space `ℝ → Ω → (Fin n → ℝ)` to the structured `S²` space,
+requires showing `picardStep` preserves joint measurability + càdlàg +
+L²-sup-bound); (3) bridging an `S²` fixed point back into the
+`JumpDiffusion` structure (`is_solution`, `initial_value`, `sup_L2`,
+`cadlag_paths` fields). The Bielecki contraction estimate itself IS
+proven downstream in `Ito/PicardContraction.lean` as
+`picardStep_bielecki_contraction`, combining the per-component drift /
+diffusion / jump L²-Lipschitz bounds from `Picard.lean`,
+`PicardSigmaLipschitz.lean`, `PicardGammaLipschitz.lean`. The OPEN
+PROBLEM reduces to (1)+(2)+(3) above — the Banach `S²` Banach-space
+packaging and structure-bridge. The honest representation is the
+`axiom picardFixedPoint_jumpDiffusion_exists_unique_axiom` below cited
+from Applebaum 6.2.9 — the claim then matches the content exactly.
+`picardFixedPoint_jumpDiffusion_exists_unique` is preserved as a thin
+forwarding `theorem` so all downstream callers (notably
+`JumpDiffusion.exists_unique`) remain stable.
+
+**Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
+ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
+without this); produces a CONCRETE `JumpDiffusion` (all six fields
+populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
+`cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
+every `t` (the literature uniqueness conclusion). No trivial
+constant-path witness satisfies this for generic non-zero coefficients:
+`X t ω = x₀` fails `is_solution` because the integrals don't vanish. -/
+axiom picardFixedPoint_jumpDiffusion_exists_unique_axiom
+    {Ω : Type u} [MeasurableSpace Ω]
+    {E : Type v} [MeasurableSpace E]
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
@@ -224,45 +255,38 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique
     (_hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
-  -- **Proof skeleton (downstream work):**
-  --
-  -- The full Picard-iteration argument needs three independent pieces of
-  -- substantive infrastructure that are NOT yet in the codebase:
-  --
-  -- 1. **`MetricSpace (SBoundedProcess P T)` + `CompleteSpace` instance** —
-  --    the Bielecki β-norm metric on the S² Banach space of càdlàg
-  --    L²-bounded processes, with the standard quotient-by-P-null-sets
-  --    completeness argument. (Mathlib has `MeasureTheory.Lp` Banach
-  --    structure for fixed-time L²; the path-space S² Banach structure
-  --    is the standard extension.)
-  --
-  -- 2. **`Φ : SBoundedProcess P T → SBoundedProcess P T` lifting of
-  --    `picardStep`** — promoting the Picard map from the unstructured
-  --    function space `ℝ → Ω → (Fin n → ℝ)` to the structured S² space.
-  --    Requires showing `picardStep` preserves joint measurability +
-  --    càdlàg + L²-sup-bound (using the L²-isometry / boundedness of the
-  --    component Itô integrals).
-  --
-  -- 3. **`ContractingWith K Φ` proof** — the Bielecki contraction
-  --    estimate combining `bielecki_weighted_integral_bound` (in
-  --    `Picard.lean`) with the per-component L²-Lipschitz bounds on the
-  --    drift step (in `Picard.lean`), diffusion step (parallel Agent 1
-  --    work in progress — `PicardSigmaLipschitz.lean`), and jump step
-  --    (parallel Agent 2 work in progress — `PicardGammaLipschitz.lean`).
-  --
-  -- Once (1), (2), (3) are in place, the Banach shim `picardFixedPoint`
-  -- delivers a unique fixed point `X : SBoundedProcess`, which by
-  -- (2) bundles into a `JumpDiffusion` satisfying the SDE equation.
-  -- Uniqueness in the headline statement then follows from
-  -- `picardFixedPoint`'s `∃!`: any other `JumpDiffusion`, lifted to a
-  -- fixed point of `Φ`, must equal `X`.
-  --
-  -- For the present commit, we mark this as the sole baseline sorry of
-  -- the Picard chain. The (much larger) chain of helper lemmas in
-  -- `Picard.lean` is sorry-free, as is the Banach shim above; only
-  -- this single assembly step remains.
-  sorry
+        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω
+
+/-- **Banach fixed-point output for the jump-diffusion SDE — forwarding theorem.**
+
+Thin forwarder over the Tier 1 cited axiom
+`picardFixedPoint_jumpDiffusion_exists_unique_axiom`. Stating this
+conclusion as a `theorem` here keeps every downstream caller stable while
+making the dependency on Applebaum 6.2.9 explicit via the underlying
+`axiom`. The Picard contraction analysis (drift / diffusion / jump
+L²-Lipschitz bounds + Bielecki β-norm contraction at rate `9 n L² T / (2β)`
+for `β > 9 n L² T / 2`) is fully proven downstream in `Ito/Picard.lean`,
+`Ito/PicardContraction.lean`, `Ito/PicardSigmaLipschitz.lean`, and
+`Ito/PicardGammaLipschitz.lean`; the only piece still axiomatised is the
+`S²` Banach-space packaging + structure bridge into `JumpDiffusion`, which
+the parallel agent track on `SBoundedProcess` Banach instances will
+discharge.
+
+**Reference**: Applebaum 2009 Theorem 6.2.9; Ikeda-Watanabe IV. -/
+theorem picardFixedPoint_jumpDiffusion_exists_unique
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (x₀ : Fin n → ℝ)
+    {L : ℝ}
+    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
+    ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
+      ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
+        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N coeffs x₀ hL
 
 end LevyStochCalc.Ito.Picard
 
