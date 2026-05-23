@@ -106,9 +106,14 @@ decoupled Forward-Backward SDE with jumps*, Stochastic Processes Appl.
 misattribution to "Bouchard, Elie & Touzi 2009 SPA 119(11)" — Touzi is
 not an author and that volume/year combination does not exist; flagged
 by red-team P06/P07/P10/P11 and verified via Bouchard's slides + HAL
-hal-00015486.) Pardoux, E. & Răşcanu, A. *Stochastic Differential
+hal-00015486.) For the continuous-only background, see also
+Pardoux, E. & Răşcanu, A. *Stochastic Differential
 Equations, Backward SDEs, Partial Differential Equations*, Springer
-2014, **Theorem 5.42** (continuous case, extends to jumps).
+2014, **Theorem 5.42** (continuous case, NOT BSDEJ). The jump-case
+path regularity is established in Bouchard-Elie 2008; Pardoux-Răşcanu
+covers only the continuous case (Brownian-driven BSDEs) and does NOT
+extend to jumps automatically — P11 2nd audit 2026-05-23 flagged the
+previous "(continuous case, extends to jumps)" wording as misleading.
 
 **Standard proof outline**:
 1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.

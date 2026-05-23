@@ -99,9 +99,12 @@ Actuarial and Financial Applications*, Springer EAA Series, 2013 (Springer
 DOI 10.1007/978-1-4471-5331-3; AGPP 2025 cites a 2017 reprint, but the
 first edition is 2013 — per red-team P11 2nd audit, 2026-05-23),
 **Theorem 4.1.3** (jumps case, directly applicable).
+For the continuous-only background (no jumps), see also
 Pardoux, E. & Răşcanu, A. *Stochastic Differential Equations, Backward SDEs,
-Partial Differential Equations*, Springer 2014, **Theorem 4.79** (continuous
-case).
+Partial Differential Equations*, Springer 2014, **Theorem 4.79**. P11 2nd
+audit, 2026-05-23: Pardoux-Răşcanu does NOT cover the BSDEJ (jump) case
+— Tang-Li 1994 and Delong 2013 are the jump-case authorities. The
+parenthetical was previously ambiguous about scope; now explicit.
 
 **Standard proof outline**: Banach fixed-point theorem applied to the Picard
 map in the Banach space `S² × H² × H²_N` with weighted norm `e^{-βt}` for
