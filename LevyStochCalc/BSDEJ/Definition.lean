@@ -160,6 +160,16 @@ def IsBSDEJSolution
         ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    -- 2026-05-23 strengthening (P4 H càdlàg fix): Tang-Li / Pardoux-Răşcanu
+    -- solution space `S²` requires Y to be càdlàg-adapted. The previous
+    -- joint-measurability-only requirement was strictly weaker (e.g., the
+    -- supremum `⨆ t ∈ [0,T] ‖Y_t‖²` above is ill-typed as a measurable
+    -- function of ω without càdlàg paths). Adding `Y_cadlag` makes the
+    -- supremum honestly measurable and matches the literature S² space.
+    ∧ (∀ᵐ ω ∂P, ∀ t : ℝ,
+        Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω))
+          ∧ ∃ L : ℝ,
+              Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L))
     -- 2026-05-21 strengthening 1: adaptedness layer (rules out
     -- Y = W₁_T − W₁_t counterexample).
     -- 2026-05-22 strengthening 2 (H2 fix): M_W is now PINNED to the

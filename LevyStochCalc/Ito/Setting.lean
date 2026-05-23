@@ -104,6 +104,18 @@ structure JumpDiffusion
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
     ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
+  /-- Almost-sure càdlàg paths (right-continuous with left limits, a.s.).
+  Required by the literature jump-diffusion SDE convention: Applebaum 6.2.9 /
+  Ikeda-Watanabe IV assume X is càdlàg-adapted so that `X_{s−}` (the left
+  limit at s) is well-defined for the integrand evaluation in the
+  compensated-Poisson integral. P4 H / P7 F5 closure (red-team 2nd audit,
+  2026-05-23): without this field, `X.X s` and `X_{s−}` are silently equal
+  (no left-limit notion), and the SDE equation diverges from Applebaum at
+  jump times. -/
+  cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ,
+    Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
+      ∧ ∀ i : Fin n, ∃ L : ℝ,
+          Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)
   /-- The SDE integral equation. Bundles per-row Brownian + per-row Compensated
   integrand hypotheses inside the existential alongside the equation itself.
   H6 fix (red-team 2nd audit 2026-05-23): γ-side hypotheses now bundled too
