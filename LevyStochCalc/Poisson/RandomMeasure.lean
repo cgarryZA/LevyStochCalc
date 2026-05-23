@@ -82,15 +82,25 @@ structure PoissonRandomMeasure
   /-- For each measurable `B ⊆ ℝ × E`, the map `ω ↦ N(ω, B)` is measurable. -/
   measurable_eval : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
     Measurable (fun ω => N ω B)
-  /-- **Applebaum 2.3.1(c).** For measurable `B` with finite intensity,
-  `N(·, B)` is a.s. `ℕ`-valued (in the natural embedding `ℕ ↪ ℝ≥0∞`).
-  Follows from `poisson_law` since the Poisson distribution is supported
-  on `ℕ`, but is exposed as a structural field so downstream code can use
-  it without having to re-derive it through the Poisson-law characterisation
-  each time (L10 fix 2026-05-22 per red-team P04). -/
+  /-- **Applebaum 2.3.1(c), finite-intensity case.** For measurable `B` with
+  finite intensity, `N(·, B)` is a.s. `ℕ`-valued (in the natural embedding
+  `ℕ ↪ ℝ≥0∞`). Follows from `poisson_law` since the Poisson distribution
+  is supported on `ℕ`. Exposed as a structural field so downstream code
+  can use it without re-deriving through the Poisson-law characterisation.
+  L10 fix 2026-05-22 per red-team 1st-audit P04. -/
   integer_valued : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
     referenceIntensity ν B ≠ ⊤ →
     ∀ᵐ ω ∂P, ∃ n : ℕ, N ω B = n
+  /-- **Applebaum 2.3.1(c), infinite-intensity case** (red-team 2nd audit
+  P7 F6 + P4 W fix 2026-05-23). For measurable `B` with INFINITE intensity,
+  `N(·, B) = ∞` almost surely. This completes the Applebaum 2.3.1(c)
+  encoding — the previous `integer_valued` field covered only the
+  finite-intensity branch. Under the literature Poisson recipe construction,
+  this is automatic: an infinite-intensity set decomposes into countably
+  many finite-intensity pieces, each contributing Poisson(λ_n) atoms, with
+  total count = ∑_n Poisson(λ_n) which is a.s. infinite when ∑_n λ_n = ∞. -/
+  infinite_at_infinite_intensity : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
+    referenceIntensity ν B = ⊤ → ∀ᵐ ω ∂P, N ω B = ⊤
   /-- `N(·, B)` has `Poisson` law with mean `(referenceIntensity ν)(B)` under
   `P`, for every measurable `B` with finite intensity. -/
   poisson_law : ∀ {B : Set (ℝ × E)}, MeasurableSet B →

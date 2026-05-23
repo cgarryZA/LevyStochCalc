@@ -79,7 +79,16 @@ theorem jacodYor_representation
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (T : ℝ) (_hT : 0 < T)
     (ξ : Ω → ℝ)
-    (_h_meas : Measurable ξ)
+    -- ξ is ℱ_T-measurable, where ℱ_T = (joint natural filtration of W, N).seq T.
+    -- Per Jacod 1976: martingale representation REQUIRES ξ to be measurable
+    -- wrt the filtration at the endpoint T (otherwise ξ depends on future
+    -- information beyond T, and no (Z, U) integrals up to T can represent it).
+    -- P4 M fix (red-team 2nd audit 2026-05-23): strengthened from bare
+    -- `Measurable ξ` (Borel) to `StronglyMeasurable[ℱ_T] ξ`.
+    (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+        ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont.seq T)
+      ξ)
     (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     -- Existence of predictable square-integrable (Z, U) with the
     -- progressively-measurable hypotheses needed by the multidim

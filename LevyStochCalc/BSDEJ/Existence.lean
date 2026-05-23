@@ -128,7 +128,16 @@ axiom continuousBSDEJ_exists_unique
     {L : ℝ} (_hL : Lipschitz bsdej ν L)
     -- L² terminal data hypothesis (`g(X_T)` is L²-bounded — required for
     -- the solution to live in `S² × H² × H²_N`):
-    (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
+    -- Linear-growth-at-zero / Tang-Li H2 hypothesis (red-team 2nd audit
+    -- P4 M fix 2026-05-23): `E[∫₀^T |f(s, X_s, 0, 0, 0)|² ds] < ∞`. Without
+    -- this, the BSDEJ Picard iteration's first iterate may have infinite
+    -- L²-norm even when the driver is Lipschitz (e.g., a Lipschitz `f` that
+    -- is unbounded in (s, x) and constant in (y, z, u) has no L² solution).
+    -- Tang-Li 1994 Thm 3.1 lists this as hypothesis H2:
+    (_hf_zero_sq_int :
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖bsdej.f s (X s ω) 0 0 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ),
       LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T ∧
       ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ)) (U' : ℝ → Ω → E → ℝ),
