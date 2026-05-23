@@ -40,6 +40,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_filtration_rightContinuous
 -- 1.5d: multi-dimensional Brownian motion
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.joint_increment_gaussian_diagonal
 -- 1.5e: L² Itô integral against W
 #print axioms LevyStochCalc.Brownian.Ito.itoIsometry
 #print axioms LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral

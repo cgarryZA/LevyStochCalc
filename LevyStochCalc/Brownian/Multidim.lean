@@ -60,16 +60,6 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   of multidim BM as "vector-valued process with continuous paths". -/
   joint_continuous_paths :
     ∀ᵐ ω ∂P, Continuous (fun (t : ℝ) (i : Fin d) => (W i).W t ω)
-  -- **P4 F7 note (red-team 2nd audit 2026-05-23)**: joint Gaussianity
-  -- of the increments is DERIVABLE from the existing fields:
-  -- `(W i).increment_gaussian` makes each scalar increment Gaussian,
-  -- and `components_independent` makes the components independent, so
-  -- the joint distribution of `(W i).W t − (W i).W s` across `i` is the
-  -- product Gaussian = multivariate Gaussian with diagonal covariance
-  -- `(t − s) · I_d`. The derivation theorem is exposed separately as
-  -- `MultidimBrownianMotion.joint_increment_gaussian_diagonal` (when
-  -- the multivariate-Gaussian Mathlib API stabilizes); pending that,
-  -- the structural derivation is sketched in the lemma docstring below.
 
 /-- σ-algebra-level `Indep` lifts through a measure-preserving map.
 Given `Indep m₁ m₂ μ_b` with `m₁, m₂ ≤ mβ` and `MeasurePreserving h μ_a μ_b`,
@@ -279,5 +269,41 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
     (X := fun _ : Fin d => fun ω₀ : Ω₀ => fun t : ℝ => W₀.W t ω₀)
     (μ := fun _ : Fin d => P₀) h_meas_W₀
   convert this using 1
+
+/-- **P4 F7 — joint increment Gaussianity with diagonal covariance (PROVEN).**
+
+For a multidim Brownian motion `W`, the joint vector of component increments
+`(ω ↦ fun i => (W i).W t ω − (W i).W s ω) : Ω → (Fin d → ℝ)` has joint
+distribution that satisfies BOTH:
+
+* per-component: each scalar increment `(W i).W t − (W i).W s` has law
+  `gaussianReal 0 (t − s)`;
+* mutual independence across `i ∈ Fin d`.
+
+This is the multivariate-Gaussian-with-diagonal-covariance `(t − s) · I_d`
+in spelled-out form (per Karatzas-Shreve §2.5 / Le Gall Def 2.12). The
+previous P4 F7 closure was a docstring-only "derivable from existing
+fields" comment; this lemma is the actual derivation. -/
+theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
+    {Ω : Type u} [MeasurableSpace Ω]
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {d : ℕ} (W : MultidimBrownianMotion P d)
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) :
+    -- Per-component Gaussian law of each increment:
+    (∀ i : Fin d,
+      P.map (fun ω => (W.W i).W t ω - (W.W i).W s ω)
+        = ProbabilityTheory.gaussianReal 0 ⟨t - s, by linarith⟩) ∧
+    -- Joint independence of the increments across i:
+    ProbabilityTheory.iIndepFun
+      (fun (i : Fin d) (ω : Ω) => (W.W i).W t ω - (W.W i).W s ω) P := by
+  refine ⟨fun i => (W.W i).increment_gaussian hs hst, ?_⟩
+  -- Apply iIndepFun.comp to components_independent with `g i := fun path => path t - path s`.
+  -- Each `g i` is measurable (eval_t and eval_s are measurable on ℝ → ℝ, and sub is measurable).
+  have h_g_meas : ∀ _ : Fin d,
+      Measurable (fun (path : ℝ → ℝ) => path t - path s) := by
+    intro _
+    exact (measurable_pi_apply t).sub (measurable_pi_apply s)
+  exact W.components_independent.comp
+    (fun (_ : Fin d) (path : ℝ → ℝ) => path t - path s) h_g_meas
 
 end LevyStochCalc.Brownian.Multidim
