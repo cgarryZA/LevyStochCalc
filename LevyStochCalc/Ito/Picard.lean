@@ -737,6 +737,42 @@ lemma bielecki_contraction_rate_lt_one
   rw [div_lt_one h_two_beta_pos]
   exact h_β_threshold
 
+omit [MeasurableSpace E] in
+/-- **Joint measurability of σ-along-X.** If `X : ℝ → Ω → (Fin n → ℝ)`
+is jointly measurable and `σ : ℝ → (Fin n → ℝ) → Fin n → Fin d → ℝ`
+is jointly measurable in `(s, x)`, then the composite
+`(s, ω) ↦ σ s (X s ω) i j` is jointly measurable on `ℝ × Ω`.
+
+This is the structural lemma that lets the σ component of the Picard
+step be passed to `MultidimBrownianMotion.stochasticIntegral` as a
+valid integrand. -/
+lemma sigma_along_X_measurable
+    {n d : ℕ}
+    (σ : ℝ → (Fin n → ℝ) → Fin n → Fin d → ℝ)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (hX_meas : Measurable (Function.uncurry X))
+    (hσ_meas : Measurable (Function.uncurry σ))
+    (i : Fin n) (j : Fin d) :
+    Measurable (fun (p : Ω × ℝ) => σ p.2 (X p.2 p.1) i j) := by
+  -- Decompose: (ω, s) ↦ σ s (X s ω) i j
+  --          = (((s, X s ω) → σ s (X s ω)) → σ s (X s ω) i j) ∘ (p ↦ (p.2, X p.2 p.1))
+  -- Each component is measurable.
+  -- Step 1: (p : Ω × ℝ) ↦ X p.2 p.1 is measurable via hX_meas.
+  have h_X_swap_meas : Measurable (fun p : Ω × ℝ => X p.2 p.1) := by
+    have : (fun p : Ω × ℝ => X p.2 p.1) = (Function.uncurry X) ∘ (fun p : Ω × ℝ => (p.2, p.1)) := by
+      funext p; rfl
+    rw [this]
+    exact hX_meas.comp (measurable_snd.prodMk measurable_fst)
+  -- Step 2: (p : Ω × ℝ) ↦ (p.2, X p.2 p.1) is measurable (product of measurable).
+  have h_prod_meas : Measurable (fun p : Ω × ℝ => (p.2, X p.2 p.1)) :=
+    measurable_snd.prodMk h_X_swap_meas
+  -- Step 3: (s, x) ↦ σ s x is measurable (hσ_meas via Function.uncurry).
+  -- Then take component (i, j).
+  have h_eval_ij : Measurable (fun (m : Fin n → Fin d → ℝ) => m i j) :=
+    (measurable_pi_apply j).comp (measurable_pi_apply i)
+  -- σ along the path: σ p.2 (X p.2 p.1) i j = (h_eval_ij ∘ Function.uncurry σ ∘ h_prod_meas).
+  exact h_eval_ij.comp (hσ_meas.comp h_prod_meas)
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
