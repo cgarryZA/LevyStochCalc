@@ -95,8 +95,10 @@ stochastic systems with random jumps*, SIAM J. Control Optim. 32(5), 1994,
 2025, **Theorem 2.4** (correcting the previous fabricated citation
 "Gnoatto 2025 Quantitative Finance primer" flagged by red-team P11);
 Delong, Ł. *Backward Stochastic Differential Equations with Jumps and their
-Actuarial and Financial Applications*, Springer EAA Series, 2017,
-**Theorem 4.1.3** (continuous case extends to jumps via standard L²-isometry).
+Actuarial and Financial Applications*, Springer EAA Series, 2013 (Springer
+DOI 10.1007/978-1-4471-5331-3; AGPP 2025 cites a 2017 reprint, but the
+first edition is 2013 — per red-team P11 2nd audit, 2026-05-23),
+**Theorem 4.1.3** (jumps case, directly applicable).
 Pardoux, E. & Răşcanu, A. *Stochastic Differential Equations, Backward SDEs,
 Partial Differential Equations*, Springer 2014, **Theorem 4.79** (continuous
 case).

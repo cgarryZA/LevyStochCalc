@@ -201,7 +201,21 @@ axiom itoLevyFormula
       (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
           (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
-              - u s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
+              - u s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+      -- comp_drift integrability hypothesis (red-team 2nd audit P4 H fix,
+      -- 2026-05-23): for general (infinite-intensity) Lévy measures ν, the
+      -- compensator-drift integrand `u(x+γ) - u(x) - γᵀ∇u(x)` need not be
+      -- ν-integrable — Applebaum 4.4.7's actual statement splits into small
+      -- jumps |γ|<1 (compensator handles) and large jumps |γ|≥1 (ordinary
+      -- sum). The Lean axiom unifies these via the explicit ν-integrability
+      -- hypothesis on the unsplit integrand. For bounded-jump / finite-ν
+      -- cases (Cont-Tankov, Merton jump-diffusion, etc.) this hypothesis is
+      -- automatic; for unbounded-jump cases the user must verify or
+      -- restrict to a sub-σ-finite truncation.
+      (_h_compDrift_int : ∀ᵐ ω ∂P,
+        ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞)
+            ∂ν ∂volume < ⊤),
       ∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
           (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
