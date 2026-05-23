@@ -638,6 +638,67 @@ lemma bielecki_weight_bound
   -- Divide both sides by 2β > 0.
   exact div_le_div_of_nonneg_right h_num_bound h_two_beta_pos.le |>.trans_eq rfl
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Bielecki integration interchange.** For `β > 0`, `t ≥ 0`, and a
+non-negative `L¹` function `g : ℝ → ℝ`,
+
+  `e^{-2βt} · ∫_0^t e^{2βs} · g(s) ds ≤ (⨆_{s ≤ t} g(s)) · (1/(2β))`,
+
+assuming `g` is bounded by a constant `M`. The bound `M · 1/(2β)`
+follows from `∫_0^t e^{2βs} M ds = M · (e^{2βt}-1)/(2β)` times the
+weight `e^{-2βt}`.
+
+This is the key "sup pull-out + Bielecki contraction" lemma used in the
+Picard argument. -/
+lemma bielecki_weighted_integral_bound
+    {β : ℝ} (hβ : 0 < β) {t : ℝ} (ht : 0 ≤ t)
+    {M : ℝ} (hM_nn : 0 ≤ M)
+    (g : ℝ → ℝ)
+    (_hg_nn : ∀ᵐ s ∂(MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t)), 0 ≤ g s)
+    (hg_bound : ∀ᵐ s ∂(MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t)), g s ≤ M)
+    (hg_int : MeasureTheory.IntegrableOn
+      (fun s => Real.exp (2 * β * s) * g s) (Set.Icc (0 : ℝ) t) MeasureTheory.volume) :
+    Real.exp (-(2 * β * t)) *
+        ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) * g s
+      ≤ M * (1 / (2 * β)) := by
+  -- Bound the integrand: e^{2βs} · g(s) ≤ e^{2βs} · M.
+  have h_exp_nn : ∀ s : ℝ, 0 ≤ Real.exp (2 * β * s) := fun s => Real.exp_nonneg _
+  have h_pt_bound : ∀ᵐ s ∂(MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t)),
+      Real.exp (2 * β * s) * g s ≤ Real.exp (2 * β * s) * M := by
+    filter_upwards [hg_bound] with s h_bd
+    exact mul_le_mul_of_nonneg_left h_bd (h_exp_nn s)
+  -- Integrate the bound.
+  have h_int_bound : ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) * g s
+      ≤ ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) * M := by
+    refine MeasureTheory.integral_mono_ae hg_int ?_ h_pt_bound
+    -- Integrability of e^{2βs} · M on [0, t].
+    have h_exp_cont : Continuous (fun s : ℝ => Real.exp (2 * β * s)) :=
+      Real.continuous_exp.comp (continuous_const.mul continuous_id)
+    have h_exp_int : MeasureTheory.IntegrableOn
+        (fun s : ℝ => Real.exp (2 * β * s)) (Set.Icc (0 : ℝ) t) MeasureTheory.volume :=
+      h_exp_cont.integrableOn_Icc
+    exact h_exp_int.mul_const M
+  -- Compute ∫_0^t e^{2βs} · M ds = M · (e^{2βt} - 1)/(2β).
+  have h_const_int : ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) * M
+      = M * ((Real.exp (2 * β * t) - 1) / (2 * β)) := by
+    rw [show (fun s => Real.exp (2 * β * s) * M) = (fun s => M * Real.exp (2 * β * s)) from
+      funext fun s => by ring]
+    rw [MeasureTheory.integral_const_mul, integral_exp_two_beta_Icc hβ ht]
+  -- Multiply by e^{-2βt} on both sides (both nonneg).
+  have h_exp_neg_nn : 0 ≤ Real.exp (-(2 * β * t)) := Real.exp_nonneg _
+  have h_mul_LHS_RHS : Real.exp (-(2 * β * t)) *
+        ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) * g s
+      ≤ Real.exp (-(2 * β * t)) * (M * ((Real.exp (2 * β * t) - 1) / (2 * β))) := by
+    refine mul_le_mul_of_nonneg_left ?_ h_exp_neg_nn
+    rw [h_const_int] at h_int_bound
+    exact h_int_bound
+  refine h_mul_LHS_RHS.trans ?_
+  -- e^{-2βt} · (M · (e^{2βt}-1)/(2β)) = M · (e^{-2βt} · (e^{2βt}-1)/(2β))
+  --                                 ≤ M · 1/(2β)   by bielecki_weight_bound.
+  rw [show Real.exp (-(2 * β * t)) * (M * ((Real.exp (2 * β * t) - 1) / (2 * β)))
+      = M * (Real.exp (-(2 * β * t)) * ((Real.exp (2 * β * t) - 1) / (2 * β))) by ring]
+  exact mul_le_mul_of_nonneg_left (bielecki_weight_bound hβ ht) hM_nn
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹

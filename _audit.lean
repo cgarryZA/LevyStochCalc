@@ -54,6 +54,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_lipschitz_componentwise
 #print axioms LevyStochCalc.Ito.Picard.integral_sq_le_mul_integral_sq_on_Icc
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_lipschitz_sq_componentwise
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_sum_sq_bound
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_lintegral_sq_bound
+#print axioms LevyStochCalc.Ito.Picard.integral_exp_two_beta_Icc
+#print axioms LevyStochCalc.Ito.Picard.bielecki_weight_bound
+#print axioms LevyStochCalc.Ito.Picard.bielecki_weighted_integral_bound
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
