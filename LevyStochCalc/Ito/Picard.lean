@@ -560,6 +560,57 @@ lemma picardStep_drift_diff_lintegral_sq_bound
         ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P :=
         MeasureTheory.lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Bielecki calculus identity.** For `β > 0` and `t ≥ 0`,
+
+  `∫_0^t e^{2βs} ds = (e^{2βt} - 1) / (2β)`.
+
+This is the standard calculus identity that, combined with the
+`e^{-2βt}` weight, gives the `1/(2β)` factor in the Bielecki β-norm
+contraction estimate. The derivation: antiderivative of `e^{2βs}` is
+`e^{2βs}/(2β)`, evaluated between 0 and t. -/
+lemma integral_exp_two_beta_Icc
+    {β : ℝ} (hβ : 0 < β) {t : ℝ} (ht : 0 ≤ t) :
+    ∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s)
+      = (Real.exp (2 * β * t) - 1) / (2 * β) := by
+  -- Standard integration via FTC: antiderivative of e^{2βs} is e^{2βs}/(2β).
+  have h_two_beta_pos : (0 : ℝ) < 2 * β := by positivity
+  have h_two_beta_ne : (2 * β) ≠ 0 := h_two_beta_pos.ne'
+  -- Reduce Icc to Ioc (Lebesgue-null endpoint), then Ioc to interval integral.
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc]
+  rw [show ∫ s in Set.Ioc (0 : ℝ) t, Real.exp (2 * β * s)
+        = ∫ s in (0 : ℝ)..t, Real.exp (2 * β * s) from
+    (intervalIntegral.integral_of_le ht).symm]
+  -- FTC: ∫_0^t f'(s) ds = f(t) - f(0) where f(s) = e^{2βs}/(2β), f'(s) = e^{2βs}.
+  have h_FTC : ∫ s in (0 : ℝ)..t, Real.exp (2 * β * s)
+      = Real.exp (2 * β * t) / (2 * β) - Real.exp (2 * β * 0) / (2 * β) := by
+    have h_deriv : ∀ s ∈ Set.uIcc (0 : ℝ) t,
+        HasDerivAt (fun u : ℝ => Real.exp (2 * β * u) / (2 * β))
+          (Real.exp (2 * β * s)) s := by
+      intro s _
+      have h₁ : HasDerivAt (fun u : ℝ => 2 * β * u) (2 * β) s := by
+        have := (hasDerivAt_id s).const_mul (2 * β)
+        simpa using this
+      have h₂ : HasDerivAt (fun u : ℝ => Real.exp (2 * β * u))
+          (Real.exp (2 * β * s) * (2 * β)) s := h₁.exp
+      have h₃ : HasDerivAt (fun u : ℝ => Real.exp (2 * β * u) / (2 * β))
+          (Real.exp (2 * β * s) * (2 * β) / (2 * β)) s := h₂.div_const (2 * β)
+      have h_simp : Real.exp (2 * β * s) * (2 * β) / (2 * β) = Real.exp (2 * β * s) := by
+        field_simp
+      rw [← h_simp]
+      exact h₃
+    -- Integrability of the integrand on [0, t].
+    have h_int_cont : Continuous (fun s : ℝ => Real.exp (2 * β * s)) :=
+      Real.continuous_exp.comp (continuous_const.mul continuous_id)
+    have h_int : IntervalIntegrable (fun s : ℝ => Real.exp (2 * β * s))
+        MeasureTheory.volume 0 t := h_int_cont.intervalIntegrable 0 t
+    exact intervalIntegral.integral_eq_sub_of_hasDerivAt h_deriv h_int
+  rw [h_FTC]
+  -- Simplify Real.exp (2 * β * 0) = 1.
+  have h_zero : Real.exp (2 * β * 0) = 1 := by rw [mul_zero, Real.exp_zero]
+  rw [h_zero]
+  field_simp
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
