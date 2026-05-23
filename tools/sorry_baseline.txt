@@ -1,3 +1,2 @@
 LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
 LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
-LevyStochCalc.Ito.Picard.integral_sq_le_mul_integral_sq_on_Icc
