@@ -6,7 +6,10 @@ Authors: Christian Garry
 
 -- Substrate
 import LevyStochCalc.Basic
-import LevyStochCalc.Notation
+-- LevyStochCalc.Notation was a 21-line empty placeholder (no content, only
+-- a copyright header + namespace declaration); deleted per red-team P1 F1
+-- 2nd audit 2026-05-23. If notation needs to be reserved across the project
+-- in the future, recreate the file with the specific notation declarations.
 
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Poisson.RandomMeasure
