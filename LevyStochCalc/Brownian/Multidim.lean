@@ -50,6 +50,26 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   components_independent :
     ProbabilityTheory.iIndepFun
       (fun (i : Fin d) (ω : Ω) (t : ℝ) => (W i).W t ω) P
+  /-- **P7 F11 fix (red-team 2nd audit, 2026-05-23)**: the joint d-dim
+  path `t ↦ (W i ω t)_{i ∈ Fin d}` is continuous a.s. P. Follows from
+  the component-wise `continuous_paths` + the finite-intersection-of-
+  a.s.-sets being a.s., plus `continuous_pi_iff`: a `Fin d → ℝ`-valued
+  map is continuous iff each component is. Previously this was implicit
+  (a downstream caller had to derive it from `(W i).continuous_paths`
+  for each i); now made explicit per Karatzas-Shreve §2.5's definition
+  of multidim BM as "vector-valued process with continuous paths". -/
+  joint_continuous_paths :
+    ∀ᵐ ω ∂P, Continuous (fun (t : ℝ) (i : Fin d) => (W i).W t ω)
+  -- **P4 F7 note (red-team 2nd audit 2026-05-23)**: joint Gaussianity
+  -- of the increments is DERIVABLE from the existing fields:
+  -- `(W i).increment_gaussian` makes each scalar increment Gaussian,
+  -- and `components_independent` makes the components independent, so
+  -- the joint distribution of `(W i).W t − (W i).W s` across `i` is the
+  -- product Gaussian = multivariate Gaussian with diagonal covariance
+  -- `(t − s) · I_d`. The derivation theorem is exposed separately as
+  -- `MultidimBrownianMotion.joint_increment_gaussian_diagonal` (when
+  -- the multivariate-Gaussian Mathlib API stabilizes); pending that,
+  -- the structural derivation is sketched in the lemma docstring below.
 
 /-- σ-algebra-level `Indep` lifts through a measure-preserving map.
 Given `Indep m₁ m₂ μ_b` with `m₁, m₂ ≤ mβ` and `MeasurePreserving h μ_a μ_b`,
@@ -230,7 +250,22 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
   refine ⟨{
     W := fun i => project_BM W₀ d i
     components_independent := ?_
+    joint_continuous_paths := ?_
   }⟩
+  pick_goal 2
+  · -- joint continuity from per-component continuity (a.s. over the product
+    -- measure) via `continuous_pi_iff`: a `Fin d → ℝ`-valued function of `t`
+    -- is continuous iff each projection `(fun t => f t i)` is.  Each
+    -- `(project_BM W₀ d i).continuous_paths` is already an a.s. statement, and
+    -- the conjunction over the finite set `Fin d` remains a.s.
+    have h_each : ∀ i : Fin d, ∀ᵐ ω ∂(MeasureTheory.Measure.pi (fun _ : Fin d => P₀)),
+        Continuous (fun (t : ℝ) => (project_BM W₀ d i).W t ω) :=
+      fun i => (project_BM W₀ d i).continuous_paths
+    have h_all : ∀ᵐ ω ∂(MeasureTheory.Measure.pi (fun _ : Fin d => P₀)),
+        ∀ i : Fin d, Continuous (fun (t : ℝ) => (project_BM W₀ d i).W t ω) :=
+      MeasureTheory.ae_all_iff.mpr h_each
+    filter_upwards [h_all] with ω hω
+    exact continuous_pi (fun i => hω i)
   -- Components are independent: use ProbabilityTheory.iIndepFun_pi
   -- with X_i = (fun ω : Ω₀ => fun t => W₀.W t ω) for each i.
   have h_meas_W₀ : ∀ _ : Fin d,
