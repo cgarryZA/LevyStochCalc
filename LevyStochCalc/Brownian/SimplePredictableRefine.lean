@@ -6,11 +6,35 @@ Authors: Christian Garry
 import LevyStochCalc.Brownian.Ito
 
 /-!
-# SimplePredictable refinement and diff isometry (C0b infrastructure)
+# SimplePredictable refinement, diff isometry, AND Tier 1 cited axiom #5
 
 This file builds the partition-refinement machinery needed to upgrade
 `itoIntegral_brownian` from its provisional constant-function definition
 (A3/A4) to the genuine L²-completion via `LinearIsometry.extend`.
+
+It also houses **Tier 1 cited axiom #5** —
+`itoIsometry_brownian_unified_existence` (Karatzas-Shreve Thm 3.2.6) —
+which is consumed downstream by `Brownian.Ito.stochasticIntegral`,
+`Brownian.MultidimIto`, `Ito.JumpFormula`, `BSDEJ.Definition`, etc.
+
+## Naming gap (P10 F6, red-team 2nd audit 2026-05-23)
+
+The file's name advertises "SimplePredictable refinement" — the
+partition-refinement + diff-isometry machinery that the L²-completion
+proof of `itoIsometry_brownian_unified_existence` would use. But the
+axiom currently bypasses that machinery (cited directly to the
+literature, replacement-plan deferred). The file therefore hosts BOTH:
+
+1. The refinement infrastructure (`SimplePredictable.refine`,
+   `simpleIntegral_refine`, `cauchy_of_L2_dense_simple`, etc.) — used
+   by the per-T existence chain `itoIsometry_brownian_existence`.
+2. The unified-existence cited axiom `itoIsometry_brownian_unified_existence`
+   which would CONSUME the refinement machinery in its proof body,
+   but is currently postulated.
+
+A name like `BrownianItoLp2Completion.lean` would match the axiom
+better but break upstream import paths; deferred to a downstream
+refactor pass once the axiom is fully replaced by a `theorem`.
 
 ## Roadmap
 
@@ -27,6 +51,7 @@ This file builds the partition-refinement machinery needed to upgrade
 * `simpleIntegral_diff_isometry_simple` — the diff isometry on simples.
 * `cauchy_of_L2_dense_simple` — Cauchy property of the simple integrals
   for an L²-Cauchy approximating sequence.
+* `itoIsometry_brownian_unified_existence` — **Tier 1 cited axiom #5**.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
