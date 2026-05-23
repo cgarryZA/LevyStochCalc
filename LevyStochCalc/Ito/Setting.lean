@@ -111,7 +111,25 @@ structure JumpDiffusion
   compensated-Poisson integral. P4 H / P7 F5 closure (red-team 2nd audit,
   2026-05-23): without this field, `X.X s` and `X_{s−}` are silently equal
   (no left-limit notion), and the SDE equation diverges from Applebaum at
-  jump times. -/
+  jump times.
+
+  **P4 F8 note (red-team 2nd audit, 2026-05-23)**: Applebaum 6.2.9 / Ikeda-
+  Watanabe IV use `X_{s−}` (the left limit) inside the SDE integrands,
+  whereas this structure uses `X s` (point evaluation) below. For càdlàg
+  adapted X, the discrepancy `{s : X_{s−} ω ≠ X s ω}` has Lebesgue
+  measure 0 a.s. (a càdlàg path has at most countably many jumps), so
+  the Lebesgue-`ds` drift integral and the ν⊗ds-`dν` jump integrals
+  agree pointwise a.s. (Lebesgue⊗P-null differences are integrated
+  away). The compensated-Poisson integral evaluates the integrand at
+  `(s, e)` against `Ñ(ds, de)`; at a jump time `s₀` of the underlying
+  PRM, `X s₀` differs from `X_{s₀−}` and the integrand picks up the
+  right-limit value, but this is also Ñ⊗P-null because the integrand
+  is L² and PRM jumps are themselves a null set in ds. The two
+  conventions coincide for L²-Itô-Lévy integrals; the literature
+  prefers `X_{s−}` for predictability hygiene (`X_{s−}` is `ℱ_{s−}`-
+  measurable, i.e., predictable). The structure's `cadlag_paths` field
+  is what makes this convention-equivalence well-typed; without it,
+  the discrepancy is unbounded. -/
   cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ,
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
       ∧ ∀ i : Fin n, ∃ L : ℝ,

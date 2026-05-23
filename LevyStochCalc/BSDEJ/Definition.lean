@@ -197,9 +197,18 @@ def IsBSDEJSolution
         Filt = ((⨆ i : Fin d,
                   LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
                   ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+        -- P4 F1 fix (red-team 2nd audit, 2026-05-23): Tang-Li 1994 /
+        -- Pardoux-Răşcanu 2014 / Bichteler use the solution space
+        -- `S² × H² × H²_N` where H² is the L² space of PROGRESSIVELY
+        -- MEASURABLE (= ProgMeasurable Filt, equivalent to predictable
+        -- under the usual hypotheses on Filt) processes. The previous
+        -- `Adapted Filt Z` / `Adapted Filt (fun s ω => U s ω e)` were
+        -- per-t measurable only and did NOT imply joint measurability
+        -- on the progressive σ-algebra. Strengthened to ProgMeasurable
+        -- for Z and U_e (Y stays Adapted since it's the S²-càdlàg leg).
         MeasureTheory.Adapted Filt Y ∧
-        MeasureTheory.Adapted Filt Z ∧
-        (∀ e : E, MeasureTheory.Adapted Filt (fun s ω => U s ω e)) ∧
+        MeasureTheory.IsStronglyProgressive Filt Z ∧
+        (∀ e : E, MeasureTheory.IsStronglyProgressive Filt (fun s ω => U s ω e)) ∧
         ∃ M_W M_N : ℝ → Ω → ℝ,
           Measurable (Function.uncurry M_W) ∧
           Measurable (Function.uncurry M_N) ∧

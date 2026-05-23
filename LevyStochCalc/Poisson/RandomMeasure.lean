@@ -108,9 +108,18 @@ structure PoissonRandomMeasure
     P.map (fun ω => N ω B) = poissonMeasureENN (referenceIntensity ν B).toNNReal
   /-- For any pairwise-disjoint countable family of measurable subsets of
   `ℝ × E`, the family of evaluation random variables `(ω ↦ N(ω, B_i))_i` is
-  independent under `P`. -/
+  independent under `P`.
+
+  **P7 F12 fix (red-team 2nd audit, 2026-05-23)**: added `[Countable ι]`
+  hypothesis. Standard PRM independence (Kallenberg 3.5.1 / Applebaum
+  2.3.1(b)) is for COUNTABLE pairwise-disjoint families; the previous
+  `ι : Type*` allowed uncountable index types where `iIndepFun` is not
+  the standard PRM independence property (uncountable iIndepFun is a
+  more delicate notion in Mathlib that doesn't match Applebaum's
+  formulation). Adding `[Countable ι]` makes the field exactly match
+  the literature. -/
   independent_disjoint :
-    ∀ {ι : Type*} (B : ι → Set (ℝ × E)),
+    ∀ {ι : Type*} [Countable ι] (B : ι → Set (ℝ × E)),
       (∀ i, MeasurableSet (B i)) →
       Pairwise (fun i j => Disjoint (B i) (B j)) →
       ProbabilityTheory.iIndepFun (fun (i : ι) (ω : Ω) => N ω (B i)) P

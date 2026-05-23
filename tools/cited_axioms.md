@@ -119,19 +119,62 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 
 ## Honest derivative theorems (proven from cited axioms)
 
+P5 F4 closure (red-team 2nd audit, 2026-05-23): table expanded to include
+the BSDEJ-side extractors + the two baseline-sorry theorems
+(`JumpDiffusion.exists_unique`, `jacodYor_representation`) that are
+literature-pinned sorry-bodied theorems with strengthened signatures, not
+plain `theorem`-axioms.
+
 | Theorem | Forwards via |
 |---|---|
 | `LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists` | `BrownianMotion.exists` |
 | `LevyStochCalc.Brownian.Continuity.brownian_continuous_modification` | `kolmogorovChentsov_modification` |
+| `LevyStochCalc.Brownian.Continuity.kolmogorov_modification_ae_eq` | derived from Kolmogorov continuity-in-probability + dyadic density (no Tier 1 axiom) |
 | `LevyStochCalc.Brownian.Martingale.brownian_filtration_rightContinuous` | `brownian_martingale_rightCont` |
-| `LevyStochCalc.Brownian.Ito.itoIsometry` | `itoIsometry_brownian_unified_existence` (extracts conjunct 3) |
-| `LevyStochCalc.Brownian.Ito.martingale_stochasticIntegral` | `itoIsometry_brownian_unified_existence` (extracts conjunct 1) |
-| `LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral` | `itoIsometry_brownian_unified_existence` (extracts conjunct 2) |
-| `LevyStochCalc.Poisson.Compensated.itoLevyIsometry` | `itoIsometry_compensated_unified_existence` (extracts conjunct 3) |
-| `LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 1) |
-| `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 2) |
-| `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4) |
+| `LevyStochCalc.Brownian.Martingale.brownian_martingale` | `brownian_martingale_rightCont` |
+| `LevyStochCalc.Brownian.Martingale.brownian_quadVar` | `brownian_martingale_rightCont` (quadVar identity) |
+| `LevyStochCalc.Brownian.Ito.itoIsometry` | `itoIsometry_brownian_unified_existence` (extracts conjunct 3 = isometry) |
+| `LevyStochCalc.Brownian.Ito.martingale_stochasticIntegral` | `itoIsometry_brownian_unified_existence` (extracts conjunct 1 = martingale) |
+| `LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral` | `itoIsometry_brownian_unified_existence` (extracts conjunct 2 = quadVar) |
+| `LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite` | (Tier 1 cited axiom #2 — itself) |
+| `LevyStochCalc.Poisson.poissonRandomMeasure_finite_exists` | `PoissonRandomMeasure.exists_of_sigmaFinite` (finite-intensity restriction) |
+| `LevyStochCalc.Poisson.Compensated.itoLevyIsometry` | `itoIsometry_compensated_unified_existence` (extracts conjunct 3 = isometry) |
+| `LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 1 = martingale) |
+| `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 2 = quadVar) |
+| `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
+
+### Literature-pinned baseline-sorry theorems (count: 2)
+
+These are `theorem`s with strengthened signatures (no trivial witnesses)
+and `sorry` proof bodies; tracked in `tools/sorry_baseline.txt` for the
+lint script. They are NOT classified as cited axioms because the intent is
+to PROVE them downstream, not to take them as given.
+
+| Theorem | Strengthened-signature pin | Sorry rationale |
+|---|---|---|
+| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | requires `JumpDiffusionCoeffs.IsLipschitz` hypothesis + asserts existence ∧ a.s.-uniqueness (not just `Nonempty`) | Picard iteration on the SDE Banach space; Applebaum 6.2.9 / Ikeda-Watanabe IV. |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | requires `StronglyMeasurable[ℱ_T] ξ` (joint natural filtration at endpoint); BM + jump integrals PINNED to `MultidimBrownianMotion.stochasticIntegral` and `Compensated.stochasticIntegral` respectively (no unbound existentials) | Predictable-projection / chaos-decomposition argument; Jacod 1976 / Jacod-Shiryaev Thm III.4.34. |
+
+### P7 F10 qualification (red-team 2nd audit, 2026-05-23)
+
+The previous note that `continuousBSDEJ_exists_unique` is "no longer
+vacuously satisfiable" is TRUE for existence (the strengthened predicate
+rules out trivial constant `Y` for generic `(f, g)`), but the uniqueness
+clause is only sound under the strengthened predicate that now includes
+(2026-05-23):
+* `Filt` PINNED to `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration N).rightCont`
+* `Adapted Filt Y`
+* `IsStronglyProgressive Filt Z` (per P4 F1 fix)
+* `IsStronglyProgressive Filt (fun s ω => U s ω e)` for each `e : E`
+* `Y_cadlag` (càdlàg paths for the S²-leg)
+* `M_W` pinned to `MultidimBrownianMotion.stochasticIntegral W Z`
+* `M_N` pinned to `Compensated.stochasticIntegral N U`
+
+Without all of these, the P12 F1 counterexample (Y₁ = 0 vs Y₂ = W_T − W_t
+both satisfy the predicate for f = g = 0) would falsify the uniqueness
+clause. The current closure is via Y₂'s failure of `Adapted Filt`: `W_T`
+is not measurable in `Filt_t` for t < T.
 
 ## Status snapshot (2026-05-22, post-red-team cleanup)
 
