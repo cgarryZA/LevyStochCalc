@@ -78,10 +78,68 @@ Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev,
 *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003,
 **Theorem III.4.34**.
 
-**Status (2026-05-23, Rule-1 START)**: predictable-projection / chaos-
-decomposition framework being built in
-`LevyStochCalc/BSDEJ/PredictableProjection.lean`. Current state: sorry,
-proof in active construction. -/
+**Status (2026-05-23, Rule-0 conversion COMPLETED)**: previously a
+`theorem` with `sorry` body — per Rule 0, that wording was DISHONEST
+(claimed "proven theorem" while the content was unproven). The Jacod
+1976 proof requires the full predictable-projection / chaos-decomposition
+apparatus that Mathlib does not yet have; building it from scratch would
+take multi-day Lean work and would still bottom out at Tier 1 axioms
+anyway. The honest representation is the `axiom`
+`jacodYor_representation_axiom` below, cited from Jacod 1976 — the
+claim then matches the content exactly. `jacodYor_representation` is
+preserved as a thin forwarding `theorem` so all downstream callers
+remain stable. -/
+axiom jacodYor_representation_axiom
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (T : ℝ) (_hT : 0 < T)
+    (ξ : Ω → ℝ)
+    (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+        ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont.seq T)
+      ξ)
+    (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    ∃ (Z : ℝ → Ω → (Fin d → ℝ))
+      (h_Z_meas : ∀ i : Fin d,
+        Measurable (Function.uncurry (fun ω s => Z s ω i)))
+      (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => Z p.2 p.1 i))
+      (h_Z_sq_int : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (U : ℝ → Ω → E → ℝ)
+      (h_U_meas : Measurable
+        (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_progMeas : ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
+            ∂ν ∂volume ∂P < ⊤),
+      (∀ᵐ ω ∂P, ξ ω = (∫ ω', ξ ω' ∂P)
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+            W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
+
+/-- **Jacod-Yor martingale representation (Jacod 1976) — forwarding theorem.**
+
+Thin forwarder over the Tier 1 cited axiom `jacodYor_representation_axiom`.
+Stating this conclusion as a `theorem` here keeps every downstream caller
+stable while making the dependency on Jacod 1976 explicit via the
+underlying `axiom`. -/
 theorem jacodYor_representation
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -140,7 +198,7 @@ theorem jacodYor_representation
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) := by
-  sorry
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) :=
+  jacodYor_representation_axiom W N T _hT ξ _h_meas _h_sq_int
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation

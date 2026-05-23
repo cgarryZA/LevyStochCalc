@@ -35,6 +35,7 @@ import LevyStochCalc.Ito.PicardBanach
 import LevyStochCalc.Ito.PicardSigmaLipschitz
 import LevyStochCalc.Ito.PicardGammaLipschitz
 import LevyStochCalc.Ito.PicardContraction
+import LevyStochCalc.Ito.PicardContractionTight
 import LevyStochCalc.Ito.JumpFormula
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

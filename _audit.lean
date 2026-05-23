@@ -80,10 +80,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
+-- Bielecki β-norm contraction — literature-tight rate (PicardContractionTight.lean):
+-- Refinement of Agent 3's `picardStep_bielecki_contraction` from rate
+-- `9 n L² T / (2β)` to the literature-tight rate `3 n L² (T + 2) / (2β)`
+-- (matching Tang-Li 1994 / Pardoux-Răşcanu 2014); strictly tighter for
+-- `T ≥ 1` and asymptotically equivalent to `3 n L² T / (2β)` for large `n T`.
+#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_tight
+#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_tight_rate_lt_one
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
 #print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom
 #print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 
 -- ===== Layer 4: BSDEJ path regularity (→ deaxiomatises Cu05) =====
