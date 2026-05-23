@@ -444,6 +444,122 @@ lemma picardStep_drift_diff_lipschitz_sq_componentwise
     _ ≤ L_μ ^ 2 * (t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) := h_CS_mul
     _ = L_μ ^ 2 * t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := by ring
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Vector-norm L² Lipschitz bound on the drift step.**
+
+Sum the per-component L² bound over `i : Fin n`:
+
+  `∑ i, ((drift X - drift Y) i)² ≤ n · L_μ² · t · ∫_0^t ‖X-Y‖²`.
+
+This is the squared-Euclidean-norm bound on the drift difference; the
+factor `n` comes from summing the per-component bound. Together with
+the `E[·]` step (next lemma) this gives the Bielecki-norm Lipschitz
+constant for the drift step. -/
+lemma picardStep_drift_diff_sum_sq_bound
+    {n d : ℕ}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_μ : ℝ} (hL_μ_nn : 0 ≤ L_μ)
+    (h_μ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ∀ i : Fin n,
+      |coeffs.μ s x₁ i - coeffs.μ s x₂ i| ≤ L_μ * ‖x₁ - x₂‖)
+    (X Y : ℝ → Ω → (Fin n → ℝ))
+    (x₀ : Fin n → ℝ)
+    (t : ℝ) (ht : 0 ≤ t) (ω : Ω)
+    (h_X_int : ∀ i : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coeffs.μ s (X s ω) i) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_Y_int : ∀ i : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coeffs.μ s (Y s ω) i) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_XY_diff_int : MeasureTheory.IntegrableOn
+      (fun s => ‖X s ω - Y s ω‖) (Set.Icc (0 : ℝ) t) MeasureTheory.volume)
+    (h_XY_diff_sq_L2 : MeasureTheory.MemLp
+      (fun s => ‖X s ω - Y s ω‖) 2
+      (MeasureTheory.volume.restrict (Set.Icc (0 : ℝ) t))) :
+    (∑ i : Fin n, ((picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
+      ≤ (n : ℝ) * L_μ ^ 2 * t *
+          ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := by
+  -- Per-component bound, summed over Fin n.
+  have h_each : ∀ i : Fin n, ((picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i) ^ 2
+      ≤ L_μ ^ 2 * t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := fun i =>
+    picardStep_drift_diff_lipschitz_sq_componentwise
+      coeffs hL_μ_nn h_μ_lip X Y x₀ t ht ω i
+      (h_X_int i) (h_Y_int i) h_XY_diff_int h_XY_diff_sq_L2
+  -- Sum the bounds. Sum of n copies of B = n · B.
+  calc (∑ i : Fin n, ((picardStep_drift (E := E) coeffs X x₀ t ω
+        - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
+      ≤ ∑ _i : Fin n, L_μ ^ 2 * t *
+          ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 :=
+        Finset.sum_le_sum (fun i _ => h_each i)
+    _ = (n : ℝ) * (L_μ ^ 2 * t *
+          ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin]
+        ring
+    _ = (n : ℝ) * L_μ ^ 2 * t *
+          ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 := by ring
+
+omit [MeasurableSpace E] in
+/-- **Drift step L² Lipschitz: integrated form (lintegral over ω).**
+
+Take the lintegral of the sum-of-squares pointwise bound from
+`picardStep_drift_diff_sum_sq_bound`. Using monotonicity of `∫⁻`
+(the lemma `MeasureTheory.lintegral_mono_ae` applied to the pointwise
+bound that holds for a.e. ω), we get:
+
+  `∫⁻ ω, (∑ i, ((drift X - drift Y) i)²)
+    ≤ n · L_μ² · t · ∫⁻ ω, ∫ s in [0, t], ‖X-Y‖² ds`.
+
+The conversion from the real-valued pointwise bound to the ℝ≥0∞-valued
+lintegral form uses `ENNReal.ofReal_le_ofReal` and the nonnegativity
+of all the integrands.
+
+This is the operator-level (probability-measure-integrated) bound that
+sits one step away from the Bielecki β-norm contraction. -/
+lemma picardStep_drift_diff_lintegral_sq_bound
+    {n d : ℕ} (P : MeasureTheory.Measure Ω)
+    [MeasureTheory.IsProbabilityMeasure P]
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_μ : ℝ} (_hL_μ_nn : 0 ≤ L_μ)
+    (_h_μ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ∀ i : Fin n,
+      |coeffs.μ s x₁ i - coeffs.μ s x₂ i| ≤ L_μ * ‖x₁ - x₂‖)
+    (X Y : ℝ → Ω → (Fin n → ℝ))
+    (x₀ : Fin n → ℝ)
+    (t : ℝ) (ht : 0 ≤ t)
+    -- Almost-everywhere integrability hypotheses (the pointwise bound only
+    -- holds for ω with all integrands well-defined):
+    (h_bound_ae : ∀ᵐ ω ∂P,
+      (∑ i : Fin n, ((picardStep_drift (E := E) coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
+        ≤ (n : ℝ) * L_μ ^ 2 * t *
+            ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2)
+    -- Nonnegativity of the per-ω inner integral (for ENNReal conversion):
+    (h_inner_nn : ∀ᵐ ω ∂P, 0 ≤
+      ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) :
+    ∫⁻ ω, ENNReal.ofReal (∑ i : Fin n,
+      ((picardStep_drift (E := E) coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P
+    ≤ ENNReal.ofReal ((n : ℝ) * L_μ ^ 2 * t) *
+        ∫⁻ ω, ENNReal.ofReal
+          (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P := by
+  -- Monotonicity of lintegral applied to the a.e. bound.
+  have h_pointwise_ennreal : ∀ᵐ ω ∂P,
+      ENNReal.ofReal (∑ i : Fin n,
+        ((picardStep_drift (E := E) coeffs X x₀ t ω
+            - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
+      ≤ ENNReal.ofReal ((n : ℝ) * L_μ ^ 2 * t) *
+          ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) := by
+    filter_upwards [h_bound_ae, h_inner_nn] with ω h_bd h_inner_nn
+    rw [← ENNReal.ofReal_mul (by positivity : (0 : ℝ) ≤ (n : ℝ) * L_μ ^ 2 * t)]
+    exact ENNReal.ofReal_le_ofReal h_bd
+  calc ∫⁻ ω, ENNReal.ofReal (∑ i : Fin n,
+      ((picardStep_drift (E := E) coeffs X x₀ t ω
+          - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P
+      ≤ ∫⁻ ω, ENNReal.ofReal ((n : ℝ) * L_μ ^ 2 * t) *
+          ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P :=
+        MeasureTheory.lintegral_mono_ae h_pointwise_ennreal
+    _ = ENNReal.ofReal ((n : ℝ) * L_μ ^ 2 * t) *
+        ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P :=
+        MeasureTheory.lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
