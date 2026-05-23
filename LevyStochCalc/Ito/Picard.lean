@@ -611,6 +611,33 @@ lemma integral_exp_two_beta_Icc
   rw [h_zero]
   field_simp
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Bielecki weight bound.** For `β > 0` and `t ≥ 0`,
+
+  `e^{-2βt} · (e^{2βt} - 1) / (2β) = (1 - e^{-2βt}) / (2β) ≤ 1 / (2β)`.
+
+This is the key bound that makes the Bielecki β-norm a contraction:
+the weighted integral `∫_0^t e^{-2βt+2βs} ds` is uniformly bounded
+above by `1/(2β)` regardless of `t`. -/
+lemma bielecki_weight_bound
+    {β : ℝ} (hβ : 0 < β) {t : ℝ} (_ht : 0 ≤ t) :
+    Real.exp (-(2 * β * t)) * ((Real.exp (2 * β * t) - 1) / (2 * β))
+      ≤ 1 / (2 * β) := by
+  have h_two_beta_pos : (0 : ℝ) < 2 * β := by positivity
+  have h_two_beta_ne : (2 * β) ≠ 0 := h_two_beta_pos.ne'
+  -- Step 1: expand e^{-2βt} · (e^{2βt} - 1) = 1 - e^{-2βt}.
+  have h_exp_mul_neg : Real.exp (-(2 * β * t)) * Real.exp (2 * β * t) = 1 := by
+    rw [← Real.exp_add, neg_add_cancel, Real.exp_zero]
+  have h_step1 : Real.exp (-(2 * β * t)) * ((Real.exp (2 * β * t) - 1) / (2 * β))
+      = (1 - Real.exp (-(2 * β * t))) / (2 * β) := by
+    rw [mul_div_assoc', mul_sub, h_exp_mul_neg, mul_one]
+  rw [h_step1]
+  -- Step 2: (1 - e^{-2βt}) ≤ 1 since e^{-2βt} ≥ 0.
+  have h_exp_neg_nn : 0 ≤ Real.exp (-(2 * β * t)) := Real.exp_nonneg _
+  have h_num_bound : 1 - Real.exp (-(2 * β * t)) ≤ 1 := by linarith
+  -- Divide both sides by 2β > 0.
+  exact div_le_div_of_nonneg_right h_num_bound h_two_beta_pos.le |>.trans_eq rfl
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
