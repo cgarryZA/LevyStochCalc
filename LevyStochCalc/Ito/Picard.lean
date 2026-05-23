@@ -267,4 +267,45 @@ lemma picardStep_drift_diff_lipschitz_componentwise
   · -- RHS integrable: L_μ * ‖X - Y‖ ∈ L¹.
     exact h_XY_diff_int.const_mul L_μ
 
+/-! ## Next-step roadmap (Picard contraction & fixed point)
+
+The lemmas above are the drift-component Lipschitz scaffolding (L¹
+form). The remaining pieces of the Picard fixed-point proof are:
+
+1. **L² Cauchy-Schwarz helper** `(∫_0^t f)² ≤ t · ∫_0^t f²` for the
+   Bielecki-norm contraction estimate. (Hölder with `p = q = 2`,
+   constant `1` as `g`; in progress, see commit history.)
+
+2. **`picardStep_diffusion`** — Brownian-integral component of the
+   Picard map, defined via `MultidimBrownianMotion.stochasticIntegral`
+   applied row-wise to `σ(s, X_s)`.
+
+3. **`picardStep_diffusion_lipschitz`** — Lipschitz bound via the
+   Tier 1 #5 L²-isometry + Lipschitz hypothesis on σ.
+
+4. **`picardStep_jump`** — Compensated-Poisson component via
+   `Compensated.stochasticIntegral` on `γ(s, X_s, e)`.
+
+5. **`picardStep_jump_lipschitz`** — Lipschitz bound via the Tier 1
+   #6 L²-isometry + Lipschitz hypothesis on γ.
+
+6. **`picardStep`** — full Picard map summing drift + diffusion + jump.
+
+7. **`picardStep_bielecki_contraction`** — for `β ≥ β₀(L)` (some
+   threshold depending on the Lipschitz constant), Φ is a contraction
+   in the Bielecki β-norm.
+
+8. **`picardFixedPoint`** — apply `ContractingWith.fixedPoint` (Mathlib
+   Banach-fixed-point) to get a unique fixed point of Φ.
+
+9. **`fixedPoint_is_solution`** — show the fixed point satisfies the
+   SDE integral equation, providing the strong solution.
+
+10. **`JumpDiffusion.exists_unique`** — assemble the above into the
+    theorem statement; uniqueness from the Banach contraction.
+
+Active work continues file by file; each Mathlib API need (Cauchy-
+Schwarz, integral monotonicity, ContractingWith) gets a dedicated
+lemma here when not already available. -/
+
 end LevyStochCalc.Ito.Picard
