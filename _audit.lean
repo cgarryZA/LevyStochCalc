@@ -64,6 +64,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.bielecki_contraction_rate_lt_one
 #print axioms LevyStochCalc.Ito.Picard.sigma_along_X_measurable
 #print axioms LevyStochCalc.Ito.Picard.gamma_along_X_measurable
+-- Banach fixed-point shim (Mathlib `ContractingWith.fixedPoint` wrapper):
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_generic
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====

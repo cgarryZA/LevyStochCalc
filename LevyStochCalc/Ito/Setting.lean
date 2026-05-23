@@ -176,44 +176,23 @@ structure JumpDiffusion
             (fun ω' s e => coeffs.γ s (X s ω') e i)
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
-/-- **Existence and uniqueness of the jump-diffusion SDE
-(Applebaum 6.2.9 / Ikeda-Watanabe IV).**
+/-! **Theorem `JumpDiffusion.exists_unique` is proved in
+`LevyStochCalc/Ito/PicardBanach.lean`.**
 
-Under Lipschitz hypotheses on `(μ, σ, γ)`, the jump-diffusion SDE
+The literature theorem (Applebaum 6.2.9 / Ikeda-Watanabe IV) is the
+output of Picard iteration on the Banach space `S²([0, T]; ℝⁿ)`
+equipped with the Bielecki β-norm. The Banach fixed-point shim and
+its specialisation to the SDE setting live in `Ito/PicardBanach.lean`,
+which imports this file (for the `JumpDiffusion` structure) plus
+`Ito/Picard.lean` (for the Picard map / contraction lemmas). The proof
+forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (the
+Banach fixed-point output specialised to the SDE setting).
 
-  `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)`,
-  `X_0 = x_0`
-
-admits a strong solution that is càdlàg, adapted, L²-bounded in the supremum
-norm on every bounded interval, and **a.s. unique** (any two solutions agree
-a.s. at every time `t ≥ 0`).
-
-**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed.,
-Cambridge University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S.
-*Stochastic Differential Equations and Diffusion Processes*, North-Holland,
-1989, Chapter IV.
-
-**Status (2026-05-23, Rule-1 START)**: Picard iteration framework is being
-built in `LevyStochCalc/Ito/Picard.lean`. Current state: sorry body,
-proof in active construction. Per Rule 1 (no "this can't be done"
-deferrals), the multi-day Picard-iteration build is HAPPENING, one
-piece at a time. See `Picard.lean` for the framework. -/
-theorem JumpDiffusion.exists_unique
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (coeffs : JumpDiffusionCoeffs n d E)
-    (x₀ : Fin n → ℝ)
-    -- Lipschitz hypothesis (P12 CRIT F3 fix 2026-05-23 — without this,
-    -- Tanaka's example exhibits multiple strong solutions, so the
-    -- uniqueness claim below is unprovable for arbitrary `(μ, σ, γ)`):
-    {L : ℝ} (_hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
-    -- Existence + a.s. uniqueness (strengthened from `Nonempty` per Rule 0):
-    ∃ (jd : JumpDiffusion W N coeffs x₀),
-      ∀ (jd' : JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
-  sorry
+Placing the theorem there avoids an import cycle (Setting → Picard →
+PicardBanach → Setting would be a cycle). The qualified name remains
+`LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the theorem
+re-opens the namespace explicitly in `PicardBanach.lean`), so all
+downstream callers — `tools/cited_axioms.md` entry #12, `_audit.lean`
+line 50, `Ito/JumpFormula.lean` (the consumer) — are unaffected. -/
 
 end LevyStochCalc.Ito.Setting
