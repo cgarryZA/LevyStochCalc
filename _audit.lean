@@ -60,6 +60,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.integral_exp_two_beta_Icc
 #print axioms LevyStochCalc.Ito.Picard.bielecki_weight_bound
 #print axioms LevyStochCalc.Ito.Picard.bielecki_weighted_integral_bound
+#print axioms LevyStochCalc.Ito.Picard.bielecki_drift_contraction_factor
+#print axioms LevyStochCalc.Ito.Picard.bielecki_contraction_rate_lt_one
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====

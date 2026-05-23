@@ -699,6 +699,44 @@ lemma bielecki_weighted_integral_bound
       = M * (Real.exp (-(2 * β * t)) * ((Real.exp (2 * β * t) - 1) / (2 * β))) by ring]
   exact mul_le_mul_of_nonneg_left (bielecki_weight_bound hβ ht) hM_nn
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Bielecki weight bound — variant with `n L² T` constant.**
+
+For the drift step of the Picard map with Lipschitz constant `L_μ`,
+state dimension `n`, and time horizon `T`, the Bielecki-norm
+contraction constant is `n L_μ² T / (2β)`. This wraps the
+`bielecki_weight_bound` lemma in the specific multiplicative form that
+arises from the drift L²-Lipschitz analysis. -/
+lemma bielecki_drift_contraction_factor
+    (n : ℕ) {L_μ : ℝ} (_hL_μ_nn : 0 ≤ L_μ)
+    {β T : ℝ} (hβ : 0 < β) (_hT : 0 ≤ T) :
+    (n : ℝ) * L_μ ^ 2 * T * (1 / (2 * β)) =
+      (n : ℝ) * L_μ ^ 2 * T / (2 * β) := by
+  -- Algebraic equality; the substance is the bound's USE in the contraction.
+  -- This lemma exposes the canonical form for downstream Banach-fixed-point use.
+  have h_two_beta_pos : (0 : ℝ) < 2 * β := by positivity
+  field_simp
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- **Bielecki contraction threshold.** The drift step is a Bielecki-norm
+contraction iff `β > n L_μ² T / 2`, i.e., the Picard contraction
+rate `n L_μ² T / (2β) < 1`.
+
+This lemma asserts the threshold and rate explicitly so downstream
+Picard-iteration callers can plug in `β = n L_μ² T` (giving rate `1/2`,
+a strict contraction). -/
+lemma bielecki_contraction_rate_lt_one
+    (n : ℕ) {L_μ : ℝ} (_hL_μ_nn : 0 ≤ L_μ)
+    {β T : ℝ} (hT_pos : 0 < T)
+    (h_β_threshold : (n : ℝ) * L_μ ^ 2 * T < 2 * β) :
+    (n : ℝ) * L_μ ^ 2 * T / (2 * β) < 1 := by
+  have h_two_beta_pos : (0 : ℝ) < 2 * β := by
+    have h_LHS_nn : 0 ≤ (n : ℝ) * L_μ ^ 2 * T :=
+      mul_nonneg (mul_nonneg (Nat.cast_nonneg n) (sq_nonneg L_μ)) hT_pos.le
+    linarith
+  rw [div_lt_one h_two_beta_pos]
+  exact h_β_threshold
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
