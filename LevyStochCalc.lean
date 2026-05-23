@@ -31,6 +31,7 @@ import LevyStochCalc.Brownian.MultidimIto
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.Picard
+import LevyStochCalc.Ito.PicardSpace
 import LevyStochCalc.Ito.PicardBanach
 import LevyStochCalc.Ito.PicardSigmaLipschitz
 import LevyStochCalc.Ito.PicardGammaLipschitz
