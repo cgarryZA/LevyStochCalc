@@ -806,6 +806,78 @@ lemma gamma_along_X_measurable
   have h_eval_i : Measurable (fun (v : Fin n → ℝ) => v i) := measurable_pi_apply i
   exact h_eval_i.comp (hγ_meas.comp h_triple_meas)
 
+/-- **Picard map diffusion component (σ row i along X).**
+
+For row `i : Fin n`, the diffusion component is
+`∫_0^t (σ(s, X_s) i) · dW_s`, i.e., the multidim Brownian Itô integral
+of `Z_i(s, ω) := fun j => σ(s, X(s,ω)) i j` against `W`.
+
+Built using `MultidimBrownianMotion.stochasticIntegral`. The hypotheses
+`h_meas`, `h_progMeas`, `h_sq_int_global` propagate from joint-measurability
++ progressive-measurability + L²-boundedness of σ along X, which in turn
+follow from the corresponding hypotheses on X and σ. -/
+noncomputable def picardStep_diffusion
+    {P : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure P]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    -- Per-row joint measurability of σ along X.
+    (h_meas : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    -- Progressive measurability wrt W component j's natural filtration.
+    (h_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    -- Per-row, per-component L² boundedness on every finite horizon.
+    (h_sq_int_global : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (t : ℝ) (ω : Ω) : Fin n → ℝ :=
+  fun i => LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+    W (fun s ω' => fun j => coeffs.σ s (X s ω') i j)
+    (h_meas i) (h_progMeas i) (h_sq_int_global i) t ω
+
+/-- **Picard map jump component (γ row i along X compensated-Poisson integral).**
+
+For row `i : Fin n`, the jump component is
+`∫_0^t ∫_E γ(s, X_s, e) i Ñ(ds, de)`, i.e., the compensated-Poisson
+integral of `(s, e, ω) ↦ γ(s, X(s,ω), e) i` against `Ñ`.
+
+Built using `Compensated.stochasticIntegral`. The hypotheses
+`h_meas`, `h_progMeas`, `h_sq` propagate from joint Ω×ℝ×E-measurability
++ progressive-measurability + L²-boundedness of γ along X. -/
+noncomputable def picardStep_jump
+    {P : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure P]
+    {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+    {n d : ℕ}
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    -- Per-row joint Ω×ℝ×E measurability.
+    (h_meas : ∀ i : Fin n,
+      Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    -- Per-row progressive measurability wrt N's natural filtration.
+    (h_progMeas : ∀ i : Fin n, ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    -- Per-row L² boundedness on every finite horizon.
+    (h_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (t : ℝ) (ω : Ω) : Fin n → ℝ :=
+  fun i => LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+    (fun ω' s e => coeffs.γ s (X s ω') e i)
+    (h_meas i) (h_progMeas i) (h_sq i) t ω
+
 /-! ## Next-step roadmap (Picard contraction & fixed point)
 
 The lemmas above are the drift-component Lipschitz scaffolding (L¹
