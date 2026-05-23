@@ -1751,18 +1751,20 @@ For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists 
 `F` is the canonical L²-Itô-Lévy integral `t ↦ ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`.
 Consolidates Applebaum 2009 Thm 4.2.3 + Thm 4.2.4.
 
-**Hypothesis-strength caveat (red-team H6, 2026-05-22)**: the signature
-gates conjuncts on `Measurable (Function.uncurry φ)` rather than on
-`ProgMeasurable Filt φ` (predictable in the literature sense). The
-literature claim is for **predictable** φ; the present signature is
-strictly weaker on this axis (it asserts the conjuncts for arbitrary
-joint-measurable φ, not just predictable). In practice this gap is
-harmless: every load-bearing caller (the BSDEJ + Itô-Lévy formula
-chain) provides φ via `IsBSDEJSolution`'s adaptedness layer, which
-delivers progressive measurability. Strengthening the axiom to
-require ProgMeasurable is a multi-file signature refactor tracked
-as future work; the present axiom over-claims by one σ-algebra but
-the over-claim is not exploited anywhere in the audited chain.
+**H6 closure (red-team 2nd audit, 2026-05-23)**: the signature now takes
+`h_meas` (joint measurability on Ω×ℝ×E), `h_progMeas` (progressive
+measurability w.r.t. `(naturalFiltration N).seq t`), and
+`h_sq_int_global` (global L² bound across all T > 0) as OUTER
+hypotheses, mirroring the Brownian-side axiom #5. The conjuncts in
+the existential body are UNCONDITIONAL on these (no more conjunct-
+internal `Measurable + h_sq_int →` gating). This matches Applebaum
+2009 Thm 4.2.3's hypothesis class — predictable φ — and closes the
+prior "Hypothesis-strength caveat" route where a `Measurable`-only
+witness `F ≡ 0` could satisfy the conjuncts vacuously when φ was not
+literally predictable. Filt is now PINNED to
+`(naturalFiltration N).rightCont` instead of being a loose existential
+(P1 M3 fix); this rules out trivial-filtration witnesses (e.g.
+`Filt = const ⊤`).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
 CUP 2009, **Theorem 4.2.3** (martingale + quadratic variation + L²-isometry of

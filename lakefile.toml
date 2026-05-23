@@ -16,3 +16,12 @@ rev = "0e208554a6143756c125878a8fe8b17a331d39f7"
 
 [[lean_lib]]
 name = "LevyStochCalc"
+
+# P10 F4 fix (red-team 2nd audit, 2026-05-23): examples library for
+# end-to-end public-API usage examples. Compiles separately from the
+# main library to keep example breakage from blocking the headline
+# build, but is verified by `lake build LevyStochCalcExamples`.
+[[lean_lib]]
+name = "LevyStochCalcExamples"
+srcDir = "examples"
+roots = ["ItoLevyIsometryUsage"]
