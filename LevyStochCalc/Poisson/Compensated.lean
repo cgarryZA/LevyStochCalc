@@ -68,6 +68,19 @@ Consequences:
   redundant when the unified existence axiom subsumed it. Deleted
   2026-05-22 (red-team finding M4); the two Tier 1 axioms #7 and #8 are
   no longer declared. See `tools/cited_axioms.md` revision history.
+
+## Tier 1 axiom added 2026-05-23
+
+* `itoIsometry_diff_compensated` (Tier 1 #14): per-difference L²-isometry
+  for the compensated-Poisson Itô-Lévy integral. Standard consequence of
+  L²-linearity + isometry of the L² Itô-Lévy integral (Applebaum 2009
+  Thm 4.2.3 step (II) — the integral map is a continuous linear isometry
+  from `H²([0,T], E)` to `L²(Ω, ℱ_T, P)`). Stated as an axiom because the
+  current `stochasticIntegral` is built via `Classical.choose` on the
+  Tier 1 #6 unified-existence axiom, which does not expose linearity
+  directly. Used by `Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise`
+  to eliminate the previously bundled `h_lin` linearity precondition.
+  Mirrors `Brownian.Ito.itoIsometry_diff_brownian` on the Brownian side.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -2016,5 +2029,74 @@ where `Ñ(B) := N(B) − ν̂(B)` is the compensated random measure
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (t : ℝ) (ω : Ω) : ℝ :=
   simpleIntegral N φ t ω
+
+/-- **CITED AXIOM (Tier 1 #14): L²-isometry for the *difference* of two
+compensated-Poisson Itô-Lévy integrals.**
+
+For two jointly-measurable, progressively-measurable, L²-bounded
+integrands `φ₁, φ₂ : Ω → ℝ → E → ℝ`, the difference
+`M¹_T - M²_T := ∫_0^T ∫_E φ₁ Ñ - ∫_0^T ∫_E φ₂ Ñ` satisfies the
+L²-isometry against the *integrand difference*:
+
+  `𝔼 |M¹_T - M²_T|² = 𝔼 ∫_0^T ∫_E |φ₁(s, e) - φ₂(s, e)|² ν(de) ds`.
+
+This is a standard consequence of L²-linearity + isometry of the L²
+Itô-Lévy integral as a continuous linear isometry from
+`L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)` to `L²(Ω, dP)`. In the present
+axiomatization, `stochasticIntegral N φ` is constructed via
+`Classical.choose` on `itoIsometry_compensated_unified_existence`
+(Tier 1 #6), which does not expose linearity directly (each integrand
+gets an independent existence witness, so the "difference of choices"
+and "choice of difference" are not syntactically equal). We therefore
+state this difference-form isometry as a separate axiom, mirroring the
+analogous Brownian-side `itoIsometry_diff_brownian` (Tier 1 #14 — note
+the docstring there still cites the old internal number).
+
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
+2nd ed., CUP 2009, **Theorem 4.2.3** — the L²-Itô-Lévy integral is
+constructed as the unique continuous linear extension from simple
+predictable processes (Applebaum 4.2.3 step (II): the map
+`φ ↦ I(φ)` is a linear isometry from `H²([0,T], E)` to `L²(Ω, ℱ_T, P)`,
+where `H²` is the predictable L² space `L²(Ω × [0,T] × E, dP ⊗ ds ⊗ dν)`).
+The difference identity is the per-`(φ₁, φ₂)` instance of that linearity
++ isometry: `‖I(φ₁) - I(φ₂)‖_{L²(Ω)}² = ‖I(φ₁ - φ₂)‖_{L²(Ω)}² =
+‖φ₁ - φ₂‖_{H²}²`. See also Ikeda-Watanabe **Section II.3** for the same
+construction.
+
+**Replacement plan**: derive as a theorem from a Mathlib-level linearity
+result on the L²-Itô-Lévy integral when that machinery becomes available
+(blocked on Mathlib gaining the compensated-Poisson L²-integral).
+Tracked in `tools/cited_axioms.md` Tier 1 #14. -/
+axiom itoIsometry_diff_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (φ₁ φ₂ : Ω → ℝ → E → ℝ)
+    (h_meas₁ : Measurable (fun (p : Ω × ℝ × E) => φ₁ p.1 p.2.1 p.2.2))
+    (h_meas₂ : Measurable (fun (p : Ω × ℝ × E) => φ₂ p.1 p.2.1 p.2.2))
+    (h_progMeas₁ : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ₁ p.1 p.2.1 p.2.2))
+    (h_progMeas₂ : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ × E => φ₂ p.1 p.2.1 p.2.2))
+    (h_sq_int_global₁ : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ₁ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (h_sq_int_global₂ : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (T : ℝ) (_hT : 0 < T) :
+    ∫⁻ ω, (‖stochasticIntegral N φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
+              - stochasticIntegral N φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
+            : ℝ≥0∞) ^ 2 ∂P =
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ₁ ω s e - φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
 
 end LevyStochCalc.Poisson.Compensated

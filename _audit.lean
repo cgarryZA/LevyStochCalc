@@ -48,9 +48,6 @@ import LevyStochCalc
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
--- SDE-specialised Banach fixed-point output (Picard intermediate; now an axiom):
-#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
-#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom
 -- Picard framework lemmas (active construction toward JumpDiffusion proof):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
@@ -71,17 +68,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_generic
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
--- Typeclass instances on `SBoundedProcess` (PicardSpace.lean):
--- Nonempty witness via constant zero process; MetricSpace via discrete metric;
--- CompleteSpace via Cauchy-eventually-constant. These satisfy the
--- typeclass hypotheses of `picardFixedPoint` above.
-#print axioms LevyStochCalc.Ito.Picard.constantZeroProcess
-#print axioms LevyStochCalc.Ito.Picard.cauchySeq_eventually_constant
 -- σ-side L² Lipschitz bound (Agent 1, PicardSigmaLipschitz.lean; depends on
 -- new Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_diff_lipschitz_sq_componentwise
--- γ-side L² Lipschitz bound (Agent 2, PicardGammaLipschitz.lean):
+#print axioms LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian
+-- γ-side L² Lipschitz bound (Agent 2, PicardGammaLipschitz.lean; depends on
+-- new Tier 1 axiom itoIsometry_diff_compensated for compensated-Poisson
+-- stochastic-integral linearity — added 2026-05-23 to drop bundled `h_lin`):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise
+#print axioms LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated
 -- Bielecki β-norm contraction assembly (Agent 3, PicardContraction.lean):
 #print axioms LevyStochCalc.Ito.Picard.sq_add_three_le
 #print axioms LevyStochCalc.Ito.Picard.sum_sq_add_three_le
@@ -89,18 +84,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- Bielecki β-norm contraction — literature-tight rate (PicardContractionTight.lean):
--- Refinement of Agent 3's `picardStep_bielecki_contraction` from rate
--- `9 n L² T / (2β)` to the literature-tight rate `3 n L² (T + 2) / (2β)`
--- (matching Tang-Li 1994 / Pardoux-Răşcanu 2014); strictly tighter for
--- `T ≥ 1` and asymptotically equivalent to `3 n L² T / (2β)` for large `n T`.
-#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_tight
-#print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_tight_rate_lt_one
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
 #print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom
 #print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 
 -- ===== Layer 4: BSDEJ path regularity (→ deaxiomatises Cu05) =====
