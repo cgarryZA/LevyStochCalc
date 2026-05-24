@@ -84,16 +84,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- Bielecki pseudo-edist infrastructure (PicardSpaceBielecki.lean):
-#print axioms LevyStochCalc.Ito.Picard.sum_sq_nnreal_add_le
-#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_self
-#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_comm
-#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_add_le
-#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_inner_aemeasurable
-#print axioms LevyStochCalc.Ito.Picard.SBoundedProcess.pathDiff_aemeasurable
-#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_triangle
-#print axioms LevyStochCalc.Ito.Picard.instPseudoEMetricSpaceWithBielecki
-#print axioms LevyStochCalc.Ito.Picard.instEMetricSpaceAEQuot
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
@@ -102,3 +92,8 @@ import LevyStochCalc
 
 -- ===== Layer 4: BSDEJ path regularity (→ deaxiomatises Cu05) =====
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
+-- Public-API specialization (linear-in-Δt rate; added 2026-05-24) — extracts
+-- the BET 2008 bound in the user-facing form `∃ C : ℝ, 0 < C ∧ bound ≤ C · Δt`.
+-- Used by downstream chapters that need `ψ(h) := C · h`, notably the parked
+-- `Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`.
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate

@@ -191,4 +191,84 @@ axiom bsdej_path_regularity
                 : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
           ≤ ENNReal.ofReal (C T L norm_ξ_real * Δt)
 
+/-- **Specialization corollary (public API): linear-in-Δt BET 2008 bound.**
+
+This is a one-line repackaging of `bsdej_path_regularity` that extracts the
+Bouchard–Elie 2008 SPA 118(1) Theorem 2.1 bound in the user-facing form
+
+  `∃ C : ℝ, 0 < C ∧ ∀ partition, (path modulus + Z, U projection errors) ≤ C · Δt`,
+
+where `C` is a single positive real constant (concretely
+`K · (1 + T)^p · exp(α · L · T) · (1 + ‖g(X_T)‖_L²)` evaluated at the
+given `(T, L, ξ)`) in place of the polynomial-exponential expression
+exposed by the underlying axiom.
+
+**Motivation**: downstream chapters (notably the discrete-to-continuous
+BSDEJ convergence chapter in the main dissertation
+`D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`,
+parked 2026-05-04) need a `ψ : ℝ → ℝ` with `ψ(h) = C · h`. The polynomial
+form is what BET 2008 actually proves; downstream usage just needs the
+linear-in-`Δt` rate, with `C` packaged opaquely so the convergence theorem
+can be specialized without reaching into the polynomial structure.
+
+**Citation**: same as `bsdej_path_regularity` — Bouchard, B. & Elie, R.,
+*Discrete-time approximation of decoupled Forward-Backward SDE with jumps*,
+Stochastic Processes Appl. **118(1)**, **2008**, pp. 53–75, **Theorem 2.1**.
+
+**Axiom dependency**: this is a *honest derivative theorem* of the Tier 1
+axiom `bsdej_path_regularity` (cited_axioms.md entry #10); no new axiom is
+introduced. `#print axioms` on this corollary surfaces
+`{propext, Classical.choice, Quot.sound, bsdej_path_regularity,
+  itoIsometry_brownian_unified_existence, itoIsometry_compensated_unified_existence}`
+— the latter two flowing transitively from the `IsBSDEJSolution` predicate's
+pinning of `M_W` / `M_N` to the canonical multidim Brownian and
+compensated-Poisson L² integrals (Tier 1 entries #5 + #6). -/
+theorem bsdej_path_regularity_linear_rate
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (hX_meas : Measurable (Function.uncurry X))
+    (T : ℝ) (hT : 0 < T)
+    {L : ℝ} (hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
+    (hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    ∃ C : ℝ, 0 < C ∧
+      ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
+        (_h_part_mono : StrictMono partition)
+        (_h_part_start : partition 0 = 0)
+        (_h_part_end : partition (Fin.last M) = T)
+        (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
+        (_h_solution :
+          LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
+        let Δt : ℝ := ⨆ n : Fin M,
+          partition n.succ - partition n.castSucc
+        (⨆ n : Fin M, ∫⁻ ω,
+            ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
+              (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+              ∑ i, (‖Z s ω i - conditionalTimeAverage_Z partition Z s ω i‖₊
+                : ℝ≥0∞) ^ 2 ∂volume ∂P)
+          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+              (‖U s ω e - conditionalTimeAverage_U partition U s ω e‖₊
+                : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+          ≤ ENNReal.ofReal (C * Δt) := by
+  -- Invoke the underlying polynomial-form axiom. The axiom uses an inner
+  -- `let C := fun T' L' ξ' => K * (1 + T') ^ p * Real.exp (α * L' * T') * (1 + ξ')`
+  -- and `let norm_ξ_real := (∫⁻ ω, ‖g(X T ω)‖² ∂P).toReal`; destructuring the
+  -- existential unfolds those lets pointwise into the conjuncts.
+  obtain ⟨K, α, p, hK_pos, hα_pos, hC_pos, h_bound⟩ :=
+    bsdej_path_regularity W N bsdej X hX_meas T hT (L := L) hL hξ_sq_int
+  -- Read off the concrete real number `C` from the polynomial closure
+  -- evaluated at the input `(T, L, ‖g(X_T)‖_L²)`.
+  refine ⟨K * (1 + T) ^ p * Real.exp (α * L * T) *
+            (1 + (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal),
+          hC_pos, ?_⟩
+  -- The remaining `∀ (M ...) ...` is `h_bound` itself, since the `let`s in
+  -- the axiom statement reduce definitionally to the explicit expression.
+  intro M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
+  exact h_bound M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
+
 end LevyStochCalc.BSDEJ.PathRegularity

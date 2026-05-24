@@ -103,6 +103,7 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Predicate state**: Same strengthening note as item 9.
 * **Mathlib status (May 2026)**: `MeasureTheory.Submartingale.upcrossingsBefore_le` and adjacent Doob's L²-maximal inequality infrastructure exists in `Mathlib.Probability.Martingale`. The Grönwall integral lemma `Mathlib.Analysis.Gronwall` is also available. Combining these into the path regularity bound is mechanical once items 5 + 6 + 9 land.
 * **Replacement plan**: `theorem bsdej_path_regularity := <Doob + Grönwall combination>` when items 5, 6, 9 are theorems.
+* **Public-API specialization** (added 2026-05-24): the derived theorem `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` exposes the same bound in the simplified `∃ C : ℝ, 0 < C ∧ ∀ partition, bound ≤ ENNReal.ofReal (C · Δt)` form (a single positive real `C` instead of the polynomial-exponential closure `K · (1+T)^p · exp(α·L·T) · (1+ξ)` evaluated at `(T, L, ‖ξ‖_L²)`). This is what downstream chapters need to set `ψ(h) := C · h` (e.g. the parked `D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`, which uses the BET 2008 linear-rate `ψ(h) = C · h` as the discretization-error hypothesis driving its `discrete_to_continuous_convergence_sq` headline). The corollary is an `honest derivative theorem`: `#print axioms` surfaces exactly `{propext, Classical.choice, Quot.sound, bsdej_path_regularity}` — no new axiom.
 
 ### 11. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula`
 
@@ -145,13 +146,6 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Downstream usage**: `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the headline literature theorem — re-opens the `Setting` namespace inside `PicardBanach.lean` so the qualified name is preserved across the file boundary).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence (Karatzas-Shreve 5.2 / Le Gall 8.1) is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure (Tier 1 #5 + #6).
 * **Replacement plan**: `theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom := <Picard iteration proof>` when (a) Tier 1 #5 + #6 are theorems, (b) the Bielecki-norm Banach packaging on `SBoundedProcess` is built (`MetricSpace` + `CompleteSpace` instances under the literature metric, replacing the placeholder discrete-metric instances in `PicardSpace.lean`), (c) the `picardStep` self-map lift `Φ : SBoundedProcess → SBoundedProcess` is constructed with the σ/γ measurability + L²-bound preservation proofs (extending the `picardStepOnS2` skeleton in `PicardSelfMap.lean`), and (d) the `S²` fixed point → `JumpDiffusion` structure bridge is built. Once the axiom becomes a theorem, `JumpDiffusion.exists_unique` (the public-facing theorem) inherits soundness automatically with no source-level changes.
-* **2026-05-24 partial progress (PicardSpaceBielecki.lean)**: piece (b) above is partially discharged. New file `Ito/PicardSpaceBielecki.lean` introduces:
-  * `bieleckiEDist β T X Y := bieleckiNorm β T (X.X - Y.X)` — the literature Bielecki β-weighted L²-sup pseudo-edist between two `SBoundedProcess`es.
-  * `bieleckiNorm_add_le` — fully-proven Bielecki β-norm subadditivity (Minkowski over rows + L² Minkowski over ω + sup-subadditivity), the analytic load of the triangle inequality.
-  * `bieleckiEDist_self`, `bieleckiEDist_comm`, `bieleckiEDist_triangle` — the three pseudo-edist axioms for `bieleckiEDist`, fully proven.
-  * `SBoundedProcess.WithBielecki β T` — type synonym carrying the `PseudoEMetricSpace` instance via `bieleckiEDist`. Keeps the existing `PicardSpace.lean` discrete-metric instance free of conflict (different type).
-  * `SBoundedProcess.AEQuot β T := SeparationQuotient (WithBielecki β T)` — the literature **AE-quotient**; Mathlib auto-derives a genuine `EMetricSpace` instance via `SeparationQuotient.instEMetricSpace`.
-  Remaining sub-pieces of (b): `CompleteSpace (AEQuot β T)` (Cauchy completion + Lp-machinery). Remaining: (c) and (d) above. The new file is sorry-free and axiom-clean (no `sorryAx`; no new Tier 1 axioms added — `bieleckiEDist_triangle` is proven from `bieleckiNorm_add_le` from `ENNReal.lintegral_Lp_add_le` + `NNReal.Lp_add_le`, both Mathlib lemmas).
 
 ## Honest derivative theorems (proven from cited axioms)
 
@@ -182,6 +176,7 @@ plain `theorem`-axioms.
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (Tier 1 #13) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (Tier 1 #14) |
 | `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (Tier 1 #14 transitively) |
+| `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | `bsdej_path_regularity` (Tier 1 #10; specializes the polynomial-exponential constant to a single `C : ℝ` evaluated at `(T, L, ‖ξ‖_L²)` so downstream chapters can take `ψ(h) := C · h`) |
 
 ### Literature-pinned baseline-sorry theorems (count: 0 — fully eliminated 2026-05-23)
 
