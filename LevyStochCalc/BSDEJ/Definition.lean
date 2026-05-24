@@ -74,13 +74,28 @@ g=0)` is therefore restored at the predicate level; the literature
 Tang–Li uniqueness covers the general Lipschitz case once the
 predicate is honest.
 
-**Remaining slack acknowledged in `tools/cited_axioms.md` #9**:
-`M_W` is still only L²-isometric to `Z`, not pinned to literally
-`∑_i ∫_0^t Z_i dW_i`. Tightening this requires a multidim Brownian
-stochastic integral primitive with progressively-measurable
-integrands; tracked as follow-up. The adaptedness fix is sufficient
-to close the soundness defect (uniqueness is now formally derivable
-from adaptedness + martingale property as sketched above). -/
+**Predicate hardening complete (2026-05-24, Cu01 forwarder bullet-proof
+pass)**. The previous "remaining slack" note (M_W only L²-isometric) is
+RESOLVED: M_W is now pinned to the canonical multidim Brownian Itô
+integral `MultidimBrownianMotion.stochasticIntegral W Z h_Z_meas
+h_Z_progMeas h_Z_sq` (commit 2026-05-22), and M_N is pinned to the
+canonical compensated-Poisson L² integral `Compensated.stochasticIntegral
+N U h_U_meas h_U_progMeas h_U_sq` (commit 2026-05-23). The Filt witness
+is pinned EXACTLY to `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration
+N).rightCont` (M11-CRIT fix, 2026-05-23, P12 F1 closure), Z and U_e are
+strengthened to `IsStronglyProgressive` (P4 F1 fix, 2026-05-23), and Y
+carries a càdlàg-paths field (P4 H fix, 2026-05-23). Every conjunct is
+load-bearing for the literature `S² × H² × H²_N` solution space.
+
+**Structural regression canary**: the extractor theorems
+`filtration_eq_canonical`, `Y_cadlag`, `Y_adapted_canonical`,
+`Z_isStronglyProgressive_canonical`, `U_isStronglyProgressive_canonical`,
+`M_W_eq_canonical_brownianIto`, `M_N_eq_canonical_compensatedPoisson`
+below this docstring guard each of the seven hardening targets via a
+public extractor. If anyone weakens the predicate (e.g., relaxes the Filt
+pin to `≤`, demotes IsStronglyProgressive to Adapted, removes the
+canonical-integral pins on M_W/M_N, or drops the càdlàg paths on Y),
+these extractors will fail to elaborate and the build will break. -/
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
@@ -264,5 +279,174 @@ def IsBSDEJSolution
               + ∫ s in Set.Icc t T,
                   bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω)
               - (M_W T ω - M_W t ω) - (M_N T ω - M_N t ω)))
+
+/-! ## Structural regression tests for `IsBSDEJSolution`
+
+These extractor theorems are the structural canary for the `IsBSDEJSolution`
+predicate's literature-strength conjuncts. If anyone weakens the predicate
+(e.g., relaxes the `Filt` pin to a `≤ Filt` constraint, demotes
+`IsStronglyProgressive` back to `Adapted`, removes the canonical-integral
+pins on `M_W`/`M_N`, or drops the càdlàg paths on `Y`), these theorems will
+fail to elaborate and the build will break — exactly the kind of soundness
+regression that the P12 F1 red-team counterexample
+(`Y₁ = 0` vs `Y₂ = W_T − W_t` both satisfying a weakened predicate) was
+designed to catch.
+
+The tests are deliberately load-bearing: each one extracts a single
+strengthening as a public extractor, so it can be both (a) consumed by
+downstream callers needing the strengthening, and (b) used as a build-time
+regression check on the predicate's surface API. -/
+
+namespace IsBSDEJSolution
+
+variable {P : Measure Ω} [IsProbabilityMeasure P]
+variable {ν : Measure E} [SigmaFinite ν]
+variable {n d : ℕ}
+variable {W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d}
+variable {N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν}
+variable {bsdej : BSDEJData n d E}
+variable {X : ℝ → Ω → (Fin n → ℝ)}
+variable {Y : ℝ → Ω → ℝ}
+variable {Z : ℝ → Ω → (Fin d → ℝ)}
+variable {U : ℝ → Ω → E → ℝ}
+variable {T : ℝ}
+
+/-- **Regression test #1 (Filt pin)**: The filtration witnessed by an
+`IsBSDEJSolution` is EXACTLY the right-continuous augmentation of the
+join of `W`'s component natural filtrations with `N`'s natural filtration.
+
+This is the M11-CRIT fix and the P12 F1 closure: previously, the predicate
+allowed any filtration containing the natural one, which is satisfied
+vacuously by `Filt = ⊤` — defeating the adaptedness rule-out of the
+`Y = W_T − W_t` counterexample. Pinning to the canonical augmentation
+forces the literature-correct filtration. -/
+theorem filtration_eq_canonical
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      Filt = ((⨆ i : Fin d,
+                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont := by
+  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _⟩ := h
+  exact ⟨Filt, hFilt_eq⟩
+
+/-- **Regression test #2 (càdlàg Y)**: The `Y` component of every solution
+has a.s.-càdlàg paths (right-continuous with left limits at every point).
+This is the Tang-Li / Pardoux-Răşcanu `S²` solution-space requirement,
+without which the L²-supremum `⨆ t ∈ [0,T] ‖Y t‖²` is not honestly
+measurable as a function of ω. -/
+theorem Y_cadlag
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∀ᵐ ω ∂P, ∀ t : ℝ,
+      Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω))
+        ∧ ∃ L : ℝ,
+            Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L) := by
+  obtain ⟨_, _, _, _, h_cadlag, _⟩ := h
+  exact h_cadlag
+
+/-- **Regression test #3 (Y adapted to canonical Filt)**: The `Y`
+component is `Filt`-adapted where `Filt` is the canonical filtration. -/
+theorem Y_adapted_canonical
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      Filt = ((⨆ i : Fin d,
+                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+      MeasureTheory.Adapted Filt Y := by
+  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, hY_adapted, _⟩ := h
+  exact ⟨Filt, hFilt_eq, hY_adapted⟩
+
+/-- **Regression test #4 (Z strongly progressive)**: The `Z` component is
+`IsStronglyProgressive` w.r.t. the canonical filtration (strictly stronger
+than per-`t` adaptedness, per the P4 F1 fix). This is the
+Tang-Li / Pardoux-Răşcanu H² solution-space requirement: H² is the L²
+space of progressively measurable processes. -/
+theorem Z_isStronglyProgressive_canonical
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      Filt = ((⨆ i : Fin d,
+                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+      MeasureTheory.IsStronglyProgressive Filt Z := by
+  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _, hZ_prog, _⟩ := h
+  exact ⟨Filt, hFilt_eq, hZ_prog⟩
+
+/-- **Regression test #5 (U strongly progressive per mark)**: For every
+mark `e : E`, the per-mark slice `s ↦ U s · e` is `IsStronglyProgressive`
+w.r.t. the canonical filtration (H²_N solution-space requirement). -/
+theorem U_isStronglyProgressive_canonical
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
+      Filt = ((⨆ i : Fin d,
+                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+      ∀ e : E, MeasureTheory.IsStronglyProgressive Filt (fun s ω => U s ω e) := by
+  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _, _, hU_prog, _⟩ := h
+  exact ⟨Filt, hFilt_eq, hU_prog⟩
+
+/-- **Regression test #6 (M_W pinned to canonical Brownian Itô integral)**:
+The Brownian martingale leg `M_W` of every solution agrees a.s. (at every
+T') with the canonical multidim Brownian Itô integral
+`MultidimBrownianMotion.stochasticIntegral W Z ...` — not merely with some
+L²-isometric stand-in. The per-component Z hypotheses are bundled as
+existential witnesses to make the canonical-integral expression well-typed.
+This is the H2 fix: previously M_W was only L²-isometric to Z, which left a
+non-trivial gap between the predicate and the literature claim. -/
+theorem M_W_eq_canonical_brownianIto
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ M_W : ℝ → Ω → ℝ,
+      ∃ (h_Z_meas : ∀ i : Fin d,
+            Measurable (Function.uncurry (fun ω s => Z s ω i)))
+         (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
+            @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+              (@Prod.instMeasurableSpace Ω ℝ
+                ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
+                inferInstance)
+              (fun p : Ω × ℝ => Z p.2 p.1 i))
+         (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
+            ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+              (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+        ∀ T' : ℝ, ∀ᵐ ω ∂P,
+          M_W T' ω =
+            LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+              W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω := by
+  obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
+          M_W, _, _, _, _, _,
+          ⟨h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩, _, _, _, _⟩ := h
+  exact ⟨M_W, h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩
+
+/-- **Regression test #7 (M_N pinned to canonical compensated-Poisson
+integral)**: The Poisson martingale leg `M_N` of every solution agrees a.s.
+(at every T') with the canonical compensated-Poisson L² integral
+`Compensated.stochasticIntegral N U ...` — not merely with some
+L²-isometric stand-in. The U-side hypotheses are bundled as existential
+witnesses to make the canonical-integral expression well-typed. This is the
+H6 closure: previously the M_N pin was hollow because per-e adaptedness of
+U was insufficient to type-check the canonical compensator. -/
+theorem M_N_eq_canonical_compensatedPoisson
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ M_N : ℝ → Ω → ℝ,
+      ∃ (h_U_meas : Measurable
+            (fun (p : Ω × ℝ × E) =>
+              (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+         (h_U_progMeas : ∀ t : ℝ,
+            @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+              (@Prod.instMeasurableSpace Ω (ℝ × E)
+                ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+                inferInstance)
+              (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+         (h_U_sq : ∀ T' : ℝ, 0 < T' →
+            ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+              (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
+                ∂ν ∂volume ∂P < ⊤),
+        ∀ T' : ℝ, ∀ᵐ ω ∂P,
+          M_N T' ω =
+            LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+              (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω := by
+  obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
+          _, M_N, _, _, _, _,
+          _, ⟨h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩, _, _, _⟩ := h
+  exact ⟨M_N, h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩
+
+end IsBSDEJSolution
 
 end LevyStochCalc.BSDEJ.Definition

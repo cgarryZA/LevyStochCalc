@@ -84,6 +84,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
+-- 2026-05-24 Rule-1 START: itoLevyFormula converted to a theorem derived from
+-- two sub-axioms (continuous-semimartingale Itô formula + jump-residual
+-- decomposition). Both sub-axioms printed below, then the headline theorem.
+#print axioms LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
