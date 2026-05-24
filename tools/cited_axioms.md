@@ -408,6 +408,11 @@ contributors.
 * `tools/sorry_baseline.txt` — sorry-blocked theorems (currently 1: see
   status snapshot above).
 * `tools/cited_axioms.md` (this file) — Tier 1 cited axioms with citations + Mathlib status + replacement plans.
+* `tools/import_contract.md` — the 12 modules + ~20 symbols the dissertation
+  (path-dep `../LevyStochCalc`) imports. Any refactor that moves or deletes
+  one of them MUST leave a forwarding stub at the old path; otherwise
+  `D:/Dissertation` breaks at build time. Verified against master `7a6be4d`
+  on 2026-05-24.
 * `tools/lint.sh` — runs `_audit.lean` and fails on new sorryAx beyond
   the baseline.
 * `_audit.lean` — `#print axioms` on every load-bearing theorem; runs as
