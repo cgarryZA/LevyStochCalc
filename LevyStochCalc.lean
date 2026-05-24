@@ -32,6 +32,7 @@ import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.PicardSpace
+import LevyStochCalc.Ito.PicardSpaceBielecki
 import LevyStochCalc.Ito.PicardBanach
 import LevyStochCalc.Ito.PicardSigmaLipschitz
 import LevyStochCalc.Ito.PicardGammaLipschitz

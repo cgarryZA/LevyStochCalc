@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (14 currently live; #7 and #8 deleted 2026-05-22; #11 retired 2026-05-24 via axiom→theorem conversion — `itoLevyFormula` now a theorem derived from #15 + #16; #12, #13, #14 added 2026-05-23 via theorem→axiom conversion; #15 + #16 added 2026-05-24 to expose the two literature sub-primitives behind the Itô–Lévy formula — #15 is `itoFormula_continuousSemimartingale_axiom` cited from Karatzas–Shreve 3.3.6; #16 is `itoLevyFormula_jumpResidual_axiom` cited from Applebaum 4.4.10 + 4.4.7 step II)
+## Tier 1: Honest cited axioms (13 currently live; #7 and #8 deleted 2026-05-22; #12, #13, #14 added 2026-05-23 via theorem→axiom conversion — #13 is `jacodYor_representation_axiom` with the original-named `jacodYor_representation` retained as a thin forwarder; #14 is `picardFixedPoint_jumpDiffusion_exists_unique_axiom` with the original-named `picardFixedPoint_jumpDiffusion_exists_unique` retained as a thin forwarder, backing the headline `JumpDiffusion.exists_unique`)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -104,20 +104,18 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: `MeasureTheory.Submartingale.upcrossingsBefore_le` and adjacent Doob's L²-maximal inequality infrastructure exists in `Mathlib.Probability.Martingale`. The Grönwall integral lemma `Mathlib.Analysis.Gronwall` is also available. Combining these into the path regularity bound is mechanical once items 5 + 6 + 9 land.
 * **Replacement plan**: `theorem bsdej_path_regularity := <Doob + Grönwall combination>` when items 5, 6, 9 are theorems.
 
-### 11. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` — RETIRED 2026-05-24
+### 11. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula`
 
-This entry was retired on 2026-05-24 as part of the Rule-1 START
-`axiom → theorem` conversion of the headline Itô–Lévy formula. The
-single Applebaum 4.4.7 axiom was split into TWO Tier 1 sub-primitives
-(entries #15 and #16 below) that expose the precise content of the
-literature proof; the headline `itoLevyFormula` is now a `theorem`
-derived by algebraic re-bundling from the two sub-axioms.
-
-The previous content of this entry (the single-axiom Applebaum 4.4.7
-form) is preserved verbatim in the file's git history (commit
-4dea618 and predecessors).
-
-**See entries #15 + #16 below for the current axiomatisation.**
+* **Statement**: For a `C^{1,2}` function `u` and a jump diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, the chain-rule decomposition (Applebaum 2009 Thm 4.4.7) — `u(T, X_T) − u(0, X_0) = drift + diff_mart + jump_mart + comp_drift` — with ALL FOUR terms pinned to their literature integral forms:
+  * `drift = ∫_0^T (∂_t u + 𝓛u)(s, X_s) ds` using `driftIntegrand` (which uses `timeDeriv`, `gradient`, `hessian`, `levyGenerator` helpers).
+  * `diff_mart = MultidimBrownianMotion.stochasticIntegral W (diffusionIntegrand := ∇uᵀσ along X) T` (multidim Brownian Itô integral).
+  * `jump_mart = Compensated.stochasticIntegral N (jump increment u(·+γ) − u along X) T`.
+  * `comp_drift = ∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ∂ν(de) ds` using `compensatorDriftIntegrand`.
+* **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.7**; Cont & Tankov, *Financial Modelling with Jump Processes*, Chapman & Hall/CRC 2003, **Proposition 8.18**.
+* **Predicate state (2026-05-22 — fully pinned)**: Originally a `theorem` with the trivial-witness proof body `refine ⟨0, 0, 0, change, ?_⟩; simp`. Demoted to `axiom` on 2026-05-11 (commit db582f9). Statement then fully pinned in 4 commits today (2026-05-22): `jump_mart` pinned 7d232bf, `diff_mart` pinned 09687cf, `comp_drift` pinned 9675e44, `drift_term` pinned 94f0155. No existential reals remain. Axiom asserts the exact Applebaum identity.
+* **Transitive axiom dependency**: now surfaces Tier 1 #5 (`itoIsometry_brownian_unified_existence`, via multidim Brownian integral) and Tier 1 #6 (`itoIsometry_compensated_unified_existence`, via Compensated.stochasticIntegral).
+* **Mathlib status (May 2026)**: No general Itô-with-jumps formula in Mathlib (waits on the full jump-SDE apparatus). `Mathlib.Probability.IteFormula`-style infrastructure exists for the continuous (Brownian-only) case, but not for the jump case.
+* **Replacement plan**: `theorem itoLevyFormula := <Applebaum 4.4.7 derivation>` when (a) the multidim Brownian + compensated-Poisson integrals along the X-path are usable on the right hypothesis class, and (b) the Bochner integrals of the time-derivative + Lévy generator can be controlled (Sobolev estimates on u). Multi-session work.
 
 ### 12. `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique`
 
@@ -147,26 +145,13 @@ form) is preserved verbatim in the file's git history (commit
 * **Downstream usage**: `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the headline literature theorem — re-opens the `Setting` namespace inside `PicardBanach.lean` so the qualified name is preserved across the file boundary).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence (Karatzas-Shreve 5.2 / Le Gall 8.1) is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure (Tier 1 #5 + #6).
 * **Replacement plan**: `theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom := <Picard iteration proof>` when (a) Tier 1 #5 + #6 are theorems, (b) the Bielecki-norm Banach packaging on `SBoundedProcess` is built (`MetricSpace` + `CompleteSpace` instances under the literature metric, replacing the placeholder discrete-metric instances in `PicardSpace.lean`), (c) the `picardStep` self-map lift `Φ : SBoundedProcess → SBoundedProcess` is constructed with the σ/γ measurability + L²-bound preservation proofs (extending the `picardStepOnS2` skeleton in `PicardSelfMap.lean`), and (d) the `S²` fixed point → `JumpDiffusion` structure bridge is built. Once the axiom becomes a theorem, `JumpDiffusion.exists_unique` (the public-facing theorem) inherits soundness automatically with no source-level changes.
-
-### 15. `LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom`
-
-* **Statement**: For a `C^{1,2}` function `u` and the jump diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, the classical Itô formula applied to `u(t, X^c_t)` (where `X^c` is the continuous-semimartingale part of the Lévy–Itô decomposition `X = X^c + X^d`) yields the existence of a residual process `R : ℝ → Ω → ℝ` such that `u(T, X_T) − u(0, X_0) = ∫_0^T (∂_t u + 𝓛^c u)(s, X_s) ds + MultidimBrownianMotion.stochasticIntegral W (∇uᵀσ along X) T + R T ω` almost surely, where `𝓛^c u = μᵀ∇u + ½ Tr(σσᵀ ∇²u)` is the *continuous part* of the Lévy generator. The residual `R` is the jump correction, identified by entry #16 below.
-* **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*, 2nd ed., Springer 1991, **Theorem 3.3.6** (Itô formula for continuous semimartingales — multidimensional vector form, equation (3.3.5)); Le Gall, B. *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, **Theorem 5.10**; Revuz, D. & Yor, M. *Continuous Martingales and Brownian Motion*, 3rd ed., Springer 1999, **Theorem IV.3.3**.
-* **2026-05-24 introduction (NEW)**: this axiom was introduced today as part of the Rule-1 START `axiom → theorem` conversion of the headline `itoLevyFormula` (previous Tier 1 #11). The single Applebaum 4.4.7 axiom is split into TWO literature sub-primitives — this entry #15 (continuous-semimartingale Itô formula, Karatzas–Shreve 3.3.6) and entry #16 (jump-residual decomposition, Applebaum 4.4.10 + 4.4.7 step II). The conjunction of #15 + #16 reconstructs the literature four-term identity; `itoLevyFormula` is now a `theorem` derived by algebraic re-bundling.
-* **Signature strength**: takes the multidim Brownian Itô integral hypotheses (`h_sigmaGrad_meas`, `h_sigmaGrad_progMeas`, `h_sigmaGrad_sq` for the integrand `∇uᵀσ`) as explicit parameters, so the existential `R` is constrained to satisfy the exact pinned-form continuous-part identity (no `R = (the whole change)` trivial-witness pathology, since the equation must hold against the pinned drift + diffusion-Itô-integral form).
-* **Transitive axiom dependency**: surfaces Tier 1 #5 (`itoIsometry_brownian_unified_existence`, via the multidim Brownian integral) and Tier 1 #6 (`itoIsometry_compensated_unified_existence`, via the `JumpDiffusion` structure's bundled `is_solution` field which uses `Compensated.stochasticIntegral`).
-* **Mathlib status (May 2026)**: No Itô formula in Mathlib (waits on Brownian motion construction + L² Itô integral; tracked alongside Tier 1 #5). The Degenne et al stochastic-integration effort (arXiv:2511.20118, late 2025) is the most active push toward a Mathlib Itô formula; no PR merged at time of writing.
-* **Replacement plan**: when Mathlib gains the Itô formula for continuous semimartingales (Karatzas–Shreve 3.3.6), this axiom is replaced by a forwarder that decomposes `X = X^c + X^d` via the Lévy–Itô decomposition and applies the Mathlib theorem to `X^c`.
-
-### 16. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom`
-
-* **Statement**: Given any residual process `R : ℝ → Ω → ℝ` satisfying the continuous-part identity from entry #15 (`u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω` a.s.), the residual `R T ω` equals the sum of the *jump martingale* term `Compensated.stochasticIntegral N (u(·+γ) − u along X) T ω` and the *compensator drift* term `∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`, almost surely.
-* **Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7 proof, step (II)** (page 240) for the `ε → 0` limit using the L²-isometry of the compensated-Poisson integral; Ikeda-Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, **Section II §5**; Cont, R. & Tankov, P. *Financial Modelling with Jump Processes*, Chapman & Hall/CRC 2003, **Proposition 8.18** + Chapter 8.
-* **2026-05-24 introduction (NEW)**: this axiom was introduced today alongside entry #15 as part of the Rule-1 START `axiom → theorem` conversion of the headline `itoLevyFormula`. Together with #15 it discharges the literature derivation of Applebaum 4.4.7 — `itoLevyFormula` is now a `theorem` derived by algebraic re-bundling from #15 + #16.
-* **Signature strength**: takes the residual `R` as an explicit parameter PLUS the continuous-part identity `_h_continuousPart` (`R` satisfies the entry-#15 identity) as a load-bearing hypothesis. This rules out trivial-witness pathologies: the conclusion `R T ω = jump_mart + comp_drift` cannot be discharged by ANY `R` — only by residuals arising from a real continuous-part decomposition. The signature also bundles `h_jumpInt_*` (joint measurability + per-`t` progressive measurability + global L² bound on the jump-martingale integrand) and the `_h_compDrift_int` ν-integrability hypothesis (red-team P4 H fix carried forward).
-* **Transitive axiom dependency**: surfaces Tier 1 #5 (`itoIsometry_brownian_unified_existence`, via the multidim Brownian integral that appears in the `_h_continuousPart` hypothesis) and Tier 1 #6 (`itoIsometry_compensated_unified_existence`, via the `Compensated.stochasticIntegral` that appears in the conclusion).
-* **Mathlib status (May 2026)**: No compensated-Poisson integral in Mathlib (waits on PRM construction). The small/large decomposition is itself a derived statement once the integral exists; the `ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #14).
-* **Replacement plan**: derive as a theorem from `itoIsometry_diff_compensated` (Tier 1 #14, in `Poisson/Compensated.lean`) + a Mathlib-level linearity-cum-isometry result on the compensated-Poisson L²-integral once that machinery becomes available.
+* **2026-05-24 partial progress (PicardSpaceBielecki.lean)**: piece (b) above is partially discharged. New file `Ito/PicardSpaceBielecki.lean` introduces:
+  * `bieleckiEDist β T X Y := bieleckiNorm β T (X.X - Y.X)` — the literature Bielecki β-weighted L²-sup pseudo-edist between two `SBoundedProcess`es.
+  * `bieleckiNorm_add_le` — fully-proven Bielecki β-norm subadditivity (Minkowski over rows + L² Minkowski over ω + sup-subadditivity), the analytic load of the triangle inequality.
+  * `bieleckiEDist_self`, `bieleckiEDist_comm`, `bieleckiEDist_triangle` — the three pseudo-edist axioms for `bieleckiEDist`, fully proven.
+  * `SBoundedProcess.WithBielecki β T` — type synonym carrying the `PseudoEMetricSpace` instance via `bieleckiEDist`. Keeps the existing `PicardSpace.lean` discrete-metric instance free of conflict (different type).
+  * `SBoundedProcess.AEQuot β T := SeparationQuotient (WithBielecki β T)` — the literature **AE-quotient**; Mathlib auto-derives a genuine `EMetricSpace` instance via `SeparationQuotient.instEMetricSpace`.
+  Remaining sub-pieces of (b): `CompleteSpace (AEQuot β T)` (Cauchy completion + Lp-machinery). Remaining: (c) and (d) above. The new file is sorry-free and axiom-clean (no `sorryAx`; no new Tier 1 axioms added — `bieleckiEDist_triangle` is proven from `bieleckiNorm_add_le` from `ENNReal.lintegral_Lp_add_le` + `NNReal.Lp_add_le`, both Mathlib lemmas).
 
 ## Honest derivative theorems (proven from cited axioms)
 
@@ -197,7 +182,6 @@ plain `theorem`-axioms.
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (Tier 1 #13) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (Tier 1 #14) |
 | `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (Tier 1 #14 transitively) |
-| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | algebraic re-bundling of `itoFormula_continuousSemimartingale_axiom` (Tier 1 #15) + `itoLevyFormula_jumpResidual_axiom` (Tier 1 #16) — extracts the residual `R` from #15, applies #16 to identify `R = jump_mart + comp_drift`, combines via `filter_upwards` + `ring`. Previously Tier 1 #11 axiom (retired 2026-05-24). |
 
 ### Literature-pinned baseline-sorry theorems (count: 0 — fully eliminated 2026-05-23)
 
@@ -238,33 +222,22 @@ both satisfy the predicate for f = g = 0) would falsify the uniqueness
 clause. The current closure is via Y₂'s failure of `Adapted Filt`: `W_T`
 is not measurable in `Filt_t` for t < T.
 
-## Status snapshot (2026-05-24, `itoLevyFormula` `axiom → theorem` conversion COMPLETED)
+## Status snapshot (2026-05-23, jacodYor `theorem → axiom` conversion COMPLETED)
 
-`tools/sorry_baseline.txt` is EMPTY — every previously sorry'd theorem
-is either:
+`tools/sorry_baseline.txt` now contains **1 entry** — the Picard
+iteration for the jump-diffusion SDE — after the 2026-05-23 conversion
+of `jacodYor_representation` to a forwarder over the new Tier 1 cited
+axiom `jacodYor_representation_axiom` (Jacod 1976). Every other
+previously sorry'd theorem is either:
 * Proven from Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`)
   plus possibly one or more Tier 1 cited axioms documented here, OR
 * A Tier 1 cited axiom itself.
 
-The 2026-05-24 conversion was the third in the recent series of
-`axiom → theorem` / `theorem → axiom` refactors:
-
-* 2026-05-23: `jacodYor_representation` → forwarder over
-  `jacodYor_representation_axiom` (Tier 1 #13, Jacod 1976).
-* 2026-05-23: `picardFixedPoint_jumpDiffusion_exists_unique` → forwarder
-  over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (Tier 1
-  #14, Applebaum 6.2.9), which backs `JumpDiffusion.exists_unique`.
-* 2026-05-24 (today, Rule-1 START): `itoLevyFormula` previously a
-  single `axiom` (retired Tier 1 #11) is now a `theorem` derived by
-  algebraic re-bundling from two sub-axioms — `itoFormula_continuous-`
-  `Semimartingale_axiom` (Tier 1 #15, Karatzas–Shreve 3.3.6) and
-  `itoLevyFormula_jumpResidual_axiom` (Tier 1 #16, Applebaum 4.4.10 +
-  4.4.7 step II). The headline qualified theorem name
-  `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` is preserved so the
-  dissertation forwarder `Dissertation.Continuous.itoLevyFormula`
-  remains stable.
-
-No baseline entries remain.
+Baseline entries (the single genuinely-deferred classical theorem):
+* `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` — Picard
+  iteration in `S²([0,T]; ℝⁿ)` for the jump-diffusion SDE
+  (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV). Real theorem statement
+  with sorry'd proof body.
 
 Resolved on 2026-05-23 (formerly a baseline entry):
 * `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
@@ -373,21 +346,16 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **14 Tier 1 cited axioms currently live** (M4 deleted #7 + #8;
-  #11 retired 2026-05-24 via axiom→theorem conversion — `itoLevyFormula`
-  now a theorem derived from #15 + #16; #12 + #13 + #14 added 2026-05-23
-  via theorem→axiom conversion; #15 + #16 added 2026-05-24 to expose
-  the two literature sub-primitives behind the Itô–Lévy formula
-  derivation), each with paper reference + Mathlib status + replacement
-  plan.
+* **12 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
+  #13 added 2026-05-23 via theorem→axiom conversion; #13 is the explicit
+  `jacodYor_representation_axiom`), each with paper reference + Mathlib
+  status + replacement plan.
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
-* No `sorryAx` in the public API: `tools/sorry_baseline.txt` is EMPTY
-  (2026-05-23 closure; preserved 2026-05-24 by the `itoLevyFormula`
-  refactor, which converted axiom → theorem via two sub-axioms #15 + #16).
+* No `sorryAx` in the public API outside the 1 baseline-acknowledged entry
+  (`JumpDiffusion.exists_unique`).
 * No `True := trivial` stub lemmas remain in the project.
 * Dissertation forwarders transitively surface only real Tier 1 cited axioms
-  in their audit, including the now-derived `itoLevyFormula` (theorem
-  derived from Tier 1 #15 + #16; previously the retired Tier 1 #11 axiom).
+  in their audit, including the now-fully-pinned #11 `itoLevyFormula`.
 
 ## Naming-suffix drift (P1 F11 acknowledgment)
 

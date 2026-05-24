@@ -84,11 +84,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- 2026-05-24 Rule-1 START: itoLevyFormula converted to a theorem derived from
--- two sub-axioms (continuous-semimartingale Itô formula + jump-residual
--- decomposition). Both sub-axioms printed below, then the headline theorem.
-#print axioms LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom
-#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
+-- Bielecki pseudo-edist infrastructure (PicardSpaceBielecki.lean):
+#print axioms LevyStochCalc.Ito.Picard.sum_sq_nnreal_add_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_self
+#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_comm
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_add_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_inner_aemeasurable
+#print axioms LevyStochCalc.Ito.Picard.SBoundedProcess.pathDiff_aemeasurable
+#print axioms LevyStochCalc.Ito.Picard.bieleckiEDist_triangle
+#print axioms LevyStochCalc.Ito.Picard.instPseudoEMetricSpaceWithBielecki
+#print axioms LevyStochCalc.Ito.Picard.instEMetricSpaceAEQuot
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
