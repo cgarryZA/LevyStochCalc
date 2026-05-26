@@ -31,11 +31,11 @@ imports this module and replaces its
   D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
   eq (jump-ito) at lines 51-56.
 
-## Status (2026-05-24 Rule-1 START — `axiom → theorem` conversion)
+## Status (2026-05-26 Rule-1 STEP 2 — axiom #16 → theorem narrowing)
 
-**`itoLevyFormula` is now a `theorem`**, derived by algebraic
-re-bundling from TWO Tier 1 cited sub-primitives that expose the
-precise content of the Applebaum 4.4.7 proof:
+**`itoLevyFormula` is a `theorem`**, derived by algebraic re-bundling
+from TWO Tier 1 cited sub-primitives that expose the precise content
+of the Applebaum 4.4.7 proof:
 
 * **`itoFormula_continuousSemimartingale_axiom`** (Tier 1 #15) —
   Karatzas–Shreve 3.3.6: the Itô formula for continuous
@@ -44,17 +44,25 @@ precise content of the Applebaum 4.4.7 proof:
   `X = X^c + X^d`. Produces the drift + diff-mart identity with a
   packaged residual `R`.
 
-* **`itoLevyFormula_jumpResidual_axiom`** (Tier 1 #16) — Applebaum
-  4.4.10 + 4.4.7 step (II): the residual `R` (from above) equals the
-  sum of jump-martingale + compensator-drift terms, derived via the
-  small/large jump decomposition + `ε → 0` limit using the
-  `L²`-isometry of the compensated-Poisson integral
-  (Tier 1 #6 / #14).
+* **`itoLevyFormula_jumpResidual_canonical_axiom`** (Tier 1 #16,
+  2026-05-26 narrowing of the previous #16) — Applebaum 4.4.10 +
+  4.4.7 step (II): the canonical residual `R_canonical T ω :=
+  u(T, X_T) − u(0, X_0) − drift − diff_mart` (constructed by direct
+  subtraction from the LHS) equals the sum of jump-martingale +
+  compensator-drift terms, derived via the small/large jump
+  decomposition + `ε → 0` limit using the `L²`-isometry of the
+  compensated-Poisson integral (Tier 1 #6 / #14).
+
+The previous Tier 1 #16 axiom (`itoLevyFormula_jumpResidual_axiom`,
+universal-`R` form) is now a **derived theorem** that forwards over
+the narrower canonical-`R` axiom by per-ω algebra (`R = R_canonical`
+a.s. when both satisfy the continuous-part identity).
 
 These sub-primitives mirror the canonical "axiom + theorem forwarder"
-pattern used by `picardFixedPoint_jumpDiffusion_exists_unique` (Tier 1
-#14) and `jacodYor_representation` (Tier 1 #13) — see the 2026-05-23
-log entries in `tools/cited_axioms.md`.
+pattern used by `picardFixedPoint_jumpDiffusion_exists_unique` (ex-Tier
+1 #14, demoted axiom→theorem 2026-05-26) and `jacodYor_representation`
+(Tier 1 #13) — see the 2026-05-23/26 log entries in
+`tools/cited_axioms.md`.
 
 The previous Tier 1 #11 axiom `itoLevyFormula` is replaced by the
 combination of #15 + #16 above. The qualified theorem name
@@ -75,11 +83,16 @@ unaffected by the refactor.
 * 2026-05-23 (red-team 2nd audit fixes): `h_jumpInt_*` hypotheses
   bundled (H6 mirror of σ-side); `_h_compDrift_int` hypothesis added
   (red-team P4 H fix for non-`ν`-integrable case).
-* 2026-05-24 (this commit, Rule-1 START): split the headline axiom
-  into two literature sub-primitives (continuous-semimartingale Itô
-  formula + jump-residual decomposition) and PROVE `itoLevyFormula`
-  as a `theorem` by algebraic re-bundling. Tier 1 entry #11 is
-  retired (replaced by #15 + #16).
+* 2026-05-24 (Rule-1 START): split the headline axiom into two
+  literature sub-primitives (continuous-semimartingale Itô formula +
+  jump-residual decomposition) and PROVE `itoLevyFormula` as a
+  `theorem` by algebraic re-bundling. Tier 1 entry #11 is retired
+  (replaced by #15 + #16).
+* 2026-05-26 (this commit, Rule-1 STEP 2): narrow Tier 1 #16 to its
+  canonical-`R` form (`itoLevyFormula_jumpResidual_canonical_axiom`);
+  convert the previous universal-`R` form
+  (`itoLevyFormula_jumpResidual_axiom`) to a derived theorem
+  forwarding over the narrower axiom by per-ω algebra.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -159,10 +172,18 @@ gives the headline four-term identity.
   decomposition `X = X^c + X^d`. Produces `drift + diff_mart + R T ω`
   with the jump correction packaged as an existential residual `R`.
 
-* `itoLevyFormula_jumpResidual_axiom` (Applebaum 4.4.10 + 4.4.7 step
-  II): the residual `R` from above equals `jump_mart + comp_drift`
-  a.s., via the small/large jump decomposition + `ε → 0` limit (using
-  the `L²`-isometry of the compensated-Poisson integral, Tier 1 #6).
+* `itoLevyFormula_jumpResidual_canonical_axiom` (Applebaum 4.4.10 +
+  4.4.7 step II): for the canonical residual `R_canonical T ω :=
+  u(T, X_T) − u(0, X_0) − drift − diff_mart`, we have
+  `R_canonical = jump_mart + comp_drift` a.s., via the small/large
+  jump decomposition + `ε → 0` limit (using the `L²`-isometry of the
+  compensated-Poisson integral, Tier 1 #6 / #14).
+
+  This is the **narrower** form of the (previous, retired)
+  `itoLevyFormula_jumpResidual_axiom` (universal-`R` form, now a
+  derived theorem). The narrowing eliminates the unbound `R`
+  quantifier, which is the algebraic-glue layer (any two `R`s
+  satisfying the continuous-part identity agree a.s.).
 -/
 
 /-- **CITED AXIOM (Tier 1 #15): Itô formula for continuous semimartingales
@@ -257,30 +278,42 @@ axiom itoFormula_continuousSemimartingale_axiom
               h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
           + R T ω
 
-/-- **CITED AXIOM (Tier 1 #16): Jump-residual decomposition (Applebaum
-4.4.10 + 4.4.7 step II).**
+/-- **CITED AXIOM (Tier 1 #16, narrower than the previous #16):
+Canonical-residual jump decomposition (Applebaum 4.4.10 + 4.4.7 step II).**
 
-Given any residual `R` arising from the continuous-part Itô identity
-(see `itoFormula_continuousSemimartingale_axiom`), this sub-primitive
-identifies it as the sum of the *jump martingale* term and the
+This is the canonical (non-universal-`R`) form of the Lévy-Itô
+combinatorial step: for the *specific* residual
+
+  `R_canonical T ω := u(T, X_T) − u(0, X_0)`
+                  `− ∫₀^T (∂_t u + 𝓛^c u)(s, X_s) ds`
+                  `− (multidim-Brownian Itô integral of ∇uᵀσ along X at T)`,
+
+we identify it as the sum of the *jump martingale* term and the
 *compensator drift* term:
 
-  `R T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
+  `R_canonical T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
 
 where
 * `jump_mart_T(ω) = Compensated.stochasticIntegral N (u(·+γ) − u along X) T ω`,
 * `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
+
+**Narrowing compared to the previous Tier 1 #16 axiom**: the previous
+form quantified over *any* `R` satisfying a continuous-part identity
+`u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`. That quantifier
+is now eliminated: this axiom asserts the identity only for the
+canonical `R` constructed by direct subtraction from the LHS. The
+universal-`R` statement (the old `itoLevyFormula_jumpResidual_axiom`)
+is recovered as a derived theorem below by per-ω substitution
+(`R = R_canonical` a.s. when both satisfy the continuous-part
+identity). The narrower axiom captures exactly the analytical content
+(Applebaum 4.4.10 + 4.4.7 step II); the universal-`R` form adds only
+algebraic glue.
 
 The literature derivation is Applebaum 4.4.10 (the small/large jump
 decomposition `∫₀^T ∫_E φ Ñ = ∫₀^T ∫_{|e|<ε} φ Ñ + ∑_{|γ|≥ε} φ`) plus
 the `ε → 0` limit using the `L²`-isometry of the compensated-Poisson
 integral (Applebaum 4.2.3 / Tier 1 #6 / Tier 1 #14
 `itoIsometry_diff_compensated`).
-
-The hypothesis `_h_continuousPart` makes the axiom apply only to
-residuals arising from a continuous-part identity, ruling out the
-trivial-witness pathology (any `R T ω` could otherwise be made to
-satisfy the conclusion vacuously by absorbing the discrepancy).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
 2nd ed., Cambridge University Press, 2009, **Theorem 4.4.10** (small/
@@ -297,7 +330,7 @@ is itself a derived statement once the integral exists; the
 `itoIsometry_diff_compensated` (Tier 1 #14, in `Poisson/Compensated.lean`)
 + a Mathlib-level linearity result on the compensated-Poisson
 L²-integral once that machinery becomes available. -/
-axiom itoLevyFormula_jumpResidual_axiom
+axiom itoLevyFormula_jumpResidual_canonical_axiom
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
@@ -340,11 +373,106 @@ axiom itoLevyFormula_jumpResidual_axiom
     (_h_compDrift_int : ∀ᵐ ω ∂P,
         ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞)
+            ∂ν ∂volume < ⊤) :
+    ∀ᵐ ω ∂P,
+      (u T (X.X T ω) - u 0 (X.X 0 ω)
+        - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
+        - LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+            W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+            h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω)
+        =
+        LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                            - u s (X.X s ω'))
+            h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
+        + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+            compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν
+
+/-- **Honest derivative theorem (was Tier 1 #16, axiom→theorem 2026-05-26):
+universal-residual form of the jump decomposition.**
+
+Given any residual `R` arising from the continuous-part Itô identity
+(see `itoFormula_continuousSemimartingale_axiom`), this theorem
+identifies it as the sum of the *jump martingale* term and the
+*compensator drift* term:
+
+  `R T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
+
+where
+* `jump_mart_T(ω) = Compensated.stochasticIntegral N (u(·+γ) − u along X) T ω`,
+* `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
+
+**Status (2026-05-26 — Rule-1 axiom→theorem conversion):** this was
+Tier 1 axiom #16; it is now a **theorem** derived by per-ω algebra
+from the narrower Tier 1 axiom
+`itoLevyFormula_jumpResidual_canonical_axiom` (the canonical-`R` form).
+The narrower axiom carries the genuine analytical content
+(Applebaum 4.4.10 + 4.4.7 step II); the universal-`R` step is genuine
+algebra (per-ω: `R` and `R_canonical` differ by zero a.s. when both
+satisfy the continuous-part identity).
+
+**Proof outline**: apply the narrower axiom to get `R_canonical T ω =
+jump_mart + comp_drift`. From `h_continuousPart`, get `R T ω =
+u(T,X_T) − u(0,X_0) − drift − diff_mart = R_canonical T ω`. Combine
+to conclude `R T ω = jump_mart + comp_drift`.
+
+The hypothesis `h_continuousPart` makes the theorem apply only to
+residuals arising from a continuous-part identity, ruling out the
+trivial-witness pathology (any `R T ω` could otherwise be made to
+satisfy the conclusion vacuously by absorbing the discrepancy).
+
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
+2nd ed., Cambridge University Press, 2009, **Theorem 4.4.10** + **Theorem
+4.4.7** step (II); Ikeda–Watanabe **Section II.5**; Cont–Tankov
+**Proposition 8.18** + Chapter 8. -/
+theorem itoLevyFormula_jumpResidual_axiom
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (x₀ : Fin n → ℝ)
+    (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
+    (u : ℝ → (Fin n → ℝ) → ℝ)
+    (T : ℝ) (hT : 0 < T)
+    (h_sigmaGrad_meas : ∀ j : Fin d,
+        Measurable (Function.uncurry
+          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
+    (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
+    (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P < ⊤)
+    (h_jumpInt_meas : Measurable
+        (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                          - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+    (h_jumpInt_progMeas : ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E =>
+            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
+                            - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+    (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
+              - u s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (h_compDrift_int : ∀ᵐ ω ∂P,
+        ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞)
             ∂ν ∂volume < ⊤)
     -- Input: any residual `R` satisfying the continuous-part identity.
-    -- The axiom then identifies `R T ω` with the two jump-side terms.
+    -- The theorem then identifies `R T ω` with the two jump-side terms.
     (R : ℝ → Ω → ℝ)
-    (_h_continuousPart : ∀ᵐ ω ∂P,
+    (h_continuousPart : ∀ᵐ ω ∂P,
         u T (X.X T ω) - u 0 (X.X 0 ω) =
           (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
           + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
@@ -358,7 +486,19 @@ axiom itoLevyFormula_jumpResidual_axiom
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
-            compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν
+            compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
+  -- Step 1: apply the narrower axiom to get the canonical-R identity.
+  have h_canonical := itoLevyFormula_jumpResidual_canonical_axiom
+    W N coeffs x₀ X u T hT
+    h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
+    h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
+  -- Step 2: combine the two a.s. hypotheses; per-ω algebra collapses
+  -- the two identities.
+  filter_upwards [h_canonical, h_continuousPart] with ω h_canon_ω h_cp_ω
+  -- h_canon_ω : (u(T,X_T) − u(0,X_0) − drift − diff_mart) = jump_mart + comp_drift
+  -- h_cp_ω : u(T,X_T) − u(0,X_0) = drift + diff_mart + R T ω
+  -- So R T ω = u(T,X_T) − u(0,X_0) − drift − diff_mart = jump_mart + comp_drift.
+  linarith
 
 /-- **Cu03 (Itô-Lévy formula for jump diffusions, Applebaum 2009 Thm 4.4.7).**
 

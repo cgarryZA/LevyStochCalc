@@ -89,6 +89,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
+-- Itô-Lévy formula axioms + derived theorems:
+-- 2026-05-26: Tier 1 #16 narrowed to the canonical-`R` form
+-- (`itoLevyFormula_jumpResidual_canonical_axiom`); the previous
+-- universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a
+-- derived THEOREM forwarding over the narrower axiom by per-ω algebra.
+#print axioms LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
