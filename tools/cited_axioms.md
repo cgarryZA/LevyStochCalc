@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (12 currently live; #7 and #8 deleted 2026-05-22; #12, #13 added 2026-05-23 via theorem→axiom conversion — #13 is `jacodYor_representation_axiom` with the original-named `jacodYor_representation` retained as a thin forwarder; #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the Bielecki AE-quotient infrastructure landing in `PicardSpaceBieleckiComplete.lean` — see the "Honest derivative theorems" table below where `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter carrying a single explicit `sorry` baseline entry)
+## Tier 1: Honest cited axioms (13 currently live; #7 and #8 deleted 2026-05-22; #12, #13 added 2026-05-23 via theorem→axiom conversion; #13 was DECOMPOSED 2026-05-26 into two strictly narrower sub-axioms #13a + #13b, with the prior monolithic `jacodYor_representation_axiom` now demoted to a derived theorem — see entry #13/#13a/#13b below; the public `jacodYor_representation` is preserved as a thin forwarder; #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the Bielecki AE-quotient infrastructure landing in `PicardSpaceBieleckiComplete.lean` — see the "Honest derivative theorems" table below where `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter carrying a single explicit `sorry` baseline entry)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -127,14 +127,54 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
 * **Replacement plan**: When the wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is fully proven (Bielecki packaging + structure bridge + the descended Picard contraction chain), `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
 
-### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom`
+### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
-* **Statement**: Every L²-integrable `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration N).rightCont.seq T`-measurable random variable `ξ : Ω → ℝ` admits a representation `ξ = E[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)` a.s., with progressively-measurable square-integrable integrands `Z, U`, where the Brownian and compensated-Poisson integrals are pinned to `MultidimBrownianMotion.stochasticIntegral W Z ...` and `Compensated.stochasticIntegral N U ...` respectively.
-* **Reference**: Jacod, J. "Multivariate point processes: predictable projection, Radon-Nikodym derivatives, representation of martingales", Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34**.
-* **2026-05-23 conversion `theorem → axiom` (COMPLETED)**: previously a `theorem` with `sorry` body. The literature proof requires predictable projection / chaos decomposition machinery that Mathlib does not yet have. The honest representation is the `axiom jacodYor_representation_axiom` cited from Jacod 1976, with the downstream-facing `theorem jacodYor_representation` preserved as a thin forwarder over the axiom (signature unchanged, callers unaffected).
-* **Signature strength**: ξ measurability strengthened to `StronglyMeasurable[ℱ_T] ξ` (joint natural filtration at endpoint T) — required because martingale representation only holds for ξ measurable wrt the filtration at the endpoint. Both stochastic integrals fully pinned with per-component progressively-measurable + L² hypotheses bundled as existential witnesses (no trivial Z = U = 0 witness).
-* **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage).
-* **Replacement plan**: `theorem jacodYor_representation_axiom := <predictable projection + chaos decomposition>` (and inline the forwarder) when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
+On 2026-05-26 this axiom was demoted to a Lean `theorem` derived from a
+DECOMPOSITION into two strictly narrower Tier 1 sub-axioms (#13a + #13b
+below). The downstream-facing `jacodYor_representation` theorem is
+unchanged (still a thin forwarder; now over the derived theorem rather
+than over the previously-monolithic axiom).
+
+**Why the demotion**: the previous single axiom #13 conflated two
+independent classical results — the deep PRP content of Jacod 1976 and
+the standard classical bridge from L² random variables to càdlàg L²
+martingales. Splitting them surfaces where the actual mathematical
+difficulty lies (#13a) and pulls the bridge (#13b) into a narrower
+form that bottoms out in three independent Mathlib targets (Doob L²
+càdlàg regularization, Blumenthal 0-1 for the joint (W, N) filtration,
+condExp reproducibility — the last is already in Mathlib).
+
+**Original statement** (recoverable from git history prior to commit
+demoting #13): every L²-integrable `((⨆ i, naturalFiltration W_i) ⊔
+naturalFiltration N).rightCont.seq T`-measurable random variable
+`ξ : Ω → ℝ` admits a representation `ξ = E[ξ] + ∫_0^T Z_s · dW_s +
+∫_0^T ∫_E U_s(e) Ñ(ds, de)` a.s., with progressively-measurable
+square-integrable integrands `Z, U`, where the Brownian and
+compensated-Poisson integrals are pinned to
+`MultidimBrownianMotion.stochasticIntegral W Z ...` and
+`Compensated.stochasticIntegral N U ...` respectively.
+
+**Reference (original)**: Jacod, J. "Multivariate point processes:
+predictable projection, Radon-Nikodym derivatives, representation of
+martingales", Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253;
+Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
+Springer 2003, **Theorem III.4.34**.
+
+### 13a. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom`
+
+* **Statement**: For every L²-bounded càdlàg martingale `M` on the joint right-continuous filtration `ℱ = ((⨆ i, σ(W_i)) ⊔ σ(N)).rightCont`, there exist progressively-measurable square-integrable integrands `Z, U` such that `M_t = M_0 + ∫_0^t Z_s · dW_s + ∫_0^t ∫_E U_s(e) Ñ(ds, de)` a.s. at every `t ∈ [0, T]`. Both stochastic integrals are pinned to `MultidimBrownianMotion.stochasticIntegral` and `Compensated.stochasticIntegral` (canonical forms).
+* **Reference**: Jacod, J. (1975/76) Z. Wahrsch. Verw. Gebiete 31(3); Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34** (stated in EXACTLY the martingale-input form of this sub-axiom — the conditional-expectation construction for a generic L² random variable is handled separately by #13b below).
+* **Narrowness**: this is the LITERAL content of Jacod-Shiryaev III.4.34. It is the deep mathematical content of the two-source martingale representation theorem. No conditional-expectation / Doob-regularization step appears — those are factored out into #13b.
+* **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage at time of writing).
+* **Replacement plan**: `theorem jacodYor_PRP_martingale_axiom := <predictable projection + chaos decomposition>` when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
+
+### 13b. `LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form_axiom`
+
+* **Statement**: For every L² random variable `ξ : Ω → ℝ` that is `ℱ_T`-measurable on the joint right-continuous (W, N) filtration, there exists a càdlàg L²-bounded `ℱ`-martingale `M` with `M_0 = ∫ ξ ∂P` a.s. (the deterministic expectation) and `M_T = ξ` a.s.
+* **Reference**: Karatzas-Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem I.3.13** (Doob L² càdlàg regularization for right-continuous filtrations); Karatzas-Shreve **Theorem 2.7.17** (Blumenthal 0-1 for the Brownian factor, giving `𝔼[ξ | ℱ_0] = ∫ ξ ∂P` a.s.); Applebaum **Theorem 2.3.7** (analog Blumenthal-style 0-1 for Poisson random measures); Mathlib's `MeasureTheory.condExp_of_stronglyMeasurable` (condExp reproducibility, `𝔼[ξ | ℱ_T] = ξ` a.s.).
+* **Narrowness**: this is a STANDARD CLASSICAL BUNDLE of three independent results: (1) Doob L² càdlàg modification on a right-continuous filtration, (2) Blumenthal 0-1 for the joint (W, N) filtration, (3) conditional-expectation reproducibility. Each has independent Mathlib activity / formalization roadmap. The bundle is strictly narrower than the original #13 because it does NOT require any chaos decomposition / predictable projection machinery — only classical martingale + filtration analysis.
+* **Mathlib status (May 2026)**: Doob L² càdlàg regularization is NOT yet in Mathlib but is on the roadmap (independent of BM construction; requires only `MeasureTheory.Martingale` + `Filtration.IsRightContinuous`). Blumenthal-for-BM waits on the BM construction (Tier 1 #1). `MeasureTheory.condExp_of_stronglyMeasurable` is already in Mathlib.
+* **Replacement plan**: `theorem condExp_to_PRP_martingale_form_axiom := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>` when the three Mathlib pieces above land.
 
 ### 14. `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
@@ -201,12 +241,15 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 2 = quadVar) |
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
-| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (Tier 1 #13) |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` | derived theorem combining Tier 1 sub-axioms #13a (PRP for càdlàg L² (W, N)-martingales) + #13b (condExp→PRP-martingale bridge); was Tier 1 axiom #13 prior to 2026-05-26 decomposition |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (now a derived theorem transitively over Tier 1 #13a + #13b) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | wrap-up theorem in `PicardSpaceBieleckiComplete.lean` (single explicit baseline `sorry` for the entire Picard chain; ex-Tier-1-axiom #14 was demoted 2026-05-26 to a forwarder over this wrap-up) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (ex-Tier-1-axiom #14, demoted 2026-05-26 — name retained for downstream stability) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem; transitively over `_via_aeQuot`) |
 | `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (transitively over `_via_aeQuot`'s sorry) |
 | `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | `bsdej_path_regularity` (Tier 1 #10; specializes the polynomial-exponential constant to a single `C : ℝ` evaluated at `(T, L, ‖ξ‖_L²)` so downstream chapters can take `ψ(h) := C · h`) |
+| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom` | derived theorem (was Tier 1 axiom #16 prior to 2026-05-26 narrowing); forwards over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity) |
+| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | derived theorem forwarding over Tier 1 #15 `itoFormula_continuousSemimartingale_axiom` + Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` (transitively via the universal-`R` derived theorem `itoLevyFormula_jumpResidual_axiom`); the previous Tier 1 #11 axiom (`itoLevyFormula`) was retired 2026-05-24 |
 
 ### Literature-pinned baseline-sorry theorems (count: 1 — 2026-05-26 update)
 
@@ -295,9 +338,19 @@ Resolved on 2026-05-23 (formerly a baseline entry):
   `jacodYor_representation_axiom` (Tier 1 #13). The integrand pinning
   to `MultidimBrownianMotion.stochasticIntegral` and
   `Compensated.stochasticIntegral` (canonical integrals) is at the
-  statement level — no trivial-witness leakage. The axiom carries the
-  full literature dependency; the theorem is now genuinely axiom-clean
-  (modulo the cited axiom + Lean stdlib).
+  statement level — no trivial-witness leakage.
+
+Further on 2026-05-26:
+* `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom`
+  — was Tier 1 axiom #13. Demoted to a derived `theorem` forwarding
+  through the strictly narrower Tier 1 sub-axiom pair #13a + #13b. The
+  derivation is a 3-step composition: (1) apply #13b to build the càdlàg
+  L² conditional-expectation martingale `M` with `M_0 = E[ξ]` a.s. and
+  `M_T = ξ` a.s.; (2) apply #13a to extract `(Z, U)` such that
+  `M_T = M_0 + ∫Z dW + ∫U dÑ` a.s.; (3) combine to get the L²-random-
+  variable form. Public name `jacodYor_representation_axiom` retained
+  for downstream stability — it's now in the "Honest derivative theorems"
+  table rather than the Tier 1 axiom list.
 
 ### Recursive audit (2026-05-11) — internal classification
 
@@ -395,13 +448,16 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **12 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
-  #13 added 2026-05-23 via theorem→axiom conversion; #13 is the explicit
-  `jacodYor_representation_axiom`; #14 was added 2026-05-23 then
-  demoted axiom→theorem 2026-05-26 — see the wrap-up theorem
-  `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` listed in
-  the honest-derivative-theorems table), each with paper reference +
-  Mathlib status + replacement plan.
+* **13 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
+  #13 added 2026-05-23 via theorem→axiom conversion; on 2026-05-26
+  axiom #13 was DECOMPOSED into the two strictly narrower sub-axioms
+  #13a `jacodYor_PRP_martingale_axiom` + #13b
+  `condExp_to_PRP_martingale_form_axiom`, with the previously-monolithic
+  `jacodYor_representation_axiom` now demoted to a derived theorem; #14
+  was added 2026-05-23 then demoted axiom→theorem 2026-05-26 — see the
+  wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
+  listed in the honest-derivative-theorems table), each with paper
+  reference + Mathlib status + replacement plan.
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited
   + the single baseline-sorry wrap-up theorem.
 * `sorryAx` in the public API restricted to the 1 baseline-acknowledged entry

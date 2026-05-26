@@ -25,29 +25,49 @@ with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
 * Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
   Springer 2003, Theorem III.4.34.
 
-## Status (2026-05-23, Rule-0 conversion: theorem → axiom)
+## Status (2026-05-26, Tier 1 #13 axiom → narrower-axiom decomposition)
 
-`jacodYor_representation` below is now a **Tier 1 cited axiom #13**
-(Jacod 1976 / Jacod-Shiryaev III.4.34). Previously it was a `theorem`
-with `sorry` body — per Rule 0, that wording is DISHONEST (claims
-"proven theorem" while the content is unproven). The Jacod 1976 proof
-requires the full predictable-projection / chaos-decomposition apparatus
-that Mathlib does not yet have; building it from scratch would take
-multi-day Lean work and would still bottom out at Tier 1 axioms anyway.
-The honest representation is `axiom` cited from Jacod 1976 — the claim
-then matches the content exactly.
+Previously a single Tier 1 axiom `jacodYor_representation_axiom`. Now
+**decomposed** into two strictly narrower Tier 1 axioms:
+
+* `jacodYor_PRP_martingale_axiom` (Tier 1 #13a) — the LITERAL content of
+  Jacod-Shiryaev III.4.34: predictable representation property for càdlàg
+  L² (W, N)-martingales. This is the deep mathematical content (the
+  predictable-projection / chaos-decomposition machinery of Jacod 1976).
+* `condExp_to_PRP_martingale_form_axiom` (Tier 1 #13b) — the standard
+  classical bridge: the càdlàg L² modification of the conditional-
+  expectation martingale `M_t := E[ξ | F_t]` is a martingale on the
+  joint (W, N) right-continuous filtration with `M_0 = E[ξ]` a.s.
+  (Blumenthal-flavor 0-1 triviality of F_0) and `M_T = ξ` a.s. (since
+  ξ is F_T-measurable). This is **strictly narrower** because each
+  conjunct is a known classical theorem with a separate citation
+  (Karatzas-Shreve I.3.13 for Doob L² càdlàg regularization; K-S 2.7.17
+  for Blumenthal 0-1; `MeasureTheory.condExp_of_stronglyMeasurable` is
+  already in Mathlib).
+
+The previous single `jacodYor_representation_axiom` is now **derived as a
+theorem** from #13a + #13b. The downstream-facing
+`jacodYor_representation` theorem is unchanged (still a thin forwarder,
+now over the derived theorem rather than over the previously-monolithic
+axiom).
 
 **Signature: FULLY PINNED** (both Brownian and compensated-Poisson integrals).
 The conclusion uses `MultidimBrownianMotion.stochasticIntegral W Z ...`
 and `Compensated.stochasticIntegral N U ...` as the literal RHS terms,
 with the per-component progressive-measurability + L² hypotheses bundled
 as existential witnesses. This means a trivial `Z = 0, U = 0` witness no
-longer works (it would force ξ = 𝔼[ξ] a.s., which is false in general
-for σ(W, N)-measurable ξ).
+longer works.
 
-**Replacement plan**: when Mathlib gains predictable-projection +
-chaos-decomposition + the L²-Itô-Lévy integral apparatus, this `axiom`
-becomes a `theorem` derived from Tier 1 #5 + #6.
+**Replacement plan**:
+* `jacodYor_PRP_martingale_axiom` → theorem when Mathlib gains chaos
+  decomposition / predictable projection for the (W, N) filtration
+  (waits on Tier 1 #5 + #6 + extensive PRP infrastructure).
+* `condExp_to_PRP_martingale_form_axiom` → theorem when Mathlib gains
+  (i) Doob L² càdlàg modification for right-continuous filtrations
+  (Karatzas-Shreve I.3.13), (ii) Blumenthal-style 0-1 / F_0 triviality
+  for the joint (W, N) filtration (K-S 2.7.17 + analog for Poisson
+  random measures). Both are well-defined Mathlib targets independent
+  of the PRP work.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -60,36 +80,127 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- **Jacod-Yor martingale representation (Jacod 1976).**
+/-- Abbreviation for the joint right-continuous (W, N) filtration appearing
+in every statement below. Locally bound to keep statements legible. -/
+noncomputable abbrev jointFiltration
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) :
+    MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω› :=
+  ((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
+    ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont
 
-Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a
-representation
+/-- **Predictable representation property (PRP) for càdlàg L² (W, N)-martingales
+— Jacod-Shiryaev III.4.34, Tier 1 cited axiom #13a.**
 
-  `ξ = 𝔼[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)  a.s.`
+For every L²-bounded càdlàg martingale `M` on the joint right-continuous
+filtration `ℱ = ((⨆ i, σ(W_i)) ⊔ σ(N)).rightCont`, there exist
+predictable square-integrable integrands `Z, U` such that
 
-with predictable square-integrable integrands `Z : ℝ → Ω → (Fin d → ℝ)`
-and `U : ℝ → Ω → E → ℝ`, where the Brownian and compensated-Poisson
-integrals are the **canonical** ones (`MultidimBrownianMotion.stochasticIntegral`
-and `Compensated.stochasticIntegral`).
+  `M_t = M_0 + ∫_0^t Z_s · dW_s + ∫_0^t ∫_E U_s(e) Ñ(ds, de)  a.s.`
+
+at every `t ∈ [0, T]`.
+
+This is the LITERAL statement of Jacod-Shiryaev III.4.34 (or equivalently
+Jacod 1976 Theorem 3.75). It is the **deep mathematical content** of the
+two-source martingale representation; the conditional-expectation
+construction `M_t := E[ξ | ℱ_t]` for a generic L² random variable `ξ`
+appears in the next axiom `condExp_to_PRP_martingale_form_axiom` and is
+ELEMENTARY classical bookkeeping by comparison.
 
 **Reference**: Jacod, J. "Multivariate point processes: predictable
 projection, Radon-Nikodym derivatives, representation of martingales",
 Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253; Jacod-Shiryaev,
 *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003,
-**Theorem III.4.34**.
+**Theorem III.4.34**. The cited theorem in Jacod-Shiryaev is stated in
+EXACTLY the martingale-input form of this axiom. -/
+axiom jacodYor_PRP_martingale_axiom
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (T : ℝ) (_hT : 0 < T)
+    -- The càdlàg L²-bounded martingale input.
+    (M : ℝ → Ω → ℝ)
+    (_h_M_mart : MeasureTheory.Martingale M (jointFiltration W N) P)
+    (_h_M_sq_int : ∫⁻ ω, (‖M T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
+    (_h_M_cadlag : ∀ᵐ ω ∂P, ∀ t : ℝ,
+      Filter.Tendsto (fun s => M s ω) (nhdsWithin t (Set.Ioi t)) (nhds (M t ω))
+        ∧ ∃ L : ℝ,
+            Filter.Tendsto (fun s => M s ω) (nhdsWithin t (Set.Iio t)) (nhds L)) :
+    -- Same (Z, U) existential witnesses as `jacodYor_representation_axiom`.
+    ∃ (Z : ℝ → Ω → (Fin d → ℝ))
+      (h_Z_meas : ∀ i : Fin d,
+        Measurable (Function.uncurry (fun ω s => Z s ω i)))
+      (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+          (@Prod.instMeasurableSpace Ω ℝ
+            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ => Z p.2 p.1 i))
+      (h_Z_sq_int : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (U : ℝ → Ω → E → ℝ)
+      (h_U_meas : Measurable
+        (fun (p : Ω × ℝ × E) =>
+          (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_progMeas : ∀ t : ℝ,
+        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+          (@Prod.instMeasurableSpace Ω (ℝ × E)
+            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+            inferInstance)
+          (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+      (h_U_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
+            ∂ν ∂volume ∂P < ⊤),
+      (∀ᵐ ω ∂P, M T ω = M 0 ω
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
+            W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
 
-**Status (2026-05-23, Rule-0 conversion COMPLETED)**: previously a
-`theorem` with `sorry` body — per Rule 0, that wording was DISHONEST
-(claimed "proven theorem" while the content was unproven). The Jacod
-1976 proof requires the full predictable-projection / chaos-decomposition
-apparatus that Mathlib does not yet have; building it from scratch would
-take multi-day Lean work and would still bottom out at Tier 1 axioms
-anyway. The honest representation is the `axiom`
-`jacodYor_representation_axiom` below, cited from Jacod 1976 — the
-claim then matches the content exactly. `jacodYor_representation` is
-preserved as a thin forwarding `theorem` so all downstream callers
-remain stable. -/
-axiom jacodYor_representation_axiom
+/-- **Conditional-expectation martingale càdlàg modification + endpoint
+identification — Tier 1 cited axiom #13b.**
+
+For every L² random variable `ξ : Ω → ℝ` that is `ℱ_T`-measurable on the
+joint right-continuous (W, N) filtration, there exists a càdlàg
+L²-bounded `ℱ`-martingale `M` with `M_0 = ∫ ξ ∂P` a.s. (i.e. `M_0` is
+the deterministic expectation, NOT just `E[ξ | ℱ_0]`) and `M_T = ξ`
+a.s.
+
+This packages THREE standard classical results:
+
+1. **Doob L² càdlàg regularization** (Karatzas-Shreve, *Brownian Motion
+   and Stochastic Calculus*, Springer 1991, **Theorem I.3.13**): for a
+   right-continuous filtration, every L¹ martingale admits a càdlàg
+   modification.
+2. **Blumenthal 0-1 law for the joint (W, N) filtration** (Karatzas-
+   Shreve **Theorem 2.7.17** for the Brownian factor; analog for
+   Poisson random measures via Itô-Nisio / Applebaum 2.3.7): the right-
+   continuous augmentation `ℱ_0+` is P-trivial, hence
+   `𝔼[ξ | ℱ_0] = ∫ ξ ∂P` a.s.
+3. **Conditional-expectation reproducibility** (Mathlib's
+   `MeasureTheory.condExp_of_stronglyMeasurable`): `𝔼[ξ | ℱ_T] = ξ`
+   a.s. when ξ is ℱ_T-measurable and integrable.
+
+The bundle is strictly narrower than `jacodYor_representation_axiom`:
+no chaos decomposition / predictable projection is required, only
+classical martingale + filtration machinery. Each of items 1, 2, 3
+above has independent Mathlib activity (Doob regularization is on the
+roadmap, Blumenthal-for-BM gets axiom-replaced when BM lands, condExp
+is already there). When all three are usable in Mathlib, this axiom
+collapses to a 3-line composite.
+
+**Reference**: Karatzas-Shreve **Theorem I.3.13** (Doob L² càdlàg
+regularization); Karatzas-Shreve **Theorem 2.7.17** (Blumenthal 0-1
+for Brownian); Mathlib's `MeasureTheory.condExp_of_stronglyMeasurable`
+(condExp reproducibility — not citable, library lemma). -/
+axiom condExp_to_PRP_martingale_form_axiom
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
@@ -98,10 +209,55 @@ axiom jacodYor_representation_axiom
     (T : ℝ) (_hT : 0 < T)
     (ξ : Ω → ℝ)
     (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-        ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont.seq T)
-      ξ)
+      ((jointFiltration W N).seq T) ξ)
     (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    ∃ (M : ℝ → Ω → ℝ),
+      MeasureTheory.Martingale M (jointFiltration W N) P
+      ∧ (∫⁻ ω, (‖M T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
+      ∧ (∀ᵐ ω ∂P, ∀ t : ℝ,
+          Filter.Tendsto (fun s => M s ω)
+            (nhdsWithin t (Set.Ioi t)) (nhds (M t ω))
+            ∧ ∃ L : ℝ,
+                Filter.Tendsto (fun s => M s ω)
+                  (nhdsWithin t (Set.Iio t)) (nhds L))
+      ∧ (∀ᵐ ω ∂P, M 0 ω = (∫ ω', ξ ω' ∂P))
+      ∧ (∀ᵐ ω ∂P, M T ω = ξ ω)
+
+/-- **Jacod-Yor martingale representation (Jacod 1976), L² random-variable
+form — DERIVED THEOREM (formerly Tier 1 axiom #13).**
+
+Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a
+representation
+
+  `ξ = 𝔼[ξ] + ∫_0^T Z_s · dW_s + ∫_0^T ∫_E U_s(e) Ñ(ds, de)  a.s.`
+
+with predictable square-integrable integrands `Z, U`.
+
+**Status (2026-05-26)**: this was previously the single Tier 1 axiom
+`jacodYor_representation_axiom`. It is now derived from the two
+narrower Tier 1 axioms:
+
+* `jacodYor_PRP_martingale_axiom` (#13a — the deep PRP content)
+* `condExp_to_PRP_martingale_form_axiom` (#13b — the classical bridge)
+
+The derivation is a straightforward composition:
+
+1. By #13b, build a càdlàg L² martingale `M` with `M_0 = E[ξ]` a.s.
+   and `M_T = ξ` a.s.
+2. By #13a applied to `M`, get `(Z, U)` such that
+   `M_T = M_0 + ∫Z dW + ∫U dÑ` a.s.
+3. Combine: `ξ = M_T = M_0 + ∫Z dW + ∫U dÑ = E[ξ] + ∫Z dW + ∫U dÑ` a.s. -/
+theorem jacodYor_representation_axiom
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (T : ℝ) (_hT : 0 < T)
+    (ξ : Ω → ℝ)
+    (h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((jointFiltration W N).seq T) ξ)
+    (h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     ∃ (Z : ℝ → Ω → (Fin d → ℝ))
       (h_Z_meas : ∀ i : Fin d,
         Measurable (Function.uncurry (fun ω s => Z s ω i)))
@@ -132,14 +288,33 @@ axiom jacodYor_representation_axiom
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
+            (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) := by
+  -- Step 1: Apply #13b to build the càdlàg L² martingale M = E[ξ | ℱ_·].
+  obtain ⟨M, h_M_mart, h_M_sq_int, h_M_cadlag, h_M0_eq, h_MT_eq⟩ :=
+    condExp_to_PRP_martingale_form_axiom W N T _hT ξ h_meas h_sq_int
+  -- Step 2: Apply #13a (PRP for càdlàg L² (W, N)-martingales) to M.
+  obtain ⟨Z, h_Z_meas, h_Z_progMeas, h_Z_sq_int,
+          U, h_U_meas, h_U_progMeas, h_U_sq, h_repr⟩ :=
+    jacodYor_PRP_martingale_axiom W N T _hT M h_M_mart h_M_sq_int h_M_cadlag
+  -- Step 3: Package the witnesses + combine the three a.s. equalities.
+  refine ⟨Z, h_Z_meas, h_Z_progMeas, h_Z_sq_int,
+          U, h_U_meas, h_U_progMeas, h_U_sq, ?_⟩
+  filter_upwards [h_M0_eq, h_MT_eq, h_repr] with ω hM0 hMT hRepr
+  -- ξ ω = M T ω  (from h_MT_eq)
+  --     = M 0 ω + ∫Z dW + ∫U dÑ  (from h_repr)
+  --     = E[ξ] + ∫Z dW + ∫U dÑ  (from h_M0_eq)
+  rw [← hMT, hRepr, hM0]
 
 /-- **Jacod-Yor martingale representation (Jacod 1976) — forwarding theorem.**
 
-Thin forwarder over the Tier 1 cited axiom `jacodYor_representation_axiom`.
+Thin forwarder over the derived theorem `jacodYor_representation_axiom`
+(formerly Tier 1 axiom #13; as of 2026-05-26 derived from the narrower
+Tier 1 axioms #13a `jacodYor_PRP_martingale_axiom` + #13b
+`condExp_to_PRP_martingale_form_axiom`).
+
 Stating this conclusion as a `theorem` here keeps every downstream caller
 stable while making the dependency on Jacod 1976 explicit via the
-underlying `axiom`. -/
+underlying narrower axiom pair. -/
 theorem jacodYor_representation
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

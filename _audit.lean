@@ -92,6 +92,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
 -- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
+-- 2026-05-26: axiom #13 decomposed into two narrower Tier 1 sub-axioms
+-- (#13a = PRP for càdlàg L² (W, N)-martingales; #13b = condExp-to-PRP bridge).
+-- The previously-monolithic `jacodYor_representation_axiom` is now a derived
+-- THEOREM forwarding through the pair; the public `jacodYor_representation`
+-- thin-forwarder is unchanged.
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form_axiom
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom
 #print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
 #print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
 
