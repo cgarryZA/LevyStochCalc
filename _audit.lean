@@ -68,6 +68,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_generic
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
+-- Ex-Tier-1-axiom #14 chain (axiom→theorem 2026-05-26; wrap-up carries the
+-- single explicit baseline `sorry` for the entire Picard chain):
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom
+#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
 -- σ-side L² Lipschitz bound (Agent 1, PicardSigmaLipschitz.lean; depends on
 -- new Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_diff_lipschitz_sq_componentwise

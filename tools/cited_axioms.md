@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (13 currently live; #7 and #8 deleted 2026-05-22; #12, #13, #14 added 2026-05-23 via theorem→axiom conversion — #13 is `jacodYor_representation_axiom` with the original-named `jacodYor_representation` retained as a thin forwarder; #14 is `picardFixedPoint_jumpDiffusion_exists_unique_axiom` with the original-named `picardFixedPoint_jumpDiffusion_exists_unique` retained as a thin forwarder, backing the headline `JumpDiffusion.exists_unique`)
+## Tier 1: Honest cited axioms (12 currently live; #7 and #8 deleted 2026-05-22; #12, #13 added 2026-05-23 via theorem→axiom conversion — #13 is `jacodYor_representation_axiom` with the original-named `jacodYor_representation` retained as a thin forwarder; #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the Bielecki AE-quotient infrastructure landing in `PicardSpaceBieleckiComplete.lean` — see the "Honest derivative theorems" table below where `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter carrying a single explicit `sorry` baseline entry)
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -122,10 +122,10 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 
 * **Statement**: Under Lipschitz hypothesis on `(μ, σ, γ)`, the jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)` with `X_0 = x_0` admits a strong solution (with càdlàg paths, L²-sup-bounded on every bounded interval) that is a.s. unique.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 6.2.9**; Ikeda-Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, Chapter IV.
-* **2026-05-23 refactor + axiomatization (COMPLETED)**: the theorem moved out of `Ito/Setting.lean` and into `Ito/PicardBanach.lean`, where it forwards through a SINGLE intermediate `picardFixedPoint_jumpDiffusion_exists_unique` (the SDE-specialised Banach fixed-point output). That intermediate was previously a `theorem` with a `sorry` body; it has now been converted to a thin forwarder over the new Tier 1 cited axiom `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (entry #14 below). Consequently `JumpDiffusion.exists_unique` is no longer sorryAx-tainted — its transitive axiom dependency surfaces #14 instead of `sorryAx`. The qualified name `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` is preserved by re-opening the namespace in `PicardBanach.lean`. Previous status: previously a `theorem` with direct-`sorry` body in `Setting.lean`; per Rule 0, that was a misleading representation (the implementation was effectively unproven).
+* **2026-05-23 refactor + axiomatization (COMPLETED)**: the theorem moved out of `Ito/Setting.lean` and into `Ito/PicardBanach.lean`, where it forwards through a SINGLE intermediate `picardFixedPoint_jumpDiffusion_exists_unique` (the SDE-specialised Banach fixed-point output). That intermediate was previously a `theorem` with a `sorry` body; it was converted on 2026-05-23 to a thin forwarder over the (then-)Tier-1 axiom `picardFixedPoint_jumpDiffusion_exists_unique_axiom`. On 2026-05-26 the axiom was further demoted to a theorem (forwarding through the wrap-up `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpaceBieleckiComplete.lean`, which carries a single explicit baseline `sorry`). Consequently `JumpDiffusion.exists_unique` is sorryAx-baselined (via the wrap-up) — its transitive axiom dependency now surfaces `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`'s sorry rather than a standalone axiom. The qualified name `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` is preserved by re-opening the namespace in `PicardBanach.lean`.
 * **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness without this).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
-* **Replacement plan**: When the underlying axiom #14 becomes a theorem (full Picard iteration + Bielecki packaging + structure bridge), `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
+* **Replacement plan**: When the wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is fully proven (Bielecki packaging + structure bridge + the descended Picard contraction chain), `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
 
 ### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom`
 
@@ -136,16 +136,44 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage).
 * **Replacement plan**: `theorem jacodYor_representation_axiom := <predictable projection + chaos decomposition>` (and inline the forwarder) when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
 
-### 14. `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom`
+### 14. `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
-* **Statement**: Under Lipschitz hypothesis on `(μ, σ, γ)`, the jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)` with `X_0 = x_0` admits a `JumpDiffusion W N coeffs x₀` solution (with càdlàg paths, L²-sup-bounded on every bounded interval, satisfying the full SDE integral equation with all per-row σ + γ measurability + L²-bound witnesses bundled in `is_solution`) that is a.s.-pairwise-unique (any two solutions agree a.s. at every `t ≥ 0`).
-* **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 6.2.9** (Picard iteration in `S²` for jump-diffusion SDEs with Lipschitz coefficients — bounds the Banach fixed-point output of the Bielecki β-norm contraction); Ikeda-Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, **Chapter IV** (jump SDE strong existence + uniqueness via Picard iteration).
-* **2026-05-23 conversion `theorem → axiom` (COMPLETED)**: previously a `theorem` with `sorry` body (`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`). The literature proof requires three independent pieces of substantive infrastructure not yet in the codebase: (1) `MetricSpace (SBoundedProcess P T)` + `CompleteSpace` instance with the *Bielecki β-norm metric* on the `S²` Banach space of càdlàg L²-bounded processes (the discrete-metric instances added in `Ito/PicardSpace.lean` satisfy the typeclass obligation but are not the literature metric — the substantive contraction estimate `picardStep_bielecki_contraction` operates against `bieleckiNorm` directly, not against the discrete `dist`); (2) `Φ : SBoundedProcess P T → SBoundedProcess P T` lifting of `picardStep` (promoting the Picard map from `ℝ → Ω → (Fin n → ℝ)` to the structured `S²` space, requires showing `picardStep` preserves joint measurability + càdlàg + L²-sup-bound — `Ito/PicardSelfMap.lean` provides the well-typed lift but takes the output-field hypotheses as explicit parameters since BDG is missing from Mathlib); (3) bridging an `S²` fixed point back into the `JumpDiffusion` structure (`is_solution`, `initial_value`, `sup_L2`, `cadlag_paths`, `measurable_path` fields). The Bielecki contraction estimate itself IS proven downstream in `Ito/PicardContraction.lean` as `picardStep_bielecki_contraction` (and tightened in `Ito/PicardContractionTight.lean`), combining the per-component drift / diffusion / jump L²-Lipschitz bounds from `Picard.lean`, `PicardSigmaLipschitz.lean`, `PicardGammaLipschitz.lean` (the latter two depending on Tier 1 axioms `itoIsometry_diff_brownian`, `itoIsometry_diff_compensated`). The honest representation is `axiom picardFixedPoint_jumpDiffusion_exists_unique_axiom` cited from Applebaum 6.2.9 — the claim then matches the content exactly. `picardFixedPoint_jumpDiffusion_exists_unique` is preserved as a thin forwarding `theorem` so all downstream callers (notably `JumpDiffusion.exists_unique`) remain stable.
-* **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness without this); produces a CONCRETE `JumpDiffusion` (all six fields populated — `X`, `measurable_path`, `initial_value`, `sup_L2`, `cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at every `t ≥ 0` (the literature uniqueness conclusion). No trivial constant-path witness satisfies this combination of fields for generic `(μ, σ, γ)`: the constant `X t ω = x₀` fails `is_solution` because the integrals `∫₀^t μ(s, x₀) ds`, `∫₀^t σ(s, x₀) dW_s`, `∫₀^t ∫_E γ(s, x₀, e) Ñ(ds, de)` don't vanish for nontrivial coefficients.
-* **Why a separate axiom**: this is the SDE-specialised packaging of the Banach fixed-point output from `picardFixedPoint_generic` (Mathlib `ContractingWith.fixedPoint`) into the `JumpDiffusion` structure. The Banach shim `picardFixedPoint_of_exists` already discharges the abstract existence-uniqueness when the contraction is available, but the SDE-specific packaging (steps 1-3 above) does not yet have Mathlib-side primitives.
-* **Downstream usage**: `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the headline literature theorem — re-opens the `Setting` namespace inside `PicardBanach.lean` so the qualified name is preserved across the file boundary).
-* **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence (Karatzas-Shreve 5.2 / Le Gall 8.1) is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure (Tier 1 #5 + #6).
-* **Replacement plan**: `theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom := <Picard iteration proof>` when (a) Tier 1 #5 + #6 are theorems, (b) the Bielecki-norm Banach packaging on `SBoundedProcess` is built (`MetricSpace` + `CompleteSpace` instances under the literature metric, replacing the placeholder discrete-metric instances in `PicardSpace.lean`), (c) the `picardStep` self-map lift `Φ : SBoundedProcess → SBoundedProcess` is constructed with the σ/γ measurability + L²-bound preservation proofs (extending the `picardStepOnS2` skeleton in `PicardSelfMap.lean`), and (d) the `S²` fixed point → `JumpDiffusion` structure bridge is built. Once the axiom becomes a theorem, `JumpDiffusion.exists_unique` (the public-facing theorem) inherits soundness automatically with no source-level changes.
+On 2026-05-26 this axiom was demoted to a Lean `theorem` forwarding through
+the wrap-up `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
+`LevyStochCalc/Ito/PicardSpaceBieleckiComplete.lean`. The wrap-up theorem
+carries a SINGLE explicit `sorry` collecting the entire literature Picard
+chain (Applebaum 6.2.9 / Ikeda-Watanabe IV); the chain breakdown is in
+that file's module docstring. The forwarder `picardFixedPoint_jumpDiffusion_exists_unique_axiom`
+is now listed in the "Honest derivative theorems" table below; the
+single baseline-sorry entry in `tools/sorry_baseline.txt` is
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`.
+
+**Why the demotion**: the Bielecki AE-quotient infrastructure landed in
+`PicardSpaceBielecki.lean` (Agent 3 integration commit 2c64e97) plus
+the wrap-up bridge in `PicardSpaceBieleckiComplete.lean` (this session).
+Together they expose the literature `S²([0, T]; ℝⁿ)` Banach space and
+the descended Picard contraction map at the type level, so the
+existence-uniqueness conclusion of Applebaum 6.2.9 is now a real Lean
+theorem statement (not a black-box axiom). The substantive analytical
+content — Lp completeness for the Bielecki sup norm, càdlàg
+modification descent, integrand ae-equivalence respect, AEQuot fixed
+point → JumpDiffusion bridge — remains as the single sorry, to be
+discharged when the corresponding Mathlib infrastructure lands or when
+the project formalizes Doob regularization + Lp Bielecki sup norm
+completeness directly.
+
+**Original statement** (recoverable from git history prior to commit
+demoting #14): under Lipschitz hypothesis on `(μ, σ, γ)`, the
+jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E
+γ(t, X_{t-}, e) Ñ(dt, de)` with `X_0 = x_0` admits a `JumpDiffusion
+W N coeffs x₀` solution (with càdlàg paths, L²-sup-bounded on every
+bounded interval, satisfying the full SDE integral equation) that is
+a.s.-pairwise-unique (any two solutions agree a.s. at every `t ≥ 0`).
+
+**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
+2nd ed., CUP 2009, **Theorem 6.2.9**; Ikeda-Watanabe, *Stochastic
+Differential Equations and Diffusion Processes*, North-Holland 1989,
+**Chapter IV**.
 
 ## Honest derivative theorems (proven from cited axioms)
 
@@ -174,28 +202,40 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (Tier 1 #13) |
-| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (Tier 1 #14) |
-| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (Tier 1 #14 transitively) |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | wrap-up theorem in `PicardSpaceBieleckiComplete.lean` (single explicit baseline `sorry` for the entire Picard chain; ex-Tier-1-axiom #14 was demoted 2026-05-26 to a forwarder over this wrap-up) |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (ex-Tier-1-axiom #14, demoted 2026-05-26 — name retained for downstream stability) |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem; transitively over `_via_aeQuot`) |
+| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (transitively over `_via_aeQuot`'s sorry) |
 | `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | `bsdej_path_regularity` (Tier 1 #10; specializes the polynomial-exponential constant to a single `C : ℝ` evaluated at `(T, L, ‖ξ‖_L²)` so downstream chapters can take `ψ(h) := C · h`) |
 
-### Literature-pinned baseline-sorry theorems (count: 0 — fully eliminated 2026-05-23)
+### Literature-pinned baseline-sorry theorems (count: 1 — 2026-05-26 update)
 
-**2026-05-23 update**: BOTH literature-pinned sorry-bodied theorems
-are now thin forwarders over Tier 1 cited axioms:
-* `jacodYor_representation` → `jacodYor_representation_axiom` (entry #13).
-* `picardFixedPoint_jumpDiffusion_exists_unique` →
-  `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (entry #14),
-  which in turn backs the headline `JumpDiffusion.exists_unique`
-  (sole previous baseline entry — now sorryAx-free).
-Per Rule 0, this is HONEST (theorem-with-axiom-body matches claim;
-axiom matches literature) where the previous `theorem ... := by sorry`
-was DISHONEST (claimed proven, was unproven). `tools/sorry_baseline.txt`
-is now EMPTY; the lint script enforces sorryAx = 0 across the entire
-library. Future Picard work continues in `PicardSpace.lean` (typeclass
-instances), `PicardSelfMap.lean` (`S²` self-map lift), and
-`PicardContraction.lean` / `PicardContractionTight.lean` (Bielecki
-contraction estimates) toward the eventual theorem-form replacement
-of axiom #14.
+**2026-05-26 update**: the Picard chain wrap-up
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is the single
+baseline-sorry theorem; ex-Tier-1-axiom #14 (and via the forwarders,
+`JumpDiffusion.exists_unique`) transitively depend on this single sorry.
+
+* `jacodYor_representation` → `jacodYor_representation_axiom` (entry #13;
+  still an axiom).
+* `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` — single
+  explicit baseline `sorry`; entire literature Picard chain
+  (Applebaum 6.2.9) collected in the wrap-up theorem body (see
+  `PicardSpaceBieleckiComplete.lean` module docstring for breakdown).
+* `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (ex-#14, now
+  theorem) → forwards to `_via_aeQuot`.
+* `picardFixedPoint_jumpDiffusion_exists_unique` → forwards.
+* `JumpDiffusion.exists_unique` → forwards.
+
+Per Rule 0, this is HONEST: the wrap-up theorem carries an explicit
+`sorry` body (visible to the lint pipeline as a baseline-tracked
+sorryAx-tainted theorem) rather than being hidden behind an axiom.
+`tools/sorry_baseline.txt` contains the single entry
+`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`.
+Future Picard work continues in `PicardSpace.lean` / `PicardSpaceBielecki.lean`
+/ `PicardSpaceBieleckiComplete.lean` (Banach packaging), `PicardSelfMap.lean`
+(`S²` self-map lift), `PicardContractionTight.lean` (Bielecki
+contraction estimates) toward fully discharging the wrap-up theorem's
+sorry.
 
 ### P7 F10 qualification (red-team 2nd audit, 2026-05-23)
 
@@ -217,22 +257,36 @@ both satisfy the predicate for f = g = 0) would falsify the uniqueness
 clause. The current closure is via Y₂'s failure of `Adapted Filt`: `W_T`
 is not measurable in `Filt_t` for t < T.
 
-## Status snapshot (2026-05-23, jacodYor `theorem → axiom` conversion COMPLETED)
+## Status snapshot (2026-05-26, axiom #14 `axiom → theorem` conversion COMPLETED)
 
 `tools/sorry_baseline.txt` now contains **1 entry** — the Picard
-iteration for the jump-diffusion SDE — after the 2026-05-23 conversion
-of `jacodYor_representation` to a forwarder over the new Tier 1 cited
-axiom `jacodYor_representation_axiom` (Jacod 1976). Every other
-previously sorry'd theorem is either:
+iteration for the jump-diffusion SDE, now exposed as the wrap-up
+theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
+`PicardSpaceBieleckiComplete.lean` (single explicit `sorry`). The
+chain `JumpDiffusion.exists_unique` →
+`picardFixedPoint_jumpDiffusion_exists_unique` →
+`picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now theorem)
+→ `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (sorry)
+collapses the previous "ex-Tier-1-axiom #14 → headline" route into
+a single sorry-tracked theorem. Every other previously sorry'd
+theorem is either:
 * Proven from Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`)
   plus possibly one or more Tier 1 cited axioms documented here, OR
 * A Tier 1 cited axiom itself.
 
 Baseline entries (the single genuinely-deferred classical theorem):
-* `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` — Picard
-  iteration in `S²([0,T]; ℝⁿ)` for the jump-diffusion SDE
+* `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
+  — Picard iteration in `S²([0, T]; ℝⁿ)` for the jump-diffusion SDE
   (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV). Real theorem statement
-  with sorry'd proof body.
+  with single explicit sorry'd proof body collecting the entire chain.
+
+Resolved on 2026-05-26 (formerly Tier 1 cited axiom #14):
+* `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom`
+  — converted from a standalone axiom to a 1-line forwarder over the
+  wrap-up theorem. The literature dependency (Applebaum 6.2.9 /
+  Ikeda-Watanabe IV) is now carried by the wrap-up's explicit
+  baseline sorry, not by a free-standing axiom — making the
+  unresolved analytical content visible to the lint pipeline.
 
 Resolved on 2026-05-23 (formerly a baseline entry):
 * `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
@@ -343,14 +397,21 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 * **12 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
   #13 added 2026-05-23 via theorem→axiom conversion; #13 is the explicit
-  `jacodYor_representation_axiom`), each with paper reference + Mathlib
-  status + replacement plan.
-* **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited.
-* No `sorryAx` in the public API outside the 1 baseline-acknowledged entry
-  (`JumpDiffusion.exists_unique`).
+  `jacodYor_representation_axiom`; #14 was added 2026-05-23 then
+  demoted axiom→theorem 2026-05-26 — see the wrap-up theorem
+  `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` listed in
+  the honest-derivative-theorems table), each with paper reference +
+  Mathlib status + replacement plan.
+* **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited
+  + the single baseline-sorry wrap-up theorem.
+* `sorryAx` in the public API restricted to the 1 baseline-acknowledged entry
+  (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`); the chain
+  `JumpDiffusion.exists_unique` → `_unique` → `_unique_axiom` (now theorem)
+  → `_via_aeQuot` transitively surfaces this single sorry.
 * No `True := trivial` stub lemmas remain in the project.
 * Dissertation forwarders transitively surface only real Tier 1 cited axioms
-  in their audit, including the now-fully-pinned #11 `itoLevyFormula`.
+  + the single baseline sorry, in their audit (including the
+  fully-pinned #11 `itoLevyFormula`).
 
 ## Naming-suffix drift (P1 F11 acknowledgment)
 
