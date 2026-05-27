@@ -29,8 +29,18 @@ work: it requires
   L²-bounded processes; completeness is the usual quotient by P-null sets),
 * `Nonempty` (the constant zero process trivially witnesses this).
 
-These instances are **not** built here — they are a separate downstream
-piece. This file states the Banach shim in two forms:
+**TYPECLASS-PLACEHOLDER NOTE (red-team 3rd-audit HIGH #1, 2026-05-27):**
+The default `MetricSpace` / `CompleteSpace` instances on `SBoundedProcess`
+(installed in `PicardSpace.lean`) use the *discrete metric* and are
+typeclass-placeholders only — they discharge typeclass obligations of
+the Banach shim but carry no substantive analytical content. The genuine
+literature Banach work (Bielecki β-norm contraction at the analytical
+rate `3 n L² (T+2) / (2β)`) lives on the AE-quotient
+`PicardSpaceBielecki.AEQuot β T` and completes in
+`PicardSpaceBieleckiComplete.lean`. See `picardFixedPoint` docstring
+below for the warning attached to the specialised theorem.
+
+This file states the Banach shim in two forms:
 
 1. **`picardFixedPoint_generic`** (substantive shim) — for *any* complete
    nonempty metric space `M` and *any* contraction `Φ : M → M`, there
@@ -102,13 +112,36 @@ theorem picardFixedPoint_generic
 `picardFixedPoint_generic` to the SBoundedProcess setting required by
 the jump-diffusion SDE Picard iteration.
 
+**TYPECLASS-PLACEHOLDER NOTICE (red-team 3rd-audit HIGH #1, 2026-05-27):**
+when invoked with the *default* `MetricSpace` / `CompleteSpace` instances
+on `SBoundedProcess P T` (the discrete-metric instances installed in
+`PicardSpace.lean`), this theorem is **typeclass-trivial**: a contraction
+on the discrete metric collapses to the identity on the fixed-point
+fibre, completeness is vacuous (Cauchy sequences are eventually
+constant), and the unique fixed point is the starting iterate. NO
+SUBSTANTIVE MATHEMATICAL CONTENT is carried by the discrete-metric
+specialisation — it discharges the typeclass obligation only.
+
+The literature-substantive Banach work (Bielecki β-weighted L²-sup
+norm with genuine contraction at the analytical rate
+`3 n L² (T+2) / (2β)` for `β > 3 n L² (T+2) / 2`) lives in
+`LevyStochCalc.Ito.PicardSpaceBielecki` (genuine metric on the
+AE-quotient `AEQuot β T`) +
+`LevyStochCalc.Ito.PicardSpaceBieleckiComplete` (`CompleteSpace`
+instance via Lp completeness + Doob càdlàg modification), and the
+SDE chain wraps up via
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in the latter
+file. **Downstream consumers needing the actual SDE strong-existence
+result should use the `_via_aeQuot` wrap-up theorem, not this
+typeclass-shim theorem applied on `SBoundedProcess`.**
+
 The hypothesis bundle:
 
 * `[MetricSpace (SBoundedProcess P T)]` — the `S²` / Bielecki metric on
   the càdlàg L²-bounded process space (the discrete-metric instance
-  from `PicardSpace.lean` is one canonical choice; the Bielecki β-norm
-  on the `AEQuot` quotient from `PicardSpaceBielecki.lean` is the
-  literature choice).
+  from `PicardSpace.lean` is one canonical choice — but typeclass-
+  trivial as above; the Bielecki β-norm on the `AEQuot` quotient from
+  `PicardSpaceBielecki.lean` is the literature choice).
 * `[Nonempty (SBoundedProcess P T)]` — witnessed e.g. by the constant
   zero process.
 * `[CompleteSpace (SBoundedProcess P T)]` — `S²` is the standard Banach
@@ -127,8 +160,9 @@ the strong solution of the SDE via `fixedPoint_is_solution`.
 
 This form uses the globally-available instances on `SBoundedProcess`
 (from `PicardSpace.lean`: discrete metric + Cauchy-eventually-constant
-completeness). Downstream Bielecki work uses `AEQuot β T` instead,
-where the Bielecki β-norm is a genuine metric. -/
+completeness — typeclass-placeholders only). Substantive Bielecki work
+uses `AEQuot β T` instead, where the Bielecki β-norm is a genuine
+metric. -/
 theorem picardFixedPoint
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

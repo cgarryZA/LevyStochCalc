@@ -18,6 +18,33 @@ are required by the Banach fixed-point shim
 * `MetricSpace (SBoundedProcess P T)` — equipping the structure with a metric.
 * `CompleteSpace (SBoundedProcess P T)` — every Cauchy sequence converges.
 
+## TYPECLASS-PLACEHOLDER WARNING (red-team 3rd-audit HIGH #1, 2026-05-27)
+
+**The `MetricSpace` and `CompleteSpace` instances in this file use the
+*discrete metric* (`dist X Y = 0 if X = Y else 1`). These are
+TYPECLASS-PLACEHOLDER instances — they exist solely so that the generic
+Banach fixed-point shim `picardFixedPoint` in `PicardBanach.lean` can be
+specialised to `SBoundedProcess` at the level of Lean's typeclass system.**
+
+**Discrete-metric `picardFixedPoint` (on `SBoundedProcess` directly) is
+typeclass-trivial: completeness is vacuous (Cauchy sequences are
+eventually constant), contractions in the discrete metric collapse to
+the identity on the fixed-point fibre, and the unique fixed point is
+the starting iterate. NO SUBSTANTIVE MATHEMATICAL CONTENT is carried by
+the discrete-metric specialisation — it discharges the typeclass
+obligation only.**
+
+**All substantive Banach work (the literature Bielecki β-weighted L²-sup
+norm with genuine contraction at the analytical rate
+`3 n L² (T+2) / (2β)`) is carried out in the `AEQuot β T` quotient space
+defined in `PicardSpaceBielecki.lean` (β-norm pseudometric → genuine
+metric on a.e.-equivalence classes) + `PicardSpaceBieleckiComplete.lean`
+(`CompleteSpace` instance via Lp completeness + Doob càdlàg modification),
+and the SDE chain wraps up via
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in the latter
+file. The literature-strength fixed point of the Picard iteration is
+delivered there, NOT here.**
+
 ## Design choice
 
 The natural metric for the literature Picard iteration is the Bielecki
@@ -27,8 +54,9 @@ defined in `Picard.bieleckiNorm`. However this is only a *pseudo*-norm on
 `SBoundedProcess`: two processes that agree almost surely have zero Bielecki
 distance but are not equal as elements of the structure (which carries the
 raw path map `X : ℝ → Ω → Fin n → ℝ`). Promoting to a genuine `MetricSpace`
-therefore requires a quotient by P-null sets, which is a much heavier piece
-of substantive infrastructure.
+therefore requires a quotient by P-null sets — DONE in
+`PicardSpaceBielecki.lean`'s `AEQuot β T` (and completed in
+`PicardSpaceBieleckiComplete.lean`).
 
 We adopt the discrete metric here:
 `dist X Y = 0 if X = Y else 1` (via classical decidability of equality).
@@ -42,7 +70,8 @@ The substantive Bielecki-norm contraction estimate (developed across
 independent of which `MetricSpace` instance is installed on the structure
 type itself (the Banach shim is parameterized by an arbitrary contraction
 map `Φ` and rate `K`, so the actual contraction proof can be carried out
-in any metric that's appropriate to the problem at hand).
+in any metric that's appropriate to the problem at hand — and indeed
+the literature one is carried out on the AE-quotient, not here).
 
 ## Status
 
@@ -50,6 +79,8 @@ Sorry-free. Adds three `instance` declarations under
 `LevyStochCalc.Ito.Picard`. The Banach shim `picardFixedPoint` (in
 `PicardBanach.lean`) can now be invoked with no remaining typeclass
 obligations beyond the user-supplied contraction `ContractingWith K Φ`.
+The literature substantive contraction work happens on
+`PicardSpaceBielecki.AEQuot`, not on `SBoundedProcess`-with-discrete-metric.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -116,8 +147,24 @@ noncomputable instance instNonemptySBoundedProcess
 
 /-! ### MetricSpace: discrete metric for typeclass satisfaction.
 
-We install the **discrete metric** on `SBoundedProcess`:
-`dist X Y = 0 if X = Y, else 1`.
+**TYPECLASS-PLACEHOLDER NOTICE (red-team 3rd-audit HIGH #1):** the metric
+installed in this section is the *discrete metric* on `SBoundedProcess`:
+`dist X Y = 0 if X = Y, else 1`. This satisfies all `MetricSpace` axioms
+mechanically but carries **NO substantive analytical content**: it makes
+every fixed-point question on `SBoundedProcess`-with-this-metric trivially
+discrete (Cauchy ↔ eventually constant; contractions ↔ identity on the
+fixed-point fibre; the unique fixed point is the starting iterate). The
+goal of this instance is to discharge the typeclass obligation of the
+generic Banach shim `picardFixedPoint`, NOT to deliver mathematics.
+
+The literature Banach work (Bielecki β-weighted L²-sup norm with genuine
+contraction at the analytical rate `3 n L² (T+2) / (2β)` for
+`β > 3 n L² (T+2) / 2`) lives on the AE-quotient
+`PicardSpaceBielecki.AEQuot β T` and wraps up in
+`PicardSpaceBieleckiComplete.lean`'s
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`. Downstream
+consumers should treat the discrete-metric `picardFixedPoint` invocation
+on `SBoundedProcess` as a typeclass shim only.
 
 This is a genuine metric (separation holds by definition, triangle inequality
 holds via case analysis), and is **complete** because every Cauchy sequence
@@ -128,8 +175,9 @@ The discrete metric is **not** the literature `S²` / Bielecki norm — that
 is a pseudometric on `SBoundedProcess` (zero distance iff a.s.-equal,
 which is weaker than structure equality). The actual Picard contraction
 estimate is developed against the pseudo-edist `bieleckiNorm (X - Y)`
-in the `bielecki_*` lemma family and is logically independent of which
-`MetricSpace` instance lives on the structure type.
+in the `bielecki_*` lemma family and against the genuine metric on
+`AEQuot β T`, and is logically independent of which `MetricSpace`
+instance lives on the `SBoundedProcess` structure type.
 -/
 
 section DiscreteMetric

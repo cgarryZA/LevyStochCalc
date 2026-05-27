@@ -55,3 +55,13 @@ jobs:
 
       - name: tools/lint.sh
         run: bash tools/lint.sh
+
+      # Red-team 3rd-audit HIGH #6 fix (2026-05-27): verify the dissertation-
+      # import contract from `tools/import_contract.md` resolves on master.
+      # The dissertation at `D:/Dissertation` (private repo, path-deps into
+      # this one) imports 12 pinned modules + 21 pinned symbols; a refactor
+      # that deletes/renames any of them must leave a forwarding stub at the
+      # old path so the dissertation continues to build. This step prevents
+      # silent contract breakage on `master`.
+      - name: tools/verify_import_contract.sh
+        run: bash tools/verify_import_contract.sh

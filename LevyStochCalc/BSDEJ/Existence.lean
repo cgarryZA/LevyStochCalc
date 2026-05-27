@@ -120,6 +120,53 @@ sufficiently large `β`. The Picard map is K-Lipschitz with K < 1 for large β.
 Uses the martingale representation theorem (`jacodYor_representation`) for the
 Z, U extraction.
 
+**Uniqueness-scope note (red-team 3rd-audit HIGH #4, 2026-05-27).** The
+final conjunct of the conclusion below asserts uniqueness for the **Y
+component only**: `∀ Y' Z' U', IsBSDEJSolution W N bsdej X Y' Z' U' T →
+∀ t, ∀ᵐ ω ∂P, Y t ω = Y' t ω`. It does **not** assert pointwise-in-`(t,
+ω)` a.e. equality for `Z` or `U`.
+
+This is **strictly weaker than the literature `S² × H² × H²_N`
+uniqueness statement**, which delivers Y-uniqueness in `S²` AND Z, U
+uniqueness in `H² × H²_N` (the latter two as `volume × P`- and
+`ν × volume × P`-a.e. equalities, respectively). The literature
+derivation proceeds:
+
+1. The pair `(Z, U)` arises (in the standard Tang–Li 1994 proof) as the
+   integrand of the L²-martingale representation `M_t :=
+   Y_t + ∫_0^t f(s, X_s, Y_s, Z_s, U_s) ds`, projected onto the
+   `(W, N)`-noise basis via the Jacod–Yor predictable representation
+   theorem (`jacodYor_representation`, Tier 1 cited axiom #13).
+2. Given two solutions `(Y, Z, U)` and `(Y, Z', U')` sharing the same
+   Y (by step 1 of the conclusion below), the corresponding
+   martingales `M, M'` coincide in `S²` (since `Y = Y'` and `f(s, X_s,
+   Y_s, Z_s, U_s) = f(s, X_s, Y_s, Z'_s, U'_s)` modulo the Lipschitz
+   bound — needs the bound + Grönwall to be made rigorous). Then the
+   uniqueness of the predictable Itô representation
+   (Jacod–Yor / Kunita–Watanabe orthogonality) forces `Z = Z'`
+   `volume × P`-a.e. and `U = U'` `ν × volume × P`-a.e.
+
+A downstream "(Z, U) uniqueness extractor" would package the two steps
+above into a lemma `bsdej_zu_unique_via_representation` that takes two
+`IsBSDEJSolution` witnesses with `Y =ᵃᵉ Y'` and produces the `(Z, U)`
+a.e.-equality. The extractor's proof body invokes
+`jacodYor_representation` plus algebraic manipulations of the
+Itô–Lévy decomposition; it is mechanical given the literature step (2)
+but not currently in this library — the L² Picard-iteration scope
+delivered here suffices for the dissertation BSDEJ chain, where
+Y-uniqueness alone is the load-bearing conclusion (downstream
+applications fix `(Z, U)` via the canonical projection from `(Y, M)`
+and inherit a.e.-uniqueness through that channel).
+
+**Scope rationale**: stating Y-only uniqueness in the axiom and
+deriving (Z, U) uniqueness separately as a downstream theorem mirrors
+the structure of the rest of the library (canonical-integral pins +
+extractor theorems). The axiom statement here matches the strength of
+Tang–Li 1994's Theorem 3.1 step on Y-uniqueness; the (Z, U)-uniqueness
+strengthening is left as a downstream theorem rather than baked in,
+because the proof requires Tier 1 axiom #13 (`jacodYor_representation`)
+and is not bottlenecked on additional Tier 1 content.
+
 **Replacement plan**: when Mathlib gains BSDEJ existence, replace this `axiom`
 with a forwarder. Tracked in `tools/cited_axioms.md`. -/
 axiom continuousBSDEJ_exists_unique

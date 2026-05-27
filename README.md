@@ -17,8 +17,10 @@ foundations.
 ## Build
 
 ```
-lake build                # 8402 jobs
-bash tools/lint.sh        # checks build + sorry baseline
+lake build                            # 8402 jobs
+bash tools/lint.sh                    # checks build + sorry baseline
+bash tools/verify_import_contract.sh  # checks dissertation-import contract
+                                      # (paths from tools/import_contract.md)
 ```
 
 Lean toolchain: `leanprover/lean4:v4.30.0-rc2`. Mathlib pin: see
@@ -28,8 +30,7 @@ Lean toolchain: `leanprover/lean4:v4.30.0-rc2`. Mathlib pin: see
 
 ```
 LevyStochCalc/
-├── Basic.lean                                 — common imports
-├── Notation.lean                              — local notation (empty)
+├── Basic.lean                                 — common imports + L² bridge lemmas
 ├── Brownian/
 │   ├── Construction.lean                      — BrownianMotion structure + Tier 1 #1 axiom
 │   ├── Continuity.lean                        — KC modification + ae_eq (proven)
@@ -42,15 +43,36 @@ LevyStochCalc/
 │   ├── RandomMeasure.lean                     — Tier 1 #2 axiom + structure
 │   ├── NaturalFiltration.lean                 — filtration definition
 │   ├── Compensated.lean                       — L² Itô-Lévy integral (2400+ lines)
+│   │                                            + Tier 1 auxiliary axiom
+│   │                                            itoIsometry_diff_compensated
 │   └── L2Isometry.lean                        — public isometry forwarder
 ├── Ito/
 │   ├── Setting.lean                           — JumpDiffusion structure (baseline sorry)
-│   └── JumpFormula.lean                       — Tier 1 #11 axiom
+│   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived #11/#16 thms
+│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework
+│   ├── PicardBanach.lean                      — Banach-shim + JumpDiffusion.exists_unique
+│   │                                            forwarder (ex-Tier-1-axiom #14, now theorem)
+│   ├── PicardSpace.lean                       — discrete-metric typeclass-placeholder
+│   │                                            instances on SBoundedProcess
+│   ├── PicardSpaceBielecki.lean               — Bielecki β-norm AE-quotient (genuine metric)
+│   ├── PicardSpaceBieleckiComplete.lean       — Bielecki-quotient CompleteSpace + wrap-up
+│   │                                            (single explicit baseline sorry for the
+│   │                                            entire Picard chain)
+│   ├── PicardSelfMap.lean                     — Picard-map self-map on SBoundedProcess
+│   ├── PicardContraction.lean                 — Bielecki β-norm contraction assembly
+│   ├── PicardContractionTight.lean            — tight β-norm contraction analysis
+│   ├── PicardSigmaLipschitz.lean              — σ-side L² Lipschitz bound + Tier 1
+│   │                                            auxiliary axiom itoIsometry_diff_brownian
+│   └── PicardGammaLipschitz.lean              — γ-side L² Lipschitz bound (forwards
+│                                                through Tier 1 itoIsometry_diff_compensated)
 └── BSDEJ/
-    ├── Definition.lean                        — IsBSDEJSolution predicate
-    ├── Existence.lean                         — Tier 1 #9 axiom
-    ├── PathRegularity.lean                    — Tier 1 #10 axiom
-    └── MartingaleRepresentation.lean          — Jacod-Yor (baseline sorry)
+    ├── Definition.lean                        — IsBSDEJSolution predicate + regression-test
+    │                                            extractors (Y-cadlag, Z/U progressive, M_W
+    │                                            and M_N canonical-integral pins)
+    ├── Existence.lean                         — Tier 1 #9 axiom (Y-only uniqueness)
+    ├── PathRegularity.lean                    — Tier 1 #10 axiom + linear-rate corollary
+    └── MartingaleRepresentation.lean          — Tier 1 #13a + #13b sub-axioms; #13 is now
+                                                  a derived theorem forwarder
 ```
 
 ## Tier 1 cited axioms

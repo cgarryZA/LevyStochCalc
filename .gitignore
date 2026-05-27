@@ -1,5 +1,6 @@
 .lake/
 _mcp_snippet_*.lean
+_import_contract_probe.lean
 audit_output.txt
 
 # IDE / editor / agent caches

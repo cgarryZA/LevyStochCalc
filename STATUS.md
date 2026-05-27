@@ -97,8 +97,7 @@ Following a 12-persona red-team audit that identified 24+ findings, all
 
 ```
 LevyStochCalc/
-├── Basic.lean                                 — common imports
-├── Notation.lean                              — (mostly empty, future)
+├── Basic.lean                                 — common imports + L² bridge lemmas
 ├── Brownian/
 │   ├── Construction.lean                      — BrownianMotion structure + Tier 1 #1 axiom
 │   ├── Continuity.lean                        — KC modification + ae_eq
@@ -111,15 +110,35 @@ LevyStochCalc/
 │   ├── RandomMeasure.lean                     — Tier 1 #2 axiom + structure
 │   ├── NaturalFiltration.lean                 — filtration definition
 │   ├── Compensated.lean                       — L² Itô-Lévy integral (2900+ lines)
+│   │                                            + Tier 1 auxiliary axiom
+│   │                                            itoIsometry_diff_compensated
 │   └── L2Isometry.lean                        — public isometry forwarder
 ├── Ito/
-│   ├── Setting.lean                           — JumpDiffusion structure (sorry)
-│   └── JumpFormula.lean                       — Tier 1 #11 axiom
+│   ├── Setting.lean                           — JumpDiffusion structure
+│   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived
+│   │                                            #11/#16 universal-R theorems
+│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework
+│   ├── PicardBanach.lean                      — Banach-shim + JumpDiffusion.exists_unique
+│   │                                            forwarder (ex-Tier-1-axiom #14, now thm)
+│   ├── PicardSpace.lean                       — discrete-metric typeclass-placeholder
+│   │                                            instances on SBoundedProcess
+│   ├── PicardSpaceBielecki.lean               — Bielecki β-norm AE-quotient (genuine metric)
+│   ├── PicardSpaceBieleckiComplete.lean       — Bielecki-quotient CompleteSpace + wrap-up
+│   │                                            (single explicit baseline sorry for the
+│   │                                            entire Picard chain)
+│   ├── PicardSelfMap.lean                     — Picard-map self-map on SBoundedProcess
+│   ├── PicardContraction.lean                 — Bielecki β-norm contraction assembly
+│   ├── PicardContractionTight.lean            — tight β-norm contraction analysis
+│   ├── PicardSigmaLipschitz.lean              — σ-side L² Lipschitz bound + Tier 1
+│   │                                            auxiliary axiom itoIsometry_diff_brownian
+│   └── PicardGammaLipschitz.lean              — γ-side L² Lipschitz bound (forwards
+│                                                through Tier 1 itoIsometry_diff_compensated)
 └── BSDEJ/
-    ├── Definition.lean                        — IsBSDEJSolution predicate
-    ├── Existence.lean                         — Tier 1 #9 axiom
-    ├── PathRegularity.lean                    — Tier 1 #10 axiom
-    └── MartingaleRepresentation.lean          — Jacod-Yor (sorry)
+    ├── Definition.lean                        — IsBSDEJSolution predicate + extractors
+    ├── Existence.lean                         — Tier 1 #9 axiom (Y-only uniqueness)
+    ├── PathRegularity.lean                    — Tier 1 #10 axiom + linear-rate corollary
+    └── MartingaleRepresentation.lean          — Tier 1 #13a + #13b sub-axioms; #13 is now
+                                                  a derived theorem forwarder
 ```
 
 ## Build instructions

@@ -129,17 +129,25 @@ symbol in §2:
 # From D:/LevyStochCalc
 lake build                                  # 1. LevyStochCalc itself builds
 bash tools/lint.sh                          # 2. lint passes at baseline 0
+bash tools/verify_import_contract.sh        # 3. import contract resolves
+                                            #    (added 2026-05-27, audit HIGH #6)
 
 # From D:/Dissertation
-lake build                                  # 3. dissertation builds
+lake build                                  # 4. dissertation builds
 ```
 
-All three must pass. If (3) fails on a missing module/symbol, restore or
-add a forwarding stub on the LevyStochCalc side; do NOT edit the
-dissertation imports as a first response.
+All four must pass. If (3) fails the contract has been silently broken on
+the LevyStochCalc side; if (4) fails on a missing module/symbol, restore
+or add a forwarding stub on the LevyStochCalc side and re-run (3) — do
+NOT edit the dissertation imports as a first response.
+
+Step (3) is now automated in CI (`.github/workflows/ci.yml`, the
+`tools/verify_import_contract.sh` step) — so the contract cannot be
+broken on `master` without the build going red.
 
 ## 5. Audit history
 
 | Date       | Verified-against master HEAD | Notes                                                         |
 |------------|------------------------------|---------------------------------------------------------------|
 | 2026-05-24 | `7a6be4d`                    | Initial contract. All 12 paths present + dissertation builds. |
+| 2026-05-27 | (this branch)                | Added `tools/verify_import_contract.sh` + CI step. Closes red-team 3rd-audit HIGH #6. |
