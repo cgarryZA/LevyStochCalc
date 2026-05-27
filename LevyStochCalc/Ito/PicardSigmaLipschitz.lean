@@ -35,7 +35,9 @@ The proof chains:
 
 ## Tier 1 axiom added in this file
 
-* `Brownian.Ito.itoIsometry_diff_brownian` (#11): For two predictable
+* `Brownian.Ito.itoIsometry_diff_brownian` (#17, per the 2026-05-27
+  3rd-audit renumbering — was historically associated with #11 in earlier
+  docstrings, but #11 is retired as of 2026-05-24): For two predictable
   square-integrable integrands `H₁, H₂`, the L²-norm of the difference
   of their Itô integrals equals the L²-norm of the integrand difference.
   Standard consequence of L²-linearity + isometry of the Itô integral
@@ -53,7 +55,7 @@ namespace LevyStochCalc.Brownian.Ito
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- **CITED AXIOM (Tier 1 #11): L²-isometry for the *difference* of two
+/-- **CITED AXIOM (Tier 1 #17): L²-isometry for the *difference* of two
 Brownian Itô integrals.**
 
 For two progressively-measurable, L²-bounded integrands `H₁, H₂`, the
@@ -76,7 +78,7 @@ to `L²(Ω)` (Karatzas-Shreve §3.2.B, eq. (2.20) and following).
 
 **Replacement plan**: derive as a theorem from a Mathlib-level linearity
 result on the L²-Itô integral when that machinery becomes available.
-Tracked in `tools/cited_axioms.md` Tier 1 #11. -/
+Tracked in `tools/cited_axioms.md` Tier 1 #17. -/
 axiom itoIsometry_diff_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)

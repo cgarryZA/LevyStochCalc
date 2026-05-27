@@ -55,13 +55,29 @@ LevyStochCalc/
 
 ## Tier 1 cited axioms
 
-**11 axioms total** (as of 2026-05-23), each a published theorem from the
-literature with paper references in `tools/cited_axioms.md`. Numbering:
-#7 and #8 deleted by the 2026-05-22 M4 cleanup (dead post-refactor);
-#12 and #13 added 2026-05-23 by promoting the two previously sorry-bodied
-theorems (`JumpDiffusion.exists_unique`, `jacodYor_representation`) to
-honest Tier 1 axioms per Rule 0 (the `theorem ... := by sorry` form was
-dishonest; the `axiom` form makes the claim match the content).
+**14 axioms total** (as of 2026-05-27, 3rd-audit reconciliation), each a
+published theorem from the literature with paper references in
+`tools/cited_axioms.md`. Numbering history:
+
+* #7 and #8 deleted by the 2026-05-22 M4 cleanup (dead post-refactor).
+* #11 (`itoLevyFormula`) retired 2026-05-24 by decomposition into the two
+  narrower axioms #15 + #16; `itoLevyFormula` is now a derived theorem.
+* #12 (`JumpDiffusion.exists_unique`) and #13
+  (`jacodYor_representation_axiom`) were promoted theorem→axiom on
+  2026-05-23 and then demoted axiom→theorem on 2026-05-26 via the
+  Bielecki AE-quotient wrap-up + #13a/#13b decomposition.
+* #14 (`picardFixedPoint_jumpDiffusion_exists_unique_axiom`) was added
+  2026-05-23 then demoted axiom→theorem on 2026-05-26 (forwards through
+  the wrap-up `_via_aeQuot`, which carries the single explicit baseline
+  `sorry`).
+* #16 (`itoLevyFormula_jumpResidual_canonical_axiom`) was NARROWED on
+  2026-05-26 from the universal-`R` form to the canonical-`R` form; the
+  universal-`R` form is now a derived theorem.
+* #17 (`itoIsometry_diff_brownian`) and #18 (`itoIsometry_diff_compensated`)
+  were added in source on 2026-05-23 but first formally numbered in
+  `tools/cited_axioms.md` on 2026-05-27 (3rd-audit CRITICAL #1 closure).
+
+Currently-live axioms:
 
 1. `BrownianMotion.exists` — Karatzas-Shreve Thm 2.2.2+2.2.8 / Le Gall Def 2.1+2.12+Cor 2.11.
 2. `PoissonRandomMeasure.exists_of_sigmaFinite` — Applebaum 2009 Thm 2.3.1.
@@ -69,20 +85,30 @@ dishonest; the `axiom` form makes the claim match the content).
 4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.
 5. `itoIsometry_brownian_unified_existence` — Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4.
 6. `itoIsometry_compensated_unified_existence` — Applebaum 2009 Thm 4.2.3+4.2.4.
-7. (deleted: `cauchySeq_simpleIntegralLp_compensated` — dead post-refactor 2026-05-22)
-8. (deleted: `adaptedSimple_dense_L2_compensated` — dead post-refactor 2026-05-22)
 9. `continuousBSDEJ_exists_unique` — Tang-Li 1994 / Andersson-Gnoatto-Patacca-Picarelli 2025.
 10. `bsdej_path_regularity` — Bouchard-Elie 2008 SPA 118(1) pp 53-75.
-11. `itoLevyFormula` — Applebaum 2009 Thm 4.4.7.
-12. `JumpDiffusion.exists_unique` — Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV.
-13. `jacodYor_representation` — Jacod 1975 / Jacod-Shiryaev Thm III.4.34.
+13a. `jacodYor_PRP_martingale_axiom` — Jacod 1975 / Jacod-Shiryaev Thm III.4.34 (martingale-input form).
+13b. `condExp_to_PRP_martingale_form_axiom` — Karatzas-Shreve Thm I.3.13 (Doob L² càdlàg regularization) + Thm 2.7.17 (Blumenthal 0-1) + Applebaum Thm 2.3.7.
+15. `itoFormula_continuousSemimartingale_axiom` — Karatzas-Shreve Thm 3.3.6 / Le Gall Thm 5.10.
+16. `itoLevyFormula_jumpResidual_canonical_axiom` — Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step (II) (canonical-`R` form).
+17. `itoIsometry_diff_brownian` — Karatzas-Shreve Thm 3.2.6 + §3.2.B eq. (2.20) (per-difference L²-isometry).
+18. `itoIsometry_diff_compensated` — Applebaum 2009 Thm 4.2.3 step (II) (per-difference L²-isometry).
+
+(Retired entries #7, #8, #11, #12, #13, #14 are kept in `tools/cited_axioms.md`
+for traceability.)
 
 ## Sorry baseline
 
-**EMPTY as of 2026-05-23.** The 2 previously sorry-bodied theorems were
-promoted to Tier 1 cited axioms #12 and #13 per Rule 0 (claim = content).
-The library now has **zero `sorryAx`** in its public API. The lint script
-(`tools/lint.sh`) enforces this — any new sorry FAILs the lint.
+**1 mathematical entry (as of 2026-05-27)**, with 4 transitive
+forwarders bottoming out in it. The single sorry is in the wrap-up
+theorem `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
+(Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV — the literature Picard
+iteration in `S²([0,T]; ℝⁿ)`). The previous Tier 1 axiom #14 was
+demoted to a theorem on 2026-05-26 with the literature dependency moved
+into this single explicit sorry, making the unresolved analytical content
+visible to the lint pipeline rather than hidden behind an axiom.
+
+See `STATUS.md` and `tools/sorry_baseline.txt` for the full chain.
 
 ## Scope (deliberate omissions)
 

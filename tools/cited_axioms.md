@@ -7,7 +7,40 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (15 currently live; #7 and #8 deleted 2026-05-22; #11 retired 2026-05-24 via decomposition into the new #15 + #16; #12, #13 added 2026-05-23 via theorem→axiom conversion; #13 was DECOMPOSED 2026-05-26 into two strictly narrower sub-axioms #13a + #13b, with the prior monolithic `jacodYor_representation_axiom` now demoted to a derived theorem — see entry #13/#13a/#13b below; the public `jacodYor_representation` is preserved as a thin forwarder; #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the Bielecki AE-quotient infrastructure landing in `PicardSpaceBieleckiComplete.lean` — see the "Honest derivative theorems" table below where `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter carrying a single explicit `sorry` baseline entry; #16 was NARROWED 2026-05-26 from the previous universal-`R` form `itoLevyFormula_jumpResidual_axiom` to the canonical-`R` form `itoLevyFormula_jumpResidual_canonical_axiom`, with the previous universal-`R` form now a derived theorem)
+## Tier 1: Honest cited axioms (14 currently live)
+
+**History** (3rd audit reconciliation 2026-05-27):
+* #7 and #8 deleted 2026-05-22 (dead post-refactor per M4).
+* #11 retired 2026-05-24 via decomposition into the new #15 + #16
+  (`itoLevyFormula` is now a derived theorem).
+* #12 and #13 added 2026-05-23 via theorem→axiom conversion of the previously
+  sorry-bodied `JumpDiffusion.exists_unique` and `jacodYor_representation`.
+* #13 was DECOMPOSED 2026-05-26 into two strictly narrower sub-axioms #13a +
+  #13b; the prior monolithic `jacodYor_representation_axiom` is now a derived
+  theorem; the public `jacodYor_representation` is preserved as a thin
+  forwarder.
+* #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the
+  Bielecki AE-quotient infrastructure in `PicardSpaceBieleckiComplete.lean`;
+  `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder
+  over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter
+  carrying a single explicit `sorry` baseline entry.
+* #12 (`JumpDiffusion.exists_unique`) was similarly demoted axiom→theorem on
+  2026-05-26 (forwards through the same Bielecki wrap-up).
+* #16 was NARROWED 2026-05-26 from the previous universal-`R` form
+  `itoLevyFormula_jumpResidual_axiom` to the canonical-`R` form
+  `itoLevyFormula_jumpResidual_canonical_axiom`; the universal-`R` form is
+  now a derived theorem.
+* #17 and #18 added 2026-05-27 by the 3rd-audit reconciliation: the two
+  `_diff` axioms (`itoIsometry_diff_brownian`, `itoIsometry_diff_compensated`)
+  have lived in source since 2026-05-23 but were never assigned formal Tier 1
+  numbers in this file (they appeared as undocumented axioms in the 3rd-audit
+  CRITICAL #1 finding). They are the per-difference L²-isometries used by the
+  Picard contraction estimates and the Itô-Lévy formula (#16).
+
+Retired/deleted entries (#7, #8, #11, #12, #13, #14) are kept as `### Retired #N`
+headings below for traceability; they are NOT counted in the headline "14
+currently live" figure. Only `### N.` (digit-leading) headings correspond to
+live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 14`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -56,7 +89,7 @@ to the Mathlib version, no other changes needed downstream.
 * **Mathlib status (May 2026)**: No compensated-Poisson L² integral in Mathlib (waits on Poisson random measure construction). No current activity.
 * **Replacement plan**: `theorem itoIsometry_compensated_unified_existence := <Mathlib forwarder>` when Mathlib gains compensated-Poisson L² integration.
 
-### 7. `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` (DELETED 2026-05-22)
+### Retired #7: `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` (DELETED 2026-05-22)
 
 This axiom was deleted on 2026-05-22 as dead code. It was the Compensated
 Cauchy-completion step in the L² Itô-Lévy construction route that was
@@ -75,7 +108,7 @@ with shared endpoint and `(G n).eval` Cauchy in `L²(P × ds × dν)`, the
 lifted `simpleIntegralLp_compensated (G n)` is Cauchy in `Lp ℝ 2 P`
 (Applebaum 2009 Equation 4.3.1 + Lemma 4.2.5).
 
-### 8. `LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated` (DELETED 2026-05-22)
+### Retired #8: `LevyStochCalc.Poisson.Compensated.adaptedSimple_dense_L2_compensated` (DELETED 2026-05-22)
 
 This axiom was deleted on 2026-05-22 as dead code, alongside #7. It was
 the Compensated L²-density-of-adapted-simple-predictables step in the
@@ -105,7 +138,7 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Replacement plan**: `theorem bsdej_path_regularity := <Doob + Grönwall combination>` when items 5, 6, 9 are theorems.
 * **Public-API specialization** (added 2026-05-24): the derived theorem `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` exposes the same bound in the simplified `∃ C : ℝ, 0 < C ∧ ∀ partition, bound ≤ ENNReal.ofReal (C · Δt)` form (a single positive real `C` instead of the polynomial-exponential closure `K · (1+T)^p · exp(α·L·T) · (1+ξ)` evaluated at `(T, L, ‖ξ‖_L²)`). This is what downstream chapters need to set `ψ(h) := C · h` (e.g. the parked `D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`, which uses the BET 2008 linear-rate `ψ(h) = C · h` as the discretization-error hypothesis driving its `discrete_to_continuous_convergence_sq` headline). The corollary is an `honest derivative theorem`: `#print axioms` surfaces exactly `{propext, Classical.choice, Quot.sound, bsdej_path_regularity}` — no new axiom.
 
-### 11. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` (RETIRED axiom→theorem 2026-05-24; ENTRY KEPT FOR HISTORY)
+### Retired #11: `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` (RETIRED axiom→theorem 2026-05-24; ENTRY KEPT FOR HISTORY)
 
 On 2026-05-24 this axiom was retired and `itoLevyFormula` became a Lean
 **theorem**, derived by algebraic re-bundling from TWO narrower Tier 1
@@ -138,10 +171,26 @@ literature integral forms.
 * **Statement**: For the *canonical* residual `R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` (constructed by direct subtraction from the LHS, with no quantification over arbitrary `R`s), we have `R_canonical T ω = jump_mart_T(ω) + comp_drift_T(ω)` a.s., where `jump_mart_T = Compensated.stochasticIntegral N (u(·+γ) − u along X) T` and `comp_drift_T(ω) = ∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7** proof **step (II)** for the `ε → 0` limit (page 240); Ikeda–Watanabe **Section II.5**; Cont–Tankov **Proposition 8.18** + Chapter 8.
 * **Narrowness (2026-05-26 narrowing)**: the previous monolithic #16 (`itoLevyFormula_jumpResidual_axiom`, universal-`R` form) quantified over *any* `R` satisfying a continuous-part identity `u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`. The 2026-05-26 narrowing eliminates that quantifier: the axiom now asserts the identity only for the canonical `R` constructed by direct subtraction. The universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a derived theorem forwarding over this canonical axiom by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity). The narrower axiom captures exactly the analytical content of Applebaum 4.4.10 + 4.4.7 step II (the small/large-jump decomposition + ε→0 L²-limit + Lévy-Itô combinatorial step); the universal-`R` form adds only algebraic glue.
-* **Mathlib status (May 2026)**: No compensated-Poisson integral in Mathlib (waits on PRM construction). The small/large decomposition is itself a derived statement once the integral exists; the `ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #14, in `Poisson/Compensated.lean`).
+* **Mathlib status (May 2026)**: No compensated-Poisson integral in Mathlib (waits on PRM construction). The small/large decomposition is itself a derived statement once the integral exists; the `ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #18, in `Poisson/Compensated.lean`).
 * **Replacement plan**: derive as a theorem from `itoIsometry_diff_compensated` + a Mathlib-level linearity result on the compensated-Poisson L²-integral once that machinery becomes available.
 
-### 12. `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique`
+### 17. `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (added 2026-05-23; documented 2026-05-27 per 3rd-audit reconciliation)
+
+* **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.
+* **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 3.2.6** + §3.2.B equation (2.20) (the L²-Itô integral is a continuous linear isometry from `L²(Ω × [0, T])` to `L²(Ω)`; the per-difference identity is the linear-isometry property applied to `(H₁ − H₂)`).
+* **Why a separate axiom**: in the present axiomatization `stochasticIntegral W H` is constructed via `Classical.choose` on `itoIsometry_brownian_unified_existence` (Tier 1 #5). The choose-witness depends on the integrand, so the difference-of-choices is not syntactically the choice-of-difference; linearity is not available from Tier 1 #5 alone. The per-difference isometry is therefore stated separately and used downstream in the σ-side Picard contraction estimate (`picardStep_diffusion_diff_lipschitz_sq_componentwise` in `Ito/PicardSigmaLipschitz.lean`).
+* **Mathlib status (May 2026)**: same status as Tier 1 #5 — no general L²-Itô integral against Brownian motion in Mathlib (waits on BM construction). When Mathlib's L²-Itô integral lands as a continuous linear map, this axiom becomes a forwarder over its linearity + isometry.
+* **Replacement plan**: `theorem itoIsometry_diff_brownian := <linearity ∘ isometry>` when Mathlib's L²-Itô integral exposes the continuous-linear-isometry structure (likely follow-up to the Degenne et al stochastic-integration effort, arXiv:2511.20118).
+
+### 18. `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (added 2026-05-23; documented 2026-05-27 per 3rd-audit reconciliation)
+
+* **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `φ₁, φ₂ : Ω → ℝ → E → ℝ`, the L² norm of the difference of their compensated-Poisson Itô-Lévy integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T ∫_E φ₁ Ñ − ∫_0^T ∫_E φ₂ Ñ|² = 𝔼 ∫_0^T ∫_E |φ₁(s, e) − φ₂(s, e)|² ν(de) ds`.
+* **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.2.3** step (II) (the L²-Itô-Lévy integral is a linear isometry from the predictable `H²` space `L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)` to `L²(Ω, ℱ_T, P)`; the per-difference identity is the linear-isometry property applied to `(φ₁ − φ₂)`); Ikeda–Watanabe **Section II.3** for the same construction.
+* **Why a separate axiom**: same rationale as #17 — in the present axiomatization `Compensated.stochasticIntegral N φ` is constructed via `Classical.choose` on `itoIsometry_compensated_unified_existence` (Tier 1 #6), and the choose-witness depends on the integrand. The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/PicardGammaLipschitz.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
+* **Mathlib status (May 2026)**: blocked on Mathlib gaining a compensated-Poisson L²-integral (waits on PRM construction — Tier 1 #2). No current Mathlib activity in this direction.
+* **Replacement plan**: `theorem itoIsometry_diff_compensated := <linearity ∘ isometry>` when Mathlib gains a compensated-Poisson L²-integral as a continuous linear map.
+
+### Retired #12: `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (DEMOTED axiom→theorem 2026-05-26)
 
 * **Statement**: Under Lipschitz hypothesis on `(μ, σ, γ)`, the jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)` with `X_0 = x_0` admits a strong solution (with càdlàg paths, L²-sup-bounded on every bounded interval) that is a.s. unique.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 6.2.9**; Ikeda-Watanabe, *Stochastic Differential Equations and Diffusion Processes*, North-Holland 1989, Chapter IV.
@@ -150,7 +199,7 @@ literature integral forms.
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
 * **Replacement plan**: When the wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is fully proven (Bielecki packaging + structure bridge + the descended Picard contraction chain), `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
 
-### 13. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` (DEMOTED axiom→theorem 2026-05-26)
+### Retired #13: `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
 On 2026-05-26 this axiom was demoted to a Lean `theorem` derived from a
 DECOMPOSITION into two strictly narrower Tier 1 sub-axioms (#13a + #13b
@@ -199,7 +248,7 @@ Springer 2003, **Theorem III.4.34**.
 * **Mathlib status (May 2026)**: Doob L² càdlàg regularization is NOT yet in Mathlib but is on the roadmap (independent of BM construction; requires only `MeasureTheory.Martingale` + `Filtration.IsRightContinuous`). Blumenthal-for-BM waits on the BM construction (Tier 1 #1). `MeasureTheory.condExp_of_stronglyMeasurable` is already in Mathlib.
 * **Replacement plan**: `theorem condExp_to_PRP_martingale_form_axiom := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>` when the three Mathlib pieces above land.
 
-### 14. `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
+### Retired #14: `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
 On 2026-05-26 this axiom was demoted to a Lean `theorem` forwarding through
 the wrap-up `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
@@ -471,16 +520,23 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **13 Tier 1 cited axioms currently live** (M4 deleted #7 + #8; #12 +
-  #13 added 2026-05-23 via theorem→axiom conversion; on 2026-05-26
-  axiom #13 was DECOMPOSED into the two strictly narrower sub-axioms
-  #13a `jacodYor_PRP_martingale_axiom` + #13b
-  `condExp_to_PRP_martingale_form_axiom`, with the previously-monolithic
-  `jacodYor_representation_axiom` now demoted to a derived theorem; #14
-  was added 2026-05-23 then demoted axiom→theorem 2026-05-26 — see the
-  wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-  listed in the honest-derivative-theorems table), each with paper
-  reference + Mathlib status + replacement plan.
+* **14 Tier 1 cited axioms currently live** (3rd-audit reconciliation
+  2026-05-27): #1-#6 (Brownian + Poisson foundations), #9 + #10
+  (BSDEJ existence + path regularity), #13a + #13b (the two strictly
+  narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
+  `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26
+  decomposition of the previously-monolithic `jacodYor_representation_axiom`,
+  now demoted to a derived theorem), #15 + #16 (the two pieces of the
+  decomposed Itô-Lévy formula: `itoFormula_continuousSemimartingale_axiom`
+  + `itoLevyFormula_jumpResidual_canonical_axiom`, with the previously-
+  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem), and #17
+  + #18 (`itoIsometry_diff_brownian` + `itoIsometry_diff_compensated`,
+  the per-difference L²-isometries that have lived in source since
+  2026-05-23 but were first formally numbered in this file on 2026-05-27).
+  Each axiom has paper reference + Mathlib status + replacement plan.
+  History markers: M4 deleted #7 + #8 (2026-05-22); #11 retired (2026-05-24);
+  #12, #13, #14 demoted axiom→theorem (2026-05-26); #17, #18 added
+  to this file (2026-05-27 — 3rd-audit CRITICAL #1 closure).
 * **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited
   + the single baseline-sorry wrap-up theorem.
 * `sorryAx` in the public API restricted to the 1 baseline-acknowledged entry

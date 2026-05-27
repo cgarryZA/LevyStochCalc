@@ -51,7 +51,7 @@ of the Applebaum 4.4.7 proof:
   subtraction from the LHS) equals the sum of jump-martingale +
   compensator-drift terms, derived via the small/large jump
   decomposition + `ε → 0` limit using the `L²`-isometry of the
-  compensated-Poisson integral (Tier 1 #6 / #14).
+  compensated-Poisson integral (Tier 1 #6 / #18).
 
 The previous Tier 1 #16 axiom (`itoLevyFormula_jumpResidual_axiom`,
 universal-`R` form) is now a **derived theorem** that forwards over
@@ -177,7 +177,7 @@ gives the headline four-term identity.
   u(T, X_T) − u(0, X_0) − drift − diff_mart`, we have
   `R_canonical = jump_mart + comp_drift` a.s., via the small/large
   jump decomposition + `ε → 0` limit (using the `L²`-isometry of the
-  compensated-Poisson integral, Tier 1 #6 / #14).
+  compensated-Poisson integral, Tier 1 #6 / #18).
 
   This is the **narrower** form of the (previous, retired)
   `itoLevyFormula_jumpResidual_axiom` (universal-`R` form, now a
@@ -312,7 +312,7 @@ algebraic glue.
 The literature derivation is Applebaum 4.4.10 (the small/large jump
 decomposition `∫₀^T ∫_E φ Ñ = ∫₀^T ∫_{|e|<ε} φ Ñ + ∑_{|γ|≥ε} φ`) plus
 the `ε → 0` limit using the `L²`-isometry of the compensated-Poisson
-integral (Applebaum 4.2.3 / Tier 1 #6 / Tier 1 #14
+integral (Applebaum 4.2.3 / Tier 1 #6 / Tier 1 #18
 `itoIsometry_diff_compensated`).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
@@ -324,10 +324,10 @@ large jump decomposition); same source **Theorem 4.4.7** proof
 **Mathlib status (May 2026)**: No compensated-Poisson integral in
 Mathlib (waits on PRM construction). The small/large decomposition
 is itself a derived statement once the integral exists; the
-`ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #14).
+`ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #18).
 
 **Replacement plan**: derive as a theorem from
-`itoIsometry_diff_compensated` (Tier 1 #14, in `Poisson/Compensated.lean`)
+`itoIsometry_diff_compensated` (Tier 1 #18, in `Poisson/Compensated.lean`)
 + a Mathlib-level linearity result on the compensated-Poisson
 L²-integral once that machinery becomes available. -/
 axiom itoLevyFormula_jumpResidual_canonical_axiom

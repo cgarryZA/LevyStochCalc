@@ -1,44 +1,63 @@
-# LevyStochCalc — Status (2026-05-22)
+# LevyStochCalc — Status (2026-05-27)
 
 ## Headline
 
 **Library builds clean** (`lake build`: 8402 jobs, no errors).
-**Lint passes** (`bash tools/lint.sh`: PASS at baseline of 2 sorry'd
-theorems).
+**Lint passes** (`bash tools/lint.sh`: PASS at baseline of the
+JumpDiffusion Picard-chain wrap-up sorry — see below).
 
-## Sorry baseline (2 entries)
+## Sorry baseline (1 mathematical entry; 4 transitive forwarders)
 
-Both are genuinely-deferred classical theorems with real statements:
+There is a single genuinely-deferred classical theorem; the four
+`tools/sorry_baseline.txt` lines are forwarders that all bottom out in
+the same wrap-up sorry:
 
-| Theorem | Citation | Sorry size |
+| Theorem | Citation | Role |
 |---|---|---|
-| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV | Picard iteration in `S²([0,T]; ℝⁿ)` |
-| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | Jacod 1976 / Jacod-Shiryaev Thm III.4.34 | Predictable-projection chaos decomposition |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV | Single explicit `sorry` for the Picard iteration in `S²([0,T]; ℝⁿ)` |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | (transitive) | 1-line forwarder over `_via_aeQuot` |
+| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | (transitive) | 1-line forwarder |
+| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | (transitive) | 1-line forwarder |
 
-Both have honest statements (no trivial-witness in the conclusion):
-the Brownian and compensated-Poisson integrals are pinned to the
-canonical `MultidimBrownianMotion.stochasticIntegral` /
-`Compensated.stochasticIntegral` (the SDE coefficients and BSDEJ
-integrands are bundled in existentials inside the predicate).
+The wrap-up theorem has an honest statement (no trivial-witness in the
+conclusion): the SDE integral equation is the `JumpDiffusion W N coeffs x₀`
+structure's `is_solution` field, which is the literature Itô-with-jumps
+integral equation in full form.
 
-## Tier 1 cited axioms (11 currently live)
+Previously, `BSDEJ.MartingaleRepresentation.jacodYor_representation` and
+`Ito.JumpFormula.itoLevyFormula` were sorry'd. Both are now derived
+theorems forwarding through honest Tier 1 cited axioms (the
+#13a + #13b decomposition for jacodYor; #15 + #16 for itoLevyFormula).
+
+## Tier 1 cited axioms (14 currently live)
 
 See `tools/cited_axioms.md` for the full inventory. Numbering history:
-#7 + #8 deleted 2026-05-22 (dead post-refactor per M4); #12 + #13 added
-2026-05-23 via theorem→axiom promotion of `JumpDiffusion.exists_unique`
-and `jacodYor_representation` (the `theorem ... := by sorry` form was
-dishonest; the `axiom` form makes the claim match the content per
-Rule 0). **Sorry baseline is now EMPTY.**
+#7 + #8 deleted 2026-05-22 (dead post-refactor per M4); #11 retired
+2026-05-24 by decomposition into #15 + #16; #12 + #13 added 2026-05-23
+via theorem→axiom promotion and then demoted axiom→theorem 2026-05-26
+via the #13a/#13b decomposition + Bielecki AE-quotient wrap-up; #14
+added 2026-05-23 then demoted axiom→theorem 2026-05-26; #16 narrowed
+2026-05-26 from universal-`R` to canonical-`R` form; #17 + #18 added
+in source 2026-05-23 and formally numbered in `tools/cited_axioms.md`
+on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
+1 entry**: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
+(carries the entire literature Picard chain for Applebaum 6.2.9).
 
-* **Brownian foundations** (4 axioms): `BrownianMotion.exists`,
-  `kolmogorovChentsov_modification`, `brownian_martingale_rightCont`,
-  `itoIsometry_brownian_unified_existence`.
+* **Brownian foundations** (4 axioms): `BrownianMotion.exists` (#1),
+  `kolmogorovChentsov_modification` (#3), `brownian_martingale_rightCont`
+  (#4), `itoIsometry_brownian_unified_existence` (#5).
 * **Compensated-Poisson foundations** (2 axioms):
-  `PoissonRandomMeasure.exists_of_sigmaFinite`,
-  `itoIsometry_compensated_unified_existence`.
-* **BSDEJ + Itô-Lévy** (5 axioms): `continuousBSDEJ_exists_unique`,
-  `bsdej_path_regularity`, `itoLevyFormula`, `JumpDiffusion.exists_unique`,
-  `jacodYor_representation`.
+  `PoissonRandomMeasure.exists_of_sigmaFinite` (#2),
+  `itoIsometry_compensated_unified_existence` (#6).
+* **BSDEJ** (4 axioms): `continuousBSDEJ_exists_unique` (#9),
+  `bsdej_path_regularity` (#10), `jacodYor_PRP_martingale_axiom` (#13a),
+  `condExp_to_PRP_martingale_form_axiom` (#13b).
+* **Itô-Lévy formula** (2 axioms):
+  `itoFormula_continuousSemimartingale_axiom` (#15),
+  `itoLevyFormula_jumpResidual_canonical_axiom` (#16).
+* **Per-difference L²-isometries** (2 axioms — used by Picard contraction
+  estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian`
+  (#17), `itoIsometry_diff_compensated` (#18).
 
 ## Recent activity (2026-05-22)
 

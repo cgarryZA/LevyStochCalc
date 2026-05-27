@@ -71,7 +71,7 @@ Consequences:
 
 ## Tier 1 axiom added 2026-05-23
 
-* `itoIsometry_diff_compensated` (Tier 1 #14): per-difference L²-isometry
+* `itoIsometry_diff_compensated` (Tier 1 #18): per-difference L²-isometry
   for the compensated-Poisson Itô-Lévy integral. Standard consequence of
   L²-linearity + isometry of the L² Itô-Lévy integral (Applebaum 2009
   Thm 4.2.3 step (II) — the integral map is a continuous linear isometry
@@ -2030,7 +2030,7 @@ where `Ñ(B) := N(B) − ν̂(B)` is the compensated random measure
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (t : ℝ) (ω : Ω) : ℝ :=
   simpleIntegral N φ t ω
 
-/-- **CITED AXIOM (Tier 1 #14): L²-isometry for the *difference* of two
+/-- **CITED AXIOM (Tier 1 #18): L²-isometry for the *difference* of two
 compensated-Poisson Itô-Lévy integrals.**
 
 For two jointly-measurable, progressively-measurable, L²-bounded
@@ -2049,8 +2049,8 @@ axiomatization, `stochasticIntegral N φ` is constructed via
 gets an independent existence witness, so the "difference of choices"
 and "choice of difference" are not syntactically equal). We therefore
 state this difference-form isometry as a separate axiom, mirroring the
-analogous Brownian-side `itoIsometry_diff_brownian` (Tier 1 #14 — note
-the docstring there still cites the old internal number).
+analogous Brownian-side `itoIsometry_diff_brownian` (Tier 1 #17, per the
+2026-05-27 3rd-audit renumbering).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
 2nd ed., CUP 2009, **Theorem 4.2.3** — the L²-Itô-Lévy integral is
@@ -2066,7 +2066,7 @@ construction.
 **Replacement plan**: derive as a theorem from a Mathlib-level linearity
 result on the L²-Itô-Lévy integral when that machinery becomes available
 (blocked on Mathlib gaining the compensated-Poisson L²-integral).
-Tracked in `tools/cited_axioms.md` Tier 1 #14. -/
+Tracked in `tools/cited_axioms.md` Tier 1 #18. -/
 axiom itoIsometry_diff_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

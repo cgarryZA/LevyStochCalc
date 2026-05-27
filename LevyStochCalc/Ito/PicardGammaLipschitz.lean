@@ -59,7 +59,8 @@ witness and the "difference of choices" and "choice of difference"
 are not syntactically equal. The bundled hypothesis was the path of
 least resistance for the initial Picard-framework commits.
 
-With Tier 1 #14 (`itoIsometry_diff_compensated`) now stating the
+With Tier 1 #18 (`itoIsometry_diff_compensated`, per the 2026-05-27
+3rd-audit renumbering — historically called #14) now stating the
 per-difference isometry as a first-class axiom, the bundled
 `h_lin` hypothesis (and the `hDiff_meas`, `hDiff_progMeas`,
 `hDiff_sq` measurability/integrability hypotheses that only fed into
@@ -104,13 +105,13 @@ This is the operator-level per-component bound that, when summed over
 
 **Proof**: forwards directly through the per-difference L²-isometry
 axiom `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated`
-(Tier 1 #14), then applies the γ-Lipschitz hypothesis pointwise and
+(Tier 1 #18), then applies the γ-Lipschitz hypothesis pointwise and
 extracts the constant via `lintegral_const_mul`.
 
 **2026-05-23 refactor**: previously took a bundled linearity hypothesis
 `h_lin` plus `hDiff_meas`/`hDiff_progMeas`/`hDiff_sq` measurability /
 integrability hypotheses for the difference integrand (four extra
-preconditions). Replaced with a forward through Tier 1 axiom #14; the
+preconditions). Replaced with a forward through Tier 1 axiom #18; the
 four hypotheses are gone. -/
 lemma picardStep_jump_diff_lipschitz_sq_componentwise
     {n d : ℕ}
