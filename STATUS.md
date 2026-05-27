@@ -145,8 +145,11 @@ LevyStochCalc/
 
 ```
 cd D:/LevyStochCalc
-lake build           # 8402 jobs
-bash tools/lint.sh   # checks build + sorry baseline
+lake build                            # 8402 jobs
+bash tools/lint.sh                    # checks build + sorry baseline
+bash tools/verify_import_contract.sh  # checks dissertation-import contract
+                                      # (paths from tools/import_contract.md;
+                                      #  added 2026-05-27, audit HIGH #6)
 ```
 
 ## See also
