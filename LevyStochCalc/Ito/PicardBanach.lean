@@ -194,7 +194,7 @@ Banach fixed-point step (`ContractingWith.fixedPoint` +
 in this file): the fixed point is the limit of Picard iterates `Φⁿ X₀`
 for any starting `X₀`, and every other fixed point coincides with it
 (so any two `JumpDiffusion` solutions, both being fixed points of Φ,
-must agree a.s. at every `t`).
+must agree a.s. at every `t ≥ 0` — the SDE time domain).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd
 ed., CUP 2009, **Theorem 6.2.9** (Picard iteration in `S²` for jump-
@@ -228,9 +228,16 @@ free-standing axiom.
 without this); produces a CONCRETE `JumpDiffusion` (all six fields
 populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
 `cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
-every `t` (the literature uniqueness conclusion). No trivial
+every `t ≥ 0` (the literature uniqueness conclusion). No trivial
 constant-path witness satisfies this for generic non-zero coefficients:
-`X t ω = x₀` fails `is_solution` because the integrals don't vanish. -/
+`X t ω = x₀` fails `is_solution` because the integrals don't vanish.
+
+**Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
+pairwise a.s. agreement is asserted on the SDE time domain `t ≥ 0`
+only — matching the literature scope (Applebaum 6.2.9 / Ikeda-Watanabe IV
+work on `[0, ∞)`; the SDE integral equation in `JumpDiffusion.is_solution`
+itself is quantified over `t ≥ 0`). The previous over-strong `∀ t : ℝ`
+form had no literature backing for negative `t`. -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     {Ω : Type u} [MeasurableSpace Ω]
     {E : Type v} [MeasurableSpace E]
@@ -245,7 +252,7 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N coeffs x₀ hL
 
 /-- **Banach fixed-point output for the jump-diffusion SDE — forwarding theorem.**
@@ -278,7 +285,7 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique
     (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   picardFixedPoint_jumpDiffusion_exists_unique_axiom W N coeffs x₀ hL
 
 end LevyStochCalc.Ito.Picard
@@ -323,7 +330,8 @@ Under Lipschitz hypotheses on `(μ, σ, γ)`, the jump-diffusion SDE
 
 admits a strong solution that is càdlàg, adapted, L²-bounded in the
 supremum norm on every bounded interval, and **a.s. unique** (any two
-solutions agree a.s. at every time `t ≥ 0`).
+solutions agree a.s. at every time `t ≥ 0`; the SDE time domain
+`[0, ∞)` is the literature scope — Applebaum 6.2.9 / Ikeda-Watanabe IV).
 
 **Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*,
 2nd ed., Cambridge University Press, 2009, **Theorem 6.2.9**;
@@ -351,7 +359,7 @@ theorem exists_unique
     {L : ℝ} (hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     ∃ (jd : JumpDiffusion W N coeffs x₀),
       ∀ (jd' : JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
     W N coeffs x₀ hL
 

@@ -104,7 +104,8 @@ structure JumpDiffusion
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
     ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
-  /-- Almost-sure càdlàg paths (right-continuous with left limits, a.s.).
+  /-- Almost-sure càdlàg paths (right-continuous with left limits, a.s.)
+  on the SDE time domain `t ≥ 0`.
   Required by the literature jump-diffusion SDE convention: Applebaum 6.2.9 /
   Ikeda-Watanabe IV assume X is càdlàg-adapted so that `X_{s−}` (the left
   limit at s) is well-defined for the integrand evaluation in the
@@ -129,8 +130,16 @@ structure JumpDiffusion
   prefers `X_{s−}` for predictability hygiene (`X_{s−}` is `ℱ_{s−}`-
   measurable, i.e., predictable). The structure's `cadlag_paths` field
   is what makes this convention-equivalence well-typed; without it,
-  the discrepancy is unbounded. -/
-  cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ,
+  the discrepancy is unbounded.
+
+  **Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
+  the time argument is quantified over `t ≥ 0` only — the literature
+  scope of the SDE is `[0, ∞)` (the initial condition `X 0 = x₀` and
+  the integrals `∫₀^t … ds` only make sense for `t ≥ 0`). The previous
+  over-strong `∀ t : ℝ` form would force a càdlàg condition at negative
+  times where `X` carries no SDE-driven meaning, and is rejected by
+  Applebaum 6.2.9 / Ikeda-Watanabe IV. -/
+  cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t →
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
       ∧ ∀ i : Fin n, ∃ L : ℝ,
           Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)

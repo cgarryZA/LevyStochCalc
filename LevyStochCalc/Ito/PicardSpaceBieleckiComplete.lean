@@ -147,7 +147,14 @@ populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
 `cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
 every `t ≥ 0`. No trivial constant-path witness satisfies this for
 generic non-zero coefficients: `X t ω = x₀` fails `is_solution` because
-the integrals don't vanish. -/
+the integrals don't vanish.
+
+**Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
+pairwise a.s. agreement is asserted on the SDE time domain `t ≥ 0`
+only — matching the literature scope (Applebaum 6.2.9 / Ikeda-Watanabe IV
+work on `[0, ∞)`; the SDE integral equation in `JumpDiffusion.is_solution`
+itself is quantified over `t ≥ 0`). The previous over-strong `∀ t : ℝ`
+form had no literature backing for negative `t`. -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -160,7 +167,7 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
+        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
   -- The full literature chain (Applebaum 6.2.9 / Ikeda-Watanabe IV) —
   -- see module docstring "What this file delivers" for the six steps.
   -- The chain consolidates into this single sorry: every analytic
