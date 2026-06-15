@@ -21,6 +21,10 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
+# Async: provision in the background so session startup isn't blocked by the
+# (sizable) Mathlib cache download. This control line MUST be the first stdout.
+echo '{"async": true, "asyncTimeout": 600000}'
+
 PROJ="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 # Persist elan/lake on PATH for the whole session.
