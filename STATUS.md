@@ -158,6 +158,6 @@ bash tools/verify_import_contract.sh  # checks dissertation-import contract
 * `tools/sorry_baseline.txt` — currently-sorry'd theorems.
 * `_audit.lean` — load-bearing axiom-budget audit.
 * `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-22 (2nd audit)
-  meta-summary across 12 personas; the 1st-audit (2026-05-20) version
-  is archived at `redteam_findings/2026-05-20-archive/_REDTEAM_SUMMARY.md`
-  (P10 F10 fix per red-team 2nd audit 2026-05-23).
+  meta-summary across 12 personas. The 1st-audit (2026-05-20) version
+  was removed from the tree on 2026-06-15 (Plan.md Phase 0.1 de-clutter);
+  it remains in git history if needed.

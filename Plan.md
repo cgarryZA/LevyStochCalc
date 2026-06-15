@@ -45,8 +45,9 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
 
 ## Phase 0 — De-clutter & build the safety net (low risk, do first)
 
-- [ ] **0.1** Delete `redteam_findings/2026-05-20-archive/` (13 files). Git keeps
-      it; an in-tree dated duplicate is exactly the junk to remove.
+- [x] **0.1** Delete `redteam_findings/2026-05-20-archive/` (13 files). Git keeps
+      it; an in-tree dated duplicate is exactly the junk to remove. *(done
+      2026-06-15 on `claude/refactor-phase0-declutter`; STATUS.md pointer updated.)*
 - [ ] **0.2** Collapse the 12 live `redteam_findings/NN_*.md` persona files into a
       single `redteam_findings/SUMMARY.md` (or delete if superseded). Keep
       `STATUS.md` and `tools/*.md` as workflow docs but treat them as *this repo's*
