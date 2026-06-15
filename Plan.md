@@ -60,9 +60,13 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
 
 ## Phase 1 — Structural refactor (in-tree, contract-safe)
 
-- [ ] **1.1** Consolidate the 10 `Ito/Picard*.lean` files (4739 lines, one
+- [x] **1.1** Consolidate the 10 `Ito/Picard*.lean` files (4739 lines, one
       theorem) → 2–3 files organized by mathematics, not proof-iteration. None are
-      pinned in the contract, so this is free. **Highest-value cleanup.**
+      pinned in the contract, so this is free. **Highest-value cleanup.** *(done
+      2026-06-15: → `Picard.lean` (operator + estimates + self-map + contraction),
+      `PicardSpace.lean` (complete metric space + baseline sorry), `PicardFixedPoint.lean`
+      (Banach existence/uniqueness). Bodies/namespaces/sorry/axiom preserved verbatim;
+      root imports 10→3; four-way invariant green.)*
 - [ ] **1.2** Split the 3 oversized files along mathematical seams, each with a
       forwarding aggregator at the old path so pinned imports still resolve:
       - `Brownian/Ito.lean` (3999) → simple-integrand integral / isometry
