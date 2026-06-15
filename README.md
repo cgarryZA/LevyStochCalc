@@ -49,22 +49,16 @@ LevyStochCalc/
 ├── Ito/
 │   ├── Setting.lean                           — JumpDiffusion structure (baseline sorry)
 │   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived #11/#16 thms
-│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework
-│   ├── PicardBanach.lean                      — Banach-shim + JumpDiffusion.exists_unique
-│   │                                            forwarder (ex-Tier-1-axiom #14, now theorem)
-│   ├── PicardSpace.lean                       — discrete-metric typeclass-placeholder
-│   │                                            instances on SBoundedProcess
-│   ├── PicardSpaceBielecki.lean               — Bielecki β-norm AE-quotient (genuine metric)
-│   ├── PicardSpaceBieleckiComplete.lean       — Bielecki-quotient CompleteSpace + wrap-up
-│   │                                            (single explicit baseline sorry for the
-│   │                                            entire Picard chain)
-│   ├── PicardSelfMap.lean                     — Picard-map self-map on SBoundedProcess
-│   ├── PicardContraction.lean                 — Bielecki β-norm contraction assembly
-│   ├── PicardContractionTight.lean            — tight β-norm contraction analysis
-│   ├── PicardSigmaLipschitz.lean              — σ-side L² Lipschitz bound + Tier 1
-│   │                                            auxiliary axiom itoIsometry_diff_brownian
-│   └── PicardGammaLipschitz.lean              — γ-side L² Lipschitz bound (forwards
-│                                                through Tier 1 itoIsometry_diff_compensated)
+│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework,
+│   │                                            σ/γ L² Lipschitz bounds (auxiliary axiom
+│   │                                            itoIsometry_diff_brownian), self-map and
+│   │                                            Bielecki contraction
+│   ├── PicardSpace.lean                       — complete metric space of bounded processes:
+│   │                                            discrete metric + Bielecki β-norm AE-quotient
+│   │                                            and wrap-up (single explicit baseline sorry
+│   │                                            for the entire Picard chain)
+│   └── PicardFixedPoint.lean                  — Banach-shim + JumpDiffusion.exists_unique
+│                                                forwarder (ex-Tier-1-axiom #14, now theorem)
 └── BSDEJ/
     ├── Definition.lean                        — IsBSDEJSolution predicate + regression-test
     │                                            extractors (Y-cadlag, Z/U progressive, M_W

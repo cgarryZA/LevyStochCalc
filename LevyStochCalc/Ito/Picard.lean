@@ -1648,7 +1648,7 @@ exactly `picardStep` applied to `X.X`.
 This is the `Φ : SBoundedProcess → SBoundedProcess` map that the Banach
 fixed-point theorem consumes in
 `picardFixedPoint_jumpDiffusion_exists_unique`. The contraction
-estimate (proved in `PicardContraction.lean`) operates on the
+estimate (proved in `Picard.lean`) operates on the
 underlying path map and lifts trivially through `picardStepOnS2`. -/
 noncomputable def picardStepOnS2
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
@@ -1713,7 +1713,7 @@ Pointwise extensionality lemma: the underlying path map of
 `picardStepOnS2` is definitionally equal to `picardStep` applied to
 the input `SBoundedProcess`'s path map. This is the load-bearing
 "the lift is the right one" statement — the contraction estimate
-proved in `PicardContraction.lean` operates on `picardStep` directly,
+proved in `Picard.lean` operates on `picardStep` directly,
 and this lemma converts those estimates into estimates on
 `(picardStepOnS2).X`. -/
 @[simp]

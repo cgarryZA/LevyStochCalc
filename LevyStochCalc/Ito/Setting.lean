@@ -186,21 +186,21 @@ structure JumpDiffusion
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
 /-! **Theorem `JumpDiffusion.exists_unique` is proved in
-`LevyStochCalc/Ito/PicardBanach.lean`.**
+`LevyStochCalc/Ito/PicardFixedPoint.lean`.**
 
 The literature theorem (Applebaum 6.2.9 / Ikeda-Watanabe IV) is the
 output of Picard iteration on the Banach space `S²([0, T]; ℝⁿ)`
 equipped with the Bielecki β-norm. The Banach fixed-point shim and
-its specialisation to the SDE setting live in `Ito/PicardBanach.lean`,
+its specialisation to the SDE setting live in `Ito/PicardFixedPoint.lean`,
 which imports this file (for the `JumpDiffusion` structure) plus
 `Ito/Picard.lean` (for the Picard map / contraction lemmas). The proof
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (the
 Banach fixed-point output specialised to the SDE setting).
 
 Placing the theorem there avoids an import cycle (Setting → Picard →
-PicardBanach → Setting would be a cycle). The qualified name remains
+PicardFixedPoint → Setting would be a cycle). The qualified name remains
 `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the theorem
-re-opens the namespace explicitly in `PicardBanach.lean`), so all
+re-opens the namespace explicitly in `PicardFixedPoint.lean`), so all
 downstream callers — `tools/cited_axioms.md` entry #12, `_audit.lean`
 line 50, `Ito/JumpFormula.lean` (the consumer) — are unaffected. -/
 

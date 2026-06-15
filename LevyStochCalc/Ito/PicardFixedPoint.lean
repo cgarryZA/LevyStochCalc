@@ -82,13 +82,10 @@ specialisation — it discharges the typeclass obligation only.
 The literature-substantive Banach work (Bielecki β-weighted L²-sup
 norm with genuine contraction at the analytical rate
 `3 n L² (T+2) / (2β)` for `β > 3 n L² (T+2) / 2`) lives in
-`LevyStochCalc.Ito.PicardSpaceBielecki` (genuine metric on the
-AE-quotient `AEQuot β T`) +
-`LevyStochCalc.Ito.PicardSpaceBieleckiComplete` (`CompleteSpace`
-instance via Lp completeness + Doob càdlàg modification), and the
-SDE chain wraps up via
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in the latter
-file. **Downstream consumers needing the actual SDE strong-existence
+`LevyStochCalc.Ito.PicardSpace`: the genuine metric on the
+AE-quotient `AEQuot β T` and the `CompleteSpace` instance (via Lp
+completeness + Doob càdlàg modification), and the SDE chain wraps up via
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` there. **Downstream consumers needing the actual SDE strong-existence
 result should use the `_via_aeQuot` wrap-up theorem, not this
 typeclass-shim theorem applied on `SBoundedProcess`.**
 
@@ -98,7 +95,7 @@ The hypothesis bundle:
   the càdlàg L²-bounded process space (the discrete-metric instance
   from `PicardSpace.lean` is one canonical choice — but typeclass-
   trivial as above; the Bielecki β-norm on the `AEQuot` quotient from
-  `PicardSpaceBielecki.lean` is the literature choice).
+  `PicardSpace.lean` is the literature choice).
 * `[Nonempty (SBoundedProcess P T)]` — witnessed e.g. by the constant
   zero process.
 * `[CompleteSpace (SBoundedProcess P T)]` — `S²` is the standard Banach
@@ -197,10 +194,10 @@ Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
 introduced as a Tier 1 cited axiom on 2026-05-23 during the
 `theorem → axiom` refactor of `picardFixedPoint_jumpDiffusion_exists_unique`.
 With the Bielecki AE-quotient infrastructure now in place
-(`PicardSpaceBielecki.lean` + `PicardSpaceBieleckiComplete.lean`), the
+(`PicardSpace.lean` + `PicardSpace.lean`), the
 axiom is converted to a 1-line forwarding theorem over the wrap-up
 theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
-`PicardSpaceBieleckiComplete.lean`. The wrap-up theorem carries a SINGLE
+`PicardSpace.lean`. The wrap-up theorem carries a SINGLE
 explicit `sorry` collecting the entire Picard chain (six steps;
 documented in the wrap-up's module docstring) — the analytical content
 is exactly the Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9),
@@ -251,15 +248,15 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
 Thin forwarder over the (now-)theorem
 `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (above), which in
 turn forwards through `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-in `PicardSpaceBieleckiComplete.lean`. The single explicit `sorry` for
+in `PicardSpace.lean`. The single explicit `sorry` for
 the entire Picard chain lives in that wrap-up theorem; this forwarder
 is sorry-free in source but transitively depends on the chain.
 
 The Picard contraction analysis (drift / diffusion / jump
 L²-Lipschitz bounds + Bielecki β-norm contraction at rate `3 n L² (T+2) / (2β)`
 for `β > 3 n L² (T+2) / 2`) is fully proven downstream in `Ito/Picard.lean`,
-`Ito/PicardContraction.lean`, `Ito/PicardSigmaLipschitz.lean`, and
-`Ito/PicardGammaLipschitz.lean`; the remaining sorry covers the Bielecki
+`Ito/Picard.lean`, `Ito/Picard.lean`, and
+`Ito/Picard.lean`; the remaining sorry covers the Bielecki
 `S²` Banach-space packaging (`Lp` completeness + Doob càdlàg modification)
 + the structure bridge into `JumpDiffusion`.
 
@@ -294,7 +291,7 @@ the level of qualified names.
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (above),
 which is the SDE-specialised Banach fixed-point output. Putting the
 theorem in `Ito/Setting.lean` would require `Setting.lean` to import
-`Picard.lean` and `PicardBanach.lean`, creating a cycle (both already
+`Picard.lean` and `PicardFixedPoint.lean`, creating a cycle (both already
 import `Setting.lean` for the `JumpDiffusion` structure definition).
 Forwarding through the Banach intermediate is the canonical pattern
 (mirrors the `itoIsometry_brownian_unified_existence` → `itoIsometry`

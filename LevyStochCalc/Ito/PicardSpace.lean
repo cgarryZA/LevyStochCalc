@@ -109,8 +109,8 @@ generic Banach shim `picardFixedPoint`, NOT to deliver mathematics.
 The literature Banach work (Bielecki β-weighted L²-sup norm with genuine
 contraction at the analytical rate `3 n L² (T+2) / (2β)` for
 `β > 3 n L² (T+2) / 2`) lives on the AE-quotient
-`PicardSpaceBielecki.AEQuot β T` and wraps up in
-`PicardSpaceBieleckiComplete.lean`'s
+`SBoundedProcess.AEQuot β T` and wraps up in
+`PicardSpace.lean`'s
 `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`. Downstream
 consumers should treat the discrete-metric `picardFixedPoint` invocation
 on `SBoundedProcess` as a typeclass shim only.
@@ -819,7 +819,7 @@ explicitly opts in via `AEQuot`).
    `Cauchy → CompleteSpace`.
 
 2. **`picardStepOnS2` descent to `AEQuot`** — the Picard self-map
-   from `Ito/PicardSelfMap.lean` respects ae-equivalence (Bochner /
+   from `Ito/Picard.lean` respects ae-equivalence (Bochner /
    Brownian-Itô / compensated-Poisson integrals are all ae-equivalence-
    preserving), so it descends to a map
    `AEQuot β T → AEQuot β T`.
@@ -886,7 +886,7 @@ analytic + Mathlib-glue obligation, hence:
 `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (this thm)
   ↓ forwarder
 `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem
-  in `PicardBanach.lean`, ex-Tier-1-axiom #14)
+  in `PicardFixedPoint.lean`, ex-Tier-1-axiom #14)
   ↓ forwarder
 `picardFixedPoint_jumpDiffusion_exists_unique`
   ↓ forwarder
