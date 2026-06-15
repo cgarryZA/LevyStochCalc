@@ -4,7 +4,11 @@ _import_contract_probe.lean
 audit_output.txt
 
 # IDE / editor / agent caches
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/session-start.sh
 .codex/
 .mcp.json
 .vscode/
