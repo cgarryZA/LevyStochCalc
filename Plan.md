@@ -48,10 +48,12 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
 - [x] **0.1** Delete `redteam_findings/2026-05-20-archive/` (13 files). Git keeps
       it; an in-tree dated duplicate is exactly the junk to remove. *(done
       2026-06-15 on `claude/refactor-phase0-declutter`; STATUS.md pointer updated.)*
-- [ ] **0.2** Collapse the 12 live `redteam_findings/NN_*.md` persona files into a
+- [x] **0.2** Collapse the 12 live `redteam_findings/NN_*.md` persona files into a
       single `redteam_findings/SUMMARY.md` (or delete if superseded). Keep
       `STATUS.md` and `tools/*.md` as workflow docs but treat them as *this repo's*
-      scaffolding — they never travel into a mathlib PR.
+      scaffolding — they never travel into a mathlib PR. *(done 2026-06-15: the 12
+      personas were superseded by the existing deduplicated meta-summary, which was
+      renamed `SUMMARY.md`; the 12 raw reports + audit scaffolding deleted, git-archived.)*
 - [ ] **0.3** Strip in-source narrative comments project-wide: `P1 F2
       INVESTIGATION`, `red-team Nth audit`, milestone tags, `D:/...` paths, dated
       change-logs. Move any still-useful rationale into the decl docstring as math.

@@ -151,7 +151,7 @@ bash tools/verify_import_contract.sh  # checks dissertation-import contract
 * `tools/cited_axioms.md` — full Tier 1 axiom inventory with paper references.
 * `tools/sorry_baseline.txt` — currently-sorry'd theorems.
 * `_audit.lean` — load-bearing axiom-budget audit.
-* `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-22 (2nd audit)
-  meta-summary across 12 personas. The 1st-audit (2026-05-20) version
-  was removed from the tree on 2026-06-15 (Plan.md Phase 0.1 de-clutter);
-  it remains in git history if needed.
+* `redteam_findings/SUMMARY.md` — meta-summary across 12 audit personas
+  (severity-ranked, deduplicated). The 12 raw persona reports and the audit
+  scaffolding were collapsed into this single summary on 2026-06-15 (Plan.md
+  Phase 0.2 de-clutter); they remain in git history if needed.
