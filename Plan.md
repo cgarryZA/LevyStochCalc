@@ -149,13 +149,16 @@ For each *closed, general* result, in this order of mathlib-readiness:
 
 ## Phase 5 — Definition of done (steady state)
 
-- [ ] `#print axioms` over the whole library shows only `propext`,
-      `Classical.choice`, `Quot.sound`.
-- [ ] Zero `sorry`. `tools/sorry_baseline.txt` empty.
-- [ ] Every file ≤ ~600 lines, sectioned, precise imports, math-only docstrings.
-- [ ] Upstreamable results live in `ProbabilityTheory` / `Mathlib/Probability`
-      shape; dissertation builds via forwarding stubs.
-- [ ] CI green; all general results either merged into mathlib or PR-open.
+The full, authoritative definition of done — including the non-vacuity and
+faithfulness criteria a "zero sorry" pass misses — lives in [`GOAL.md`](GOAL.md)
+§1. This phase is complete exactly when every `GOAL.md` §1 box is
+checkable-true. In brief: zero `sorry`/custom-axiom (`#print axioms` →
+`propext`/`Classical.choice`/`Quot.sound` only), no vacuity (`GOAL.md` §2),
+mathlib-grade form, dissertation builds via stubs, CI green, general results
+merged or PR-open.
+
+When this phase is reached but `GOAL.md` is not yet fully met, regenerate this
+`Plan.md` per the loop contract at the top of `GOAL.md`.
 
 ---
 
