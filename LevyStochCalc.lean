@@ -32,14 +32,7 @@ import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.PicardSpace
-import LevyStochCalc.Ito.PicardSpaceBielecki
-import LevyStochCalc.Ito.PicardSpaceBieleckiComplete
-import LevyStochCalc.Ito.PicardBanach
-import LevyStochCalc.Ito.PicardSigmaLipschitz
-import LevyStochCalc.Ito.PicardGammaLipschitz
-import LevyStochCalc.Ito.PicardContraction
-import LevyStochCalc.Ito.PicardContractionTight
-import LevyStochCalc.Ito.PicardSelfMap
+import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

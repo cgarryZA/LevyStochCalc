@@ -3,69 +3,26 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Ito.Picard
-import LevyStochCalc.Ito.PicardSpaceBieleckiComplete
+import LevyStochCalc.Ito.PicardSpace
 import Mathlib.Topology.MetricSpace.Contracting
 
 /-!
-# Banach fixed-point shim for the Picard iteration
+# Existence and uniqueness via the Banach fixed-point theorem
 
-This file wraps Mathlib's `ContractingWith.fixedPoint` (the Banach fixed-point
-theorem on a complete metric space) into the form needed by the Picard
-iteration for the jump-diffusion SDE. The substantive contraction estimate
-lives in `LevyStochCalc/Ito/Picard.lean` (the `bielecki_*` lemma family
-plus the per-component drift / diffusion / jump Lipschitz bounds); this file
-just packages the Mathlib invocation so the SDE-existence proof in
-`LevyStochCalc/Ito/Setting.lean` can use a single named theorem rather
-than unfolding the Mathlib API.
+This file applies Banach's fixed-point theorem (`ContractingWith.fixedPoint`)
+to the Picard map: the contraction estimate of `Picard.lean` together with
+the complete-metric-space structure of `PicardSpace.lean` yield the
+existence/uniqueness theorem for the jump-diffusion SDE.
 
-## Status
+## Contents
 
-The `S²([0, T]; ℝⁿ)` Banach-space structure on `SBoundedProcess` is downstream
-work: it requires
-* a `MetricSpace` (or `EMetricSpace`) instance whose distance is the
-  Bielecki / `S²`-sup norm,
-* a `CompleteSpace` instance (`S²` is the standard Banach space of càdlàg
-  L²-bounded processes; completeness is the usual quotient by P-null sets),
-* `Nonempty` (the constant zero process trivially witnesses this).
-
-**TYPECLASS-PLACEHOLDER NOTE (red-team 3rd-audit HIGH #1, 2026-05-27):**
-The default `MetricSpace` / `CompleteSpace` instances on `SBoundedProcess`
-(installed in `PicardSpace.lean`) use the *discrete metric* and are
-typeclass-placeholders only — they discharge typeclass obligations of
-the Banach shim but carry no substantive analytical content. The genuine
-literature Banach work (Bielecki β-norm contraction at the analytical
-rate `3 n L² (T+2) / (2β)`) lives on the AE-quotient
-`PicardSpaceBielecki.AEQuot β T` and completes in
-`PicardSpaceBieleckiComplete.lean`. See `picardFixedPoint` docstring
-below for the warning attached to the specialised theorem.
-
-This file states the Banach shim in two forms:
-
-1. **`picardFixedPoint_generic`** (substantive shim) — for *any* complete
-   nonempty metric space `M` and *any* contraction `Φ : M → M`, there
-   exists a unique fixed point. This is the direct repackaging of
-   Mathlib's `ContractingWith.fixedPoint` + `fixedPoint_unique` into the
-   `∃!` form natural for Picard.
-
-2. **`picardFixedPoint`** (target shape from the project plan) — for
-   `SBoundedProcess P T` equipped with the (downstream) `MetricSpace`,
-   `Nonempty`, `CompleteSpace` instances and a contraction `Φ`, the
-   `picardFixedPoint_generic` result specialises to a unique fixed point.
-
-Both are sorry-free; the metric instances are taken as `[...]`
-hypotheses, deferring the analytic construction (which is independent
-substantive work) to a downstream file that builds them.
-
-## Reference
-
-* Mathlib: `Mathlib.Topology.MetricSpace.Contracting`,
-  `ContractingWith.fixedPoint`, `ContractingWith.fixedPoint_isFixedPt`,
-  `ContractingWith.fixedPoint_unique`.
-* Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., 2009,
-  Thm 6.2.9 (Picard iteration in `S²`).
+* `picardFixedPoint_generic`, `picardFixedPoint`, `picardFixedPoint_of_exists`
+  — the abstract fixed-point packaging.
+* `picardFixedPoint_jumpDiffusion_exists_unique` — the concrete
+  existence/uniqueness statement for the jump-diffusion SDE.
+* `JumpDiffusion.exists_unique`, `JumpDiffusion.agree_at_zero` — the form
+  consumed by `Ito/Setting.lean`.
 -/
-
 open MeasureTheory ProbabilityTheory Function
 open scoped NNReal ENNReal
 
