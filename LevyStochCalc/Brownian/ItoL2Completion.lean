@@ -1454,6 +1454,50 @@ lemma simpleIntegral_sq_bochner_clamped
     · exact h_off i j h_gt
   · intro h; exact absurd (Finset.mem_univ _) h
 
+/-- **Clamped inner integral.** Per `ω`,
+`∫⁻_{[0,t]} ‖H.eval s ω‖² ds = ∑ᵢ ofReal(pᵢ₊₁∧t − pᵢ∧t)·‖ξᵢ ω‖²` (`t ≥ 0`).
+Clamped companion of `lintegral_eval_sq`: each level-set contributes the length
+of `(pᵢ, pᵢ₊₁] ∩ [0,t]`. -/
+lemma lintegral_eval_sq_clamped {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω)
+    {t : ℝ} (ht_nn : 0 ≤ t) :
+    ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume
+      = ∑ i : Fin H.N,
+        ENNReal.ofReal (min (H.partition i.succ) t - min (H.partition i.castSucc) t)
+          * (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2 := by
+  have h_part_nn : ∀ i : Fin H.N, 0 ≤ H.partition i.castSucc := fun i => by
+    have : H.partition 0 ≤ H.partition i.castSucc :=
+      H.partition_strictMono.monotone (Fin.zero_le _)
+    rw [H.partition_zero] at this; exact this
+  rw [show (fun s => (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2)
+      = (fun s => ∑ i : Fin H.N,
+          (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
+            (fun _ => (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) s) from
+    funext (eval_sq_eq_sum_indicator H · ω)]
+  rw [MeasureTheory.lintegral_finsetSum _
+    (fun i _ => (Measurable.indicator (by fun_prop) measurableSet_Ioc))]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [MeasureTheory.lintegral_indicator measurableSet_Ioc,
+    MeasureTheory.setLIntegral_const,
+    MeasureTheory.Measure.restrict_apply measurableSet_Ioc]
+  -- volume ((pᵢ, pᵢ₊₁] ∩ [0,t]) = ofReal (pᵢ₊₁∧t − pᵢ∧t)
+  have h_inter : Set.Ioc (H.partition i.castSucc) (H.partition i.succ) ∩ Set.Icc 0 t
+      = Set.Ioc (H.partition i.castSucc) (min (H.partition i.succ) t) := by
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_Ioc, Set.mem_Icc, le_min_iff]
+    constructor
+    · rintro ⟨⟨h1, h2⟩, _, h4⟩; exact ⟨h1, h2, h4⟩
+    · rintro ⟨h1, h2, h3⟩
+      exact ⟨⟨h1, h2⟩, le_of_lt (lt_of_le_of_lt (h_part_nn i) h1), h3⟩
+  rw [h_inter, Real.volume_Ioc, mul_comm]
+  congr 1
+  rcases le_or_gt (H.partition i.castSucc) t with h | h
+  · rw [min_eq_left h]
+  · have hpsucc : min (H.partition i.succ) t = t :=
+      min_eq_right (h.le.trans (le_of_lt (H.partition_strictMono Fin.castSucc_lt_succ)))
+    rw [hpsucc, min_eq_right h.le,
+      ENNReal.ofReal_of_nonpos (by linarith : t - H.partition i.castSucc ≤ 0)]
+    simp
+
 /-- **L¹-limit of martingales is a martingale.** If each `M n` is an
 `ℱ`-martingale and `M n t → F t` in `L¹(μ)` for every `t` (with `F` adapted and
 integrable), then `F` is an `ℱ`-martingale. The conditional expectation is an
