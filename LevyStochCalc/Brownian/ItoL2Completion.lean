@@ -1105,6 +1105,22 @@ lemma martingale_of_tendsto_eLpNorm_one
   filter_upwards [hzero] with ω hω
   simpa [Pi.sub_apply, sub_eq_zero] using hω
 
+/-- **L²-convergence ⇒ L¹-convergence** (probability measure). The `L¹` seminorm
+is dominated by the `L²` seminorm when `μ` is a probability measure, so an
+`L²`-null sequence is `L¹`-null. Bridges the `L²`-Cauchy approximating sequence
+(`cauchySeq_simpleIntegralLp_brownian`) to the `L¹` hypothesis of
+`martingale_of_tendsto_eLpNorm_one`. -/
+lemma tendsto_eLpNorm_one_of_eLpNorm_two
+    {μ : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure μ]
+    {g : ℕ → Ω → ℝ} (hg : ∀ n, MeasureTheory.AEStronglyMeasurable (g n) μ)
+    (h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (g n) 2 μ)
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto (fun n => MeasureTheory.eLpNorm (g n) 1 μ)
+      Filter.atTop (nhds 0) :=
+  tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h2
+    (fun _ => bot_le)
+    (fun n => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le (by norm_num) (hg n))
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
