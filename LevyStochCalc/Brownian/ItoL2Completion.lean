@@ -1793,6 +1793,60 @@ lemma tendsto_eLpNorm_one_sq_sub
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds htend_bound
     (fun _ => bot_le) hbound
 
+/-- **Right-continuity of the horizon integral.** For measurable `φ : Ω → ℝ → ℝ≥0∞`
+integrable (iterated) over `[0, T]`, the slab integral over `(s₀, r]` tends to `0`
+as `r ↓ s₀` (for `0 ≤ s₀ < T`). Tonelli (`setLIntegral_prod`) reduces this to
+`tendsto_setLIntegral_zero` for `P ⊗ volume` on the sets `univ ×ˢ (s₀, r]`, of
+product measure `ofReal (r − s₀) → 0`. Underlies the right-`L²`-continuity of the
+L² Itô integral's slices (`‖F_r − F_{s₀}‖₂² = ∫∫_{(s₀,r]}‖H‖²`). -/
+lemma tendsto_setLIntegral_Ioc_prod_zero
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (φ : Ω → ℝ → ℝ≥0∞) (hφ : Measurable (Function.uncurry φ))
+    {s₀ T : ℝ} (hs₀ : 0 ≤ s₀) (hs₀T : s₀ < T)
+    (h_fin : ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) T, φ ω u ∂volume ∂P ≠ ⊤) :
+    Filter.Tendsto (fun r => ∫⁻ ω, ∫⁻ u in Set.Ioc s₀ r, φ ω u ∂volume ∂P)
+      (nhdsWithin s₀ (Set.Ioi s₀)) (nhds 0) := by
+  have hset : MeasurableSet ((Set.univ : Set Ω) ×ˢ Set.Icc (0 : ℝ) T) :=
+    MeasurableSet.prod MeasurableSet.univ measurableSet_Icc
+  set f : Ω × ℝ → ℝ≥0∞ :=
+    ((Set.univ : Set Ω) ×ˢ Set.Icc (0 : ℝ) T).indicator (Function.uncurry φ) with hf
+  have h_tot : ∫⁻ z, f z ∂(P.prod volume) ≠ ⊤ := by
+    rw [hf, MeasureTheory.lintegral_indicator hset,
+        MeasureTheory.setLIntegral_prod _ (hφ.aemeasurable.restrict),
+        MeasureTheory.Measure.restrict_univ]
+    simpa using h_fin
+  have h_meas_to_zero : Filter.Tendsto (fun r => (P.prod volume) ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r))
+      (nhdsWithin s₀ (Set.Ioi s₀)) (nhds 0) := by
+    have hval : (fun r => (P.prod volume) ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r))
+        = fun r => ENNReal.ofReal (r - s₀) := by
+      funext r
+      rw [MeasureTheory.Measure.prod_prod, measure_univ, one_mul, Real.volume_Ioc]
+    rw [hval]
+    have h1 : Filter.Tendsto (fun r => r - s₀)
+        (nhdsWithin s₀ (Set.Ioi s₀)) (nhds 0) := by
+      have h0 : Filter.Tendsto (fun r => r - s₀) (nhds s₀) (nhds (s₀ - s₀)) :=
+        (continuous_sub_right s₀).tendsto s₀
+      rw [sub_self] at h0
+      exact h0.mono_left nhdsWithin_le_nhds
+    have := (ENNReal.continuous_ofReal.tendsto 0).comp h1
+    simpa using this
+  have h_zero := MeasureTheory.tendsto_setLIntegral_zero (μ := P.prod volume) (f := f)
+    (s := fun r => (Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r) h_tot h_meas_to_zero
+  refine h_zero.congr' ?_
+  filter_upwards [Ioo_mem_nhdsGT hs₀T] with r hr
+  have hsub : (Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r ⊆ (Set.univ : Set Ω) ×ˢ Set.Icc (0 : ℝ) T :=
+    Set.prod_mono (le_refl _) (fun u hu => ⟨le_of_lt (lt_of_le_of_lt hs₀ hu.1),
+      le_of_lt (lt_of_le_of_lt hu.2 hr.2)⟩)
+  have hset' : MeasurableSet ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r) :=
+    MeasurableSet.prod MeasurableSet.univ measurableSet_Ioc
+  have hstep1 : ∫⁻ z in (Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r, f z ∂(P.prod volume)
+      = ∫⁻ z in (Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r, Function.uncurry φ z ∂(P.prod volume) := by
+    refine MeasureTheory.setLIntegral_congr_fun hset' (fun z hz => ?_)
+    rw [hf, Set.indicator_of_mem (hsub hz)]
+  rw [hstep1, MeasureTheory.setLIntegral_prod _ (hφ.aemeasurable.restrict),
+      MeasureTheory.Measure.restrict_univ]
+  rfl
+
 /-- **Orthogonal-increment identity for L² martingales.** For an `ℱ`-martingale
 `M` on `ℝ` with square-integrable time-slices, the increment from `s` to `t ≥ s`
 is `L²`-orthogonal to `M s`, giving the Pythagoras identity
