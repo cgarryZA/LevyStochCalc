@@ -1577,6 +1577,43 @@ lemma simpleIntegral_intermediate_isometry
   rw [MeasureTheory.lintegral_const_mul _ (hξsqmeas i),
     ENNReal.ofReal_mul (sub_nonneg.mpr (h_a_le_b i)), hξ_lint i]
 
+/-- **`simpleIntegral W H t` is in `L²(P)` at every intermediate time `t ≤ T`.**
+The `AEStronglyMeasurable` part is the finite-sum argument of
+`simpleIntegral_memLp_brownian`; the `eLpNorm < ⊤` part uses the intermediate-time
+isometry `∫⁻‖I_t‖² = ∫⁻∫⁻_{[0,t]}‖H.eval‖²` bounded by the (finite) endpoint
+`∫⁻∫⁻_{[0,T]}‖H.eval‖²` via `Set.Icc` monotonicity (`t ≤ T`). Needed to treat
+`fun t => simpleIntegral W H t` as an `L²` martingale for the orthogonal-increment
+Cauchy estimate. -/
+lemma simpleIntegral_memLp_intermediate_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H.partition i.castSucc)) (H.ξ i))
+    {t : ℝ} (ht_nn : 0 ≤ t) (htT : t ≤ T) :
+    MeasureTheory.MemLp (fun ω => simpleIntegral W H t ω) 2 P := by
+  refine ⟨?_, ?_⟩
+  · refine Measurable.aestronglyMeasurable ?_
+    unfold simpleIntegral
+    refine Finset.measurable_sum _ (fun i _ => ?_)
+    exact (H.ξ_measurable i).mul ((W.measurable_eval _).sub (W.measurable_eval _))
+  · rw [MeasureTheory.eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
+        (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
+    rw [show (2 : ℝ≥0∞).toReal = 2 from by simp]
+    have h_rewrite : (fun ω => (‖simpleIntegral W H t ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ))
+          = (fun ω => (‖simpleIntegral W H t ω‖₊ : ℝ≥0∞) ^ 2) := by
+      funext ω
+      rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+    rw [h_rewrite, simpleIntegral_intermediate_isometry W H h_adapt ht_nn]
+    -- bound `∫⁻∫⁻_{[0,t]} ≤ ∫⁻∫⁻_{[0,T]} < ⊤`.
+    have h_fin : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+      rw [← simpleIntegral_isometry W hT H h_adapt]
+      exact simpleIntegral_lintegral_sq_finite_brownian W hT H h_adapt
+    refine lt_of_le_of_lt (MeasureTheory.lintegral_mono (fun ω => ?_)) h_fin
+    exact lintegral_mono_set (Set.Icc_subset_Icc_right htT)
+
 /-- **L¹-limit of martingales is a martingale.** If each `M n` is an
 `ℱ`-martingale and `M n t → F t` in `L¹(μ)` for every `t` (with `F` adapted and
 integrable), then `F` is an `ℱ`-martingale. The conditional expectation is an
