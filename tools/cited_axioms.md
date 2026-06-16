@@ -43,10 +43,11 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   CRITICAL #1 finding). They are the per-difference L²-isometries used by the
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
-Retired/deleted entries (#7, #8, #11, #12, #13, #14) are kept as `### Retired #N`
-headings below for traceability; they are NOT counted in the headline "14
+Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
+entries (#3, proved 2026-06-16) are kept as `### Retired #N` / `### Resolved #N`
+headings below for traceability; they are NOT counted in the headline "13
 currently live" figure. Only `### N.` (digit-leading) headings correspond to
-live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 14`.
+live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 13`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -67,7 +68,7 @@ to the Mathlib version, no other changes needed downstream.
 * **Mathlib status (May 2026)**: `ProbabilityTheory.poissonMeasure` exists (ℕ-valued Poisson distribution), but no Poisson random measure construction. No current Mathlib activity for Poisson random measures or general Lévy processes.
 * **Replacement plan**: `theorem PoissonRandomMeasure.exists_of_sigmaFinite := <Mathlib forwarder>` when `MeasureTheory.PoissonRandomMeasure` lands.
 
-### 3. `LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification` — ✅ RESOLVED (proved 2026-06-16)
+### Resolved #3: `LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification` (proved axiom→theorem 2026-06-16)
 
 * **Statement**: A real-valued process satisfying the Kolmogorov moment condition with `q > 1` admits a modification with continuous paths.
 * **Reference**: Karatzas–Shreve **Theorem 2.2.8**; Le Gall **Theorem 2.9**; Revuz–Yor, *Continuous Martingales and Brownian Motion*, Springer 1999, **Theorem I.2.1**.
@@ -525,8 +526,9 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **14 Tier 1 cited axioms currently live** (3rd-audit reconciliation
-  2026-05-27): #1-#6 (Brownian + Poisson foundations), #9 + #10
+* **13 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+  2026-06-16): #1, #2, #4, #5, #6 (Brownian + Poisson foundations; #3
+  Kolmogorov–Chentsov now a theorem), #9 + #10
   (BSDEJ existence + path regularity), #13a + #13b (the two strictly
   narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
   `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26
