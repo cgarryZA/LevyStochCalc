@@ -1614,6 +1614,38 @@ lemma simpleIntegral_memLp_intermediate_brownian
     refine lt_of_le_of_lt (MeasureTheory.lintegral_mono (fun ω => ?_)) h_fin
     exact lintegral_mono_set (Set.Icc_subset_Icc_right htT)
 
+/-- **General-time difference isometry.** For adapted `H₁, H₂` sharing the endpoint
+`T`, the `L²(P)`-norm² of the integral difference at *any* `t ≥ 0` equals the
+`L²(λ⊗P)`-norm² of their eval difference over `[0, t]`. The `min (·) t`-clamped
+analogue of `diff_isometry_simple`: rewrite the integral difference as the integral
+of `sub_on_common` (`simpleIntegral_sub_on_common_intermediate`), apply the
+intermediate-time isometry, and unfold `eval` of `sub_on_common`. This is the exact
+isometry underlying both `L²`-Cauchy-at-each-`t` and cross-horizon consistency. -/
+lemma simpleIntegral_intermediate_diff_isometry
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₁.partition i.castSucc)) (H₁.ξ i))
+    (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₂.partition i.castSucc)) (H₂.ξ i))
+    {t : ℝ} (ht_nn : 0 ≤ t) :
+    ∫⁻ ω, (‖simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have hLHS : ∫⁻ ω, (‖simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, (‖simpleIntegral W (H₁.sub_on_common H₂ h_eq) t ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+    refine lintegral_congr (fun ω => ?_)
+    rw [SimplePredictable.simpleIntegral_sub_on_common_intermediate W H₁ H₂ h_eq t ω]
+  rw [hLHS, simpleIntegral_intermediate_isometry W (H₁.sub_on_common H₂ h_eq)
+      (SimplePredictable.sub_on_common_adapt W H₁ H₂ h_eq h_adapt₁ h_adapt₂) ht_nn]
+  refine lintegral_congr (fun ω => ?_)
+  refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
+  rw [SimplePredictable.eval_sub_on_common H₁ H₂ h_eq s ω]
+
 /-- **L¹-limit of martingales is a martingale.** If each `M n` is an
 `ℱ`-martingale and `M n t → F t` in `L¹(μ)` for every `t` (with `F` adapted and
 integrable), then `F` is an `ℱ`-martingale. The conditional expectation is an

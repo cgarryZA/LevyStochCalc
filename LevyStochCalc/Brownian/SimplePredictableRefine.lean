@@ -450,6 +450,127 @@ lemma SimplePredictable.fiber_sum_telescope
   · rw [show (⟨k_hi.val, by omega⟩ : Fin (M + 1)) = k_hi from Fin.ext rfl, hk_hi]
   · rw [show (⟨k_lo.val, by omega⟩ : Fin (M + 1)) = k_lo from Fin.ext rfl, hk_lo]
 
+/-- **Clamped per-fiber telescope (`min (·) t`).** Identical telescoping to
+`W_telescope_via_g`, with the point function `π'` clamped to `min (π' ·) t`.
+Telescoping of consecutive differences is independent of the values, so the
+proof is the same `sum_Ico_telescope_real`. -/
+lemma SimplePredictable.W_telescope_via_g_clamped
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {M : ℕ} (π' : Fin (M + 1) → ℝ) (ω : Ω) (t : ℝ)
+    (a b : ℕ) (hab : a ≤ b) (hb_le : b ≤ M) :
+    (∑ n ∈ Finset.Ico a b,
+      ((fun n : ℕ => if h : n < M + 1 then W.W (min (π' ⟨n, h⟩) t) ω else 0) (n + 1)
+        - (fun n : ℕ => if h : n < M + 1 then W.W (min (π' ⟨n, h⟩) t) ω else 0) n))
+      = W.W (min (π' ⟨b, by omega⟩) t) ω - W.W (min (π' ⟨a, by omega⟩) t) ω := by
+  rw [sum_Ico_telescope_real a b hab
+    (fun n : ℕ => if h : n < M + 1 then W.W (min (π' ⟨n, h⟩) t) ω else 0)]
+  have h_b_lt : b < M + 1 := by omega
+  have h_a_lt : a < M + 1 := by omega
+  simp only [h_b_lt, h_a_lt, dif_pos]
+
+/-- **Clamped per-fiber telescope assembly.** The `min (·) t`-clamped analogue of
+`fiber_sum_telescope`. The fiber/Ico bijection (`val_mem_Ico_of_idxMap_eq`,
+`idxMap_of_mem_Ico`) is purely about indices, hence unchanged; only the telescoped
+point function carries the clamp. -/
+lemma SimplePredictable.fiber_sum_telescope_clamped
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    {M : ℕ} {π' : Fin (M + 1) → ℝ}
+    (h_strictMono : StrictMono π')
+    {idxMap : Fin M → Fin H.N}
+    (h_idx_le : ∀ j : Fin M, H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (h_idx_ge : ∀ j : Fin M, π' j.succ ≤ H.partition (idxMap j).succ)
+    (h_refines : ∀ i : Fin (H.N + 1), ∃ k : Fin (M + 1), π' k = H.partition i)
+    (i : Fin H.N) (ω : Ω) (t : ℝ) :
+    (∑ j ∈ (Finset.univ : Finset (Fin M)).filter (fun j => idxMap j = i),
+        H.ξ (idxMap j) ω
+          * (W.W (min (π' j.succ) t) ω - W.W (min (π' j.castSucc) t) ω))
+      = H.ξ i ω
+          * (W.W (min (H.partition i.succ) t) ω
+              - W.W (min (H.partition i.castSucc) t) ω) := by
+  obtain ⟨k_lo, hk_lo⟩ := h_refines i.castSucc
+  obtain ⟨k_hi, hk_hi⟩ := h_refines i.succ
+  have hk_lo_lt_hi : k_lo.val < k_hi.val := by
+    have h1 : π' k_lo < π' k_hi := by
+      rw [hk_lo, hk_hi]; exact H.partition_strictMono Fin.castSucc_lt_succ
+    exact h_strictMono.lt_iff_lt.mp h1
+  have hk_hi_le_M : k_hi.val ≤ M := Nat.lt_succ_iff.mp k_hi.isLt
+  set g : ℕ → ℝ := fun n => if h : n < M + 1 then W.W (min (π' ⟨n, h⟩) t) ω else 0 with hg_def
+  have h_bij_eq : (∑ j ∈ (Finset.univ : Finset (Fin M)).filter
+      (fun j => idxMap j = i),
+      H.ξ (idxMap j) ω * (W.W (min (π' j.succ) t) ω - W.W (min (π' j.castSucc) t) ω))
+      = ∑ n ∈ Finset.Ico k_lo.val k_hi.val, H.ξ i ω * (g (n + 1) - g n) := by
+    refine Finset.sum_bij
+      (i := fun (j : Fin M) (_ : j ∈ (Finset.univ : Finset (Fin M)).filter
+        (fun j => idxMap j = i)) => j.val)
+      (fun j hj => H.val_mem_Ico_of_idxMap_eq h_strictMono h_idx_le h_idx_ge
+        hk_lo hk_hi (Finset.mem_filter.mp hj).2)
+      (fun j₁ _ j₂ _ h => Fin.ext h)
+      (fun n hn => by
+        rw [Finset.mem_Ico] at hn
+        have h_lt : n < M := lt_of_lt_of_le hn.2 hk_hi_le_M
+        refine ⟨⟨n, h_lt⟩, ?_, rfl⟩
+        rw [Finset.mem_filter]
+        refine ⟨Finset.mem_univ _, ?_⟩
+        exact H.idxMap_of_mem_Ico h_strictMono h_idx_le h_idx_ge hk_lo hk_hi
+          h_lt hn.1 hn.2)
+      ?_
+    intro j hj
+    have hj_eq : idxMap j = i := (Finset.mem_filter.mp hj).2
+    have h_lt_jval : j.val < M := j.isLt
+    have h_succ_lt : j.val + 1 < M + 1 := by omega
+    have h_lt_M1 : j.val < M + 1 := by omega
+    have h_succ_eq : j.succ = (⟨j.val + 1, h_succ_lt⟩ : Fin (M + 1)) :=
+      Fin.ext (by simp [Fin.succ])
+    have h_castSucc_eq : j.castSucc = (⟨j.val, h_lt_M1⟩ : Fin (M + 1)) :=
+      Fin.ext (by simp [Fin.castSucc])
+    rw [hj_eq, h_succ_eq, h_castSucc_eq]
+    change H.ξ i ω * (W.W (min (π' ⟨j.val + 1, h_succ_lt⟩) t) ω
+        - W.W (min (π' ⟨j.val, h_lt_M1⟩) t) ω)
+      = H.ξ i ω * (g (j.val + 1) - g j.val)
+    have hg_succ : g (j.val + 1) = W.W (min (π' ⟨j.val + 1, h_succ_lt⟩) t) ω := by
+      rw [hg_def]; exact dif_pos h_succ_lt
+    have hg_val : g j.val = W.W (min (π' ⟨j.val, h_lt_M1⟩) t) ω := by
+      rw [hg_def]; exact dif_pos h_lt_M1
+    rw [hg_succ, hg_val]
+  rw [h_bij_eq, ← Finset.mul_sum]
+  rw [SimplePredictable.W_telescope_via_g_clamped (Ω := Ω) (P := P) W π' ω t
+    k_lo.val k_hi.val (le_of_lt hk_lo_lt_hi) hk_hi_le_M]
+  congr 2
+  · rw [show (⟨k_hi.val, by omega⟩ : Fin (M + 1)) = k_hi from Fin.ext rfl, hk_hi]
+  · rw [show (⟨k_lo.val, by omega⟩ : Fin (M + 1)) = k_lo from Fin.ext rfl, hk_lo]
+
+/-- **General-time `refine` invariance of `simpleIntegral`.** The `min (·) t`
+clamped analogue of `simpleIntegral_refine`: refining the partition leaves
+`simpleIntegral W · t` unchanged at *every* time `t`, not just at the endpoint.
+Uses the clamped fiber telescope. -/
+lemma SimplePredictable.simpleIntegral_refine_intermediate
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T)
+    (M : ℕ) (π' : Fin (M + 1) → ℝ)
+    (h_zero : π' 0 = 0)
+    (h_last : π' (Fin.last M) = H.partition (Fin.last H.N))
+    (h_strictMono : StrictMono π')
+    (idxMap : Fin M → Fin H.N)
+    (h_idx_le : ∀ j : Fin M, H.partition (idxMap j).castSucc ≤ π' j.castSucc)
+    (h_idx_ge : ∀ j : Fin M, π' j.succ ≤ H.partition (idxMap j).succ)
+    (h_refines : ∀ i : Fin (H.N + 1), ∃ k : Fin (M + 1), π' k = H.partition i)
+    (t : ℝ) (ω : Ω) :
+    simpleIntegral W (H.refine M π' h_zero h_last h_strictMono idxMap h_idx_le h_idx_ge) t ω
+      = simpleIntegral W H t ω := by
+  unfold simpleIntegral
+  change (∑ j : Fin M, H.ξ (idxMap j) ω
+        * (W.W (min (π' j.succ) t) ω - W.W (min (π' j.castSucc) t) ω))
+    = ∑ i : Fin H.N, H.ξ i ω
+        * (W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.castSucc) t) ω)
+  rw [← Finset.sum_fiberwise_of_maps_to (g := idxMap)
+      (fun (j : Fin M) (_ : j ∈ (Finset.univ : Finset (Fin M))) => Finset.mem_univ _)]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  exact H.fiber_sum_telescope_clamped W h_strictMono h_idx_le h_idx_ge h_refines i ω t
+
 /-- **C0b.3: `refine` preserves `simpleIntegral` (pointwise).** Under
 the hypothesis that `π'` refines `H.partition` (every `H.partition i`
 is some `π' k`), the simple integral evaluated at time `T` is unchanged
@@ -892,6 +1013,42 @@ lemma SimplePredictable.simpleIntegral_sub_on_common
       (H₁.mergedIdxMap_right H₂ h_eq) (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
       (H₁.mergedIdxMap_right_idx_ge H₂ h_eq) (H₁.mergedπ_refines_right H₂) ω
     rw [← h_right, simpleIntegral_eq_sum]
+    exact Finset.sum_congr rfl (fun _ _ => rfl)
+
+/-- **General-time linearity on common refinement.** The `min (·) t`-clamped
+analogue of `simpleIntegral_sub_on_common`: the simple integral of `sub_on_common`
+equals the difference of the simple integrals at *every* time `t`. Uses
+`simpleIntegral_refine_intermediate`. -/
+lemma SimplePredictable.simpleIntegral_sub_on_common_intermediate
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (t : ℝ) (ω : Ω) :
+    simpleIntegral W (H₁.sub_on_common H₂ h_eq) t ω
+      = simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω := by
+  unfold simpleIntegral
+  change (∑ j : Fin (H₁.mergedM H₂),
+        (H₁.ξ (H₁.mergedIdxMap_left H₂ h_eq j) ω
+          - H₂.ξ (H₁.mergedIdxMap_right H₂ h_eq j) ω)
+        * (W.W (min (H₁.mergedπ H₂ j.succ) t) ω
+            - W.W (min (H₁.mergedπ H₂ j.castSucc) t) ω))
+      = simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω
+  simp_rw [sub_mul]
+  rw [Finset.sum_sub_distrib]
+  congr 1
+  · have h_left := H₁.simpleIntegral_refine_intermediate W (H₁.mergedM H₂) (H₁.mergedπ H₂)
+      (H₁.mergedπ_zero H₂) (H₁.mergedπ_last H₂ h_eq) (H₁.mergedπ_strictMono H₂)
+      (H₁.mergedIdxMap_left H₂ h_eq) (H₁.mergedIdxMap_left_idx_le H₂ h_eq)
+      (H₁.mergedIdxMap_left_idx_ge H₂ h_eq) (H₁.mergedπ_refines_left H₂) t ω
+    rw [← h_left]
+    exact Finset.sum_congr rfl (fun _ _ => rfl)
+  · have h_right := H₂.simpleIntegral_refine_intermediate W (H₁.mergedM H₂) (H₁.mergedπ H₂)
+      (H₁.mergedπ_zero H₂) (h_eq ▸ H₁.mergedπ_last H₂ h_eq)
+      (H₁.mergedπ_strictMono H₂)
+      (H₁.mergedIdxMap_right H₂ h_eq) (H₁.mergedIdxMap_right_idx_le H₂ h_eq)
+      (H₁.mergedIdxMap_right_idx_ge H₂ h_eq) (H₁.mergedπ_refines_right H₂) t ω
+    rw [← h_right]
     exact Finset.sum_congr rfl (fun _ _ => rfl)
 
 /-- **C0b.7-aux: pointwise evaluation of `sub_on_common`.** The eval
