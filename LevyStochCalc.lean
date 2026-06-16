@@ -26,7 +26,9 @@ import LevyStochCalc.Brownian.Construction
 import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Multidim
-import LevyStochCalc.Brownian.Ito
+import LevyStochCalc.Brownian.ItoSimple
+import LevyStochCalc.Brownian.ItoDensity
+import LevyStochCalc.Brownian.ItoMartingale
 import LevyStochCalc.Brownian.SimplePredictableRefine
 import LevyStochCalc.Brownian.MultidimIto
 

@@ -85,7 +85,8 @@ norm with genuine contraction at the analytical rate
 `LevyStochCalc.Ito.PicardSpace`: the genuine metric on the
 AE-quotient `AEQuot β T` and the `CompleteSpace` instance (via Lp
 completeness + Doob càdlàg modification), and the SDE chain wraps up via
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` there. **Downstream consumers needing the actual SDE strong-existence
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` there. **Downstream
+consumers needing the actual SDE strong-existence
 result should use the `_via_aeQuot` wrap-up theorem, not this
 typeclass-shim theorem applied on `SBoundedProcess`.**
 

@@ -100,7 +100,13 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       defs) + `CompensatedIsometry.lean` (1333, moments + L²-isometry; stays >600
       because its private moment helpers can't cross a module boundary without
       publicizing internals). All three registered in the root; contract green.
-      Remaining: Brownian/Ito (3999), Brownian/SimplePredictableRefine (2290).)*
+      `Brownian/Ito.lean` 3955→ `ItoSimple.lean` (1055, simple integrand +
+      L²-isometry) + `ItoDensity.lean` (2545, dyadic L²-density; stays >600, dense
+      private web) + `ItoMartingale.lean` (383); namespace `Brownian.Ito` preserved
+      across all three, `Ito.lean` deleted (no stub). Importers repointed:
+      BSDEJ/Definition + Ito/Setting → `Brownian.Multidim` (only needed transitively),
+      SimplePredictableRefine + root → the 3 sub-modules.
+      Remaining: Brownian/SimplePredictableRefine (2290).)*
 - [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
       (currently 0 in the big files). Pure hygiene, breaks nothing.
 - [ ] **1.4** Wrap the 180 lines > 100 cols. Replace the `import Mathlib` umbrella
