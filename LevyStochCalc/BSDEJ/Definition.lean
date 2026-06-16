@@ -9,7 +9,7 @@ import LevyStochCalc.Poisson.L2Isometry
 import LevyStochCalc.Poisson.NaturalFiltration
 
 /-!
-# Layer 3 substrate: Continuous BSDEJ structure
+# BSDEJ structure and solution predicate
 
 A *Backward Stochastic Differential Equation with Jumps* (BSDEJ) is a triple
 `(Y, Z, U)` of adapted processes satisfying
@@ -17,119 +17,55 @@ A *Backward Stochastic Differential Equation with Jumps* (BSDEJ) is a triple
   `Y_t = g(X_T) + ∫_t^T f(s, X_{s-}, Y_{s-}, Z_s, U_s) ds`
        `   − ∫_t^T Z_s dW_s − ∫_t^T ∫_E U_s(e) Ñ(ds, de)`,
 
-where `f : [0,T] × ℝⁿ × ℝ × ℝ^d × L²(ν) → ℝ` is the *generator* (or driver)
-and `g : ℝⁿ → ℝ` is the *terminal condition*. `Y` is scalar, `Z` is `d`-dim
-matching `W`, `U_s : E → ℝ` is the *jump integrand*.
+where `f : [0,T] × ℝⁿ × ℝ × ℝ^d × L²(ν) → ℝ` is the *generator* (driver) and
+`g : ℝⁿ → ℝ` is the *terminal condition*. `Y` is scalar, `Z` is `d`-dimensional
+matching `W`, and `U_s : E → ℝ` is the *jump integrand*. The references used
+here (Tang–Li 1994, Bouchard–Elie 2008, Pardoux–Răşcanu, Andersson–Gnoatto–
+Patacca–Picarelli 2025) all treat scalar `Y`; vector-`Y` BSDEJs need a
+different existence/uniqueness apparatus and are out of scope.
 
-Reference: User's dissertation
-[ch02_mathematical_framework.tex](
-D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex)
-Definition 2 (line 238 onwards).
+## The solution space
 
-## Status
+`IsBSDEJSolution` formalises the literature solution space `S² × H² × H²_N`:
 
-**Strengthened predicate (2026-05-11 recursive audit fix).** Previous
-version had a vacuous per-`(t, ω)` existential
+* `Y ∈ S²`: jointly measurable, L²-sup-bounded, and a.s. càdlàg. The càdlàg
+  paths are what make the L²-supremum `⨆_{t ∈ [0,T]} ‖Y_t‖²` an honest
+  measurable function of `ω`.
+* `Z ∈ H²` and each mark-slice `s ↦ U_s(e) ∈ H²_N`: L²-integrable and
+  progressively measurable (`IsStronglyProgressive`).
+* The equation is expressed through two martingale legs `M_W, M_N` *pinned*
+  to the canonical integrals — `M_W` to the multidim Brownian Itô integral of
+  `Z`, `M_N` to the compensated-Poisson L² integral of `U` — rather than to
+  arbitrary L²-isometric stand-ins. Both are martingales for the same
+  filtration `Filt`, pinned to the right-continuous augmentation of
+  `σ(W, N) = (⨆ᵢ σ(W_i)) ∨ σ(N)`.
 
-  `∃ (BM_term jump_term : ℝ), Y t ω = g + ∫f - BM_term - jump_term`
+Adaptedness is essential, not cosmetic: for `f = 0, g = 0` the non-adapted
+process `Y_t = W¹_T − W¹_t` solves the equation (with `Z ≡ 1`, `U = 0`), so
+without adaptedness the uniqueness clause of an existence/uniqueness statement
+would be unsatisfiable. Pinning `Filt` to the canonical filtration and
+requiring `Y` adapted excludes it, since `W¹_T` is not `Filt_t`-measurable for
+`t < T`; then `Y_t = 𝔼[Y_t | Filt_t] = 0` from the martingale property of
+`M_W, M_N`.
 
-which is satisfiable by ANY L²-bounded `(Y, Z, U)`. Replaced with an
-OUTER existential `∃ M_W M_N : ℝ → Ω → ℝ` of process martingales
-pinned to `Z, U`.
+`IsStronglyProgressive` is the closest Mathlib analogue of the literature's
+"predictable": progressive ⊇ predictable in general, but the L² Itô and
+Itô–Lévy integrals are defined on progressively-measurable integrands and are
+insensitive to a.e. modifications, and every progressive L² process is
+a.e.-equal to a predictable one (predictable projection; Dellacherie–Meyer
+VI.45, Protter IV.57). So the formalised solution space coincides with the
+literature one modulo this identification.
 
-**Re-strengthened (2026-05-21, red-team P05 + P12 fix).** The
-2026-05-11 strengthening was incomplete. Persona 12 of the 12-persona
-red team constructed a concrete counterexample to the
-`continuousBSDEJ_exists_unique` axiom for `(f=0, g=0)`:
+## Structural regression tests
 
-* `Y₁ t ω := 0` with `Z = U = 0`, `M_W = M_N = 0`,
-* `Y₂ t ω := W₁_T ω - W₁_t ω` with `Z s ω = 1`, `U = 0`,
-  `M_W = -W₁`, `M_N = 0`.
-
-Both `(Y₁, Z₁, U₁)` and `(Y₂, Z₂, U₂)` satisfy the 2026-05-11
-strengthened predicate (Y is L²-bounded; M_W is L²-isometric to Z and a
-martingale; M_N pins to `Compensated.stochasticIntegral N 0 ≡ 0`; the
-equation holds). So the predicate had multiple distinct "solutions",
-and `continuousBSDEJ_exists_unique`'s `∃ Y, ∀ Y', sol Y' → Y =ᵃᵉ Y'`
-clause was unsatisfiable — i.e. the axiom was **mathematically false
-as stated**.
-
-The 2026-05-21 fix adds an **adaptedness** layer: an outer
-`∃ Filt : Filtration ℝ ‹MeasurableSpace Ω›` such that
-
-* `Y` is `Filt`-adapted (each `Y t` is `(Filt t)`-measurable),
-* `Z` is `Filt`-adapted (each `Z t` is `(Filt t)`-measurable, valued in
-  `Fin d → ℝ` with its product σ-algebra),
-* `U` is pointwise-in-mark `Filt`-adapted: for every `e : E`, the
-  process `s ↦ U s · e` is `Filt`-adapted,
-* `M_W, M_N` are both `Filt`-adapted and `Filt`-martingales.
-
-`Y₂ t ω = W₁_T ω - W₁_t ω` is excluded because for `t < T`, `W₁_T` is
-not `(Filt t)`-measurable for any filtration containing `W`'s natural
-filtration. Under adaptedness, the BSDEJ equation `Y_t = -(M_W T − M_W
-t) - (M_N T − M_N t)` (for `f=0, g=0`) combined with `M_W, M_N` being
-`Filt`-martingales forces `Y_t = E[Y_t | (Filt t)] = -E[M_W T − M_W t
-| (Filt t)] - E[M_N T − M_N t | (Filt t)] = 0`. Uniqueness for `(f=0,
-g=0)` is therefore restored at the predicate level; the literature
-Tang–Li uniqueness covers the general Lipschitz case once the
-predicate is honest.
-
-**Predicate hardening complete (2026-05-24, Cu01 forwarder bullet-proof
-pass)**. The previous "remaining slack" note (M_W only L²-isometric) is
-RESOLVED: M_W is now pinned to the canonical multidim Brownian Itô
-integral `MultidimBrownianMotion.stochasticIntegral W Z h_Z_meas
-h_Z_progMeas h_Z_sq` (commit 2026-05-22), and M_N is pinned to the
-canonical compensated-Poisson L² integral `Compensated.stochasticIntegral
-N U h_U_meas h_U_progMeas h_U_sq` (commit 2026-05-23). The Filt witness
-is pinned EXACTLY to `((⨆ i, naturalFiltration W_i) ⊔ naturalFiltration
-N).rightCont` (M11-CRIT fix, 2026-05-23, P12 F1 closure), Z and U_e are
-strengthened to `IsStronglyProgressive` (P4 F1 fix, 2026-05-23), and Y
-carries a càdlàg-paths field (P4 H fix, 2026-05-23). Every conjunct is
-load-bearing for the literature `S² × H² × H²_N` solution space.
-
-**`IsStronglyProgressive` vs literature "predictable" (red-team 3rd-audit
-HIGH #3, 2026-05-27).** The Mathlib predicate `IsStronglyProgressive`
-used here for `Z` and the per-mark slices `s ↦ U s · e` is **not
-syntactically identical** to the literature notion "predictable" (the
-σ-algebra generated by left-continuous adapted processes / by sets of the
-form `(s, t] × A` with `A ∈ ℱ_s`). The two differ in general filtration
-contexts (predictable ⊂ progressive in full generality, with strict
-inclusion possible at jump times of the filtration).
-
-**This difference is harmless for the L² scope of `IsBSDEJSolution`** for
-two reasons:
-* The L² Itô integral against `W` and the L²-Itô–Lévy integral against
-  the compensated Poisson random measure `Ñ` are *both* defined on
-  progressively-measurable L² integrands (Mathlib's
-  `MultidimBrownianMotion.stochasticIntegral` and
-  `Compensated.stochasticIntegral` in this library), not on the strictly
-  predictable σ-algebra. The L²-isometry holds on the progressive class.
-* Modulo a P-null set, every progressively-measurable L²-integrable
-  process is a.e.-equal to a predictable representative — this is the
-  classical "predictable projection" theorem (Dellacherie–Meyer VI.45;
-  Protter Thm IV.57). The integrals against `dW` and `Ñ` are insensitive
-  to a.e.-modifications of the integrand, so the L²-Itô integrals
-  defined on progressive integrands coincide with the literature ones
-  defined on predictable integrands.
-
-The Tang–Li 1994 / Pardoux–Răşcanu / Bouchard–Elie 2008 literature
-solution space `S² × H² × H²_N` is conventionally stated with predictable
-integrands; the choice to formalise here with `IsStronglyProgressive` is
-the closest Mathlib-available analogue and yields the same L² solution
-space modulo the predictable-projection identification above. The
-existence and uniqueness conclusions (`continuousBSDEJ_exists_unique`,
-the regression-test extractors below) are therefore literature-faithful
-on `IsStronglyProgressive` integrands.
-
-**Structural regression canary**: the extractor theorems
-`filtration_eq_canonical`, `Y_cadlag`, `Y_adapted_canonical`,
-`Z_isStronglyProgressive_canonical`, `U_isStronglyProgressive_canonical`,
-`M_W_eq_canonical_brownianIto`, `M_N_eq_canonical_compensatedPoisson`
-below this docstring guard each of the seven hardening targets via a
-public extractor. If anyone weakens the predicate (e.g., relaxes the Filt
-pin to `≤`, demotes IsStronglyProgressive to Adapted, removes the
-canonical-integral pins on M_W/M_N, or drops the càdlàg paths on Y),
-these extractors will fail to elaborate and the build will break. -/
+The extractor theorems below (`filtration_eq_canonical`, `Y_cadlag`,
+`Y_adapted_canonical`, `Z_isStronglyProgressive_canonical`,
+`U_isStronglyProgressive_canonical`, `M_W_eq_canonical_brownianIto`,
+`M_N_eq_canonical_compensatedPoisson`) each extract one strengthening of the
+predicate as a public lemma. They double as a compile-time guard: weakening
+the predicate (relaxing the `Filt` pin, demoting `IsStronglyProgressive` to
+`Adapted`, dropping the canonical-integral pins, or removing `Y`'s càdlàg
+paths) makes them fail to elaborate, breaking the build. -/
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
@@ -141,36 +77,23 @@ universe u v
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- BSDEJ data: terminal condition `g`, generator `f`.
+/-- BSDEJ data: terminal condition `g` and generator `f`, with the
+measurability of each carried as a structural field.
 
-**Scope note (red-team M10, 2026-05-22)**: `Y` is scalar-valued
-(`g : (Fin n → ℝ) → ℝ` and the `f` driver returns `ℝ`). This matches the
-literature references actually used by this library:
+`Y` is scalar-valued (`g : (Fin n → ℝ) → ℝ`, `f` returns `ℝ`), matching the
+scalar-`Y` literature (Tang–Li 1994 SIAM J. Control Optim. 32(5) Thm 3.1;
+Bouchard–Elie 2008 SPA 118(1) Thm 2.1; Andersson–Gnoatto–Patacca–Picarelli
+2025 arXiv:2211.04349 Thm 2.4). A vector-`Y` generalisation would add a
+dimension `m` and change `g`/`f` to return `Fin m → ℝ`; it is out of scope.
 
-* Tang & Li 1994 SIAM J. Control Optim. 32(5), Theorem 3.1 — scalar `Y`.
-* Andersson-Gnoatto-Patacca-Picarelli 2025 arXiv:2211.04349 Theorem 2.4 —
-  scalar `Y`.
-* Bouchard & Elie 2008 SPA 118(1) Theorem 2.1 — scalar `Y`.
-
-Vector-`Y` BSDEJs (reflected, quadratic-growth, FBSDEJ couples) require a
-different existence-uniqueness apparatus and are **outside the current
-scope**. A vector-`Y` generalization would parameterize this structure by
-an additional `m : ℕ` (the `Y`-dimension) and change `g : (Fin n → ℝ) →
-(Fin m → ℝ)`, `f : … → (Fin m → ℝ)`. Tracked as future work; not a defect
-in the present scalar-`Y` chain.
-
-**Measurability invariants (red-team 2nd audit P12 F4, 2026-05-23)**:
-`BSDEJData` now carries `f_measurable` and `g_measurable` as structural
-fields, so that downstream `IsBSDEJSolution` cannot be evaluated on
-pathological non-measurable drivers (where the Bochner integral
-`integral_undef`-defaults to 0, making the BSDEJ equation `Y_t = g + 0`
-trivially solvable). Both fields use the joint measurability appropriate
-for the integrand role:
-- `g : (Fin n → ℝ) → ℝ` is jointly Borel-measurable in `x`.
-- `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly
-  measurable in its 5 arguments (modulo the (E → ℝ) slot which uses the
-  product σ-algebra on E-indexed reals — appropriate for the
-  `Ψ_t = ∫ U_t(z) ν(dz)` channel). -/
+The `f_measurable`/`g_measurable` fields prevent `IsBSDEJSolution` from being
+evaluated on non-measurable drivers, where the Bochner integral would default
+to `0` and make the equation `Y_t = g + 0` trivially solvable:
+- `g : (Fin n → ℝ) → ℝ` is Borel-measurable in `x`;
+- `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly measurable
+  in its five arguments for the product σ-algebra on
+  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)` (the `(E → ℝ)` slot carries
+  the product σ-algebra, matching the `Ψ_t = ∫ U_t(z) ν(dz)` channel). -/
 structure BSDEJData (n d : ℕ) (E : Type v) where
   /-- Generator `f(t, x, y, z, u)`. -/
   f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ
@@ -187,10 +110,10 @@ structure BSDEJData (n d : ℕ) (E : Type v) where
 /-- Predicate: `(Y, Z, U)` solves the BSDEJ with data `bsdej`, driven by
 `(W, N)` and the forward process `X`, on the time horizon `[0, T]`.
 
-See module docstring for the 2026-05-11 strengthening that replaced a
-vacuous per-`(t, ω)` existential with an outer existential of two
-process martingales `M_W, M_N` constrained to `Z, U` via L²-isometry +
-direct compensated-Poisson-integral pin. -/
+The conclusion is built from two process martingales `M_W, M_N` pinned to the
+canonical Brownian Itô integral of `Z` and the compensated-Poisson integral of
+`U`. See the module docstring for the solution space `S² × H² × H²_N` and the
+adaptedness discussion. -/
 def IsBSDEJSolution
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -209,52 +132,25 @@ def IsBSDEJSolution
         ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     ∧ (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    -- 2026-05-23 strengthening (P4 H càdlàg fix): Tang-Li / Pardoux-Răşcanu
-    -- solution space `S²` requires Y to be càdlàg-adapted. The previous
-    -- joint-measurability-only requirement was strictly weaker (e.g., the
-    -- supremum `⨆ t ∈ [0,T] ‖Y_t‖²` above is ill-typed as a measurable
-    -- function of ω without càdlàg paths). Adding `Y_cadlag` makes the
-    -- supremum honestly measurable and matches the literature S² space.
+    -- Y ∈ S²: a.s. càdlàg paths (right-continuous with left limits), which
+    -- make the L²-supremum `⨆ t ∈ [0,T] ‖Y_t‖²` honestly measurable in ω.
     ∧ (∀ᵐ ω ∂P, ∀ t : ℝ,
         Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω))
           ∧ ∃ L : ℝ,
               Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L))
-    -- 2026-05-21 strengthening 1: adaptedness layer (rules out
-    -- Y = W₁_T − W₁_t counterexample).
-    -- 2026-05-22 strengthening 2 (H2 fix): M_W is now PINNED to the
-    -- canonical multidim Brownian Itô integral of Z (not just L²-isometric).
-    -- This requires the per-component Z hypotheses (joint measurability,
-    -- progressive measurability w.r.t. W's component natural filtrations,
-    -- per-component L² bound) to be bundled inside the existential.
-    -- 2026-05-23 strengthening 3 (M11-CRIT fix per red-team 2nd-audit P12):
-    -- `Filt` was previously existential with the constraint
-    -- `naturalFiltration ≤ Filt`, but that constraint is satisfied vacuously
-    -- by `Filt = ⊤` (the maximal filtration), defeating the stated
-    -- "rule out trivial constant filtrations" purpose. Now pinned EXACTLY
-    -- to the **right-continuous augmentation** of the join of natural
-    -- filtrations via `Filt = joint_natural.rightCont` inside the existential,
-    -- where `joint_natural := (⨆ i, naturalFiltration (W.W i)) ⊔ naturalFiltration N`
-    -- (literature `σ(W, N) = ⨆ᵢ σ(W_i) ∨ σ(N)`).
-    -- P7 F4 closure (red-team 2nd audit, 2026-05-23): Tang-Li 1994 /
-    -- Pardoux-Răşcanu solution space uses the right-continuous augmented
-    -- filtration (needed for Doob's L²-maximal, optional stopping, càdlàg
-    -- modification). Previous version used the RAW natural filtration —
-    -- strictly weaker than literature. `.rightCont` is the Mathlib operator
-    -- for right-continuization; the P-null-set augmentation step is a
-    -- separate strengthening (deferred — Mathlib lacks a clean primitive).
+    -- Adaptedness layer. `Filt` is pinned to the right-continuous augmentation
+    -- of `σ(W, N) = (⨆ i, naturalFiltration (W.W i)) ⊔ naturalFiltration N`
+    -- (the literature filtration; `.rightCont` is needed for Doob's
+    -- L²-maximal, optional stopping, and the càdlàg modification). Pinning by
+    -- equality, not by `≤ Filt`, avoids the vacuous `Filt = ⊤`. M_W is pinned
+    -- to the canonical Brownian Itô integral of Z, so the per-component Z
+    -- hypotheses are bundled inside the existential to type that integral.
     ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
         Filt = ((⨆ i : Fin d,
                   LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
                   ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
-        -- P4 F1 fix (red-team 2nd audit, 2026-05-23): Tang-Li 1994 /
-        -- Pardoux-Răşcanu 2014 / Bichteler use the solution space
-        -- `S² × H² × H²_N` where H² is the L² space of PROGRESSIVELY
-        -- MEASURABLE (= ProgMeasurable Filt, equivalent to predictable
-        -- under the usual hypotheses on Filt) processes. The previous
-        -- `Adapted Filt Z` / `Adapted Filt (fun s ω => U s ω e)` were
-        -- per-t measurable only and did NOT imply joint measurability
-        -- on the progressive σ-algebra. Strengthened to ProgMeasurable
-        -- for Z and U_e (Y stays Adapted since it's the S²-càdlàg leg).
+        -- H²/H²_N legs: Z and each mark-slice `s ↦ U s ω e` are progressively
+        -- measurable; Y stays `Adapted` (it is the S² càdlàg leg).
         MeasureTheory.Adapted Filt Y ∧
         MeasureTheory.IsStronglyProgressive Filt Z ∧
         (∀ e : E, MeasureTheory.IsStronglyProgressive Filt (fun s ω => U s ω e)) ∧
@@ -263,10 +159,9 @@ def IsBSDEJSolution
           Measurable (Function.uncurry M_N) ∧
           MeasureTheory.Adapted Filt M_W ∧
           MeasureTheory.Adapted Filt M_N ∧
-          -- M_W is PINNED to the canonical multidim Brownian Itô integral of Z.
-          -- Hypotheses on Z (per-component measurability / progressive measurability
-          -- / L²-bound) are bundled inside this existential so that
-          -- `MultidimBrownianMotion.stochasticIntegral W Z ... T'` is well-typed.
+          -- M_W pinned to the canonical multidim Brownian Itô integral of Z;
+          -- the Z hypotheses (per-component measurability / progressive
+          -- measurability / L²-bound) are bundled here to type the integral.
           (∃ (h_Z_meas : ∀ i : Fin d,
                 Measurable (Function.uncurry (fun ω s => Z s ω i)))
              (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
@@ -282,11 +177,8 @@ def IsBSDEJSolution
               M_W T' ω =
                 LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
                   W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
-          -- M_N is pinned to the canonical compensated-Poisson L² integral of U.
-          -- H6 fix (red-team 2nd audit, 2026-05-23): U-side hypotheses bundled
-          -- here (mirror of how M_W bundles h_Z hypotheses). Closes the prior
-          -- "hollow M_N pin" issue (Persona 7 F1+F2) where per-e adaptedness
-          -- of U was insufficient.
+          -- M_N pinned to the canonical compensated-Poisson L² integral of U;
+          -- the U-side hypotheses are bundled here likewise (mirror of M_W).
           (∃ (h_U_meas : Measurable
                 (fun (p : Ω × ℝ × E) =>
                   (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
@@ -316,20 +208,17 @@ def IsBSDEJSolution
 
 /-! ## Structural regression tests for `IsBSDEJSolution`
 
-These extractor theorems are the structural canary for the `IsBSDEJSolution`
-predicate's literature-strength conjuncts. If anyone weakens the predicate
-(e.g., relaxes the `Filt` pin to a `≤ Filt` constraint, demotes
-`IsStronglyProgressive` back to `Adapted`, removes the canonical-integral
-pins on `M_W`/`M_N`, or drops the càdlàg paths on `Y`), these theorems will
-fail to elaborate and the build will break — exactly the kind of soundness
-regression that the P12 F1 red-team counterexample
-(`Y₁ = 0` vs `Y₂ = W_T − W_t` both satisfying a weakened predicate) was
-designed to catch.
+These extractor theorems guard the predicate's literature-strength conjuncts.
+Weakening the predicate (relaxing the `Filt` pin to a `≤ Filt` constraint,
+demoting `IsStronglyProgressive` back to `Adapted`, removing the
+canonical-integral pins on `M_W`/`M_N`, or dropping the càdlàg paths on `Y`)
+makes them fail to elaborate, breaking the build — catching exactly the
+non-uniqueness an adaptedness-free predicate admits (`Y₁ = 0` and
+`Y₂ = W_T − W_t` would both qualify).
 
-The tests are deliberately load-bearing: each one extracts a single
-strengthening as a public extractor, so it can be both (a) consumed by
-downstream callers needing the strengthening, and (b) used as a build-time
-regression check on the predicate's surface API. -/
+Each test extracts a single strengthening as a public lemma, so it is both
+(a) consumable by downstream callers needing that strengthening and (b) a
+build-time regression check on the predicate's surface API. -/
 
 namespace IsBSDEJSolution
 
@@ -346,14 +235,11 @@ variable {U : ℝ → Ω → E → ℝ}
 variable {T : ℝ}
 
 /-- **Regression test #1 (Filt pin)**: The filtration witnessed by an
-`IsBSDEJSolution` is EXACTLY the right-continuous augmentation of the
-join of `W`'s component natural filtrations with `N`'s natural filtration.
-
-This is the M11-CRIT fix and the P12 F1 closure: previously, the predicate
-allowed any filtration containing the natural one, which is satisfied
-vacuously by `Filt = ⊤` — defeating the adaptedness rule-out of the
-`Y = W_T − W_t` counterexample. Pinning to the canonical augmentation
-forces the literature-correct filtration. -/
+`IsBSDEJSolution` is exactly the right-continuous augmentation of the join of
+`W`'s component natural filtrations with `N`'s natural filtration. Pinning by
+equality (rather than allowing any `Filt` containing the natural one, which
+`Filt = ⊤` satisfies vacuously) forces the literature-correct filtration and
+preserves the adaptedness rule-out of the `Y = W_T − W_t` non-solution. -/
 theorem filtration_eq_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
     ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
@@ -391,9 +277,9 @@ theorem Y_adapted_canonical
 
 /-- **Regression test #4 (Z strongly progressive)**: The `Z` component is
 `IsStronglyProgressive` w.r.t. the canonical filtration (strictly stronger
-than per-`t` adaptedness, per the P4 F1 fix). This is the
-Tang-Li / Pardoux-Răşcanu H² solution-space requirement: H² is the L²
-space of progressively measurable processes. -/
+than per-`t` adaptedness). This is the Tang–Li / Pardoux–Răşcanu H²
+solution-space requirement: H² is the L² space of progressively measurable
+processes. -/
 theorem Z_isStronglyProgressive_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
     ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
@@ -421,10 +307,9 @@ theorem U_isStronglyProgressive_canonical
 The Brownian martingale leg `M_W` of every solution agrees a.s. (at every
 T') with the canonical multidim Brownian Itô integral
 `MultidimBrownianMotion.stochasticIntegral W Z ...` — not merely with some
-L²-isometric stand-in. The per-component Z hypotheses are bundled as
-existential witnesses to make the canonical-integral expression well-typed.
-This is the H2 fix: previously M_W was only L²-isometric to Z, which left a
-non-trivial gap between the predicate and the literature claim. -/
+L²-isometric stand-in (which would leave a gap between the predicate and the
+literature claim). The per-component Z hypotheses are bundled as existential
+witnesses to make the canonical-integral expression well-typed. -/
 theorem M_W_eq_canonical_brownianIto
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
     ∃ M_W : ℝ → Ω → ℝ,
@@ -453,9 +338,8 @@ integral)**: The Poisson martingale leg `M_N` of every solution agrees a.s.
 (at every T') with the canonical compensated-Poisson L² integral
 `Compensated.stochasticIntegral N U ...` — not merely with some
 L²-isometric stand-in. The U-side hypotheses are bundled as existential
-witnesses to make the canonical-integral expression well-typed. This is the
-H6 closure: previously the M_N pin was hollow because per-e adaptedness of
-U was insufficient to type-check the canonical compensator. -/
+witnesses to make the canonical-integral expression well-typed (per-mark
+adaptedness of `U` alone would not type-check the canonical compensator). -/
 theorem M_N_eq_canonical_compensatedPoisson
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
     ∃ M_N : ℝ → Ω → ℝ,
