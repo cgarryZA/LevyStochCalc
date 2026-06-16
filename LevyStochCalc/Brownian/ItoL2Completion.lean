@@ -2140,6 +2140,40 @@ lemma masterApprox_diff_isometry (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
     rw [Gn.appendInterval_eval hKn s ω, Gm.appendInterval_eval hKm s ω]
   rw [hL, hR]; exact hiso
 
+/-- `((n : ℝ≥0∞) + 1)⁻¹ → 0`. -/
+private lemma tendsto_master_tol :
+    Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹) Filter.atTop (nhds 0) := by
+  have hg : Filter.Tendsto (fun n : ℕ => n + 1) Filter.atTop Filter.atTop :=
+    Filter.tendsto_atTop_mono (fun n => Nat.le_succ n) Filter.tendsto_id
+  have := ENNReal.tendsto_inv_nat_nhds_zero.comp hg
+  refine this.congr (fun n => ?_)
+  simp [Nat.cast_add_one]
+
+/-- **Per-time eval convergence of the master sequence.** For each `t ≥ 0`,
+`∫⁻∫⁻_{[0,t]}‖H − Gₙ.eval‖² → 0`: eventually (`t ≤ n+1`) it is `≤ ((n:ℝ≥0∞)+1)⁻¹`
+by `Set.Icc` monotonicity + `masterApprox_within`, and that bound tends to `0`. -/
+lemma masterApprox_eval_tendsto {t : ℝ} (ht_nn : 0 ≤ t) :
+    Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+        (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P)
+      Filter.atTop (nhds 0) := by
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds tendsto_master_tol
+    (Filter.Eventually.of_forall (fun n => bot_le)) ?_
+  filter_upwards [Filter.eventually_ge_atTop ⌈t⌉₊] with n hn
+  have htn : t ≤ (n : ℝ) + 1 := by
+    have h1 : t ≤ (⌈t⌉₊ : ℝ) := Nat.le_ceil t
+    have h2 : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+    linarith
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1),
+          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P :=
+        MeasureTheory.lintegral_mono
+          (fun ω => lintegral_mono_set (Set.Icc_subset_Icc_right htn))
+    _ ≤ ((n : ℝ≥0∞) + 1)⁻¹ := le_of_lt (masterApprox_within W H h_meas h_progMeas h_sq_int_global n)
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
