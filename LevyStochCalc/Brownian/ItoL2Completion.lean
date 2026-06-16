@@ -2017,6 +2017,37 @@ lemma martingale_rightCont_of_tendsto_eLpNorm_one
     tendsto_const_nhds.congr' heq_ev
   exact tendsto_nhds_unique htend_s htend_const
 
+/-- **A single adapted simple approximant within `ε` on `[0, T]`.** Extracted from
+the convergent dense sequence `adaptedSimple_dense_L2_brownian`. -/
+lemma exists_adaptedSimple_within
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    {T : ℝ} (hT : 0 < T)
+    (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {ε : ℝ≥0∞} (hε : 0 < ε) :
+    ∃ G : SimplePredictable Ω T,
+      (∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          (G.partition i.castSucc)) (G.ξ i)) ∧
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s - G.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε := by
+  obtain ⟨Hn, h_adapt, h_tend⟩ :=
+    adaptedSimple_dense_L2_brownian W hT H h_meas h_progMeas h_sq_int
+  have hev : ∀ᶠ m in Filter.atTop,
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s - (Hn m).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε :=
+    h_tend (Iio_mem_nhds hε)
+  obtain ⟨m, hm⟩ := hev.exists
+  exact ⟨Hn m, h_adapt m, hm⟩
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
