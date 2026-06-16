@@ -361,6 +361,31 @@ lemma rpow_half_pow_le {α : ℝ} (hα : 0 < α) {d : ℝ} (m : ℕ)
         Real.rpow_le_rpow (by positivity) (le_of_lt hstep) (le_of_lt hα)
     _ = (2 : ℝ) ^ α * d ^ α := Real.mul_rpow (by norm_num) (le_of_lt hdpos)
 
+/-- **KC exponent identity.** `2ⁿ · ((1/2)ⁿ)^q / ((1/2)^α)ⁿ)^p = ((1/2)^{q−αp−1})ⁿ`.
+Collapses the per-level Borel–Cantelli factor (a `2ⁿ` union over level-`n`
+dyadics, each a Markov term `(2^{−n})^q / (2^{−αn})^p`) to a single geometric
+ratio `(1/2)^{q−αp−1}`, which is `< 1` exactly when `αp < q − 1`. -/
+lemma kc_exponent_identity {α p q : ℝ} (n : ℕ) :
+    (2 : ℝ) ^ n * ((1 / 2 : ℝ) ^ n) ^ q / (((1 / 2 : ℝ) ^ α) ^ n) ^ p
+      = ((1 / 2 : ℝ) ^ (q - α * p - 1)) ^ n := by
+  have h2 : (0 : ℝ) < 1 / 2 := by norm_num
+  have e1 : ((1 / 2 : ℝ) ^ n) ^ q = (1 / 2 : ℝ) ^ ((n : ℝ) * q) := by
+    rw [← Real.rpow_natCast (1 / 2 : ℝ) n, ← Real.rpow_mul (le_of_lt h2)]
+  have e2 : (((1 / 2 : ℝ) ^ α) ^ n) ^ p = (1 / 2 : ℝ) ^ (α * (n : ℝ) * p) := by
+    rw [← Real.rpow_natCast ((1 / 2 : ℝ) ^ α) n, ← Real.rpow_mul (le_of_lt h2),
+        ← Real.rpow_mul (le_of_lt h2)]
+  have e3 : (2 : ℝ) ^ n = (1 / 2 : ℝ) ^ (-(n : ℝ)) := by
+    rw [Real.rpow_neg (le_of_lt h2), Real.rpow_natCast,
+        show (1 / 2 : ℝ) ^ n = (2 ^ n)⁻¹ from by rw [one_div, inv_pow], inv_inv]
+  have e4 : ((1 / 2 : ℝ) ^ (q - α * p - 1)) ^ n
+      = (1 / 2 : ℝ) ^ ((q - α * p - 1) * (n : ℝ)) := by
+    rw [← Real.rpow_natCast ((1 / 2 : ℝ) ^ (q - α * p - 1)) n,
+        ← Real.rpow_mul (le_of_lt h2)]
+  rw [e1, e2, e3, e4, div_eq_mul_inv, ← Real.rpow_neg (le_of_lt h2),
+      ← Real.rpow_add h2, ← Real.rpow_add h2]
+  congr 1
+  ring
+
 /-- **Deterministic dyadic Hölder chaining.** If the consecutive level-`n`
 dyadic increments of `f` on `[0,1]` are bounded by `C · ((1/2)^α)^n` for all
 `n ≥ N`, then `f` is α-Hölder on the dyadics of `[0,1]` at scales `≤ 2^{-N}`,

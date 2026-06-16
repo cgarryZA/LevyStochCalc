@@ -150,8 +150,12 @@ Route (now that `kolmogorov_real_tail_bound` is available):
     `Real.rpow_natCast`/`Real.rpow_mul` to turn each `(·)^{nat}`-of-`rpow` into a
     single `(1/2)^(real·n)`, then combine exponents `−nq + αnp + n = −n(q−αp−1)`.
     Mirror the technique already used in `rpow_half_pow_le`.
-  ⚠ Most ENNReal/rpow-heavy step. Consider an isolated real-only helper:
-    `2^n · ((1/2)^n)^q / ((1/2)^{αn})^p = ((1/2)^(q−αp−1))^n`, proved in ℝ.
+  ⚠ Most ENNReal/rpow-heavy step. The real-only exponent collapse is already
+    done: **`kc_exponent_identity`** proves, in ℝ,
+    `2^n · ((1/2)^n)^q / ((1/2)^α)^n)^p = ((1/2)^(q−αp−1))^n`. So Lemma A now
+    reduces to: union bound (`measure_biUnion_finset_le`) + per-term
+    `kolmogorov_real_tail_bound` + the `ofReal`/`edist` pushforward, then
+    `rw [kc_exponent_identity]` to land on `ofReal ((M:ℝ) · ρ^n)`, `ρ < 1`.
 
 **Lemma B (Borel–Cantelli).** `∑ₙ P(A n) < ∞` (geometric, ratio `2^(−(q−1−αp)) < 1`).
 Use `MeasureTheory.measure_limsup_atTop_eq_zero` (summable family ⇒ `P(limsup Aₙ)=0`),
