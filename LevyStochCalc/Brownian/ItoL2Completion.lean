@@ -2095,6 +2095,51 @@ lemma masterApprox_within (n : ℕ) :
   (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
     (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose_spec.2
 
+/-- **Cross-horizon difference isometry for the master sequence.** Extending both
+`masterApprox n` and `masterApprox m` to the common horizon `max n m + 2` (via
+`appendInterval`, which leaves their `simpleIntegral` and `eval` unchanged), the
+difference isometry gives `∫⁻‖Iₙ(t) − Iₘ(t)‖² = ∫⁻∫⁻_{[0,t]}‖Gₙ.eval − Gₘ.eval‖²`
+for every `t ≥ 0`. -/
+lemma masterApprox_diff_isometry (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
+    ∫⁻ ω, (‖simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
+        - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+          (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω
+            - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P := by
+  set Gn := masterApprox W H h_meas h_progMeas h_sq_int_global n with hGn
+  set Gm := masterApprox W H h_meas h_progMeas h_sq_int_global m with hGm
+  have hKn : Gn.partition (Fin.last Gn.N) < (max n m : ℝ) + 2 := by
+    have h1 : Gn.partition (Fin.last Gn.N) ≤ (n : ℝ) + 1 := Gn.partition_le_T
+    have h2 : (n : ℝ) ≤ (max n m : ℝ) := by exact_mod_cast Nat.le_max_left n m
+    linarith
+  have hKm : Gm.partition (Fin.last Gm.N) < (max n m : ℝ) + 2 := by
+    have h1 : Gm.partition (Fin.last Gm.N) ≤ (m : ℝ) + 1 := Gm.partition_le_T
+    have h2 : (m : ℝ) ≤ (max n m : ℝ) := by exact_mod_cast Nat.le_max_right n m
+    linarith
+  have h_eq : (Gn.appendInterval hKn).partition (Fin.last (Gn.appendInterval hKn).N)
+      = (Gm.appendInterval hKm).partition (Fin.last (Gm.appendInterval hKm).N) :=
+    (Gn.appendInterval_partition_last hKn).trans (Gm.appendInterval_partition_last hKm).symm
+  have ha_n := Gn.appendInterval_adapt W hKn (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)
+  have ha_m := Gm.appendInterval_adapt W hKm (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global m)
+  have hiso := simpleIntegral_intermediate_diff_isometry W (Gn.appendInterval hKn)
+    (Gm.appendInterval hKm) h_eq ha_n ha_m ht_nn
+  have hL : ∫⁻ ω, (‖simpleIntegral W Gn t ω - simpleIntegral W Gm t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, (‖simpleIntegral W (Gn.appendInterval hKn) t ω
+          - simpleIntegral W (Gm.appendInterval hKm) t ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+    refine lintegral_congr (fun ω => ?_)
+    rw [Gn.appendInterval_simpleIntegral W hKn t ω, Gm.appendInterval_simpleIntegral W hKm t ω]
+  have hR : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+        (‖Gn.eval s ω - Gm.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+        (‖(Gn.appendInterval hKn).eval s ω - (Gm.appendInterval hKm).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P := by
+    refine lintegral_congr (fun ω => ?_)
+    refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
+    rw [Gn.appendInterval_eval hKn s ω, Gm.appendInterval_eval hKm s ω]
+  rw [hL, hR]; exact hiso
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
