@@ -26,7 +26,8 @@ variable {Ω : Type u} [MeasurableSpace Ω]
 
 /-- **Pointwise truncation tendsto** (Brownian, mirror of Compensated). -/
 private lemma truncation_pointwise_tendsto_brownian (x : ℝ) :
-    Filter.Tendsto (fun M : ℕ => (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2)
+    Filter.Tendsto
+      (fun M : ℕ => (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2)
       Filter.atTop (nhds 0) := by
   refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
   refine Filter.eventually_atTop.mpr ⟨⌈|x|⌉₊, fun M hM => ?_⟩
@@ -43,7 +44,8 @@ private lemma truncation_pointwise_tendsto_brownian (x : ℝ) :
 
 /-- **Pointwise truncation dominated** (Brownian, mirror of Compensated). -/
 private lemma truncation_dominated_brownian (x : ℝ) (M : ℕ) :
-    (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2 ≤ (‖x‖₊ : ℝ≥0∞) ^ 2 := by
+    (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2
+      ≤ (‖x‖₊ : ℝ≥0∞) ^ 2 := by
   have h_M_nn : (0 : ℝ) ≤ M := Nat.cast_nonneg M
   have h_abs : |x - max (-(M : ℝ)) (min (M : ℝ) x)| ≤ |x| := by
     by_cases hx : 0 ≤ x
@@ -114,7 +116,8 @@ lemma truncation_L2_converges_brownian
       exact MeasureTheory.ae_lt_top h_bound_h h_sq_int.ne
     filter_upwards [h_finite_inner] with ω h_ω_finite
     -- For this ω, apply DCT on the s-integral.
-    rw [show (0 : ℝ≥0∞) = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0:ℝ) T)) from by simp]
+    rw [show (0 : ℝ≥0∞)
+        = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0:ℝ) T)) from by simp]
     refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
       (bound := fun s => (‖H ω s‖₊ : ℝ≥0∞) ^ 2) ?_ ?_ h_ω_finite.ne ?_
     · intro M
@@ -131,11 +134,14 @@ lemma truncation_L2_converges_brownian
       exact truncation_pointwise_tendsto_brownian _
 
 /-- Triangle inequality lifted to ENNReal:
-`(‖x + y‖₊)² ≤ 2 · ((‖x‖₊)² + (‖y‖₊)²)`. Used to lift pointwise bounds to lintegral
-bounds in the diagonal selection of `simplePredictable_dense_L2`. -/
+`(‖x + y‖₊)² ≤ 2 · ((‖x‖₊)² + (‖y‖₊)²)`. Used to lift pointwise
+bounds to lintegral bounds in the diagonal selection of
+`simplePredictable_dense_L2`. -/
 lemma sq_nnnorm_add_le_two_mul_brownian (x y : ℝ) :
-    (‖x + y‖₊ : ℝ≥0∞) ^ 2 ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
-  have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) := fun z => by
+    (‖x + y‖₊ : ℝ≥0∞) ^ 2
+      ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
+  have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) :=
+    fun z => by
     rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from ofReal_norm_eq_enorm z |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖z‖ ^ 2 = z ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
@@ -209,7 +215,8 @@ private lemma exists_simpleFunc_seq_tendsto_brownian
   have h_inv_tendsto : Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹)
       Filter.atTop (nhds 0) := by
     have h := ENNReal.tendsto_inv_nat_nhds_zero
-    have hcomp : Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
+    have hcomp :
+        Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
       h.comp (Filter.tendsto_add_atTop_nat 1)
     simpa [Nat.cast_add, Nat.cast_one] using hcomp
   obtain ⟨N, hN⟩ := (ENNReal.tendsto_atTop_zero.mp h_inv_tendsto) ε hε_pos
@@ -735,7 +742,8 @@ private lemma dyadicIndex_mem (n : ℕ) (T : ℝ) (hT : 0 < T) (s : ℝ)
 
 -- `omit` the unused `[MeasurableSpace Ω]` section variable.
 omit [MeasurableSpace Ω] in
-/-- **Average bridge:** `dyadicAvg n i ω = ⨍ y in closedBall(midpoint, halfLen), g(ω, y) ∂volume`.
+/-- **Average bridge:**
+`dyadicAvg n i ω = ⨍ y in closedBall(midpoint, halfLen), g(ω, y) ∂volume`.
 
 Here `midpoint := (t_i + t_{i+1})/2`, `halfLen := (t_{i+1} - t_i)/2 = T/2^(n+1)`.
 The bridge uses:
@@ -761,7 +769,8 @@ private lemma dyadicAvg_brownian_eq_average_closedBall
       Set.Icc t_i t_succ := closedBall_eq_Icc t_i t_succ
   rw [h_ball_eq]
   -- ⨍ Icc = ⨍ Ioc (since vol({t_i}) = 0).
-  rw [show (volume.restrict (Set.Icc t_i t_succ) : Measure ℝ) = volume.restrict (Set.Ioc t_i t_succ)
+  rw [show (volume.restrict (Set.Icc t_i t_succ) : Measure ℝ)
+        = volume.restrict (Set.Ioc t_i t_succ)
       from MeasureTheory.Measure.restrict_congr_set MeasureTheory.Ioc_ae_eq_Icc.symm]
   -- Now ⨍ over Ioc = (1/vol(Ioc)) * ∫ over Ioc.
   rw [MeasureTheory.average_eq]
@@ -918,9 +927,11 @@ private lemma g_omega_ae_tendsto_average
         Filter.Tendsto δ l (nhdsWithin 0 (Set.Ioi 0)) →
         (∀ᶠ j in l, x ∈ Metric.closedBall (w j) (1 * δ j)) →
         Filter.Tendsto
-          (fun j => ⨍ y in Metric.closedBall (w j) (δ j), g ω y ∂volume) l (nhds (g ω x)) := by
+          (fun j => ⨍ y in Metric.closedBall (w j) (δ j), g ω y ∂volume)
+            l (nhds (g ω x)) := by
   have h_loc_int : MeasureTheory.LocallyIntegrable (g ω) volume :=
-    bounded_locallyIntegrable (g ω) (h_meas.comp (by fun_prop : Measurable (fun s : ℝ => (ω, s))))
+    bounded_locallyIntegrable (g ω)
+      (h_meas.comp (by fun_prop : Measurable (fun s : ℝ => (ω, s))))
       M (h_bound ω)
   exact IsUnifLocDoublingMeasure.ae_tendsto_average volume h_loc_int 1
 
@@ -1054,7 +1065,8 @@ private lemma dyadic_pointwise_tendsto_per_omega
 /-- **Joint measurability of the convergence set.** The set
 `{(ω, s) | Tendsto (eval n s ω) atTop (𝓝 (g ω s))}` is measurable.
 
-Proof: `Tendsto _ atTop (𝓝 (g ω s))` is equivalent to `Tendsto (eval n - g ω s) atTop (𝓝 0)`,
+Proof: `Tendsto _ atTop (𝓝 (g ω s))` is equivalent to
+`Tendsto (eval n - g ω s) atTop (𝓝 0)`,
 i.e., convergence to the fixed limit 0 of a jointly measurable sequence. By
 `measurableSet_tendsto`, this set is measurable. -/
 private lemma convergence_set_measurable
@@ -1385,7 +1397,8 @@ private lemma predictable_pointwise_tendsto_per_omega
     have hi_mem := dyadicIndex_mem n T hT x hx
     have h_x_lower : ((dyadicIndex n T hT x hx).val : ℝ) * T / ((2 ^ n : ℕ) : ℝ) < x :=
       hi_mem.1
-    have h_x_upper : x ≤ (((dyadicIndex n T hT x hx).val : ℝ) + 1) * T / ((2 ^ n : ℕ) : ℝ) := by
+    have h_x_upper :
+        x ≤ (((dyadicIndex n T hT x hx).val : ℝ) + 1) * T / ((2 ^ n : ℕ) : ℝ) := by
       exact_mod_cast hi_mem.2
     set i_val : ℝ := ((dyadicIndex n T hT x hx).val : ℝ) with hi_val
     have h_pos_real : (0 : ℝ) < (2 ^ n : ℕ) := by positivity
@@ -1401,8 +1414,10 @@ private lemma predictable_pointwise_tendsto_per_omega
       have h_3delta_pos : 0 < 3 * (T / (2 * ((2 ^ n : ℕ) : ℝ))) := by positivity
       linarith
     · -- Upper: x - w_n ≤ 3 δ_n.
-      have h_alg : (i_val + 1) * T / ((2 ^ n : ℕ) : ℝ) - (i_val - 1/2) * (T / ((2 ^ n : ℕ) : ℝ)) =
-          3 * (T / (2 * ((2 ^ n : ℕ) : ℝ))) := by
+      have h_alg :
+          (i_val + 1) * T / ((2 ^ n : ℕ) : ℝ)
+            - (i_val - 1/2) * (T / ((2 ^ n : ℕ) : ℝ))
+            = 3 * (T / (2 * ((2 ^ n : ℕ) : ℝ))) := by
         field_simp; ring
       linarith
   -- Apply Vitali theorem.
@@ -1842,7 +1857,8 @@ lemma L2_cauchy_of_L2_tendsto_brownian
     congr 1
     rw [show (Hn n).eval s ω - H ω s = -(H ω s - (Hn n).eval s ω) from by ring]
     rw [nnnorm_neg]
-  have h_int_A_lt : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume ∂P) < ε / 4 := by
+  have h_int_A_lt :
+      (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume ∂P) < ε / 4 := by
     have h_eq : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume ∂P)
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
@@ -1853,7 +1869,8 @@ lemma L2_cauchy_of_L2_tendsto_brownian
       exact h_A_eq ω s
     rw [h_eq]
     exact hN n hn
-  have h_int_B_lt : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, B ω s ∂volume ∂P) < ε / 4 := by
+  have h_int_B_lt :
+      (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, B ω s ∂volume ∂P) < ε / 4 := by
     change ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s - (Hn m).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε / 4
     exact hN m hm
@@ -1919,7 +1936,8 @@ lemma L2_cauchy_of_L2_tendsto_brownian
     ENNReal.add_lt_add h_int_A_lt h_int_B_lt
   have h_2_ne_zero : (2 : ℝ≥0∞) ≠ 0 := by norm_num
   have h_2_ne_top : (2 : ℝ≥0∞) ≠ ⊤ := by norm_num
-  have h_2_sum_lt : (2 : ℝ≥0∞) * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume ∂P)
+  have h_2_sum_lt :
+      (2 : ℝ≥0∞) * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume ∂P)
       + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, B ω s ∂volume ∂P) <
       (2 : ℝ≥0∞) * (ε / 4 + ε / 4) :=
     ENNReal.mul_right_strictMono h_2_ne_zero h_2_ne_top h_AB_sum_lt
@@ -2032,7 +2050,8 @@ private lemma eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero
 /-- **Bridge: nested-lintegral-of-squared-norm = `eLpNorm²` on product measure.**
 
 For any `ℝ`-valued `h : Ω × ℝ → ℝ` measurable and `μ`-SFinite,
-`∫⁻ ω, ∫⁻ s in Icc 0 T, ‖h (ω, s)‖₊² ∂vol ∂μ = eLpNorm h 2 (μ.prod (vol.restrict (Icc 0 T))) ^ 2`.
+`∫⁻ ω, ∫⁻ s in Icc 0 T, ‖h (ω, s)‖₊² ∂vol ∂μ`
+`  = eLpNorm h 2 (μ.prod (vol.restrict (Icc 0 T))) ^ 2`.
 Tonelli + `eLpNorm_nnreal_pow_eq_lintegral` (instantiated at `p = 2`). -/
 lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
     {μ : Measure Ω} [SFinite μ] {T : ℝ} (h : Ω × ℝ → ℝ) (hh : Measurable h) :
@@ -2046,7 +2065,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
     (hh.enorm.pow_const 2).aemeasurable
   -- Tonelli on the squared integrand.
   have h_Tonelli :
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖h (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖h (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂μ
         = ∫⁻ p, (‖h p‖₊ : ℝ≥0∞) ^ 2 ∂μν := by
     rw [MeasureTheory.lintegral_prod _ h_aem_sq]
   rw [h_Tonelli]
@@ -2059,7 +2079,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
   rw [h_two_ENNReal, h_two_R] at h_pow_lemma
   -- h_pow_lemma : eLpNorm h 2 μν ^ (2:ℝ) = ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μν
   rw [h_pow_lemma]
-  -- Goal: ∫⁻ p, (‖h p‖₊ : ℝ≥0∞)^2 ∂μν = ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μν
+  -- Goal: ∫⁻ p, (‖h p‖₊ : ℝ≥0∞)^2 ∂μν
+  --   = ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μν
   refine lintegral_congr (fun p => ?_)
   rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]
   rfl
@@ -2068,7 +2089,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_prod_brownian
 
 For any sequence of jointly-measurable `(p ↦ ev_n p.2 p.1)` and jointly-measurable
 target `H` such that `∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s - ev_n s ω‖₊² → 0`, we have
-`∫⁻ ω, ∫⁻ s in [0,T], ‖ev_n s ω‖₊² → ∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s‖₊²`.
+`∫⁻ ω, ∫⁻ s in [0,T], ‖ev_n s ω‖₊²`
+`  → ∫⁻ ω, ∫⁻ s in [0,T], ‖H ω s‖₊²`.
 
 Proof: bridge to `eLpNorm² _ 2 (μ.prod (vol.restrict (Icc 0 T)))` via Tonelli; the
 square-root step gives `eLpNorm (F - Fn) → 0`; reverse-triangle squeeze
@@ -2262,7 +2284,8 @@ lemma adaptedSimple_dense_L2_brownian
   -- Same diagonal selection as simplePredictable_dense_L2.
   have h_N : ∀ n : ℕ, ∃ N : ℕ, ∀ k ≥ N,
       (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s)) - (Hn_seq n k).eval s ω‖₊ : ℝ≥0∞) ^ 2
+        (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s))
+            - (Hn_seq n k).eval s ω‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P) ≤ ((n : ℝ≥0∞) + 1)⁻¹ := by
     intro n
     have h_eps : ((n : ℝ≥0∞) + 1)⁻¹ > 0 := by
@@ -2286,7 +2309,8 @@ lemma adaptedSimple_dense_L2_brownian
   have h_inv_tendsto : Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹)
       Filter.atTop (nhds 0) := by
     have h := ENNReal.tendsto_inv_nat_nhds_zero
-    have hcomp : Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
+    have hcomp :
+        Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
       h.comp (Filter.tendsto_add_atTop_nat 1)
     simpa [Nat.cast_add, Nat.cast_one] using hcomp
   obtain ⟨N₂, hN₂⟩ := (ENNReal.tendsto_atTop_zero.mp h_inv_tendsto) (ε / 4) hε4_pos
@@ -2311,7 +2335,8 @@ lemma adaptedSimple_dense_L2_brownian
     rw [h_sum] at this
     exact this
   set A : Ω → ℝ → ℝ≥0∞ :=
-    fun ω s => (‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 with hA
+    fun ω s => (‖H ω s
+      - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 with hA
   set B : Ω → ℝ → ℝ≥0∞ :=
     fun ω s => (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s))
                     - (Hn_seq n (max n (N_seq n))).eval s ω‖₊ : ℝ≥0∞) ^ 2 with hB
@@ -2336,7 +2361,8 @@ lemma adaptedSimple_dense_L2_brownian
           have h_meas_A_s : Measurable (fun s => A ω s) := by
             simp only [hA]
             exact ((by fun_prop : Measurable (fun s =>
-              ‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊)).coe_nnreal_ennreal).pow_const 2
+              ‖H ω s
+                - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊)).coe_nnreal_ennreal).pow_const 2
           exact h_meas_A_s.aemeasurable
   have h_double_le :
       (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, C ω s ∂volume ∂P)
@@ -2360,7 +2386,8 @@ lemma adaptedSimple_dense_L2_brownian
             simp only [hA]
             exact ((by fun_prop : Measurable (fun (q : Ω × ℝ) =>
               ‖H q.1 q.2
-                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
+                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal)
+                  |>.pow_const 2
           exact (Measurable.lintegral_prod_right'
             (ν := volume.restrict (Set.Icc (0:ℝ) T)) h_meas_A_pair).aemeasurable
   have h_first : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -2406,7 +2433,8 @@ lemma simplePredictable_dense_L2
     rw [abs_le]
     refine ⟨le_max_left _ _, max_le (by linarith) (min_le_left _ _)⟩
   have h_clip_meas : ∀ M : ℕ, Measurable
-      (Function.uncurry (fun (ω : Ω) (s : ℝ) => max (-(M : ℝ)) (min (M : ℝ) (H ω s)))) := by
+      (Function.uncurry
+        (fun (ω : Ω) (s : ℝ) => max (-(M : ℝ)) (min (M : ℝ) (H ω s)))) := by
     intro M
     have h : Measurable (fun x : ℝ => max (-(M : ℝ)) (min (M : ℝ) x)) := by fun_prop
     exact h.comp h_meas
@@ -2422,7 +2450,8 @@ lemma simplePredictable_dense_L2
   choose Hn_seq h_Hn_seq using h_bdd
   have h_N : ∀ n : ℕ, ∃ N : ℕ, ∀ k ≥ N,
       (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s)) - (Hn_seq n k).eval s ω‖₊ : ℝ≥0∞) ^ 2
+        (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s))
+            - (Hn_seq n k).eval s ω‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P) ≤ ((n : ℝ≥0∞) + 1)⁻¹ := by
     intro n
     have h_eps : ((n : ℝ≥0∞) + 1)⁻¹ > 0 := by
@@ -2442,7 +2471,8 @@ lemma simplePredictable_dense_L2
   have h_inv_tendsto : Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹)
       Filter.atTop (nhds 0) := by
     have h := ENNReal.tendsto_inv_nat_nhds_zero
-    have hcomp : Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
+    have hcomp :
+        Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
       h.comp (Filter.tendsto_add_atTop_nat 1)
     simpa [Nat.cast_add, Nat.cast_one] using hcomp
   obtain ⟨N₂, hN₂⟩ := (ENNReal.tendsto_atTop_zero.mp h_inv_tendsto) (ε / 4) hε4_pos
@@ -2469,14 +2499,16 @@ lemma simplePredictable_dense_L2
     exact this
   -- Abbreviate.
   set A : Ω → ℝ → ℝ≥0∞ :=
-    fun ω s => (‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 with hA
+    fun ω s => (‖H ω s
+      - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 with hA
   set B : Ω → ℝ → ℝ≥0∞ :=
     fun ω s => (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s))
                     - (Hn_seq n (max n (N_seq n))).eval s ω‖₊ : ℝ≥0∞) ^ 2 with hB
   set C : Ω → ℝ → ℝ≥0∞ :=
     fun ω s => (‖H ω s - (Hn_seq n (max n (N_seq n))).eval s ω‖₊ : ℝ≥0∞) ^ 2 with hC
   have h_C_le : ∀ ω s, C ω s ≤ 2 * (A ω s + B ω s) := h_pointwise
-  -- Step 1: ∫⁻ s in Icc 0 T, C ω s ∂vol ≤ 2 * (∫⁻ s, A ω s ∂vol + ∫⁻ s, B ω s ∂vol).
+  -- Step 1: ∫⁻ s in Icc 0 T, C ω s ∂vol
+  --   ≤ 2 * (∫⁻ s, A ω s ∂vol + ∫⁻ s, B ω s ∂vol).
   have h_s_le : ∀ ω,
       (∫⁻ s in Set.Icc (0 : ℝ) T, C ω s ∂volume) ≤
         2 * ((∫⁻ s in Set.Icc (0 : ℝ) T, A ω s ∂volume)
@@ -2495,7 +2527,8 @@ lemma simplePredictable_dense_L2
           have h_meas_A_s : Measurable (fun s => A ω s) := by
             simp only [hA]
             exact ((by fun_prop : Measurable (fun s =>
-              ‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊)).coe_nnreal_ennreal).pow_const 2
+              ‖H ω s
+                - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊)).coe_nnreal_ennreal).pow_const 2
           exact h_meas_A_s.aemeasurable
   -- Step 2: outer ∫⁻ ω.
   have h_double_le :
@@ -2520,7 +2553,8 @@ lemma simplePredictable_dense_L2
             simp only [hA]
             exact ((by fun_prop : Measurable (fun (q : Ω × ℝ) =>
               ‖H q.1 q.2
-                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal).pow_const 2
+                - max (-(n : ℝ)) (min (n : ℝ) (H q.1 q.2))‖₊)).coe_nnreal_ennreal)
+                  |>.pow_const 2
           exact (Measurable.lintegral_prod_right'
             (ν := volume.restrict (Set.Icc (0:ℝ) T)) h_meas_A_pair).aemeasurable
   -- Apply bounds.

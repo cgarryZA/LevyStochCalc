@@ -411,7 +411,8 @@ lemma bieleckiNorm_add_le
   -- = ofReal(e^{-βt}) · (∫⁻ ω, ∑ i, ‖Y₁ t ω i‖²)^(1/2)
   --   + ofReal(e^{-βt}) · (∫⁻ ω, ∑ i, ‖Y₂ t ω i‖²)^(1/2)
   have h_step :
-      (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+      (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+        ^ ((1 : ℝ) / 2)
         ≤ (∫⁻ ω, ∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
           + (∫⁻ ω, ∑ i, (‖Y₂ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2) := by
     -- Apply L² Minkowski via ENNReal.lintegral_Lp_add_le. To do so we
@@ -441,7 +442,8 @@ lemma bieleckiNorm_add_le
         rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]
       have h_step_A :
           (∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
-            ≤ (∑ i, (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℕ))
+            ≤ (∑ i,
+                (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℕ))
                 ^ ((1 : ℝ) / 2) := by
         refine ENNReal.rpow_le_rpow ?_ (by norm_num : (0:ℝ) ≤ 1/2)
         refine Finset.sum_le_sum (fun i _ => ?_)
@@ -450,10 +452,15 @@ lemma bieleckiNorm_add_le
         exact h_pw_nn i
       -- Step B: apply the Euclidean Minkowski, converting ℕ ↔ ℝ exponents.
       refine le_trans h_step_A ?_
-      have hMink := sum_sq_nnreal_add_le n (fun i => ‖Y₁ t ω i‖₊) (fun i => ‖Y₂ t ω i‖₊)
+      have hMink :=
+        sum_sq_nnreal_add_le n (fun i => ‖Y₁ t ω i‖₊) (fun i => ‖Y₂ t ω i‖₊)
       -- Convert all `^ (2 : ℝ)` to `^ (2 : ℕ)` to match the goal shape.
-      have h_eq_a : (∑ i, (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℕ))
-          = (∑ i, (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℝ)) := by
+      have h_eq_a :
+          (∑ i,
+            (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℕ))
+          = (∑ i,
+            (((‖Y₁ t ω i‖₊ + ‖Y₂ t ω i‖₊ : NNReal) : ℝ≥0∞)) ^ (2 : ℝ))
+            := by
         refine Finset.sum_congr rfl (fun i _ => ?_)
         rw [h_conv]
       have h_eq_b : (∑ i, ((‖Y₁ t ω i‖₊ : NNReal) : ℝ≥0∞) ^ (2 : ℝ))
@@ -480,18 +487,25 @@ lemma bieleckiNorm_add_le
     -- Show:   (∫⁻ ω, F ω ^ 2)^(1/2) ≤ (∫⁻ ω, f₁ ω ^ 2)^(1/2)
     --                                  + (∫⁻ ω, f₂ ω ^ 2)^(1/2)
     -- via the chain  (∫⁻ ω, F ω ^ 2)^(1/2)
-    --             ≤ (∫⁻ ω, (f₁ ω + f₂ ω) ^ 2)^(1/2)      [monotonicity in F ≤ f₁+f₂]
+    --             ≤ (∫⁻ ω, (f₁ ω + f₂ ω) ^ 2)^(1/2)
+    --               [monotonicity in F ≤ f₁+f₂]
     --             ≤ (∫⁻ ω, f₁²)^(1/2) + (∫⁻ ω, f₂²)^(1/2) [L² Minkowski]
-    set F : Ω → ℝ≥0∞ := fun ω => (∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
-    set f₁ : Ω → ℝ≥0∞ := fun ω => (∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
-    set f₂ : Ω → ℝ≥0∞ := fun ω => (∑ i, (‖Y₂ t ω i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
-    -- The (∫⁻ ω, ∑ i, ‖·‖²) expressions equal (∫⁻ ω, F²), (∫⁻ ω, f₁²), (∫⁻ ω, f₂²)
+    set F : Ω → ℝ≥0∞ :=
+      fun ω => (∑ i,
+        (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
+    set f₁ : Ω → ℝ≥0∞ :=
+      fun ω => (∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
+    set f₂ : Ω → ℝ≥0∞ :=
+      fun ω => (∑ i, (‖Y₂ t ω i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)
+    -- The (∫⁻ ω, ∑ i, ‖·‖²) expressions equal (∫⁻ ω, F²),
+    --   (∫⁻ ω, f₁²), (∫⁻ ω, f₂²)
     -- via the rpow-cancellation `((x)^(1/2))^2 = x`.
     have h_rpow_half_sq : ∀ (x : ℝ≥0∞), (x ^ ((1 : ℝ) / 2)) ^ (2 : ℝ) = x := by
       intro x
       rw [← ENNReal.rpow_mul]
       norm_num
-    have h_F_sq : ∀ ω, F ω ^ (2 : ℝ) = ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 :=
+    have h_F_sq :
+        ∀ ω, F ω ^ (2 : ℝ) = ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 :=
       fun ω => h_rpow_half_sq _
     have h_f₁_sq : ∀ ω, f₁ ω ^ (2 : ℝ) = ∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2 :=
       fun ω => h_rpow_half_sq _
@@ -499,7 +513,8 @@ lemma bieleckiNorm_add_le
       fun ω => h_rpow_half_sq _
     -- Rewrite LHS and RHS in terms of F, f₁, f₂.
     have h_LHS_eq :
-        (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+        (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+            ^ ((1 : ℝ) / 2)
           = (∫⁻ ω, F ω ^ (2 : ℝ) ∂P) ^ ((1 : ℝ) / 2) := by
       congr 1
       refine lintegral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
@@ -517,7 +532,8 @@ lemma bieleckiNorm_add_le
       refine lintegral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
       exact (h_f₂_sq ω).symm
     rw [h_LHS_eq, h_RHS₁_eq, h_RHS₂_eq]
-    -- Step 1: bound (∫⁻ F²)^(1/2) ≤ (∫⁻ (f₁+f₂)²)^(1/2) via monotonicity of LHS in F.
+    -- Step 1: bound (∫⁻ F²)^(1/2) ≤ (∫⁻ (f₁+f₂)²)^(1/2) via
+    --   monotonicity of LHS in F.
     have h_step1 : (∫⁻ ω, F ω ^ (2 : ℝ) ∂P) ^ ((1 : ℝ) / 2)
         ≤ (∫⁻ ω, (f₁ ω + f₂ ω) ^ (2 : ℝ) ∂P) ^ ((1 : ℝ) / 2) := by
       refine ENNReal.rpow_le_rpow ?_ (by norm_num : (0:ℝ) ≤ 1/2)
@@ -530,19 +546,23 @@ lemma bieleckiNorm_add_le
     have hf₁_meas : AEMeasurable f₁ P := hY₁_meas t
     have hf₂_meas : AEMeasurable f₂ P := hY₂_meas t
     have h_step2 := ENNReal.lintegral_Lp_add_le hf₁_meas hf₂_meas (by norm_num : (1:ℝ) ≤ 2)
-    -- h_step2 : (∫⁻ ω, (f₁+f₂)(ω)^2 ∂P)^(1/2) ≤ (∫⁻ f₁²)^(1/2) + (∫⁻ f₂²)^(1/2)
+    -- h_step2 : (∫⁻ ω, (f₁+f₂)(ω)^2 ∂P)^(1/2)
+    --   ≤ (∫⁻ f₁²)^(1/2) + (∫⁻ f₂²)^(1/2)
     -- The `(f₁+f₂) ω` in the lintegral is `Pi.add_apply`-applied;
     -- the goal expression is `(f₁ ω + f₂ ω)`. These are defeq.
     exact le_trans h_step1 h_step2
   -- Multiply by the Bielecki weight `ofReal (e^{-βt})` and split.
   calc ENNReal.ofReal (Real.exp (-β * t)) *
-      (∫⁻ ω, ∑ i, (‖(fun t ω => Y₁ t ω + Y₂ t ω) t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      (∫⁻ ω, ∑ i,
+          (‖(fun t ω => Y₁ t ω + Y₂ t ω) t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
         ^ ((1 : ℝ) / 2)
       = ENNReal.ofReal (Real.exp (-β * t)) *
-          (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2) := rfl
+          (∫⁻ ω, ∑ i, (‖(Y₁ t ω + Y₂ t ω) i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+            ^ ((1 : ℝ) / 2) := rfl
     _ ≤ ENNReal.ofReal (Real.exp (-β * t)) *
           ((∫⁻ ω, ∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
-            + (∫⁻ ω, ∑ i, (‖Y₂ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) := by
+            + (∫⁻ ω, ∑ i, (‖Y₂ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+                ^ ((1 : ℝ) / 2)) := by
         gcongr
     _ = ENNReal.ofReal (Real.exp (-β * t)) *
             (∫⁻ ω, ∑ i, (‖Y₁ t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
@@ -554,14 +574,17 @@ lemma bieleckiNorm_add_le
               (∫⁻ ω, ∑ i, (‖Y₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2))
         + ⨆ s ∈ Set.Icc (0 : ℝ) T,
             ENNReal.ofReal (Real.exp (-β * s)) *
-              (∫⁻ ω, ∑ i, (‖Y₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2) := by
+              (∫⁻ ω, ∑ i, (‖Y₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+                ^ ((1 : ℝ) / 2) := by
         gcongr
         · refine le_iSup₂ (f := fun s (_ : s ∈ Set.Icc (0:ℝ) T) =>
             ENNReal.ofReal (Real.exp (-β * s)) *
-              (∫⁻ ω, ∑ i, (‖Y₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) t ht
+              (∫⁻ ω, ∑ i, (‖Y₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+                ^ ((1 : ℝ) / 2)) t ht
         · refine le_iSup₂ (f := fun s (_ : s ∈ Set.Icc (0:ℝ) T) =>
             ENNReal.ofReal (Real.exp (-β * s)) *
-              (∫⁻ ω, ∑ i, (‖Y₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) t ht
+              (∫⁻ ω, ∑ i, (‖Y₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+                ^ ((1 : ℝ) / 2)) t ht
 
 /-! ### Type-synonym carrying the Bielecki pseudo-edist instance
 
