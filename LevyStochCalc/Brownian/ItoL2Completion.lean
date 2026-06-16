@@ -2330,6 +2330,41 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
               (show (4 : ℝ≥0∞) ≠ ⊤ by simp)]
     exact (ENNReal.rpow_lt_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp h_sq_lt
 
+/-- The **L² Itô integral process** as an `Lp ℝ 2 P`-valued function of time: the
+`L²`-limit of the master integral sequence. -/
+noncomputable def stochasticIntegralBrownianLp (t : ℝ) : MeasureTheory.Lp ℝ 2 P :=
+  Filter.limUnder Filter.atTop (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+
+/-- The **L² Itô integral** `t ↦ ∫_0^t H_s dW_s` as a process `ℝ → Ω → ℝ`. -/
+noncomputable def stochasticIntegralBrownian (t : ℝ) : Ω → ℝ :=
+  ↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t)
+
+/-- **L²-convergence of the master integrals to the Itô integral process.** -/
+lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
+    Filter.Tendsto (fun n => MeasureTheory.eLpNorm
+        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) 2 P)
+      Filter.atTop (nhds 0) := by
+  haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
+  set Flp := stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t with hFlp
+  have h1 : Filter.Tendsto (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+      Filter.atTop (nhds Flp) :=
+    (masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global ht_nn).tendsto_limUnder
+  have hmem : MeasureTheory.MemLp (↑↑Flp : Ω → ℝ) 2 P := MeasureTheory.Lp.memLp Flp
+  rw [← MeasureTheory.Lp.toLp_coeFn Flp hmem] at h1
+  have h2 := (MeasureTheory.Lp.tendsto_Lp_iff_tendsto_eLpNorm
+    (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) (↑↑Flp) hmem).mp h1
+  refine h2.congr' ?_
+  filter_upwards [Filter.eventually_ge_atTop ⌈t⌉₊] with n hn
+  have hcn : t ≤ (n : ℝ) + 1 := by
+    have h1' : t ≤ (⌈t⌉₊ : ℝ) := Nat.le_ceil t
+    have h2' : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+    linarith
+  refine MeasureTheory.eLpNorm_congr_ae ?_
+  filter_upwards [masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n ht_nn hcn] with ω hω
+  simp only [Pi.sub_apply, hω]
+  rfl
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
