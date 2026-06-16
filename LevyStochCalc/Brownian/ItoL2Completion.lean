@@ -2174,6 +2174,60 @@ lemma masterApprox_eval_tendsto {t : ℝ} (ht_nn : 0 ≤ t) :
           (fun ω => lintegral_mono_set (Set.Icc_subset_Icc_right htn))
     _ ≤ ((n : ℝ≥0∞) + 1)⁻¹ := le_of_lt (masterApprox_within W H h_meas h_progMeas h_sq_int_global n)
 
+/-- **Cauchy bound for the master integrals.** Via the cross-horizon difference
+isometry + the triangle `‖a − b‖² ≤ 2(‖a − H‖² + ‖H − b‖²)`. -/
+lemma masterApprox_cauchy_le (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
+    ∫⁻ ω, (‖simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
+        - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      ≤ 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              ∂volume ∂P) := by
+  set Gn := masterApprox W H h_meas h_progMeas h_sq_int_global n with hGn
+  set Gm := masterApprox W H h_meas h_progMeas h_sq_int_global m with hGm
+  rw [masterApprox_diff_isometry W H h_meas h_progMeas h_sq_int_global n m ht_nn]
+  -- abbreviations for the two error densities
+  set A : Ω → ℝ → ℝ≥0∞ := fun ω s => (‖H ω s - Gn.eval s ω‖₊ : ℝ≥0∞) ^ 2 with hA
+  set B : Ω → ℝ → ℝ≥0∞ := fun ω s => (‖H ω s - Gm.eval s ω‖₊ : ℝ≥0∞) ^ 2 with hB
+  have h_point : ∀ ω, ∀ s,
+      (‖Gn.eval s ω - Gm.eval s ω‖₊ : ℝ≥0∞) ^ 2 ≤ 2 * (A ω s + B ω s) := by
+    intro ω s
+    have hrw : Gn.eval s ω - Gm.eval s ω
+        = -(H ω s - Gn.eval s ω) + (H ω s - Gm.eval s ω) := by ring
+    rw [hrw, hA, hB]
+    refine le_trans (sq_nnnorm_add_le_two_mul_brownian _ _) ?_
+    rw [show ‖-(H ω s - Gn.eval s ω)‖₊ = ‖H ω s - Gn.eval s ω‖₊ from by rw [nnnorm_neg]]
+  -- joint measurability of `A` and the `s`-section measurability
+  have hH_pair : Measurable (fun p : Ω × ℝ => H p.1 p.2) := h_meas
+  have hA_pair : Measurable (fun p : Ω × ℝ => A p.1 p.2) := by
+    rw [hA]
+    exact (((hH_pair.sub Gn.eval_jointly_measurable).nnnorm).coe_nnreal_ennreal).pow_const 2
+  have hB_pair : Measurable (fun p : Ω × ℝ => B p.1 p.2) := by
+    rw [hB]
+    exact (((hH_pair.sub Gm.eval_jointly_measurable).nnnorm).coe_nnreal_ennreal).pow_const 2
+  have hA_s : ∀ ω, Measurable (A ω) := fun ω =>
+    hA_pair.comp (measurable_const.prodMk measurable_id)
+  have hA_outer : Measurable (fun ω => ∫⁻ s in Set.Icc (0 : ℝ) t, A ω s ∂volume) :=
+    Measurable.lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) t)) hA_pair
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖Gn.eval s ω - Gm.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, 2 * (A ω s + B ω s) ∂volume ∂P :=
+        MeasureTheory.lintegral_mono (fun ω =>
+          MeasureTheory.lintegral_mono (fun s => h_point ω s))
+    _ = 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, A ω s ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, B ω s ∂volume ∂P) := by
+        have h_inner : ∀ ω, (∫⁻ s in Set.Icc (0 : ℝ) t, 2 * (A ω s + B ω s) ∂volume)
+            = 2 * ((∫⁻ s in Set.Icc (0 : ℝ) t, A ω s ∂volume)
+              + ∫⁻ s in Set.Icc (0 : ℝ) t, B ω s ∂volume) := by
+          intro ω
+          rw [MeasureTheory.lintegral_const_mul' 2 _ (by norm_num),
+              MeasureTheory.lintegral_add_left' (hA_s ω).aemeasurable]
+        rw [MeasureTheory.lintegral_congr h_inner,
+            MeasureTheory.lintegral_const_mul' 2 _ (by norm_num),
+            MeasureTheory.lintegral_add_left' hA_outer.aemeasurable]
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
