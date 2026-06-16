@@ -41,36 +41,48 @@ HittingTime, Kolmogorov, LocalProperty, PartitionFiltration, Predictable, Stoppi
 
 ## What is ALREADY proved in `Brownian/Continuity.lean` (green, sorry-free)
 
-These are the two "outer" thirds of the proof; the missing third is the middle
-(a.s. dyadic Hölder construction).
+The two "outer" thirds AND the deterministic core of the middle third are now
+done. What remains is the *probabilistic* supply of the increment bound
+(Borel–Cantelli) plus the interval/patching plumbing.
+
+**Outer thirds:**
 
 1. `holder_dense_extends_continuous` — **extension step.** An α-Hölder function
    on a dense set `D ⊆ ℝ` extends to a (unique) continuous function on ℝ, equal
-   to `f` on `D`. Proof via `Dense.uniformContinuous_extend`. *(DONE)*
+   to `f` on `D`, via `Dense.uniformContinuous_extend`. *(DONE)* ⚠ needs a
+   scale-limited variant — see "Extension" below.
 
-2. `dyadicRationals`, `zero_mem_…`, `intCast_mem_…`, `dense_dyadicRationals`,
-   `exists_seq_dyadic_tendsto` — the dense dyadic set + a dyadic sequence
-   `↗ t` for every `t`. *(DONE)*
+2. `dyadicRationals`, `dense_dyadicRationals`, `exists_seq_dyadic_tendsto` — the
+   dense dyadic set + a dyadic sequence `↗ t` for every `t`. *(DONE)*
 
-3. `kolmogorov_markov_bound` *(NEW this session, sorry-free)* — the per-pair
-   Markov/Chebyshev tail bound
+3. `kolmogorov_markov_bound` — per-pair Markov/Chebyshev tail bound
    `P {ω | lam ≤ edist (X s ω) (X t ω)} ≤ M * edist s t ^ q / lam ^ p`
-   for `0 < lam < ⊤`. This is the foundation of BOTH the convergence-in-measure
-   step (4) and the missing per-dyadic-level Borel–Cantelli step. Already used
-   to simplify (4).
+   for `0 < lam < ⊤`. *(DONE)*
 
 4. `kolmogorov_modification_ae_eq` — **a.e.-equality step.** GIVEN a candidate
-   `Y` that is a.s. continuous and a.s. equals `X` on every dyadic, concludes
-   `∀ t, Y t =ᵐ[P] X t` (the modification property). Proof: `X(u_n) → X(t)` in
-   measure (via `kolmogorov_markov_bound` + `u_n → t`), extract an a.s.-convergent
-   subsequence, and use continuity of `Y` + dyadic agreement + limit uniqueness.
-   *(DONE)*
+   `Y` a.s. continuous and a.s. equal to `X` on every dyadic, concludes
+   `∀ t, Y t =ᵐ[P] X t`. *(DONE)*
 
-So the remaining gap is: **construct that `Y`.** Concretely, prove that the
-dyadic restriction `t ↦ X t ω` is a.s. α-Hölder on `dyadicRationals`, then feed
-`holder_dense_extends_continuous` (per ω, on the full-measure Hölder set) to get
-`Y`, with `Y = X` on dyadics by construction, and apply
-`kolmogorov_modification_ae_eq`.
+**Deterministic dyadic chaining (the hard middle core — NEW, all sorry-free):**
+
+5. `dyadicTrunc n x := ⌊x·2ⁿ⌋/2ⁿ` with `dyadicTrunc_le`,
+   `dyadicTrunc_mem_dyadicRationals`, `floor_two_mul_bounds`. *(DONE)*
+6. `dyadicTrunc_succ_step` — `|f(trunc_{n+1}x) − f(trunc_n x)| ≤ b(n+1)` for
+   `x ∈ [0,1]` (one consecutive level-`(n+1)` increment). *(DONE)*
+7. `dyadicTrunc_telescope` — `|f(trunc_L x) − f(trunc_m x)| ≤ ∑_{m<n≤L} b n`. *(DONE)*
+8. `dyadicTrunc_near_step` — cross-point level-`m` bound for `|s−t| ≤ 2^{−m}`. *(DONE)*
+9. `dyadicTrunc_eventually_eq` — dyadic `s` ⇒ `trunc_L s = s` for large `L`. *(DONE)*
+10. `sum_Ico_geometric_le`, `exists_dyadic_scale`, `rpow_half_pow_le` — geometric
+    tail bound, optimal dyadic scale `(1/2)^{m+1} < d ≤ (1/2)^m`, and
+    `((1/2)^α)^m ≤ 2^α·d^α`. *(DONE)*
+11. **`dyadic_holder_chaining`** — the payoff: if consecutive level-`n` dyadic
+    increments on `[0,1]` are `≤ C·((1/2)^α)^n` for all `n ≥ N`, then
+    `∃ K ≥ 0, ∀ s,t ∈ dyadics∩[0,1], |s−t| ≤ 2^{−N} → |f s − f t| ≤ K·|s−t|^α`.
+    *(DONE — this is KS 2.2.8's chaining, fully formalized.)*
+
+So the remaining gap is now purely: **(i) supply the increment hypothesis of
+`dyadic_holder_chaining` a.s. via Borel–Cantelli; (ii) extend (scale-limited)
+to a continuous `Y` and apply `kolmogorov_modification_ae_eq`; (iii) patch ℝ.**
 
 ## The missing middle third — proof plan (Karatzas–Shreve 2.2.8 / Le Gall 2.9)
 
@@ -104,57 +116,68 @@ increment is `< 2^(-αn)`.
   `ENNReal.tsum_*` for summability. Search `Mathlib/Probability/BorelCantelli.lean`
   and `Mathlib/MeasureTheory/.../Borel*`.
 
-**Lemma C (deterministic dyadic chaining — the hard combinatorial core).**
-Fix `ω` with the "good" property from B (call the level `N`). Claim: there is a
-constant `C` (depending on `α`, `N(ω)`) such that for all dyadic `s, t ∈ [0,1]`,
-`|X s ω - X t ω| ≤ C * |s - t|^α`.
+**Lemma C (deterministic dyadic chaining).** ✅ **DONE** this session —
+`dyadic_holder_chaining` (see item 11). Its increment hypothesis is exactly:
+`∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2^n →`
+`  |f ((k+1)/2^n) − f (k/2^n)| ≤ C * ((1/2)^α)^n`,
+and it outputs `∃ K ≥ 0, ∀ s,t ∈ dyadics, 0≤s≤1, 0≤t≤1, |s−t| ≤ (1/2)^N →`
+`  |f s − f t| ≤ K·|s−t|^α`. So Lemmas A+B below need only produce, a.s., that
+increment hypothesis (with `f := fun x => X x ω`, some `C ≥ 0`, some `N(ω)`).
 
-Standard proof (KS 2.2.8): for dyadic `s < t` in `[0,1]` with
-`2^(-(m+1)) < t - s ≤ 2^(-m)` (so `m ≥ N`), write each of `s, t` as a finite
-sum of dyadic steps refining from level `m`; telescope using the good bound
-`|increment at level n| < 2^(-αn)` at each level `n > m`, giving a geometric
-sum `≤ 2 * ∑_{n>m} 2^(-αn) = C' 2^(-αm) ≤ C |t - s|^α`. This is the step with
-**no mathlib support** — it is the bulk of the remaining work. Suggested
-decomposition into Lean-sized pieces:
+### Remaining step 1 — probabilistic increment bound (Lemmas A + B)
 
-  C1. "One-step refinement": any dyadic in `[k/2^n, (k+1)/2^n]` at level `n+1`
-      is `k/2^n` or the midpoint; bound `|X(dyadic) - X(k/2^n)|` by one good
-      increment.
-  C2. "Dyadic expansion": every dyadic `x ∈ [0,1]` with denominator `2^L` equals
-      `(⌊x·2^m⌋/2^m)` plus a finite sum of level-`(m+1..L)` midpoint steps;
-      bound `|X x ω - X(⌊x·2^m⌋/2^m) ω| ≤ ∑_{n=m+1}^L 2^(-αn) ≤ C 2^(-αm)`.
-  C3. Combine for `s, t`: pick `m` with `2^(-(m+1)) < |t-s| ≤ 2^(-m)`; `s, t`
-      share (or are adjacent on) level-`m` grid; bound via two C2 tails plus at
-      most one level-`m` increment. Yields `|X s ω - X t ω| ≤ C |t-s|^α`.
+Goal: `∀ᵐ ω ∂P, ∃ N : ℕ, ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k+1 ≤ 2^n →`
+`  |X ((k+1)/2^n) ω − X (k/2^n) ω| ≤ ((1/2)^α)^n` (i.e. `C = 1`).
 
-  This is finicky in Lean (index bookkeeping over `Fin`, `Int.floor`, `zpow`).
-  Budget it as its own session. Consider proving C on `[0,1]` with denominators
-  bounded, i.e. for dyadics `k·2^(-L)`, by induction on `L`.
+Fix `α` with `0 < α < (q−1)/p` (exists: `q>1, p>0`). Let `r := (1/2)^α ∈ (0,1)`.
 
-**Assembly on [0,1].** From C, per good `ω`, `t ↦ X t ω` is α-Hölder on
-`dyadicRationals ∩ [0,1]`; `holder_dense_extends_continuous` (with `D` the
-dyadics, dense; note we need density of the dyadics used — restrict to `[0,1]`
-or use all dyadics with the global Hölder bound) yields a continuous
-`Y(·) ω` equal to `X(·) ω` on dyadics. Define `Y t ω := extend …` on the good
-set and `Y t ω := 0` off it (a null set). Then:
-  - `∀ᵐ ω, Continuous (Y · ω)` — good set is full measure.
-  - `∀ s ∈ dyadics, ∀ᵐ ω, Y s ω = X s ω` — by the extension's agreement on `D`.
-Apply `kolmogorov_modification_ae_eq` to get `∀ t, Y t =ᵐ X t`. ∎ (on [0,1])
+**Lemma A (per-level bad set).** `A n := ⋃_{k=0}^{2^n−1} {ω | rⁿ < |X((k+1)/2^n)ω − X(k/2^n)ω|}`.
+Bound `P(A n) ≤ M · 2^(n) · (2^(−n))^q / (rⁿ)^p` using:
+  - `measure_biUnion_finset_le` over `k ∈ Finset.range (2^n)`;
+  - each term via `kolmogorov_markov_bound (k/2^n) ((k+1)/2^n) (lam := ENNReal.ofReal (rⁿ))`,
+    bridging `edist (X s ω) (X t ω) = ENNReal.ofReal |X s ω − X t ω|` (real-valued)
+    and `edist (k/2^n) ((k+1)/2^n) = ENNReal.ofReal (2^(−n))`.
+  Simplify exponents: `P(A n) ≤ M · 2^(−n(q−1−αp))` (note `q−1−αp > 0`).
+  ⚠ This is the most ENNReal-arithmetic-heavy step (rpow of `ofReal`,
+    `ENNReal.ofReal_rpow_of_pos`, `ENNReal.div_le_iff`). Budget generously.
 
-**Patching ℝ.** The axiom is on all of ℝ. Two options:
-  (i) Run the [0,1] construction on each `[j, j+1]`, `j : ℤ`; on a full-measure
-      set the pieces agree at integer endpoints (both equal `X j` a.s. via the
-      ae_eq), so they glue to a global continuous `Y`. Countable intersection of
-      full sets is full. Slightly fiddly at the seams.
-  (ii) Cleaner: redo Lemmas A–C directly with dyadics on each `[j, j+1]` and a
-      per-`j` Hölder constant, then the GLOBAL function is continuous because it
-      is continuous on each closed unit interval and they overlap at integers.
-      `holder_dense_extends_continuous` is already stated for `D ⊆ ℝ` dense in
-      all of ℝ, so if Lemma C is proved globally (Hölder for ALL dyadic `s,t`
-      with `|s-t| ≤ 1`, constant depending on the unit interval), the extension
-      is directly global. Recommended: prove C as "local α-Hölder with modulus
-      valid for `|s-t| ≤ 1`", which is enough for uniform continuity hence the
-      extend.
+**Lemma B (Borel–Cantelli).** `∑ₙ P(A n) < ∞` (geometric, ratio `2^(−(q−1−αp)) < 1`).
+Use `MeasureTheory.measure_limsup_atTop_eq_zero` (summable family ⇒ `P(limsup Aₙ)=0`),
+giving a.e. `ω`: `∃ N, ∀ n ≥ N, ω ∉ A n`, i.e. every level-`n` increment with
+`0 ≤ k < 2^n` is `≤ rⁿ`. (Off `[0,1)` the `k+1 ≤ 2^n` constraint of
+`dyadic_holder_chaining` confines `k` to `0..2^n−1`, matching `A n`.)
+  ⚠ Confirm the exact Borel–Cantelli name on the pin: search
+  `Mathlib/Probability/BorelCantelli.lean`, `measure_limsup_atTop_eq_zero`,
+  `ENNReal`-summable hypotheses.
+
+### Remaining step 2 — extension (scale-limited)
+
+`dyadic_holder_chaining` gives Hölder only for `|s−t| ≤ 2^{−N}`. That is enough
+for UNIFORM continuity on the dyadics (for `ε`, take `δ = min(2^{−N}, (ε/K)^{1/α})`).
+So generalize `holder_dense_extends_continuous` to a hypothesis
+`∀ s t ∈ D, |s−t| ≤ δ₀ → |f s − f t| ≤ K|s−t|^α` (`δ₀ > 0`); the existing UC
+proof only needs `δ := min δ₀ ((ε/C)^{1/α})`. This variant still yields a global
+continuous extension on ℝ. ⚠ Note: the bound is `[0,1]`-localized in `s,t`, so
+the extension is naturally on `[0,1]` — do the extension on `[0,1]` (D = dyadics
+∩ [0,1], dense in [0,1]); see patching.
+
+### Remaining step 3 — assembly on [0,1] + ℝ patching
+
+Assembly on `[0,1]`: per good `ω`, `dyadic_holder_chaining` gives the scale-
+limited Hölder bound; extend to continuous `Y(·)ω` on `[0,1]`, agreeing with
+`X(·)ω` on dyadics; off the null set set `Y := 0`. Then
+`∀ᵐ ω, ContinuousOn (Y · ω) [0,1]` and `∀ dyadic s, ∀ᵐ ω, Y s ω = X s ω`;
+apply `kolmogorov_modification_ae_eq` (restricted to `[0,1]`).
+
+Patching ℝ: `ℝ = ⋃_{j∈ℤ} [j,j+1]`. Apply the `[0,1]` construction to the shifted
+process `X(·+j)` (the Kolmogorov condition is translation-invariant: `edist`
+depends only on `|s−t|`), giving continuous `Y_j` on `[j,j+1]`. On a full-measure
+set the pieces agree at integer endpoints (both `=ᵐ X j`), so glue:
+`Y` is continuous because it is `ContinuousOn` each closed `[j,j+1]` and these
+form a locally finite closed cover overlapping at integers (mathlib:
+`continuousOn_of_locallyFinite` / glue via `ContinuousAt` from one-sided pieces).
+Countable intersection of the per-`j` full-measure sets stays full.
+  ⚠ The glue is the fiddliest non-mathematical step; budget it.
 
 ## Discipline / guardrails for the next session
 
@@ -173,7 +196,21 @@ Apply `kolmogorov_modification_ae_eq` to get `∀ t, Y t =ᵐ X t`. ∎ (on [0,1
 - Four-way invariant (`lake build`, `lint.sh`, `verify_import_contract.sh`, +
   the dissertation leg) green after every commit.
 
-## Status this session (2026-06-16)
+## Status update (2026-06-16, session 2)
+
+- **Completed the entire deterministic dyadic chaining** (items 5–11 above),
+  all sorry-free and committed: truncation API, single-step, telescope,
+  cross-point step, dyadic eventual-equality, geometric tail bound, dyadic scale
+  selection, the `((1/2)^α)^m ≤ 2^α d^α` rpow comparison, and the assembled
+  `dyadic_holder_chaining` (KS 2.2.8's chaining, the hard combinatorial core).
+- Remaining to close the axiom: Lemma A (per-level union bound — ENNReal-heavy),
+  Lemma B (Borel–Cantelli summability), the scale-limited extension variant, the
+  `[0,1]` assembly, and the ℝ-patching glue. These are now "plumbing": each has a
+  precise plan above and uses only already-proven pieces + standard mathlib.
+- The axiom `kolmogorovChentsov_modification` remains IN PLACE (untouched); the
+  library is green (zero new sorries, 14 cited axioms unchanged).
+
+## Status (2026-06-16, session 1)
 
 - Added `kolmogorov_markov_bound` (sorry-free) and refactored
   `kolmogorov_modification_ae_eq` to consume it (net code reduction).
