@@ -1040,6 +1040,71 @@ theorem stochasticIntegral_isometry_only_brownian
     (itoIsometry_brownian_existence W hT H h_meas h_progMeas
       (h_sq_int_global T hT))).2
 
+/-- **L¹-limit of martingales is a martingale.** If each `M n` is an
+`ℱ`-martingale and `M n t → F t` in `L¹(μ)` for every `t` (with `F` adapted and
+integrable), then `F` is an `ℱ`-martingale. The conditional expectation is an
+`L¹`-contraction (`eLpNorm_one_condExp_le_eLpNorm`), so the martingale identity
+`μ[M n t | ℱ s] =ᵐ M n s` passes to the limit. Reusable for the L²-Itô integral
+(#5) and its compensated analogue (#6). -/
+lemma martingale_of_tendsto_eLpNorm_one
+    {m0 : MeasurableSpace Ω} {μ : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsFiniteMeasure μ] {ℱ : MeasureTheory.Filtration ℝ m0}
+    {M : ℕ → ℝ → Ω → ℝ} {F : ℝ → Ω → ℝ}
+    (hM : ∀ n, MeasureTheory.Martingale (M n) ℱ μ)
+    (hMint : ∀ n t, MeasureTheory.Integrable (M n t) μ)
+    (hadapt : MeasureTheory.StronglyAdapted ℱ F)
+    (hint : ∀ t, MeasureTheory.Integrable (F t) μ)
+    (htend : ∀ t, Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (M n t - F t) 1 μ) Filter.atTop (nhds 0)) :
+    MeasureTheory.Martingale F ℱ μ := by
+  refine ⟨hadapt, fun s t hst => ?_⟩
+  have haesmC : MeasureTheory.AEStronglyMeasurable (μ[F t | ℱ s]) μ :=
+    MeasureTheory.integrable_condExp.aestronglyMeasurable
+  have haesm : MeasureTheory.AEStronglyMeasurable (μ[F t | ℱ s] - F s) μ :=
+    haesmC.sub (hint s).1
+  -- The target seminorm is bounded by `‖Mₙt − Ft‖₁ + ‖Mₙs − Fs‖₁` for every `n`.
+  have hbound : ∀ n, MeasureTheory.eLpNorm (μ[F t | ℱ s] - F s) 1 μ
+      ≤ MeasureTheory.eLpNorm (M n t - F t) 1 μ
+        + MeasureTheory.eLpNorm (M n s - F s) 1 μ := by
+    intro n
+    have hdecomp : (μ[F t | ℱ s] - F s)
+        = (μ[F t | ℱ s] - μ[M n t | ℱ s]) + (μ[M n t | ℱ s] - F s) := by ring
+    calc MeasureTheory.eLpNorm (μ[F t | ℱ s] - F s) 1 μ
+        = MeasureTheory.eLpNorm
+            ((μ[F t | ℱ s] - μ[M n t | ℱ s]) + (μ[M n t | ℱ s] - F s)) 1 μ := by
+          rw [hdecomp]
+      _ ≤ MeasureTheory.eLpNorm (μ[F t | ℱ s] - μ[M n t | ℱ s]) 1 μ
+          + MeasureTheory.eLpNorm (μ[M n t | ℱ s] - F s) 1 μ :=
+          MeasureTheory.eLpNorm_add_le
+            (haesmC.sub MeasureTheory.integrable_condExp.aestronglyMeasurable)
+            (MeasureTheory.integrable_condExp.aestronglyMeasurable.sub (hint s).1) (by norm_num)
+      _ ≤ MeasureTheory.eLpNorm (M n t - F t) 1 μ
+          + MeasureTheory.eLpNorm (M n s - F s) 1 μ := by
+          gcongr
+          · have h_sub : (μ[F t | ℱ s] - μ[M n t | ℱ s]) =ᵐ[μ] μ[F t - M n t | ℱ s] :=
+              (MeasureTheory.condExp_sub (hint t) (hMint n t) (ℱ s)).symm
+            rw [MeasureTheory.eLpNorm_congr_ae h_sub]
+            calc MeasureTheory.eLpNorm (μ[F t - M n t | ℱ s]) 1 μ
+                ≤ MeasureTheory.eLpNorm (F t - M n t) 1 μ :=
+                  MeasureTheory.eLpNorm_one_condExp_le_eLpNorm (F t - M n t)
+              _ = MeasureTheory.eLpNorm (M n t - F t) 1 μ := by
+                  rw [show F t - M n t = -(M n t - F t) from by ring,
+                      MeasureTheory.eLpNorm_neg]
+          · refine le_of_eq (MeasureTheory.eLpNorm_congr_ae ?_)
+            exact ((hM n).condExp_ae_eq hst).sub (Filter.EventuallyEq.refl _ (F s))
+  -- Send `n → ∞`: the bound tends to `0`, so the (constant) target seminorm is `0`.
+  have hzero : MeasureTheory.eLpNorm (μ[F t | ℱ s] - F s) 1 μ = 0 := by
+    have htend2 : Filter.Tendsto
+        (fun n => MeasureTheory.eLpNorm (M n t - F t) 1 μ
+          + MeasureTheory.eLpNorm (M n s - F s) 1 μ) Filter.atTop (nhds 0) := by
+      simpa using (htend t).add (htend s)
+    refine le_antisymm ?_ bot_le
+    exact le_of_tendsto_of_tendsto tendsto_const_nhds htend2
+      (Filter.Eventually.of_forall hbound)
+  rw [MeasureTheory.eLpNorm_eq_zero_iff haesm (by norm_num)] at hzero
+  filter_upwards [hzero] with ω hω
+  simpa [Pi.sub_apply, sub_eq_zero] using hω
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
