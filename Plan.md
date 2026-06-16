@@ -117,7 +117,7 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       publicizing internal helpers; deferred (revisit at Phase 4 extraction).)*
 - [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
       (currently 0 in the big files). Pure hygiene, breaks nothing.
-- [ ] **1.4** Wrap the 180 lines > 100 cols. Replace the `import Mathlib` umbrella
+- [x] **1.4** Wrap the lines > 100 cols. Replace the `import Mathlib` umbrella
       in `Basic.lean` with precise imports (the file already flags this as
       mandatory PR-prep); push the `ProbabilityTheory.*` imports down into the
       consumer files as needed.
@@ -127,10 +127,12 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       Martingale/Compensated/CompensatedIsometry/Picard. Build dropped 8409→2904
       jobs. NOTE: the umbrella can only be removed all-at-once — while it is
       present, the compiler/`#min_imports` cannot see any file's true needs.
-      Line-wraps: low-count files done (commit 4ba2197); ~161 remain in 8 dense
-      files (Picard 58, ItoDensity 33, PicardSpace 20, CompensatedIsometry 18,
-      CompensatedSimple 10, ItoSimple 9, ItoL2Completion 7, Basic 6) — cosmetic,
-      zero invariant impact, to batch later / fold into Phase-4 reformatting.)*
+      **Line-wraps DONE 2026-06-16:** Basic + ItoL2Completion (commit 9596b8e);
+      then ItoSimple/CompensatedSimple/CompensatedIsometry, ItoDensity/PicardSpace,
+      and Picard (58) this session. A full `awk 'length>100'` scan over every
+      `LevyStochCalc/**.lean` is now empty; each file builds; four-way invariant
+      green. Breaks are at operators/commas (code) or prose splits (docstrings/
+      comments); no symbol or semantic change.)*
 - [ ] **1.5** Re-title module docstrings to describe the mathematics only; keep
       the existing (good) per-decl docstring density.
 

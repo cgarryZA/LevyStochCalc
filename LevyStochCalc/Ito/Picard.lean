@@ -286,7 +286,8 @@ lemma integral_sq_le_mul_integral_sq_on_Icc
     change f a * (1 : ℝ → ℝ) a = f a
     rw [Pi.one_apply, mul_one]
   -- ∫ 1² = ∫ 1 = t.
-  have h_one_sq_eq_one : ∫ a, ((1 : ℝ → ℝ) a) ^ 2 ∂μ = ∫ _a : ℝ, (1 : ℝ) ∂μ := by
+  have h_one_sq_eq_one :
+      ∫ a, ((1 : ℝ → ℝ) a) ^ 2 ∂μ = ∫ _a : ℝ, (1 : ℝ) ∂μ := by
     refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun a => ?_)
     change ((1 : ℝ → ℝ) a) ^ 2 = (1 : ℝ)
     rw [Pi.one_apply, one_pow]
@@ -742,7 +743,8 @@ lemma sigma_along_X_measurable
   -- Each component is measurable.
   -- Step 1: (p : Ω × ℝ) ↦ X p.2 p.1 is measurable via hX_meas.
   have h_X_swap_meas : Measurable (fun p : Ω × ℝ => X p.2 p.1) := by
-    have : (fun p : Ω × ℝ => X p.2 p.1) = (Function.uncurry X) ∘ (fun p : Ω × ℝ => (p.2, p.1)) := by
+    have : (fun p : Ω × ℝ => X p.2 p.1)
+        = (Function.uncurry X) ∘ (fun p : Ω × ℝ => (p.2, p.1)) := by
       funext p; rfl
     rw [this]
     exact hX_meas.comp (measurable_snd.prodMk measurable_fst)
@@ -753,7 +755,8 @@ lemma sigma_along_X_measurable
   -- Then take component (i, j).
   have h_eval_ij : Measurable (fun (m : Fin n → Fin d → ℝ) => m i j) :=
     (measurable_pi_apply j).comp (measurable_pi_apply i)
-  -- σ along the path: σ p.2 (X p.2 p.1) i j = (h_eval_ij ∘ Function.uncurry σ ∘ h_prod_meas).
+  -- σ along the path:
+  --   σ p.2 (X p.2 p.1) i j = (h_eval_ij ∘ Function.uncurry σ ∘ h_prod_meas).
   exact h_eval_ij.comp (hσ_meas.comp h_prod_meas)
 
 /-- **Joint measurability of γ-along-X.** Analog of `sigma_along_X_measurable`
@@ -1266,7 +1269,8 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
     fun j => (hMx_meas j).sub (hMy_meas j)
   have h_cs := lintegral_nnnorm_sum_sq_le_card_mul_sum_lintegral_nnnorm_sq
     (P := P) (d := d) (M := fun j ω => Mx j ω - My j ω) hM_sub_meas
-  -- Step 4: apply isometry on each j.  ∫⁻ ‖Mx j - My j‖² = ∫⁻ ∫⁻ ‖σ(X) - σ(Y)‖².
+  -- Step 4: apply isometry on each j.
+  --   ∫⁻ ‖Mx j - My j‖² = ∫⁻ ∫⁻ ‖σ(X) - σ(Y)‖².
   have h_isom_j : ∀ j : Fin d,
       ∫⁻ ω, (‖Mx j ω - My j ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -1280,7 +1284,8 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
       (h_σ_meas_X i j) (h_σ_meas_Y i j)
       (h_σ_progMeas_X i j) (h_σ_progMeas_Y i j)
       (h_σ_sq_X i j) (h_σ_sq_Y i j) T hT
-  -- Step 5: swap ∑_j and ∫⁻ ∫⁻ on the bound.  ∑_j ∫⁻ ω ∫⁻ s f_j = ∫⁻ ω ∫⁻ s ∑_j f_j.
+  -- Step 5: swap ∑_j and ∫⁻ ∫⁻ on the bound.
+  --   ∑_j ∫⁻ ω ∫⁻ s f_j = ∫⁻ ω ∫⁻ s ∑_j f_j.
   have h_swap : (∑ j : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j - coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P)
@@ -1349,7 +1354,8 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
       (Finset.mem_univ i)
   -- Step 7: chain everything.
   calc ∫⁻ ω, (‖∑ j : Fin d, (Mx j ω - My j ω)‖₊ : ℝ≥0∞) ^ 2 ∂P
-      ≤ (d : ℝ≥0∞) * ∑ j : Fin d, ∫⁻ ω, (‖Mx j ω - My j ω‖₊ : ℝ≥0∞) ^ 2 ∂P := h_cs
+      ≤ (d : ℝ≥0∞) * ∑ j : Fin d,
+          ∫⁻ ω, (‖Mx j ω - My j ω‖₊ : ℝ≥0∞) ^ 2 ∂P := h_cs
     _ = (d : ℝ≥0∞) * ∑ j : Fin d,
           ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖coeffs.σ s (X s ω) i j - coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2
@@ -1451,7 +1457,8 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
     (i : Fin n)
     -- L²-in-e Lipschitz hypothesis on γ (ENNReal form, pointwise in (s, ω)):
     (h_γ_lip : ∀ s : ℝ, ∀ ω : Ω,
-      ∫⁻ e, (‖coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν
+      ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν
         ≤ ENNReal.ofReal (L_γ ^ 2) * (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2)
     -- Hypothesis bundles for `picardStep_jump` well-typedness — X side:
     (hX_meas : ∀ i : Fin n,
@@ -1502,13 +1509,15 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
     (hX_progMeas i) (hY_progMeas i)
     (hX_sq i) (hY_sq i) T hT
   -- Rewriting the LHS via the axiom turns the goal into the bound
-  -- `inner double lintegral ≤ ENNReal.ofReal L_γ² · ∫⁻ ω ∫⁻ s, ‖X-Y‖² ∂volume ∂P`.
+  -- `inner double lintegral ≤ ENNReal.ofReal L_γ²
+  --   · ∫⁻ ω ∫⁻ s, ‖X-Y‖² ∂volume ∂P`.
   -- `picardStep_jump i` unfolds definitionally to the `Compensated.stochasticIntegral`
   -- of `γ ... i`, so the rewrite goes through `show`+`exact_mod_cast`.
   simp only [picardStep_jump] at *
   rw [h_iso]
   -- Goal now:
-  -- ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖γ(s, X_s, e) i − γ(s, Y_s, e) i‖² ν⊗ds ∂P
+  -- ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e,
+  --   ‖γ(s, X_s, e) i − γ(s, Y_s, e) i‖² ν⊗ds ∂P
   --   ≤ ENNReal.ofReal L_γ² · ∫⁻ ω, ∫⁻ s in [0,T], ‖X_s ω − Y_s ω‖² ds ∂P
   -- Step 3: apply the Lipschitz hypothesis h_γ_lip pointwise in (s, ω) under
   -- the inner ν-integral.  This gives a chain through `lintegral_mono`.
@@ -1522,7 +1531,8 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
         refine lintegral_mono fun s => ?_
         exact h_γ_lip s ω
     _ = ∫⁻ ω, ENNReal.ofReal (L_γ ^ 2) *
-            ∫⁻ s in Set.Icc (0 : ℝ) T, (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+            ∫⁻ s in Set.Icc (0 : ℝ) T,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
         refine lintegral_congr fun ω => ?_
         exact lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
     _ = ENNReal.ofReal (L_γ ^ 2) *
@@ -1987,13 +1997,15 @@ lemma picardStep_diff_lintegral_sum_sq_le
       ((picardStep W N coeffs X x₀
           h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
         - picardStep W N coeffs Y x₀
-          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
+          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+            h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
     ≤ ∫⁻ ω, 3 * (ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_drift coeffs X x₀ t ω
                 - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
           + ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
                 - picardStep_jump N coeffs Y
@@ -2004,13 +2016,15 @@ lemma picardStep_diff_lintegral_sum_sq_le
         ((picardStep W N coeffs X x₀
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
           - picardStep W N coeffs Y x₀
-            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)
+            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+              h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)
       ≤ 3 *
           (ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                  - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                  - picardStep_diffusion W coeffs Y
+                      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
                   - picardStep_jump N coeffs Y
@@ -2036,7 +2050,8 @@ lemma picardStep_diff_lintegral_sum_sq_le
             ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
           + ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
                 - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))
@@ -2047,7 +2062,8 @@ lemma picardStep_diff_lintegral_sum_sq_le
               - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2
           + ∑ i : Fin n,
             ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-              - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) := by
+              - picardStep_jump N coeffs Y
+                  h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) := by
       rw [show (3 : ℝ≥0∞) = ENNReal.ofReal 3 from by rw [ENNReal.ofReal_ofNat]]
       rw [← ENNReal.ofReal_add h_drift_nn h_diff_nn]
       rw [← ENNReal.ofReal_add (by positivity) h_jump_nn]
@@ -2175,9 +2191,11 @@ theorem picardStep_bielecki_contraction
       ((picardStep W N coeffs X x₀
           h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
         - picardStep W N coeffs Y x₀
-          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
+          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+            h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
     ≤ ENNReal.ofReal (9 * (n : ℝ) * L ^ 2 * T) *
-        ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P := by
+        ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t,
+          ‖X s ω - Y s ω‖ ^ 2) ∂P := by
   obtain ⟨ht_nn, ht_le⟩ := ht
   -- Drift bound at t (proven; from `Picard.lean`).
   have h_drift := picardStep_drift_diff_lintegral_sq_bound (E := E) P coeffs hL_nn h_μ_lip
@@ -2195,7 +2213,8 @@ theorem picardStep_bielecki_contraction
   -- Rewrite the single-integral RHS as three separate integrals via the AEMeasurable hypotheses,
   -- then sum the three lintegral bounds.
   set Iω : ℝ≥0∞ :=
-    ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P with hIω_def
+    ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t,
+      ‖X s ω - Y s ω‖ ^ 2) ∂P with hIω_def
   set Bnt : ℝ≥0∞ := ENNReal.ofReal ((n : ℝ) * L ^ 2 * t) with hBnt_def
   -- h_drift, h_σ, h_γ are bounds of the form `lintegral ≤ Bnt * Iω` for each component.
   -- Sum: `drift_l + σ_l + γ_l ≤ 3 (Bnt * Iω)`.
@@ -2207,7 +2226,8 @@ theorem picardStep_bielecki_contraction
         + ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
       = (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2216,7 +2236,8 @@ theorem picardStep_bielecki_contraction
         + ∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P :=
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P :=
     MeasureTheory.lintegral_add_left' (h_diff_ofReal_aemeas t) _
   have h_split_1 : ∫⁻ ω, (ENNReal.ofReal
         (∑ i : Fin n,
@@ -2224,18 +2245,22 @@ theorem picardStep_bielecki_contraction
         + (ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                  - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) ∂P
+                  - picardStep_jump N coeffs Y
+                      h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) ∂P
       = (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
-              ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+              ((picardStep_drift coeffs X x₀ t ω
+                - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
         + ∫⁻ ω, (ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
@@ -2250,14 +2275,17 @@ theorem picardStep_bielecki_contraction
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                  - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                  - picardStep_diffusion W coeffs Y
+                      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                  - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
+                  - picardStep_jump N coeffs Y
+                      h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
       = 3 * ((∫⁻ ω, ENNReal.ofReal
               (∑ i : Fin n,
-                ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+                ((picardStep_drift coeffs X x₀ t ω
+                  - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
             + (∫⁻ ω, ENNReal.ofReal
                   (∑ i : Fin n,
                     ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2277,22 +2305,26 @@ theorem picardStep_bielecki_contraction
         + ENNReal.ofReal (∑ i, ((picardStep_diffusion W coeffs X
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
             - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
-        + ENNReal.ofReal (∑ i, ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
+        + ENNReal.ofReal (∑ i,
+            ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
             - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))
       = (fun ω => ENNReal.ofReal (∑ i, ((picardStep_drift coeffs X x₀ t ω
             - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
         + (ENNReal.ofReal (∑ i, ((picardStep_diffusion W coeffs X
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
             - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
-          + ENNReal.ofReal (∑ i, ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-              - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) from by
+          + ENNReal.ofReal (∑ i,
+              ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
+              - picardStep_jump N coeffs Y
+                  h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) from by
       funext ω; rw [add_assoc]]
     rw [h_split_1, h_split_2, add_assoc]
   -- Now: combine the three lintegrals using drift/σ/γ bounds (each ≤ Bnt * Iω).
   have h_sum_bound :
       (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
-              ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+              ((picardStep_drift coeffs X x₀ t ω
+                - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
         + (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2301,7 +2333,8 @@ theorem picardStep_bielecki_contraction
         + (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P)
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P)
       ≤ Bnt * Iω + Bnt * Iω + Bnt * Iω :=
     add_le_add (add_le_add h_drift h_σ) h_γ
   -- Bnt ≤ ofReal(n L² T) since t ≤ T.
@@ -2311,25 +2344,29 @@ theorem picardStep_bielecki_contraction
       mul_nonneg (Nat.cast_nonneg n) (sq_nonneg L)
     exact mul_le_mul_of_nonneg_left ht_le h_nL2_nn
   -- 9 = 3 * 3 as ℝ≥0∞.
-  -- Final chain: Φ ≤ ∫⁻ (3 * ...) = 3 * (...) ≤ 3 * (3 Bnt Iω) = 9 Bnt Iω ≤ 9 (n L² T) Iω.
+  -- Final chain: Φ ≤ ∫⁻ (3 * ...) = 3 * (...) ≤ 3 * (3 Bnt Iω)
+  --   = 9 Bnt Iω ≤ 9 (n L² T) Iω.
   calc ∫⁻ ω, ENNReal.ofReal (∑ i : Fin n,
         ((picardStep W N coeffs X x₀
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
           - picardStep W N coeffs Y x₀
-            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
+            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+              h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
       ≤ ∫⁻ ω, 3 *
           (ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                  - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                  - picardStep_diffusion W coeffs Y
+                      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
                   - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))
           ∂P := h_triangle'
     _ = 3 * ((∫⁻ ω, ENNReal.ofReal
               (∑ i : Fin n,
-                ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+                ((picardStep_drift coeffs X x₀ t ω
+                  - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
             + (∫⁻ ω, ENNReal.ofReal
                   (∑ i : Fin n,
                     ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2523,9 +2560,11 @@ theorem picardStep_bielecki_contraction_tight
       ((picardStep W N coeffs X x₀
           h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
         - picardStep W N coeffs Y x₀
-          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
+          h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+            h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
     ≤ ENNReal.ofReal (3 * (n : ℝ) * L ^ 2 * (T + 2)) *
-        ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P := by
+        ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t,
+          ‖X s ω - Y s ω‖ ^ 2) ∂P := by
   obtain ⟨ht_nn, ht_le⟩ := ht
   -- Drift bound at t (proven; from `Picard.lean`).
   have h_drift := picardStep_drift_diff_lintegral_sq_bound (E := E) P coeffs hL_nn h_μ_lip
@@ -2541,7 +2580,8 @@ theorem picardStep_bielecki_contraction_tight
     h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t
   -- Abbreviations.
   set Iω : ℝ≥0∞ :=
-    ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P with hIω_def
+    ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t,
+      ‖X s ω - Y s ω‖ ^ 2) ∂P with hIω_def
   -- Bnt_drift = n L² t  (drift), Bnt_σγ = n L²  (σ and γ tight).
   set Bnt_drift : ℝ≥0∞ := ENNReal.ofReal ((n : ℝ) * L ^ 2 * t) with hBnt_drift_def
   set Bnt_σγ : ℝ≥0∞ := ENNReal.ofReal ((n : ℝ) * L ^ 2) with hBnt_σγ_def
@@ -2553,7 +2593,8 @@ theorem picardStep_bielecki_contraction_tight
         + ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
       = (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2562,7 +2603,8 @@ theorem picardStep_bielecki_contraction_tight
         + ∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P :=
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P :=
     MeasureTheory.lintegral_add_left' (h_diff_ofReal_aemeas t) _
   have h_split_1 : ∫⁻ ω, (ENNReal.ofReal
         (∑ i : Fin n,
@@ -2570,18 +2612,22 @@ theorem picardStep_bielecki_contraction_tight
         + (ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                  - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) ∂P
+                  - picardStep_jump N coeffs Y
+                      h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) ∂P
       = (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
-              ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+              ((picardStep_drift coeffs X x₀ t ω
+                - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
         + ∫⁻ ω, (ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                - picardStep_diffusion W coeffs Y
+                    h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
@@ -2596,14 +2642,17 @@ theorem picardStep_bielecki_contraction_tight
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                  - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                  - picardStep_diffusion W coeffs Y
+                      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
           + ENNReal.ofReal
               (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                  - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
+                  - picardStep_jump N coeffs Y
+                      h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2)) ∂P
       = 3 * ((∫⁻ ω, ENNReal.ofReal
               (∑ i : Fin n,
-                ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+                ((picardStep_drift coeffs X x₀ t ω
+                  - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
             + (∫⁻ ω, ENNReal.ofReal
                   (∑ i : Fin n,
                     ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2621,22 +2670,26 @@ theorem picardStep_bielecki_contraction_tight
         + ENNReal.ofReal (∑ i, ((picardStep_diffusion W coeffs X
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
             - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
-        + ENNReal.ofReal (∑ i, ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
+        + ENNReal.ofReal (∑ i,
+            ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
             - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))
       = (fun ω => ENNReal.ofReal (∑ i, ((picardStep_drift coeffs X x₀ t ω
             - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
         + (ENNReal.ofReal (∑ i, ((picardStep_diffusion W coeffs X
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
             - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
-          + ENNReal.ofReal (∑ i, ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-              - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) from by
+          + ENNReal.ofReal (∑ i,
+              ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
+              - picardStep_jump N coeffs Y
+                  h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))) from by
       funext ω; rw [add_assoc]]
     rw [h_split_1, h_split_2, add_assoc]
   -- Combine the three lintegrals with their NATURAL (distinct) Bnt constants.
   have h_sum_bound :
       (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
-              ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+              ((picardStep_drift coeffs X x₀ t ω
+                - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
         + (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2645,7 +2698,8 @@ theorem picardStep_bielecki_contraction_tight
         + (∫⁻ ω, ENNReal.ofReal
             (∑ i : Fin n,
               ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
-                - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P)
+                - picardStep_jump N coeffs Y
+                    h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P)
       ≤ Bnt_drift * Iω + Bnt_σγ * Iω + Bnt_σγ * Iω :=
     add_le_add (add_le_add h_drift h_σ) h_γ
   -- Algebraic upper bound: Bnt_drift + 2·Bnt_σγ ≤ ENNReal.ofReal (n L² (T + 2)).
@@ -2680,20 +2734,23 @@ theorem picardStep_bielecki_contraction_tight
         ((picardStep W N coeffs X x₀
             h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
           - picardStep W N coeffs Y x₀
-            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
+            h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+              h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2) ∂P
       ≤ ∫⁻ ω, 3 *
           (ENNReal.ofReal (∑ i : Fin n,
               ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
-                  - picardStep_diffusion W coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
+                  - picardStep_diffusion W coeffs Y
+                      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω) i) ^ 2)
             + ENNReal.ofReal (∑ i : Fin n,
                 ((picardStep_jump N coeffs X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω
                   - picardStep_jump N coeffs Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω) i) ^ 2))
           ∂P := h_triangle'
     _ = 3 * ((∫⁻ ω, ENNReal.ofReal
               (∑ i : Fin n,
-                ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
+                ((picardStep_drift coeffs X x₀ t ω
+                  - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P)
             + (∫⁻ ω, ENNReal.ofReal
                   (∑ i : Fin n,
                     ((picardStep_diffusion W coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω
@@ -2726,7 +2783,8 @@ contraction in the Bielecki β-norm under the tight rate. Pairing with
 `picardStep_bielecki_contraction_tight` and the Bielecki weight bound
 `bielecki_weighted_integral_bound`, the resulting estimate
 
-  `e^{-2βt} · ‖Φ X t - Φ Y t‖_{L²(P)}² ≤ (3 n L² (T + 2) / (2β)) · ‖X - Y‖_{β,T}²`
+  `e^{-2βt} · ‖Φ X t - Φ Y t‖_{L²(P)}²`
+  `  ≤ (3 n L² (T + 2) / (2β)) · ‖X - Y‖_{β,T}²`
 
 is a strict contraction for `β > 3 n L² (T + 2) / 2`.
 
