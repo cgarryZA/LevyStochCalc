@@ -108,45 +108,40 @@ for each `t`, both conjuncts follow by feeding these engines.**
 
 ## Remaining steps (resume here)
 
-**The sole remaining piece is the coherent `F`, and the precise blocker is now
-pinned: all the existing simple-integrand machinery is anchored at the ENDPOINT
-`T`, but the coherent process needs the intermediate-time `t` versions.**
+**Analytic toolkit DONE (8 sorry-free lemmas in `ItoL2Completion.lean`).** Limit
+engines: `martingale_of_tendsto_eLpNorm_one`, `tendsto_eLpNorm_one_of_eLpNorm_two`,
+`eLpNorm_one_mul_le`, `tendsto_eLpNorm_one_sq_sub`. Intermediate-isometry cores
+(general times, not just endpoint `T`): `diagonal_increment_lint`,
+`offDiagonal_increment_integral_zero`, `increment_sq_integrable`,
+`diagonal_increment_bochner`.
 
-Verified endpoint-only lemmas (need clamped `t`-generalizations):
-- `simpleIntegral_diagonal` / `simpleIntegral_offDiagonal` (`ItoSimple.lean`) use
-  the FULL partition increments `W (partition i.succ) − W (partition i.castSucc)`
-  — no `min (·) t` clamping.
-- `simpleIntegral_isometry` / `simpleIntegral_L2_isometry_brownian`:
-  `∫⁻ ‖simpleIntegral W H T‖² = ∫⁻ ∫⁻_{[0,T]} ‖H.eval‖²` — at `T` only.
-- `simpleIntegralLp_brownian`, `eLpNorm_simpleIntegral_sub_rpow_brownian`,
-  `cauchySeq_simpleIntegralLp_brownian` — all at the endpoint `T`.
+**The intermediate-time isometry now reduces to a clamped Bochner ASSEMBLY**
+(`simpleIntegral W H t = ∑ᵢ ξᵢ·(W_{pᵢ₊₁∧t} − W_{pᵢ∧t})`, `aᵢ := pᵢ∧t`,
+`bᵢ := pᵢ₊₁∧t`):
+1. **Clamped cross-integrability** (`Integrable (termᵢ·termⱼ)`): mirror
+   `cross_sq_integrable`, with `increment_sq_integrable` for genuine increments
+   and `aᵢ = bᵢ ⇒ increment 0` for degenerate ones (`ξ`s bounded via `H.ξ_bounded`).
+2. **Clamped Bochner sq** `∫ (∑ termᵢ)² = ∑ᵢ (bᵢ − aᵢ)·∫ ξᵢ²`: expand via
+   `Finset.sum_mul_sum`, then per pair `(i,j)`:
+   - `i=j`, `aᵢ<bᵢ` ⇒ `diagonal_increment_bochner` (note `aᵢ<bᵢ ⇒ t>pᵢ ⇒ aᵢ=pᵢ`,
+     so `ξᵢ` is `F_{aᵢ}`-measurable); `aᵢ=bᵢ` ⇒ term `0`.
+   - `i<j` (and symmetric): degenerate `j` ⇒ `termⱼ=0`; else
+     `offDiagonal_increment_integral_zero` with `a₁=pᵢ, b₁=bᵢ ≤ pⱼ=a₂, b₂=bⱼ`
+     (`bᵢ = min(pᵢ₊₁,t) ≤ pᵢ₊₁ ≤ pⱼ`).
+3. **`ofReal`/lint conversion** + **clamped outer**
+   `∑ᵢ ofReal(bᵢ−aᵢ)·∫⁻ξᵢ² = ∫⁻∫⁻_{[0,t]}‖H.eval‖²` (clamped `lintegral_eval_sq_outer`).
+   Gives `intermediate isometry`: `∫⁻‖simpleIntegral W H t‖² = ∫⁻∫⁻_{[0,t]}‖H.eval‖²`.
 
-**Construction once the intermediate-`t` isometry exists.** Note `simpleIntegral
-W H t` IS already defined and a martingale on all of `ℝ` (`martingale_simpleIntegral_brownian`,
-constant for `t ≥ T`). The plan:
-1. **Intermediate-time isometry** (the key new lemma):
-   `∫⁻ ‖simpleIntegral W H t‖² = ∫⁻ ∫⁻_{[0,t]} ‖H.eval‖²` for general `t`
-   (clamped diagonal/off-diagonal; the diagonal term becomes
-   `(partition i.succ ∧ t − partition i.castSucc ∧ t)`). Then the **difference**
-   form gives `eLpNorm (simpleIntegral W (Gₙ−Gₘ) t) 2 ≤ eLpNorm(… T) 2` by
-   `∫_{[0,t]} ≤ ∫_{[0,T]}` (monotonicity), so the endpoint-`T` Cauchy property
-   transfers to every `t ≤ T`.
-2. **Coherent `F`.** Fix the adapted dyadic sequence `Gₙ`
-   (`predictableDyadicSimple_brownian`). `F t :=` the `L²(P)`-limit (Cauchy +
-   complete) of `fun n => simpleIntegral W (Gₙ) t`. Coherent (one `Gₙ`).
-   `simpleIntegral W (Gₙ) t → F t` in `L²` for each `t` (step 1), hence in `L¹`
-   (`tendsto_eLpNorm_one_of_eLpNorm_two`).
-3. **Conjunct 1:** feed step 2 to `martingale_of_tendsto_eLpNorm_one` (each
-   `simpleIntegral W (Gₙ) ·` is a martingale). ⇒ `Martingale F ℱ P`.
-4. **Conjunct 2:** simple-level quadVar `(simpleIntegral (Gₙ) t)² − ∫_{[0,t]}(Gₙ)²`
-   martingale + `tendsto_eLpNorm_one_sq_sub` (squares) + the `∫(Gₙ)²→∫H²` term.
-5. **All-`T` isometry + bundle** on `(naturalFiltration W).rightCont`; replace the
-   axiom; repoint `quadVar_/martingale_stochasticIntegral`; drop #5 (13→12).
+**Then the coherent `F` + axiom replacement** (all engines ready):
+4. `F t :=` `L²`-limit (Cauchy from step 3's difference form + completeness) of
+   `simpleIntegral W (Gₙ) t`, `Gₙ` the fixed dyadic sequence. `→ F t` in `L²`,
+   hence `L¹` (`tendsto_eLpNorm_one_of_eLpNorm_two`).
+5. Conjunct 1: `martingale_of_tendsto_eLpNorm_one`. Conjunct 2: step-3 quadVar +
+   `tendsto_eLpNorm_one_sq_sub`. Conjunct 3: isometry from step 3 + density.
+   Bundle on `rightCont`; replace axiom; repoint consumers; drop #5 (13→12).
 
-The **analysis engines (steps 2–4's limiting arguments) are all proven**; the
-remaining work is the `t`-parametrized **isometry infrastructure** of step 1
-(a generalization of the endpoint-`T` proofs in `ItoSimple.lean`), then the
-mechanical assembly. This is a focused fresh build (≈ a few hundred lines).
+Steps 1–3 are the remaining ~250 lines (intricate but mechanical, all pieces
+proven); steps 4–5 then assemble via the engines.
 
 ## Discipline
 
