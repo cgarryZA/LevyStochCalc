@@ -1724,6 +1724,53 @@ lemma tendsto_eLpNorm_one_sq_sub
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds htend_bound
     (fun _ => bot_le) hbound
 
+/-- **Right-continuous martingale lift.** An `ℱ`-martingale `F` on `ℝ` whose
+time-slices are right-`L¹`-continuous — `eLpNorm (F r - F s) 1 P → 0` as `r ↓ s` —
+is automatically a martingale wrt the right-continuous filtration `ℱ₊`.
+
+No path-regularity or Blumenthal `0`-`1` input is needed. An `ℱ₊ s`-measurable set
+`A` lies in *every* `ℱ r` with `r > s` (since `ℱ₊ s = ⨅ r > s, ℱ r ≤ ℱ r`), so the
+martingale identity gives `∫_A F t = ∫_A F r` for all `r ∈ (s, t]`; the map
+`r ↦ ∫_A F r` is thus constantly `∫_A F t` near `s` from the right, while
+right-`L¹`-continuity sends it to `∫_A F s`. Uniqueness of limits pins
+`∫_A F s = ∫_A F t` for every `A ∈ ℱ₊ s`, i.e. `P[F t | ℱ₊ s] =ᵐ F s`. -/
+lemma martingale_rightCont_of_tendsto_eLpNorm_one
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    {F : ℝ → Ω → ℝ}
+    (hmart : MeasureTheory.Martingale F ℱ P)
+    (hrc : ∀ s : ℝ, Filter.Tendsto
+      (fun r => MeasureTheory.eLpNorm (F r - F s) 1 P)
+      (nhdsWithin s (Set.Ioi s)) (nhds 0)) :
+    MeasureTheory.Martingale F ℱ.rightCont P := by
+  refine ⟨fun i => (hmart.stronglyAdapted i).mono (ℱ.le_rightCont i), ?_⟩
+  intro s t hst
+  have hm : ℱ.rightCont s ≤ ‹MeasurableSpace Ω› := (ℱ.rightCont).le s
+  refine (MeasureTheory.ae_eq_condExp_of_forall_setIntegral_eq hm
+    (hmart.integrable t) (fun A _ _ => (hmart.integrable s).integrableOn)
+    ?_ ((hmart.stronglyAdapted s).mono (ℱ.le_rightCont s)).aestronglyMeasurable).symm
+  intro A hA _
+  -- `s = t` is trivial; for `s < t` use the constant-near-`s`/limit argument.
+  rcases eq_or_lt_of_le hst with rfl | hst'
+  · rfl
+  -- `r ↦ ∫_A F r → ∫_A F s` from right-`L¹`-continuity.
+  have htend_s : Filter.Tendsto (fun r => ∫ x in A, F r x ∂P)
+      (nhdsWithin s (Set.Ioi s)) (nhds (∫ x in A, F s x ∂P)) :=
+    MeasureTheory.tendsto_setIntegral_of_L1' (F s) (hmart.integrable s)
+      (Filter.Eventually.of_forall (fun r => hmart.integrable r)) (hrc s) A
+  -- `r ↦ ∫_A F r` is constantly `∫_A F t` on `(s, t)`.
+  have heq_ev : ∀ᶠ r in nhdsWithin s (Set.Ioi s),
+      (∫ x in A, F t x ∂P) = ∫ x in A, F r x ∂P := by
+    refine Filter.eventually_of_mem (Ioo_mem_nhdsGT hst') (fun r hr => ?_)
+    have h_le : ℱ.rightCont s ≤ ℱ r := by
+      rw [MeasureTheory.Filtration.rightCont_eq]
+      exact iInf₂_le r hr.1
+    exact (hmart.setIntegral_eq (le_of_lt hr.2) (h_le A hA)).symm
+  have htend_const : Filter.Tendsto (fun r => ∫ x in A, F r x ∂P)
+      (nhdsWithin s (Set.Ioi s)) (nhds (∫ x in A, F t x ∂P)) :=
+    tendsto_const_nhds.congr' heq_ev
+  exact tendsto_nhds_unique htend_s htend_const
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
