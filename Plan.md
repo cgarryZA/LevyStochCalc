@@ -121,6 +121,16 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       in `Basic.lean` with precise imports (the file already flags this as
       mandatory PR-prep); push the `ProbabilityTheory.*` imports down into the
       consumer files as needed.
+      *(2026-06-16: **umbrella DONE** — `import Mathlib` removed everywhere; Basic
+      narrowed to precise imports + the ProbabilityTheory/MeasureTheory modules
+      pushed into Construction/RandomMeasure/NaturalFiltration/Continuity/
+      Martingale/Compensated/CompensatedIsometry/Picard. Build dropped 8409→2904
+      jobs. NOTE: the umbrella can only be removed all-at-once — while it is
+      present, the compiler/`#min_imports` cannot see any file's true needs.
+      Line-wraps: low-count files done (commit 4ba2197); ~161 remain in 8 dense
+      files (Picard 58, ItoDensity 33, PicardSpace 20, CompensatedIsometry 18,
+      CompensatedSimple 10, ItoSimple 9, ItoL2Completion 7, Basic 6) — cosmetic,
+      zero invariant impact, to batch later / fold into Phase-4 reformatting.)*
 - [ ] **1.5** Re-title module docstrings to describe the mathematics only; keep
       the existing (good) per-decl docstring density.
 
