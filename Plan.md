@@ -93,6 +93,13 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
         martingale property.
       - `Brownian/SimplePredictableRefine.lean` (2290) → density / refinement.
       Target: no file > ~600 lines (mathlib `Probability/` p90).
+      *(in progress 2026-06-16: `Poisson/Compensated.lean` 2013→367 — the pinned
+      cluster (axiom #6 + `stochasticIntegral` + the 4 derived theorems +
+      `itoIsometry_diff_compensated`) stays in the module of record; the simple-
+      integrand construction + isometry moved to new `Poisson/CompensatedSimple.lean`
+      (1666 lines, still > 600 → wants a further density/isometry sub-split). No
+      stub; contract green. Remaining: sub-split CompensatedSimple, then
+      Brownian/Ito and Brownian/SimplePredictableRefine.)*
 - [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
       (currently 0 in the big files). Pure hygiene, breaks nothing.
 - [ ] **1.4** Wrap the 180 lines > 100 cols. Replace the `import Mathlib` umbrella
