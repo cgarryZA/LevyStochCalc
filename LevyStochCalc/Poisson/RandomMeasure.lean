@@ -86,16 +86,14 @@ structure PoissonRandomMeasure
   finite intensity, `N(·, B)` is a.s. `ℕ`-valued (in the natural embedding
   `ℕ ↪ ℝ≥0∞`). Follows from `poisson_law` since the Poisson distribution
   is supported on `ℕ`. Exposed as a structural field so downstream code
-  can use it without re-deriving through the Poisson-law characterisation.
-  L10 fix 2026-05-22 per red-team 1st-audit P04. -/
+  can use it without re-deriving through the Poisson-law characterisation. -/
   integer_valued : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
     referenceIntensity ν B ≠ ⊤ →
     ∀ᵐ ω ∂P, ∃ n : ℕ, N ω B = n
-  /-- **Applebaum 2.3.1(c), infinite-intensity case** (red-team 2nd audit
-  P7 F6 + P4 W fix 2026-05-23). For measurable `B` with INFINITE intensity,
-  `N(·, B) = ∞` almost surely. This completes the Applebaum 2.3.1(c)
-  encoding — the previous `integer_valued` field covered only the
-  finite-intensity branch. Under the literature Poisson recipe construction,
+  /-- **Applebaum 2.3.1(c), infinite-intensity case.** For measurable `B` with
+  INFINITE intensity, `N(·, B) = ∞` almost surely. This completes the Applebaum
+  2.3.1(c) encoding — `integer_valued` covers only the finite-intensity branch.
+  Under the literature Poisson recipe construction,
   this is automatic: an infinite-intensity set decomposes into countably
   many finite-intensity pieces, each contributing Poisson(λ_n) atoms, with
   total count = ∑_n Poisson(λ_n) which is a.s. infinite when ∑_n λ_n = ∞. -/
@@ -110,14 +108,11 @@ structure PoissonRandomMeasure
   `ℝ × E`, the family of evaluation random variables `(ω ↦ N(ω, B_i))_i` is
   independent under `P`.
 
-  **P7 F12 fix (red-team 2nd audit, 2026-05-23)**: added `[Countable ι]`
-  hypothesis. Standard PRM independence (Kallenberg 3.5.1 / Applebaum
-  2.3.1(b)) is for COUNTABLE pairwise-disjoint families; the previous
-  `ι : Type*` allowed uncountable index types where `iIndepFun` is not
-  the standard PRM independence property (uncountable iIndepFun is a
-  more delicate notion in Mathlib that doesn't match Applebaum's
-  formulation). Adding `[Countable ι]` makes the field exactly match
-  the literature. -/
+  The `[Countable ι]` hypothesis matches the literature: standard PRM
+  independence (Kallenberg 3.5.1 / Applebaum 2.3.1(b)) is for COUNTABLE
+  pairwise-disjoint families. Allowing uncountable `ι` would invoke
+  Mathlib's `iIndepFun` at uncountable index types, a more delicate notion
+  that does not match Applebaum's formulation. -/
   independent_disjoint :
     ∀ {ι : Type*} [Countable ι] (B : ι → Set (ℝ × E)),
       (∀ i, MeasurableSet (B i)) →
@@ -215,11 +210,5 @@ lemma poissonRandomMeasure_finite_exists
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
       (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) :=
   PoissonRandomMeasure.exists_of_sigmaFinite E ν
-
--- 2026-05-22 (deleted): `poissonRandomMeasure_combine` was a public
--- `True := trivial` placeholder for the σ-finite-piece combination step.
--- The actual combination is delivered inline within
--- `PoissonRandomMeasure.exists_of_sigmaFinite` (Tier 1 cited axiom #2).
--- The placeholder had no callers. Removed per red-team finding M1.
 
 end LevyStochCalc.Poisson

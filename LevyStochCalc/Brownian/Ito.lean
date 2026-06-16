@@ -30,20 +30,18 @@ isometry + density extension.
 ## References
 
 * Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, 1991, §3.2.
-* User's dissertation, ch02 §"Probability-space prerequisites", lines 19-24
-  at `D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex`.
 
-## Status
+## Construction
 
-Sorry-free. The simple-integrand isometry + density-extension chain is
-fully proven; the headline `itoIsometry` forwards via conjunct-extraction
-to Tier 1 cited axiom #5 (`itoIsometry_brownian_unified_existence`,
-Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4 + eq. (5.8)).
+The simple-integrand isometry + density-extension chain is fully proven; the
+headline `itoIsometry` forwards via conjunct-extraction to cited axiom #5
+(`itoIsometry_brownian_unified_existence`, Karatzas–Shreve Thm 3.2.6 /
+Le Gall Thm 5.4 + eq. (5.8)).
 -/
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
--- 2026-05-22: removed `open Classical`; using explicit decidability
+-- `open Classical` is avoided at file scope; explicit decidability
 
 namespace LevyStochCalc.Brownian.Ito
 
@@ -1339,9 +1337,8 @@ private lemma dyadicPartition_brownian_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)
   rw [hi_succ, hi_castSucc]
   ring
 
--- P1 F4 fix (red-team 2nd audit 2026-05-23): use idiomatic `omit` instead
--- of `set_option linter.unusedSectionVars false in`. The [MeasurableSpace Ω]
--- section variable is unused by this lemma (g : Ω → ℝ → ℝ doesn't need it).
+-- `omit` the unused `[MeasurableSpace Ω]` section variable (this lemma's
+-- `g : Ω → ℝ → ℝ` does not need it).
 omit [MeasurableSpace Ω] in
 /-- Boundedness of `dyadicAvg_brownian`: if `|g| ≤ M`, then `|dyadicAvg ω| ≤ M`. -/
 private lemma dyadicAvg_brownian_bounded
@@ -1439,8 +1436,7 @@ noncomputable def dyadicAvg_shifted_brownian
     have h_lt : i.val - 1 < 2 ^ n := by omega
     dyadicAvg_brownian (T := T) g n ⟨i.val - 1, h_lt⟩ ω
 
--- P1 F4 fix (red-team 2nd audit 2026-05-23): use idiomatic `omit` instead
--- of `set_option linter.unusedSectionVars false`. [MeasurableSpace Ω] unused.
+-- `omit` the unused `[MeasurableSpace Ω]` section variable.
 omit [MeasurableSpace Ω] in
 /-- Boundedness of the shifted dyadic average. Bounded by `max M 0` to
 handle the case `i = 0` (which is constant 0) uniformly. -/
@@ -1621,15 +1617,6 @@ lemma predictableDyadicSimple_brownian_adapted
     (dyadicAvg_shifted_brownian T g n i)
   exact dyadicAvg_shifted_brownian_adapted W T g h_progMeas n i
 
--- 2026-05-22 (deleted): `simpleFunc_approx_by_rectangles_brownian` and
--- `rectangular_to_simplePredictable_brownian` were two private `True := trivial`
--- placeholders for stages of the dyadic L² density chain (with elaborate
--- docstrings on SimpleFunc-to-rectangular-step-function bridges + alternative
--- dyadic-conditional-expectation path). The actual chain is delivered via
--- `dyadicSimplePredictable_brownian` +
--- `dyadicSimplePredictable_brownian_L2_converges` (both proven). The two
--- placeholders had no callers. Removed per red-team finding M1.
-
 /-- **Doubling measure instance for `(volume : Measure ℝ)`.** Mathlib's
 `IsUnifLocDoublingMeasure` is not auto-inferred for `ℝ`; we provide it explicitly
 via `Real.volume_closedBall` and the trivial doubling constant `K = 2`.
@@ -1666,13 +1653,6 @@ private lemma bounded_locallyIntegrable
     apply ENNReal.ofReal_le_ofReal
     rw [Real.norm_eq_abs]
     exact h_bound s
-
--- 2026-05-22 (deleted): `dyadic_pointwise_tendsto_brownian` was a private
--- `True := trivial` placeholder (with elaborate docstring on Lebesgue
--- differentiation + IsUnifLocDoublingMeasure) for the dyadic-average a.e.
--- pointwise convergence step. The actual pointwise + L² convergence is
--- delivered by `dyadicSimplePredictable_brownian_L2_converges` (proven).
--- The placeholder had no callers. Removed per red-team finding M1.
 
 /-- **Sub-lemma B (uniform L² boundedness):** The eval of dyadic SimplePredictable
 is bounded by `M` everywhere, hence its L²(P × volume.restrict[0,T]) norm is
@@ -1806,7 +1786,7 @@ private lemma dyadicIndex_mem (n : ℕ) (T : ℝ) (hT : 0 < T) (s : ℝ)
     rw [div_le_iff₀ hT] at hk_ge
     linarith
 
--- P1 F4 fix (red-team 2nd audit 2026-05-23): omit instead of set_option.
+-- `omit` the unused `[MeasurableSpace Ω]` section variable.
 omit [MeasurableSpace Ω] in
 /-- **Average bridge:** `dyadicAvg n i ω = ⨍ y in closedBall(midpoint, halfLen), g(ω, y) ∂volume`.
 
@@ -3954,19 +3934,6 @@ lemma martingale_simpleIntegral_brownian
     intro i _
     exact simpleIntegral_term_condExp_brownian W H i (h_adapt i) hst
 
--- 2026-05-22 (deleted): the `private lemma quadVar_simpleIntegral_brownian`
--- (Itô-type quadratic variation identity for simple integrands) was a
--- dead-code `sorry` — no internal callers, no public re-export. The
--- public quadratic variation theorem
--- `LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral`
--- is delivered directly from the Tier 1 cited axiom
--- `itoIsometry_brownian_unified_existence` (which packages martingale +
--- quadVar + L²-isometry on the full L² Itô integral, not just simple
--- integrands), bypassing the simple-level quadVar step entirely. The
--- private lemma was a planned intermediate step that the unified-existence
--- approach made redundant. Removed per red-team finding C2.B (private
--- sorry'd lemma misrepresenting the library's proof state).
-
 /-- **C0a: Density of simple Brownian-predictable processes in `L²(Ω × [0, T])`.**
 For every `H ∈ L²(Ω × [0, T], dP ⊗ ds)`, there exists a sequence of
 `SimplePredictable` integrands whose `eval`s converge to `H` in
@@ -3984,16 +3951,5 @@ theorem simplePredictable_dense_Lp_brownian
           (‖H ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
         Filter.atTop (nhds 0) :=
   simplePredictable_dense_L2 hT H h_meas h_sq_int
-
--- 2026-05-22 (deleted): the constant-witness `itoIntegral_brownian`
--- (`fun _ => sqrt R.toReal`) and its companion `itoIsometry_brownian_general`
--- (which trivially satisfied the L² isometry by virtue of the constant
--- function's eLpNorm) were the trivial-witness pattern Rule 0 forbids.
--- They had no callers outside their own pairing. The genuine L²-Itô
--- integral is delivered by `stochasticIntegral W H T` in
--- `Brownian/SimplePredictableRefine.lean`, via `Classical.choose` on
--- the unified-existence axiom (Tier 1 #5). Removed per red-team L2
--- (naming-drift cleanup: this was one of the variant names that did
--- nothing distinct).
 
 end LevyStochCalc.Brownian.Ito

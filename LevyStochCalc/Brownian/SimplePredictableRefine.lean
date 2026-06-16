@@ -17,7 +17,7 @@ It also houses **Tier 1 cited axiom #5** —
 which is consumed downstream by `Brownian.Ito.stochasticIntegral`,
 `Brownian.MultidimIto`, `Ito.JumpFormula`, `BSDEJ.Definition`, etc.
 
-## Naming gap (P10 F6, red-team 2nd audit 2026-05-23)
+## Naming gap
 
 The file's name advertises "SimplePredictable refinement" — the
 partition-refinement + diff-isometry machinery that the L²-completion
@@ -2108,10 +2108,7 @@ existence consolidates Karatzas–Shreve Thm 3.2.6.
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, **Theorem 3.2.6** (unified martingale + quadratic variation +
 L²-isometry of the L² Itô integral); Le Gall, J.-F. *Brownian Motion, Martingales
-and Stochastic Calculus*, Springer 2016, **Theorem 5.4** + equation **(5.8)**
-(correcting the previous "Theorem 5.13" citation — Le Gall 2016 p. 121
-"Theorem 5.13" is Dambis–Dubins–Schwarz, not the L² Itô isometry; see red-team
-finding H8 / P11).
+and Stochastic Calculus*, Springer 2016, **Theorem 5.4** + equation **(5.8)**.
 
 **Standard proof outline**: Construct `F` as the L²-limit (across the natural
 filtration's progressive σ-algebras) of `simpleIntegral W (G n) t` for an adapted
@@ -2142,11 +2139,9 @@ axiom itoIsometry_brownian_unified_existence
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
-    -- P1 M3 fix (red-team 2nd audit, 2026-05-23): `Filt` is now PINNED to
-    -- `(naturalFiltration W).rightCont` instead of being a loose existential.
-    -- Closes the trivial-Filt-witness route at the axiom layer (parallel to
-    -- the M11 fix for IsBSDEJSolution). Karatzas-Shreve 3.2.6 specifically
-    -- asserts the L²-Itô integral is a `(naturalFiltration W).rightCont`-
+    -- `Filt` pinned to `(naturalFiltration W).rightCont` (not a loose
+    -- existential), closing the trivial-filtration-witness route: Karatzas-Shreve
+    -- 3.2.6 asserts the L²-Itô integral is a `(naturalFiltration W).rightCont`-
     -- martingale.
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
       Filt = (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont ∧
@@ -2160,10 +2155,9 @@ axiom itoIsometry_brownian_unified_existence
 
 /-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
 
-**Refactored** (UNIFIED, 2026-05-10): defined via `Classical.choose` on the
-3-conjunct unified existence axiom `itoIsometry_brownian_unified_existence`.
-The resulting `F : ℝ → Ω → ℝ` satisfies the L²-isometry at every `T > 0` AND
-is a martingale (via the unified strong-exists). -/
+Defined via `Classical.choose` on the 3-conjunct unified-existence axiom
+`itoIsometry_brownian_unified_existence`; the resulting `F : ℝ → Ω → ℝ`
+satisfies the L²-isometry at every `T > 0` and is a martingale. -/
 noncomputable def stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -2189,10 +2183,7 @@ noncomputable def stochasticIntegral
 for predictable square-integrable `H`. ENNReal form (matches the dissertation's
 `I02` style).
 
-**Refactored** (Option β-prime, 2026-05-09): now extracts directly from
-`stochasticIntegral_isometry_only_brownian` (axiom-clean) rather than the
-sorry'd full strong-exists. Same statement, same hypotheses; downstream callers
-unchanged. -/
+Forwards to the L²-isometry conjunct of the unified-existence axiom #5. -/
 theorem itoIsometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -2223,8 +2214,7 @@ theorem itoIsometry
 For predictable square-integrable `H`, the process `t ↦ (M_t)² − ∫_0^t |H_s|² ds`
 is a martingale, where `M_t = ∫_0^t H_s dW_s`.
 
-**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
-axiom). Extracts conjunct 2 from `itoIsometry_brownian_unified_existence`. -/
+Extracts conjunct 2 (quadratic variation) of the unified-existence axiom #5. -/
 theorem quadVar_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -2259,8 +2249,7 @@ theorem quadVar_stochasticIntegral
 The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable continuous
 martingale w.r.t. the natural filtration of `W`.
 
-**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
-axiom). Extracts conjunct 1 from `itoIsometry_brownian_unified_existence`. -/
+Extracts conjunct 1 (martingale property) of the unified-existence axiom #5. -/
 theorem martingale_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
