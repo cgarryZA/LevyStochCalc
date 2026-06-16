@@ -108,26 +108,45 @@ for each `t`, both conjuncts follow by feeding these engines.**
 
 ## Remaining steps (resume here)
 
-1. **Coherent `F`.** The per-`T` construction (`exists_itoIntegralL2_brownian`)
-   takes an approximating sequence `G : ℕ → SimplePredictable Ω T` on a **fixed
-   `T`**, so building a single `F : ℝ → Ω → ℝ` needs consistency across `T` (the
-   `[0,T']` integral restricted to `[0,t]`, `t ≤ T'`, equals the `[0,t]` one).
-   Define `F t :=` the L²-limit of `simpleIntegral W (Gₙ) t` for one fixed
-   adapted `Gₙ` (`predictableDyadicSimple_brownian`), with adaptedness +
-   integrability; show `simpleIntegral W (Gₙ) t → F t` in L² (Cauchy + complete),
-   hence (by `tendsto_eLpNorm_one_of_eLpNorm_two`) in L¹.
-2. **Conjunct 1 (martingale):** each `simpleIntegral W (Gₙ) ·` is an
-   `ℱ`-martingale (`martingale_simpleIntegral_brownian`); feed step 1's L¹
-   convergence to `martingale_of_tendsto_eLpNorm_one`. ⇒ `Martingale F ℱ P`.
-3. **Conjunct 2 (quadVar):** simple-level identity from `simpleIntegral_diagonal`
-   /`_offDiagonal` gives `(simpleIntegral (Gₙ) ·)² − ∫(Gₙ)²` a martingale; needs
-   the **squares-converge engine** `(Mₙt)² → (Ft)²` in L¹ from `Mₙt→Ft` in L²
-   (Cauchy–Schwarz: `‖a²−b²‖₁ ≤ ‖a−b‖₂‖a+b‖₂`; the L² Hölder-product norm
-   inequality is the missing mathlib lever — search `eLpNorm`/`lintegral`
-   Hölder, or use the `L²` inner-product `inner_mul_le_norm_mul_norm`). Then the
-   same `martingale_of_tendsto_eLpNorm_one`.
-4. **Isometry + bundle** on `(naturalFiltration W).rightCont`; replace the axiom;
-   repoint `quadVar_/martingale_stochasticIntegral`; drop #5 (13→12).
+**The sole remaining piece is the coherent `F`, and the precise blocker is now
+pinned: all the existing simple-integrand machinery is anchored at the ENDPOINT
+`T`, but the coherent process needs the intermediate-time `t` versions.**
+
+Verified endpoint-only lemmas (need clamped `t`-generalizations):
+- `simpleIntegral_diagonal` / `simpleIntegral_offDiagonal` (`ItoSimple.lean`) use
+  the FULL partition increments `W (partition i.succ) − W (partition i.castSucc)`
+  — no `min (·) t` clamping.
+- `simpleIntegral_isometry` / `simpleIntegral_L2_isometry_brownian`:
+  `∫⁻ ‖simpleIntegral W H T‖² = ∫⁻ ∫⁻_{[0,T]} ‖H.eval‖²` — at `T` only.
+- `simpleIntegralLp_brownian`, `eLpNorm_simpleIntegral_sub_rpow_brownian`,
+  `cauchySeq_simpleIntegralLp_brownian` — all at the endpoint `T`.
+
+**Construction once the intermediate-`t` isometry exists.** Note `simpleIntegral
+W H t` IS already defined and a martingale on all of `ℝ` (`martingale_simpleIntegral_brownian`,
+constant for `t ≥ T`). The plan:
+1. **Intermediate-time isometry** (the key new lemma):
+   `∫⁻ ‖simpleIntegral W H t‖² = ∫⁻ ∫⁻_{[0,t]} ‖H.eval‖²` for general `t`
+   (clamped diagonal/off-diagonal; the diagonal term becomes
+   `(partition i.succ ∧ t − partition i.castSucc ∧ t)`). Then the **difference**
+   form gives `eLpNorm (simpleIntegral W (Gₙ−Gₘ) t) 2 ≤ eLpNorm(… T) 2` by
+   `∫_{[0,t]} ≤ ∫_{[0,T]}` (monotonicity), so the endpoint-`T` Cauchy property
+   transfers to every `t ≤ T`.
+2. **Coherent `F`.** Fix the adapted dyadic sequence `Gₙ`
+   (`predictableDyadicSimple_brownian`). `F t :=` the `L²(P)`-limit (Cauchy +
+   complete) of `fun n => simpleIntegral W (Gₙ) t`. Coherent (one `Gₙ`).
+   `simpleIntegral W (Gₙ) t → F t` in `L²` for each `t` (step 1), hence in `L¹`
+   (`tendsto_eLpNorm_one_of_eLpNorm_two`).
+3. **Conjunct 1:** feed step 2 to `martingale_of_tendsto_eLpNorm_one` (each
+   `simpleIntegral W (Gₙ) ·` is a martingale). ⇒ `Martingale F ℱ P`.
+4. **Conjunct 2:** simple-level quadVar `(simpleIntegral (Gₙ) t)² − ∫_{[0,t]}(Gₙ)²`
+   martingale + `tendsto_eLpNorm_one_sq_sub` (squares) + the `∫(Gₙ)²→∫H²` term.
+5. **All-`T` isometry + bundle** on `(naturalFiltration W).rightCont`; replace the
+   axiom; repoint `quadVar_/martingale_stochasticIntegral`; drop #5 (13→12).
+
+The **analysis engines (steps 2–4's limiting arguments) are all proven**; the
+remaining work is the `t`-parametrized **isometry infrastructure** of step 1
+(a generalization of the endpoint-`T` proofs in `ItoSimple.lean`), then the
+mechanical assembly. This is a focused fresh build (≈ a few hundred lines).
 
 ## Discipline
 
