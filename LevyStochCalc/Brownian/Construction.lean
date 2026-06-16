@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Basic
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Independence.Basic
+import Mathlib.Probability.Kernel.Defs
 
 /-!
 # Layer 1.5a: Brownian motion construction

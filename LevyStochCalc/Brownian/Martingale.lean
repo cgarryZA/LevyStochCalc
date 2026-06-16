@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Continuity
+import Mathlib.Probability.Martingale.Basic
+import Mathlib.Probability.ConditionalExpectation
 
 /-!
 # Layer 1.5c: Natural filtration, martingale property, quadratic variation

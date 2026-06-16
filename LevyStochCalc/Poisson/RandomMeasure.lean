@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Basic
+import Mathlib.Probability.Distributions.Poisson.Basic
+import Mathlib.Probability.Independence.Basic
 
 /-!
 # Layer 0 substrate: Poisson random measure on `[0, ∞) × E`

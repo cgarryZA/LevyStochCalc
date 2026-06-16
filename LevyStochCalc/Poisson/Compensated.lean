@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.NaturalFiltration
+import Mathlib.Probability.Martingale.Basic
 
 /-!
 # Compensated Poisson L²-Itô–Lévy integral

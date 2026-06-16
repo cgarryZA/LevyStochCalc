@@ -3,12 +3,14 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
--- The `import Mathlib` umbrella is provisional: the helper lemmas below need
--- only a handful of `MeasureTheory` submodules, but several downstream files
--- rely on this module to pull in the wider probability API. Narrowing to
--- precise imports (pushing the `ProbabilityTheory.*` imports down into the
--- consumer files) is deferred to the structural-refactor phase.
-import Mathlib
+import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import Mathlib.MeasureTheory.Function.LpSpace.Basic
+import Mathlib.MeasureTheory.Measure.Prod
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.Topology.Order.MonotoneContinuity
 
 /-!
 # LevyStochCalc.Basic

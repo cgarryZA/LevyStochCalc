@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.Setting
+import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # Picard iteration operator for jump-diffusion SDEs

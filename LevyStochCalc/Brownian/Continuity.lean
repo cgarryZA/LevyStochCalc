@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Construction
+import Mathlib.Probability.Process.Kolmogorov
+import Mathlib.Probability.Distributions.Gaussian.Fernique
 
 /-!
 # Layer 1.5b: Kolmogorov-Chentsov continuous modification

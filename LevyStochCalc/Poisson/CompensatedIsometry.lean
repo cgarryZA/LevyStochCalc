@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CompensatedSimple
+import Mathlib.Probability.Independence.Integration
 
 /-!
 # Second moments and L²-isometry of the simple compensated-Poisson integral
