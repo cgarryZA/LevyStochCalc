@@ -183,15 +183,44 @@ engines: `martingale_of_tendsto_eLpNorm_one`, `tendsto_eLpNorm_one_of_eLpNorm_tw
    Gives `intermediate isometry`: `∫⁻‖simpleIntegral W H t‖² = ∫⁻∫⁻_{[0,t]}‖H.eval‖²`.
 
 **Then the coherent `F` + axiom replacement** (all engines ready):
-4. `F t :=` `L²`-limit (Cauchy from step 3's difference form + completeness) of
-   `simpleIntegral W (Gₙ) t`, `Gₙ` the fixed dyadic sequence. `→ F t` in `L²`,
-   hence `L¹` (`tendsto_eLpNorm_one_of_eLpNorm_two`).
-5. Conjunct 1: `martingale_of_tendsto_eLpNorm_one`. Conjunct 2: step-3 quadVar +
-   `tendsto_eLpNorm_one_sq_sub`. Conjunct 3: isometry from step 3 + density.
-   Bundle on `rightCont`; replace axiom; repoint consumers; drop #5 (13→12).
+4. `F t :=` `L²`-limit of `simpleIntegral W (Gₙ) t`, `Gₙ` the fixed dyadic
+   sequence. **Cauchy-at-each-`t` is now DONE** (see UPDATE below): no general-`t`
+   difference isometry needed. `→ F t` in `L²`, hence `L¹`
+   (`tendsto_eLpNorm_one_of_eLpNorm_two`).
+5. Conjunct 1 (naturalFiltration): `martingale_of_tendsto_eLpNorm_one`. Conjunct 3
+   (isometry ∀T): intermediate isometry + density. Conjuncts 1,2 lifted to
+   `rightCont` via `martingale_rightCont_of_tendsto_eLpNorm_one` — slice
+   right-`L²`-continuity from `integral_sq_increment_eq_of_martingale` (conjuncts
+   1+3) + right-continuity of `r ↦ ∫∫_{[0,r]}‖H‖²`. Conjunct 2 quadVar: simple-level
+   orthogonal-increment identity + `tendsto_eLpNorm_one_sq_sub`.
 
-Steps 1–3 are the remaining ~250 lines (intricate but mechanical, all pieces
-proven); steps 4–5 then assemble via the engines.
+**Steps 1–3 DONE** (`simpleIntegral_intermediate_isometry`).
+
+## UPDATE 2026-06-16 (session 2) — Cauchy-at-each-`t` + orthogonality DONE
+
+Landed (all sorry-free, build/lint/contract green):
+- ✅ `simpleIntegral_memLp_intermediate_brownian` — `MemLp (simpleIntegral W H t) 2 P`
+  for `t ≤ T` (measurability + intermediate isometry bounded by finite endpoint).
+- ✅ `integral_sq_increment_eq_of_martingale`, `integral_sq_mono_of_martingale` —
+  martingale Pythagoras + 2nd-moment monotonicity (pointwise-`MemLp` API).
+- ✅ `simpleIntegral_lintegral_sq_sub_le_endpoint_brownian` — **Cauchy-at-each-`t`**:
+  `∫⁻‖I₁(t)−I₂(t)‖² ≤ ∫⁻∫⁻_{[0,T]}‖eval diff‖²` for `t ≤ T`, via the difference
+  martingale's 2nd-moment monotonicity + endpoint `diff_isometry_simple`.
+- ✅ `martingale_rightCont_of_tendsto_eLpNorm_one` — rightCont lift (no Blumenthal).
+
+**Remaining for #5 (the principal construction left):**
+A. **Coherent `F` for one horizon `T`.** For `t ≤ T`, `F^T t := ↑↑(L²-lim of
+   `simpleIntegralLp_brownian (Gₙ) t)` via `CompleteSpace` + the Cauchy-at-each-`t`
+   bound (need a general-`t` `simpleIntegralLp` / `cauchySeq…` mirror — small, the
+   bound is in hand). Then `simpleIntegral W Gₙ t → F^T t` in `L²` ∀`t≤T`.
+B. **Unbounded horizon.** Thread `F^T` consistently across `T` (overlap consistency
+   on `[0, T₁]` for `T₁ ≤ T₂`, both being the same `L²`-limit) to get `F` on all
+   `ℝ₊`; OR exhaust along `T = k ∈ ℕ`. This is the main open architectural piece.
+C. **Right-continuity of `r ↦ ∫∫_{[0,r]}‖H‖²`** (DCT / `tendsto_setLIntegral_zero`
+   on the slab `(s,r]` under the product measure) — feeds the rightCont lifts.
+D. **Assemble** conjuncts 1,3 (engines), 2 (simple quadVar + sq engine), lift 1,2 to
+   `rightCont`; replace axiom; repoint `quadVar_stochasticIntegral` +
+   `martingale_stochasticIntegral`; drop #5 from `cited_axioms.md` (13→12).
 
 ## Discipline
 
