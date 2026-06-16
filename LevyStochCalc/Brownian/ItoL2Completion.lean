@@ -1773,13 +1773,13 @@ lemma integral_sq_increment_eq_of_martingale
     {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
     {M : ℝ → Ω → ℝ}
     (hmart : MeasureTheory.Martingale M ℱ P)
-    (hL2 : ∀ u : ℝ, MeasureTheory.MemLp (M u) 2 P)
-    {s t : ℝ} (hst : s ≤ t) :
+    {s t : ℝ} (hMs : MeasureTheory.MemLp (M s) 2 P) (hMt : MeasureTheory.MemLp (M t) 2 P)
+    (hst : s ≤ t) :
     ∫ ω, (M t ω - M s ω) ^ 2 ∂P
       = (∫ ω, (M t ω) ^ 2 ∂P) - ∫ ω, (M s ω) ^ 2 ∂P := by
   have hm : ℱ s ≤ ‹MeasurableSpace Ω› := ℱ.le s
   have hcr : MeasureTheory.Integrable (fun ω => M s ω * M t ω) P :=
-    (hL2 s).integrable_mul (hL2 t)
+    hMs.integrable_mul hMt
   -- cross term: `∫ M s · M t = ∫ (M s)²` via pull-out + martingale identity.
   have h_cross : ∫ ω, M s ω * M t ω ∂P = ∫ ω, (M s ω) ^ 2 ∂P := by
     have h_pull : P[(fun ω => M s ω * M t ω) | ℱ s]
@@ -1796,8 +1796,8 @@ lemma integral_sq_increment_eq_of_martingale
           refine integral_congr_ae ?_
           filter_upwards [hmart.condExp_ae_eq hst] with ω hω using by rw [hω]
       _ = ∫ ω, (M s ω) ^ 2 ∂P := by simp_rw [pow_two]
-  have hMt2 : MeasureTheory.Integrable (fun ω => (M t ω) ^ 2) P := (hL2 t).integrable_sq
-  have hMs2 : MeasureTheory.Integrable (fun ω => (M s ω) ^ 2) P := (hL2 s).integrable_sq
+  have hMt2 : MeasureTheory.Integrable (fun ω => (M t ω) ^ 2) P := hMt.integrable_sq
+  have hMs2 : MeasureTheory.Integrable (fun ω => (M s ω) ^ 2) P := hMs.integrable_sq
   calc ∫ ω, (M t ω - M s ω) ^ 2 ∂P
       = ∫ ω, ((M t ω) ^ 2 - 2 * (M s ω * M t ω) + (M s ω) ^ 2) ∂P := by
         refine integral_congr_ae (Filter.Eventually.of_forall (fun ω => ?_)); ring
@@ -1822,13 +1822,67 @@ lemma integral_sq_mono_of_martingale
     {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
     {M : ℝ → Ω → ℝ}
     (hmart : MeasureTheory.Martingale M ℱ P)
-    (hL2 : ∀ u : ℝ, MeasureTheory.MemLp (M u) 2 P)
-    {s t : ℝ} (hst : s ≤ t) :
+    {s t : ℝ} (hMs : MeasureTheory.MemLp (M s) 2 P) (hMt : MeasureTheory.MemLp (M t) 2 P)
+    (hst : s ≤ t) :
     ∫ ω, (M s ω) ^ 2 ∂P ≤ ∫ ω, (M t ω) ^ 2 ∂P := by
-  have h := integral_sq_increment_eq_of_martingale hmart hL2 hst
+  have h := integral_sq_increment_eq_of_martingale hmart hMs hMt hst
   have h_nn : 0 ≤ ∫ ω, (M t ω - M s ω) ^ 2 ∂P :=
     integral_nonneg (fun ω => sq_nonneg _)
   linarith [h, h_nn]
+
+/-- **Cauchy-at-each-time bound for the simple integral.** For two adapted
+simple integrands sharing the endpoint `T`, the `L²(P)`-distance of their integrals
+at any intermediate time `t ≤ T` is bounded by the (endpoint) `L²(λ⊗P)`-distance of
+their evals over `[0, T]`. The difference process `simpleIntegral W H₁ · −
+simpleIntegral W H₂ ·` is a martingale (`Martingale.sub`), so its second moment is
+monotone in time (`integral_sq_mono_of_martingale`), capping the `t`-value by the
+`T`-value, which is the endpoint difference isometry `diff_isometry_simple`. This
+upgrades the endpoint `L²`-Cauchy hypothesis to `L²`-Cauchy at *every* `t ≤ T`
+without a general-`t` refinement re-derivation. -/
+lemma simpleIntegral_lintegral_sq_sub_le_endpoint_brownian
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
+    (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
+    (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₁.partition i.castSucc)) (H₁.ξ i))
+    (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+        (H₂.partition i.castSucc)) (H₂.ξ i))
+    {t : ℝ} (ht_nn : 0 ≤ t) (htT : t ≤ T) :
+    ∫⁻ ω, (‖simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  set M : ℝ → Ω → ℝ :=
+    fun u ω => simpleIntegral W H₁ u ω - simpleIntegral W H₂ u ω with hM
+  have hmart : MeasureTheory.Martingale M
+      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P :=
+    (martingale_simpleIntegral_brownian W H₁ h_adapt₁).sub
+      (martingale_simpleIntegral_brownian W H₂ h_adapt₂)
+  have hMemLp : ∀ {u : ℝ}, 0 ≤ u → u ≤ T → MeasureTheory.MemLp (M u) 2 P :=
+    fun {u} hu huT =>
+      (simpleIntegral_memLp_intermediate_brownian W hT H₁ h_adapt₁ hu huT).sub
+        (simpleIntegral_memLp_intermediate_brownian W hT H₂ h_adapt₂ hu huT)
+  -- bridge `∫⁻‖M u‖₊² = ofReal (∫ (M u)²)` for `M u ∈ L²`.
+  have h_bridge : ∀ {u : ℝ}, MeasureTheory.MemLp (M u) 2 P →
+      ∫⁻ ω, (‖M u ω‖₊ : ℝ≥0∞) ^ 2 ∂P = ENNReal.ofReal (∫ ω, (M u ω) ^ 2 ∂P) := by
+    intro u hu
+    rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hu.integrable_sq
+        (Filter.Eventually.of_forall (fun ω => sq_nonneg _))]
+    refine lintegral_congr (fun ω => ?_)
+    rw [show (‖M u ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖M u ω‖ from (ofReal_norm_eq_enorm _).symm,
+        ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
+  calc ∫⁻ ω, (‖M t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ENNReal.ofReal (∫ ω, (M t ω) ^ 2 ∂P) := h_bridge (hMemLp ht_nn htT)
+    _ ≤ ENNReal.ofReal (∫ ω, (M T ω) ^ 2 ∂P) :=
+        ENNReal.ofReal_le_ofReal (integral_sq_mono_of_martingale hmart
+          (hMemLp ht_nn htT) (hMemLp (le_of_lt hT) (le_refl T)) htT)
+    _ = ∫⁻ ω, (‖M T ω‖₊ : ℝ≥0∞) ^ 2 ∂P := (h_bridge (hMemLp (le_of_lt hT) (le_refl T))).symm
+    _ = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+        simp only [hM]
+        exact SimplePredictable.diff_isometry_simple W hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
 
 /-- **Right-continuous martingale lift.** An `ℱ`-martingale `F` on `ℝ` whose
 time-slices are right-`L¹`-continuous — `eLpNorm (F r - F s) 1 P → 0` as `r ↓ s` —
