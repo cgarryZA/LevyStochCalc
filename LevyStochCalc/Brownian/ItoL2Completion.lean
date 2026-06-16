@@ -1121,6 +1121,72 @@ lemma tendsto_eLpNorm_one_of_eLpNorm_two
     (fun _ => bot_le)
     (fun n => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le (by norm_num) (hg n))
 
+/-- **L² Hölder product.** `‖f·g‖₁ ≤ ‖f‖₂·‖g‖₂` (Cauchy–Schwarz). The
+conjunct-2 (quadratic-variation) limit needs `aₙ²→a²` in `L¹` from `aₙ→a` in
+`L²`, via `aₙ²−a² = (aₙ−a)(aₙ+a)` and this bound. -/
+lemma eLpNorm_one_mul_le {μ : MeasureTheory.Measure Ω} {f g : Ω → ℝ}
+    (hf : AEMeasurable f μ) (hg : AEMeasurable g μ) :
+    MeasureTheory.eLpNorm (f * g) 1 μ
+      ≤ MeasureTheory.eLpNorm f 2 μ * MeasureTheory.eLpNorm g 2 μ := by
+  have hpq : Real.HolderConjugate 2 2 :=
+    Real.holderConjugate_iff.mpr ⟨by norm_num, by norm_num⟩
+  rw [MeasureTheory.eLpNorm_one_eq_lintegral_enorm]
+  calc ∫⁻ x, ‖(f * g) x‖ₑ ∂μ
+      = ∫⁻ x, ‖f x‖ₑ * ‖g x‖ₑ ∂μ := by
+        refine lintegral_congr (fun x => ?_); rw [Pi.mul_apply, enorm_mul]
+    _ ≤ (∫⁻ x, ‖f x‖ₑ ^ (2 : ℝ) ∂μ) ^ (1 / (2 : ℝ))
+        * (∫⁻ x, ‖g x‖ₑ ^ (2 : ℝ) ∂μ) ^ (1 / (2 : ℝ)) :=
+        ENNReal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.enorm hg.enorm
+    _ = MeasureTheory.eLpNorm f 2 μ * MeasureTheory.eLpNorm g 2 μ := by
+        rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num),
+            MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num)]
+        norm_num
+
+/-- **Squares converge in L¹ from L²-convergence.** If `aₙ → b` in `L²` (with
+`‖b‖₂ < ⊤`) then `aₙ² → b²` in `L¹`. The conjunct-2 (quadratic-variation) engine.
+Proof: `aₙ²−b² = (aₙ−b)(aₙ+b)`, bounded by `eLpNorm_one_mul_le` and the triangle
+`‖aₙ+b‖₂ ≤ ‖aₙ−b‖₂ + 2‖b‖₂`, then squeezed. -/
+lemma tendsto_eLpNorm_one_sq_sub
+    {μ : MeasureTheory.Measure Ω} {a : ℕ → Ω → ℝ} {b : Ω → ℝ}
+    (ha : ∀ n, AEMeasurable (a n) μ) (hb : AEMeasurable b μ)
+    (hbfin : MeasureTheory.eLpNorm b 2 μ ≠ ⊤)
+    (htend : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (a n - b) 2 μ)
+      Filter.atTop (nhds 0)) :
+    Filter.Tendsto (fun n => MeasureTheory.eLpNorm (fun ω => (a n ω) ^ 2 - (b ω) ^ 2) 1 μ)
+      Filter.atTop (nhds 0) := by
+  have hbound : ∀ n, MeasureTheory.eLpNorm (fun ω => (a n ω) ^ 2 - (b ω) ^ 2) 1 μ
+      ≤ MeasureTheory.eLpNorm (a n - b) 2 μ
+        * (MeasureTheory.eLpNorm (a n - b) 2 μ + 2 * MeasureTheory.eLpNorm b 2 μ) := by
+    intro n
+    have hfac : (fun ω => (a n ω) ^ 2 - (b ω) ^ 2) = (a n - b) * (a n + b) := by
+      funext ω; simp only [Pi.mul_apply, Pi.sub_apply, Pi.add_apply]; ring
+    rw [hfac]
+    refine le_trans (eLpNorm_one_mul_le ((ha n).sub hb) ((ha n).add hb)) ?_
+    gcongr
+    calc MeasureTheory.eLpNorm (a n + b) 2 μ
+        = MeasureTheory.eLpNorm ((a n - b) + (2 : ℝ) • b) 2 μ := by
+          congr 1; funext ω; simp only [Pi.add_apply, Pi.sub_apply, Pi.smul_apply,
+            smul_eq_mul]; ring
+      _ ≤ MeasureTheory.eLpNorm (a n - b) 2 μ + MeasureTheory.eLpNorm ((2 : ℝ) • b) 2 μ :=
+          MeasureTheory.eLpNorm_add_le ((ha n).sub hb).aestronglyMeasurable
+            (hb.aestronglyMeasurable.const_smul (2 : ℝ)) (by norm_num)
+      _ ≤ MeasureTheory.eLpNorm (a n - b) 2 μ + 2 * MeasureTheory.eLpNorm b 2 μ := by
+          gcongr
+          refine le_trans MeasureTheory.eLpNorm_const_smul_le (le_of_eq ?_)
+          rw [show ‖(2 : ℝ)‖ₑ = (2 : ℝ≥0∞) from by simp [Real.enorm_eq_ofReal_abs]]
+  have htend_bound : Filter.Tendsto
+      (fun n => MeasureTheory.eLpNorm (a n - b) 2 μ
+        * (MeasureTheory.eLpNorm (a n - b) 2 μ + 2 * MeasureTheory.eLpNorm b 2 μ))
+      Filter.atTop (nhds 0) := by
+    have h1 := htend.add (tendsto_const_nhds (x := 2 * MeasureTheory.eLpNorm b 2 μ))
+    have h2C : (2 : ℝ≥0∞) * MeasureTheory.eLpNorm b 2 μ ≠ ⊤ :=
+      ENNReal.mul_ne_top (by norm_num) hbfin
+    have := ENNReal.Tendsto.mul htend (Or.inr (by simpa using h2C)) h1
+      (Or.inr (by norm_num))
+    simpa using this
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds htend_bound
+    (fun _ => bot_le) hbound
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
