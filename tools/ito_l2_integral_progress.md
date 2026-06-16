@@ -94,6 +94,17 @@ relevant σ-algebras; cf. how `martingale_stochasticIntegral` states the pinned
 - ✅ **`tendsto_eLpNorm_one_of_eLpNorm_two`** — on a probability measure,
   `L²`-null ⇒ `L¹`-null (`eLpNorm_le_eLpNorm_of_exponent_le`), bridging the
   `L²`-Cauchy approximating sequence to the L¹ hypothesis above.
+- ✅ **`eLpNorm_one_mul_le`** — `L²` Hölder product `‖f·g‖₁ ≤ ‖f‖₂·‖g‖₂` (from
+  `ENNReal.lintegral_mul_le_Lp_mul_Lq` + `enorm_mul`). General-purpose.
+- ✅ **`tendsto_eLpNorm_one_sq_sub`** — `aₙ→b` in `L²` ⇒ `aₙ²→b²` in `L¹`
+  (conjunct-2 engine; uses the Hölder product + triangle `‖aₙ+b‖₂ ≤ ‖aₙ−b‖₂+2‖b‖₂`).
+
+**So both conjuncts' analysis engines are now in place** — conjunct 1 via
+`martingale_of_tendsto_eLpNorm_one` (+ the L²→L¹ bridge), conjunct 2 via
+`tendsto_eLpNorm_one_sq_sub`. The ∫`(Gₙ)²`→∫`H²` term of conjunct 2 reuses the
+isometry/density convergence already proven. **The only remaining piece is the
+coherent `F` (below): once it exists with `simpleIntegral W (Gₙ) t → F t` in `L²`
+for each `t`, both conjuncts follow by feeding these engines.**
 
 ## Remaining steps (resume here)
 
