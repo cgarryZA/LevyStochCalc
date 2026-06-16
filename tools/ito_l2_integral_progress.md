@@ -106,6 +106,56 @@ isometry/density convergence already proven. **The only remaining piece is the
 coherent `F` (below): once it exists with `simpleIntegral W (Gₙ) t → F t` in `L²`
 for each `t`, both conjuncts follow by feeding these engines.**
 
+## UPDATE 2026-06-16 — rightCont blocker RESOLVED + orthogonality engines
+
+Three new general, sorry-free lemmas in `ItoL2Completion.lean` (all build-green,
+lint-clean, contract-green):
+
+- ✅ **`martingale_rightCont_of_tendsto_eLpNorm_one`** — the **rightCont obstacle is
+  gone**. An `ℱ`-martingale on `ℝ` whose slices are right-`L¹`-continuous
+  (`eLpNorm (F r − F s) 1 P → 0` as `r ↓ s`) is a martingale wrt `ℱ₊`. *No
+  Blumenthal / axiom #4.* Proof: an `ℱ₊ s`-measurable `A` lies in every `ℱ r`
+  (`r > s`) since `ℱ₊ s = ⨅ r>s, ℱ r`; the martingale identity makes `r ↦ ∫_A F r`
+  constantly `∫_A F t` near `s⁺`, and right-`L¹`-continuity sends it to `∫_A F s`,
+  so `∫_A F s = ∫_A F t`, i.e. `P[F t | ℱ₊ s] =ᵐ F s` (via
+  `ae_eq_condExp_of_forall_setIntegral_eq` + `tendsto_setIntegral_of_L1'` +
+  `Martingale.setIntegral_eq` + `Ioo_mem_nhdsGT`). **Both conjunct-1 and conjunct-2
+  rightCont bundling now reduce to providing right-`L¹`-continuity of the slice.**
+- ✅ **`integral_sq_increment_eq_of_martingale`** — martingale Pythagoras:
+  `∫(M t − M s)² = ∫(M t)² − ∫(M s)²` for an L² martingale (cross term via
+  `condExp_mul_of_stronglyMeasurable_left` pull-out + `Martingale.condExp_ae_eq`).
+- ✅ **`integral_sq_mono_of_martingale`** — `∫(M s)² ≤ ∫(M t)²` for `s ≤ t`
+  (corollary: `∫(M t−M s)² ≥ 0`).
+
+**Consequence — Cauchy-at-each-`t` needs NO general-`t` refinement.** For the fixed
+adapted dyadic sequence `Gₙ` on horizon `T`, the difference process
+`Dₙₘ := simpleIntegral W Gₙ · − simpleIntegral W Gₘ ·` is a `naturalFiltration`-
+martingale (`Martingale.sub` of two `martingale_simpleIntegral_brownian`s). Hence
+for `t ≤ T`,
+`‖Dₙₘ(t)‖₂² = ∫ Dₙₘ(t)² ≤ ∫ Dₙₘ(T)² = ‖Dₙₘ(T)‖₂²` (by `integral_sq_mono`),
+and the RHS `→ 0` by the **endpoint** difference isometry `diff_isometry_simple`
+(already proven) + the `h_cauchy_eval` hypothesis. So `n ↦ simpleIntegral W Gₙ t`
+is `L²`-Cauchy at every `t ≤ T` — the general-`t` refine/`sub_on_common` chain is
+NOT required. (Needs: `MemLp (simpleIntegral W Gₙ t) 2 P` at general `t`, available
+from `simpleIntegral_intermediate_isometry` finiteness; `Dₙₘ(0) = 0` is automatic.)
+
+**And the F-level right-`L²`-continuity (for the rightCont lift) is also free of a
+clamped re-derivation:** once `F` is the coherent limit with conjunct-1 (martingale)
+and conjunct-3 (isometry `∫ F_T² = ∫∫_{[0,T]}‖H‖²`), the increment identity gives
+`‖F_r − F_s‖₂² = ∫ F_r² − ∫ F_s² = (∫∫_{[0,r]}‖H‖²) − (∫∫_{[0,s]}‖H‖²)`, which
+`→ 0` as `r ↓ s` by right-continuity of `r ↦ ∫∫_{[0,r]}‖H‖²` (DCT / `tendsto_setLIntegral_zero`
+on the shrinking slab `(s,r]`). Then `‖·‖₁ ≤ ‖·‖₂` (prob. measure) feeds
+`martingale_rightCont_of_tendsto_eLpNorm_one`. Conjunct-2's rightCont lift uses the
+same lever with `F_t² − A_t` (right-`L¹`-continuous: `F_r² → F_s²` in L¹ via
+`tendsto_eLpNorm_one_sq_sub`, `A` continuous).
+
+**Remaining gap = (a) coherent-`F` definition + (b) unbounded-horizon exhaustion.**
+The per-horizon-`T` truncation/diagonal is `exists_itoIntegralL2_brownian_progMeas`;
+the open task is to thread a *single* sequence across growing horizons (or define
+`F` per-`t` from a horizon-indexed family proven consistent on overlaps) so the
+process is defined on all of `ℝ₊`, then assemble conjuncts 1–3 + the two rightCont
+lifts. The horizon-exhaustion/consistency is the principal remaining construction.
+
 ## Remaining steps (resume here)
 
 **Analytic toolkit DONE (8 sorry-free lemmas in `ItoL2Completion.lean`).** Limit
