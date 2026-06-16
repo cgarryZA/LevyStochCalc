@@ -152,8 +152,19 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       `LevyStochCalc/**.lean` is now empty; each file builds; four-way invariant
       green. Breaks are at operators/commas (code) or prose splits (docstrings/
       comments); no symbol or semantic change.)*
-- [ ] **1.5** Re-title module docstrings to describe the mathematics only; keep
+- [x] **1.5** Re-title module docstrings to describe the mathematics only; keep
       the existing (good) per-decl docstring density.
+      *(2026-06-16: stripped `Layer N`/`substrate`/`(deaxiomatises …)` prefixes from
+      all 12 module `#` headings (Construction, Continuity, Martingale, Multidim,
+      MultidimIto, Setting, JumpFormula, RandomMeasure, L2Isometry, BSDEJ
+      Existence/MartingaleRepresentation/PathRegularity). Also removed the residual
+      "the main dissertation imports this and replaces its `Dissertation.…` axiom"
+      narrative from the L2Isometry/Existence/PathRegularity/JumpFormula module
+      docstrings, and the `I02`/`Cu03` process-tags from the `L2Isometry.itoLevyIsometry`,
+      `JumpFormula.itoLevyFormula`, and `ItoL2Completion.itoIsometry` per-decl
+      docstring titles, per Phase-0.3 follow-through. A project-wide scan for
+      `Layer N`/`substrate`/`deaxiomatis`/`Dissertation.`/`Cu0N`/`I0N` in source is
+      now empty. Per-decl docstrings otherwise kept. **Phase 1 complete.**)*
 
 ## Phase 2 — Align to mathlib's existing API (shrink the surface)
 

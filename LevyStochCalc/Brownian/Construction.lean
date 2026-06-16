@@ -9,7 +9,7 @@ import Mathlib.Probability.Independence.Basic
 import Mathlib.Probability.Kernel.Defs
 
 /-!
-# Layer 1.5a: Brownian motion construction
+# Brownian motion construction
 
 A 1-dimensional Brownian motion is a process `W : ℝ → Ω → ℝ` (interpreted on
 `t ≥ 0`) with the standard Wiener properties (zero start, Gaussian

@@ -6,19 +6,9 @@ Authors: Christian Garry
 import LevyStochCalc.Poisson.Compensated
 
 /-!
-# Layer 1 (deaxiomatises I02): Itô-Lévy L² isometry
+# Itô-Lévy L² isometry
 
-This file is the *integration entry-point*: when its main theorem
-`itoLevyIsometry` lands CLEAN (no `sorry`, no custom axioms beyond Mathlib's),
-the main dissertation can replace its cited axiom
-
-  `Dissertation.Continuous.itoLevyIsometry`  (file `Dissertation/Continuous.lean:85`)
-
-with a wrapper theorem that imports this module and re-exports the result
-under the dissertation's specific types
-(`Dissertation.Time`, `Dissertation.BSDE.Discrete.LevyMeasure d`, etc.).
-
-The mathematical statement is:
+The L²-isometry for the compensated-Poisson Itô–Lévy integral:
 
   `𝔼[ (∫_0^T ∫_E φ(s, e) Ñ(ds, de))² ] = 𝔼[ ∫_0^T ∫_E |φ(s, e)|² ν(de) ds ]`
 
@@ -33,10 +23,9 @@ Theorem 4.2.3.
 
 ## Status
 
-Clean wrapper around `Compensated.itoLevyIsometry`. ENNReal-norm form
-matches the dissertation's `I02` axiom exactly. Sorry-free; transitively
-depends only on Tier 1 cited axiom #6
-(`itoIsometry_compensated_unified_existence`, Applebaum 2009 Thm 4.2.3).
+Wrapper around `Compensated.itoLevyIsometry`; sorry-free, transitively
+depending only on the cited axiom
+`itoIsometry_compensated_unified_existence` (Applebaum 2009 Thm 4.2.3).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -46,17 +35,13 @@ namespace LevyStochCalc.Poisson.L2Isometry
 
 universe u v
 
-/-- **I02 (Itô-Lévy L² isometry).** For a Poisson random measure `N` with
+/-- **Itô-Lévy L² isometry.** For a Poisson random measure `N` with
 σ-finite intensity `ν` on `(E, ℰ)`, and a predictable square-integrable
 integrand `φ : Ω × [0,T] × E → ℝ`,
 
   `𝔼[ (∫_0^T ∫_E φ(s, e) Ñ(ds, de))² ] = 𝔼[ ∫_0^T ∫_E |φ(s, e)|² ν(de) ds ]`.
 
-This is the headline theorem that the main dissertation will pull in (via
-Lake-dep) to replace its `Dissertation.Continuous.itoLevyIsometry` axiom.
-
-Wrapper around `LevyStochCalc.Poisson.Compensated.itoLevyIsometry`,
-which forwards to Tier 1 cited axiom #6. -/
+Wrapper around `LevyStochCalc.Poisson.Compensated.itoLevyIsometry`. -/
 theorem itoLevyIsometry
     {Ω : Type u} [MeasurableSpace Ω]
     {E : Type v} [MeasurableSpace E]

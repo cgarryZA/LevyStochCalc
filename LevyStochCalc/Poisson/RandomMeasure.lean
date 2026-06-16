@@ -8,7 +8,7 @@ import Mathlib.Probability.Distributions.Poisson.Basic
 import Mathlib.Probability.Independence.Basic
 
 /-!
-# Layer 0 substrate: Poisson random measure on `[0, ∞) × E`
+# Poisson random measure on `[0, ∞) × E`
 
 A *Poisson random measure* on the time-space `[0, ∞) × E` (where `E` is a
 measurable mark space with σ-finite intensity `ν`), defined over a

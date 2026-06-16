@@ -7,7 +7,7 @@ import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.ItoL2Completion
 
 /-!
-# Layer 1.5e+: Multidimensional Brownian Itô integral
+# Multidimensional Brownian Itô integral
 
 The multidim L² Itô integral `∫_0^T Z_s · dW_s := ∑_i ∫_0^T Z_s^i dW_s^i`,
 defined as the sum (over components `i : Fin d`) of the 1D Brownian Itô

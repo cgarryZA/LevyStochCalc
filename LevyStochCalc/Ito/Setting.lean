@@ -8,7 +8,7 @@ import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Poisson.L2Isometry
 
 /-!
-# Layer 2 substrate: Jump-diffusion process structure
+# Jump-diffusion process structure
 
 A *jump diffusion* on `ℝⁿ` driven by a `d`-dimensional Brownian motion `W` and
 a Poisson random measure `N` (with intensity `dt ⊗ ν` on `[0,T] × E`) is the

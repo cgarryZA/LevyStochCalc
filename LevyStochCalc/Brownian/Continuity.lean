@@ -8,7 +8,7 @@ import Mathlib.Probability.Process.Kolmogorov
 import Mathlib.Probability.Distributions.Gaussian.Fernique
 
 /-!
-# Layer 1.5b: Kolmogorov-Chentsov continuous modification
+# Kolmogorov-Chentsov continuous modification
 
 Mathlib has only `IsKolmogorovProcess` (the *condition*); the modification
 result is missing. We port the classical proof (Karatzas-Shreve §2.2 Thm 2.8 /

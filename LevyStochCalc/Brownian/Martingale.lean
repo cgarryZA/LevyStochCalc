@@ -8,7 +8,7 @@ import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.ConditionalExpectation
 
 /-!
-# Layer 1.5c: Natural filtration, martingale property, quadratic variation
+# Natural filtration, martingale property, quadratic variation
 
 Brownian motion `W` generates the *natural filtration*
 

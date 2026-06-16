@@ -6,7 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Brownian.Martingale
 
 /-!
-# Layer 1.5d: d-dimensional Brownian motion
+# d-dimensional Brownian motion
 
 A `d`-dimensional Brownian motion is a `Fin d`-tuple of independent 1-D
 Brownian motions on the same probability space. Constructed via

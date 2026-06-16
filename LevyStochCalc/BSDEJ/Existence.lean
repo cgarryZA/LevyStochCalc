@@ -6,17 +6,13 @@ Authors: Christian Garry
 import LevyStochCalc.BSDEJ.MartingaleRepresentation
 
 /-!
-# Layer 3 (deaxiomatises Cu01): Continuous BSDEJ existence and uniqueness
+# Continuous BSDEJ existence and uniqueness
 
 For Lipschitz `(f, g)` and `L²`-terminal data, the BSDEJ admits a unique
 solution `(Y, Z, U) ∈ S² × H² × H²_N`.
 
 Proof following Tang & Li 1994 / Becherer 2006: Picard contraction on the
 Banach space of solution triples.
-
-When CLEAN, the main dissertation imports this and replaces its
-`Dissertation.Continuous.continuousBSDEJ_exists_unique` axiom
-(Continuous.lean:126).
 
 ## Source
 

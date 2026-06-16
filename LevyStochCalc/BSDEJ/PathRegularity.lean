@@ -7,7 +7,7 @@ import LevyStochCalc.BSDEJ.Existence
 import LevyStochCalc.Ito.JumpFormula
 
 /-!
-# Layer 4 (deaxiomatises Cu05): BSDEJ path regularity
+# BSDEJ path regularity
 
 For the unique BSDEJ solution `(Y, Z, U)` from `BSDEJ.Existence`, the time
 modulus of continuity satisfies
@@ -19,9 +19,6 @@ modulus of continuity satisfies
 
 where `Z̃, Ũ` are the conditional time-averages of `Z, U` over the partition
 intervals, and `Δt = max_n (t_{n+1} − t_n)`.
-
-When CLEAN, the main dissertation imports this and replaces its
-`Dissertation.Continuous.bsdej_path_regularity` axiom (Continuous.lean:172).
 
 ## Source
 

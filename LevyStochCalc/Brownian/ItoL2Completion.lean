@@ -1129,8 +1129,7 @@ noncomputable def stochasticIntegral
 
   `𝔼[ (∫_0^T H_s dW_s)² ] = 𝔼[ ∫_0^T |H_s|² ds ]`
 
-for predictable square-integrable `H`. ENNReal form (matches the dissertation's
-`I02` style).
+for predictable square-integrable `H`. ENNReal form.
 
 Forwards to the L²-isometry conjunct of the unified-existence axiom #5. -/
 theorem itoIsometry

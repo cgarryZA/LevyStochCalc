@@ -6,7 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Ito.Setting
 
 /-!
-# Layer 2 (deaxiomatises Cu03): Itô-Lévy formula for jump diffusions
+# Itô-Lévy formula for jump diffusions
 
 For `u ∈ C^{1,2}([0,T] × ℝⁿ)` and `X` a jump diffusion driven by
 `(W, N)` with coefficients `(μ, σ, γ)`,
@@ -18,10 +18,6 @@ For `u ∈ C^{1,2}([0,T] × ℝⁿ)` and `X` a jump diffusion driven by
   `+ ∫_0^T ∫_E [u(·+γ) − u − γᵀ ∇u](s, X_{s-}, e) ν(de) ds`,
 
 where `𝓛u = μᵀ ∇u + ½ Tr(σ σᵀ ∇²u)` is the diffusion generator.
-
-This file provides the Lean form of the formula. The main dissertation
-imports this module and replaces its
-`Dissertation.Continuous.itoLevyFormula` axiom (Continuous.lean:415).
 
 ## Source
 
@@ -458,7 +454,7 @@ theorem itoLevyFormula_jumpResidual_axiom
   -- So R T ω = u(T,X_T) − u(0,X_0) − drift − diff_mart = jump_mart + comp_drift.
   linarith
 
-/-- **Cu03 (Itô-Lévy formula for jump diffusions, Applebaum 2009 Thm 4.4.7).**
+/-- **Itô-Lévy formula for jump diffusions (Applebaum 2009 Thm 4.4.7).**
 
 For `C^{1,2}` functions `u` and a jump diffusion `X = (μ, σ, γ)`-driven by
 `(W, N)`, the chain-rule decomposition
