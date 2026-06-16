@@ -151,6 +151,21 @@ lemma dense_dyadicRationals : Dense dyadicRationals := by
     exact hn
   · exact ⟨k, n, rfl⟩
 
+/-- Dyadic rationals are closed under adding an integer. -/
+lemma add_intCast_mem_dyadicRationals {x : ℝ} (hx : x ∈ dyadicRationals) (j : ℤ) :
+    x + (j : ℝ) ∈ dyadicRationals := by
+  obtain ⟨k, n, rfl⟩ := hx
+  refine ⟨k + j * 2 ^ n, n, ?_⟩
+  rw [zpow_neg, zpow_natCast]
+  push_cast
+  field_simp
+
+/-- Dyadic rationals are closed under subtracting an integer. -/
+lemma sub_intCast_mem_dyadicRationals {x : ℝ} (hx : x ∈ dyadicRationals) (j : ℤ) :
+    x - (j : ℝ) ∈ dyadicRationals := by
+  have := add_intCast_mem_dyadicRationals hx (-j)
+  simpa [sub_eq_add_neg] using this
+
 /-- For every `t : ℝ`, there is a sequence of dyadic rationals strictly
 increasing to `t`. Wrapper around `Dense.exists_seq_strictMono_tendsto` +
 `dense_dyadicRationals`. -/
@@ -743,6 +758,43 @@ lemma kc_ae_increment_bound
   have hb := hωn k.toNat hk'mem
   rw [hcast] at hb
   exact hb
+
+/-- **Per-interval a.s. Hölder.** For `αp < q − 1`, almost every path is
+α-Hölder (at small scales) on the dyadics of every unit interval `[j, j+1]`.
+Obtained by transporting `dyadic_holder_chaining` (on `[0,1]`) to `[j,j+1]` via
+the time-shifted process `X(·+j)` (translation-invariant Kolmogorov condition),
+intersected over the countable family `j : ℤ`. -/
+lemma kc_ae_interval_holder
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    {α : ℝ} (hα0 : 0 < α) (hαpq : α * p < q - 1) :
+    ∀ᵐ ω ∂P, ∀ j : ℤ, ∃ (K : ℝ) (N : ℕ), 0 ≤ K ∧
+      ∀ s ∈ dyadicRationals, ∀ t ∈ dyadicRationals,
+        (j : ℝ) ≤ s → s ≤ (j : ℝ) + 1 → (j : ℝ) ≤ t → t ≤ (j : ℝ) + 1 →
+        |s - t| ≤ (1 / 2 : ℝ) ^ N → |X s ω - X t ω| ≤ K * |s - t| ^ α := by
+  rw [MeasureTheory.ae_all_iff]
+  intro j
+  have hXj : ProbabilityTheory.IsKolmogorovProcess (fun s ω => X (s + (j : ℝ)) ω) P p q M :=
+    isKolmogorovProcess_comp_add_right X hX j
+  filter_upwards [kc_ae_increment_bound P (fun s ω => X (s + (j : ℝ)) ω) hXj hαpq] with ω hω
+  obtain ⟨N, hN⟩ := hω
+  obtain ⟨K, hK0, hKbound⟩ :=
+    dyadic_holder_chaining (f := fun u => X (u + (j : ℝ)) ω) (α := α) (C := 1) (N := N)
+      hα0 (by norm_num) (fun n hn k hk0 hk1 => by
+        rw [one_mul]
+        simp only [Int.cast_add, Int.cast_one]
+        exact hN n hn k hk0 hk1)
+  refine ⟨K, N, hK0, fun s hs t ht hjs hsj1 hjt htj1 hst => ?_⟩
+  have hu : s - (j : ℝ) ∈ dyadicRationals := sub_intCast_mem_dyadicRationals hs j
+  have hv : t - (j : ℝ) ∈ dyadicRationals := sub_intCast_mem_dyadicRationals ht j
+  have hKb := hKbound (s - (j : ℝ)) hu (t - (j : ℝ)) hv (by linarith) (by linarith)
+    (by linarith) (by linarith)
+    (by rw [show s - (j : ℝ) - (t - (j : ℝ)) = s - t from by ring]; exact hst)
+  rw [show s - (j : ℝ) + (j : ℝ) = s from by ring,
+      show t - (j : ℝ) + (j : ℝ) = t from by ring,
+      show s - (j : ℝ) - (t - (j : ℝ)) = s - t from by ring] at hKb
+  exact hKb
 
 /-- **Step 3: extended process equals X a.s. at each t.**
 
