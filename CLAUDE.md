@@ -39,8 +39,10 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 ```
 
 - **Import contract** (`tools/import_contract.md`): 12 modules + 21 symbols under
-  `LevyStochCalc.*` must keep resolving; move/rename only behind a forwarding
-  stub. Don't rename public symbols or the top-level namespace in-tree.
+  `LevyStochCalc.*` must keep resolving from their pinned path. On in-tree
+  splits, keep pinned symbols in the module of record (no forwarding stubs); a
+  deliberate relocation updates the dissertation's import. Don't rename public
+  symbols or the top-level namespace in-tree.
 - **Mathlib gates** (for upstreamable code): 3 standard axioms only, no `sorry`,
   ≤100 cols, no `import Mathlib`, math-only docstrings. Disclose AI use + add the
   `LLM-generated` label on every mathlib PR.

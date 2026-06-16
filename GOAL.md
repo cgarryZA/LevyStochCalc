@@ -75,8 +75,9 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
 
 ### E. Dissertation never regresses (see §3 for priority)
 - [ ] `tools/verify_import_contract.sh` passes; the dissertation at
-      `D:/Dissertation` builds against this repo unmodified (forwarding stubs at
-      old paths whenever something moves/renames).
+      `D:/Dissertation` builds against this repo. Pinned symbols keep resolving
+      from their pinned path (kept in place on in-tree splits — no forwarding
+      stubs); a deliberate relocation updates the dissertation's import instead.
 
 ### F. Upstreamed
 - [ ] Every *closed, general* result is either merged into mathlib or has an open

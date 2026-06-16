@@ -27,10 +27,12 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
   baseline ✅ · `bash tools/verify_import_contract.sh` ✅ · dissertation
   (`D:/Dissertation`) `lake build` ✅. If any go red, the step isn't done.
 - **Never break the import contract** (`tools/import_contract.md`): 12 pinned
-  modules + 21 pinned symbols under `LevyStochCalc.*`. Rename/move only behind a
-  forwarding stub at the old path. Do **not** rename public symbols or the
+  modules + 21 pinned symbols under `LevyStochCalc.*` must keep resolving from
+  their pinned path. When splitting a file for size, keep the pinned symbols in
+  the module of record and move the non-pinned content into sub-modules it
+  imports — **no forwarding stubs**. Do **not** rename public symbols or the
   top-level namespace in-tree — that is PR-prep, done per-result at extraction
-  time (Phase 4), not during in-tree refactor.
+  time (Phase 4), where the fix is to update the dissertation's import, not stub.
 - **Ponytail (look for a reason *not* to write code):** git history is the
   archive — never keep dated copies in-tree. One mathematical idea per file.
   Don't split/refactor a file speculatively; do it when extraction or size
@@ -79,8 +81,12 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       `PicardSpace.lean` (complete metric space + baseline sorry), `PicardFixedPoint.lean`
       (Banach existence/uniqueness). Bodies/namespaces/sorry/axiom preserved verbatim;
       root imports 10→3; four-way invariant green.)*
-- [ ] **1.2** Split the 3 oversized files along mathematical seams, each with a
-      forwarding aggregator at the old path so pinned imports still resolve:
+- [ ] **1.2** Split the 3 oversized files along mathematical seams. No
+      forwarding stubs: `Brownian/Ito` and `SimplePredictableRefine` are not
+      pinned, so split and fix the in-tree imports; `Poisson/Compensated` is
+      pinned, so keep its pinned symbols (`stochasticIntegral`,
+      `itoIsometry_compensated_unified_existence`) in the module of record and
+      move the non-pinned content into sub-modules it imports.
       - `Brownian/Ito.lean` (3999) → simple-integrand integral / isometry
         extension / martingale & quadratic variation.
       - `Poisson/Compensated.lean` (2102) → integral construction / isometry /
@@ -156,8 +162,8 @@ For each *closed, general* result, in this order of mathlib-readiness:
 - [ ] **Per-PR checklist:** re-home to `ProbabilityTheory` + `Mathlib/Probability/
       <Area>/...`; precise imports; ≤100 cols; jargon-free docstrings; register in
       `Mathlib.lean`; `#print axioms` shows only the 3 standard; **AI disclosure +
-      `LLM-generated` label**; leave a forwarding stub here so the dissertation
-      keeps building against the old `LevyStochCalc.*` path.
+      `LLM-generated` label**; update the dissertation's import to the new mathlib
+      path (no forwarding stub left behind here).
 
 ## Phase 5 — Definition of done (steady state)
 
@@ -166,8 +172,8 @@ faithfulness criteria a "zero sorry" pass misses — lives in [`GOAL.md`](GOAL.m
 §1. This phase is complete exactly when every `GOAL.md` §1 box is
 checkable-true. In brief: zero `sorry`/custom-axiom (`#print axioms` →
 `propext`/`Classical.choice`/`Quot.sound` only), no vacuity (`GOAL.md` §2),
-mathlib-grade form, dissertation builds via stubs, CI green, general results
-merged or PR-open.
+mathlib-grade form, dissertation builds (pinned symbols resolve from their
+pinned path, no stubs), CI green, general results merged or PR-open.
 
 When this phase is reached but `GOAL.md` is not yet fully met, regenerate this
 `Plan.md` per the loop contract at the top of `GOAL.md`.
