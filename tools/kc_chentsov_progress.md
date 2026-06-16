@@ -83,9 +83,36 @@ done. What remains is the *probabilistic* supply of the increment bound
     `∃ K ≥ 0, ∀ s,t ∈ dyadics∩[0,1], |s−t| ≤ 2^{−N} → |f s − f t| ≤ K·|s−t|^α`.
     *(DONE — this is KS 2.2.8's chaining, fully formalized.)*
 
-So the remaining gap is now purely: **(i) supply the increment hypothesis of
-`dyadic_holder_chaining` a.s. via Borel–Cantelli; (ii) extend (scale-limited)
-to a continuous `Y` and apply `kolmogorov_modification_ae_eq`; (iii) patch ℝ.**
+**Probabilistic supply (Borel–Cantelli) — NEW this session, all sorry-free:**
+
+12. `kc_exponent_identity` — real exponent collapse
+    `2^n·((1/2)^n)^q/((1/2)^α)^n)^p = ((1/2)^{q−αp−1})^n`. *(DONE)*
+13. `kolmogorov_real_tail_bound` — real-threshold tail bound (item 3). *(DONE)*
+14. **`kc_level_bad_measure`** (Lemma A) — `P(⋃_{k<2^n} {rⁿ < |incrₙₖ|}) ≤
+    ofReal((M:ℝ)·ρⁿ)`, `ρ = (1/2)^{q−αp−1}`. *(DONE)*
+15. **`kc_ae_increment_bound`** (Lemma B) — for `αp < q−1`: a.e. `ω`,
+    `∃ N, ∀ n ≥ N, ∀ k:ℤ, 0≤k, k+1≤2ⁿ, |X((k+1)/2ⁿ)ω − X(k/2ⁿ)ω| ≤ ((1/2)^α)ⁿ`.
+    Via summable `∑ ofReal(M·ρⁿ)` (`ρ<1`) ⇒ `measure_limsup_atTop_eq_zero` ⇒
+    `mem_limsup_iff_frequently_mem`/`eventually_atTop`, then ℤ↔ℕ index bridge.
+    *(DONE — this is exactly the hypothesis `dyadic_holder_chaining` consumes.)*
+
+So **everything except the final topological assembly is done.** Remaining:
+**(i)** a bounded-interval continuous-extension lemma (D dense in `[0,1]`,
+scale-limited Hölder ⇒ continuous on `[0,1]`), since `dyadic_holder_chaining`
+gives Hölder only for `s,t ∈ [0,1]` (the existing `holder_dense_extends_continuous`
+extends from `D` dense in ALL of ℝ, which our `[0,1]`-localized bound does not
+give); **(ii)** assemble on `[0,1]`: from `kc_ae_increment_bound` +
+`dyadic_holder_chaining` + (i), build `Y` continuous on `[0,1]`, agreeing with `X`
+on dyadics a.s., then `kolmogorov_modification_ae_eq` ⇒ `Y =ᵐ X` on `[0,1]`;
+**(iii)** patch ℝ: the Kolmogorov condition is translation-invariant
+(`edist (s+j) (t+j) = edist s t`), so apply the `[0,1]` construction to `X(·+j)`
+for each `j:ℤ`, giving modifications on each `[j,j+1]`; glue (they agree at integer
+endpoints a.s.) into a global continuous `Y` via a `ContinuousOn`-cover argument.
+Steps (i)+(ii)+(iii) are the only remaining work; everything they call is proven.
+
+  ⚠ Alternative to (iii)'s gluing: `IsDenseInducing.continuous_extend` — define
+  `Y t ω := lim_{dyadic s→t} X s ω`; local Hölder gives the limit at each `t`,
+  yielding a global continuous extension without explicit interval gluing.
 
 ## The missing middle third — proof plan (Karatzas–Shreve 2.2.8 / Le Gall 2.9)
 
@@ -95,7 +122,7 @@ countable union of unit intervals (see "Patching" below).
 Fix `α` with `0 < α < (q - 1) / p` (exists since `q > 1, p > 0`). Then
 `q - α·p > 1`, i.e. the exponent below is `< 0`.
 
-**Lemma A (per-level bound).** For level `n`, let
+**Lemma A (per-level bound).** ✅ DONE (`kc_level_bad_measure`). Original plan: for level `n`, let
 `A n := {ω | ∃ k : Fin (2^n), 2^(-α n) ≤ edist (X (k/2^n) ω) (X ((k+1)/2^n) ω)}`
 (consecutive dyadic increments at resolution `2^n` inside `[0,1]`). Then
 
@@ -106,7 +133,7 @@ bounded by `kolmogorov_markov_bound (k/2^n) ((k+1)/2^n) …` with
 `edist (k/2^n) ((k+1)/2^n) = ENNReal.ofReal (2^(-n))` and `lam = 2^(-αn)`. Note
 `edist` on ℝ is `ofReal |·|`; the dyadic gap is `2^(-n)`.
 
-**Lemma B (Borel–Cantelli).** `∑_n P (A n) < ∞` because `1 - q + αp < 0`
+**Lemma B (Borel–Cantelli).** ✅ DONE (`kc_ae_increment_bound`). Original plan: `∑_n P (A n) < ∞` because `1 - q + αp < 0`
 (geometric series, `ENNReal.summable_geometric` / `tsum` of `r^n` with `r < 1`;
 the constant `M` factors out). Hence by Borel–Cantelli (mathlib:
 `MeasureTheory.measure_limsup_atTop_eq_zero` for a summable family, or
