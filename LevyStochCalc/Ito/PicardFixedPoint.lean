@@ -69,7 +69,7 @@ theorem picardFixedPoint_generic
 `picardFixedPoint_generic` to the SBoundedProcess setting required by
 the jump-diffusion SDE Picard iteration.
 
-**TYPECLASS-PLACEHOLDER NOTICE (red-team 3rd-audit HIGH #1, 2026-05-27):**
+**Typeclass-placeholder notice:**
 when invoked with the *default* `MetricSpace` / `CompleteSpace` instances
 on `SBoundedProcess P T` (the discrete-metric instances installed in
 `PicardSpace.lean`), this theorem is **typeclass-trivial**: a contraction
@@ -190,26 +190,14 @@ diffusion SDEs with Lipschitz coefficients); Ikeda-Watanabe, *Stochastic
 Differential Equations and Diffusion Processes*, North-Holland 1989,
 Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
 
-**2026-05-26 conversion `axiom → theorem` (COMPLETED)**: previously
-introduced as a Tier 1 cited axiom on 2026-05-23 during the
-`theorem → axiom` refactor of `picardFixedPoint_jumpDiffusion_exists_unique`.
-With the Bielecki AE-quotient infrastructure now in place
-(`PicardSpace.lean` + `PicardSpace.lean`), the
-axiom is converted to a 1-line forwarding theorem over the wrap-up
-theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
-`PicardSpace.lean`. The wrap-up theorem carries a SINGLE
-explicit `sorry` collecting the entire Picard chain (six steps;
-documented in the wrap-up's module docstring) — the analytical content
-is exactly the Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9),
-now broken out as a real Lean theorem rather than a black-box `axiom`.
-
-The downstream forwarder
-`picardFixedPoint_jumpDiffusion_exists_unique` (and through it the
-headline `JumpDiffusion.exists_unique`) is unaffected — the only change
-is that `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a
-real theorem with a sorry body (sorry tracked in
-`tools/sorry_baseline.txt` via the wrap-up theorem name), not a
-free-standing axiom.
+This forwards through the wrap-up theorem
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpace.lean`,
+which carries the single baseline `sorry` collecting the entire Picard chain
+(six steps; see that file's module docstring). The analytical content is the
+Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9). The downstream
+forwarders `picardFixedPoint_jumpDiffusion_exists_unique` and the headline
+`JumpDiffusion.exists_unique` consume this; the `sorry` is tracked in
+`tools/sorry_baseline.txt` via the wrap-up theorem name.
 
 **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
 ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
@@ -220,12 +208,10 @@ every `t ≥ 0` (the literature uniqueness conclusion). No trivial
 constant-path witness satisfies this for generic non-zero coefficients:
 `X t ω = x₀` fails `is_solution` because the integrals don't vanish.
 
-**Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
-pairwise a.s. agreement is asserted on the SDE time domain `t ≥ 0`
-only — matching the literature scope (Applebaum 6.2.9 / Ikeda-Watanabe IV
-work on `[0, ∞)`; the SDE integral equation in `JumpDiffusion.is_solution`
-itself is quantified over `t ≥ 0`). The previous over-strong `∀ t : ℝ`
-form had no literature backing for negative `t`. -/
+**Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
+domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
+Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
+`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`). -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     {Ω : Type u} [MeasurableSpace Ω]
     {E : Type v} [MeasurableSpace E]

@@ -57,13 +57,13 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
 - [ ] **0.3** Strip in-source narrative comments project-wide: `P1 F2
       INVESTIGATION`, `red-team Nth audit`, milestone tags, `D:/...` paths, dated
       change-logs. Move any still-useful rationale into the decl docstring as math.
-      *(in progress 2026-06-16: `BSDEJ/Definition.lean` and `Poisson/Compensated.lean`
-      done — docstrings/comments rewritten to math-only, two deleted-code tombstone
-      blocks (~40 lines) removed from Compensated. Remaining: Ito/JumpFormula,
-      Brownian/Ito, BSDEJ/{Existence,PathRegularity,MartingaleRepresentation},
-      Ito/Setting, Brownian/{SimplePredictableRefine,Construction,Multidim,
-      Continuity,Martingale}, Poisson/RandomMeasure, Ito/{Picard,PicardSpace,
-      PicardFixedPoint}, Basic.)*
+      *(in progress 2026-06-16: done — `BSDEJ/Definition`, `Poisson/Compensated`
+      (incl. removing two ~40-line deleted-code tombstones), `Brownian/Martingale`,
+      `Ito/Picard`, `Brownian/Continuity` (tombstone removed), `Basic`,
+      `Ito/PicardSpace`, `Brownian/Multidim`, `Ito/PicardFixedPoint`. Remaining:
+      Ito/JumpFormula, Brownian/Ito, BSDEJ/{Existence,PathRegularity,
+      MartingaleRepresentation}, Ito/Setting, Brownian/SimplePredictableRefine,
+      Poisson/RandomMeasure, Brownian/Construction.)*
 - [ ] **0.4** Confirm the four-way green invariant is reproducible from a clean
       clone *before* refactoring. This is the regression guard for all of Phase 1.
 

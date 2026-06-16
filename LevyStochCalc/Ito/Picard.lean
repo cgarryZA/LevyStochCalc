@@ -1435,16 +1435,10 @@ This is the operator-level per-component bound that, when summed over
 `i ∈ Fin n` and combined with the Bielecki time-weight, yields the
 γ-Lipschitz term in the Bielecki β-norm contraction estimate.
 
-**Proof**: forwards directly through the per-difference L²-isometry
-axiom `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated`
-(Tier 1 #18), then applies the γ-Lipschitz hypothesis pointwise and
-extracts the constant via `lintegral_const_mul`.
-
-**2026-05-23 refactor**: previously took a bundled linearity hypothesis
-`h_lin` plus `hDiff_meas`/`hDiff_progMeas`/`hDiff_sq` measurability /
-integrability hypotheses for the difference integrand (four extra
-preconditions). Replaced with a forward through Tier 1 axiom #18; the
-four hypotheses are gone. -/
+**Proof**: forwards through the per-difference L²-isometry axiom
+`LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (cited axiom
+#18), then applies the γ-Lipschitz hypothesis pointwise and extracts the
+constant via `lintegral_const_mul`. -/
 lemma picardStep_jump_diff_lipschitz_sq_componentwise
     {n d : ℕ}
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]

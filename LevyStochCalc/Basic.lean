@@ -3,36 +3,19 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
--- P1 F2 INVESTIGATION (red-team 2nd audit 2026-05-23): narrowing
--- attempted in worktree; the 5 lemmas in this file use only ~5 specific
--- Mathlib submodules (LpSeminorm, LpSpace, Integral.Prod, Pow.NNReal,
--- MonotoneContinuity), BUT downstream files (Brownian/Construction.lean,
--- Brownian/Continuity.lean, Poisson/RandomMeasure.lean, ...) transitively
--- depend on the umbrella `import Mathlib` to pull in
--- `ProbabilityTheory.gaussianReal`, `IndepFun`, `Indep`, `Kernel`,
--- `Adapted`, `Filtration`, `Martingale`, and ~10 more namespaces. Adding
--- these specific submodule imports breaks elaboration on
--- `Brownian/Continuity.lean:648` (a Kolmogorov continuity proof that
--- relies on transitively-imported lemmas not exposed by the narrow set).
---
--- Genuine narrowing requires touching every downstream file (move the
--- ProbabilityTheory imports out of Basic and into the consumer files),
--- a multi-file refactor with risk of breaking the Kolmogorov continuity
--- proof. Tracked as MATHLIB-PR PREP: when this library is prepared for
--- Mathlib submission, the narrowing is mandatory; in the meantime the
--- umbrella import is retained as the pragmatic "common imports" module
--- per Mathlib's `Mathlib/Tactic.lean` precedent (which is itself a bare
--- `import Mathlib` aggregator). P1 F2 acknowledged but deferred.
+-- The `import Mathlib` umbrella is provisional: the helper lemmas below need
+-- only a handful of `MeasureTheory` submodules, but several downstream files
+-- rely on this module to pull in the wider probability API. Narrowing to
+-- precise imports (pushing the `ProbabilityTheory.*` imports down into the
+-- consumer files) is deferred to the structural-refactor phase.
 import Mathlib
 
 /-!
 # LevyStochCalc.Basic
 
-Project-wide imports and milestone-tagging primitive.
-
-A `levyStochCalc_milestone` attribute (analogous to the main dissertation's
-`dissertation_axiom`) will be added when the first headline theorem of a
-layer is proved CLEAN; until then there is nothing to register.
+Common imports plus small L² helper lemmas shared across the library:
+`eLpNorm` reverse-triangle / difference bounds and L²-continuity (Bochner-L²
+limit) lemmas in the plain, Brownian, and compensated-Poisson integrand shapes.
 -/
 
 open MeasureTheory

@@ -28,16 +28,6 @@ universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
 
--- 2026-05-22 (deleted): `kolmogorov_dyadic_holder` was a `True := trivial`
--- placeholder for the dyadic Hölder bound (KC modification Step 1). Never
--- referenced outside its declaration site and contributed nothing to the
--- audit beyond a substantive docstring with vacuous body — exactly the
--- trivial-witness pattern Rule 0 forbids. The KC modification theorem is
--- delivered via the cited axiom `kolmogorovChentsov_modification` (Tier 1
--- #3); the dyadic-Hölder intermediate step (Markov + Borel-Cantelli) is
--- subsumed by the axiom and tracked in `tools/cited_axioms.md`.
--- Removed per red-team finding M1.
-
 /-- **Step 2: uniform Hölder on a dense set → continuous extension.**
 
 A function `f : ℝ → ℝ` that is α-Hölder on a dense set `D ⊆ ℝ` extends

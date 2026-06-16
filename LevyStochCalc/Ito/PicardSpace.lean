@@ -96,7 +96,7 @@ noncomputable instance instNonemptySBoundedProcess
 
 /-! ### MetricSpace: discrete metric for typeclass satisfaction.
 
-**TYPECLASS-PLACEHOLDER NOTICE (red-team 3rd-audit HIGH #1):** the metric
+**Typeclass-placeholder notice:** the metric
 installed in this section is the *discrete metric* on `SBoundedProcess`:
 `dist X Y = 0 if X = Y, else 1`. This satisfies all `MetricSpace` axioms
 mechanically but carries **NO substantive analytical content**: it makes
@@ -905,12 +905,10 @@ every `t ≥ 0`. No trivial constant-path witness satisfies this for
 generic non-zero coefficients: `X t ω = x₀` fails `is_solution` because
 the integrals don't vanish.
 
-**Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
-pairwise a.s. agreement is asserted on the SDE time domain `t ≥ 0`
-only — matching the literature scope (Applebaum 6.2.9 / Ikeda-Watanabe IV
-work on `[0, ∞)`; the SDE integral equation in `JumpDiffusion.is_solution`
-itself is quantified over `t ≥ 0`). The previous over-strong `∀ t : ℝ`
-form had no literature backing for negative `t`. -/
+**Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
+domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
+Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
+`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`). -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

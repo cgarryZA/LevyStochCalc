@@ -50,7 +50,7 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   components_independent :
     ProbabilityTheory.iIndepFun
       (fun (i : Fin d) (ω : Ω) (t : ℝ) => (W i).W t ω) P
-  /-- **P7 F11 fix (red-team 2nd audit, 2026-05-23)**: the joint d-dim
+  /-- The joint d-dim
   path `t ↦ (W i ω t)_{i ∈ Fin d}` is continuous a.s. P. Follows from
   the component-wise `continuous_paths` + the finite-intersection-of-
   a.s.-sets being a.s., plus `continuous_pi_iff`: a `Fin d → ℝ`-valued
@@ -270,7 +270,7 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
     (μ := fun _ : Fin d => P₀) h_meas_W₀
   convert this using 1
 
-/-- **P4 F7 — joint increment Gaussianity with diagonal covariance (PROVEN).**
+/-- **Joint increment Gaussianity with diagonal covariance.**
 
 For a multidim Brownian motion `W`, the joint vector of component increments
 `(ω ↦ fun i => (W i).W t ω − (W i).W s ω) : Ω → (Fin d → ℝ)` has joint
@@ -281,9 +281,7 @@ distribution that satisfies BOTH:
 * mutual independence across `i ∈ Fin d`.
 
 This is the multivariate-Gaussian-with-diagonal-covariance `(t − s) · I_d`
-in spelled-out form (per Karatzas-Shreve §2.5 / Le Gall Def 2.12). The
-previous P4 F7 closure was a docstring-only "derivable from existing
-fields" comment; this lemma is the actual derivation. -/
+in spelled-out form (per Karatzas-Shreve §2.5 / Le Gall Def 2.12). -/
 theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
     {Ω : Type u} [MeasurableSpace Ω]
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]

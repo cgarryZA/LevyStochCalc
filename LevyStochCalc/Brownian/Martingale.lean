@@ -902,10 +902,8 @@ property of `W` w.r.t. the natural filtration (already proven as
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, Theorem 2.7.7 (Blumenthal 0-1 law) + Theorem 2.7.9 (continuity
 of the augmented filtration); Le Gall, J.-F. *Brownian Motion, Martingales and
-Stochastic Calculus*, Springer 2016, Theorem 2.13 (correcting the previous
-"Proposition 2.10" citation — Le Gall 2016 p. 25 "Lemma 2.10" is a deterministic
-real-analysis Hölder lemma; Blumenthal 0-1 for Brownian motion is at Le Gall
-p. 30 Theorem 2.13; see red-team finding H7 / P11).
+Stochastic Calculus*, Springer 2016, Theorem 2.13 (Blumenthal 0-1 law for
+Brownian motion, p. 30).
 
 **Replacement plan**: when Mathlib gains Blumenthal's 0-1 law for Brownian motion
 (or the equivalent right-continuity theorem for the augmented filtration),
