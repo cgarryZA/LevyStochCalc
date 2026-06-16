@@ -619,6 +619,24 @@ lemma kc_level_bad_measure
           / (((1 / 2 : ℝ) ^ α) ^ n) ^ p) from by ring,
       kc_exponent_identity]
 
+/-- **Translation invariance of the Kolmogorov condition.** If `X` satisfies
+the Kolmogorov condition, so does the time-shifted process `s ↦ X (s + a)`
+(the bound depends only on `edist s t = edist (s+a) (t+a)`). Used to transport
+the `[0,1]` construction to every interval `[j, j+1]`. -/
+lemma isKolmogorovProcess_comp_add_right
+    {P : Measure Ω} (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M) (a : ℝ) :
+    ProbabilityTheory.IsKolmogorovProcess (fun s ω => X (s + a) ω) P p q M where
+  measurablePair s t := hX.measurablePair (s + a) (t + a)
+  kolmogorovCondition s t := by
+    have he : edist s t = edist (s + a) (t + a) := by
+      rw [edist_dist, edist_dist, Real.dist_eq, Real.dist_eq,
+          show (s + a) - (t + a) = s - t from by ring]
+    rw [he]
+    exact hX.kolmogorovCondition (s + a) (t + a)
+  p_pos := hX.p_pos
+  q_pos := hX.q_pos
+
 /-- **Lemma B: a.s. dyadic increment bound (Borel–Cantelli).** When
 `α·p < q − 1`, almost every path has, for some level `N`, all consecutive
 level-`n` dyadic increments in `[0,1]` bounded by `((1/2)^α)^n` for every
