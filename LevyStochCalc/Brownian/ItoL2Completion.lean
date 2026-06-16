@@ -1776,6 +1776,23 @@ lemma integral_sq_increment_eq_of_martingale
         rw [e1, e2, e3]
     _ = (∫ ω, (M t ω) ^ 2 ∂P) - ∫ ω, (M s ω) ^ 2 ∂P := by rw [h_cross]; ring
 
+/-- **Monotonicity of the second moment of an L² martingale.** Immediate from the
+orthogonal-increment identity: `𝔼[(M t)²] − 𝔼[(M s)²] = 𝔼[(M t − M s)²] ≥ 0`. This
+gives the `L²`-Cauchy property at every intermediate time `t ≤ T` from the
+endpoint (`T`) `L²`-bound, since `M t − M' t` is itself a martingale. -/
+lemma integral_sq_mono_of_martingale
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    {M : ℝ → Ω → ℝ}
+    (hmart : MeasureTheory.Martingale M ℱ P)
+    (hL2 : ∀ u : ℝ, MeasureTheory.MemLp (M u) 2 P)
+    {s t : ℝ} (hst : s ≤ t) :
+    ∫ ω, (M s ω) ^ 2 ∂P ≤ ∫ ω, (M t ω) ^ 2 ∂P := by
+  have h := integral_sq_increment_eq_of_martingale hmart hL2 hst
+  have h_nn : 0 ≤ ∫ ω, (M t ω - M s ω) ^ 2 ∂P :=
+    integral_nonneg (fun ω => sq_nonneg _)
+  linarith [h, h_nn]
+
 /-- **Right-continuous martingale lift.** An `ℱ`-martingale `F` on `ℝ` whose
 time-slices are right-`L¹`-continuous — `eLpNorm (F r - F s) 1 P → 0` as `r ↓ s` —
 is automatically a martingale wrt the right-continuous filtration `ℱ₊`.
