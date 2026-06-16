@@ -2048,6 +2048,17 @@ lemma exists_adaptedSimple_within
   obtain ⟨m, hm⟩ := hev.exists
   exact ⟨Hn m, h_adapt m, hm⟩
 
+/-- `eLpNorm g 2 μ ^ (2:ℝ) = ∫⁻ ‖g‖₊² ∂μ`. -/
+lemma eLpNorm_two_rpow_eq_lintegral_sq {μ : MeasureTheory.Measure Ω} (g : Ω → ℝ) :
+    MeasureTheory.eLpNorm g 2 μ ^ (2 : ℝ) = ∫⁻ ω, (‖g ω‖₊ : ℝ≥0∞) ^ 2 ∂μ := by
+  have h := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (p := (2 : NNReal))
+    (f := g) (by norm_num)
+  rw [show ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) from by simp,
+      show ((2 : NNReal) : ℝ) = (2 : ℝ) from by norm_num] at h
+  rw [h]
+  refine lintegral_congr (fun ω => ?_)
+  rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+
 section MasterSequence
 
 variable
@@ -2227,6 +2238,97 @@ lemma masterApprox_cauchy_le (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
         rw [MeasureTheory.lintegral_congr h_inner,
             MeasureTheory.lintegral_const_mul' 2 _ (by norm_num),
             MeasureTheory.lintegral_add_left' hA_outer.aemeasurable]
+
+/-- The master integral `simpleIntegral W (masterApprox n) t` lifted to `Lp ℝ 2 P`
+(for `0 ≤ t ≤ n+1`; `0` otherwise). The Itô integral process is its `L²`-limit. -/
+noncomputable def masterLp (t : ℝ) (n : ℕ) : MeasureTheory.Lp ℝ 2 P :=
+  if h : 0 ≤ t ∧ t ≤ (n : ℝ) + 1 then
+    (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos n)
+      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) h.1 h.2).toLp
+  else 0
+
+lemma masterLp_coeFn {t : ℝ} (n : ℕ) (ht_nn : 0 ≤ t) (htn : t ≤ (n : ℝ) + 1) :
+    (masterLp W H h_meas h_progMeas h_sq_int_global t n : Ω → ℝ)
+      =ᵐ[P] fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω := by
+  rw [masterLp, dif_pos ⟨ht_nn, htn⟩]
+  exact MeasureTheory.MemLp.coeFn_toLp _
+
+/-- The Itô-integral process is `L²`-Cauchy at each time `t ≥ 0`. -/
+lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
+    CauchySeq (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) := by
+  rw [EMetric.cauchySeq_iff]
+  intro ε hε
+  by_cases hε_top : ε = ⊤
+  · refine ⟨⌈t⌉₊, fun m hm n hn => ?_⟩
+    rw [hε_top]; exact lt_top_iff_ne_top.mpr (edist_ne_top _ _)
+  · set δ : ℝ≥0∞ := ε ^ (2 : ℝ) / 4 with hδ
+    have hε2_ne_top : ε ^ (2 : ℝ) ≠ ⊤ := by
+      simp [ENNReal.rpow_eq_top_iff, hε_top]
+    have hδ_pos : 0 < δ := by
+      rw [hδ]; exact ENNReal.div_pos (ENNReal.rpow_pos hε hε_top).ne' (by norm_num)
+    have htend := masterApprox_eval_tendsto W H h_meas h_progMeas h_sq_int_global ht_nn
+    have hev : ∀ᶠ k in Filter.atTop,
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global k).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P < δ := htend (Iio_mem_nhds hδ_pos)
+    rw [Filter.eventually_atTop] at hev
+    obtain ⟨N0, hN0⟩ := hev
+    refine ⟨max N0 ⌈t⌉₊, fun m hm n hn => ?_⟩
+    have hmt : t ≤ (m : ℝ) + 1 := by
+      have : (⌈t⌉₊ : ℝ) ≤ (m : ℝ) := by exact_mod_cast (le_max_right N0 ⌈t⌉₊).trans hm
+      have := Nat.le_ceil t; linarith
+    have hnt : t ≤ (n : ℝ) + 1 := by
+      have : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast (le_max_right N0 ⌈t⌉₊).trans hn
+      have := Nat.le_ceil t; linarith
+    have hmN0 : N0 ≤ m := (le_max_left N0 ⌈t⌉₊).trans hm
+    have hnN0 : N0 ≤ n := (le_max_left N0 ⌈t⌉₊).trans hn
+    -- edist = eLpNorm of the integral difference
+    have em : masterLp W H h_meas h_progMeas h_sq_int_global t m
+        = (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos m)
+            (masterApprox W H h_meas h_progMeas h_sq_int_global m)
+            (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global m) ht_nn hmt).toLp := by
+      rw [masterLp]; exact dif_pos ⟨ht_nn, hmt⟩
+    have en : masterLp W H h_meas h_progMeas h_sq_int_global t n
+        = (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos n)
+            (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+            (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) ht_nn hnt).toLp := by
+      rw [masterLp]; exact dif_pos ⟨ht_nn, hnt⟩
+    have h_edist : edist (masterLp W H h_meas h_progMeas h_sq_int_global t m)
+          (masterLp W H h_meas h_progMeas h_sq_int_global t n)
+        = MeasureTheory.eLpNorm
+            (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω
+              - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) 2 P := by
+      rw [em, en]
+      exact MeasureTheory.Lp.edist_toLp_toLp _ _ _ _
+    rw [h_edist]
+    -- eLpNorm² < ε²  ⇒  eLpNorm < ε
+    have h_sq_lt : MeasureTheory.eLpNorm
+        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω
+          - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) 2 P
+          ^ (2 : ℝ) < ε ^ (2 : ℝ) := by
+      rw [eLpNorm_two_rpow_eq_lintegral_sq]
+      refine lt_of_le_of_lt
+        (masterApprox_cauchy_le W H h_meas h_progMeas h_sq_int_global m n ht_nn) ?_
+      have hsum : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              ∂volume ∂P < δ + δ :=
+        ENNReal.add_lt_add (hN0 m hmN0) (hN0 n hnN0)
+      calc 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+                (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+                  ∂volume ∂P)
+              + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+                (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+                  ∂volume ∂P)
+          < 2 * (δ + δ) := by gcongr <;> first | exact hsum | simp
+        _ = ε ^ (2 : ℝ) := by
+            have h4 : (2 : ℝ≥0∞) * (δ + δ) = 4 * δ := by ring
+            rw [h4, hδ, ENNReal.mul_div_cancel (show (4 : ℝ≥0∞) ≠ 0 by norm_num)
+              (show (4 : ℝ≥0∞) ≠ ⊤ by simp)]
+    exact (ENNReal.rpow_lt_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp h_sq_lt
 
 end MasterSequence
 
