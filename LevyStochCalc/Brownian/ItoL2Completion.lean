@@ -1724,6 +1724,58 @@ lemma tendsto_eLpNorm_one_sq_sub
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds htend_bound
     (fun _ => bot_le) hbound
 
+/-- **Orthogonal-increment identity for L² martingales.** For an `ℱ`-martingale
+`M` on `ℝ` with square-integrable time-slices, the increment from `s` to `t ≥ s`
+is `L²`-orthogonal to `M s`, giving the Pythagoras identity
+`𝔼[(M t − M s)²] = 𝔼[(M t)²] − 𝔼[(M s)²]`. Cross term: `M s` is `ℱ s`-measurable,
+so `𝔼[M s · M t] = 𝔼[M s · 𝔼[M t | ℱ s]] = 𝔼[(M s)²]` by the pull-out property and
+the martingale identity. This underlies the increment isometry of the L² Itô
+integral and the right-`L²`-continuity of its time-slices. -/
+lemma integral_sq_increment_eq_of_martingale
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    {M : ℝ → Ω → ℝ}
+    (hmart : MeasureTheory.Martingale M ℱ P)
+    (hL2 : ∀ u : ℝ, MeasureTheory.MemLp (M u) 2 P)
+    {s t : ℝ} (hst : s ≤ t) :
+    ∫ ω, (M t ω - M s ω) ^ 2 ∂P
+      = (∫ ω, (M t ω) ^ 2 ∂P) - ∫ ω, (M s ω) ^ 2 ∂P := by
+  have hm : ℱ s ≤ ‹MeasurableSpace Ω› := ℱ.le s
+  have hcr : MeasureTheory.Integrable (fun ω => M s ω * M t ω) P :=
+    (hL2 s).integrable_mul (hL2 t)
+  -- cross term: `∫ M s · M t = ∫ (M s)²` via pull-out + martingale identity.
+  have h_cross : ∫ ω, M s ω * M t ω ∂P = ∫ ω, (M s ω) ^ 2 ∂P := by
+    have h_pull : P[(fun ω => M s ω * M t ω) | ℱ s]
+        =ᵐ[P] fun ω => M s ω * P[M t | ℱ s] ω := by
+      have := MeasureTheory.condExp_mul_of_stronglyMeasurable_left
+        (m := ℱ s) (hmart.stronglyAdapted s)
+        (by simpa [Pi.mul_apply] using hcr) (hmart.integrable t)
+      simpa [Pi.mul_apply] using this
+    calc ∫ ω, M s ω * M t ω ∂P
+        = ∫ ω, P[(fun ω => M s ω * M t ω) | ℱ s] ω ∂P :=
+          (MeasureTheory.integral_condExp hm).symm
+      _ = ∫ ω, M s ω * P[M t | ℱ s] ω ∂P := integral_congr_ae h_pull
+      _ = ∫ ω, M s ω * M s ω ∂P := by
+          refine integral_congr_ae ?_
+          filter_upwards [hmart.condExp_ae_eq hst] with ω hω using by rw [hω]
+      _ = ∫ ω, (M s ω) ^ 2 ∂P := by simp_rw [pow_two]
+  have hMt2 : MeasureTheory.Integrable (fun ω => (M t ω) ^ 2) P := (hL2 t).integrable_sq
+  have hMs2 : MeasureTheory.Integrable (fun ω => (M s ω) ^ 2) P := (hL2 s).integrable_sq
+  calc ∫ ω, (M t ω - M s ω) ^ 2 ∂P
+      = ∫ ω, ((M t ω) ^ 2 - 2 * (M s ω * M t ω) + (M s ω) ^ 2) ∂P := by
+        refine integral_congr_ae (Filter.Eventually.of_forall (fun ω => ?_)); ring
+    _ = (∫ ω, (M t ω) ^ 2 ∂P) - 2 * (∫ ω, M s ω * M t ω ∂P) + ∫ ω, (M s ω) ^ 2 ∂P := by
+        have e1 : ∫ ω, ((M t ω) ^ 2 - 2 * (M s ω * M t ω) + (M s ω) ^ 2) ∂P
+            = (∫ ω, ((M t ω) ^ 2 - 2 * (M s ω * M t ω)) ∂P) + ∫ ω, (M s ω) ^ 2 ∂P :=
+          integral_add (hMt2.sub (hcr.const_mul 2)) hMs2
+        have e2 : ∫ ω, ((M t ω) ^ 2 - 2 * (M s ω * M t ω)) ∂P
+            = (∫ ω, (M t ω) ^ 2 ∂P) - ∫ ω, 2 * (M s ω * M t ω) ∂P :=
+          integral_sub hMt2 (hcr.const_mul 2)
+        have e3 : ∫ ω, 2 * (M s ω * M t ω) ∂P = 2 * ∫ ω, M s ω * M t ω ∂P :=
+          integral_const_mul 2 _
+        rw [e1, e2, e3]
+    _ = (∫ ω, (M t ω) ^ 2 ∂P) - ∫ ω, (M s ω) ^ 2 ∂P := by rw [h_cross]; ring
+
 /-- **Right-continuous martingale lift.** An `ℱ`-martingale `F` on `ℝ` whose
 time-slices are right-`L¹`-continuous — `eLpNorm (F r - F s) 1 P → 0` as `r ↓ s` —
 is automatically a martingale wrt the right-continuous filtration `ℱ₊`.
