@@ -30,6 +30,7 @@ import LevyStochCalc.Brownian.ItoSimple
 import LevyStochCalc.Brownian.ItoDensity
 import LevyStochCalc.Brownian.ItoMartingale
 import LevyStochCalc.Brownian.SimplePredictableRefine
+import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.MultidimIto
 
 -- Layer 2: Itô-Lévy formula  → Cu03

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Multidim
-import LevyStochCalc.Brownian.SimplePredictableRefine
+import LevyStochCalc.Brownian.ItoL2Completion
 
 /-!
 # Layer 1.5e+: Multidimensional Brownian Itô integral
