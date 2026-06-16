@@ -81,7 +81,7 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       `PicardSpace.lean` (complete metric space + baseline sorry), `PicardFixedPoint.lean`
       (Banach existence/uniqueness). Bodies/namespaces/sorry/axiom preserved verbatim;
       root imports 10→3; four-way invariant green.)*
-- [ ] **1.2** Split the 3 oversized files along mathematical seams. No
+- [x] **1.2** Split the 3 oversized files along mathematical seams. No
       forwarding stubs: `Brownian/Ito` and `SimplePredictableRefine` are not
       pinned, so split and fix the in-tree imports; `Poisson/Compensated` is
       pinned, so keep its pinned symbols (`stochasticIntegral`,
@@ -106,7 +106,15 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       across all three, `Ito.lean` deleted (no stub). Importers repointed:
       BSDEJ/Definition + Ito/Setting → `Brownian.Multidim` (only needed transitively),
       SimplePredictableRefine + root → the 3 sub-modules.
-      Remaining: Brownian/SimplePredictableRefine (2290).)*
+      `SimplePredictableRefine.lean` 2281→ `SimplePredictableRefine.lean` (1050,
+      refine/commonRefinement + diff-isometry) + `ItoL2Completion.lean` (1221, Lp
+      lift + L²-limit + isometry + cited axiom #5 + scalar `stochasticIntegral`
+      API); MultidimIto repointed to `ItoL2Completion`. **DONE: all 3 monoliths
+      split, no stubs, contract green.** Caveat: 5 result files remain >600
+      (`ItoDensity` 2545, `CompensatedIsometry` 1333, `ItoL2Completion` 1221,
+      `ItoSimple` 1055, `SimplePredictableRefine` 1050) — each a single dense proof
+      block with a tight `private`-lemma web that can't be sub-split without
+      publicizing internal helpers; deferred (revisit at Phase 4 extraction).)*
 - [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
       (currently 0 in the big files). Pure hygiene, breaks nothing.
 - [ ] **1.4** Wrap the 180 lines > 100 cols. Replace the `import Mathlib` umbrella
