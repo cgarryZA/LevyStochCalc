@@ -27,11 +27,10 @@ Reference: Applebaum 2009 Ch 6; Ikeda-Watanabe IV.
 existence-and-uniqueness with proof body `sorry` (the literature proof
 is Picard iteration in `S²([0,T]; ℝⁿ)`).
 
-The `is_solution` field of the `JumpDiffusion` structure was strengthened
-on 2026-05-21 from `True` to the actual SDE integral equation (bundled
-with hypotheses on `σ(s, X_s)` for the multidim Brownian integral to be
-defined). Constant-path X = x₀ no longer satisfies the structure for
-generic non-zero coefficients.
+The `is_solution` field of the `JumpDiffusion` structure is the actual SDE
+integral equation (bundled with the hypotheses on `σ(s, X_s)` needed for the
+multidim Brownian integral to be defined), so a constant path `X = x₀` does
+not satisfy the structure for generic non-zero coefficients.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -77,8 +76,8 @@ Fields:
 * `measurable_path` — joint measurability.
 * `initial_value` — `X_0 = x_0` a.s.
 * `sup_L2` — `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T > 0`.
-* `is_solution` — the SDE integral equation (red-team P12 strengthening
-  2026-05-21): for almost every `ω` and every `t ≥ 0` and component `i`,
+* `is_solution` — the SDE integral equation: for almost every `ω` and every
+  `t ≥ 0` and component `i`,
   `X t ω i` equals `x₀ i` plus the drift integral `∫_0^t μ(s, X_s) ds`
   plus the multidim Brownian Itô integral `∫_0^t σ(s, X_s) · dW_s` (row `i`)
   plus the compensated-Poisson integral `∫_0^t ∫_E γ(s, X_s, e) Ñ(ds, de)` (row `i`).
@@ -109,12 +108,11 @@ structure JumpDiffusion
   Required by the literature jump-diffusion SDE convention: Applebaum 6.2.9 /
   Ikeda-Watanabe IV assume X is càdlàg-adapted so that `X_{s−}` (the left
   limit at s) is well-defined for the integrand evaluation in the
-  compensated-Poisson integral. P4 H / P7 F5 closure (red-team 2nd audit,
-  2026-05-23): without this field, `X.X s` and `X_{s−}` are silently equal
-  (no left-limit notion), and the SDE equation diverges from Applebaum at
-  jump times.
+  compensated-Poisson integral. Without this field, `X.X s` and `X_{s−}` are
+  silently equal (no left-limit notion), and the SDE equation diverges from
+  Applebaum at jump times.
 
-  **P4 F8 note (red-team 2nd audit, 2026-05-23)**: Applebaum 6.2.9 / Ikeda-
+  **Convention note (`X_{s−}` vs `X s`)**: Applebaum 6.2.9 / Ikeda-
   Watanabe IV use `X_{s−}` (the left limit) inside the SDE integrands,
   whereas this structure uses `X s` (point evaluation) below. For càdlàg
   adapted X, the discrepancy `{s : X_{s−} ω ≠ X s ω}` has Lebesgue
@@ -132,22 +130,17 @@ structure JumpDiffusion
   is what makes this convention-equivalence well-typed; without it,
   the discrepancy is unbounded.
 
-  **Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
-  the time argument is quantified over `t ≥ 0` only — the literature
-  scope of the SDE is `[0, ∞)` (the initial condition `X 0 = x₀` and
-  the integrals `∫₀^t … ds` only make sense for `t ≥ 0`). The previous
-  over-strong `∀ t : ℝ` form would force a càdlàg condition at negative
-  times where `X` carries no SDE-driven meaning, and is rejected by
-  Applebaum 6.2.9 / Ikeda-Watanabe IV. -/
+  **Quantifier scope**: the time argument is quantified over `t ≥ 0` only —
+  the literature scope of the SDE is `[0, ∞)` (the initial condition
+  `X 0 = x₀` and the integrals `∫₀^t … ds` only make sense for `t ≥ 0`). -/
   cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t →
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
       ∧ ∀ i : Fin n, ∃ L : ℝ,
           Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)
   /-- The SDE integral equation. Bundles per-row Brownian + per-row Compensated
   integrand hypotheses inside the existential alongside the equation itself.
-  H6 fix (red-team 2nd audit 2026-05-23): γ-side hypotheses now bundled too
-  (mirror of σ-side bundling), required by the strengthened
-  `Compensated.stochasticIntegral` signature. -/
+  The γ-side hypotheses are bundled too (mirror of the σ-side), required by
+  the `Compensated.stochasticIntegral` signature. -/
   is_solution :
     ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
         Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))

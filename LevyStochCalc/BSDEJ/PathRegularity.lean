@@ -27,12 +27,7 @@ When CLEAN, the main dissertation imports this and replaces its
 
 * Bouchard, B. & Elie, R., "Discrete-time approximation of decoupled
   Forward-Backward SDE with jumps", Stochastic Processes Appl. **118(1)**,
-  **2008**, pp. 53–75. (Correcting the previous misattribution to
-  "Bouchard, Elie & Touzi 2009 SPA 119(11)" — flagged by red-team P06,
-  P07, P10, P11; verified via Bouchard's slides + HAL archive
-  hal-00015486 + Kharroubi–Lim 2018 citing "Bouchard and Elie [4]".)
-  Touzi is not an author. The 2009 paper "Bouchard–Touzi" was a
-  different (Brownian-only Monte Carlo) result.
+  **2008**, pp. 53–75.
 
 ## Proof structure (Bouchard–Elie 2008)
 
@@ -102,18 +97,12 @@ with `C` depending on `T`, the Lipschitz constant `L`, and the L²-norm of
 
 **Reference**: Bouchard, B. & Elie, R. *Discrete-time approximation of
 decoupled Forward-Backward SDE with jumps*, Stochastic Processes Appl.
-**118(1)**, **2008**, pp. 53–75, **Theorem 2.1**. (Correcting the previous
-misattribution to "Bouchard, Elie & Touzi 2009 SPA 119(11)" — Touzi is
-not an author and that volume/year combination does not exist; flagged
-by red-team P06/P07/P10/P11 and verified via Bouchard's slides + HAL
-hal-00015486.) For the continuous-only background, see also
-Pardoux, E. & Răşcanu, A. *Stochastic Differential
-Equations, Backward SDEs, Partial Differential Equations*, Springer
-2014, **Theorem 5.42** (continuous case, NOT BSDEJ). The jump-case
-path regularity is established in Bouchard-Elie 2008; Pardoux-Răşcanu
-covers only the continuous case (Brownian-driven BSDEs) and does NOT
-extend to jumps automatically — P11 2nd audit 2026-05-23 flagged the
-previous "(continuous case, extends to jumps)" wording as misleading.
+**118(1)**, **2008**, pp. 53–75, **Theorem 2.1**. For the continuous-only
+background, see also Pardoux, E. & Răşcanu, A. *Stochastic Differential
+Equations, Backward SDEs, Partial Differential Equations*, Springer 2014,
+**Theorem 5.42** (continuous case, NOT BSDEJ). The jump-case path regularity
+is established in Bouchard–Elie 2008; Pardoux–Răşcanu covers only the
+continuous (Brownian-driven) case and does not extend to jumps automatically.
 
 **Standard proof outline**:
 1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
@@ -138,25 +127,15 @@ axiom bsdej_path_regularity
     (X : ℝ → Ω → (Fin n → ℝ))
     (_hX_meas : Measurable (Function.uncurry X))
     (T : ℝ) (_hT : 0 < T)
-    -- Lipschitz hypothesis (BET 2008 requirement; added 2026-05-21 per
-    -- red-team H4 — the bound `C` depends polynomially on `L`):
+    -- Lipschitz hypothesis (Bouchard–Elie 2008 requirement; the bound `C`
+    -- depends polynomially on `L`):
     {L : ℝ} (_hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
     (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-    -- 2026-05-22 (M8 fix per red-team P06): the constant `C` is exposed as a
-    -- function of `(T, L, ‖ξ‖_L²)` rather than a bare `ℝ`, so downstream
-    -- numerical work can read off the literature Bouchard-Elie 2008
-    -- polynomial dependence directly. The (T, L, norm_ξ_real) → ℝ shape
-    -- matches BET 2008 Thm 2.1's `C = C(T, L, ‖ξ‖_L²)` explicitly.
-    -- 2026-05-23 (P4 F5 fix per red-team 2nd audit): `C` is now PINNED to
-    -- the BET 2008 Thm 2.1 literature form
-    -- `C T L ξ := K · (1 + T)^p · exp(α · L · T) · (1 + ξ)`
-    -- with explicit constants `K, α, p, β` (K, α > 0, p ∈ ℕ).
-    -- Previous form `K₀ + K₁T + K₂TL² + K₃ξ` was LINEAR in (T, L, ξ) but
-    -- BET 2008 has POLYNOMIAL in (1+T) × EXPONENTIAL in LT × LINEAR in (1+ξ).
-    -- The exponential is required by the Grönwall step in the BET proof.
-    -- The linear form was strictly weaker than the literature; the
-    -- exponential-polynomial form below matches Bouchard-Elie 2008
-    -- Theorem 2.1 eq. (2.10)-(2.12) exactly.
+    -- The constant `C` is exposed as a function of `(T, L, ‖ξ‖_L²)` (not a bare
+    -- `ℝ`), pinned to the Bouchard–Elie 2008 Thm 2.1 literature form
+    -- `C T L ξ := K · (1 + T)^p · exp(α · L · T) · (1 + ξ)` with `K, α > 0`,
+    -- `p ∈ ℕ`: polynomial in `(1+T)`, exponential in `LT` (the Grönwall step),
+    -- linear in `(1+ξ)` — matching BET 2008 Thm 2.1 eq. (2.10)-(2.12).
     ∃ (K α : ℝ) (p : ℕ),
       let norm_ξ_real : ℝ :=
         (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
@@ -173,13 +152,11 @@ axiom bsdej_path_regularity
           LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
         let Δt : ℝ := ⨆ n : Fin M,
           partition n.succ - partition n.castSucc
-        -- Red-team P07/P12 fix (2026-05-21): `Z_avg, U_avg` are now PINNED to
-        -- the conditional time-average projections defined above, not
-        -- existentially quantified. Previously the axiom said `∃ Z_avg U_avg,
-        -- bound holds`, which a witness could satisfy by picking `Z_avg := Z`
-        -- (the projection-error terms zero out trivially). Pinning excludes
-        -- that route — the literature Bouchard–Elie bound now actually has
-        -- to control the deviation of Z, U from their canonical time-averages.
+        -- `Z_avg, U_avg` are pinned to the conditional time-average projections
+        -- defined above, not existentially quantified: an existential `∃ Z_avg
+        -- U_avg, bound holds` could be satisfied by `Z_avg := Z` (projection
+        -- error zero), so pinning forces the bound to actually control the
+        -- deviation of Z, U from their canonical time-averages.
         (⨆ n : Fin M, ∫⁻ ω,
             ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
               (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
@@ -203,13 +180,11 @@ where `C` is a single positive real constant (concretely
 given `(T, L, ξ)`) in place of the polynomial-exponential expression
 exposed by the underlying axiom.
 
-**Motivation**: downstream chapters (notably the discrete-to-continuous
-BSDEJ convergence chapter in the main dissertation
-`D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`,
-parked 2026-05-04) need a `ψ : ℝ → ℝ` with `ψ(h) = C · h`. The polynomial
-form is what BET 2008 actually proves; downstream usage just needs the
-linear-in-`Δt` rate, with `C` packaged opaquely so the convergence theorem
-can be specialized without reaching into the polynomial structure.
+**Motivation**: downstream discrete-to-continuous BSDEJ convergence results
+need a `ψ : ℝ → ℝ` with `ψ(h) = C · h`. The polynomial form is what
+Bouchard–Elie 2008 proves; downstream usage needs only the linear-in-`Δt`
+rate, with `C` packaged opaquely so the convergence theorem can be specialized
+without reaching into the polynomial structure.
 
 **Citation**: same as `bsdej_path_regularity` — Bouchard, B. & Elie, R.,
 *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*,

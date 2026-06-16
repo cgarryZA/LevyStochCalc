@@ -25,38 +25,30 @@ with `Z ∈ H²(dt ⊗ dP; ℝ^d)` and `U ∈ H²(dt ⊗ dP ⊗ dν; ℝ)`.
 * Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
   Springer 2003, Theorem III.4.34.
 
-## Status (2026-05-26, Tier 1 #13 axiom → narrower-axiom decomposition)
+## Structure
 
-Previously a single Tier 1 axiom `jacodYor_representation_axiom`. Now
-**decomposed** into two strictly narrower Tier 1 axioms:
+The predictable representation property is split into two narrow cited axioms:
 
-* `jacodYor_PRP_martingale_axiom` (Tier 1 #13a) — the LITERAL content of
-  Jacod-Shiryaev III.4.34: predictable representation property for càdlàg
-  L² (W, N)-martingales. This is the deep mathematical content (the
-  predictable-projection / chaos-decomposition machinery of Jacod 1976).
-* `condExp_to_PRP_martingale_form_axiom` (Tier 1 #13b) — the standard
-  classical bridge: the càdlàg L² modification of the conditional-
-  expectation martingale `M_t := E[ξ | F_t]` is a martingale on the
-  joint (W, N) right-continuous filtration with `M_0 = E[ξ]` a.s.
-  (Blumenthal-flavor 0-1 triviality of F_0) and `M_T = ξ` a.s. (since
-  ξ is F_T-measurable). This is **strictly narrower** because each
-  conjunct is a known classical theorem with a separate citation
-  (Karatzas-Shreve I.3.13 for Doob L² càdlàg regularization; K-S 2.7.17
-  for Blumenthal 0-1; `MeasureTheory.condExp_of_stronglyMeasurable` is
-  already in Mathlib).
+* `jacodYor_PRP_martingale_axiom` (#13a) — the literal content of
+  Jacod–Shiryaev III.4.34: predictable representation for càdlàg L²
+  `(W, N)`-martingales (the deep content — predictable-projection /
+  chaos-decomposition machinery of Jacod 1976).
+* `condExp_to_PRP_martingale_form_axiom` (#13b) — the classical bridge: the
+  càdlàg L² modification of the conditional-expectation martingale
+  `M_t := 𝔼[ξ | F_t]` is a martingale on the joint `(W, N)` right-continuous
+  filtration with `M_0 = 𝔼[ξ]` a.s. (0-1 triviality of `F_0`) and `M_T = ξ`
+  a.s. Each conjunct is a known classical theorem with a separate citation
+  (Karatzas–Shreve I.3.13 for Doob L² càdlàg regularization; K-S 2.7.17 for
+  Blumenthal 0-1; `MeasureTheory.condExp_of_stronglyMeasurable` in Mathlib).
 
-The previous single `jacodYor_representation_axiom` is now **derived as a
-theorem** from #13a + #13b. The downstream-facing
-`jacodYor_representation` theorem is unchanged (still a thin forwarder,
-now over the derived theorem rather than over the previously-monolithic
-axiom).
+`jacodYor_representation_axiom` is derived as a theorem from #13a + #13b, and
+the downstream-facing `jacodYor_representation` is a thin forwarder over it.
 
-**Signature: FULLY PINNED** (both Brownian and compensated-Poisson integrals).
-The conclusion uses `MultidimBrownianMotion.stochasticIntegral W Z ...`
-and `Compensated.stochasticIntegral N U ...` as the literal RHS terms,
-with the per-component progressive-measurability + L² hypotheses bundled
-as existential witnesses. This means a trivial `Z = 0, U = 0` witness no
-longer works.
+**Signature fully pinned** (both integrals): the conclusion uses
+`MultidimBrownianMotion.stochasticIntegral W Z ...` and
+`Compensated.stochasticIntegral N U ...` as the literal RHS terms, with the
+per-component progressive-measurability + L² hypotheses bundled as existential
+witnesses — so a trivial `Z = 0, U = 0` witness does not satisfy it.
 
 **Replacement plan**:
 * `jacodYor_PRP_martingale_axiom` → theorem when Mathlib gains chaos
@@ -223,8 +215,7 @@ axiom condExp_to_PRP_martingale_form_axiom
       ∧ (∀ᵐ ω ∂P, M 0 ω = (∫ ω', ξ ω' ∂P))
       ∧ (∀ᵐ ω ∂P, M T ω = ξ ω)
 
-/-- **Jacod-Yor martingale representation (Jacod 1976), L² random-variable
-form — DERIVED THEOREM (formerly Tier 1 axiom #13).**
+/-- **Jacod-Yor martingale representation (Jacod 1976), L² random-variable form.**
 
 Every square-integrable `ℱ_T`-measurable random variable `ξ` admits a
 representation
@@ -233,9 +224,7 @@ representation
 
 with predictable square-integrable integrands `Z, U`.
 
-**Status (2026-05-26)**: this was previously the single Tier 1 axiom
-`jacodYor_representation_axiom`. It is now derived from the two
-narrower Tier 1 axioms:
+Derived from the two narrower cited axioms:
 
 * `jacodYor_PRP_martingale_axiom` (#13a — the deep PRP content)
 * `condExp_to_PRP_martingale_form_axiom` (#13b — the classical bridge)
@@ -308,9 +297,8 @@ theorem jacodYor_representation_axiom
 /-- **Jacod-Yor martingale representation (Jacod 1976) — forwarding theorem.**
 
 Thin forwarder over the derived theorem `jacodYor_representation_axiom`
-(formerly Tier 1 axiom #13; as of 2026-05-26 derived from the narrower
-Tier 1 axioms #13a `jacodYor_PRP_martingale_axiom` + #13b
-`condExp_to_PRP_martingale_form_axiom`).
+(derived from the narrower cited axioms #13a `jacodYor_PRP_martingale_axiom`
++ #13b `condExp_to_PRP_martingale_form_axiom`).
 
 Stating this conclusion as a `theorem` here keeps every downstream caller
 stable while making the dependency on Jacod 1976 explicit via the
@@ -327,8 +315,8 @@ theorem jacodYor_representation
     -- Per Jacod 1976: martingale representation REQUIRES ξ to be measurable
     -- wrt the filtration at the endpoint T (otherwise ξ depends on future
     -- information beyond T, and no (Z, U) integrals up to T can represent it).
-    -- P4 M fix (red-team 2nd audit 2026-05-23): strengthened from bare
-    -- `Measurable ξ` (Borel) to `StronglyMeasurable[ℱ_T] ξ`.
+    -- Strengthened from bare `Measurable ξ` (Borel) to
+    -- `StronglyMeasurable[ℱ_T] ξ`.
     (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
       (((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
         ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont.seq T)
@@ -352,10 +340,9 @@ theorem jacodYor_representation
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
       (U : ℝ → Ω → E → ℝ)
-      -- H6 fix (red-team 2nd audit 2026-05-23): U-side joint Ω×ℝ×E measurability,
-      -- progressive measurability, and global L²-bound are now bundled together
-      -- (mirror of Z-side hypotheses), required by the strengthened
-      -- `Compensated.stochasticIntegral` signature.
+      -- U-side joint Ω×ℝ×E measurability, progressive measurability, and global
+      -- L²-bound are bundled together (mirror of the Z-side hypotheses),
+      -- required by the `Compensated.stochasticIntegral` signature.
       (h_U_meas : Measurable
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))

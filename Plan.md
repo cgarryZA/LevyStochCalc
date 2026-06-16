@@ -54,16 +54,14 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       scaffolding — they never travel into a mathlib PR. *(done 2026-06-15: the 12
       personas were superseded by the existing deduplicated meta-summary, which was
       renamed `SUMMARY.md`; the 12 raw reports + audit scaffolding deleted, git-archived.)*
-- [ ] **0.3** Strip in-source narrative comments project-wide: `P1 F2
+- [x] **0.3** Strip in-source narrative comments project-wide: `P1 F2
       INVESTIGATION`, `red-team Nth audit`, milestone tags, `D:/...` paths, dated
       change-logs. Move any still-useful rationale into the decl docstring as math.
-      *(in progress 2026-06-16: done — `BSDEJ/Definition`, `Poisson/Compensated`
-      (incl. removing two ~40-line deleted-code tombstones), `Brownian/Martingale`,
-      `Ito/Picard`, `Brownian/Continuity` (tombstone removed), `Basic`,
-      `Ito/PicardSpace`, `Brownian/Multidim`, `Ito/PicardFixedPoint`. Remaining:
-      Ito/JumpFormula, Brownian/Ito, BSDEJ/{Existence,PathRegularity,
-      MartingaleRepresentation}, Ito/Setting, Brownian/SimplePredictableRefine,
-      Poisson/RandomMeasure, Brownian/Construction.)*
+      *(done 2026-06-16: all 18 source files cleaned; a project-wide scan for
+      red-team/audit/persona tags, `D:/` paths, and dated change-logs is empty.
+      Removed ~8 deleted-code tombstone blocks (git is the archive); rewrote the
+      JumpFormula/MartingaleRepresentation/Definition status sections and the
+      citation-correction narrative to math-only. Four-way invariant green.)*
 - [ ] **0.4** Confirm the four-way green invariant is reproducible from a clean
       clone *before* refactoring. This is the regression guard for all of Phase 1.
 
