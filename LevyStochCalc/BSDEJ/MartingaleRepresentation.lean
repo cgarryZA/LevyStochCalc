@@ -69,6 +69,7 @@ namespace LevyStochCalc.BSDEJ.MartingaleRepresentation
 
 universe u v
 
+section PRP
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -155,6 +156,12 @@ axiom jacodYor_PRP_martingale_axiom
             W Z h_Z_meas h_Z_progMeas h_Z_sq_int T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
             (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω)
+
+end PRP
+
+section Representation
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
 
 /-- **Conditional-expectation martingale càdlàg modification + endpoint
 identification — Tier 1 cited axiom #13b.**
@@ -362,5 +369,7 @@ theorem jacodYor_representation
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
             (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T ω) :=
   jacodYor_representation_axiom W N T _hT ξ _h_meas _h_sq_int
+
+end Representation
 
 end LevyStochCalc.BSDEJ.MartingaleRepresentation

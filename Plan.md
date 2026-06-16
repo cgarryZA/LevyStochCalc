@@ -115,8 +115,27 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       `ItoSimple` 1055, `SimplePredictableRefine` 1050) — each a single dense proof
       block with a tight `private`-lemma web that can't be sub-split without
       publicizing internal helpers; deferred (revisit at Phase 4 extraction).)*
-- [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
+- [x] **1.3** Add `section … variable … end` blocks to every multi-concept file
       (currently 0 in the big files). Pure hygiene, breaks nothing.
+      *(2026-06-16: concept `section … variable … end` blocks added to the flat
+      multi-concept files — `Brownian/Multidim` (Definition / MeasurePreserving /
+      Existence), `Brownian/Martingale` (Moments / ConditionalExpectations /
+      MartingaleAndQuadVar / RightContinuous), `Ito/Setting` (Coefficients /
+      Solution), `Ito/JumpFormula` (Integrands / Formula), `BSDEJ/Existence`
+      (PicardMap / Existence), `BSDEJ/PathRegularity` (TimeAverages / Regularity),
+      `BSDEJ/MartingaleRepresentation` (PRP / Representation). Each section
+      re-declares only the already-shared type variables (`{Ω}`/`{E}`), so no decl
+      signature changes — pinned-symbol binders are untouched and the build is
+      warning-free (no `unusedSectionVars`). NOT sectioned, by design: the dense
+      single-proof-web files (`ItoDensity`, `CompensatedIsometry`, `ItoL2Completion`,
+      `ItoSimple`, `SimplePredictableRefine`, `CompensatedSimple`) are one
+      mathematical idea each (ponytail: one idea per file) and splitting their
+      tight `private`-lemma webs into sections would be artificial; `Ito/Picard*`
+      and `BSDEJ/Definition` already segment via repeated/nested `namespace` blocks
+      with per-block `variable`s. Promoting per-decl `{P}`/`[IsProbabilityMeasure P]`
+      to section `variable`s was tried and reverted — it triggers `unusedSectionVars`
+      on decls that use `P` but not its probability-measure instance. Four-way
+      invariant green.)*
 - [x] **1.4** Wrap the lines > 100 cols. Replace the `import Mathlib` umbrella
       in `Basic.lean` with precise imports (the file already flags this as
       mandatory PR-prep); push the `ProbabilityTheory.*` imports down into the

@@ -36,6 +36,7 @@ namespace LevyStochCalc.Brownian.Multidim
 
 universe u
 
+section Definition
 variable {Ω : Type u} [MeasurableSpace Ω]
 
 /-- A `d`-dimensional Brownian motion: a `Fin d`-tuple of independent
@@ -60,6 +61,11 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   of multidim BM as "vector-valued process with continuous paths". -/
   joint_continuous_paths :
     ∀ᵐ ω ∂P, Continuous (fun (t : ℝ) (i : Fin d) => (W i).W t ω)
+
+end Definition
+
+section MeasurePreserving
+variable {Ω : Type u} [MeasurableSpace Ω]
 
 /-- σ-algebra-level `Indep` lifts through a measure-preserving map.
 Given `Indep m₁ m₂ μ_b` with `m₁, m₂ ≤ mβ` and `MeasurePreserving h μ_a μ_b`,
@@ -226,6 +232,11 @@ private noncomputable def project_BM
       exact ((W₀.measurable_eval t).sub (W₀.measurable_eval s)) hv
     · exact W₀.joint_increment_independent hs hst
 
+end MeasurePreserving
+
+section Existence
+variable {Ω : Type u} [MeasurableSpace Ω]
+
 /-- **Existence of d-dimensional Brownian motion.** For any `d ≥ 0`, there
 exists a probability space carrying a `d`-dimensional Brownian motion.
 
@@ -306,5 +317,7 @@ theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
     exact (measurable_pi_apply t).sub (measurable_pi_apply s)
   exact W.components_independent.comp
     (fun (_ : Fin d) (path : ℝ → ℝ) => path t - path s) h_g_meas
+
+end Existence
 
 end LevyStochCalc.Brownian.Multidim

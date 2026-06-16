@@ -40,6 +40,7 @@ namespace LevyStochCalc.Ito.Setting
 
 universe u v
 
+section Coefficients
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -69,6 +70,12 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
   (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
     (∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal
       ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2)
+
+end Coefficients
+
+section Solution
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
 
 /-- A *jump diffusion* solution.
 
@@ -198,5 +205,7 @@ PicardFixedPoint → Setting would be a cycle). The qualified name remains
 re-opens the namespace explicitly in `PicardFixedPoint.lean`), so all
 downstream callers — `tools/cited_axioms.md` entry #12, `_audit.lean`
 line 50, `Ito/JumpFormula.lean` (the consumer) — are unaffected. -/
+
+end Solution
 
 end LevyStochCalc.Ito.Setting

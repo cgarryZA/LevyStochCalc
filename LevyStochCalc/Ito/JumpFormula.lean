@@ -57,6 +57,7 @@ namespace LevyStochCalc.Ito.JumpFormula
 
 universe u v
 
+section Integrands
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -140,6 +141,12 @@ gives the headline four-term identity.
   quantifier, which is the algebraic-glue layer (any two `R`s
   satisfying the continuous-part identity agree a.s.).
 -/
+
+end Integrands
+
+section Formula
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
 
 /-- **CITED AXIOM (Tier 1 #15): Itô formula for continuous semimartingales
 applied to the continuous part of `X`.**
@@ -556,5 +563,7 @@ theorem itoLevyFormula
   -- Substitute and re-associate.
   rw [h_cont, h_jump]
   ring
+
+end Formula
 
 end LevyStochCalc.Ito.JumpFormula

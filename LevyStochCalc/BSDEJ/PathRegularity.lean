@@ -56,6 +56,7 @@ namespace LevyStochCalc.BSDEJ.PathRegularity
 
 universe u v
 
+section TimeAverages
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -87,6 +88,12 @@ noncomputable def conditionalTimeAverage_U
         (1 / (partition n.succ - partition n.castSucc)) *
           ∫ u in Set.Icc (partition n.castSucc) (partition n.succ), U u ω e
       else 0
+
+end TimeAverages
+
+section Regularity
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
 
 /-- **CITED AXIOM: BSDEJ path regularity (Bouchard–Elie 2008 Thm 2.1).**
 
@@ -245,5 +252,7 @@ theorem bsdej_path_regularity_linear_rate
   -- the axiom statement reduce definitionally to the explicit expression.
   intro M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
   exact h_bound M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
+
+end Regularity
 
 end LevyStochCalc.BSDEJ.PathRegularity

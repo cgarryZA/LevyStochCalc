@@ -39,6 +39,7 @@ namespace LevyStochCalc.BSDEJ.Existence
 
 universe u v
 
+section PicardMap
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -75,6 +76,12 @@ def Lipschitz {n d : ℕ}
     |bsdej.f s x y₁ z₁ u₁ - bsdej.f s x y₂ z₂ u₂|
       ≤ L * (|y₁ - y₂| + ‖z₁ - z₂‖
         + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal.sqrt)
+
+end PicardMap
+
+section Existence
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
 
 /-- **CITED AXIOM: Continuous BSDEJ existence and uniqueness (Tang-Li 1994).**
 
@@ -203,5 +210,7 @@ axiom continuousBSDEJ_exists_unique
         (U' : ℝ → Ω → E → ℝ),
         LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y' Z' U' T →
         (∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = Y' t ω)
+
+end Existence
 
 end LevyStochCalc.BSDEJ.Existence
