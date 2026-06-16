@@ -62,8 +62,13 @@ ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
       Removed ~8 deleted-code tombstone blocks (git is the archive); rewrote the
       JumpFormula/MartingaleRepresentation/Definition status sections and the
       citation-correction narrative to math-only. Four-way invariant green.)*
-- [ ] **0.4** Confirm the four-way green invariant is reproducible from a clean
+- [x] **0.4** Confirm the four-way green invariant is reproducible from a clean
       clone *before* refactoring. This is the regression guard for all of Phase 1.
+      *(done 2026-06-16: fresh `git clone` of the branch from origin →
+      `lake exe cache get` + `lake build` + `tools/lint.sh` + `verify_import_contract.sh`
+      all green; all build configs and the 21 library `.lean` files are git-tracked
+      and the working tree is clean. The `D:/Dissertation` leg can't build in the web
+      container; the contract check is its proxy, per the session brief.)*
 
 ## Phase 1 — Structural refactor (in-tree, contract-safe)
 
