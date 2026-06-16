@@ -58,6 +58,9 @@ done. What remains is the *probabilistic* supply of the increment bound
 3. `kolmogorov_markov_bound` — per-pair Markov/Chebyshev tail bound
    `P {ω | lam ≤ edist (X s ω) (X t ω)} ≤ M * edist s t ^ q / lam ^ p`
    for `0 < lam < ⊤`. *(DONE)*
+   `kolmogorov_real_tail_bound` — its real-threshold form
+   `P {ω | lam < |X s ω − X t ω|} ≤ M · edist s t ^ q / (ofReal lam)^p`
+   (`lam > 0`); ready to feed Lemma A. *(DONE, NEW)*
 
 4. `kolmogorov_modification_ae_eq` — **a.e.-equality step.** GIVEN a candidate
    `Y` a.s. continuous and a.s. equal to `X` on every dyadic, concludes
@@ -132,14 +135,23 @@ Goal: `∀ᵐ ω ∂P, ∃ N : ℕ, ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → 
 Fix `α` with `0 < α < (q−1)/p` (exists: `q>1, p>0`). Let `r := (1/2)^α ∈ (0,1)`.
 
 **Lemma A (per-level bad set).** `A n := ⋃_{k=0}^{2^n−1} {ω | rⁿ < |X((k+1)/2^n)ω − X(k/2^n)ω|}`.
-Bound `P(A n) ≤ M · 2^(n) · (2^(−n))^q / (rⁿ)^p` using:
-  - `measure_biUnion_finset_le` over `k ∈ Finset.range (2^n)`;
-  - each term via `kolmogorov_markov_bound (k/2^n) ((k+1)/2^n) (lam := ENNReal.ofReal (rⁿ))`,
-    bridging `edist (X s ω) (X t ω) = ENNReal.ofReal |X s ω − X t ω|` (real-valued)
-    and `edist (k/2^n) ((k+1)/2^n) = ENNReal.ofReal (2^(−n))`.
-  Simplify exponents: `P(A n) ≤ M · 2^(−n(q−1−αp))` (note `q−1−αp > 0`).
-  ⚠ This is the most ENNReal-arithmetic-heavy step (rpow of `ofReal`,
-    `ENNReal.ofReal_rpow_of_pos`, `ENNReal.div_le_iff`). Budget generously.
+Target: `P(A n) ≤ ENNReal.ofReal ((M:ℝ) · ρ^n)` with `ρ := (1/2)^(q−αp−1) ∈ (0,1)`.
+Route (now that `kolmogorov_real_tail_bound` is available):
+  - `measure_biUnion_finset_le (Finset.range (2^n))` ⇒
+    `P(A n) ≤ ∑_{k<2^n} P {ω | rⁿ < |incr_{n,k}|}`;
+  - each summand `≤ M · edist(k/2^n,(k+1)/2^n)^q / (ofReal rⁿ)^p` by
+    `kolmogorov_real_tail_bound … (hlam := rⁿ > 0)`;
+  - `edist (↑k/2^n) (↑(k+1)/2^n) = ENNReal.ofReal ((1/2)^n)` (compute the gap `1/2^n`);
+  - push to reals: `(ofReal a)^q = ofReal (a^q)` via `ENNReal.ofReal_rpow_of_pos`,
+    `M * ofReal x / ofReal y = ofReal (M·x/y)` via `ENNReal.ofReal_mul/ofReal_div_of_pos`;
+  - sum of `2^n` equal terms = `ofReal (2^n · M · ((1/2)^n)^q / ((1/2)^{αn})^p)`;
+  - **the exponent identity** (the genuinely fiddly bit, do it in ℝ then `ofReal`):
+    `2^n · ((1/2)^n)^q / ((1/2)^{αn})^p = ((1/2)^(q−αp−1))^n = ρ^n`. Prove via
+    `Real.rpow_natCast`/`Real.rpow_mul` to turn each `(·)^{nat}`-of-`rpow` into a
+    single `(1/2)^(real·n)`, then combine exponents `−nq + αnp + n = −n(q−αp−1)`.
+    Mirror the technique already used in `rpow_half_pow_le`.
+  ⚠ Most ENNReal/rpow-heavy step. Consider an isolated real-only helper:
+    `2^n · ((1/2)^n)^q / ((1/2)^{αn})^p = ((1/2)^(q−αp−1))^n`, proved in ℝ.
 
 **Lemma B (Borel–Cantelli).** `∑ₙ P(A n) < ∞` (geometric, ratio `2^(−(q−1−αp)) < 1`).
 Use `MeasureTheory.measure_limsup_atTop_eq_zero` (summable family ⇒ `P(limsup Aₙ)=0`),

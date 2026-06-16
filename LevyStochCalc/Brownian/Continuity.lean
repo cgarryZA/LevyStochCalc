@@ -526,6 +526,23 @@ lemma kolmogorov_markov_bound
       mul_comm]
   exact h_chain
 
+/-- Real-threshold form of the tail bound: for `lam > 0`,
+`P {ω | lam < |X s ω − X t ω|} ≤ M · edist s t ^ q / (ofReal lam) ^ p`. -/
+lemma kolmogorov_real_tail_bound
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (s t : ℝ) {lam : ℝ} (hlam : 0 < lam) :
+    P {ω | lam < |X s ω - X t ω|}
+      ≤ (M : ℝ≥0∞) * edist s t ^ q / ENNReal.ofReal lam ^ p := by
+  refine le_trans (measure_mono ?_)
+    (kolmogorov_markov_bound P X hX s t
+      (ENNReal.ofReal_pos.mpr hlam) ENNReal.ofReal_ne_top)
+  intro ω hω
+  simp only [Set.mem_setOf_eq] at hω ⊢
+  rw [edist_dist, Real.dist_eq]
+  exact ENNReal.ofReal_le_ofReal (le_of_lt hω)
+
 /-- **Step 3: extended process equals X a.s. at each t.**
 
 By the Kolmogorov condition (Markov inequality), `X_{t_n} → X_t` in probability
