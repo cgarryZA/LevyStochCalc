@@ -2059,6 +2059,22 @@ lemma eLpNorm_two_rpow_eq_lintegral_sq {μ : MeasureTheory.Measure Ω} (g : Ω �
   refine lintegral_congr (fun ω => ?_)
   rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
 
+/-- `simpleIntegral W H t = 0` for `t ≤ 0` (all increments `W_t − W_t` vanish). -/
+lemma simpleIntegral_eq_zero_of_nonpos
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T) {t : ℝ} (ht : t ≤ 0) (ω : Ω) :
+    simpleIntegral W H t ω = 0 := by
+  unfold simpleIntegral
+  refine Finset.sum_eq_zero (fun i _ => ?_)
+  have hp1 : 0 ≤ H.partition i.succ := by
+    have := H.partition_strictMono.monotone (Fin.zero_le i.succ)
+    rwa [H.partition_zero] at this
+  have hp2 : 0 ≤ H.partition i.castSucc := by
+    have := H.partition_strictMono.monotone (Fin.zero_le i.castSucc)
+    rwa [H.partition_zero] at this
+  rw [min_eq_right (ht.trans hp1), min_eq_right (ht.trans hp2), sub_self, mul_zero]
+
 section MasterSequence
 
 variable
@@ -2426,6 +2442,66 @@ lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
     stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t] with ω hω hF
   simp only [Pi.sub_apply]
   rw [hω, hF]
+
+/-- For `t < 0` the integral process is the zero `Lp` element. -/
+lemma stochasticIntegralBrownianLp_eq_zero_of_neg {t : ℝ} (ht : t < 0) :
+    stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t = 0 := by
+  rw [stochasticIntegralBrownianLp]
+  have heq : (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+      = fun _ => (0 : MeasureTheory.Lp ℝ 2 P) := by
+    funext n; rw [masterLp, dif_neg (fun h => absurd h.1 (not_le.mpr ht))]
+  rw [heq]
+  exact tendsto_const_nhds.limUnder_eq
+
+/-- For `t < 0` the integral process is a.e. zero. -/
+lemma stochasticIntegralBrownian_ae_zero_of_neg {t : ℝ} (ht : t < 0) :
+    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
+  refine (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).trans ?_
+  rw [stochasticIntegralBrownianLp_eq_zero_of_neg W H h_meas h_progMeas h_sq_int_global ht]
+  exact MeasureTheory.Lp.coeFn_zero ℝ 2 P
+
+/-- **Conjunct 1: the Itô integral process is a martingale** (wrt the natural
+filtration). The master integrals are martingales, converge in `L¹` (from `L²`),
+and `F` is adapted + integrable. -/
+lemma martingale_stochasticIntegralBrownian :
+    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
+  refine martingale_of_tendsto_eLpNorm_one
+    (M := fun n t => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t)
+    (fun n => martingale_simpleIntegral_brownian W
+      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n))
+    (fun n t => (martingale_simpleIntegral_brownian W
+      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)).integrable t)
+    (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global)
+    (fun t => ((MeasureTheory.Lp.memLp _).integrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)).congr
+      (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).symm)
+    (fun t => ?_)
+  rcases le_or_gt 0 t with ht | ht
+  · refine tendsto_eLpNorm_one_of_eLpNorm_two (fun n => ?_)
+      (masterApprox_tendsto_L2 W H h_meas h_progMeas h_sq_int_global ht)
+    refine (Measurable.aestronglyMeasurable ?_).sub
+      (((stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t).mono
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le t)).aestronglyMeasurable)
+    unfold simpleIntegral
+    refine Finset.measurable_sum _ (fun i _ => ?_)
+    exact ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
+      ((W.measurable_eval _).sub (W.measurable_eval _))
+  · have hzero : ∀ n, MeasureTheory.eLpNorm
+        ((fun t' => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t') t
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) 1 P = 0 := by
+      intro n
+      have hfae : ((fun t' => simpleIntegral W
+            (masterApprox W H h_meas h_progMeas h_sq_int_global n) t') t
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) =ᵐ[P] 0 := by
+        filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas
+          h_sq_int_global ht] with ω hF
+        simp only [Pi.sub_apply, Pi.zero_apply,
+          simpleIntegral_eq_zero_of_nonpos W _ (le_of_lt ht) ω, hF, sub_zero]
+      rw [MeasureTheory.eLpNorm_congr_ae hfae, MeasureTheory.eLpNorm_zero]
+    simp only [hzero]
+    exact tendsto_const_nhds
 
 end MasterSequence
 
