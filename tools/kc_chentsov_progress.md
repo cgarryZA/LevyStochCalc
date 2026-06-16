@@ -114,6 +114,40 @@ Steps (i)+(ii)+(iii) are the only remaining work; everything they call is proven
   `Y t ω := lim_{dyadic s→t} X s ω`; local Hölder gives the limit at each `t`,
   yielding a global continuous extension without explicit interval gluing.
 
+### Final-assembly recipe (refined; `extendFrom` is the right tool)
+
+`translation_invariance` is now proven (`isKolmogorovProcess_comp_add_right`).
+The extension tool is `Mathlib/Topology/ExtendFrom.lean` — **no subtypes, no
+manual gluing**:
+  - `extendFrom A f x := limUnder (𝓝[A] x) f`;
+  - `continuous_extendFrom (hA : Dense A) (hf : ∀ x, ∃ y, Tendsto f (𝓝[A] x) (𝓝 y))
+     : Continuous (extendFrom A f)`;
+  - `extendFrom_extends (hf : ContinuousOn f A) : ∀ x ∈ A, extendFrom A f x = f x`.
+
+Define, per good `ω`, `Y t ω := extendFrom dyadicRationals (fun s => X s ω) t`
+(and `0` off the good set, a null set). Then:
+  - **Continuity** from `continuous_extendFrom dense_dyadicRationals (limit hf)`.
+  - **Agreement on dyadics** from `extendFrom_extends` (needs
+    `ContinuousOn (fun s => X s ω) dyadicRationals`, which the local Hölder gives).
+  - Feed to `kolmogorov_modification_ae_eq` ⇒ the modification property.
+
+The one remaining lemma to build — **limit existence at every `t`**:
+`∀ t, ∃ y, Tendsto (fun s => X s ω) (𝓝[dyadicRationals] t) (𝓝 y)`. Route:
+  1. **Local Hölder on an OPEN neighborhood of `t`** (not just one unit interval):
+     apply `kc_ae_increment_bound` + `dyadic_holder_chaining` to `X(·+j)` for
+     `j ∈ {⌊t⌋−1, ⌊t⌋, ⌊t⌋+1}` (via `isKolmogorovProcess_comp_add_right`), giving
+     Hölder on `[j,j+1]` dyadics. For a *straddling* pair `s < j' < s'` (sharing
+     integer `j'`), chain through `j'`:
+     `|f s − f s'| ≤ |f s − f j'| + |f j'− f s'| ≤ K|s−j'|^α + K|j'−s'|^α ≤ 2K|s−s'|^α`
+     (since `|s−j'|,|j'−s'| ≤ |s−s'|`). So `f` is α-Hölder (const `2K`, scale
+     `≤ 2^{−N}`) on `dyadicRationals ∩ (⌊t⌋−1, ⌊t⌋+2)`, an open nbhd of `t`.
+  2. **Cauchy ⇒ limit** (ℝ complete): show `Cauchy (map f (𝓝[A] t))` via
+     `Metric.cauchy_iff` — `NeBot` from `t ∈ closure A` (`A` dense) and the diam
+     bound `∀ ε>0, ∃ V ∈ 𝓝[A] t, ∀ s s'∈V, dist (f s)(f s') < ε` from step 1
+     (take `V = A ∩ ball t ρ`, `ρ` small so `2K(2ρ)^α < ε` and `2ρ ≤ 2^{−N}`).
+     Then `CompleteSpace.complete` gives `∃ y, map f (𝓝[A]t) ≤ 𝓝 y` = the limit.
+  Estimated ~150–200 lines; this is the only remaining work to close the axiom.
+
 ## The missing middle third — proof plan (Karatzas–Shreve 2.2.8 / Le Gall 2.9)
 
 Work first on a **bounded interval** `[0, 1]` (or `[0, T]`), then patch ℝ as a
