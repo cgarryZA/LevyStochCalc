@@ -31,62 +31,33 @@ three stages:
 
 ## References
 
-* Applebaum, *Lévy Processes and Stochastic Calculus*, 2009, §4.2 (Thm 4.2.3 is I02).
+* Applebaum, *Lévy Processes and Stochastic Calculus*, 2009, §4.2 (Thm 4.2.3).
 * Ikeda–Watanabe, *SDEs and Diffusion Processes*, 1989, §II.3.
-* User's dissertation, ch02 §"Probability-space prerequisites", eq (compensated-Poisson)
-  at `D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex` line 26.
 
-## Status
+## Construction
 
-Real construction in progress. Simple-integrand and density-extension stages
-stated as named lemmas (`sorry`); the headline `itoLevyIsometry` reduces to
-them.
+`stochasticIntegral` is the L²-Itô–Lévy integral, obtained by `Classical.choose`
+on the unified-existence axiom `itoIsometry_compensated_unified_existence`
+(cited axiom #6), which packages the martingale property, quadratic variation,
+L²-isometry, and a càdlàg modification in one 4-conjunct existential.
+Consequently `itoLevyIsometry`, `quadVar_stochasticIntegral`,
+`martingale_stochasticIntegral`, `cadlag_modification_exists`, and
+`L2Isometry.itoLevyIsometry` are proven theorems forwarding to its conjuncts.
 
-## Honest L²-completion status (as of 2026-05-22)
-
-The `stochasticIntegral` is the **real L²-Itô-Lévy integral** via
-`Classical.choose` on the unified-existence axiom
-`itoIsometry_compensated_unified_existence` (Tier 1 cited axiom #6,
-packaging martingale + quadVar + L²-isometry + càdlàg in a single
-4-conjunct existential).
-
-Consequences:
-
-* `itoLevyIsometry`, `quadVar_stochasticIntegral`,
-  `martingale_stochasticIntegral`, `cadlag_modification_exists`,
-  `L2Isometry.itoLevyIsometry` are all **HONEST** — proven theorems
-  forwarding to conjuncts of the unified-existence axiom. Axiom-clean
-  modulo Lean std + the single Tier 1 cited axiom #6.
-
-* Prior to the 2026-05-10 unified-existence refactor, the chain
-  `simpleIntegralLp_compensated` → `cauchySeq_simpleIntegralLp_compensated`
-  (Tier 1 #7) → `itoIntegralLp_compensated` →
-  `exists_itoIntegralL2_compensated_progMeas` (using Tier 1 #8
-  `adaptedSimple_dense_L2_compensated`) → `itoIsometry_compensated_existence`
-  → `stochasticIntegral_isometry_only_compensated` constructed the L² Itô
-  integral via the standard cauchy-completion route. This chain became
-  redundant when the unified existence axiom subsumed it. Deleted
-  2026-05-22 (red-team finding M4); the two Tier 1 axioms #7 and #8 are
-  no longer declared. See `tools/cited_axioms.md` revision history.
-
-## Tier 1 axiom added 2026-05-23
-
-* `itoIsometry_diff_compensated` (Tier 1 #18): per-difference L²-isometry
-  for the compensated-Poisson Itô-Lévy integral. Standard consequence of
-  L²-linearity + isometry of the L² Itô-Lévy integral (Applebaum 2009
-  Thm 4.2.3 step (II) — the integral map is a continuous linear isometry
-  from `H²([0,T], E)` to `L²(Ω, ℱ_T, P)`). Stated as an axiom because the
-  current `stochasticIntegral` is built via `Classical.choose` on the
-  Tier 1 #6 unified-existence axiom, which does not expose linearity
-  directly. Used by `Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise`
-  to eliminate the previously bundled `h_lin` linearity precondition.
-  Mirrors `Brownian.Ito.itoIsometry_diff_brownian` on the Brownian side.
+`itoIsometry_diff_compensated` (cited axiom #18) is the per-difference
+L²-isometry for this integral — a standard consequence of L²-linearity and
+isometry (Applebaum Thm 4.2.3 step II: the integral is a continuous linear
+isometry `H²([0,T], E) → L²(Ω, ℱ_T, P)`). It is stated separately because the
+`Classical.choose`-built `stochasticIntegral` does not expose linearity
+directly; it is consumed by
+`Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise` and mirrors
+`Brownian.Ito.itoIsometry_diff_brownian` on the Brownian side.
 -/
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal ENNReal
--- 2026-05-22 (L9 fix): `open Classical` removed at file scope; the few sites
--- that need it use `open Classical in` per declaration instead.
+-- `open Classical` is scoped per-declaration (`open Classical in`) rather than
+-- at file scope.
 
 namespace LevyStochCalc.Poisson.Compensated
 
@@ -1606,23 +1577,6 @@ theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
   simp_rw [h_eq]
   exact simpleIntegral_sq_bochner_eq N φ h_adapt
 
--- 2026-05-22 (deleted): a ~540-line dead-code chain
---   `truncation_pointwise_tendsto`, `truncation_dominated`,
---   `sq_nnnorm_add_le_two_mul`, `truncation_L2_converges`,
---   `bounded_memLp_compensated_finite`, `exists_simpleFunc_seq_tendsto_compensated_finite`,
---   `simpleFunc_approx_by_rectangles_compensated` (True := trivial placeholder),
---   `rectangular_to_simplePredictable_compensated` (True := trivial placeholder),
---   `simplePredictable_dense_L2_bounded` (sorry'd),
---   `simplePredictable_dense_L2` (only consumer of the sorry'd lemma).
--- Was removed per red-team finding 02.6 (dead-code sorry'd lemma misrepresents
--- proof state). None of these has a caller outside the chain itself; the
--- load-bearing L²-density used by the Itô-Lévy isometry chain is the STRONGER
--- `adaptedSimple_dense_L2_compensated` (Tier 1 cited axiom #8), which delivers
--- adapted SimplePredictable approximations directly. If a future caller needs
--- L²-density for generic measurable (non-progressively-measurable) φ, the
--- proof can be reinstated by constructing the rectangular bridge described
--- in `tools/cited_axioms.md` #8.
-
 /-! ## C0b-Compensated mirror chain (in progress)
 
 The `simpleIntegral N φ T` lifted into `Lp ℝ 2 P` framework, mirroring
@@ -1724,30 +1678,6 @@ lemma simpleIntegral_memLp_compensated
         funext h_rewrite]
     exact h_pre
 
--- 2026-05-22 (deleted): a ~490-line dead Cauchy-completion chain
---   `simpleIntegralLp_compensated`, `coeFn_simpleIntegralLp_compensated`,
---   `cauchySeq_simpleIntegralLp_compensated` (Tier 1 #7 axiom),
---   `itoIntegralLp_compensated`, `itoIntegralLp_compensated_tendsto`,
---   `eLpNorm_simpleIntegralLp_compensated_rpow_eq`,
---   `eLpNorm_simpleIntegralLp_compensated_tendsto`,
---   `lintegral_sub_sq_le_eLpNorm_sub_sq` family,
---   `itoIntegralLp_compensated_L2_isometry`, `exists_itoIntegralL2_compensated`,
---   `adaptedSimple_dense_L2_compensated` (Tier 1 #8 axiom),
---   `exists_itoIntegralL2_compensated_progMeas`,
---   `itoIsometry_compensated_existence`,
---   `stochasticIntegral_isometry_only_compensated`
--- was the pre-2026-05-10 route to constructing the L²-Itô-Lévy integral
--- via cauchy-completion of simple integrals (Applebaum 4.3 / Ikeda-Watanabe
--- II.3). The 2026-05-10 refactor replaced this route with `Classical.choose`
--- on the unified-existence axiom `itoIsometry_compensated_unified_existence`
--- (now Tier 1 #6); the cauchy-completion chain became dead.
---
--- Removed per red-team finding M4. The deleted Tier 1 #7
--- (`cauchySeq_simpleIntegralLp_compensated`) and #8
--- (`adaptedSimple_dense_L2_compensated`) cited axioms were not load-bearing.
--- If a future refactor needs the cauchy-completion route, the deleted
--- definitions are recoverable from git history.
-
 /-- **CITED AXIOM: Unified L²-Itô-Lévy integral with martingale + quadVar + isometry
 + càdlàg.**
 
@@ -1764,20 +1694,14 @@ For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists 
 `F` is the canonical L²-Itô-Lévy integral `t ↦ ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`.
 Consolidates Applebaum 2009 Thm 4.2.3 + Thm 4.2.4.
 
-**H6 closure (red-team 2nd audit, 2026-05-23)**: the signature now takes
-`h_meas` (joint measurability on Ω×ℝ×E), `h_progMeas` (progressive
-measurability w.r.t. `(naturalFiltration N).seq t`), and
-`h_sq_int_global` (global L² bound across all T > 0) as OUTER
-hypotheses, mirroring the Brownian-side axiom #5. The conjuncts in
-the existential body are UNCONDITIONAL on these (no more conjunct-
-internal `Measurable + h_sq_int →` gating). This matches Applebaum
-2009 Thm 4.2.3's hypothesis class — predictable φ — and closes the
-prior "Hypothesis-strength caveat" route where a `Measurable`-only
-witness `F ≡ 0` could satisfy the conjuncts vacuously when φ was not
-literally predictable. Filt is now PINNED to
-`(naturalFiltration N).rightCont` instead of being a loose existential
-(P1 M3 fix); this rules out trivial-filtration witnesses (e.g.
-`Filt = const ⊤`).
+The integrand hypotheses (`h_meas` joint measurability on `Ω×ℝ×E`,
+`h_progMeas` progressive measurability w.r.t. `(naturalFiltration N).seq t`,
+`h_sq_int_global` a global L² bound) are taken as *outer* hypotheses, mirroring
+the Brownian-side axiom #5; the existential body is then unconditional on them.
+This matches Applebaum Thm 4.2.3's predictable-`φ` hypothesis class and prevents
+a `Measurable`-only `F ≡ 0` from satisfying the conjuncts vacuously. `Filt` is
+pinned to `(naturalFiltration N).rightCont`, ruling out trivial-filtration
+witnesses such as `Filt = const ⊤`.
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
 CUP 2009, **Theorem 4.2.3** (martingale + quadratic variation + L²-isometry of
@@ -1807,12 +1731,9 @@ axiom itoIsometry_compensated_unified_existence
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
-    -- H6 closure (red-team 2nd audit, 2026-05-23): outer h_meas + h_progMeas
-    -- + h_sq_int_global hypotheses mirror the Brownian-side axiom. Closes
-    -- the hollow M_N pin route (P7 F1, F2): IsBSDEJSolution's U lacks joint
-    -- Ω×ℝ×E measurability under the old `Adapted Filt (fun s ω => U s ω e)`
-    -- per-e adaptedness; under the new signature, callers MUST supply joint
-    -- measurability + progressive measurability + global L²-bound.
+    -- Outer integrand hypotheses (mirroring the Brownian-side axiom): callers
+    -- supply joint Ω×ℝ×E measurability, progressive measurability, and a global
+    -- L² bound — per-mark adaptedness of the integrand alone would not suffice.
     (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
     (h_progMeas : ∀ t : ℝ,
       @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
@@ -1823,9 +1744,8 @@ axiom itoIsometry_compensated_unified_existence
     (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
-    -- P1 M3 fix (red-team 2nd audit, 2026-05-23): `Filt` PINNED to
-    -- `(naturalFiltration N).rightCont` (parallel to Brownian-side fix);
-    -- closes trivial-Filt-witness route at axiom layer.
+    -- `Filt` pinned to `(naturalFiltration N).rightCont` (parallel to the
+    -- Brownian-side axiom), closing the trivial-filtration-witness route.
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
       Filt = (LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
       MeasureTheory.Martingale F Filt P ∧
@@ -1844,10 +1764,9 @@ axiom itoIsometry_compensated_unified_existence
 /-- The *L² stochastic integral* `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` against
 the compensated measure of a Poisson random measure.
 
-**Refactored** (UNIFIED, 2026-05-10): now defined via `Classical.choose` on the
-4-conjunct unified existence axiom `itoIsometry_compensated_unified_existence`
-(martingale + quadVar + isometry + càdlàg). The resulting `F` IS the genuine
-canonical L²-Itô-Lévy integral. -/
+Defined via `Classical.choose` on the 4-conjunct unified-existence axiom
+`itoIsometry_compensated_unified_existence` (martingale + quadVar + isometry +
+càdlàg); the resulting `F` is the canonical L²-Itô-Lévy integral. -/
 noncomputable def stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -1871,12 +1790,8 @@ noncomputable def stochasticIntegral
 
   `𝔼[ (∫_0^T ∫_E φ(s, e) Ñ(ds, de))² ] = 𝔼[ ∫_0^T ∫_E |φ(s, e)|² ν(de) ds ]`
 
-ENNReal form (matches the dissertation's `I02` axiom style).
-
-**Refactored** (Option β-prime, 2026-05-09): now extracts directly from the
-trivial-witness `stochasticIntegral_isometry_only_compensated` (axiom-clean)
-rather than the sorry'd full strong-exists. Same statement, same hypotheses;
-downstream callers unchanged. -/
+ENNReal form. Forwards to the L²-isometry conjunct of the unified-existence
+axiom #6. -/
 theorem itoLevyIsometry
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -1908,8 +1823,7 @@ For predictable square-integrable `φ`, the process
 `t ↦ (M_t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale, where
 `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` is the L² Itô-Lévy integral.
 
-**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
-axiom). Extracts conjunct 2 from `itoIsometry_compensated_unified_existence`. -/
+Extracts conjunct 2 (quadratic variation) of the unified-existence axiom #6. -/
 theorem quadVar_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -1944,8 +1858,7 @@ theorem quadVar_stochasticIntegral
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
 is a square-integrable martingale w.r.t. the natural filtration of `N`.
 
-**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
-axiom). Extracts conjunct 1 from `itoIsometry_compensated_unified_existence`. -/
+Extracts conjunct 1 (martingale property) of the unified-existence axiom #6. -/
 theorem martingale_stochasticIntegral
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -1978,10 +1891,9 @@ The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds,
 admits a càdlàg modification: there exists `M' : ℝ → Ω → ℝ` equal to
 `stochasticIntegral N φ` a.s. at each `t`, with càdlàg paths a.s.
 
-**Refactored** (UNIFIED, 2026-05-10): now PROVEN as a theorem (no longer a cited
-axiom). The unified F from `itoIsometry_compensated_unified_existence` already
-has càdlàg paths (conjunct 4). Take M' := stochasticIntegral N φ (which is the
-unified F by construction); per-t equality is `rfl`; càdlàg property extracted. -/
+The unified `F` from the existence axiom #6 already has càdlàg paths
+(conjunct 4); take `M' := stochasticIntegral N φ` (the unified `F` by
+construction), so per-`t` equality is `rfl` and the càdlàg property extracts. -/
 theorem cadlag_modification_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -2049,8 +1961,7 @@ axiomatization, `stochasticIntegral N φ` is constructed via
 gets an independent existence witness, so the "difference of choices"
 and "choice of difference" are not syntactically equal). We therefore
 state this difference-form isometry as a separate axiom, mirroring the
-analogous Brownian-side `itoIsometry_diff_brownian` (Tier 1 #17, per the
-2026-05-27 3rd-audit renumbering).
+analogous Brownian-side `itoIsometry_diff_brownian` (cited axiom #17).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
 2nd ed., CUP 2009, **Theorem 4.2.3** — the L²-Itô-Lévy integral is
