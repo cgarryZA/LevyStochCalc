@@ -84,13 +84,39 @@ relevant σ-algebras; cf. how `martingale_stochasticIntegral` states the pinned
 - `MeasureTheory.tendsto_condExp_unique` (dominated-convergence form; fallback).
 - `MeasureTheory.Martingale` (`condExp_ae_eq` / `Martingale.condExp_ae_eq`).
 
-## First concrete coding step
+## Progress (reusable engines — DONE, sorry-free, in `ItoL2Completion.lean`)
 
-A reusable **martingale-`L²`-limit** lemma (also needed for #6): given a
-filtration `ℱ`, a sequence `Mₙ : ℝ → Ω → ℝ` of `ℱ`-martingales with, for each
-`t`, `Mₙ t → F t` in `L²(P)` (P finite), and `F t` `ℱ`-adapted + integrable, then
-`Martingale F ℱ P`. Prove via `condExpL1CLM` continuity + `condExp_ae_eq_condExpL1`.
-Then specialize to the Itô coherent `F`. (Quadratic-variation lemma mirrors it.)
+- ✅ **`martingale_of_tendsto_eLpNorm_one`** — the L¹-limit of `ℱ`-martingales is
+  an `ℱ`-martingale (conjunct-1 engine; reusable for #6). Proof: conditional
+  expectation is an L¹-contraction (`eLpNorm_one_condExp_le_eLpNorm`) +
+  `condExp_sub`, so `μ[Mₙt|ℱs] =ᵐ Mₙs` passes to the L¹-limit (squeeze of the
+  target seminorm by `‖Mₙt−Ft‖₁ + ‖Mₙs−Fs‖₁ → 0`).
+- ✅ **`tendsto_eLpNorm_one_of_eLpNorm_two`** — on a probability measure,
+  `L²`-null ⇒ `L¹`-null (`eLpNorm_le_eLpNorm_of_exponent_le`), bridging the
+  `L²`-Cauchy approximating sequence to the L¹ hypothesis above.
+
+## Remaining steps (resume here)
+
+1. **Coherent `F`.** The per-`T` construction (`exists_itoIntegralL2_brownian`)
+   takes an approximating sequence `G : ℕ → SimplePredictable Ω T` on a **fixed
+   `T`**, so building a single `F : ℝ → Ω → ℝ` needs consistency across `T` (the
+   `[0,T']` integral restricted to `[0,t]`, `t ≤ T'`, equals the `[0,t]` one).
+   Define `F t :=` the L²-limit of `simpleIntegral W (Gₙ) t` for one fixed
+   adapted `Gₙ` (`predictableDyadicSimple_brownian`), with adaptedness +
+   integrability; show `simpleIntegral W (Gₙ) t → F t` in L² (Cauchy + complete),
+   hence (by `tendsto_eLpNorm_one_of_eLpNorm_two`) in L¹.
+2. **Conjunct 1 (martingale):** each `simpleIntegral W (Gₙ) ·` is an
+   `ℱ`-martingale (`martingale_simpleIntegral_brownian`); feed step 1's L¹
+   convergence to `martingale_of_tendsto_eLpNorm_one`. ⇒ `Martingale F ℱ P`.
+3. **Conjunct 2 (quadVar):** simple-level identity from `simpleIntegral_diagonal`
+   /`_offDiagonal` gives `(simpleIntegral (Gₙ) ·)² − ∫(Gₙ)²` a martingale; needs
+   the **squares-converge engine** `(Mₙt)² → (Ft)²` in L¹ from `Mₙt→Ft` in L²
+   (Cauchy–Schwarz: `‖a²−b²‖₁ ≤ ‖a−b‖₂‖a+b‖₂`; the L² Hölder-product norm
+   inequality is the missing mathlib lever — search `eLpNorm`/`lintegral`
+   Hölder, or use the `L²` inner-product `inner_mul_le_norm_mul_norm`). Then the
+   same `martingale_of_tendsto_eLpNorm_one`.
+4. **Isometry + bundle** on `(naturalFiltration W).rightCont`; replace the axiom;
+   repoint `quadVar_/martingale_stochasticIntegral`; drop #5 (13→12).
 
 ## Discipline
 
