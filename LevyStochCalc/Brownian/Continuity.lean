@@ -97,7 +97,8 @@ lemma holder_dense_extends_continuous {α K : ℝ}
     exact Dense.extend_of_ind h_dense h_uc ⟨s, hs⟩
 
 /-- The set of dyadic rationals: `D := {k * 2^{-n} : k ∈ ℤ, n ∈ ℕ}`. Dense in ℝ. -/
-def dyadicRationals : Set ℝ := {x : ℝ | ∃ k : ℤ, ∃ n : ℕ, x = (k : ℝ) * (2 : ℝ)^(-n : ℤ)}
+def dyadicRationals : Set ℝ :=
+  {x : ℝ | ∃ k : ℤ, ∃ n : ℕ, x = (k : ℝ) * (2 : ℝ)^(-n : ℤ)}
 
 /-- `0` is a dyadic rational (`k = 0`, `n = 0`). -/
 lemma zero_mem_dyadicRationals : (0 : ℝ) ∈ dyadicRationals := by
@@ -187,7 +188,8 @@ lemma kolmogorov_modification_ae_eq
   -- convergence-in-measure of X(u n) → X(t).
   have hp_pos : 0 < p := hX.p_pos
   have hq_pos : 0 < q := hX.q_pos
-  -- Direct Markov: P {ω | δ^p ≤ edist^p} ≤ (∫⁻ edist^p) / δ^p ≤ M·edist(u n,t)^q/δ^p.
+  -- Direct Markov: P {ω | δ^p ≤ edist^p} ≤ (∫⁻ edist^p) / δ^p
+  --   ≤ M·edist(u n,t)^q/δ^p.
   -- For real-valued X, edist (X s ω) (X t ω) = ‖X s ω - X t ω‖ₑ (PseudoEMetric on ℝ
   -- via |·|), so this is convergence of (X (u n)) → X t in measure.
   have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by

@@ -460,7 +460,7 @@ For `C^{1,2}` functions `u` and a jump diffusion `X = (μ, σ, γ)`-driven by
   `= ∫_0^T (∂_t u + 𝓛u)(s, X_{s-}) ds`     -- drift_term
   `+ ∫_0^T ∇u(s, X_{s-})ᵀ σ(s, X_{s-}) dW_s`  -- diff_mart
   `+ ∫_0^T ∫_E [u(s, X_{s-} + γ(s, X_{s-}, e)) − u(s, X_{s-})] Ñ(ds, de)`  -- jump_mart
-  `+ ∫_0^T ∫_E [u(·+γ) − u − γᵀ ∇u](s, X_{s-}, e) ν(de) ds`               -- comp_drift
+  `+ ∫_0^T ∫_E [u(·+γ) − u − γᵀ ∇u](s, X_{s-}, e) ν(de) ds`  -- comp_drift
 
 holds almost surely, where `𝓛u = μᵀ∇u + ½Tr(σσᵀ∇²u)` is the diffusion
 generator.

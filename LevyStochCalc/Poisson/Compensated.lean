@@ -56,7 +56,8 @@ For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists 
 * `F` is a martingale wrt `Filt`,
 * `(F t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale wrt `Filt`
   (quadVar identity),
-* `∫⁻ ω, ‖F T‖₊² ∂P = ∫⁻ ω, ∫⁻ s in [0, T], ∫⁻ e, ‖φ ω s e‖₊² ∂ν ∂volume ∂P`
+* `∫⁻ ω, ‖F T‖₊² ∂P`
+  `= ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖φ ω s e‖₊² ∂ν ∂volume ∂P`
   for every `T > 0` with `h_meas + h_sq_int` (L²-isometry),
 * `F` has a càdlàg modification.
 

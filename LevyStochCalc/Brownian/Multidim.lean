@@ -147,7 +147,8 @@ private noncomputable def project_BM
       exact (measurable_pi_apply i).comp measurable_snd
     exact h₀.comp h_eval_meas
   initial_zero := by
-    -- W₀.initial_zero : ∀ᵐ ω₀ ∂P₀, W₀.W 0 ω₀ = 0; lift via measure-preserving eval i.
+    -- W₀.initial_zero : ∀ᵐ ω₀ ∂P₀, W₀.W 0 ω₀ = 0; lift via
+    --   measure-preserving eval i.
     have mp : MeasureTheory.MeasurePreserving (Function.eval i)
         (MeasureTheory.Measure.pi (fun _ : Fin d => P₀)) P₀ :=
       MeasureTheory.measurePreserving_eval (fun _ => P₀) i
@@ -234,7 +235,8 @@ probability space. -/
 theorem MultidimBrownianMotion.exists (d : ℕ) :
     ∃ (Ω : Type u) (_ : MeasurableSpace Ω) (P : Measure Ω)
       (_ : IsProbabilityMeasure P), Nonempty (MultidimBrownianMotion P d) := by
-  obtain ⟨Ω₀, mΩ₀, P₀, hP₀, ⟨W₀⟩⟩ := LevyStochCalc.Brownian.BrownianMotion.exists
+  obtain ⟨Ω₀, mΩ₀, P₀, hP₀, ⟨W₀⟩⟩ :=
+    LevyStochCalc.Brownian.BrownianMotion.exists
   refine ⟨Fin d → Ω₀, MeasurableSpace.pi,
     MeasureTheory.Measure.pi (fun _ => P₀), inferInstance, ?_⟩
   refine ⟨{
@@ -296,7 +298,8 @@ theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
       (fun (i : Fin d) (ω : Ω) => (W.W i).W t ω - (W.W i).W s ω) P := by
   refine ⟨fun i => (W.W i).increment_gaussian hs hst, ?_⟩
   -- Apply iIndepFun.comp to components_independent with `g i := fun path => path t - path s`.
-  -- Each `g i` is measurable (eval_t and eval_s are measurable on ℝ → ℝ, and sub is measurable).
+  -- Each `g i` is measurable (eval_t and eval_s are measurable on ℝ → ℝ,
+  --   and sub is measurable).
   have h_g_meas : ∀ _ : Fin d,
       Measurable (fun (path : ℝ → ℝ) => path t - path s) := by
     intro _

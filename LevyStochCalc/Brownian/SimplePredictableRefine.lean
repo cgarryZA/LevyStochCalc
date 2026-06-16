@@ -440,7 +440,8 @@ lemma SimplePredictable.fiber_sum_telescope
   rw [h_bij_eq]
   -- Now: ∑ n ∈ Ico, H.ξ i ω · (g (n+1) - g n)
   -- = H.ξ i ω · ∑ (g (n+1) - g n)
-  -- = H.ξ i ω · (W (π' ⟨k_hi.val, _⟩) ω - W (π' ⟨k_lo.val, _⟩) ω)  [W_telescope_via_g]
+  -- = H.ξ i ω · (W (π' ⟨k_hi.val, _⟩) ω - W (π' ⟨k_lo.val, _⟩) ω)
+  --   [W_telescope_via_g]
   -- = H.ξ i ω · (W (H.partition i.succ) ω - W (H.partition i.castSucc) ω)  [hk_hi, hk_lo]
   rw [← Finset.mul_sum]
   rw [SimplePredictable.W_telescope_via_g (Ω := Ω) (P := P) W π' ω k_lo.val k_hi.val
@@ -988,7 +989,8 @@ theorem SimplePredictable.diff_isometry_simple
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
       ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
         (H₂.partition i.castSucc)) (H₂.ξ i)) :
-    ∫⁻ ω, (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊ : ℝ≥0∞) ^ 2
+      ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   have h_LHS :
@@ -1002,7 +1004,8 @@ theorem SimplePredictable.diff_isometry_simple
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-          (‖((H₁.sub_on_common H₂ h_eq).eval s ω)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+          (‖((H₁.sub_on_common H₂ h_eq).eval s ω)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+        by
     refine MeasureTheory.lintegral_congr (fun ω => ?_)
     refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc
       (fun s _ => ?_)

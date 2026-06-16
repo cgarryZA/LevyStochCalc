@@ -56,7 +56,8 @@ noncomputable def picardMap
     (_bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
     (_X : ℝ → Ω → (Fin n → ℝ))
     (_T : ℝ)
-    (_input : (ℝ → Ω → ℝ) × (ℝ → Ω → (Fin d → ℝ)) × (ℝ → Ω → E → ℝ)) :
+    (_input :
+      (ℝ → Ω → ℝ) × (ℝ → Ω → (Fin d → ℝ)) × (ℝ → Ω → E → ℝ)) :
     (ℝ → Ω → ℝ) × (ℝ → Ω → (Fin d → ℝ)) × (ℝ → Ω → E → ℝ) :=
   -- Placeholder: identity on input. Substantive Picard map (Tang-Li 1994 / Becherer 2006)
   -- requires the conditional expectation + martingale representation machinery.
@@ -69,7 +70,8 @@ implicit in the next clause's `∫⁻ e, ...` integrand. -/
 def Lipschitz {n d : ℕ}
     (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
     (ν : Measure E) (L : ℝ) : Prop :=
-  ∀ s : ℝ, ∀ x : Fin n → ℝ, ∀ y₁ y₂ : ℝ, ∀ z₁ z₂ : Fin d → ℝ, ∀ u₁ u₂ : E → ℝ,
+  ∀ s : ℝ, ∀ x : Fin n → ℝ, ∀ y₁ y₂ : ℝ,
+    ∀ z₁ z₂ : Fin d → ℝ, ∀ u₁ u₂ : E → ℝ,
     |bsdej.f s x y₁ z₁ u₁ - bsdej.f s x y₂ z₂ u₂|
       ≤ L * (|y₁ - y₂| + ‖z₁ - z₂‖
         + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal.sqrt)
@@ -197,7 +199,8 @@ axiom continuousBSDEJ_exists_unique
           ((∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
             + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
                 (‖bsdej.f s (X s ω) 0 0 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal) ∧
-      ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ)) (U' : ℝ → Ω → E → ℝ),
+      ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ))
+        (U' : ℝ → Ω → E → ℝ),
         LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y' Z' U' T →
         (∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = Y' t ω)
 

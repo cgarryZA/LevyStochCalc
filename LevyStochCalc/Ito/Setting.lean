@@ -59,7 +59,8 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
     (coeffs : JumpDiffusionCoeffs n d E) (ν : Measure E) (L : ℝ) : Prop :=
   0 ≤ L ∧
   -- μ uniformly Lipschitz in x:
-  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ‖coeffs.μ s x₁ - coeffs.μ s x₂‖ ≤ L * ‖x₁ - x₂‖) ∧
+  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
+    ‖coeffs.μ s x₁ - coeffs.μ s x₂‖ ≤ L * ‖x₁ - x₂‖) ∧
   -- σ uniformly Lipschitz in x (with the Frobenius / Euclidean norm on matrices):
   (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
     (∑ i, ∑ j, (coeffs.σ s x₁ i j - coeffs.σ s x₂ i j) ^ 2)
@@ -102,7 +103,8 @@ structure JumpDiffusion
   initial_value : ∀ᵐ ω ∂P, X 0 ω = x₀
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
-    ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
+    ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T,
+      ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
   /-- Almost-sure càdlàg paths (right-continuous with left limits, a.s.)
   on the SDE time domain `t ≥ 0`.
   Required by the literature jump-diffusion SDE convention: Applebaum 6.2.9 /

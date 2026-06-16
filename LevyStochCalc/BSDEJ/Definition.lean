@@ -90,8 +90,8 @@ The `f_measurable`/`g_measurable` fields prevent `IsBSDEJSolution` from being
 evaluated on non-measurable drivers, where the Bochner integral would default
 to `0` and make the equation `Y_t = g + 0` trivially solvable:
 - `g : (Fin n → ℝ) → ℝ` is Borel-measurable in `x`;
-- `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly measurable
-  in its five arguments for the product σ-algebra on
+- `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly
+  measurable in its five arguments for the product σ-algebra on
   `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)` (the `(E → ℝ)` slot carries
   the product σ-algebra, matching the `Ψ_t = ∫ U_t(z) ν(dz)` channel). -/
 structure BSDEJData (n d : ℕ) (E : Type v) where
@@ -104,8 +104,9 @@ structure BSDEJData (n d : ℕ) (E : Type v) where
   /-- `f` is jointly measurable in `(t, x, y, z, u)`. The 5-arg product
   σ-algebra is the canonical one on
   `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)`. -/
-  f_measurable : Measurable (fun (p : ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)) =>
-    f p.1 p.2.1 p.2.2.1 p.2.2.2.1 p.2.2.2.2)
+  f_measurable : Measurable
+    (fun (p : ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)) =>
+      f p.1 p.2.1 p.2.2.1 p.2.2.2.1 p.2.2.2.2)
 
 /-- Predicate: `(Y, Z, U)` solves the BSDEJ with data `bsdej`, driven by
 `(W, N)` and the forward process `X`, on the time horizon `[0, T]`.
