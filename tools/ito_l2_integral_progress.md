@@ -222,6 +222,57 @@ D. **Assemble** conjuncts 1,3 (engines), 2 (simple quadVar + sq engine), lift 1,
    `rightCont`; replace axiom; repoint `quadVar_stochasticIntegral` +
    `martingale_stochasticIntegral`; drop #5 from `cited_axioms.md` (13→12).
 
+## UPDATE 2026-06-16 (session 3) — ALL analytic engines for #5 are DONE
+
+Landed (sorry-free, four-way green):
+- ✅ **General-`t` refinement chain** (`SimplePredictableRefine.lean`):
+  `W_telescope_via_g_clamped`, `fiber_sum_telescope_clamped`,
+  `simpleIntegral_refine_intermediate`, `simpleIntegral_sub_on_common_intermediate`
+  — the `min(·,t)`-clamped analogues of the endpoint refinement machinery
+  (telescoping is value-agnostic, so the clamp passes through unchanged).
+- ✅ **`simpleIntegral_intermediate_diff_isometry`** — `∫⁻‖I₁(t)−I₂(t)‖² =
+  ∫⁻∫⁻_{[0,t]}‖eval diff‖²` at every `t` (common endpoint). The exact isometry
+  for `L²`-Cauchy-at-each-`t` AND cross-horizon consistency.
+- ✅ **`tendsto_setLIntegral_Ioc_prod_zero`** — right-continuity of the horizon
+  integral (piece C above): `∫⁻ω∫⁻_{(s₀,r]}φ → 0` as `r ↓ s₀`.
+
+**Engine inventory (all present, sorry-free):** general-`t` difference isometry ·
+`integral_sq_increment_eq_of_martingale` · `integral_sq_mono_of_martingale` ·
+`martingale_rightCont_of_tendsto_eLpNorm_one` · `tendsto_setLIntegral_Ioc_prod_zero` ·
+`martingale_of_tendsto_eLpNorm_one` · `tendsto_eLpNorm_one_of_eLpNorm_two` ·
+`eLpNorm_one_mul_le` · `tendsto_eLpNorm_one_sq_sub` · `simpleIntegral_memLp_intermediate_brownian`.
+
+**The only thing left is the CONSTRUCTION (no new analytic ideas needed):**
+1. **Zero-extension** `SimplePredictable.appendInterval H T'` (`H_last < T'`,
+   append one interval with `ξ = 0` via `Fin.snoc`): `eval`/`simpleIntegral`
+   unchanged, adapted. (Needed so two different-horizon dyadic approximants share
+   an endpoint for the difference isometry → cross-horizon Cauchy.)
+2. **Master sequence** `Gₙ` on growing horizons (dyadic mesh + truncation level +
+   horizon, a diagonal-of-diagonals built from `predictableDyadicSimple_brownian`
+   + the existing per-`T` truncation in `exists_itoIntegralL2_brownian_progMeas`),
+   with `∫⁻∫⁻_{[0,n]}‖Gₙ.eval − H‖² → 0`.
+3. **`F t := ↑↑(Filter.limUnder atTop (fun n => (memLp_intermediate (Gₙ↑) t).toLp))`**
+   (zero-extend `Gₙ` to a common horizon ≥ t); `CauchySeq` from
+   `simpleIntegral_intermediate_diff_isometry` + step 2. `Iₙ(t) → F t` in `L²` ∀t.
+4. **Conjunct 3** (isometry ∀T): `eLpNorm² (F T) = ∫⁻∫⁻_{[0,T]}‖H‖²` from the
+   per-`t` isometry-limit (mirrors `itoIntegralLp_brownian_L2_isometry`).
+5. **Conjunct 1** (naturalFiltration martingale): `martingale_of_tendsto_eLpNorm_one`
+   + `tendsto_eLpNorm_one_of_eLpNorm_two` on `Iₙ(t) → F t`.
+6. **Lift conjunct 1 to `rightCont`**: slice right-`L²`-continuity via
+   `integral_sq_increment_eq_of_martingale` (gives `‖F_r−F_s‖₂² = ∫∫_{(s,r]}‖H‖²`)
+   + `tendsto_setLIntegral_Ioc_prod_zero` → `martingale_rightCont_of_tendsto_eLpNorm_one`.
+7. **Conjunct 2** (quadVar martingale on `rightCont`): simple-level
+   `(Iₙ(t))² − ∫_{[0,t]}Gₙ²` is a `naturalFiltration`-martingale (orthogonal
+   increments — `simpleIntegral_diagonal`/`offDiagonal` in `ItoSimple.lean`); pass
+   to the limit (`tendsto_eLpNorm_one_sq_sub` for `Iₙ²→F²`, isometry for the
+   compensator); lift to `rightCont` (right-`L¹`-continuity of `F² − A`).
+8. **Replace axiom**, repoint `quadVar_stochasticIntegral` +
+   `martingale_stochasticIntegral`, drop #5 from `cited_axioms.md` (13→12), confirm
+   `#print axioms` clean on consumers.
+
+Steps 1–3 (zero-extension + master sequence + `F`) are the bulk of the remaining
+construction; 4–8 then assemble via the engines above.
+
 ## Discipline
 
 No new `sorry` in the built library; keep the axiom until the full theorem is
