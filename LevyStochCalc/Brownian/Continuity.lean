@@ -250,6 +250,63 @@ lemma dyadicTrunc_telescope {f : ℝ → ℝ} {b : ℕ → ℝ} {N : ℕ}
           rw [Finset.sum_Ico_succ_top (by omega : m + 1 ≤ L + 1)]
           ring
 
+/-- **Cross-point step at a fixed level.** For `0 ≤ s ≤ t ≤ 1` with
+`t − s ≤ 2^{-m}`, the level-`m` truncations of `s` and `t` are equal or adjacent
+level-`m` dyadics, so `|f(trunc_m s) − f(trunc_m t)| ≤ b m`. -/
+lemma dyadicTrunc_near_step {f : ℝ → ℝ} {b : ℕ → ℝ} {N : ℕ}
+    (hb : ∀ n, 0 ≤ b n)
+    (hf : ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |f ((k + 1 : ℤ) / 2 ^ n) - f ((k : ℤ) / 2 ^ n)| ≤ b n)
+    {m : ℕ} (hm : N ≤ m) {s t : ℝ} (hs0 : 0 ≤ s) (ht1 : t ≤ 1) (hst : s ≤ t)
+    (hclose : t - s ≤ (1 / 2) ^ m) :
+    |f (dyadicTrunc m s) - f (dyadicTrunc m t)| ≤ b m := by
+  set ks : ℤ := ⌊s * 2 ^ m⌋ with hks
+  set kt : ℤ := ⌊t * 2 ^ m⌋ with hkt
+  have hks0 : 0 ≤ ks := by rw [hks]; apply Int.floor_nonneg.mpr; positivity
+  have hmono : ks ≤ kt := by
+    rw [hks, hkt]; apply Int.floor_le_floor
+    exact mul_le_mul_of_nonneg_right hst (by positivity)
+  have hclose' : t * 2 ^ m ≤ s * 2 ^ m + 1 := by
+    have hmul : (t - s) * 2 ^ m ≤ 1 := by
+      calc (t - s) * 2 ^ m ≤ (1 / 2) ^ m * 2 ^ m :=
+            mul_le_mul_of_nonneg_right hclose (by positivity)
+        _ = 1 := by rw [div_pow, one_pow, div_mul_cancel₀]; positivity
+    nlinarith
+  have hkt_le : kt ≤ ks + 1 := by
+    rw [hkt, hks]
+    calc ⌊t * 2 ^ m⌋ ≤ ⌊s * 2 ^ m + 1⌋ := Int.floor_le_floor (by linarith)
+      _ = ⌊s * 2 ^ m⌋ + 1 := Int.floor_add_one _
+  have hTs : dyadicTrunc m s = ((ks : ℤ) : ℝ) / 2 ^ m := by rw [dyadicTrunc, ← hks]
+  have hTt : dyadicTrunc m t = ((kt : ℤ) : ℝ) / 2 ^ m := by rw [dyadicTrunc, ← hkt]
+  rcases (by omega : kt = ks ∨ kt = ks + 1) with he | he
+  · rw [hTs, hTt, he, sub_self, abs_zero]; exact hb m
+  · have hbnd : ks + 1 ≤ (2 : ℤ) ^ m := by
+      have hktle : (kt : ℝ) ≤ t * 2 ^ m := Int.floor_le _
+      have hkt_le2 : (kt : ℝ) ≤ (2 : ℝ) ^ m :=
+        le_trans hktle (by nlinarith [pow_pos (by norm_num : (0:ℝ) < 2) m])
+      have : (kt : ℤ) ≤ (2 : ℤ) ^ m := by exact_mod_cast hkt_le2
+      omega
+    have hap := hf m hm ks hks0 hbnd
+    rw [hTs, hTt, he, abs_sub_comm]
+    exact_mod_cast hap
+
+/-- A dyadic rational coincides with its own level-`L` truncation for all
+sufficiently large `L`. -/
+lemma dyadicTrunc_eventually_eq {s : ℝ} (hs : s ∈ dyadicRationals) :
+    ∃ L₀ : ℕ, ∀ L, L₀ ≤ L → dyadicTrunc L s = s := by
+  obtain ⟨k, n, hkn⟩ := hs
+  refine ⟨n, fun L hL => ?_⟩
+  have h2n : (2 : ℝ) ^ n ≠ 0 := by positivity
+  have hpow : (2 : ℝ) ^ L = (2 : ℝ) ^ (L - n) * (2 : ℝ) ^ n := by
+    rw [← pow_add, Nat.sub_add_cancel hL]
+  have hsL : s * 2 ^ L = ((k * 2 ^ (L - n) : ℤ) : ℝ) := by
+    rw [hkn, zpow_neg, zpow_natCast, hpow]
+    push_cast
+    field_simp
+  rw [dyadicTrunc, hsL, Int.floor_intCast, hkn, zpow_neg, zpow_natCast, hpow]
+  push_cast
+  field_simp
+
 /-- **Markov / Chebyshev bound from the Kolmogorov condition.**
 
 For a process satisfying the Kolmogorov moment condition
