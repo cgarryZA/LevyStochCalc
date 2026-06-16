@@ -273,6 +273,41 @@ Landed (sorry-free, four-way green):
 Steps 1–3 (zero-extension + master sequence + `F`) are the bulk of the remaining
 construction; 4–8 then assemble via the engines above.
 
+## UPDATE 2026-06-16 (session 4) — the integral process F is CONSTRUCTED
+
+The entire **existence** construction is done, sorry-free, four-way green:
+- ✅ `SimplePredictable.appendInterval` (+ eval/simpleIntegral/adapt/partition_last)
+  — zero-extension to a larger horizon.
+- ✅ `exists_adaptedSimple_within`, `masterApprox` (+ `_adapt`, `_within`) — the
+  master approximating sequence on growing horizons `(n:ℝ)+1`.
+- ✅ `masterApprox_diff_isometry` — cross-horizon difference isometry (extend both
+  to a common horizon, then the general-`t` difference isometry).
+- ✅ `masterApprox_eval_tendsto`, `masterApprox_cauchy_le` — per-`t` eval
+  convergence + the Cauchy bound (triangle, joint measurability).
+- ✅ `masterLp` (+ `_coeFn`, `_cauchySeq`) + `eLpNorm_two_rpow_eq_lintegral_sq` —
+  the `Lp` lift, `L²`-Cauchy at each `t`.
+- ✅ **`stochasticIntegralBrownian`** (= `t ↦ ∫_0^t H dW`) + `masterApprox_tendsto_L2`
+  — `F` is the `L²`-limit; `simpleIntegral W (masterApprox n) t → F t` in `L²` ∀`t≥0`.
+
+**Remaining: the 3 conjuncts + rightCont + axiom swap.** Subtleties identified:
+- **Conjunct 3 (isometry ∀T):** `∫⁻‖F T‖² = ∫⁻∫⁻_{[0,T]}‖H‖²`. Needs eLpNorm
+  continuity (`Iₙ(T)→F T` ⇒ `‖Iₙ(T)‖₂→‖F T‖₂`, square the limit) + the **eval-L²-norm
+  convergence** `∫⁻∫⁻_{[0,T]}‖Gₙ.eval‖² → ∫⁻∫⁻_{[0,T]}‖H‖²` (product-space `L²` norm
+  continuity via Tonelli on `P ⊗ vol|_{[0,T]}`, from `masterApprox_eval_tendsto`).
+- **Conjunct 1 (martingale):** `martingale_of_tendsto_eLpNorm_one` is ready (`Iₙ`
+  martingales via `martingale_simpleIntegral_brownian`; `L¹` convergence from
+  `masterApprox_tendsto_L2` + `tendsto_eLpNorm_one_of_eLpNorm_two`). **Gap:** the
+  engine wants *honest* `StronglyAdapted ℱ F`, but `F t = ↑↑(limUnder)` is only
+  *AE*-adapted. Fix: pick the `lpMeas`-representative (the ℱ_t-measurable L² closed
+  subspace contains `Flp t`) or build `F` as that representative.
+- **rightCont lift (conjuncts 1,2):** `martingale_rightCont_of_tendsto_eLpNorm_one`
+  with slice right-`L²`-continuity = `integral_sq_increment_eq_of_martingale`
+  (conjuncts 1+3) + `tendsto_setLIntegral_Ioc_prod_zero`. Ready once 1,3 land.
+- **Conjunct 2 (quadVar):** the hardest. Needs the simple-level quadVar martingale
+  `(Iₙ(t))² − ∫_{[0,t]}Gₙ²` (orthogonal increments from `simpleIntegral_diagonal`/
+  `_offDiagonal` in `ItoSimple.lean` — not yet assembled), then the limit
+  (`tendsto_eLpNorm_one_sq_sub` + the compensator convergence) + the rightCont lift.
+
 ## Discipline
 
 No new `sorry` in the built library; keep the axiom until the full theorem is
