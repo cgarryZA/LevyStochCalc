@@ -2059,6 +2059,51 @@ lemma eLpNorm_two_rpow_eq_lintegral_sq {μ : MeasureTheory.Measure Ω} (g : Ω �
   refine lintegral_congr (fun ω => ?_)
   rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
 
+/-- `eLpNorm g 2 μ ^ (2:ℝ) = ∫⁻ ‖g‖₊² ∂μ`, over an arbitrary base type. -/
+lemma eLpNorm_sq_eq_lintegral_nnnorm_sq {β : Type*} [MeasurableSpace β]
+    {μ : MeasureTheory.Measure β} (g : β → ℝ) :
+    MeasureTheory.eLpNorm g 2 μ ^ (2 : ℝ) = ∫⁻ x, (‖g x‖₊ : ℝ≥0∞) ^ 2 ∂μ := by
+  have h := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral (μ := μ) (p := (2 : NNReal))
+    (f := g) (by norm_num)
+  rw [show ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) from by simp,
+      show ((2 : NNReal) : ℝ) = (2 : ℝ) from by norm_num] at h
+  rw [h]; refine lintegral_congr (fun x => ?_)
+  rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+
+/-- `eval` is bounded by the sum of the coefficient bounds. -/
+lemma eval_abs_le_sum_bounds {T : ℝ} (H : SimplePredictable Ω T) (s : ℝ) (ω : Ω) :
+    |H.eval s ω| ≤ ∑ i : Fin H.N, (H.ξ_bounded i).choose := by
+  unfold SimplePredictable.eval
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum (fun i _ => ?_))
+  have hM : ∀ ω, |H.ξ i ω| ≤ (H.ξ_bounded i).choose := (H.ξ_bounded i).choose_spec
+  have hM0 : 0 ≤ (H.ξ_bounded i).choose := le_trans (abs_nonneg _) (hM ω)
+  split_ifs with h
+  · exact hM ω
+  · simpa using hM0
+
+/-- For any `SimplePredictable` and any horizon `T`, the squared `L²(λ⊗P)` mass of
+`eval` over `[0, T]` is finite (`eval` is uniformly bounded). -/
+lemma eval_lintegral_sq_finite
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {T' : ℝ} (H : SimplePredictable Ω T') (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  set C : ℝ := ∑ i : Fin H.N, (H.ξ_bounded i).choose with hC
+  have hbound : ∀ ω s, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (C ^ 2) := by
+    intro ω s
+    rw [show (‖H.eval s ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H.eval s ω‖
+          from (ofReal_norm_eq_enorm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]
+    refine ENNReal.ofReal_le_ofReal ?_
+    have h1 : ‖H.eval s ω‖ ≤ C := by
+      rw [Real.norm_eq_abs]; exact eval_abs_le_sum_bounds H s ω
+    nlinarith [h1, norm_nonneg (H.eval s ω)]
+  refine lt_of_le_of_lt (MeasureTheory.lintegral_mono (fun ω =>
+    le_trans (MeasureTheory.lintegral_mono (fun s => hbound ω s))
+      (le_of_eq (MeasureTheory.setLIntegral_const _ _)))) ?_
+  rw [MeasureTheory.lintegral_const]
+  exact ENNReal.mul_lt_top
+    (ENNReal.mul_lt_top ENNReal.ofReal_lt_top measure_Icc_lt_top) (measure_lt_top _ _)
+
 /-- `simpleIntegral W H t = 0` for `t ≤ 0` (all increments `W_t − W_t` vanish). -/
 lemma simpleIntegral_eq_zero_of_nonpos
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
@@ -2502,6 +2547,80 @@ lemma martingale_stochasticIntegralBrownian :
       rw [MeasureTheory.eLpNorm_congr_ae hfae, MeasureTheory.eLpNorm_zero]
     simp only [hzero]
     exact tendsto_const_nhds
+
+/-- **Eval-L²-norm convergence.** `∫⁻∫⁻_{[0,T]}‖Gₙ.eval‖² → ∫⁻∫⁻_{[0,T]}‖H‖²`.
+Lift both to `L²` of the product measure `P ⊗ vol|_{[0,T]}` (Tonelli); the `L²`
+difference vanishes (`masterApprox_eval_tendsto`), so the norms converge. -/
+lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
+    Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) := by
+  haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
+  set ν : MeasureTheory.Measure ℝ := volume.restrict (Set.Icc (0 : ℝ) T) with hν
+  set Hp : Ω × ℝ → ℝ := fun p => H p.1 p.2 with hHp
+  set Gp : ℕ → Ω × ℝ → ℝ := fun n p =>
+    (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval p.2 p.1 with hGp
+  have hHp_meas : Measurable Hp := h_meas
+  have hGp_meas : ∀ n, Measurable (Gp n) := fun n =>
+    (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval_jointly_measurable
+  -- Tonelli bridge: `eLpNorm f 2 (P⊗ν) ^ 2 = ∫⁻∫⁻_{[0,T]} ‖f(ω,·)‖²`.
+  have hbridge : ∀ (f : Ω × ℝ → ℝ), Measurable f →
+      MeasureTheory.eLpNorm f 2 (P.prod ν) ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+    intro f hf
+    rw [eLpNorm_sq_eq_lintegral_nnnorm_sq,
+        MeasureTheory.lintegral_prod _
+          (((hf.nnnorm.coe_nnreal_ennreal).pow_const 2).aemeasurable)]
+  -- `eLpNorm < ⊤` from finiteness of the squared mass.
+  have hfin : ∀ (f : Ω × ℝ → ℝ), Measurable f →
+      (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f (ω, s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤) →
+      MeasureTheory.eLpNorm f 2 (P.prod ν) < ⊤ := by
+    intro f hf hfin
+    refine lt_top_iff_ne_top.mpr (fun h => hfin ?_)
+    rw [← hbridge f hf, h, ENNReal.top_rpow_of_pos (by norm_num)]
+  have hHmemLp : MeasureTheory.MemLp Hp 2 (P.prod ν) :=
+    ⟨hHp_meas.aestronglyMeasurable, hfin Hp hHp_meas (h_sq_int_global T hT).ne⟩
+  have hGmemLp : ∀ n, MeasureTheory.MemLp (Gp n) 2 (P.prod ν) := fun n =>
+    ⟨(hGp_meas n).aestronglyMeasurable, hfin (Gp n) (hGp_meas n)
+      (eval_lintegral_sq_finite (masterApprox W H h_meas h_progMeas h_sq_int_global n) T).ne⟩
+  -- `Gp n → Hp` in `L²(P⊗ν)`.
+  have hdiff : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν))
+      Filter.atTop (nhds 0) := by
+    have hsq : ∀ n, MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ)
+        = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              ∂volume ∂P := by
+      intro n
+      rw [hbridge (Gp n - Hp) ((hGp_meas n).sub hHp_meas)]
+      refine lintegral_congr (fun ω =>
+        MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_))
+      rw [Pi.sub_apply, hGp, hHp, ← nnnorm_neg]
+      congr 1; ring
+    have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
+        Filter.atTop (nhds 0) := by
+      simp_rw [hsq]
+      exact masterApprox_eval_tendsto W H h_meas h_progMeas h_sq_int_global (le_of_lt hT)
+    have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
+    rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
+    refine h3.congr (fun n => ?_)
+    rw [← ENNReal.rpow_mul, show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
+  -- transfer to `Lp`, take norms.
+  have hLp := (MeasureTheory.Lp.tendsto_Lp_iff_tendsto_eLpNorm'' (fun n => Gp n)
+    (fun n => hGmemLp n) Hp hHmemLp).mpr hdiff
+  have hnorm := hLp.enorm
+  simp only [MeasureTheory.Lp.enorm_def] at hnorm
+  have hnorm2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n) 2 (P.prod ν))
+      Filter.atTop (nhds (MeasureTheory.eLpNorm Hp 2 (P.prod ν))) := by
+    rw [MeasureTheory.eLpNorm_congr_ae (MeasureTheory.MemLp.coeFn_toLp hHmemLp)] at hnorm
+    refine hnorm.congr (fun n => ?_)
+    exact MeasureTheory.eLpNorm_congr_ae (MeasureTheory.MemLp.coeFn_toLp (hGmemLp n))
+  -- square and convert via the bridge.
+  have := hnorm2.ennrpow_const 2
+  simp_rw [hbridge _ (hGp_meas _)] at this
+  rw [hbridge Hp hHp_meas] at this
+  exact this
 
 end MasterSequence
 
