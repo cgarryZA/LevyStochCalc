@@ -1,5 +1,17 @@
 # Kolmogorov–Chentsov continuous modification — progress notes
 
+## ✅ COMPLETE (2026-06-16)
+
+`kolmogorovChentsov_modification` is now a **proved `theorem`** (no axiom), fully
+`sorry`-free, depending only on `propext, Classical.choice, Quot.sound`. The
+axiom was deleted; the consumer `brownian_continuous_modification` is now also
+axiom-clean; entry #3 dropped from `tools/cited_axioms.md` (14→13). The full
+pipeline of lemmas lives in `LevyStochCalc/Brownian/Continuity.lean`
+(`kolmogorov_markov_bound` … `kc_ae_nbhd_holder` … `extendFrom` assembly). The
+notes below are retained as the design record.
+
+---
+
 **Goal (Plan.md Phase 3 #3).** Replace the cited axiom
 `LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification` with a
 fully `sorry`-free theorem, proved from scratch on the **current** mathlib

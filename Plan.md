@@ -185,8 +185,22 @@ single `sorry` (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`)
 disappears with the #9 chain.
 
 **Tier A — mathlib scaffolds it, finish the gap:**
-- [ ] **#3** `kolmogorovChentsov_modification` — KC continuity conclusion
-      (Karatzas–Shreve 2.2.8). Closest to landing upstream.
+- [x] **#3** `kolmogorovChentsov_modification` — KC continuity conclusion
+      (Karatzas–Shreve 2.2.8). **DONE 2026-06-16:** proved from scratch on the
+      current mathlib pin. Pipeline (all sorry-free, `Brownian/Continuity.lean`):
+      `kolmogorov_markov_bound`/`kolmogorov_real_tail_bound` (per-pair tail) →
+      `kc_level_bad_measure` (per-level union bound, exponent collapse via
+      `kc_exponent_identity`) → `kc_ae_increment_bound` (Borel–Cantelli, a.s.
+      dyadic increment bound) → the deterministic dyadic chaining
+      (`dyadicTrunc*`, `dyadicTrunc_telescope`, `dyadic_holder_chaining`) +
+      `kc_ae_interval_holder`/`kc_ae_nbhd_holder` (a.s. local Hölder; integer
+      crossings chained through the dyadic integer, via
+      `isKolmogorovProcess_comp_add_right` translation-invariance) →
+      `exists_tendsto_of_local_holder` + `continuous_extendFrom` (continuous
+      `extendFrom` modification) → `kolmogorov_modification_ae_eq`. The `axiom`
+      was replaced by the `theorem`; consumer `brownian_continuous_modification`
+      is now also axiom-clean; entry #3 dropped from `tools/cited_axioms.md`
+      (14→13 cited axioms). `#print axioms` → propext/Classical.choice/Quot.sound.
 - [ ] **#1** `BrownianMotion.exists` — construction via Kolmogorov extension.
 - [ ] **#4** `brownian_martingale_rightCont` — BM martingale wrt right-cont
       filtration (KS 2.7.7/2.7.9), once #1 exists.
