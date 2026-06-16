@@ -314,7 +314,8 @@ theorem itoIntegralLp_brownian_tendsto
 /-- **C0b.10-post2: `eLpNorm` of `simpleIntegralLp` rpow-form, the
 single-function version of the diff isometry.**
 
-`eLpNorm (simpleIntegralLp ...) 2 P ^ (2:ℝ) = ∫⁻ ω ∫⁻ s ‖H.eval s ω‖₊² ∂vol ∂P`.
+`eLpNorm (simpleIntegralLp ...) 2 P ^ (2:ℝ)`
+`= ∫⁻ ω ∫⁻ s ‖H.eval s ω‖₊² ∂vol ∂P`.
 
 Direct from `simpleIntegral_isometry` (single-function version) plus
 the same `eLpNorm_nnreal_pow_eq_lintegral` bridge as the diff form. -/
@@ -445,7 +446,8 @@ theorem eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
         (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
       Filter.atTop
       (nhds (MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P ^ (2 : ℝ))) :=
+        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
+          2 P ^ (2 : ℝ))) :=
   (eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
     W hT G h_eq h_adapt h_cauchy_eval).ennrpow_const 2
 
@@ -477,7 +479,8 @@ theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
           (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
       Filter.atTop
       (nhds (MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P ^ (2 : ℝ))) := by
+        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
+          2 P ^ (2 : ℝ))) := by
   have h_tendsto := eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
     W hT G h_eq h_adapt h_cauchy_eval
   -- h_tendsto : Tendsto (fun n => eLpNorm² (simpleIntegralLp (G n))) atTop
@@ -828,7 +831,8 @@ theorem exists_itoIntegralL2_brownian_progMeas
     have h_inv_tendsto : Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹)
         Filter.atTop (nhds 0) := by
       have h := ENNReal.tendsto_inv_nat_nhds_zero
-      have hcomp : Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
+      have hcomp :
+          Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
         h.comp (Filter.tendsto_add_atTop_nat 1)
       simpa [Nat.cast_add, Nat.cast_one] using hcomp
     obtain ⟨N₂, hN₂⟩ := (ENNReal.tendsto_atTop_zero.mp h_inv_tendsto) (ε / 4) hε4_pos
@@ -855,7 +859,8 @@ theorem exists_itoIntegralL2_brownian_progMeas
       rw [h_sum] at this
       exact this
     set A : Ω → ℝ → ℝ≥0∞ :=
-      fun ω s => (‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 with hA
+      fun ω s => (‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2
+        with hA
     set B : Ω → ℝ → ℝ≥0∞ :=
       fun ω s => (‖max (-(n : ℝ)) (min (n : ℝ) (H ω s))
                       - (G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 with hB
@@ -879,8 +884,9 @@ theorem exists_itoIntegralL2_brownian_progMeas
             rw [MeasureTheory.lintegral_add_left']
             have h_meas_A_s : Measurable (fun s => A ω s) := by
               simp only [hA]
-              exact ((by fun_prop : Measurable (fun s =>
-                ‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊)).coe_nnreal_ennreal).pow_const 2
+              have h1 : Measurable (fun s =>
+                  ‖H ω s - max (-(n : ℝ)) (min (n : ℝ) (H ω s))‖₊) := by fun_prop
+              exact (h1.coe_nnreal_ennreal).pow_const 2
             exact h_meas_A_s.aemeasurable
     have h_double_le :
         (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, C ω s ∂volume ∂P)
@@ -1041,7 +1047,8 @@ For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a proce
 
 * `F` is a martingale wrt `Filt`,
 * `(F t)² − ∫_0^t H² ds` is a martingale wrt `Filt` (quadVar identity),
-* `∫⁻ ω, ‖F T‖₊² ∂P = ∫⁻ ω, ∫⁻ s in [0, T], ‖H ω s‖₊² ∂volume ∂P` for every `T > 0`
+* `∫⁻ ω, ‖F T‖₊² ∂P = ∫⁻ ω, ∫⁻ s in [0, T], ‖H ω s‖₊² ∂volume ∂P`
+  for every `T > 0`
   (L²-isometry).
 
 `F` is the canonical L²-Itô integral `t ↦ ∫_0^t H_s dW_s`. The 3-conjunct strong

@@ -144,7 +144,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_prod
 /-- **Bridge: triple-nested-lintegral-of-squared-norm = `eLpNorm²` on (ternary) product measure.**
 
 For any `ℝ`-valued measurable `h : α × β × γ → ℝ` and SFinite `μ`, `ν`, `η`,
-`∫⁻ x, ∫⁻ y, ∫⁻ z, ‖h (x, y, z)‖₊² ∂η ∂ν ∂μ = eLpNorm h 2 (μ.prod (ν.prod η)) ^ (2:ℝ)`.
+`∫⁻ x, ∫⁻ y, ∫⁻ z, ‖h (x, y, z)‖₊² ∂η ∂ν ∂μ`
+`= eLpNorm h 2 (μ.prod (ν.prod η)) ^ (2:ℝ)`.
 
 Iterated Tonelli + `eLpNorm_nnreal_pow_eq_lintegral`. Used by Compensated chain. -/
 lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
@@ -173,7 +174,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
     MeasureTheory.lintegral_prod _ (h_aem_sq_inner x)
   have h_iterated :
       ∫⁻ p, (‖h p‖₊ : ℝ≥0∞) ^ 2 ∂μνη
-        = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ := by
+        = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ :=
+      by
     rw [h_outer]
     refine lintegral_congr (fun x => ?_)
     exact h_inner_each x
@@ -185,7 +187,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
   have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
   rw [h_two_ENNReal, h_two_R] at h_pow_lemma
   rw [h_pow_lemma]
-  -- ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μνη = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ
+  -- ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μνη
+  --   = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ
   have h_pw : (fun p : α × β × γ => (‖h p‖ₑ : ℝ≥0∞) ^ ((2 : ℝ) : ℝ))
               = (fun p : α × β × γ => (‖h p‖₊ : ℝ≥0∞) ^ 2) := by
     funext p
@@ -203,7 +206,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
 
 For any sequence of jointly-measurable `(p ↦ ev_n p.2 p.1)` and jointly-measurable
 target `H` such that `∫⁻ x, ∫⁻ y in [0,T], ‖H x y - ev_n y x‖₊² → 0`, we have
-`∫⁻ x, ∫⁻ y in [0,T], ‖ev_n y x‖₊² → ∫⁻ x, ∫⁻ y in [0,T], ‖H x y‖₊²`.
+`∫⁻ x, ∫⁻ y in [0,T], ‖ev_n y x‖₊²`
+`→ ∫⁻ x, ∫⁻ y in [0,T], ‖H x y‖₊²`.
 
 Pipeline: bridge to eLpNorm² via Tonelli (`lintegral_sq_eq_eLpNorm_sq_on_prod` after
 restriction); square root → reverse triangle continuity → square back → bridge back.
@@ -306,8 +310,10 @@ lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian_shape
 /-- **General eval-norm-tendsto from diff-norm-tendsto, ternary-product (Compensated-shape).**
 
 For any sequence of jointly-measurable `(p ↦ ev_n p.2.1 p.2.2 p.1)` and jointly-measurable
-target `H` such that `∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e - ev_n s e ω‖₊² → 0`, we have
-`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖ev_n s e ω‖₊² → ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e‖₊²`.
+target `H` such that
+`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e - ev_n s e ω‖₊² → 0`, we have
+`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖ev_n s e ω‖₊²`
+`→ ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e‖₊²`.
 
 Same pipeline as the binary-product version, but lifting via the ternary-product
 Tonelli bridge `lintegral_sq_eq_eLpNorm_sq_on_triple_prod`. -/
