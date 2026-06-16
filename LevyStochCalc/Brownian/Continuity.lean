@@ -30,39 +30,43 @@ universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
 
-/-- **Step 2: uniform Hölder on a dense set → continuous extension.**
+/-- **Step 2: scale-limited Hölder on a dense set → continuous extension.**
 
-A function `f : ℝ → ℝ` that is α-Hölder on a dense set `D ⊆ ℝ` extends
-uniquely to a continuous function on `ℝ`. (Specialised to `D = dyadicRationals`
-in the KC application.)
+A function `f : ℝ → ℝ` that is α-Hölder on a dense set `D ⊆ ℝ` *at scales
+`≤ δ₀`* (i.e. `|f s − f t| ≤ K·|s−t|^α` whenever `s, t ∈ D` and `|s − t| ≤ δ₀`)
+is uniformly continuous on `D`, hence extends uniquely to a continuous function
+on `ℝ` agreeing with `f` on `D`. The scale restriction suffices because uniform
+continuity only constrains small distances; this is exactly what the dyadic
+chaining produces (`dyadic_holder_chaining`, scales `≤ 2^{−N}`).
 
-Proof: an α-Hölder function on `D` is uniformly continuous on `D`. By
-`Dense.uniformContinuous_extend`, the unique continuous extension to all
-of `ℝ` exists. -/
-lemma holder_dense_extends_continuous {α K : ℝ}
-    (hα : 0 < α) (_hK : 0 < K)
+Proof via `Dense.uniformContinuous_extend`. -/
+lemma holder_dense_extends_continuous {α K δ₀ : ℝ}
+    (hα : 0 < α) (_hK : 0 < K) (hδ₀ : 0 < δ₀)
     (D : Set ℝ) (h_dense : Dense D)
     (f : ℝ → ℝ)
-    (h_holder_dyadic : ∀ s ∈ D, ∀ t ∈ D, |f s - f t| ≤ K * |s - t| ^ α) :
+    (h_holder_dyadic : ∀ s ∈ D, ∀ t ∈ D, |s - t| ≤ δ₀ →
+      |f s - f t| ≤ K * |s - t| ^ α) :
     ∃ g : ℝ → ℝ, Continuous g ∧ ∀ s ∈ D, g s = f s := by
-  -- f restricted to D is uniformly continuous (α-Hölder ⇒ UC).
+  -- f restricted to D is uniformly continuous (scale-limited α-Hölder ⇒ UC).
   set fD : D → ℝ := fun x => f x.1 with hfD_def
   have h_uc : UniformContinuous fD := by
     rw [Metric.uniformContinuous_iff]
     intro ε hε
-    -- Take δ such that K · δ^α ≤ ε/2 < ε.
-    -- Choose δ = (ε / (2 * (K + 1)))^(1/α).
+    -- Choose δ = min δ₀ (ε / (2 * (K + 1)))^(1/α).
     set C : ℝ := 2 * (K + 1) with hC_def
     have hC_pos : 0 < C := by simp [hC_def]; linarith
-    refine ⟨(ε / C) ^ (1/α), ?_, ?_⟩
-    · exact Real.rpow_pos_of_pos (div_pos hε hC_pos) _
+    refine ⟨min δ₀ ((ε / C) ^ (1/α)), ?_, ?_⟩
+    · exact lt_min hδ₀ (Real.rpow_pos_of_pos (div_pos hε hC_pos) _)
     · intro s t h_dist
-      have h_holder := h_holder_dyadic s.1 s.2 t.1 t.2
-      -- |s.1 - t.1| < δ
       have h_dist_pos : 0 ≤ |s.1 - t.1| := abs_nonneg _
+      have h_dist_δ₀ : |s.1 - t.1| ≤ δ₀ := by
+        rw [show |s.1 - t.1| = dist s.1 t.1 from (Real.dist_eq _ _).symm]
+        exact le_of_lt (lt_of_lt_of_le h_dist (min_le_left _ _))
+      have h_holder := h_holder_dyadic s.1 s.2 t.1 t.2 h_dist_δ₀
+      -- |s.1 - t.1| < δ
       have h_dist_real : |s.1 - t.1| < (ε / C) ^ (1/α) := by
         rw [show |s.1 - t.1| = dist s.1 t.1 from (Real.dist_eq _ _).symm]
-        exact h_dist
+        exact lt_of_lt_of_le h_dist (min_le_right _ _)
       -- |s.1 - t.1|^α < ε/C
       have h_pow_lt : |s.1 - t.1| ^ α < ε / C := by
         have h1 : |s.1 - t.1| ^ α < ((ε / C) ^ (1/α)) ^ α :=
