@@ -7,9 +7,15 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (14 currently live)
+## Tier 1: Honest cited axioms (13 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
+* #3 (`kolmogorovChentsov_modification`) was PROVED axiom→theorem 2026-06-16: a
+  from-scratch Karatzas–Shreve 2.2.8 / Le Gall 2.9 proof on the current mathlib
+  pin (per-dyadic-level Markov bound → Borel–Cantelli a.s. dyadic Hölder →
+  `extendFrom` continuous extension), depending only on the 3 standard axioms.
+  It is now a `theorem`; its consumer `brownian_continuous_modification` is
+  unchanged. Entry #3 retained below for provenance, marked RESOLVED.
 * #7 and #8 deleted 2026-05-22 (dead post-refactor per M4).
 * #11 retired 2026-05-24 via decomposition into the new #15 + #16
   (`itoLevyFormula` is now a derived theorem).
@@ -61,12 +67,11 @@ to the Mathlib version, no other changes needed downstream.
 * **Mathlib status (May 2026)**: `ProbabilityTheory.poissonMeasure` exists (ℕ-valued Poisson distribution), but no Poisson random measure construction. No current Mathlib activity for Poisson random measures or general Lévy processes.
 * **Replacement plan**: `theorem PoissonRandomMeasure.exists_of_sigmaFinite := <Mathlib forwarder>` when `MeasureTheory.PoissonRandomMeasure` lands.
 
-### 3. `LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification`
+### 3. `LevyStochCalc.Brownian.Continuity.kolmogorovChentsov_modification` — ✅ RESOLVED (proved 2026-06-16)
 
 * **Statement**: A real-valued process satisfying the Kolmogorov moment condition with `q > 1` admits a modification with continuous paths.
 * **Reference**: Karatzas–Shreve **Theorem 2.2.8**; Le Gall **Theorem 2.9**; Revuz–Yor, *Continuous Martingales and Brownian Motion*, Springer 1999, **Theorem I.2.1**.
-* **Mathlib status (May 2026)**: `ProbabilityTheory.IsKolmogorovProcess` is defined (the *condition*) with `mk_of_secondCountableTopology` constructor and various API lemmas (measurable, edist_eq_zero, stronglyMeasurable_edist). The modification *theorem* (existence of continuous version) is NOT yet present. Active partial work in `Mathlib.Probability.Process.Kolmogorov`.
-* **Replacement plan**: `theorem kolmogorovChentsov_modification := IsKolmogorovProcess.exists_continuous_modification` (or equivalent) when the modification theorem is added.
+* **Status**: No longer an axiom — proved from scratch as a `theorem` (mathlib has only `IsKolmogorovProcess`, the condition; the continuity conclusion is supplied here). Proof: `kc_level_bad_measure` (per-level Markov/union bound) → `kc_ae_increment_bound` (Borel–Cantelli) → `dyadic_holder_chaining` + `kc_ae_nbhd_holder` (a.s. local Hölder) → `exists_tendsto_of_local_holder` + `continuous_extendFrom` (continuous modification) → `kolmogorov_modification_ae_eq` (modification property). `#print axioms` → `propext, Classical.choice, Quot.sound` only.
 
 ### 4. `LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont`
 
