@@ -2335,9 +2335,70 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
 noncomputable def stochasticIntegralBrownianLp (t : ℝ) : MeasureTheory.Lp ℝ 2 P :=
   Filter.limUnder Filter.atTop (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
 
-/-- The **L² Itô integral** `t ↦ ∫_0^t H_s dW_s` as a process `ℝ → Ω → ℝ`. -/
+/-- Each master integral lies in `lpMeas` — it is `ℱ_t`-measurable. -/
+lemma masterLp_mem_lpMeas (t : ℝ) (n : ℕ) :
+    masterLp W H h_meas h_progMeas h_sq_int_global t n
+      ∈ MeasureTheory.lpMeas ℝ ℝ
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) 2 P := by
+  rw [masterLp]
+  split_ifs with h
+  · rw [MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable]
+    refine ((simpleIntegral_stronglyAdapted_brownian W
+      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)
+        t).aestronglyMeasurable).congr ?_
+    exact (MeasureTheory.MemLp.coeFn_toLp _).symm
+  · exact Submodule.zero_mem _
+
+/-- The Itô integral process lies in `lpMeas` at each time (closedness of `lpMeas`
++ the `L²`-Cauchy limit of `ℱ_t`-measurable master integrals). -/
+lemma stochasticIntegralBrownianLp_mem_lpMeas (t : ℝ) :
+    stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t
+      ∈ MeasureTheory.lpMeas ℝ ℝ
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) 2 P := by
+  haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
+  have hcs : CauchySeq (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) := by
+    rcases le_or_gt 0 t with ht | ht
+    · exact masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global ht
+    · have heq : (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+          = fun _ => (0 : MeasureTheory.Lp ℝ 2 P) := by
+        funext n; rw [masterLp, dif_neg (fun h => absurd h.1 (not_le.mpr ht))]
+      rw [heq]; exact (tendsto_const_nhds (x := (0 : MeasureTheory.Lp ℝ 2 P))).cauchySeq
+  rw [MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable]
+  have hclosed : IsClosed {f : MeasureTheory.Lp ℝ 2 P |
+      AEStronglyMeasurable[(LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t]
+        (↑↑f : Ω → ℝ) P} :=
+    MeasureTheory.isClosed_aestronglyMeasurable
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le t)
+  exact hclosed.mem_of_tendsto hcs.tendsto_limUnder
+    (Filter.Eventually.of_forall
+      (fun n => MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable.mp
+        (masterLp_mem_lpMeas W H h_meas h_progMeas h_sq_int_global t n)))
+
+/-- `↑↑(Flp t)` is `ℱ_t`-a.e.-strongly-measurable. -/
+lemma stochasticIntegralBrownian_aesm (t : ℝ) :
+    AEStronglyMeasurable[(LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t]
+      (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) P :=
+  MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable.mp
+    (stochasticIntegralBrownianLp_mem_lpMeas W H h_meas h_progMeas h_sq_int_global t)
+
+/-- The **L² Itô integral** `t ↦ ∫_0^t H_s dW_s` as a process `ℝ → Ω → ℝ`, taken as
+the honest `ℱ_t`-measurable representative of the `L²`-limit. -/
 noncomputable def stochasticIntegralBrownian (t : ℝ) : Ω → ℝ :=
-  ↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t)
+  (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).mk
+    (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t))
+
+/-- The integral process is a.e.-equal to the `L²`-limit's `coeFn`. -/
+lemma stochasticIntegralBrownian_ae_eq (t : ℝ) :
+    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t
+      =ᵐ[P] (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) :=
+  (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).ae_eq_mk.symm
+
+/-- The integral process is strongly adapted to the natural filtration. -/
+lemma stochasticIntegralBrownian_stronglyAdapted :
+    MeasureTheory.StronglyAdapted (LevyStochCalc.Brownian.Martingale.naturalFiltration W)
+      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) :=
+  fun t => (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).stronglyMeasurable_mk
 
 /-- **L²-convergence of the master integrals to the Itô integral process.** -/
 lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
@@ -2361,9 +2422,10 @@ lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
     have h2' : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
     linarith
   refine MeasureTheory.eLpNorm_congr_ae ?_
-  filter_upwards [masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n ht_nn hcn] with ω hω
-  simp only [Pi.sub_apply, hω]
-  rfl
+  filter_upwards [masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n ht_nn hcn,
+    stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t] with ω hω hF
+  simp only [Pi.sub_apply]
+  rw [hω, hF]
 
 end MasterSequence
 
