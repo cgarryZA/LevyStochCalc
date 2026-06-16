@@ -141,8 +141,10 @@ lemma compensated_mean_zero
     have h_norm : ∀ n : ℕ, ‖((n : ℝ))‖ = (n : ℝ) := fun n => by
       rw [Real.norm_eq_abs]; exact abs_of_nonneg (Nat.cast_nonneg n)
     simp_rw [h_norm]
-    have h_eq : ∀ n : ℕ, Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)
-        = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)) := by
+    have h_eq : ∀ n : ℕ,
+        Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)
+        = Real.exp (-(↑r : ℝ))
+          * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)) := by
       intro n; ring
     simp_rw [h_eq]
     exact (summable_pow_div_factorial_mul_nat (↑r)).mul_left _
@@ -251,7 +253,8 @@ private lemma poissonMeasure_integral_id_sq (r : ℝ≥0) :
   rw [ProbabilityTheory.integral_poissonMeasure]
   have h_smul_eq : ∀ n : ℕ,
       (Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ)) • ((n : ℝ) ^ 2)
-      = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ) ^ 2) := by
+      = Real.exp (-(↑r : ℝ))
+        * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ) ^ 2) := by
     intro n
     change Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ) ^ 2
         = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ) ^ 2)
@@ -260,7 +263,8 @@ private lemma poissonMeasure_integral_id_sq (r : ℝ≥0) :
   rw [tsum_mul_left]
   rw [tsum_pow_div_factorial_mul_nat_sq]
   rw [show Real.exp (-(↑r : ℝ)) * (((↑r : ℝ) ^ 2 + (↑r : ℝ)) * Real.exp (↑r))
-        = ((↑r : ℝ) ^ 2 + (↑r : ℝ)) * (Real.exp (-(↑r : ℝ)) * Real.exp (↑r)) from by ring]
+        = ((↑r : ℝ) ^ 2 + (↑r : ℝ))
+          * (Real.exp (-(↑r : ℝ)) * Real.exp (↑r)) from by ring]
   rw [← Real.exp_add]
   rw [show (-(↑r : ℝ) + (↑r : ℝ)) = 0 from by ring]
   rw [Real.exp_zero, mul_one]
@@ -272,7 +276,8 @@ private lemma integrable_id_poissonMeasure (r : ℝ≥0) :
   have h_norm : ∀ n : ℕ, ‖((n : ℝ))‖ = (n : ℝ) := fun n => by
     rw [Real.norm_eq_abs]; exact abs_of_nonneg (Nat.cast_nonneg n)
   simp_rw [h_norm]
-  have h_eq : ∀ n : ℕ, Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)
+  have h_eq : ∀ n : ℕ,
+      Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)
       = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)) := by
     intro n; ring
   simp_rw [h_eq]
@@ -286,8 +291,10 @@ private lemma integrable_id_sq_poissonMeasure (r : ℝ≥0) :
   have h_norm : ∀ n : ℕ, ‖((n : ℝ) ^ 2)‖ = (n : ℝ) ^ 2 := fun n => by
     rw [Real.norm_eq_abs]; exact abs_of_nonneg (sq_nonneg _)
   simp_rw [h_norm]
-  have h_eq : ∀ n : ℕ, Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)^2
-      = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)^2) := by
+  have h_eq : ∀ n : ℕ,
+      Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)^2
+      = Real.exp (-(↑r : ℝ))
+        * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)^2) := by
     intro n; ring
   simp_rw [h_eq]
   exact (summable_pow_div_factorial_mul_nat_sq (↑r)).mul_left _
@@ -297,7 +304,8 @@ set_option maxHeartbeats 800000 in
 /-- **Variance of `poissonMeasure r`:** `∫ n, ((n:ℝ) − r)² ∂poissonMeasure r = r`.
 Mean `r`, second moment `r²+r`, variance `(r²+r) − r² = r`. -/
 private lemma poissonMeasure_variance (r : ℝ≥0) :
-    ∫ n : ℕ, ((n : ℝ) - (r : ℝ)) ^ 2 ∂(ProbabilityTheory.poissonMeasure r) = (r : ℝ) := by
+    ∫ n : ℕ, ((n : ℝ) - (r : ℝ)) ^ 2 ∂(ProbabilityTheory.poissonMeasure r)
+      = (r : ℝ) := by
   have h_int_n := integrable_id_poissonMeasure r
   have h_int_nsq := integrable_id_sq_poissonMeasure r
   have h_int_const : MeasureTheory.Integrable
@@ -319,7 +327,8 @@ private lemma poissonMeasure_variance (r : ℝ≥0) :
       = 2 * (↑r : ℝ) * (↑r : ℝ) := by
     rw [MeasureTheory.integral_const_mul]
     rw [poissonMeasure_integral_id]
-  have h_e_csq : ∫ _ : ℕ, (↑r : ℝ) ^ 2 ∂(ProbabilityTheory.poissonMeasure r) = (↑r : ℝ) ^ 2 := by
+  have h_e_csq :
+      ∫ _ : ℕ, (↑r : ℝ) ^ 2 ∂(ProbabilityTheory.poissonMeasure r) = (↑r : ℝ) ^ 2 := by
     rw [MeasureTheory.integral_const]
     rw [show (ProbabilityTheory.poissonMeasure r).real Set.univ = 1 from by
       rw [MeasureTheory.measureReal_def]; simp [MeasureTheory.measure_univ]]
@@ -373,7 +382,8 @@ lemma compensated_second_moment
     (fun n : ℕ => (n : ℝ≥0∞))) = c
   rw [MeasureTheory.integral_map measurable_from_nat.aemeasurable
     h_meas_phi.aestronglyMeasurable]
-  have h_phi_cast : ∀ n : ℕ, (((n : ℝ≥0∞)).toReal - c) ^ 2 = ((n : ℝ) - (r : ℝ)) ^ 2 := by
+  have h_phi_cast :
+      ∀ n : ℕ, (((n : ℝ≥0∞)).toReal - c) ^ 2 = ((n : ℝ) - (r : ℝ)) ^ 2 := by
     intro n
     rw [show ((n : ℝ≥0∞)).toReal = (n : ℝ) from by simp, h_c_eq_r]
   simp_rw [h_phi_cast]
@@ -525,7 +535,8 @@ lemma simpleIntegral_diagonal
   have h_nn_meas : Measurable (fun x : ℝ => (‖x‖₊ : ℝ≥0∞)^2) := by fun_prop
   have h_indep_norm_sq :
       ProbabilityTheory.IndepFun
-        (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2) (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) P := by
+        (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2)
+        (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) P := by
     have := h_indep_ξ_ÑB.comp h_nn_meas h_nn_meas
     simpa [Function.comp] using this
   -- Step 3: ‖ξ · ÑB‖² = ‖ξ‖² · ‖ÑB‖² pointwise.
@@ -534,8 +545,10 @@ lemma simpleIntegral_diagonal
     intro ω
     rw [show (‖ξi ω * ÑB ω‖₊ : ℝ≥0∞)
         = (‖ξi ω‖₊ : ℝ≥0∞) * (‖ÑB ω‖₊ : ℝ≥0∞) from by
-      rw [show (‖ξi ω * ÑB ω‖₊ : ℝ≥0∞) = ((‖ξi ω * ÑB ω‖₊ : ℝ≥0) : ℝ≥0∞) from rfl]
-      rw [show (‖ξi ω * ÑB ω‖₊ : ℝ≥0) = ‖ξi ω‖₊ * ‖ÑB ω‖₊ from nnnorm_mul _ _]
+      rw [show (‖ξi ω * ÑB ω‖₊ : ℝ≥0∞)
+          = ((‖ξi ω * ÑB ω‖₊ : ℝ≥0) : ℝ≥0∞) from rfl]
+      rw [show (‖ξi ω * ÑB ω‖₊ : ℝ≥0)
+          = ‖ξi ω‖₊ * ‖ÑB ω‖₊ from nnnorm_mul _ _]
       push_cast; rfl]
     ring
   -- Step 4: Apply lintegral_mul.
@@ -543,7 +556,8 @@ lemma simpleIntegral_diagonal
       = ∫⁻ ω, (‖ξi ω‖₊ : ℝ≥0∞)^2 * (‖ÑB ω‖₊ : ℝ≥0∞)^2 ∂P from
     MeasureTheory.lintegral_congr h_norm_mul]
   rw [show (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2 * (‖ÑB ω‖₊ : ℝ≥0∞)^2)
-      = (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2) * (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) from rfl]
+      = (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2)
+        * (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) from rfl]
   have h_ξi_norm_sq_meas : Measurable (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2) := by fun_prop
   have h_ÑB_norm_sq_meas : Measurable (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) := by fun_prop
   rw [ProbabilityTheory.lintegral_mul_eq_lintegral_mul_lintegral_of_indepFun
@@ -801,7 +815,8 @@ private lemma simpleIntegral_diagonal_bochner
   -- Get the lintegral version of diagonal.
   have h_lint := simpleIntegral_diagonal N φ i h_part_nn h_adapt
   -- Rewrite (‖·‖)² to ENNReal.ofReal(·²) on both sides.
-  rw [show (∫⁻ ω, (‖φ.ξ i ω * N.compensated (φ.timeRect i T) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+  rw [show (∫⁻ ω,
+        (‖φ.ξ i ω * N.compensated (φ.timeRect i T) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
         = ∫⁻ ω, ENNReal.ofReal ((φ.ξ i ω * N.compensated (φ.timeRect i T) ω)^2) ∂P from
     MeasureTheory.lintegral_congr (fun ω => h_norm_sq_eq _)] at h_lint
   rw [show (∫⁻ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
@@ -1105,7 +1120,8 @@ lemma simpleIntegral_sq_lintegral_eq
     rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
-  rw [show (∫⁻ ω, (‖∑ i, φ.ξ i ω * N.compensated (φ.fullRect i) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+  rw [show (∫⁻ ω,
+        (‖∑ i, φ.ξ i ω * N.compensated (φ.fullRect i) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
         = ∫⁻ ω, ENNReal.ofReal
             ((∑ i, φ.ξ i ω * N.compensated (φ.fullRect i) ω)^2) ∂P from
     MeasureTheory.lintegral_congr (fun ω => h_norm_sq_eq _)]
@@ -1145,7 +1161,8 @@ lemma simpleIntegral_sq_lintegral_eq
     intro i _
     refine mul_nonneg ENNReal.toReal_nonneg ?_
     exact MeasureTheory.integral_nonneg (fun ω => sq_nonneg _)]
-  -- Step 7: each term: ofReal(ν̂.toReal · ∫ ξ²) = ν̂ · ofReal(∫ ξ²) = ν̂ · ∫⁻ ‖ξ‖².
+  -- Step 7: each term: ofReal(ν̂.toReal · ∫ ξ²) = ν̂ · ofReal(∫ ξ²)
+  --   = ν̂ · ∫⁻ ‖ξ‖².
   refine Finset.sum_congr rfl (fun i _ => ?_)
   have h_finite_i : LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i) ≠ ⊤ := by
     rw [φ.referenceIntensity_fullRect i]
@@ -1249,7 +1266,8 @@ lemma simpleIntegral_lintegral_sq_finite_compensated
       rw [Real.volume_Ioc]
       exact ENNReal.ofReal_lt_top
     · exact lt_of_le_of_ne le_top (φ.A_finite i)
-  · -- ∫⁻ ω, ‖ξ i ω‖₊² ∂P < ⊤. ξ_i bounded ⟹ integrand bounded ⟹ finite on probability.
+  · -- ∫⁻ ω, ‖ξ i ω‖₊² ∂P < ⊤. ξ_i bounded ⟹ integrand bounded ⟹ finite
+    --   on probability.
     obtain ⟨M, hM⟩ := φ.ξ_bounded i
     have h_bound : ∀ ω, |φ.ξ i ω| ≤ max M 0 :=
       fun ω => le_trans (hM ω) (le_max_left _ _)

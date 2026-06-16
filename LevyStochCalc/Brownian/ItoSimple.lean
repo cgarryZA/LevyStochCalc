@@ -153,7 +153,8 @@ lemma eval_sq_eq_sum_indicator
       · intro h_not; exact absurd (Finset.mem_univ _) h_not
     have h_sum_sq_eq : (∑ i : Fin H.N,
         (Set.Ioc (H.partition i.castSucc) (H.partition i.succ)).indicator
-          (fun _ => (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) s) = (‖H.ξ i₀ ω‖₊ : ℝ≥0∞) ^ 2 := by
+          (fun _ => (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) s)
+        = (‖H.ξ i₀ ω‖₊ : ℝ≥0∞) ^ 2 := by
       rw [Finset.sum_eq_single i₀]
       · exact Set.indicator_of_mem hi₀ _
       · intro j _ hj
@@ -232,11 +233,13 @@ of `simpleIntegral_isometry`. -/
 lemma lintegral_eval_sq_outer
     {P : Measure Ω} [IsProbabilityMeasure P]
     {T : ℝ} (H : SimplePredictable Ω T) :
-    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
       = ∑ i : Fin H.N,
         ENNReal.ofReal (H.partition i.succ - H.partition i.castSucc) *
         ∫⁻ ω, (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
-  rw [show (fun ω => ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+  rw [show (fun ω => ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume)
       = (fun ω => ∑ i : Fin H.N,
           ENNReal.ofReal (H.partition i.succ - H.partition i.castSucc) *
           (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) from
@@ -339,7 +342,8 @@ lemma simpleIntegral_diagonal
   have h_nn_meas : Measurable (fun x : ℝ => (‖x‖₊ : ℝ≥0∞)^2) := by fun_prop
   have h_indep_norm_sq :
       ProbabilityTheory.IndepFun
-        (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2) (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) P := by
+        (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2)
+        (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) P := by
     have := h_indep_ξ_ΔW.comp h_nn_meas h_nn_meas
     simpa [Function.comp] using this
   -- Step 3: ‖ξ · ΔW‖₊² = ‖ξ‖₊² · ‖ΔW‖₊² pointwise.
@@ -348,8 +352,10 @@ lemma simpleIntegral_diagonal
     intro ω
     rw [show (‖ξ ω * ΔW ω‖₊ : ℝ≥0∞)
         = (‖ξ ω‖₊ : ℝ≥0∞) * (‖ΔW ω‖₊ : ℝ≥0∞) from by
-      rw [show (‖ξ ω * ΔW ω‖₊ : ℝ≥0∞) = ((‖ξ ω * ΔW ω‖₊ : ℝ≥0) : ℝ≥0∞) from rfl]
-      rw [show (‖ξ ω * ΔW ω‖₊ : ℝ≥0) = ‖ξ ω‖₊ * ‖ΔW ω‖₊ from nnnorm_mul _ _]
+      rw [show (‖ξ ω * ΔW ω‖₊ : ℝ≥0∞)
+          = ((‖ξ ω * ΔW ω‖₊ : ℝ≥0) : ℝ≥0∞) from rfl]
+      rw [show (‖ξ ω * ΔW ω‖₊ : ℝ≥0)
+          = ‖ξ ω‖₊ * ‖ΔW ω‖₊ from nnnorm_mul _ _]
       push_cast; rfl]
     ring
   -- Step 4: Apply lintegral_mul for IndepFun.
@@ -357,7 +363,8 @@ lemma simpleIntegral_diagonal
       = ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞)^2 * (‖ΔW ω‖₊ : ℝ≥0∞)^2 ∂P from
     MeasureTheory.lintegral_congr h_norm_mul]
   rw [show (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2 * (‖ΔW ω‖₊ : ℝ≥0∞)^2)
-      = (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2) * (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) from rfl]
+      = (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2)
+        * (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) from rfl]
   have h_ξ_norm_sq_meas : Measurable (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2) := by fun_prop
   have h_ΔW_norm_sq_meas : Measurable (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) := by fun_prop
   rw [ProbabilityTheory.lintegral_mul_eq_lintegral_mul_lintegral_of_indepFun
@@ -366,7 +373,8 @@ lemma simpleIntegral_diagonal
   have h_ΔW_sq_int : ∫⁻ ω, (‖ΔW ω‖₊ : ℝ≥0∞)^2 ∂P
       = ENNReal.ofReal (t - s) := by
     -- Pushforward to gaussianReal:
-    -- ∫⁻ ω, ‖ΔW‖₊² ∂P = ∫⁻ x, ‖x‖₊² ∂(P.map ΔW) = ∫⁻ x, ‖x‖₊² ∂(gaussianReal 0 ⟨t-s, _⟩)
+    -- ∫⁻ ω, ‖ΔW‖₊² ∂P = ∫⁻ x, ‖x‖₊² ∂(P.map ΔW)
+    --   = ∫⁻ x, ‖x‖₊² ∂(gaussianReal 0 ⟨t-s, _⟩)
     rw [show (∫⁻ ω, (‖ΔW ω‖₊ : ℝ≥0∞)^2 ∂P)
         = ∫⁻ x, (‖x‖₊ : ℝ≥0∞)^2 ∂(P.map ΔW) from
       (MeasureTheory.lintegral_map h_nn_meas h_ΔW_meas).symm]
@@ -566,7 +574,9 @@ lemma simpleIntegral_offDiagonal
   set f : Ω → ℝ := fun ω => ξ_i ω * ΔW_i ω * ξ_j ω
   have h_factored : (fun ω => (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω))
       = fun ω => f ω * ΔW_j ω := by
-    funext ω; change (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω) = ξ_i ω * ΔW_i ω * ξ_j ω * ΔW_j ω
+    funext ω
+    change (ξ_i ω * ΔW_i ω) * (ξ_j ω * ΔW_j ω)
+      = ξ_i ω * ΔW_i ω * ξ_j ω * ΔW_j ω
     ring
   rw [show (fun ω => (H.ξ i ω * (W.W (H.partition i.succ) ω
                       - W.W (H.partition i.castSucc) ω))

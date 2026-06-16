@@ -139,7 +139,8 @@ lemma SimplePredictable.referenceIntensity_fullRect
       φ.partition_strictMono.monotone (Fin.zero_le _)
     rw [φ.partition_zero] at this
     exact this
-  have h_subset : Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Ici (0 : ℝ) := by
+  have h_subset :
+      Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Ici (0 : ℝ) := by
     intro x hx
     exact h_t_i_nn.trans (le_of_lt hx.1)
   rw [MeasureTheory.Measure.restrict_apply measurableSet_Ioc]
@@ -164,7 +165,8 @@ lemma SimplePredictable.lintegral_indicator_fullRect
     exact this
   have h_t_i_succ_le_T : φ.partition i.succ ≤ T :=
     le_trans (φ.partition_strictMono.monotone (Fin.le_last _)) φ.partition_le_T
-  have h_subset_T : Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Icc (0 : ℝ) T := by
+  have h_subset_T :
+      Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Icc (0 : ℝ) T := by
     intro x hx
     exact ⟨h_t_i_nn.trans (le_of_lt hx.1), hx.2.trans h_t_i_succ_le_T⟩
   -- Convert iterated lintegral to product lintegral (Fubini).
@@ -184,7 +186,8 @@ lemma SimplePredictable.lintegral_indicator_fullRect
   rw [MeasureTheory.Measure.restrict_apply measurableSet_Ioc]
   rw [MeasureTheory.Measure.restrict_apply measurableSet_Ioc]
   rw [Set.inter_eq_left.mpr h_subset_T]
-  have h_subset_Ici : Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Ici (0 : ℝ) := by
+  have h_subset_Ici :
+      Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ) ⊆ Set.Ici (0 : ℝ) := by
     intro x hx; exact h_t_i_nn.trans (le_of_lt hx.1)
   rw [Set.inter_eq_left.mpr h_subset_Ici]
 
@@ -231,15 +234,18 @@ lemma SimplePredictable.eval_sq_eq_sum_indicator
 lemma SimplePredictable.lintegral_eval_sq
     {ν : Measure E} [SigmaFinite ν] {T : ℝ}
     (φ : SimplePredictable Ω E ν T) (ω : Ω) :
-    ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume
+    ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume
       = ∑ i : Fin φ.N,
-        (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 * LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i) := by
+        (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2
+          * LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i) := by
   -- Pointwise: replace eval² with sum of indicators.
   simp_rw [SimplePredictable.eval_sq_eq_sum_indicator φ _ _ ω]
   -- Pull inner sum out via lintegral_finset_sum.
   have h_inner_meas : ∀ s : ℝ, ∀ i : Fin φ.N,
       Measurable (fun e : E =>
-        (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e)) := by
+        (φ.fullRect i).indicator
+          (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e)) := by
     intro s i
     have h_meas_fullRect : MeasurableSet (φ.fullRect i) := by
       unfold SimplePredictable.fullRect
@@ -249,15 +255,18 @@ lemma SimplePredictable.lintegral_eval_sq
       Measurable.indicator measurable_const h_meas_fullRect
     exact h_meas_ind.comp measurable_prodMk_left
   rw [show (fun s : ℝ => ∫⁻ e, ∑ i : Fin φ.N,
-        (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν)
+        (φ.fullRect i).indicator
+          (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν)
         = (fun s : ℝ => ∑ i : Fin φ.N, ∫⁻ e,
-            (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν) from by
+            (φ.fullRect i).indicator
+              (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν) from by
     funext s
     exact MeasureTheory.lintegral_finsetSum _ (fun i _ => h_inner_meas s i)]
   -- Pull outer sum out.
   have h_outer_meas : ∀ i : Fin φ.N,
       Measurable (fun s : ℝ => ∫⁻ e,
-        (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν) := by
+        (φ.fullRect i).indicator
+          (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e) ∂ν) := by
     intro i
     have h_meas_fullRect : MeasurableSet (φ.fullRect i) := by
       unfold SimplePredictable.fullRect
@@ -306,7 +315,8 @@ lemma SimplePredictable.lintegral_eval_sq_outer
 /-- Integral of a simple predictable integrand against the compensated
 Poisson random measure:
 
-  `∑_i ξ_i · [N((t_i ∧ t, t_{i+1} ∧ t] × A_i) − ((t_{i+1} ∧ t − t_i ∧ t)·ν(A_i))]`
+  `∑_i ξ_i · [N((t_i ∧ t, t_{i+1} ∧ t] × A_i)`
+  `      − ((t_{i+1} ∧ t − t_i ∧ t)·ν(A_i))]`
 
 Using the `compensated` field of the time-aware `PoissonRandomMeasure`. -/
 noncomputable def simpleIntegral
