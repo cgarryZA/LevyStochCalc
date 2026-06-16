@@ -156,6 +156,52 @@ lemma exists_seq_dyadic_tendsto (t : ℝ) :
       ∧ Filter.Tendsto u Filter.atTop (nhds t) :=
   dense_dyadicRationals.exists_seq_strictMono_tendsto t
 
+/-- **Markov / Chebyshev bound from the Kolmogorov condition.**
+
+For a process satisfying the Kolmogorov moment condition
+`∫⁻ ω, edist (X s ω) (X t ω)^p ∂P ≤ M · edist s t ^ q` and any threshold
+`0 < lam < ⊤`,
+
+  `P {ω | lam ≤ edist (X s ω) (X t ω)} ≤ M · edist s t ^ q / lam ^ p`.
+
+This is the per-pair tail bound underlying both the convergence-in-measure
+argument (`kolmogorov_modification_ae_eq`) and the per-dyadic-level Borel–
+Cantelli step of the continuous-modification construction. -/
+lemma kolmogorov_markov_bound
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (s t : ℝ) {lam : ℝ≥0∞} (hlam_pos : 0 < lam) (hlam_top : lam ≠ ⊤) :
+    P {ω | lam ≤ edist (X s ω) (X t ω)}
+      ≤ (M : ℝ≥0∞) * edist s t ^ q / lam ^ p := by
+  have hp_pos : 0 < p := hX.p_pos
+  -- {lam ≤ edist} = {lam^p ≤ edist^p} since `· ^ p` is strictly monotone.
+  have h_set_eq :
+      {ω | lam ≤ edist (X s ω) (X t ω)}
+        = {ω | lam ^ p ≤ edist (X s ω) (X t ω) ^ p} := by
+    ext ω; exact (ENNReal.rpow_le_rpow_iff hp_pos).symm
+  have h_edist_aemeas : AEMeasurable
+      (fun ω => edist (X s ω) (X t ω) ^ p) P :=
+    ((hX.measurable_edist (s := s) (t := t)).pow_const p).aemeasurable
+  have h_Kol : ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
+      ≤ (M : ℝ≥0∞) * edist s t ^ q := hX.kolmogorovCondition s t
+  have h_Markov :
+      lam ^ p * P {ω | lam ^ p ≤ edist (X s ω) (X t ω) ^ p}
+        ≤ ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P :=
+    MeasureTheory.mul_meas_ge_le_lintegral₀ h_edist_aemeas (lam ^ p)
+  have h_chain :
+      lam ^ p * P {ω | lam ≤ edist (X s ω) (X t ω)}
+        ≤ (M : ℝ≥0∞) * edist s t ^ q := by
+    rw [h_set_eq]; exact le_trans h_Markov h_Kol
+  have hlamp_pos : 0 < lam ^ p := by
+    apply ENNReal.rpow_pos_of_nonneg hlam_pos
+    exact hp_pos.le
+  have hlamp_ne_top : lam ^ p ≠ ⊤ :=
+    ENNReal.rpow_ne_top_of_nonneg hp_pos.le hlam_top
+  rw [ENNReal.le_div_iff_mul_le (Or.inl hlamp_pos.ne') (Or.inl hlamp_ne_top),
+      mul_comm]
+  exact h_chain
+
 /-- **Step 3: extended process equals X a.s. at each t.**
 
 By the Kolmogorov condition (Markov inequality), `X_{t_n} → X_t` in probability
@@ -209,31 +255,7 @@ lemma kolmogorov_modification_ae_eq
         simp [h_edist_ne_top n ω]
       simp_rw [h_set_empty]
       simp
-    -- Now δ ≠ ⊤. Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
-    have h_set_eq : ∀ n,
-        {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-          = {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p} := by
-      intro n; ext ω
-      exact (ENNReal.rpow_le_rpow_iff hp_pos).symm
-    -- Steps B + C: Markov on lintegral + Kolmogorov bound.
-    have h_edist_aemeas : ∀ n, AEMeasurable
-        (fun ω => edist (X (u n) ω) (X t ω) ^ p) P := fun n =>
-      ((hX.measurable_edist (s := u n) (t := t)).pow_const p).aemeasurable
-    have h_Kol : ∀ n, ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P
-        ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := fun n =>
-      hX.kolmogorovCondition (u n) t
-    have h_Markov : ∀ n,
-        δ ^ p * P {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p}
-          ≤ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P := fun n =>
-      MeasureTheory.mul_meas_ge_le_lintegral₀ (h_edist_aemeas n) (δ ^ p)
-    -- Combine: δ^p · P{δ ≤ edist} ≤ M · edist (u n) t^q.
-    have h_chain : ∀ n,
-        δ ^ p * P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-          ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := by
-      intro n
-      rw [h_set_eq n]
-      exact le_trans (h_Markov n) (h_Kol n)
-    -- Step D: edist (u n) t → 0 from u n → t.
+    -- Now δ ≠ ⊤. Step D: edist (u n) t → 0 from u n → t.
     have h_edist_tendsto : Filter.Tendsto (fun n => edist (u n) t)
         Filter.atTop (nhds 0) :=
       (tendsto_iff_edist_tendsto_0.mp hu_tendsto)
@@ -249,20 +271,15 @@ lemma kolmogorov_modification_ae_eq
         Filter.atTop (nhds 0) := by
       have := ENNReal.Tendsto.const_mul h_pow_tendsto (Or.inr hM_ne_top)
       simpa using this
-    -- Step G: divide both sides of h_chain by δ^p. Need δ^p ≠ 0 ∧ δ^p ≠ ⊤.
+    -- Step G: divide the per-pair Markov bound by δ^p (δ^p ≠ 0 for the
+    -- constant-division tendsto below).
     have hδp_pos : 0 < δ ^ p := by
       apply ENNReal.rpow_pos_of_nonneg hδ
       exact hp_pos.le
-    -- δ^p ≠ ⊤ (since δ ≠ ⊤).
-    have hδp_ne_top : δ ^ p ≠ ⊤ := ENNReal.rpow_ne_top_of_nonneg hp_pos.le hδ_top
-    -- The bound on P {δ ≤ edist}: divide both sides of h_chain by δ^p.
+    -- The bound on P {δ ≤ edist}: the per-pair Markov/Chebyshev tail bound.
     have h_set_bound : ∀ n, P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-        ≤ ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p := by
-      intro n
-      have h := h_chain n
-      rw [ENNReal.le_div_iff_mul_le (Or.inl hδp_pos.ne') (Or.inl hδp_ne_top),
-          mul_comm]
-      exact h
+        ≤ ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p :=
+      fun n => kolmogorov_markov_bound P X hX (u n) t hδ hδ_top
     -- Step G applied: (M · edist^q) / δ^p → 0 from h_M_pow_tendsto (constant division).
     have h_bound_tendsto : Filter.Tendsto
         (fun n => ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p)
