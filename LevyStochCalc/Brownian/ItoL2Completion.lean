@@ -2048,6 +2048,55 @@ lemma exists_adaptedSimple_within
   obtain ⟨m, hm⟩ := hev.exists
   exact ⟨Hn m, h_adapt m, hm⟩
 
+section MasterSequence
+
+variable
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+          inferInstance)
+        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_sq_int_global : ∀ T, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+
+/-- Positivity of the master horizon `(n : ℝ) + 1`. -/
+private lemma master_horizon_pos (n : ℕ) : (0 : ℝ) < (n : ℝ) + 1 := by positivity
+
+/-- Positivity of the master tolerance `((n : ℝ≥0∞) + 1)⁻¹`. -/
+private lemma master_tol_pos (n : ℕ) : (0 : ℝ≥0∞) < ((n : ℝ≥0∞) + 1)⁻¹ :=
+  ENNReal.inv_pos.mpr (by
+    exact ENNReal.add_ne_top.mpr ⟨ENNReal.natCast_ne_top n, ENNReal.one_ne_top⟩)
+
+/-- **Master approximating sequence.** For each `n`, an adapted `SimplePredictable`
+on horizon `(n : ℝ) + 1` within `((n : ℝ≥0∞) + 1)⁻¹` of `H` in `L²([0, n+1] × Ω)`.
+The horizons grow to `∞`; zero-extension lets these be compared across `n`. -/
+noncomputable def masterApprox (n : ℕ) : SimplePredictable Ω ((n : ℝ) + 1) :=
+  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+    (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose
+
+lemma masterApprox_adapt (n : ℕ) :
+    ∀ i : Fin (masterApprox W H h_meas h_progMeas h_sq_int_global n).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
+          ((masterApprox W H h_meas h_progMeas h_sq_int_global n).partition i.castSucc))
+        ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ i) :=
+  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+    (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose_spec.1
+
+lemma masterApprox_within (n : ℕ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1),
+      (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ((n : ℝ≥0∞) + 1)⁻¹ :=
+  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+    (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose_spec.2
+
+end MasterSequence
+
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
 
 For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a process
