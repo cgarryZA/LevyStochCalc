@@ -2632,7 +2632,8 @@ lemma martingale_simpleIntegral_sq_sub_compensator
         funext (fun ω => setIntegral_eval_sq_Icc_clamped G ω hu)
       rw [heq]
       exact MeasureTheory.integrable_finsetSum _ (fun i _ => (hξ2int i).const_mul _)
-    · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
+    · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume)
+          = fun _ => (0 : ℝ) := by
         funext ω; rw [Set.Icc_eq_empty (not_le.mpr hu)]; simp
       rw [heq]; exact MeasureTheory.integrable_const 0
   -- … and `ℱ_u`-adapted.
@@ -2658,7 +2659,8 @@ lemma martingale_simpleIntegral_sq_sub_compensator
         rw [show (fun ω => (min (G.partition i.succ) u - min (G.partition i.castSucc) u)
               * (G.ξ i ω) ^ 2) = fun _ => (0 : ℝ) from by funext ω; rw [hcoef, zero_mul]]
         exact stronglyMeasurable_const
-    · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
+    · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume)
+          = fun _ => (0 : ℝ) := by
         funext ω; rw [Set.Icc_eq_empty (not_le.mpr hu)]; simp
       rw [heq]; exact stronglyMeasurable_const
   -- the per-point clamp identity `(Δᵗ − Δˢ) = max s (min p t) − …`.
@@ -3565,6 +3567,7 @@ lemma martingale_rightCont_stochasticIntegralBrownian :
       (by norm_num) ((hF_aesm r).sub (hF_aesm s))))
 
 include h_meas h_sq_int_global in
+omit [IsProbabilityMeasure P] in
 /-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is finite in `L²(P ⊗ vol|_{[0,t]})`,
 i.e. `(ω, u) ↦ H ω u` is square-integrable over the product. -/
 lemma compensatorH_memLp_prod {t : ℝ} (ht : 0 < t) :
