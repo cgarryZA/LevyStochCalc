@@ -2295,6 +2295,40 @@ lemma integral_factor_increment_eq_zero
     h_indep_g_ΔW.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable hΔW_meas.aestronglyMeasurable,
     brownian_incr_mean W ha hab, mul_zero]
 
+/-- **Clamped-increment identity.** For `s ≤ t`,
+`simpleIntegral W H t − simpleIntegral W H s = ∑ᵢ ξᵢ·(W_{cᵢ₊₁} − W_{cᵢ})` where
+`cᵢ = max s (min pᵢ t)` clamps the partition points into `[s, t]`. The increment
+of the simple integral between `s` and `t` rebuilds as a single sum of increments
+over the `[s,t]`-clamped partition — the starting point for the conditional
+(set-level) Itô isometry. -/
+lemma simpleIntegral_sub_eq_clamp_sum
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {T : ℝ} (H : SimplePredictable Ω T) {s t : ℝ} (hst : s ≤ t) (ω : Ω) :
+    simpleIntegral W H t ω - simpleIntegral W H s ω
+      = ∑ i : Fin H.N, H.ξ i ω * (W.W (max s (min (H.partition i.succ) t)) ω
+          - W.W (max s (min (H.partition i.castSucc) t)) ω) := by
+  have key : ∀ p : ℝ,
+      W.W (min p t) ω - W.W (min p s) ω = W.W (max s (min p t)) ω - W.W s ω := by
+    intro p
+    rcases le_or_gt s p with hsp | hps
+    · rw [min_eq_right hsp, max_eq_right (le_min hsp hst)]
+    · rw [min_eq_left (le_of_lt hps), min_eq_left (le_of_lt (lt_of_lt_of_le hps hst)),
+        max_eq_left (le_of_lt hps), sub_self, sub_self]
+  unfold simpleIntegral
+  rw [← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  have e1 := key (H.partition i.succ)
+  have e2 := key (H.partition i.castSucc)
+  rw [← mul_sub]
+  congr 1
+  rw [show W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.castSucc) t) ω
+        - (W.W (min (H.partition i.succ) s) ω - W.W (min (H.partition i.castSucc) s) ω)
+      = (W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.succ) s) ω)
+        - (W.W (min (H.partition i.castSucc) t) ω
+            - W.W (min (H.partition i.castSucc) s) ω) from by ring]
+  rw [e1, e2]; ring
+
 section MasterSequence
 
 variable
@@ -2823,7 +2857,8 @@ lemma isometry_stochasticIntegralBrownian {T : ℝ} (hT : 0 < T) :
   have h_a : Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
       Filter.atTop
-      (nhds (∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)) := by
+      (nhds (∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊
+        : ℝ≥0∞) ^ 2 ∂P)) := by
     refine hn.congr' ?_
     filter_upwards [Filter.eventually_ge_atTop ⌈T⌉₊] with n hn'
     have hcn : T ≤ (n : ℝ) + 1 := by
@@ -2868,7 +2903,8 @@ lemma stochasticIntegralBrownian_ae_zero_of_nonpos {t : ℝ} (ht : t ≤ 0) :
         (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0) 2 P = 0 :=
       tendsto_nhds_unique tendsto_const_nhds h
     rwa [MeasureTheory.eLpNorm_eq_zero_iff
-      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global 0).aestronglyMeasurable
+      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global
+        0).aestronglyMeasurable
       (by norm_num)] at hz
 
 /-- `∫⁻‖F t‖² = ∫⁻∫⁻_{[0,t]}‖H‖²` for all `t ≥ 0` (isometry, incl. `t = 0`). -/
@@ -2888,6 +2924,7 @@ lemma stochasticIntegralBrownian_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
     rw [MeasureTheory.setLIntegral_measure_zero _ _ (by simp)]
 
 include h_meas in
+omit [IsProbabilityMeasure P] in
 /-- Additivity of the horizon integral: `[0,r] = [0,s] ⊎ (s,r]`. -/
 lemma horizon_lintegral_add {s r : ℝ} (hs : 0 ≤ s) (hsr : s ≤ r) :
     ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
