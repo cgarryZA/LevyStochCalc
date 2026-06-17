@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CompensatedSimple
+import LevyStochCalc.Poisson.CompensatedIsometry
 import LevyStochCalc.Poisson.NaturalFiltration
 import Mathlib.Probability.Process.Adapted
 
@@ -93,5 +94,73 @@ lemma simpleIntegral_stronglyAdapted_compensated
     (fun ω => ∑ i : Fin φ.N, φ.ξ i ω * N.compensated (φ.timeRect i t) ω)
   exact Finset.stronglyMeasurable_fun_sum _
     (fun i _ => simpleIntegral_term_adapted_compensated N φ i t (h_adapt i))
+
+/-- **First-moment integrability of a compensated mass.** For `B` with finite
+reference intensity, `ω ↦ Ñ(B) = N(B) − referenceIntensity B` is `P`-integrable.
+Pushforward through `poisson_law` to `poissonMeasure r`, where `n ↦ n − r` is
+integrable (the Poisson law has a finite first moment). -/
+lemma compensated_integrable
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B : Set (ℝ × E)} (hB : MeasurableSet B)
+    (h_finite : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤) :
+    MeasureTheory.Integrable (fun ω => N.compensated B ω) P := by
+  set c : ℝ := (LevyStochCalc.Poisson.referenceIntensity ν B).toReal with hc_def
+  set r : ℝ≥0 := (LevyStochCalc.Poisson.referenceIntensity ν B).toNNReal with hr_def
+  have h_NB_meas : Measurable (fun ω => N.N ω B) := N.measurable_eval hB
+  rw [show (fun ω => N.compensated B ω)
+        = (fun x : ℝ≥0∞ => x.toReal - c) ∘ (fun ω => N.N ω B) from rfl,
+    ← MeasureTheory.integrable_map_measure
+      (ENNReal.measurable_toReal.sub_const c).aestronglyMeasurable h_NB_meas.aemeasurable,
+    N.poisson_law hB h_finite, LevyStochCalc.Poisson.poissonMeasureENN,
+    MeasureTheory.integrable_map_measure
+      (ENNReal.measurable_toReal.sub_const c).aestronglyMeasurable
+      (measurable_from_nat).aemeasurable]
+  have h_eq : ((fun x : ℝ≥0∞ => x.toReal - c) ∘ fun n : ℕ => (n : ℝ≥0∞))
+      = fun n : ℕ => (n : ℝ) - c := by
+    funext n; rw [Function.comp_apply, show ((n : ℝ≥0∞)).toReal = (n : ℝ) from by simp]
+  rw [h_eq]
+  have h_int_id : MeasureTheory.Integrable
+      (fun n : ℕ => (n : ℝ)) (ProbabilityTheory.poissonMeasure r) := by
+    rw [ProbabilityTheory.integrable_poissonMeasure_iff]
+    have h_norm : ∀ n : ℕ, ‖((n : ℝ))‖ = (n : ℝ) := fun n => by
+      rw [Real.norm_eq_abs]; exact abs_of_nonneg (Nat.cast_nonneg n)
+    simp_rw [h_norm, show ∀ n : ℕ, Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ)
+        * (↑n : ℝ) = Real.exp (-(↑r : ℝ)) * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ))
+      from fun n => by ring]
+    exact (summable_pow_div_factorial_mul_nat (↑r)).mul_left _
+  exact h_int_id.sub (MeasureTheory.integrable_const c)
+
+/-- The reference intensity of a clamped time-rectangle `timeRect i t` is finite:
+it is `volume(Ioc …) · ν(Aᵢ)` with both factors finite (`Aᵢ` has finite `ν`-mass). -/
+lemma referenceIntensity_timeRect_ne_top
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) (t : ℝ) :
+    LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t) ≠ ⊤ := by
+  rw [SimplePredictable.timeRect, LevyStochCalc.Poisson.referenceIntensity,
+    MeasureTheory.Measure.prod_prod]
+  refine ENNReal.mul_ne_top ?_ (φ.A_finite i)
+  rw [MeasureTheory.Measure.restrict_apply measurableSet_Ioc]
+  exact ne_top_of_le_ne_top (by rw [Real.volume_Ioc]; exact ENNReal.ofReal_ne_top)
+    (measure_mono Set.inter_subset_left)
+
+/-- **Per-term integrability** of the compensated simple integral: each summand
+`ξᵢ · Ñ(timeRect i t)` is `P`-integrable (`ξᵢ` bounded, the compensated mass
+integrable by `compensated_integrable` since `timeRect i t` has finite intensity). -/
+lemma simpleIntegral_term_integrable_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) (t : ℝ) :
+    MeasureTheory.Integrable (fun ω => φ.ξ i ω * N.compensated (φ.timeRect i t) ω) P := by
+  obtain ⟨M, hM⟩ := φ.ξ_bounded i
+  have h_rect_meas : MeasurableSet (φ.timeRect i t) := by
+    rw [SimplePredictable.timeRect]; exact measurableSet_Ioc.prod (φ.A_measurable i)
+  refine MeasureTheory.Integrable.bdd_mul
+    (compensated_integrable N h_rect_meas (referenceIntensity_timeRect_ne_top φ i t))
+    (φ.ξ_measurable i).aestronglyMeasurable (c := |M|) ?_
+  filter_upwards with ω
+  rw [Real.norm_eq_abs]; exact (hM ω).trans (le_abs_self _)
 
 end LevyStochCalc.Poisson.Compensated

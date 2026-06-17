@@ -83,7 +83,7 @@ private lemma poissonMeasure_integral_id (r : ℝ≥0) :
 
 /-- **Summability of `r^n / n! · n` for r ≥ 0.** Used for integrability of `(n : ℝ)`
 w.r.t. `poissonMeasure r`. -/
-private lemma summable_pow_div_factorial_mul_nat (r : ℝ) :
+lemma summable_pow_div_factorial_mul_nat (r : ℝ) :
     Summable fun n : ℕ => r ^ n / (n.factorial : ℝ) * (n : ℝ) := by
   have h_summable_succ : Summable
       fun n : ℕ => r ^ (n + 1) / ((n + 1).factorial : ℝ) * ((n + 1 : ℕ) : ℝ) := by
