@@ -1,11 +1,21 @@
 # CLAUDE.md
 
-## Current plan — read this first
+## Where we're going, and how — read these first
 
-**The active roadmap lives in [`Plan.md`](Plan.md).** It is the single source of
-truth for the refactor-to-mathlib effort: phases, the exact task checklist, the
-per-axiom close-out order, and the destination map into mathlib's tree. Consult
-it at the start of any session and keep it updated as tasks are checked off.
+- **[`GOAL.md`](GOAL.md) is the north star** — the invariant definition of done
+  (zero sorries, zero custom axioms, no vacuity, mathlib-grade form,
+  dissertation never regresses). It rarely changes. Use it to decide whether the
+  work is finished and what the nearest gap is.
+- **[`Plan.md`](Plan.md) is the current route** — the phases/task-checklist
+  toward `GOAL.md`, with the per-axiom close-out order and the destination map
+  into mathlib's tree. Consult it at the start of any session; keep it updated as
+  tasks are checked off.
+
+**Loop discipline.** Continue the current `Plan.md`. If every box in `Plan.md` is
+checked but `GOAL.md`'s acceptance criteria are not all met, the plan is done
+(git is its archive) — write a **new `Plan.md`** that closes the remaining
+`GOAL.md` gaps (dissertation-blocking gaps first, per `GOAL.md` §3) and start
+step 1. The work is complete only when every `GOAL.md` §1 box is checkable-true.
 
 ## What this repo is
 
@@ -29,8 +39,10 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 ```
 
 - **Import contract** (`tools/import_contract.md`): 12 modules + 21 symbols under
-  `LevyStochCalc.*` must keep resolving; move/rename only behind a forwarding
-  stub. Don't rename public symbols or the top-level namespace in-tree.
+  `LevyStochCalc.*` must keep resolving from their pinned path. On in-tree
+  splits, keep pinned symbols in the module of record (no forwarding stubs); a
+  deliberate relocation updates the dissertation's import. Don't rename public
+  symbols or the top-level namespace in-tree.
 - **Mathlib gates** (for upstreamable code): 3 standard axioms only, no `sorry`,
   ≤100 cols, no `import Mathlib`, math-only docstrings. Disclose AI use + add the
   `LLM-generated` label on every mathlib PR.

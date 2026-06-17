@@ -117,22 +117,16 @@ LevyStochCalc/
 │   ├── Setting.lean                           — JumpDiffusion structure
 │   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived
 │   │                                            #11/#16 universal-R theorems
-│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework
-│   ├── PicardBanach.lean                      — Banach-shim + JumpDiffusion.exists_unique
-│   │                                            forwarder (ex-Tier-1-axiom #14, now thm)
-│   ├── PicardSpace.lean                       — discrete-metric typeclass-placeholder
-│   │                                            instances on SBoundedProcess
-│   ├── PicardSpaceBielecki.lean               — Bielecki β-norm AE-quotient (genuine metric)
-│   ├── PicardSpaceBieleckiComplete.lean       — Bielecki-quotient CompleteSpace + wrap-up
-│   │                                            (single explicit baseline sorry for the
-│   │                                            entire Picard chain)
-│   ├── PicardSelfMap.lean                     — Picard-map self-map on SBoundedProcess
-│   ├── PicardContraction.lean                 — Bielecki β-norm contraction assembly
-│   ├── PicardContractionTight.lean            — tight β-norm contraction analysis
-│   ├── PicardSigmaLipschitz.lean              — σ-side L² Lipschitz bound + Tier 1
-│   │                                            auxiliary axiom itoIsometry_diff_brownian
-│   └── PicardGammaLipschitz.lean              — γ-side L² Lipschitz bound (forwards
-│                                                through Tier 1 itoIsometry_diff_compensated)
+│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework,
+│   │                                            σ/γ L² Lipschitz bounds (auxiliary axiom
+│   │                                            itoIsometry_diff_brownian), self-map and
+│   │                                            Bielecki contraction
+│   ├── PicardSpace.lean                       — complete metric space of bounded processes:
+│   │                                            discrete metric + Bielecki β-norm AE-quotient
+│   │                                            and wrap-up (single explicit baseline sorry
+│   │                                            for the entire Picard chain)
+│   └── PicardFixedPoint.lean                  — Banach-shim + JumpDiffusion.exists_unique
+│                                                forwarder (ex-Tier-1-axiom #14, now thm)
 └── BSDEJ/
     ├── Definition.lean                        — IsBSDEJSolution predicate + extractors
     ├── Existence.lean                         — Tier 1 #9 axiom (Y-only uniqueness)
@@ -157,7 +151,7 @@ bash tools/verify_import_contract.sh  # checks dissertation-import contract
 * `tools/cited_axioms.md` — full Tier 1 axiom inventory with paper references.
 * `tools/sorry_baseline.txt` — currently-sorry'd theorems.
 * `_audit.lean` — load-bearing axiom-budget audit.
-* `redteam_findings/_REDTEAM_SUMMARY.md` — 2026-05-22 (2nd audit)
-  meta-summary across 12 personas. The 1st-audit (2026-05-20) version
-  was removed from the tree on 2026-06-15 (Plan.md Phase 0.1 de-clutter);
-  it remains in git history if needed.
+* `redteam_findings/SUMMARY.md` — meta-summary across 12 audit personas
+  (severity-ranked, deduplicated). The 12 raw persona reports and the audit
+  scaffolding were collapsed into this single summary on 2026-06-15 (Plan.md
+  Phase 0.2 de-clutter); they remain in git history if needed.

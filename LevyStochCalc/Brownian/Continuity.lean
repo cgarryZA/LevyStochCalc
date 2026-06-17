@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Construction
+import Mathlib.Probability.Process.Kolmogorov
+import Mathlib.Probability.Distributions.Gaussian.Fernique
 
 /-!
-# Layer 1.5b: Kolmogorov-Chentsov continuous modification
+# Kolmogorov-Chentsov continuous modification
 
 Mathlib has only `IsKolmogorovProcess` (the *condition*); the modification
 result is missing. We port the classical proof (Karatzas-Shreve §2.2 Thm 2.8 /
@@ -20,7 +22,7 @@ Proof outline as named sub-lemmas below.
 -/
 
 open MeasureTheory ProbabilityTheory
-open scoped NNReal ENNReal
+open scoped NNReal ENNReal Topology
 
 namespace LevyStochCalc.Brownian.Continuity
 
@@ -28,49 +30,44 @@ universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
 
--- 2026-05-22 (deleted): `kolmogorov_dyadic_holder` was a `True := trivial`
--- placeholder for the dyadic Hölder bound (KC modification Step 1). Never
--- referenced outside its declaration site and contributed nothing to the
--- audit beyond a substantive docstring with vacuous body — exactly the
--- trivial-witness pattern Rule 0 forbids. The KC modification theorem is
--- delivered via the cited axiom `kolmogorovChentsov_modification` (Tier 1
--- #3); the dyadic-Hölder intermediate step (Markov + Borel-Cantelli) is
--- subsumed by the axiom and tracked in `tools/cited_axioms.md`.
--- Removed per red-team finding M1.
+/-- **Step 2: scale-limited Hölder on a dense set → continuous extension.**
 
-/-- **Step 2: uniform Hölder on a dense set → continuous extension.**
+A function `f : ℝ → ℝ` that is α-Hölder on a dense set `D ⊆ ℝ` *at scales
+`≤ δ₀`* (i.e. `|f s − f t| ≤ K·|s−t|^α` whenever `s, t ∈ D` and
+`|s − t| ≤ δ₀`) is uniformly continuous on `D`, hence extends to a continuous
+function
+on `ℝ` agreeing with `f` on `D`. The scale restriction suffices because uniform
+continuity only constrains small distances; this is exactly what the dyadic
+chaining produces (`dyadic_holder_chaining`, scales `≤ 2^{−N}`).
 
-A function `f : ℝ → ℝ` that is α-Hölder on a dense set `D ⊆ ℝ` extends
-uniquely to a continuous function on `ℝ`. (Specialised to `D = dyadicRationals`
-in the KC application.)
-
-Proof: an α-Hölder function on `D` is uniformly continuous on `D`. By
-`Dense.uniformContinuous_extend`, the unique continuous extension to all
-of `ℝ` exists. -/
-lemma holder_dense_extends_continuous {α K : ℝ}
-    (hα : 0 < α) (_hK : 0 < K)
+Proof via `Dense.uniformContinuous_extend`. -/
+lemma holder_dense_extends_continuous {α K δ₀ : ℝ}
+    (hα : 0 < α) (_hK : 0 < K) (hδ₀ : 0 < δ₀)
     (D : Set ℝ) (h_dense : Dense D)
     (f : ℝ → ℝ)
-    (h_holder_dyadic : ∀ s ∈ D, ∀ t ∈ D, |f s - f t| ≤ K * |s - t| ^ α) :
+    (h_holder_dyadic : ∀ s ∈ D, ∀ t ∈ D, |s - t| ≤ δ₀ →
+      |f s - f t| ≤ K * |s - t| ^ α) :
     ∃ g : ℝ → ℝ, Continuous g ∧ ∀ s ∈ D, g s = f s := by
-  -- f restricted to D is uniformly continuous (α-Hölder ⇒ UC).
+  -- f restricted to D is uniformly continuous (scale-limited α-Hölder ⇒ UC).
   set fD : D → ℝ := fun x => f x.1 with hfD_def
   have h_uc : UniformContinuous fD := by
     rw [Metric.uniformContinuous_iff]
     intro ε hε
-    -- Take δ such that K · δ^α ≤ ε/2 < ε.
-    -- Choose δ = (ε / (2 * (K + 1)))^(1/α).
+    -- Choose δ = min δ₀ (ε / (2 * (K + 1)))^(1/α).
     set C : ℝ := 2 * (K + 1) with hC_def
     have hC_pos : 0 < C := by simp [hC_def]; linarith
-    refine ⟨(ε / C) ^ (1/α), ?_, ?_⟩
-    · exact Real.rpow_pos_of_pos (div_pos hε hC_pos) _
+    refine ⟨min δ₀ ((ε / C) ^ (1/α)), ?_, ?_⟩
+    · exact lt_min hδ₀ (Real.rpow_pos_of_pos (div_pos hε hC_pos) _)
     · intro s t h_dist
-      have h_holder := h_holder_dyadic s.1 s.2 t.1 t.2
-      -- |s.1 - t.1| < δ
       have h_dist_pos : 0 ≤ |s.1 - t.1| := abs_nonneg _
+      have h_dist_δ₀ : |s.1 - t.1| ≤ δ₀ := by
+        rw [show |s.1 - t.1| = dist s.1 t.1 from (Real.dist_eq _ _).symm]
+        exact le_of_lt (lt_of_lt_of_le h_dist (min_le_left _ _))
+      have h_holder := h_holder_dyadic s.1 s.2 t.1 t.2 h_dist_δ₀
+      -- |s.1 - t.1| < δ
       have h_dist_real : |s.1 - t.1| < (ε / C) ^ (1/α) := by
         rw [show |s.1 - t.1| = dist s.1 t.1 from (Real.dist_eq _ _).symm]
-        exact h_dist
+        exact lt_of_lt_of_le h_dist (min_le_right _ _)
       -- |s.1 - t.1|^α < ε/C
       have h_pow_lt : |s.1 - t.1| ^ α < ε / C := by
         have h1 : |s.1 - t.1| ^ α < ((ε / C) ^ (1/α)) ^ α :=
@@ -107,7 +104,8 @@ lemma holder_dense_extends_continuous {α K : ℝ}
     exact Dense.extend_of_ind h_dense h_uc ⟨s, hs⟩
 
 /-- The set of dyadic rationals: `D := {k * 2^{-n} : k ∈ ℤ, n ∈ ℕ}`. Dense in ℝ. -/
-def dyadicRationals : Set ℝ := {x : ℝ | ∃ k : ℤ, ∃ n : ℕ, x = (k : ℝ) * (2 : ℝ)^(-n : ℤ)}
+def dyadicRationals : Set ℝ :=
+  {x : ℝ | ∃ k : ℤ, ∃ n : ℕ, x = (k : ℝ) * (2 : ℝ)^(-n : ℤ)}
 
 /-- `0` is a dyadic rational (`k = 0`, `n = 0`). -/
 lemma zero_mem_dyadicRationals : (0 : ℝ) ∈ dyadicRationals := by
@@ -154,6 +152,21 @@ lemma dense_dyadicRationals : Dense dyadicRationals := by
     exact hn
   · exact ⟨k, n, rfl⟩
 
+/-- Dyadic rationals are closed under adding an integer. -/
+lemma add_intCast_mem_dyadicRationals {x : ℝ} (hx : x ∈ dyadicRationals) (j : ℤ) :
+    x + (j : ℝ) ∈ dyadicRationals := by
+  obtain ⟨k, n, rfl⟩ := hx
+  refine ⟨k + j * 2 ^ n, n, ?_⟩
+  rw [zpow_neg, zpow_natCast]
+  push_cast
+  field_simp
+
+/-- Dyadic rationals are closed under subtracting an integer. -/
+lemma sub_intCast_mem_dyadicRationals {x : ℝ} (hx : x ∈ dyadicRationals) (j : ℤ) :
+    x - (j : ℝ) ∈ dyadicRationals := by
+  have := add_intCast_mem_dyadicRationals hx (-j)
+  simpa [sub_eq_add_neg] using this
+
 /-- For every `t : ℝ`, there is a sequence of dyadic rationals strictly
 increasing to `t`. Wrapper around `Dense.exists_seq_strictMono_tendsto` +
 `dense_dyadicRationals`. -/
@@ -162,6 +175,724 @@ lemma exists_seq_dyadic_tendsto (t : ℝ) :
       ∧ (∀ n, u n ∈ Set.Iio t ∩ dyadicRationals)
       ∧ Filter.Tendsto u Filter.atTop (nhds t) :=
   dense_dyadicRationals.exists_seq_strictMono_tendsto t
+
+/-! ### Deterministic dyadic chaining
+
+A real function whose consecutive level-`n` dyadic increments on `[0,1]` are
+bounded by `b n` (with `∑ b n` controlled) is Hölder on the dyadics of `[0,1)`.
+This is the path-by-path core of the continuous-modification construction: the
+a.s. Borel–Cantelli increment bounds feed `b n = C · 2^(-α n)`. -/
+
+/-- Level-`n` dyadic truncation `⌊x·2ⁿ⌋ / 2ⁿ` — the largest level-`n` dyadic
+`≤ x`. -/
+noncomputable def dyadicTrunc (n : ℕ) (x : ℝ) : ℝ := (⌊x * 2 ^ n⌋ : ℝ) / 2 ^ n
+
+lemma dyadicTrunc_mem_dyadicRationals (n : ℕ) (x : ℝ) :
+    dyadicTrunc n x ∈ dyadicRationals := by
+  refine ⟨⌊x * 2 ^ n⌋, n, ?_⟩
+  rw [dyadicTrunc, zpow_neg, zpow_natCast, div_eq_mul_inv]
+
+lemma dyadicTrunc_le (n : ℕ) (x : ℝ) : dyadicTrunc n x ≤ x := by
+  rw [dyadicTrunc, div_le_iff₀ (by positivity)]
+  exact Int.floor_le _
+
+/-- `2⌊y⌋ ≤ ⌊2y⌋ ≤ 2⌊y⌋ + 1`. -/
+lemma floor_two_mul_bounds (y : ℝ) :
+    2 * ⌊y⌋ ≤ ⌊2 * y⌋ ∧ ⌊2 * y⌋ ≤ 2 * ⌊y⌋ + 1 := by
+  refine ⟨?_, ?_⟩
+  · apply Int.le_floor.mpr
+    push_cast
+    linarith [Int.floor_le y]
+  · have h2 : ⌊2 * y⌋ < 2 * ⌊y⌋ + 2 := by
+      apply Int.floor_lt.mpr
+      push_cast
+      linarith [Int.lt_floor_add_one y]
+    omega
+
+/-- **Single refinement step.** For `x ∈ [0,1]`, the level-`(n+1)` truncation
+differs from the level-`n` truncation by at most one consecutive level-`(n+1)`
+dyadic increment, hence `|f(trunc_{n+1} x) − f(trunc_n x)| ≤ b (n+1)`. -/
+lemma dyadicTrunc_succ_step {f : ℝ → ℝ} {b : ℕ → ℝ} {N : ℕ}
+    (hb : ∀ n, 0 ≤ b n)
+    (hf : ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |f ((k + 1 : ℤ) / 2 ^ n) - f ((k : ℤ) / 2 ^ n)| ≤ b n)
+    {n : ℕ} (hn : N ≤ n + 1) {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) :
+    |f (dyadicTrunc (n + 1) x) - f (dyadicTrunc n x)| ≤ b (n + 1) := by
+  set k : ℤ := ⌊x * 2 ^ n⌋ with hk
+  set j : ℤ := ⌊x * 2 ^ (n + 1)⌋ with hj
+  have hjk : j = ⌊2 * (x * 2 ^ n)⌋ := by rw [hj]; congr 1; rw [pow_succ]; ring
+  obtain ⟨hlo, hhi⟩ := floor_two_mul_bounds (x * 2 ^ n)
+  rw [← hjk] at hlo hhi
+  have hk0 : 0 ≤ k := by
+    rw [hk]; apply Int.floor_nonneg.mpr; positivity
+  -- Truncations expressed over the common denominator `2^(n+1)`.
+  have hDn : dyadicTrunc n x = ((2 * k : ℤ) : ℝ) / 2 ^ (n + 1) := by
+    rw [dyadicTrunc, ← hk, pow_succ]; push_cast; ring
+  have hDn1 : dyadicTrunc (n + 1) x = ((j : ℤ) : ℝ) / 2 ^ (n + 1) := by
+    rw [dyadicTrunc, ← hj]
+  rcases (by omega : j = 2 * k ∨ j = 2 * k + 1) with hjeq | hjeq
+  · -- No refinement: the two truncations coincide.
+    rw [hDn1, hDn, hjeq, sub_self, abs_zero]
+    exact hb (n + 1)
+  · -- One refinement step `(2k) → (2k+1)` at level `n+1`.
+    have hbound : 2 * k + 1 ≤ (2 : ℤ) ^ (n + 1) := by
+      have hjle : (j : ℝ) ≤ x * 2 ^ (n + 1) := Int.floor_le _
+      have hj_le : (j : ℝ) ≤ (2 : ℝ) ^ (n + 1) :=
+        le_trans hjle (by nlinarith [pow_pos (by norm_num : (0:ℝ) < 2) (n + 1)])
+      have : (j : ℤ) ≤ (2 : ℤ) ^ (n + 1) := by exact_mod_cast hj_le
+      omega
+    have hap := hf (n + 1) hn (2 * k) (by omega) hbound
+    rw [hDn1, hDn, hjeq]
+    exact_mod_cast hap
+
+/-- **Telescoping bound across levels.** For `x ∈ [0,1]` and `m ≤ L`, the
+truncation increment from level `m` to level `L` is bounded by the sum of the
+per-level bounds `b (m+1) + ⋯ + b L`. -/
+lemma dyadicTrunc_telescope {f : ℝ → ℝ} {b : ℕ → ℝ} {N : ℕ}
+    (hb : ∀ n, 0 ≤ b n)
+    (hf : ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |f ((k + 1 : ℤ) / 2 ^ n) - f ((k : ℤ) / 2 ^ n)| ≤ b n)
+    {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) {m : ℕ} (hm : N ≤ m + 1) :
+    ∀ L, m ≤ L → |f (dyadicTrunc L x) - f (dyadicTrunc m x)|
+      ≤ ∑ n ∈ Finset.Ico (m + 1) (L + 1), b n := by
+  intro L hL
+  induction L, hL using Nat.le_induction with
+  | base =>
+    rw [sub_self, abs_zero, Finset.Ico_self, Finset.sum_empty]
+  | succ L hmL ih =>
+    calc |f (dyadicTrunc (L + 1) x) - f (dyadicTrunc m x)|
+        ≤ |f (dyadicTrunc (L + 1) x) - f (dyadicTrunc L x)|
+          + |f (dyadicTrunc L x) - f (dyadicTrunc m x)| := abs_sub_le _ _ _
+      _ ≤ b (L + 1) + ∑ n ∈ Finset.Ico (m + 1) (L + 1), b n := by
+          refine add_le_add ?_ ih
+          exact dyadicTrunc_succ_step hb hf (by omega) hx0 hx1
+      _ = ∑ n ∈ Finset.Ico (m + 1) (L + 2), b n := by
+          rw [Finset.sum_Ico_succ_top (by omega : m + 1 ≤ L + 1)]
+          ring
+
+/-- **Cross-point step at a fixed level.** For `0 ≤ s ≤ t ≤ 1` with
+`t − s ≤ 2^{-m}`, the level-`m` truncations of `s` and `t` are equal or adjacent
+level-`m` dyadics, so `|f(trunc_m s) − f(trunc_m t)| ≤ b m`. -/
+lemma dyadicTrunc_near_step {f : ℝ → ℝ} {b : ℕ → ℝ} {N : ℕ}
+    (hb : ∀ n, 0 ≤ b n)
+    (hf : ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |f ((k + 1 : ℤ) / 2 ^ n) - f ((k : ℤ) / 2 ^ n)| ≤ b n)
+    {m : ℕ} (hm : N ≤ m) {s t : ℝ} (hs0 : 0 ≤ s) (ht1 : t ≤ 1) (hst : s ≤ t)
+    (hclose : t - s ≤ (1 / 2) ^ m) :
+    |f (dyadicTrunc m s) - f (dyadicTrunc m t)| ≤ b m := by
+  set ks : ℤ := ⌊s * 2 ^ m⌋ with hks
+  set kt : ℤ := ⌊t * 2 ^ m⌋ with hkt
+  have hks0 : 0 ≤ ks := by rw [hks]; apply Int.floor_nonneg.mpr; positivity
+  have hmono : ks ≤ kt := by
+    rw [hks, hkt]; apply Int.floor_le_floor
+    exact mul_le_mul_of_nonneg_right hst (by positivity)
+  have hclose' : t * 2 ^ m ≤ s * 2 ^ m + 1 := by
+    have hmul : (t - s) * 2 ^ m ≤ 1 := by
+      calc (t - s) * 2 ^ m ≤ (1 / 2) ^ m * 2 ^ m :=
+            mul_le_mul_of_nonneg_right hclose (by positivity)
+        _ = 1 := by rw [div_pow, one_pow, div_mul_cancel₀]; positivity
+    nlinarith
+  have hkt_le : kt ≤ ks + 1 := by
+    rw [hkt, hks]
+    calc ⌊t * 2 ^ m⌋ ≤ ⌊s * 2 ^ m + 1⌋ := Int.floor_le_floor (by linarith)
+      _ = ⌊s * 2 ^ m⌋ + 1 := Int.floor_add_one _
+  have hTs : dyadicTrunc m s = ((ks : ℤ) : ℝ) / 2 ^ m := by rw [dyadicTrunc, ← hks]
+  have hTt : dyadicTrunc m t = ((kt : ℤ) : ℝ) / 2 ^ m := by rw [dyadicTrunc, ← hkt]
+  rcases (by omega : kt = ks ∨ kt = ks + 1) with he | he
+  · rw [hTs, hTt, he, sub_self, abs_zero]; exact hb m
+  · have hbnd : ks + 1 ≤ (2 : ℤ) ^ m := by
+      have hktle : (kt : ℝ) ≤ t * 2 ^ m := Int.floor_le _
+      have hkt_le2 : (kt : ℝ) ≤ (2 : ℝ) ^ m :=
+        le_trans hktle (by nlinarith [pow_pos (by norm_num : (0:ℝ) < 2) m])
+      have : (kt : ℤ) ≤ (2 : ℤ) ^ m := by exact_mod_cast hkt_le2
+      omega
+    have hap := hf m hm ks hks0 hbnd
+    rw [hTs, hTt, he, abs_sub_comm]
+    exact_mod_cast hap
+
+/-- A dyadic rational coincides with its own level-`L` truncation for all
+sufficiently large `L`. -/
+lemma dyadicTrunc_eventually_eq {s : ℝ} (hs : s ∈ dyadicRationals) :
+    ∃ L₀ : ℕ, ∀ L, L₀ ≤ L → dyadicTrunc L s = s := by
+  obtain ⟨k, n, hkn⟩ := hs
+  refine ⟨n, fun L hL => ?_⟩
+  have h2n : (2 : ℝ) ^ n ≠ 0 := by positivity
+  have hpow : (2 : ℝ) ^ L = (2 : ℝ) ^ (L - n) * (2 : ℝ) ^ n := by
+    rw [← pow_add, Nat.sub_add_cancel hL]
+  have hsL : s * 2 ^ L = ((k * 2 ^ (L - n) : ℤ) : ℝ) := by
+    rw [hkn, zpow_neg, zpow_natCast, hpow]
+    push_cast
+    field_simp
+  rw [dyadicTrunc, hsL, Int.floor_intCast, hkn, zpow_neg, zpow_natCast, hpow]
+  push_cast
+  field_simp
+
+/-- Finite geometric partial sum bounded by the infinite tail
+`∑_{a ≤ n < b} rⁿ ≤ rᵃ / (1 − r)` for `0 ≤ r < 1`. -/
+lemma sum_Ico_geometric_le {r : ℝ} (hr0 : 0 ≤ r) (hr1 : r < 1) (a b : ℕ) :
+    ∑ n ∈ Finset.Ico a b, r ^ n ≤ r ^ a / (1 - r) := by
+  rw [Finset.sum_Ico_eq_sum_range]
+  simp_rw [pow_add]
+  rw [← Finset.mul_sum, div_eq_mul_inv]
+  refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+  rw [← tsum_geometric_of_lt_one hr0 hr1]
+  exact Summable.sum_le_tsum _ (fun i _ => by positivity)
+    (summable_geometric_of_lt_one hr0 hr1)
+
+/-- **Dyadic scale selection.** For `0 < d ≤ 1` there is `m` with
+`(1/2)^{m+1} < d ≤ (1/2)^m`. -/
+lemma exists_dyadic_scale {d : ℝ} (hd0 : 0 < d) (hd1 : d ≤ 1) :
+    ∃ m : ℕ, (1 / 2 : ℝ) ^ (m + 1) < d ∧ d ≤ (1 / 2) ^ m := by
+  have hex : ∃ n : ℕ, (1 / 2 : ℝ) ^ n < d :=
+    exists_pow_lt_of_lt_one hd0 (by norm_num)
+  classical
+  have hspec : (1 / 2 : ℝ) ^ Nat.find hex < d := Nat.find_spec hex
+  have hpos : 1 ≤ Nat.find hex := by
+    rcases Nat.eq_zero_or_pos (Nat.find hex) with h | h
+    · exfalso; rw [h] at hspec; simp at hspec; linarith
+    · exact h
+  refine ⟨Nat.find hex - 1, ?_, ?_⟩
+  · rw [Nat.sub_add_cancel hpos]; exact hspec
+  · have hmin := Nat.find_min hex (m := Nat.find hex - 1) (by omega)
+    rw [not_lt] at hmin
+    exact hmin
+
+/-- `((1/2)^α)^m ≤ 2^α · d^α` when `(1/2)^{m+1} < d`. Converts the geometric
+level factor `r^m = ((1/2)^α)^m` into a Hölder factor in `d`. -/
+lemma rpow_half_pow_le {α : ℝ} (hα : 0 < α) {d : ℝ} (m : ℕ)
+    (hd : (1 / 2 : ℝ) ^ (m + 1) < d) :
+    ((1 / 2 : ℝ) ^ α) ^ m ≤ (2 : ℝ) ^ α * d ^ α := by
+  have hdpos : 0 < d := lt_of_le_of_lt (by positivity) hd
+  have hstep : (1 / 2 : ℝ) ^ m < 2 * d := by
+    have he : (1 / 2 : ℝ) ^ m = 2 * (1 / 2) ^ (m + 1) := by rw [pow_succ]; ring
+    rw [he]; linarith
+  have hr_eq : ((1 / 2 : ℝ) ^ α) ^ m = ((1 / 2 : ℝ) ^ m) ^ α := by
+    rw [← Real.rpow_natCast ((1 / 2 : ℝ) ^ α) m,
+        ← Real.rpow_natCast (1 / 2 : ℝ) m,
+        ← Real.rpow_mul (by norm_num : (0:ℝ) ≤ 1 / 2),
+        ← Real.rpow_mul (by norm_num : (0:ℝ) ≤ 1 / 2), mul_comm]
+  rw [hr_eq]
+  calc ((1 / 2 : ℝ) ^ m) ^ α
+      ≤ (2 * d) ^ α :=
+        Real.rpow_le_rpow (by positivity) (le_of_lt hstep) (le_of_lt hα)
+    _ = (2 : ℝ) ^ α * d ^ α := Real.mul_rpow (by norm_num) (le_of_lt hdpos)
+
+/-- **KC exponent identity.** `2ⁿ · ((1/2)ⁿ)^q / ((1/2)^α)ⁿ)^p = ((1/2)^{q−αp−1})ⁿ`.
+Collapses the per-level Borel–Cantelli factor (a `2ⁿ` union over level-`n`
+dyadics, each a Markov term `(2^{−n})^q / (2^{−αn})^p`) to a single geometric
+ratio `(1/2)^{q−αp−1}`, which is `< 1` exactly when `αp < q − 1`. -/
+lemma kc_exponent_identity {α p q : ℝ} (n : ℕ) :
+    (2 : ℝ) ^ n * ((1 / 2 : ℝ) ^ n) ^ q / (((1 / 2 : ℝ) ^ α) ^ n) ^ p
+      = ((1 / 2 : ℝ) ^ (q - α * p - 1)) ^ n := by
+  have h2 : (0 : ℝ) < 1 / 2 := by norm_num
+  have e1 : ((1 / 2 : ℝ) ^ n) ^ q = (1 / 2 : ℝ) ^ ((n : ℝ) * q) := by
+    rw [← Real.rpow_natCast (1 / 2 : ℝ) n, ← Real.rpow_mul (le_of_lt h2)]
+  have e2 : (((1 / 2 : ℝ) ^ α) ^ n) ^ p = (1 / 2 : ℝ) ^ (α * (n : ℝ) * p) := by
+    rw [← Real.rpow_natCast ((1 / 2 : ℝ) ^ α) n, ← Real.rpow_mul (le_of_lt h2),
+        ← Real.rpow_mul (le_of_lt h2)]
+  have e3 : (2 : ℝ) ^ n = (1 / 2 : ℝ) ^ (-(n : ℝ)) := by
+    rw [Real.rpow_neg (le_of_lt h2), Real.rpow_natCast,
+        show (1 / 2 : ℝ) ^ n = (2 ^ n)⁻¹ from by rw [one_div, inv_pow], inv_inv]
+  have e4 : ((1 / 2 : ℝ) ^ (q - α * p - 1)) ^ n
+      = (1 / 2 : ℝ) ^ ((q - α * p - 1) * (n : ℝ)) := by
+    rw [← Real.rpow_natCast ((1 / 2 : ℝ) ^ (q - α * p - 1)) n,
+        ← Real.rpow_mul (le_of_lt h2)]
+  rw [e1, e2, e3, e4, div_eq_mul_inv, ← Real.rpow_neg (le_of_lt h2),
+      ← Real.rpow_add h2, ← Real.rpow_add h2]
+  congr 1
+  ring
+
+/-- **Deterministic dyadic Hölder chaining.** If the consecutive level-`n`
+dyadic increments of `f` on `[0,1]` are bounded by `C · ((1/2)^α)^n` for all
+`n ≥ N`, then `f` is α-Hölder on the dyadics of `[0,1]` at scales `≤ 2^{-N}`,
+with an explicit constant `K`. This is the path-by-path output of the
+Borel–Cantelli increment control. -/
+lemma dyadic_holder_chaining {f : ℝ → ℝ} {α C : ℝ} {N : ℕ}
+    (hα : 0 < α) (hC : 0 ≤ C)
+    (hf : ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |f ((k + 1 : ℤ) / 2 ^ n) - f ((k : ℤ) / 2 ^ n)| ≤ C * ((1 / 2 : ℝ) ^ α) ^ n) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ s ∈ dyadicRationals, ∀ t ∈ dyadicRationals,
+      0 ≤ s → s ≤ 1 → 0 ≤ t → t ≤ 1 → |s - t| ≤ (1 / 2 : ℝ) ^ N →
+      |f s - f t| ≤ K * |s - t| ^ α := by
+  set r : ℝ := (1 / 2 : ℝ) ^ α with hr_def
+  have hr0 : 0 < r := Real.rpow_pos_of_pos (by norm_num) α
+  have hr1 : r < 1 := Real.rpow_lt_one (by norm_num) (by norm_num) hα
+  have h1r : 0 < 1 - r := by linarith
+  set b : ℕ → ℝ := fun n => C * r ^ n with hb_def
+  have hb : ∀ n, 0 ≤ b n := fun n => by simp only [hb_def]; positivity
+  set A : ℝ := C * (1 + 2 * r / (1 - r)) with hA_def
+  have hA0 : 0 ≤ A := by
+    apply mul_nonneg hC
+    have : 0 ≤ 2 * r / (1 - r) := div_nonneg (by positivity) (le_of_lt h1r)
+    linarith
+  have h2α : (0 : ℝ) < (2 : ℝ) ^ α := Real.rpow_pos_of_pos (by norm_num) α
+  -- Sum bound: `∑_{Ico (m+1) (L+1)} b ≤ C·r^{m+1}/(1-r)`.
+  have hsum : ∀ m L : ℕ, ∑ n ∈ Finset.Ico (m + 1) (L + 1), b n
+      ≤ C * r ^ (m + 1) / (1 - r) := by
+    intro m L
+    simp only [hb_def]
+    rw [← Finset.mul_sum]
+    rw [mul_div_assoc]
+    apply mul_le_mul_of_nonneg_left _ hC
+    exact sum_Ico_geometric_le (le_of_lt hr0) hr1 (m + 1) (L + 1)
+  -- Core bound for an ordered pair `a ≤ c`.
+  have core : ∀ a c, a ∈ dyadicRationals → c ∈ dyadicRationals →
+      0 ≤ a → c ≤ 1 → a ≤ c → c - a ≤ (1 / 2 : ℝ) ^ N →
+      |f a - f c| ≤ (A * 2 ^ α) * (c - a) ^ α := by
+    intro a c ha hc ha0 hc1 hac hgap
+    rcases eq_or_lt_of_le hac with hac' | hac'
+    · subst hac'; simp [Real.zero_rpow hα.ne']
+    set d : ℝ := c - a with hd_def
+    have hd0 : 0 < d := by simp only [hd_def]; linarith
+    have hNle1 : (1 / 2 : ℝ) ^ N ≤ 1 := by
+      apply pow_le_one₀ (by norm_num) (by norm_num)
+    have hd1 : d ≤ 1 := le_trans hgap hNle1
+    obtain ⟨m, hm1, hm2⟩ := exists_dyadic_scale hd0 hd1
+    have hmN : N ≤ m := by
+      by_contra hlt
+      have hNm1 : (1 / 2 : ℝ) ^ N ≤ (1 / 2 : ℝ) ^ (m + 1) :=
+        pow_le_pow_of_le_one (by norm_num) (by norm_num) (by omega)
+      linarith [le_trans hgap hNm1, hm1]
+    obtain ⟨Ls, hLs⟩ := dyadicTrunc_eventually_eq ha
+    obtain ⟨Lt, hLt⟩ := dyadicTrunc_eventually_eq hc
+    set L : ℕ := max (max Ls Lt) m with hL_def
+    have hsL : dyadicTrunc L a = a :=
+      hLs L (le_trans (le_max_left _ _) (le_max_left _ _))
+    have htL : dyadicTrunc L c = c :=
+      hLt L (le_trans (le_max_right _ _) (le_max_left _ _))
+    have hmL : m ≤ L := le_max_right _ _
+    have hTa := dyadicTrunc_telescope hb hf ha0 (le_trans hac hc1) (by omega) L hmL
+    have hTc := dyadicTrunc_telescope hb hf (le_trans ha0 hac) hc1 (by omega) L hmL
+    rw [hsL] at hTa
+    rw [htL] at hTc
+    have hNear := dyadicTrunc_near_step hb hf hmN ha0 hc1 hac hm2
+    -- Triangle: split through the two level-m truncations.
+    have htri : |f a - f c|
+        ≤ |f a - f (dyadicTrunc m a)|
+          + |f (dyadicTrunc m a) - f (dyadicTrunc m c)|
+          + |f (dyadicTrunc m c) - f c| := by
+      calc |f a - f c|
+          ≤ |f a - f (dyadicTrunc m a)| + |f (dyadicTrunc m a) - f c| :=
+            abs_sub_le _ _ _
+        _ ≤ |f a - f (dyadicTrunc m a)|
+            + (|f (dyadicTrunc m a) - f (dyadicTrunc m c)|
+              + |f (dyadicTrunc m c) - f c|) := by
+            gcongr; exact abs_sub_le _ _ _
+        _ = _ := by ring
+    have hTc' : |f (dyadicTrunc m c) - f c|
+        ≤ ∑ n ∈ Finset.Ico (m + 1) (L + 1), b n := by
+      rw [abs_sub_comm]; exact hTc
+    -- Combine the three pieces.
+    have hsumbnd := hsum m L
+    have hbm : b m = C * r ^ m := rfl
+    have key : |f a - f c| ≤ A * r ^ m := by
+      have hchain : |f a - f c|
+          ≤ (∑ n ∈ Finset.Ico (m + 1) (L + 1), b n) + b m
+            + (∑ n ∈ Finset.Ico (m + 1) (L + 1), b n) := by
+        refine le_trans htri ?_
+        gcongr
+      refine le_trans hchain ?_
+      have hnum : (∑ n ∈ Finset.Ico (m + 1) (L + 1), b n) + b m
+          + (∑ n ∈ Finset.Ico (m + 1) (L + 1), b n)
+          ≤ C * r ^ (m + 1) / (1 - r) + C * r ^ m + C * r ^ (m + 1) / (1 - r) := by
+        linarith [hsum m L, hbm]
+      refine le_trans hnum (le_of_eq ?_)
+      rw [hA_def]
+      field_simp
+      ring
+    refine le_trans key ?_
+    rw [show A * 2 ^ α * d ^ α = A * (2 ^ α * d ^ α) from by ring]
+    apply mul_le_mul_of_nonneg_left _ hA0
+    rw [hr_def]
+    exact rpow_half_pow_le hα m hm1
+  -- Dispatch by the order of `s, t`.
+  refine ⟨A * 2 ^ α, by positivity, ?_⟩
+  intro s hs t ht hs0 hs1 ht0 ht1 hclose
+  rcases le_total s t with hst | hst
+  · have hgap : t - s ≤ (1 / 2 : ℝ) ^ N := by
+      rw [← abs_of_nonneg (by linarith : (0:ℝ) ≤ t - s), abs_sub_comm]; exact hclose
+    have heq : |s - t| = t - s := by
+      rw [abs_sub_comm, abs_of_nonneg (by linarith)]
+    rw [heq]
+    exact core s t hs ht hs0 ht1 hst hgap
+  · have hgap : s - t ≤ (1 / 2 : ℝ) ^ N := by
+      rw [← abs_of_nonneg (by linarith : (0:ℝ) ≤ s - t)]; exact hclose
+    have heq : |s - t| = s - t := abs_of_nonneg (by linarith)
+    rw [heq, abs_sub_comm]
+    exact core t s ht hs ht0 hs1 hst hgap
+
+/-- **Markov / Chebyshev bound from the Kolmogorov condition.**
+
+For a process satisfying the Kolmogorov moment condition
+`∫⁻ ω, edist (X s ω) (X t ω)^p ∂P ≤ M · edist s t ^ q` and any threshold
+`0 < lam < ⊤`,
+
+  `P {ω | lam ≤ edist (X s ω) (X t ω)} ≤ M · edist s t ^ q / lam ^ p`.
+
+This is the per-pair tail bound underlying both the convergence-in-measure
+argument (`kolmogorov_modification_ae_eq`) and the per-dyadic-level Borel–
+Cantelli step of the continuous-modification construction. -/
+lemma kolmogorov_markov_bound
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (s t : ℝ) {lam : ℝ≥0∞} (hlam_pos : 0 < lam) (hlam_top : lam ≠ ⊤) :
+    P {ω | lam ≤ edist (X s ω) (X t ω)}
+      ≤ (M : ℝ≥0∞) * edist s t ^ q / lam ^ p := by
+  have hp_pos : 0 < p := hX.p_pos
+  -- {lam ≤ edist} = {lam^p ≤ edist^p} since `· ^ p` is strictly monotone.
+  have h_set_eq :
+      {ω | lam ≤ edist (X s ω) (X t ω)}
+        = {ω | lam ^ p ≤ edist (X s ω) (X t ω) ^ p} := by
+    ext ω; exact (ENNReal.rpow_le_rpow_iff hp_pos).symm
+  have h_edist_aemeas : AEMeasurable
+      (fun ω => edist (X s ω) (X t ω) ^ p) P :=
+    ((hX.measurable_edist (s := s) (t := t)).pow_const p).aemeasurable
+  have h_Kol : ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
+      ≤ (M : ℝ≥0∞) * edist s t ^ q := hX.kolmogorovCondition s t
+  have h_Markov :
+      lam ^ p * P {ω | lam ^ p ≤ edist (X s ω) (X t ω) ^ p}
+        ≤ ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P :=
+    MeasureTheory.mul_meas_ge_le_lintegral₀ h_edist_aemeas (lam ^ p)
+  have h_chain :
+      lam ^ p * P {ω | lam ≤ edist (X s ω) (X t ω)}
+        ≤ (M : ℝ≥0∞) * edist s t ^ q := by
+    rw [h_set_eq]; exact le_trans h_Markov h_Kol
+  have hlamp_pos : 0 < lam ^ p := by
+    apply ENNReal.rpow_pos_of_nonneg hlam_pos
+    exact hp_pos.le
+  have hlamp_ne_top : lam ^ p ≠ ⊤ :=
+    ENNReal.rpow_ne_top_of_nonneg hp_pos.le hlam_top
+  rw [ENNReal.le_div_iff_mul_le (Or.inl hlamp_pos.ne') (Or.inl hlamp_ne_top),
+      mul_comm]
+  exact h_chain
+
+/-- Real-threshold form of the tail bound: for `lam > 0`,
+`P {ω | lam < |X s ω − X t ω|} ≤ M · edist s t ^ q / (ofReal lam) ^ p`. -/
+lemma kolmogorov_real_tail_bound
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (s t : ℝ) {lam : ℝ} (hlam : 0 < lam) :
+    P {ω | lam < |X s ω - X t ω|}
+      ≤ (M : ℝ≥0∞) * edist s t ^ q / ENNReal.ofReal lam ^ p := by
+  refine le_trans (measure_mono ?_)
+    (kolmogorov_markov_bound P X hX s t
+      (ENNReal.ofReal_pos.mpr hlam) ENNReal.ofReal_ne_top)
+  intro ω hω
+  simp only [Set.mem_setOf_eq] at hω ⊢
+  rw [edist_dist, Real.dist_eq]
+  exact ENNReal.ofReal_le_ofReal (le_of_lt hω)
+
+/-- **Lemma A: per-level bad-set bound.** The union over level-`n` dyadic
+intervals in `[0,1]` of the events `{ |increment| > ((1/2)^α)^n }` has measure
+`≤ ofReal((M:ℝ)·ρⁿ)` with `ρ = (1/2)^{q−αp−1}`. (Borel–Cantelli summability
+follows when `αp < q−1`, i.e. `ρ < 1`.) -/
+lemma kc_level_bad_measure
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    {α : ℝ} (n : ℕ) :
+    P (⋃ k ∈ Finset.range (2 ^ n),
+        {ω | ((1 / 2 : ℝ) ^ α) ^ n
+            < |X (((k : ℝ) + 1) / 2 ^ n) ω - X ((k : ℝ) / 2 ^ n) ω|})
+      ≤ ENNReal.ofReal ((M : ℝ) * ((1 / 2 : ℝ) ^ (q - α * p - 1)) ^ n) := by
+  set r : ℝ := (1 / 2 : ℝ) ^ α with hr_def
+  have hr0 : 0 < r := Real.rpow_pos_of_pos (by norm_num) α
+  have hrn0 : 0 < r ^ n := pow_pos hr0 n
+  have hhalf_n : (0 : ℝ) < (1 / 2 : ℝ) ^ n := by positivity
+  have hrnp0 : (0 : ℝ) < (r ^ n) ^ p := Real.rpow_pos_of_pos hrn0 p
+  -- Per-interval Markov term, converted to `ofReal`.
+  have hterm : ∀ k ∈ Finset.range (2 ^ n),
+      P {ω | r ^ n < |X (((k : ℝ) + 1) / 2 ^ n) ω - X ((k : ℝ) / 2 ^ n) ω|}
+        ≤ ENNReal.ofReal ((M : ℝ) * ((1 / 2 : ℝ) ^ n) ^ q / (r ^ n) ^ p) := by
+    intro k _
+    have hb := kolmogorov_real_tail_bound P X hX
+      (((k : ℝ) + 1) / 2 ^ n) ((k : ℝ) / 2 ^ n) hrn0
+    refine le_trans hb (le_of_eq ?_)
+    have hedist : edist (((k : ℝ) + 1) / 2 ^ n) ((k : ℝ) / 2 ^ n)
+        = ENNReal.ofReal ((1 / 2 : ℝ) ^ n) := by
+      rw [edist_dist, Real.dist_eq]
+      congr 1
+      rw [show ((k : ℝ) + 1) / 2 ^ n - (k : ℝ) / 2 ^ n = (1 / 2 : ℝ) ^ n from by
+        rw [div_pow, one_pow]; ring]
+      exact abs_of_pos hhalf_n
+    rw [hedist, ENNReal.ofReal_rpow_of_pos hhalf_n,
+        ENNReal.ofReal_rpow_of_pos hrn0, ← ENNReal.ofReal_coe_nnreal (p := M),
+        ← ENNReal.ofReal_mul (by positivity),
+        ← ENNReal.ofReal_div_of_pos hrnp0]
+  refine le_trans (measure_biUnion_finset_le (Finset.range (2 ^ n)) _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul,
+      show ((2 ^ n : ℕ) : ℝ≥0∞) = ENNReal.ofReal ((2 : ℝ) ^ n) from by
+        rw [← ENNReal.ofReal_natCast]; norm_num,
+      ← ENNReal.ofReal_mul (by positivity)]
+  refine le_of_eq ?_
+  congr 1
+  rw [hr_def, show (2 : ℝ) ^ n
+        * ((M : ℝ) * ((1 / 2 : ℝ) ^ n) ^ q / (((1 / 2 : ℝ) ^ α) ^ n) ^ p)
+      = (M : ℝ) * ((2 : ℝ) ^ n * ((1 / 2 : ℝ) ^ n) ^ q
+          / (((1 / 2 : ℝ) ^ α) ^ n) ^ p) from by ring,
+      kc_exponent_identity]
+
+/-- **Limit existence from local Hölder.** If `f` is α-Hölder on `A ∩ (t−ρ, t+ρ)`
+for some `ρ > 0`, `K ≥ 0`, then `f` has a limit along `𝓝[A] t` (`A` dense). The
+limit-along-dyadics is what `extendFrom` needs to build the continuous path. -/
+lemma exists_tendsto_of_local_holder {A : Set ℝ} (hA : Dense A) {f : ℝ → ℝ}
+    {α : ℝ} (hα : 0 < α) (t : ℝ)
+    (hloc : ∃ K ρ : ℝ, 0 < ρ ∧ 0 ≤ K ∧ ∀ s ∈ A, ∀ s' ∈ A,
+      s ∈ Set.Ioo (t - ρ) (t + ρ) → s' ∈ Set.Ioo (t - ρ) (t + ρ) →
+        |f s - f s'| ≤ K * |s - s'| ^ α) :
+    ∃ y, Filter.Tendsto f (𝓝[A] t) (nhds y) := by
+  obtain ⟨K, ρ, hρ, hK, hHol⟩ := hloc
+  have hFne : (𝓝[A] t).NeBot := mem_closure_iff_nhdsWithin_neBot.mp (hA t)
+  have hcauchy : Cauchy (Filter.map f (𝓝[A] t)) := by
+    rw [Metric.cauchy_iff]
+    refine ⟨hFne.map _, fun ε hε => ?_⟩
+    -- choose `ρ' ≤ ρ` with `K·(2ρ')^α < ε`
+    obtain ⟨ρ', hρ'0, hρ'ρ, hρ'b⟩ :
+        ∃ ρ', 0 < ρ' ∧ ρ' ≤ ρ ∧ K * (2 * ρ') ^ α < ε := by
+      have hδ : 0 < (ε / (K + 1)) ^ (1 / α) :=
+        Real.rpow_pos_of_pos (by positivity) _
+      refine ⟨min ρ ((ε / (K + 1)) ^ (1 / α) / 3), lt_min hρ (by positivity),
+        min_le_left _ _, ?_⟩
+      have h2 : 2 * min ρ ((ε / (K + 1)) ^ (1 / α) / 3) < (ε / (K + 1)) ^ (1 / α) := by
+        have := min_le_right ρ ((ε / (K + 1)) ^ (1 / α) / 3)
+        linarith
+      have hpow : (2 * min ρ ((ε / (K + 1)) ^ (1 / α) / 3)) ^ α < ε / (K + 1) := by
+        have h1 := Real.rpow_lt_rpow (by positivity) h2 hα
+        rwa [show ((ε / (K + 1)) ^ (1 / α)) ^ α = ε / (K + 1) from by
+          rw [← Real.rpow_mul (by positivity : (0:ℝ) ≤ ε / (K + 1)), one_div,
+              inv_mul_cancel₀ (ne_of_gt hα), Real.rpow_one]] at h1
+      calc K * (2 * min ρ ((ε / (K + 1)) ^ (1 / α) / 3)) ^ α
+          ≤ (K + 1) * (2 * min ρ ((ε / (K + 1)) ^ (1 / α) / 3)) ^ α := by
+            apply mul_le_mul_of_nonneg_right (by linarith) (by positivity)
+        _ < (K + 1) * (ε / (K + 1)) := by
+            apply mul_lt_mul_of_pos_left hpow (by positivity)
+        _ = ε := by field_simp
+    refine ⟨f '' (A ∩ Set.Ioo (t - ρ') (t + ρ')), ?_, ?_⟩
+    · rw [Filter.mem_map]
+      refine Filter.mem_of_superset ?_ (Set.subset_preimage_image f _)
+      exact inter_mem_nhdsWithin A
+        (Ioo_mem_nhds (by linarith) (by linarith))
+    · rintro x ⟨s, ⟨hsA, hsI⟩, rfl⟩ y ⟨s', ⟨hs'A, hs'I⟩, rfl⟩
+      have hIs : s ∈ Set.Ioo (t - ρ) (t + ρ) :=
+        ⟨by have := hsI.1; linarith, by have := hsI.2; linarith⟩
+      have hIs' : s' ∈ Set.Ioo (t - ρ) (t + ρ) :=
+        ⟨by have := hs'I.1; linarith, by have := hs'I.2; linarith⟩
+      have hb := hHol s hsA s' hs'A hIs hIs'
+      have hss' : |s - s'| ≤ 2 * ρ' := by
+        rw [abs_le]
+        refine ⟨?_, ?_⟩
+        · have h1 := hsI.1; have h2 := hs'I.2; linarith
+        · have h1 := hsI.2; have h2 := hs'I.1; linarith
+      rw [Real.dist_eq]
+      calc |f s - f s'| ≤ K * |s - s'| ^ α := hb
+        _ ≤ K * (2 * ρ') ^ α := by
+            apply mul_le_mul_of_nonneg_left _ hK
+            exact Real.rpow_le_rpow (abs_nonneg _) hss' hα.le
+        _ < ε := hρ'b
+  obtain ⟨y, hy⟩ := CompleteSpace.complete hcauchy
+  exact ⟨y, hy⟩
+
+/-- **Translation invariance of the Kolmogorov condition.** If `X` satisfies
+the Kolmogorov condition, so does the time-shifted process `s ↦ X (s + a)`
+(the bound depends only on `edist s t = edist (s+a) (t+a)`). Used to transport
+the `[0,1]` construction to every interval `[j, j+1]`. -/
+lemma isKolmogorovProcess_comp_add_right
+    {P : Measure Ω} (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M) (a : ℝ) :
+    ProbabilityTheory.IsKolmogorovProcess (fun s ω => X (s + a) ω) P p q M where
+  measurablePair s t := hX.measurablePair (s + a) (t + a)
+  kolmogorovCondition s t := by
+    have he : edist s t = edist (s + a) (t + a) := by
+      rw [edist_dist, edist_dist, Real.dist_eq, Real.dist_eq,
+          show (s + a) - (t + a) = s - t from by ring]
+    rw [he]
+    exact hX.kolmogorovCondition (s + a) (t + a)
+  p_pos := hX.p_pos
+  q_pos := hX.q_pos
+
+/-- **Lemma B: a.s. dyadic increment bound (Borel–Cantelli).** When
+`α·p < q − 1`, almost every path has, for some level `N`, all consecutive
+level-`n` dyadic increments in `[0,1]` bounded by `((1/2)^α)^n` for every
+`n ≥ N`. This supplies the hypothesis of `dyadic_holder_chaining`. -/
+lemma kc_ae_increment_bound
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    {α : ℝ} (hαpq : α * p < q - 1) :
+    ∀ᵐ ω ∂P, ∃ N : ℕ, ∀ n, N ≤ n → ∀ k : ℤ, 0 ≤ k → k + 1 ≤ 2 ^ n →
+      |X (((k : ℝ) + 1) / 2 ^ n) ω - X ((k : ℝ) / 2 ^ n) ω|
+        ≤ ((1 / 2 : ℝ) ^ α) ^ n := by
+  set ρ : ℝ := (1 / 2 : ℝ) ^ (q - α * p - 1) with hρ_def
+  have hρ0 : 0 < ρ := Real.rpow_pos_of_pos (by norm_num) _
+  have hρ1 : ρ < 1 := Real.rpow_lt_one (by norm_num) (by norm_num) (by linarith)
+  set A : ℕ → Set Ω := fun n => ⋃ k ∈ Finset.range (2 ^ n),
+      {ω | ((1 / 2 : ℝ) ^ α) ^ n
+          < |X (((k : ℝ) + 1) / 2 ^ n) ω - X ((k : ℝ) / 2 ^ n) ω|} with hA_def
+  have hAle : ∀ n, P (A n) ≤ ENNReal.ofReal ((M : ℝ) * ρ ^ n) := fun n =>
+    kc_level_bad_measure P X hX n
+  have hsummable_real : Summable (fun n => (M : ℝ) * ρ ^ n) :=
+    (summable_geometric_of_lt_one hρ0.le hρ1).mul_left _
+  have htsum_ne : (∑' n, P (A n)) ≠ ⊤ := by
+    refine ne_top_of_le_ne_top ?_ (ENNReal.tsum_le_tsum hAle)
+    rw [← ENNReal.ofReal_tsum_of_nonneg (fun n => by positivity) hsummable_real]
+    exact ENNReal.ofReal_ne_top
+  have hlimsup : P (Filter.limsup A Filter.atTop) = 0 :=
+    measure_limsup_atTop_eq_zero htsum_ne
+  have hae : ∀ᵐ ω ∂P, ω ∉ Filter.limsup A Filter.atTop := by
+    rw [ae_iff]; simp only [not_not, Set.setOf_mem_eq]; exact hlimsup
+  filter_upwards [hae] with ω hω
+  rw [Filter.mem_limsup_iff_frequently_mem, Filter.not_frequently,
+      Filter.eventually_atTop] at hω
+  obtain ⟨N, hN⟩ := hω
+  refine ⟨N, fun n hn k hk0 hk1 => ?_⟩
+  have hωn : ω ∉ A n := hN n hn
+  rw [hA_def] at hωn
+  simp only [Set.mem_iUnion, Set.mem_setOf_eq, not_exists, not_lt] at hωn
+  have hk'mem : k.toNat ∈ Finset.range (2 ^ n) := by
+    rw [Finset.mem_range]
+    have hcast2 : ((2 ^ n : ℕ) : ℤ) = (2 : ℤ) ^ n := by push_cast; ring
+    omega
+  have hcast : ((k.toNat : ℕ) : ℝ) = (k : ℝ) := by
+    rw [← Int.cast_natCast, Int.toNat_of_nonneg hk0]
+  have hb := hωn k.toNat hk'mem
+  rw [hcast] at hb
+  exact hb
+
+/-- **Per-interval a.s. Hölder.** For `αp < q − 1`, almost every path is
+α-Hölder (at small scales) on the dyadics of every unit interval `[j, j+1]`.
+Obtained by transporting `dyadic_holder_chaining` (on `[0,1]`) to `[j,j+1]` via
+the time-shifted process `X(·+j)` (translation-invariant Kolmogorov condition),
+intersected over the countable family `j : ℤ`. -/
+lemma kc_ae_interval_holder
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    {α : ℝ} (hα0 : 0 < α) (hαpq : α * p < q - 1) :
+    ∀ᵐ ω ∂P, ∀ j : ℤ, ∃ (K : ℝ) (N : ℕ), 0 ≤ K ∧
+      ∀ s ∈ dyadicRationals, ∀ t ∈ dyadicRationals,
+        (j : ℝ) ≤ s → s ≤ (j : ℝ) + 1 → (j : ℝ) ≤ t → t ≤ (j : ℝ) + 1 →
+        |s - t| ≤ (1 / 2 : ℝ) ^ N → |X s ω - X t ω| ≤ K * |s - t| ^ α := by
+  rw [MeasureTheory.ae_all_iff]
+  intro j
+  have hXj : ProbabilityTheory.IsKolmogorovProcess (fun s ω => X (s + (j : ℝ)) ω) P p q M :=
+    isKolmogorovProcess_comp_add_right X hX j
+  filter_upwards [kc_ae_increment_bound P (fun s ω => X (s + (j : ℝ)) ω) hXj hαpq] with ω hω
+  obtain ⟨N, hN⟩ := hω
+  obtain ⟨K, hK0, hKbound⟩ :=
+    dyadic_holder_chaining (f := fun u => X (u + (j : ℝ)) ω) (α := α) (C := 1) (N := N)
+      hα0 (by norm_num) (fun n hn k hk0 hk1 => by
+        rw [one_mul]
+        simp only [Int.cast_add, Int.cast_one]
+        exact hN n hn k hk0 hk1)
+  refine ⟨K, N, hK0, fun s hs t ht hjs hsj1 hjt htj1 hst => ?_⟩
+  have hu : s - (j : ℝ) ∈ dyadicRationals := sub_intCast_mem_dyadicRationals hs j
+  have hv : t - (j : ℝ) ∈ dyadicRationals := sub_intCast_mem_dyadicRationals ht j
+  have hKb := hKbound (s - (j : ℝ)) hu (t - (j : ℝ)) hv (by linarith) (by linarith)
+    (by linarith) (by linarith)
+    (by rw [show s - (j : ℝ) - (t - (j : ℝ)) = s - t from by ring]; exact hst)
+  rw [show s - (j : ℝ) + (j : ℝ) = s from by ring,
+      show t - (j : ℝ) + (j : ℝ) = t from by ring,
+      show s - (j : ℝ) - (t - (j : ℝ)) = s - t from by ring] at hKb
+  exact hKb
+
+/-- **Neighbourhood Hölder.** For a.e. path, every point `t` has an open
+neighbourhood on whose dyadics `X(·)ω` is α-Hölder. At a point near an integer
+`c`, pairs straddling `c` are handled by chaining through `c` (`X c` is defined
+since `c` is dyadic), using the two adjacent unit-interval bounds. This is the
+hypothesis of `exists_tendsto_of_local_holder`. -/
+lemma kc_ae_nbhd_holder
+    (P : Measure Ω) [IsProbabilityMeasure P]
+    (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    {α : ℝ} (hα0 : 0 < α) (hαpq : α * p < q - 1) :
+    ∀ᵐ ω ∂P, ∀ t : ℝ, ∃ K ρ : ℝ, 0 < ρ ∧ 0 ≤ K ∧ ∀ s ∈ dyadicRationals,
+      ∀ s' ∈ dyadicRationals, s ∈ Set.Ioo (t - ρ) (t + ρ) →
+        s' ∈ Set.Ioo (t - ρ) (t + ρ) → |X s ω - X s' ω| ≤ K * |s - s'| ^ α := by
+  filter_upwards [kc_ae_interval_holder P X hX hα0 hαpq] with ω hIH
+  intro t
+  set c : ℤ := ⌊t + 1 / 2⌋ with hc
+  obtain ⟨KL, NL, hKL0, hHL⟩ := hIH (c - 1)
+  obtain ⟨K₀, N₀, hK₀0, hH₀⟩ := hIH c
+  have hcdy : (c : ℝ) ∈ dyadicRationals := intCast_mem_dyadicRationals c
+  -- `t` lies within `1/2` of `c`.
+  have htlo : (c : ℝ) - 1 / 2 ≤ t := by
+    have := Int.floor_le (t + 1 / 2); push_cast at this ⊢; linarith
+  have hthi : t < (c : ℝ) + 1 / 2 := by
+    have := Int.lt_floor_add_one (t + 1 / 2); push_cast at this ⊢; linarith
+  refine ⟨2 * (KL + K₀),
+    min (min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) / 2) (1 / 2), ?_, by positivity, ?_⟩
+  · have : (0 : ℝ) < min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) := by positivity
+    exact lt_min (by positivity) (by norm_num)
+  · set ρ := min (min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) / 2) (1 / 2) with hρ
+    have hρ12 : ρ ≤ 1 / 2 := min_le_right _ _
+    have hrhoNL : 2 * ρ ≤ (1 / 2 : ℝ) ^ NL := by
+      have h1 : ρ ≤ min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) / 2 := min_le_left _ _
+      have h2 : min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀)
+          ≤ (1 / 2 : ℝ) ^ NL := min_le_left _ _
+      linarith
+    have hρN₀ : 2 * ρ ≤ (1 / 2 : ℝ) ^ N₀ := by
+      have h1 : ρ ≤ min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) / 2 := min_le_left _ _
+      have h2 : min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀)
+          ≤ (1 / 2 : ℝ) ^ N₀ := min_le_right _ _
+      linarith
+    -- ordered-pair core
+    have key : ∀ a b, a ∈ dyadicRationals → b ∈ dyadicRationals →
+        (c : ℝ) - 1 < a → a ≤ b → b < (c : ℝ) + 1 → |a - b| ≤ 2 * ρ →
+        |X a ω - X b ω| ≤ 2 * (KL + K₀) * |a - b| ^ α := by
+      intro a b ha hb halo hab bhi habs
+      have habsL : |a - b| ≤ (1 / 2 : ℝ) ^ NL := le_trans habs hrhoNL
+      have habs₀ : |a - b| ≤ (1 / 2 : ℝ) ^ N₀ := le_trans habs hρN₀
+      rcases le_or_gt b (c : ℝ) with hbc | hbc
+      · -- both in [c-1, c]
+        have h := hHL a ha b hb (by push_cast; linarith) (by push_cast; linarith)
+          (by push_cast; linarith) (by push_cast; linarith) habsL
+        have : KL ≤ 2 * (KL + K₀) := by nlinarith
+        calc |X a ω - X b ω| ≤ KL * |a - b| ^ α := h
+          _ ≤ 2 * (KL + K₀) * |a - b| ^ α := by
+              apply mul_le_mul_of_nonneg_right this (by positivity)
+      · rcases le_or_gt (c : ℝ) a with hca | hca
+        · -- both in [c, c+1]
+          have h := hH₀ a ha b hb (by linarith) (by linarith)
+            (by linarith) (by linarith) habs₀
+          have : K₀ ≤ 2 * (KL + K₀) := by nlinarith
+          calc |X a ω - X b ω| ≤ K₀ * |a - b| ^ α := h
+            _ ≤ 2 * (KL + K₀) * |a - b| ^ α := by
+                apply mul_le_mul_of_nonneg_right this (by positivity)
+        · -- straddle: a < c < b, chain through c
+          have hac_le : |a - (c : ℝ)| ≤ |a - b| := by
+            rw [abs_of_nonpos (by linarith), abs_of_nonpos (by linarith)]; linarith
+          have hcb_le : |(c : ℝ) - b| ≤ |a - b| := by
+            rw [abs_of_nonpos (by linarith), abs_of_nonpos (by linarith)]; linarith
+          have h1 := hHL a ha (c : ℝ) hcdy (by push_cast; linarith) (by push_cast; linarith)
+            (by push_cast; linarith) (by push_cast; linarith) (le_trans hac_le habsL)
+          have h2 := hH₀ (c : ℝ) hcdy b hb (by linarith) (by linarith)
+            (by linarith) (by linarith) (le_trans hcb_le habs₀)
+          have hacα : |a - (c : ℝ)| ^ α ≤ |a - b| ^ α :=
+            Real.rpow_le_rpow (abs_nonneg _) hac_le hα0.le
+          have hcbα : |(c : ℝ) - b| ^ α ≤ |a - b| ^ α :=
+            Real.rpow_le_rpow (abs_nonneg _) hcb_le hα0.le
+          calc |X a ω - X b ω|
+              ≤ |X a ω - X (c : ℝ) ω| + |X (c : ℝ) ω - X b ω| := abs_sub_le _ _ _
+            _ ≤ KL * |a - (c : ℝ)| ^ α + K₀ * |(c : ℝ) - b| ^ α := by gcongr
+            _ ≤ KL * |a - b| ^ α + K₀ * |a - b| ^ α := by gcongr
+            _ ≤ 2 * (KL + K₀) * |a - b| ^ α := by
+                nlinarith [Real.rpow_nonneg (abs_nonneg (a - b)) α]
+    intro s hs s' hs' hsb hs'b
+    have hsbnd : (c : ℝ) - 1 < s ∧ s < (c : ℝ) + 1 :=
+      ⟨by have := hsb.1; linarith, by have := hsb.2; linarith⟩
+    have hs'bnd : (c : ℝ) - 1 < s' ∧ s' < (c : ℝ) + 1 :=
+      ⟨by have := hs'b.1; linarith, by have := hs'b.2; linarith⟩
+    have hdist : |s - s'| ≤ 2 * ρ := by
+      rw [abs_le]; constructor
+      · have := hsb.1; have := hs'b.2; linarith
+      · have := hsb.2; have := hs'b.1; linarith
+    rcases le_total s s' with hss | hss
+    · exact key s s' hs hs' hsbnd.1 hss hs'bnd.2 hdist
+    · rw [abs_sub_comm, abs_sub_comm s s']
+      exact key s' s hs' hs hs'bnd.1 hss hsbnd.2 (by rw [abs_sub_comm] at hdist; exact hdist)
 
 /-- **Step 3: extended process equals X a.s. at each t.**
 
@@ -197,7 +928,8 @@ lemma kolmogorov_modification_ae_eq
   -- convergence-in-measure of X(u n) → X(t).
   have hp_pos : 0 < p := hX.p_pos
   have hq_pos : 0 < q := hX.q_pos
-  -- Direct Markov: P {ω | δ^p ≤ edist^p} ≤ (∫⁻ edist^p) / δ^p ≤ M·edist(u n,t)^q/δ^p.
+  -- Direct Markov: P {ω | δ^p ≤ edist^p} ≤ (∫⁻ edist^p) / δ^p
+  --   ≤ M·edist(u n,t)^q/δ^p.
   -- For real-valued X, edist (X s ω) (X t ω) = ‖X s ω - X t ω‖ₑ (PseudoEMetric on ℝ
   -- via |·|), so this is convergence of (X (u n)) → X t in measure.
   have h_TIM : MeasureTheory.TendstoInMeasure P (fun n => X (u n)) Filter.atTop (X t) := by
@@ -215,31 +947,7 @@ lemma kolmogorov_modification_ae_eq
         simp [h_edist_ne_top n ω]
       simp_rw [h_set_empty]
       simp
-    -- Now δ ≠ ⊤. Step A: set equality {δ ≤ edist} = {δ^p ≤ edist^p}.
-    have h_set_eq : ∀ n,
-        {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-          = {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p} := by
-      intro n; ext ω
-      exact (ENNReal.rpow_le_rpow_iff hp_pos).symm
-    -- Steps B + C: Markov on lintegral + Kolmogorov bound.
-    have h_edist_aemeas : ∀ n, AEMeasurable
-        (fun ω => edist (X (u n) ω) (X t ω) ^ p) P := fun n =>
-      ((hX.measurable_edist (s := u n) (t := t)).pow_const p).aemeasurable
-    have h_Kol : ∀ n, ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P
-        ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := fun n =>
-      hX.kolmogorovCondition (u n) t
-    have h_Markov : ∀ n,
-        δ ^ p * P {ω | δ ^ p ≤ edist (X (u n) ω) (X t ω) ^ p}
-          ≤ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P := fun n =>
-      MeasureTheory.mul_meas_ge_le_lintegral₀ (h_edist_aemeas n) (δ ^ p)
-    -- Combine: δ^p · P{δ ≤ edist} ≤ M · edist (u n) t^q.
-    have h_chain : ∀ n,
-        δ ^ p * P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-          ≤ (M : ℝ≥0∞) * edist (u n) t ^ q := by
-      intro n
-      rw [h_set_eq n]
-      exact le_trans (h_Markov n) (h_Kol n)
-    -- Step D: edist (u n) t → 0 from u n → t.
+    -- Now δ ≠ ⊤. Step D: edist (u n) t → 0 from u n → t.
     have h_edist_tendsto : Filter.Tendsto (fun n => edist (u n) t)
         Filter.atTop (nhds 0) :=
       (tendsto_iff_edist_tendsto_0.mp hu_tendsto)
@@ -255,20 +963,15 @@ lemma kolmogorov_modification_ae_eq
         Filter.atTop (nhds 0) := by
       have := ENNReal.Tendsto.const_mul h_pow_tendsto (Or.inr hM_ne_top)
       simpa using this
-    -- Step G: divide both sides of h_chain by δ^p. Need δ^p ≠ 0 ∧ δ^p ≠ ⊤.
+    -- Step G: divide the per-pair Markov bound by δ^p (δ^p ≠ 0 for the
+    -- constant-division tendsto below).
     have hδp_pos : 0 < δ ^ p := by
       apply ENNReal.rpow_pos_of_nonneg hδ
       exact hp_pos.le
-    -- δ^p ≠ ⊤ (since δ ≠ ⊤).
-    have hδp_ne_top : δ ^ p ≠ ⊤ := ENNReal.rpow_ne_top_of_nonneg hp_pos.le hδ_top
-    -- The bound on P {δ ≤ edist}: divide both sides of h_chain by δ^p.
+    -- The bound on P {δ ≤ edist}: the per-pair Markov/Chebyshev tail bound.
     have h_set_bound : ∀ n, P {ω | δ ≤ edist (X (u n) ω) (X t ω)}
-        ≤ ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p := by
-      intro n
-      have h := h_chain n
-      rw [ENNReal.le_div_iff_mul_le (Or.inl hδp_pos.ne') (Or.inl hδp_ne_top),
-          mul_comm]
-      exact h
+        ≤ ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p :=
+      fun n => kolmogorov_markov_bound P X hX (u n) t hδ hδ_top
     -- Step G applied: (M · edist^q) / δ^p → 0 from h_M_pow_tendsto (constant division).
     have h_bound_tendsto : Filter.Tendsto
         (fun n => ((M : ℝ≥0∞) * edist (u n) t ^ q) / δ ^ p)
@@ -307,35 +1010,66 @@ lemma kolmogorov_modification_ae_eq
     exact h_Y_tendsto
   exact tendsto_nhds_unique h_X_to_Y h_X_tendsto
 
-/-- **CITED AXIOM: Kolmogorov-Chentsov continuous modification theorem.**
-
-A real-valued stochastic process satisfying the Kolmogorov moment condition
-`𝔼[|X_t − X_s|^p] ≤ M · |t − s|^q` with `q > 1` admits a modification
-with continuous paths.
-
-**Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
-Springer 1991, Theorem 2.2.8; Le Gall, J.-F. *Brownian Motion, Martingales and
-Stochastic Calculus*, Springer 2016, Theorem 2.9; Revuz, D. & Yor, M.
-*Continuous Martingales and Brownian Motion*, Springer 1999, Theorem I.2.1.
-
-**Standard proof outline**: Apply the Markov inequality to bound
-`P(|X_{(k+1)/2^n} − X_{k/2^n}| ≥ 2^{-αn}) ≤ M · 2^{-n(q-αp)}` for `α < (q-1)/p`;
-sum over `n` (Borel-Cantelli) to get α-Hölder continuity on the dyadics; extend
-continuously to ℝ via uniform continuity of the dyadic restriction. The dyadic
-Hölder + extension steps are partially set up in `kolmogorov_dyadic_holder` and
-`holder_dense_extends_continuous` (both currently `True`-stubbed).
-
-**Replacement plan**: when Mathlib gains `ProbabilityTheory.IsKolmogorovProcess`'s
-modification theorem (currently has only the condition), replace this `axiom`
-with a forwarder. Tracked in `tools/cited_axioms.md`. -/
-axiom kolmogorovChentsov_modification
+/-- **Kolmogorov–Chentsov continuous modification.** A real-valued process
+satisfying the Kolmogorov moment condition
+`∫⁻ ω, edist (X s ω) (X t ω)^p ∂P ≤ M · edist s t ^ q` with `q > 1` admits a
+modification with continuous paths (Karatzas–Shreve 2.2.8 / Le Gall 2.9). The
+modification is the dyadic `extendFrom` of `X`; continuity comes from a.s. local
+Hölder regularity (`kc_ae_nbhd_holder`) via `extendFrom`, and the modification
+property from `kolmogorov_modification_ae_eq`. The Hölder exponent is
+`α := (q−1)/(2p)` (`0 < α`, `αp < q−1`). -/
+theorem kolmogorovChentsov_modification
     (P : Measure Ω) [IsProbabilityMeasure P]
     (X : ℝ → Ω → ℝ) {p q : ℝ} {M : ℝ≥0}
-    (_hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
-    (_hq : 1 < q) :
+    (hX : ProbabilityTheory.IsKolmogorovProcess X P p q M)
+    (hq : 1 < q) :
     ∃ Y : ℝ → Ω → ℝ,
       (∀ᵐ ω ∂P, Continuous (fun t => Y t ω)) ∧
-      (∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = X t ω)
+      (∀ t : ℝ, ∀ᵐ ω ∂P, Y t ω = X t ω) := by
+  have hp : 0 < p := hX.p_pos
+  set α : ℝ := (q - 1) / (2 * p) with hα_def
+  have hα0 : 0 < α := by rw [hα_def]; exact div_pos (by linarith) (by linarith)
+  have hαpq : α * p < q - 1 := by
+    have h2p : 0 < 2 * p := by linarith
+    rw [hα_def, div_mul_eq_mul_div, div_lt_iff₀ h2p]
+    nlinarith [mul_pos (show (0:ℝ) < q - 1 from by linarith) hp]
+  set Y : ℝ → Ω → ℝ :=
+    fun t ω => extendFrom dyadicRationals (fun s => X s ω) t with hY_def
+  have hnbhd := kc_ae_nbhd_holder P X hX hα0 hαpq
+  have hcont : ∀ᵐ ω ∂P, Continuous (fun t => Y t ω) := by
+    filter_upwards [hnbhd] with ω hω
+    exact continuous_extendFrom dense_dyadicRationals
+      (fun t => exists_tendsto_of_local_holder dense_dyadicRationals hα0 t (hω t))
+  refine ⟨Y, hcont, ?_⟩
+  refine kolmogorov_modification_ae_eq P X hX Y hcont ?_
+  intro s hs
+  filter_upwards [hnbhd] with ω hω
+  -- `Y s ω = extendFrom dyadicRationals (· ↦ X · ω) s = X s ω`
+  refine extendFrom_eq (subset_closure hs) ?_
+  obtain ⟨K, ρ, hρ, hK0, hHol⟩ := hω s
+  rw [Metric.tendsto_nhdsWithin_nhds]
+  intro ε hε
+  refine ⟨min ρ ((ε / (K + 1)) ^ (1 / α)),
+    lt_min hρ (Real.rpow_pos_of_pos (by positivity) _), fun u hu hdu => ?_⟩
+  have huρ : u ∈ Set.Ioo (s - ρ) (s + ρ) := by
+    rw [Real.dist_eq] at hdu
+    have := lt_of_lt_of_le hdu (min_le_left _ _)
+    rw [abs_lt] at this; exact ⟨by linarith, by linarith⟩
+  have hsρ : s ∈ Set.Ioo (s - ρ) (s + ρ) := ⟨by linarith, by linarith⟩
+  have hb := hHol u hu s hs huρ hsρ
+  have hdu2 : |u - s| < (ε / (K + 1)) ^ (1 / α) := by
+    rw [← Real.dist_eq]; exact lt_of_lt_of_le hdu (min_le_right _ _)
+  have hpow : |u - s| ^ α < ε / (K + 1) := by
+    have h1 := Real.rpow_lt_rpow (abs_nonneg _) hdu2 hα0
+    rwa [show ((ε / (K + 1)) ^ (1 / α)) ^ α = ε / (K + 1) from by
+      rw [← Real.rpow_mul (by positivity), one_div, inv_mul_cancel₀ (ne_of_gt hα0),
+          Real.rpow_one]] at h1
+  rw [Real.dist_eq]
+  calc |X u ω - X s ω| ≤ K * |u - s| ^ α := hb
+    _ ≤ (K + 1) * |u - s| ^ α := by
+        apply mul_le_mul_of_nonneg_right (by linarith) (by positivity)
+    _ < (K + 1) * (ε / (K + 1)) := by apply mul_lt_mul_of_pos_left hpow (by positivity)
+    _ = ε := by field_simp
 
 /-- **Integrability set is `univ` for Gaussian.** `0 ∈ interior (integrableExpSet
 id (gaussianReal 0 v))`. -/

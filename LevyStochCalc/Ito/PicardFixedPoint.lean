@@ -3,69 +3,26 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Ito.Picard
-import LevyStochCalc.Ito.PicardSpaceBieleckiComplete
+import LevyStochCalc.Ito.PicardSpace
 import Mathlib.Topology.MetricSpace.Contracting
 
 /-!
-# Banach fixed-point shim for the Picard iteration
+# Existence and uniqueness via the Banach fixed-point theorem
 
-This file wraps Mathlib's `ContractingWith.fixedPoint` (the Banach fixed-point
-theorem on a complete metric space) into the form needed by the Picard
-iteration for the jump-diffusion SDE. The substantive contraction estimate
-lives in `LevyStochCalc/Ito/Picard.lean` (the `bielecki_*` lemma family
-plus the per-component drift / diffusion / jump Lipschitz bounds); this file
-just packages the Mathlib invocation so the SDE-existence proof in
-`LevyStochCalc/Ito/Setting.lean` can use a single named theorem rather
-than unfolding the Mathlib API.
+This file applies Banach's fixed-point theorem (`ContractingWith.fixedPoint`)
+to the Picard map: the contraction estimate of `Picard.lean` together with
+the complete-metric-space structure of `PicardSpace.lean` yield the
+existence/uniqueness theorem for the jump-diffusion SDE.
 
-## Status
+## Contents
 
-The `S²([0, T]; ℝⁿ)` Banach-space structure on `SBoundedProcess` is downstream
-work: it requires
-* a `MetricSpace` (or `EMetricSpace`) instance whose distance is the
-  Bielecki / `S²`-sup norm,
-* a `CompleteSpace` instance (`S²` is the standard Banach space of càdlàg
-  L²-bounded processes; completeness is the usual quotient by P-null sets),
-* `Nonempty` (the constant zero process trivially witnesses this).
-
-**TYPECLASS-PLACEHOLDER NOTE (red-team 3rd-audit HIGH #1, 2026-05-27):**
-The default `MetricSpace` / `CompleteSpace` instances on `SBoundedProcess`
-(installed in `PicardSpace.lean`) use the *discrete metric* and are
-typeclass-placeholders only — they discharge typeclass obligations of
-the Banach shim but carry no substantive analytical content. The genuine
-literature Banach work (Bielecki β-norm contraction at the analytical
-rate `3 n L² (T+2) / (2β)`) lives on the AE-quotient
-`PicardSpaceBielecki.AEQuot β T` and completes in
-`PicardSpaceBieleckiComplete.lean`. See `picardFixedPoint` docstring
-below for the warning attached to the specialised theorem.
-
-This file states the Banach shim in two forms:
-
-1. **`picardFixedPoint_generic`** (substantive shim) — for *any* complete
-   nonempty metric space `M` and *any* contraction `Φ : M → M`, there
-   exists a unique fixed point. This is the direct repackaging of
-   Mathlib's `ContractingWith.fixedPoint` + `fixedPoint_unique` into the
-   `∃!` form natural for Picard.
-
-2. **`picardFixedPoint`** (target shape from the project plan) — for
-   `SBoundedProcess P T` equipped with the (downstream) `MetricSpace`,
-   `Nonempty`, `CompleteSpace` instances and a contraction `Φ`, the
-   `picardFixedPoint_generic` result specialises to a unique fixed point.
-
-Both are sorry-free; the metric instances are taken as `[...]`
-hypotheses, deferring the analytic construction (which is independent
-substantive work) to a downstream file that builds them.
-
-## Reference
-
-* Mathlib: `Mathlib.Topology.MetricSpace.Contracting`,
-  `ContractingWith.fixedPoint`, `ContractingWith.fixedPoint_isFixedPt`,
-  `ContractingWith.fixedPoint_unique`.
-* Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., 2009,
-  Thm 6.2.9 (Picard iteration in `S²`).
+* `picardFixedPoint_generic`, `picardFixedPoint`, `picardFixedPoint_of_exists`
+  — the abstract fixed-point packaging.
+* `picardFixedPoint_jumpDiffusion_exists_unique` — the concrete
+  existence/uniqueness statement for the jump-diffusion SDE.
+* `JumpDiffusion.exists_unique`, `JumpDiffusion.agree_at_zero` — the form
+  consumed by `Ito/Setting.lean`.
 -/
-
 open MeasureTheory ProbabilityTheory Function
 open scoped NNReal ENNReal
 
@@ -112,7 +69,7 @@ theorem picardFixedPoint_generic
 `picardFixedPoint_generic` to the SBoundedProcess setting required by
 the jump-diffusion SDE Picard iteration.
 
-**TYPECLASS-PLACEHOLDER NOTICE (red-team 3rd-audit HIGH #1, 2026-05-27):**
+**Typeclass-placeholder notice:**
 when invoked with the *default* `MetricSpace` / `CompleteSpace` instances
 on `SBoundedProcess P T` (the discrete-metric instances installed in
 `PicardSpace.lean`), this theorem is **typeclass-trivial**: a contraction
@@ -125,13 +82,11 @@ specialisation — it discharges the typeclass obligation only.
 The literature-substantive Banach work (Bielecki β-weighted L²-sup
 norm with genuine contraction at the analytical rate
 `3 n L² (T+2) / (2β)` for `β > 3 n L² (T+2) / 2`) lives in
-`LevyStochCalc.Ito.PicardSpaceBielecki` (genuine metric on the
-AE-quotient `AEQuot β T`) +
-`LevyStochCalc.Ito.PicardSpaceBieleckiComplete` (`CompleteSpace`
-instance via Lp completeness + Doob càdlàg modification), and the
-SDE chain wraps up via
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in the latter
-file. **Downstream consumers needing the actual SDE strong-existence
+`LevyStochCalc.Ito.PicardSpace`: the genuine metric on the
+AE-quotient `AEQuot β T` and the `CompleteSpace` instance (via Lp
+completeness + Doob càdlàg modification), and the SDE chain wraps up via
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` there. **Downstream
+consumers needing the actual SDE strong-existence
 result should use the `_via_aeQuot` wrap-up theorem, not this
 typeclass-shim theorem applied on `SBoundedProcess`.**
 
@@ -141,7 +96,7 @@ The hypothesis bundle:
   the càdlàg L²-bounded process space (the discrete-metric instance
   from `PicardSpace.lean` is one canonical choice — but typeclass-
   trivial as above; the Bielecki β-norm on the `AEQuot` quotient from
-  `PicardSpaceBielecki.lean` is the literature choice).
+  `PicardSpace.lean` is the literature choice).
 * `[Nonempty (SBoundedProcess P T)]` — witnessed e.g. by the constant
   zero process.
 * `[CompleteSpace (SBoundedProcess P T)]` — `S²` is the standard Banach
@@ -236,26 +191,14 @@ diffusion SDEs with Lipschitz coefficients); Ikeda-Watanabe, *Stochastic
 Differential Equations and Diffusion Processes*, North-Holland 1989,
 Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
 
-**2026-05-26 conversion `axiom → theorem` (COMPLETED)**: previously
-introduced as a Tier 1 cited axiom on 2026-05-23 during the
-`theorem → axiom` refactor of `picardFixedPoint_jumpDiffusion_exists_unique`.
-With the Bielecki AE-quotient infrastructure now in place
-(`PicardSpaceBielecki.lean` + `PicardSpaceBieleckiComplete.lean`), the
-axiom is converted to a 1-line forwarding theorem over the wrap-up
-theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
-`PicardSpaceBieleckiComplete.lean`. The wrap-up theorem carries a SINGLE
-explicit `sorry` collecting the entire Picard chain (six steps;
-documented in the wrap-up's module docstring) — the analytical content
-is exactly the Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9),
-now broken out as a real Lean theorem rather than a black-box `axiom`.
-
-The downstream forwarder
-`picardFixedPoint_jumpDiffusion_exists_unique` (and through it the
-headline `JumpDiffusion.exists_unique`) is unaffected — the only change
-is that `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a
-real theorem with a sorry body (sorry tracked in
-`tools/sorry_baseline.txt` via the wrap-up theorem name), not a
-free-standing axiom.
+This forwards through the wrap-up theorem
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpace.lean`,
+which carries the single baseline `sorry` collecting the entire Picard chain
+(six steps; see that file's module docstring). The analytical content is the
+Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9). The downstream
+forwarders `picardFixedPoint_jumpDiffusion_exists_unique` and the headline
+`JumpDiffusion.exists_unique` consume this; the `sorry` is tracked in
+`tools/sorry_baseline.txt` via the wrap-up theorem name.
 
 **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
 ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
@@ -266,12 +209,10 @@ every `t ≥ 0` (the literature uniqueness conclusion). No trivial
 constant-path witness satisfies this for generic non-zero coefficients:
 `X t ω = x₀` fails `is_solution` because the integrals don't vanish.
 
-**Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
-pairwise a.s. agreement is asserted on the SDE time domain `t ≥ 0`
-only — matching the literature scope (Applebaum 6.2.9 / Ikeda-Watanabe IV
-work on `[0, ∞)`; the SDE integral equation in `JumpDiffusion.is_solution`
-itself is quantified over `t ≥ 0`). The previous over-strong `∀ t : ℝ`
-form had no literature backing for negative `t`. -/
+**Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
+domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
+Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
+`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`). -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     {Ω : Type u} [MeasurableSpace Ω]
     {E : Type v} [MeasurableSpace E]
@@ -294,15 +235,15 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
 Thin forwarder over the (now-)theorem
 `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (above), which in
 turn forwards through `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-in `PicardSpaceBieleckiComplete.lean`. The single explicit `sorry` for
+in `PicardSpace.lean`. The single explicit `sorry` for
 the entire Picard chain lives in that wrap-up theorem; this forwarder
 is sorry-free in source but transitively depends on the chain.
 
 The Picard contraction analysis (drift / diffusion / jump
 L²-Lipschitz bounds + Bielecki β-norm contraction at rate `3 n L² (T+2) / (2β)`
 for `β > 3 n L² (T+2) / 2`) is fully proven downstream in `Ito/Picard.lean`,
-`Ito/PicardContraction.lean`, `Ito/PicardSigmaLipschitz.lean`, and
-`Ito/PicardGammaLipschitz.lean`; the remaining sorry covers the Bielecki
+`Ito/Picard.lean`, `Ito/Picard.lean`, and
+`Ito/Picard.lean`; the remaining sorry covers the Bielecki
 `S²` Banach-space packaging (`Lp` completeness + Doob càdlàg modification)
 + the structure bridge into `JumpDiffusion`.
 
@@ -337,7 +278,7 @@ the level of qualified names.
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (above),
 which is the SDE-specialised Banach fixed-point output. Putting the
 theorem in `Ito/Setting.lean` would require `Setting.lean` to import
-`Picard.lean` and `PicardBanach.lean`, creating a cycle (both already
+`Picard.lean` and `PicardFixedPoint.lean`, creating a cycle (both already
 import `Setting.lean` for the `JumpDiffusion` structure definition).
 Forwarding through the Banach intermediate is the canonical pattern
 (mirrors the `itoIsometry_brownian_unified_existence` → `itoIsometry`

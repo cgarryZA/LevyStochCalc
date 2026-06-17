@@ -14,6 +14,10 @@ import LevyStochCalc.Basic
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.NaturalFiltration
+import LevyStochCalc.Poisson.CompensatedSimple
+import LevyStochCalc.Poisson.CompensatedIsometry
+import LevyStochCalc.Poisson.CompensatedMartingale
+import LevyStochCalc.Poisson.CompensatedDensity
 import LevyStochCalc.Poisson.Compensated
 
 -- Layer 1: Itô-Lévy isometry  → I02
@@ -24,22 +28,18 @@ import LevyStochCalc.Brownian.Construction
 import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Multidim
-import LevyStochCalc.Brownian.Ito
+import LevyStochCalc.Brownian.ItoSimple
+import LevyStochCalc.Brownian.ItoDensity
+import LevyStochCalc.Brownian.ItoMartingale
 import LevyStochCalc.Brownian.SimplePredictableRefine
+import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.MultidimIto
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.PicardSpace
-import LevyStochCalc.Ito.PicardSpaceBielecki
-import LevyStochCalc.Ito.PicardSpaceBieleckiComplete
-import LevyStochCalc.Ito.PicardBanach
-import LevyStochCalc.Ito.PicardSigmaLipschitz
-import LevyStochCalc.Ito.PicardGammaLipschitz
-import LevyStochCalc.Ito.PicardContraction
-import LevyStochCalc.Ito.PicardContractionTight
-import LevyStochCalc.Ito.PicardSelfMap
+import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

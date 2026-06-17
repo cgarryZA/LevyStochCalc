@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Multidim
-import LevyStochCalc.Brownian.SimplePredictableRefine
+import LevyStochCalc.Brownian.ItoL2Completion
 
 /-!
-# Layer 1.5e+: Multidimensional Brownian Itô integral
+# Multidimensional Brownian Itô integral
 
 The multidim L² Itô integral `∫_0^T Z_s · dW_s := ∑_i ∫_0^T Z_s^i dW_s^i`,
 defined as the sum (over components `i : Fin d`) of the 1D Brownian Itô
@@ -46,7 +46,8 @@ variable {Ω : Type u} [MeasurableSpace Ω]
 variable {P : Measure Ω} [IsProbabilityMeasure P]
 variable {d : ℕ}
 
-/-- The multidim Brownian Itô integral `(∫_0^T Z_s · dW_s)(ω) = ∑_i ∫_0^T Z_s^i dW_s^i (ω)`.
+/-- The multidim Brownian Itô integral
+`(∫_0^T Z_s · dW_s)(ω) = ∑_i ∫_0^T Z_s^i dW_s^i (ω)`.
 
 `Z s ω i` is the `i`-th component of the integrand at `(s, ω)`. The result
 at time `T` is the sum (over components) of the 1D Itô integrals against

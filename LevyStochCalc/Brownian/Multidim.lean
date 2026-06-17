@@ -6,7 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Brownian.Martingale
 
 /-!
-# Layer 1.5d: d-dimensional Brownian motion
+# d-dimensional Brownian motion
 
 A `d`-dimensional Brownian motion is a `Fin d`-tuple of independent 1-D
 Brownian motions on the same probability space. Constructed via
@@ -36,6 +36,7 @@ namespace LevyStochCalc.Brownian.Multidim
 
 universe u
 
+section Definition
 variable {Ω : Type u} [MeasurableSpace Ω]
 
 /-- A `d`-dimensional Brownian motion: a `Fin d`-tuple of independent
@@ -50,7 +51,7 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   components_independent :
     ProbabilityTheory.iIndepFun
       (fun (i : Fin d) (ω : Ω) (t : ℝ) => (W i).W t ω) P
-  /-- **P7 F11 fix (red-team 2nd audit, 2026-05-23)**: the joint d-dim
+  /-- The joint d-dim
   path `t ↦ (W i ω t)_{i ∈ Fin d}` is continuous a.s. P. Follows from
   the component-wise `continuous_paths` + the finite-intersection-of-
   a.s.-sets being a.s., plus `continuous_pi_iff`: a `Fin d → ℝ`-valued
@@ -60,6 +61,11 @@ structure MultidimBrownianMotion (P : Measure Ω) [IsProbabilityMeasure P]
   of multidim BM as "vector-valued process with continuous paths". -/
   joint_continuous_paths :
     ∀ᵐ ω ∂P, Continuous (fun (t : ℝ) (i : Fin d) => (W i).W t ω)
+
+end Definition
+
+section MeasurePreserving
+variable {Ω : Type u} [MeasurableSpace Ω]
 
 /-- σ-algebra-level `Indep` lifts through a measure-preserving map.
 Given `Indep m₁ m₂ μ_b` with `m₁, m₂ ≤ mβ` and `MeasurePreserving h μ_a μ_b`,
@@ -147,7 +153,8 @@ private noncomputable def project_BM
       exact (measurable_pi_apply i).comp measurable_snd
     exact h₀.comp h_eval_meas
   initial_zero := by
-    -- W₀.initial_zero : ∀ᵐ ω₀ ∂P₀, W₀.W 0 ω₀ = 0; lift via measure-preserving eval i.
+    -- W₀.initial_zero : ∀ᵐ ω₀ ∂P₀, W₀.W 0 ω₀ = 0; lift via
+    --   measure-preserving eval i.
     have mp : MeasureTheory.MeasurePreserving (Function.eval i)
         (MeasureTheory.Measure.pi (fun _ : Fin d => P₀)) P₀ :=
       MeasureTheory.measurePreserving_eval (fun _ => P₀) i
@@ -225,6 +232,11 @@ private noncomputable def project_BM
       exact ((W₀.measurable_eval t).sub (W₀.measurable_eval s)) hv
     · exact W₀.joint_increment_independent hs hst
 
+end MeasurePreserving
+
+section Existence
+variable {Ω : Type u} [MeasurableSpace Ω]
+
 /-- **Existence of d-dimensional Brownian motion.** For any `d ≥ 0`, there
 exists a probability space carrying a `d`-dimensional Brownian motion.
 
@@ -234,7 +246,8 @@ probability space. -/
 theorem MultidimBrownianMotion.exists (d : ℕ) :
     ∃ (Ω : Type u) (_ : MeasurableSpace Ω) (P : Measure Ω)
       (_ : IsProbabilityMeasure P), Nonempty (MultidimBrownianMotion P d) := by
-  obtain ⟨Ω₀, mΩ₀, P₀, hP₀, ⟨W₀⟩⟩ := LevyStochCalc.Brownian.BrownianMotion.exists
+  obtain ⟨Ω₀, mΩ₀, P₀, hP₀, ⟨W₀⟩⟩ :=
+    LevyStochCalc.Brownian.BrownianMotion.exists
   refine ⟨Fin d → Ω₀, MeasurableSpace.pi,
     MeasureTheory.Measure.pi (fun _ => P₀), inferInstance, ?_⟩
   refine ⟨{
@@ -270,7 +283,7 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
     (μ := fun _ : Fin d => P₀) h_meas_W₀
   convert this using 1
 
-/-- **P4 F7 — joint increment Gaussianity with diagonal covariance (PROVEN).**
+/-- **Joint increment Gaussianity with diagonal covariance.**
 
 For a multidim Brownian motion `W`, the joint vector of component increments
 `(ω ↦ fun i => (W i).W t ω − (W i).W s ω) : Ω → (Fin d → ℝ)` has joint
@@ -281,9 +294,7 @@ distribution that satisfies BOTH:
 * mutual independence across `i ∈ Fin d`.
 
 This is the multivariate-Gaussian-with-diagonal-covariance `(t − s) · I_d`
-in spelled-out form (per Karatzas-Shreve §2.5 / Le Gall Def 2.12). The
-previous P4 F7 closure was a docstring-only "derivable from existing
-fields" comment; this lemma is the actual derivation. -/
+in spelled-out form (per Karatzas-Shreve §2.5 / Le Gall Def 2.12). -/
 theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
     {Ω : Type u} [MeasurableSpace Ω]
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
@@ -298,12 +309,15 @@ theorem MultidimBrownianMotion.joint_increment_gaussian_diagonal
       (fun (i : Fin d) (ω : Ω) => (W.W i).W t ω - (W.W i).W s ω) P := by
   refine ⟨fun i => (W.W i).increment_gaussian hs hst, ?_⟩
   -- Apply iIndepFun.comp to components_independent with `g i := fun path => path t - path s`.
-  -- Each `g i` is measurable (eval_t and eval_s are measurable on ℝ → ℝ, and sub is measurable).
+  -- Each `g i` is measurable (eval_t and eval_s are measurable on ℝ → ℝ,
+  --   and sub is measurable).
   have h_g_meas : ∀ _ : Fin d,
       Measurable (fun (path : ℝ → ℝ) => path t - path s) := by
     intro _
     exact (measurable_pi_apply t).sub (measurable_pi_apply s)
   exact W.components_independent.comp
     (fun (_ : Fin d) (path : ℝ → ℝ) => path t - path s) h_g_meas
+
+end Existence
 
 end LevyStochCalc.Brownian.Multidim

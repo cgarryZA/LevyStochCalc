@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Basic
+import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Independence.Basic
+import Mathlib.Probability.Kernel.Defs
 
 /-!
-# Layer 1.5a: Brownian motion construction
+# Brownian motion construction
 
 A 1-dimensional Brownian motion is a process `W : ℝ → Ω → ℝ` (interpreted on
 `t ≥ 0`) with the standard Wiener properties (zero start, Gaussian
@@ -19,8 +22,6 @@ in-project from Mathlib only. Strategy outlined as named sub-lemmas below.
 
 * Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, 1991, §2.2.
 * Le Gall, *Brownian Motion, Martingales, and Stochastic Calculus*, Springer 2016, Ch 2.
-* User's dissertation, ch02 §"Probability-space prerequisites" at
-  `D:/DeepBSDE/report/dissertation_study/ch02_mathematical_framework.tex` lines 13-18.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -42,8 +43,8 @@ structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
   measurable_eval : ∀ t : ℝ, Measurable (W t)
   /-- The path map is jointly measurable in `(t, ω)`. Required for the
   L²-Itô integral against `W` (Karatzas-Shreve §3.2 implicitly assumes
-  this; L10 fix 2026-05-22 per red-team P04). The Wiener-measure construction
-  delivers this directly via the projective limit's product σ-algebra. -/
+  this). The Wiener-measure construction delivers this directly via the
+  projective limit's product σ-algebra. -/
   joint_measurable : Measurable (Function.uncurry W)
   /-- `W₀ = 0` almost surely under `P`. -/
   initial_zero : ∀ᵐ ω ∂P, W 0 ω = 0
@@ -138,13 +139,6 @@ noncomputable def brownianKernel (v : ℝ≥0) :
   toFun x := ProbabilityTheory.gaussianReal x v
   measurable' := measurable_gaussianReal v
 
--- 2026-05-22 (deleted): two `True`-valued / trivial-witness stub lemmas
--- (`brownian_dyadicTime_exists`, `brownian_extend_to_real`). Both were
--- documentation placeholders for stages of the KC construction; both had
--- no callers; both contributed only vacuous proof-state misrepresentation.
--- The actual Brownian construction is delivered by `BrownianMotion.exists`
--- (Tier 1 cited axiom #1). Removed per red-team finding M1.
-
 /-- **CITED AXIOM: Wiener measure construction.**
 
 There exists a probability space carrying a 1-dimensional Brownian motion.
@@ -152,13 +146,9 @@ There exists a probability space carrying a 1-dimensional Brownian motion.
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, **Theorem 2.2.2** (Daniell-Kolmogorov consistency) + **Theorem 2.2.8**
 (Kolmogorov-Čentsov continuous-modification existence) — together Chapter 2 §2.2
-"First Construction of Brownian Motion" (pp. 49-56); corrects the previous "Theorem 2.1.5"
-citation flagged by red-team P11 — §2.1 of K-S is the chapter Introduction (only 2 pages,
-no theorem 2.1.5). Le Gall, J.-F. *Brownian Motion, Martingales and Stochastic Calculus*,
-Springer 2016, Definition 2.1 / Definition 2.12 / Corollary 2.11 (correcting the previous
-"Theorem 2.1" citation — Le Gall 2016 has no "Theorem 2.1"; the existence is stated
-through the definition + the Wiener-measure construction in Chapter 2; see red-team
-finding M13 / P11).
+"First Construction of Brownian Motion" (pp. 49-56). Le Gall, J.-F. *Brownian Motion,
+Martingales and Stochastic Calculus*, Springer 2016, Definition 2.1 / Definition 2.12 /
+Corollary 2.11.
 
 **Standard proof outline**: Apply the Kolmogorov extension theorem (Mathlib:
 `MeasureTheory.IsProjectiveLimit`) to the projective family of finite-dimensional

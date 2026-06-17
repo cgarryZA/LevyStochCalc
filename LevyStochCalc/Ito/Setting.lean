@@ -3,12 +3,12 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Brownian.Ito
+import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Poisson.L2Isometry
 
 /-!
-# Layer 2 substrate: Jump-diffusion process structure
+# Jump-diffusion process structure
 
 A *jump diffusion* on `ℝⁿ` driven by a `d`-dimensional Brownian motion `W` and
 a Poisson random measure `N` (with intensity `dt ⊗ ν` on `[0,T] × E`) is the
@@ -27,11 +27,10 @@ Reference: Applebaum 2009 Ch 6; Ikeda-Watanabe IV.
 existence-and-uniqueness with proof body `sorry` (the literature proof
 is Picard iteration in `S²([0,T]; ℝⁿ)`).
 
-The `is_solution` field of the `JumpDiffusion` structure was strengthened
-on 2026-05-21 from `True` to the actual SDE integral equation (bundled
-with hypotheses on `σ(s, X_s)` for the multidim Brownian integral to be
-defined). Constant-path X = x₀ no longer satisfies the structure for
-generic non-zero coefficients.
+The `is_solution` field of the `JumpDiffusion` structure is the actual SDE
+integral equation (bundled with the hypotheses on `σ(s, X_s)` needed for the
+multidim Brownian integral to be defined), so a constant path `X = x₀` does
+not satisfy the structure for generic non-zero coefficients.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -41,6 +40,7 @@ namespace LevyStochCalc.Ito.Setting
 
 universe u v
 
+section Coefficients
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -60,7 +60,8 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
     (coeffs : JumpDiffusionCoeffs n d E) (ν : Measure E) (L : ℝ) : Prop :=
   0 ≤ L ∧
   -- μ uniformly Lipschitz in x:
-  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ‖coeffs.μ s x₁ - coeffs.μ s x₂‖ ≤ L * ‖x₁ - x₂‖) ∧
+  (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
+    ‖coeffs.μ s x₁ - coeffs.μ s x₂‖ ≤ L * ‖x₁ - x₂‖) ∧
   -- σ uniformly Lipschitz in x (with the Frobenius / Euclidean norm on matrices):
   (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
     (∑ i, ∑ j, (coeffs.σ s x₁ i j - coeffs.σ s x₂ i j) ^ 2)
@@ -70,6 +71,12 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
     (∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal
       ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2)
 
+end Coefficients
+
+section Solution
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
+
 /-- A *jump diffusion* solution.
 
 Fields:
@@ -77,8 +84,8 @@ Fields:
 * `measurable_path` — joint measurability.
 * `initial_value` — `X_0 = x_0` a.s.
 * `sup_L2` — `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T > 0`.
-* `is_solution` — the SDE integral equation (red-team P12 strengthening
-  2026-05-21): for almost every `ω` and every `t ≥ 0` and component `i`,
+* `is_solution` — the SDE integral equation: for almost every `ω` and every
+  `t ≥ 0` and component `i`,
   `X t ω i` equals `x₀ i` plus the drift integral `∫_0^t μ(s, X_s) ds`
   plus the multidim Brownian Itô integral `∫_0^t σ(s, X_s) · dW_s` (row `i`)
   plus the compensated-Poisson integral `∫_0^t ∫_E γ(s, X_s, e) Ñ(ds, de)` (row `i`).
@@ -103,18 +110,18 @@ structure JumpDiffusion
   initial_value : ∀ᵐ ω ∂P, X 0 ω = x₀
   /-- Square-integrable supremum: `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T`. -/
   sup_L2 : ∀ T : ℝ, 0 < T →
-    ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
+    ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T,
+      ∑ i, (‖X t.1 ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
   /-- Almost-sure càdlàg paths (right-continuous with left limits, a.s.)
   on the SDE time domain `t ≥ 0`.
   Required by the literature jump-diffusion SDE convention: Applebaum 6.2.9 /
   Ikeda-Watanabe IV assume X is càdlàg-adapted so that `X_{s−}` (the left
   limit at s) is well-defined for the integrand evaluation in the
-  compensated-Poisson integral. P4 H / P7 F5 closure (red-team 2nd audit,
-  2026-05-23): without this field, `X.X s` and `X_{s−}` are silently equal
-  (no left-limit notion), and the SDE equation diverges from Applebaum at
-  jump times.
+  compensated-Poisson integral. Without this field, `X.X s` and `X_{s−}` are
+  silently equal (no left-limit notion), and the SDE equation diverges from
+  Applebaum at jump times.
 
-  **P4 F8 note (red-team 2nd audit, 2026-05-23)**: Applebaum 6.2.9 / Ikeda-
+  **Convention note (`X_{s−}` vs `X s`)**: Applebaum 6.2.9 / Ikeda-
   Watanabe IV use `X_{s−}` (the left limit) inside the SDE integrands,
   whereas this structure uses `X s` (point evaluation) below. For càdlàg
   adapted X, the discrepancy `{s : X_{s−} ω ≠ X s ω}` has Lebesgue
@@ -132,22 +139,17 @@ structure JumpDiffusion
   is what makes this convention-equivalence well-typed; without it,
   the discrepancy is unbounded.
 
-  **Quantifier scope (red-team 3rd audit, 2026-05-24, CRITICAL #2 fix)**:
-  the time argument is quantified over `t ≥ 0` only — the literature
-  scope of the SDE is `[0, ∞)` (the initial condition `X 0 = x₀` and
-  the integrals `∫₀^t … ds` only make sense for `t ≥ 0`). The previous
-  over-strong `∀ t : ℝ` form would force a càdlàg condition at negative
-  times where `X` carries no SDE-driven meaning, and is rejected by
-  Applebaum 6.2.9 / Ikeda-Watanabe IV. -/
+  **Quantifier scope**: the time argument is quantified over `t ≥ 0` only —
+  the literature scope of the SDE is `[0, ∞)` (the initial condition
+  `X 0 = x₀` and the integrals `∫₀^t … ds` only make sense for `t ≥ 0`). -/
   cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t →
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
       ∧ ∀ i : Fin n, ∃ L : ℝ,
           Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)
   /-- The SDE integral equation. Bundles per-row Brownian + per-row Compensated
   integrand hypotheses inside the existential alongside the equation itself.
-  H6 fix (red-team 2nd audit 2026-05-23): γ-side hypotheses now bundled too
-  (mirror of σ-side bundling), required by the strengthened
-  `Compensated.stochasticIntegral` signature. -/
+  The γ-side hypotheses are bundled too (mirror of the σ-side), required by
+  the `Compensated.stochasticIntegral` signature. -/
   is_solution :
     ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
         Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
@@ -186,22 +188,24 @@ structure JumpDiffusion
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
 /-! **Theorem `JumpDiffusion.exists_unique` is proved in
-`LevyStochCalc/Ito/PicardBanach.lean`.**
+`LevyStochCalc/Ito/PicardFixedPoint.lean`.**
 
 The literature theorem (Applebaum 6.2.9 / Ikeda-Watanabe IV) is the
 output of Picard iteration on the Banach space `S²([0, T]; ℝⁿ)`
 equipped with the Bielecki β-norm. The Banach fixed-point shim and
-its specialisation to the SDE setting live in `Ito/PicardBanach.lean`,
+its specialisation to the SDE setting live in `Ito/PicardFixedPoint.lean`,
 which imports this file (for the `JumpDiffusion` structure) plus
 `Ito/Picard.lean` (for the Picard map / contraction lemmas). The proof
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (the
 Banach fixed-point output specialised to the SDE setting).
 
 Placing the theorem there avoids an import cycle (Setting → Picard →
-PicardBanach → Setting would be a cycle). The qualified name remains
+PicardFixedPoint → Setting would be a cycle). The qualified name remains
 `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the theorem
-re-opens the namespace explicitly in `PicardBanach.lean`), so all
+re-opens the namespace explicitly in `PicardFixedPoint.lean`), so all
 downstream callers — `tools/cited_axioms.md` entry #12, `_audit.lean`
 line 50, `Ito/JumpFormula.lean` (the consumer) — are unaffected. -/
+
+end Solution
 
 end LevyStochCalc.Ito.Setting

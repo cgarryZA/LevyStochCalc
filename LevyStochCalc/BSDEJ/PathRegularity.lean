@@ -7,7 +7,7 @@ import LevyStochCalc.BSDEJ.Existence
 import LevyStochCalc.Ito.JumpFormula
 
 /-!
-# Layer 4 (deaxiomatises Cu05): BSDEJ path regularity
+# BSDEJ path regularity
 
 For the unique BSDEJ solution `(Y, Z, U)` from `BSDEJ.Existence`, the time
 modulus of continuity satisfies
@@ -20,19 +20,11 @@ modulus of continuity satisfies
 where `Z̃, Ũ` are the conditional time-averages of `Z, U` over the partition
 intervals, and `Δt = max_n (t_{n+1} − t_n)`.
 
-When CLEAN, the main dissertation imports this and replaces its
-`Dissertation.Continuous.bsdej_path_regularity` axiom (Continuous.lean:172).
-
 ## Source
 
 * Bouchard, B. & Elie, R., "Discrete-time approximation of decoupled
   Forward-Backward SDE with jumps", Stochastic Processes Appl. **118(1)**,
-  **2008**, pp. 53–75. (Correcting the previous misattribution to
-  "Bouchard, Elie & Touzi 2009 SPA 119(11)" — flagged by red-team P06,
-  P07, P10, P11; verified via Bouchard's slides + HAL archive
-  hal-00015486 + Kharroubi–Lim 2018 citing "Bouchard and Elie [4]".)
-  Touzi is not an author. The 2009 paper "Bouchard–Touzi" was a
-  different (Brownian-only Monte Carlo) result.
+  **2008**, pp. 53–75.
 
 ## Proof structure (Bouchard–Elie 2008)
 
@@ -61,6 +53,7 @@ namespace LevyStochCalc.BSDEJ.PathRegularity
 
 universe u v
 
+section TimeAverages
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
@@ -93,6 +86,12 @@ noncomputable def conditionalTimeAverage_U
           ∫ u in Set.Icc (partition n.castSucc) (partition n.succ), U u ω e
       else 0
 
+end TimeAverages
+
+section Regularity
+variable {Ω : Type u} [MeasurableSpace Ω]
+variable {E : Type v} [MeasurableSpace E]
+
 /-- **CITED AXIOM: BSDEJ path regularity (Bouchard–Elie 2008 Thm 2.1).**
 
 For the unique BSDEJ solution `(Y, Z, U)`, the L²-time modulus + projection
@@ -102,18 +101,12 @@ with `C` depending on `T`, the Lipschitz constant `L`, and the L²-norm of
 
 **Reference**: Bouchard, B. & Elie, R. *Discrete-time approximation of
 decoupled Forward-Backward SDE with jumps*, Stochastic Processes Appl.
-**118(1)**, **2008**, pp. 53–75, **Theorem 2.1**. (Correcting the previous
-misattribution to "Bouchard, Elie & Touzi 2009 SPA 119(11)" — Touzi is
-not an author and that volume/year combination does not exist; flagged
-by red-team P06/P07/P10/P11 and verified via Bouchard's slides + HAL
-hal-00015486.) For the continuous-only background, see also
-Pardoux, E. & Răşcanu, A. *Stochastic Differential
-Equations, Backward SDEs, Partial Differential Equations*, Springer
-2014, **Theorem 5.42** (continuous case, NOT BSDEJ). The jump-case
-path regularity is established in Bouchard-Elie 2008; Pardoux-Răşcanu
-covers only the continuous case (Brownian-driven BSDEs) and does NOT
-extend to jumps automatically — P11 2nd audit 2026-05-23 flagged the
-previous "(continuous case, extends to jumps)" wording as misleading.
+**118(1)**, **2008**, pp. 53–75, **Theorem 2.1**. For the continuous-only
+background, see also Pardoux, E. & Răşcanu, A. *Stochastic Differential
+Equations, Backward SDEs, Partial Differential Equations*, Springer 2014,
+**Theorem 5.42** (continuous case, NOT BSDEJ). The jump-case path regularity
+is established in Bouchard–Elie 2008; Pardoux–Răşcanu covers only the
+continuous (Brownian-driven) case and does not extend to jumps automatically.
 
 **Standard proof outline**:
 1. Apply Itô-Lévy formula to `|Y_t − Y_s|²` for `s = t_n`, `t ∈ [t_n, t_{n+1}]`.
@@ -138,25 +131,15 @@ axiom bsdej_path_regularity
     (X : ℝ → Ω → (Fin n → ℝ))
     (_hX_meas : Measurable (Function.uncurry X))
     (T : ℝ) (_hT : 0 < T)
-    -- Lipschitz hypothesis (BET 2008 requirement; added 2026-05-21 per
-    -- red-team H4 — the bound `C` depends polynomially on `L`):
+    -- Lipschitz hypothesis (Bouchard–Elie 2008 requirement; the bound `C`
+    -- depends polynomially on `L`):
     {L : ℝ} (_hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
     (_hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-    -- 2026-05-22 (M8 fix per red-team P06): the constant `C` is exposed as a
-    -- function of `(T, L, ‖ξ‖_L²)` rather than a bare `ℝ`, so downstream
-    -- numerical work can read off the literature Bouchard-Elie 2008
-    -- polynomial dependence directly. The (T, L, norm_ξ_real) → ℝ shape
-    -- matches BET 2008 Thm 2.1's `C = C(T, L, ‖ξ‖_L²)` explicitly.
-    -- 2026-05-23 (P4 F5 fix per red-team 2nd audit): `C` is now PINNED to
-    -- the BET 2008 Thm 2.1 literature form
-    -- `C T L ξ := K · (1 + T)^p · exp(α · L · T) · (1 + ξ)`
-    -- with explicit constants `K, α, p, β` (K, α > 0, p ∈ ℕ).
-    -- Previous form `K₀ + K₁T + K₂TL² + K₃ξ` was LINEAR in (T, L, ξ) but
-    -- BET 2008 has POLYNOMIAL in (1+T) × EXPONENTIAL in LT × LINEAR in (1+ξ).
-    -- The exponential is required by the Grönwall step in the BET proof.
-    -- The linear form was strictly weaker than the literature; the
-    -- exponential-polynomial form below matches Bouchard-Elie 2008
-    -- Theorem 2.1 eq. (2.10)-(2.12) exactly.
+    -- The constant `C` is exposed as a function of `(T, L, ‖ξ‖_L²)` (not a bare
+    -- `ℝ`), pinned to the Bouchard–Elie 2008 Thm 2.1 literature form
+    -- `C T L ξ := K · (1 + T)^p · exp(α · L · T) · (1 + ξ)` with `K, α > 0`,
+    -- `p ∈ ℕ`: polynomial in `(1+T)`, exponential in `LT` (the Grönwall step),
+    -- linear in `(1+ξ)` — matching BET 2008 Thm 2.1 eq. (2.10)-(2.12).
     ∃ (K α : ℝ) (p : ℕ),
       let norm_ξ_real : ℝ :=
         (∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P).toReal
@@ -173,13 +156,11 @@ axiom bsdej_path_regularity
           LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
         let Δt : ℝ := ⨆ n : Fin M,
           partition n.succ - partition n.castSucc
-        -- Red-team P07/P12 fix (2026-05-21): `Z_avg, U_avg` are now PINNED to
-        -- the conditional time-average projections defined above, not
-        -- existentially quantified. Previously the axiom said `∃ Z_avg U_avg,
-        -- bound holds`, which a witness could satisfy by picking `Z_avg := Z`
-        -- (the projection-error terms zero out trivially). Pinning excludes
-        -- that route — the literature Bouchard–Elie bound now actually has
-        -- to control the deviation of Z, U from their canonical time-averages.
+        -- `Z_avg, U_avg` are pinned to the conditional time-average projections
+        -- defined above, not existentially quantified: an existential `∃ Z_avg
+        -- U_avg, bound holds` could be satisfied by `Z_avg := Z` (projection
+        -- error zero), so pinning forces the bound to actually control the
+        -- deviation of Z, U from their canonical time-averages.
         (⨆ n : Fin M, ∫⁻ ω,
             ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
               (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
@@ -203,13 +184,11 @@ where `C` is a single positive real constant (concretely
 given `(T, L, ξ)`) in place of the polynomial-exponential expression
 exposed by the underlying axiom.
 
-**Motivation**: downstream chapters (notably the discrete-to-continuous
-BSDEJ convergence chapter in the main dissertation
-`D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`,
-parked 2026-05-04) need a `ψ : ℝ → ℝ` with `ψ(h) = C · h`. The polynomial
-form is what BET 2008 actually proves; downstream usage just needs the
-linear-in-`Δt` rate, with `C` packaged opaquely so the convergence theorem
-can be specialized without reaching into the polynomial structure.
+**Motivation**: downstream discrete-to-continuous BSDEJ convergence results
+need a `ψ : ℝ → ℝ` with `ψ(h) = C · h`. The polynomial form is what
+Bouchard–Elie 2008 proves; downstream usage needs only the linear-in-`Δt`
+rate, with `C` packaged opaquely so the convergence theorem can be specialized
+without reaching into the polynomial structure.
 
 **Citation**: same as `bsdej_path_regularity` — Bouchard, B. & Elie, R.,
 *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*,
@@ -270,5 +249,66 @@ theorem bsdej_path_regularity_linear_rate
   -- the axiom statement reduce definitionally to the explicit expression.
   intro M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
   exact h_bound M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
+
+/-- **U-integrand L²-regularity (linear-in-Δt), for Paper C's path-regularity gap.**
+
+The compensated-Poisson integrand `U` of the BSDEJ solution has `O(Δt)` L²-projection
+error onto the partition-interval time-averages:
+
+  `𝔼 ∫_0^T ∫_E |U_s(e) − Ũ_s(e)|² ν(de) ds ≤ C · Δt`,
+
+where `Ũ = conditionalTimeAverage_U` (the interval representative) and
+`Δt = maxₙ (t_{n+1} − t_n)`. Equivalently `∑ₙ 𝔼 ∫_{tₙ}^{tₙ₊₁} ‖U_s − Ũ_s‖²_{L²(ν)} ds
+≤ C · Δt`, since the partition tiles `[0, T]`.
+
+This is the single forwarded input `hU` of the dissertation-side assembly
+`Dissertation.DiffusionJumpRegularity.coupled_jump_reg_O_tau` (a-posteriori FBSDEJ
+path-regularity, Reading (A): the projection / interval representative, **not** a
+pointwise-in-time Malliavin value — so no Malliavin input is required).
+
+**Proof**: the three nonnegative summands of `bsdej_path_regularity_linear_rate`
+(`Y` path-modulus, `Z` projection error, `U` projection error) each lie below their
+sum; drop the first two. Hence this is an honest derivative of the same Tier-1 base
+as that corollary — it forwards `bsdej_path_regularity` (cited_axioms.md #10) and
+introduces no new axiom. `#print axioms` surfaces `{propext, Classical.choice,
+Quot.sound, bsdej_path_regularity, itoIsometry_brownian_unified_existence,
+itoIsometry_compensated_unified_existence}` (the last two via the `IsBSDEJSolution`
+pinning of `M_W`/`M_N` to the canonical multidim-Brownian and compensated-Poisson
+L² integrals, Tier-1 #5 + #6). -/
+theorem bsdej_U_L2_regularity_linear_rate
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {n d : ℕ}
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
+    (X : ℝ → Ω → (Fin n → ℝ))
+    (hX_meas : Measurable (Function.uncurry X))
+    (T : ℝ) (hT : 0 < T)
+    {L : ℝ} (hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
+    (hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    ∃ C : ℝ, 0 < C ∧
+      ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
+        (_h_part_mono : StrictMono partition)
+        (_h_part_start : partition 0 = 0)
+        (_h_part_end : partition (Fin.last M) = T)
+        (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
+        (_h_solution :
+          LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
+        let Δt : ℝ := ⨆ n : Fin M,
+          partition n.succ - partition n.castSucc
+        (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖U s ω e - conditionalTimeAverage_U partition U s ω e‖₊ : ℝ≥0∞) ^ 2
+              ∂ν ∂volume ∂P)
+          ≤ ENNReal.ofReal (C * Δt) := by
+  obtain ⟨C, hC_pos, h_bound⟩ :=
+    bsdej_path_regularity_linear_rate W N bsdej X hX_meas T hT (L := L) hL hξ_sq_int
+  refine ⟨C, hC_pos, ?_⟩
+  intro M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution
+  -- The U-projection error is the third (nonnegative) summand of the full bound.
+  exact le_trans le_add_self
+    (h_bound M hM partition h_part_mono h_part_start h_part_end Y Z U h_solution)
+
+end Regularity
 
 end LevyStochCalc.BSDEJ.PathRegularity

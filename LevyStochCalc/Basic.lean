@@ -3,36 +3,21 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
--- P1 F2 INVESTIGATION (red-team 2nd audit 2026-05-23): narrowing
--- attempted in worktree; the 5 lemmas in this file use only ~5 specific
--- Mathlib submodules (LpSeminorm, LpSpace, Integral.Prod, Pow.NNReal,
--- MonotoneContinuity), BUT downstream files (Brownian/Construction.lean,
--- Brownian/Continuity.lean, Poisson/RandomMeasure.lean, ...) transitively
--- depend on the umbrella `import Mathlib` to pull in
--- `ProbabilityTheory.gaussianReal`, `IndepFun`, `Indep`, `Kernel`,
--- `Adapted`, `Filtration`, `Martingale`, and ~10 more namespaces. Adding
--- these specific submodule imports breaks elaboration on
--- `Brownian/Continuity.lean:648` (a Kolmogorov continuity proof that
--- relies on transitively-imported lemmas not exposed by the narrow set).
---
--- Genuine narrowing requires touching every downstream file (move the
--- ProbabilityTheory imports out of Basic and into the consumer files),
--- a multi-file refactor with risk of breaking the Kolmogorov continuity
--- proof. Tracked as MATHLIB-PR PREP: when this library is prepared for
--- Mathlib submission, the narrowing is mandatory; in the meantime the
--- umbrella import is retained as the pragmatic "common imports" module
--- per Mathlib's `Mathlib/Tactic.lean` precedent (which is itself a bare
--- `import Mathlib` aggregator). P1 F2 acknowledged but deferred.
-import Mathlib
+import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import Mathlib.MeasureTheory.Function.LpSpace.Basic
+import Mathlib.MeasureTheory.Measure.Prod
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.Topology.Order.MonotoneContinuity
 
 /-!
 # LevyStochCalc.Basic
 
-Project-wide imports and milestone-tagging primitive.
-
-A `levyStochCalc_milestone` attribute (analogous to the main dissertation's
-`dissertation_axiom`) will be added when the first headline theorem of a
-layer is proved CLEAN; until then there is nothing to register.
+Common imports plus small L² helper lemmas shared across the library:
+`eLpNorm` reverse-triangle / difference bounds and L²-continuity (Bochner-L²
+limit) lemmas in the plain, Brownian, and compensated-Poisson integrand shapes.
 -/
 
 open MeasureTheory
@@ -159,7 +144,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_prod
 /-- **Bridge: triple-nested-lintegral-of-squared-norm = `eLpNorm²` on (ternary) product measure.**
 
 For any `ℝ`-valued measurable `h : α × β × γ → ℝ` and SFinite `μ`, `ν`, `η`,
-`∫⁻ x, ∫⁻ y, ∫⁻ z, ‖h (x, y, z)‖₊² ∂η ∂ν ∂μ = eLpNorm h 2 (μ.prod (ν.prod η)) ^ (2:ℝ)`.
+`∫⁻ x, ∫⁻ y, ∫⁻ z, ‖h (x, y, z)‖₊² ∂η ∂ν ∂μ`
+`= eLpNorm h 2 (μ.prod (ν.prod η)) ^ (2:ℝ)`.
 
 Iterated Tonelli + `eLpNorm_nnreal_pow_eq_lintegral`. Used by Compensated chain. -/
 lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
@@ -188,7 +174,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
     MeasureTheory.lintegral_prod _ (h_aem_sq_inner x)
   have h_iterated :
       ∫⁻ p, (‖h p‖₊ : ℝ≥0∞) ^ 2 ∂μνη
-        = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ := by
+        = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ :=
+      by
     rw [h_outer]
     refine lintegral_congr (fun x => ?_)
     exact h_inner_each x
@@ -200,7 +187,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
   have h_two_ENNReal : ((2 : NNReal) : ℝ≥0∞) = (2 : ℝ≥0∞) := by simp
   rw [h_two_ENNReal, h_two_R] at h_pow_lemma
   rw [h_pow_lemma]
-  -- ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μνη = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ
+  -- ∫⁻ p, ‖h p‖ₑ ^ (2:ℝ) ∂μνη
+  --   = ∫⁻ x, ∫⁻ y, ∫⁻ z, (‖h (x, y, z)‖₊ : ℝ≥0∞) ^ 2 ∂η ∂ν ∂μ
   have h_pw : (fun p : α × β × γ => (‖h p‖ₑ : ℝ≥0∞) ^ ((2 : ℝ) : ℝ))
               = (fun p : α × β × γ => (‖h p‖₊ : ℝ≥0∞) ^ 2) := by
     funext p
@@ -218,7 +206,8 @@ lemma lintegral_sq_eq_eLpNorm_sq_on_triple_prod
 
 For any sequence of jointly-measurable `(p ↦ ev_n p.2 p.1)` and jointly-measurable
 target `H` such that `∫⁻ x, ∫⁻ y in [0,T], ‖H x y - ev_n y x‖₊² → 0`, we have
-`∫⁻ x, ∫⁻ y in [0,T], ‖ev_n y x‖₊² → ∫⁻ x, ∫⁻ y in [0,T], ‖H x y‖₊²`.
+`∫⁻ x, ∫⁻ y in [0,T], ‖ev_n y x‖₊²`
+`→ ∫⁻ x, ∫⁻ y in [0,T], ‖H x y‖₊²`.
 
 Pipeline: bridge to eLpNorm² via Tonelli (`lintegral_sq_eq_eLpNorm_sq_on_prod` after
 restriction); square root → reverse triangle continuity → square back → bridge back.
@@ -321,8 +310,10 @@ lemma lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian_shape
 /-- **General eval-norm-tendsto from diff-norm-tendsto, ternary-product (Compensated-shape).**
 
 For any sequence of jointly-measurable `(p ↦ ev_n p.2.1 p.2.2 p.1)` and jointly-measurable
-target `H` such that `∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e - ev_n s e ω‖₊² → 0`, we have
-`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖ev_n s e ω‖₊² → ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e‖₊²`.
+target `H` such that
+`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e - ev_n s e ω‖₊² → 0`, we have
+`∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖ev_n s e ω‖₊²`
+`→ ∫⁻ ω, ∫⁻ s in [0,T], ∫⁻ e, ‖H ω s e‖₊²`.
 
 Same pipeline as the binary-product version, but lifting via the ternary-product
 Tonelli bridge `lintegral_sq_eq_eLpNorm_sq_on_triple_prod`. -/

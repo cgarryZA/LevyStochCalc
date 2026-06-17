@@ -1,173 +1,130 @@
-# LevyStochCalc → Mathlib-Grade Library — Master Plan
+# LevyStochCalc → Mathlib-Grade Library — Master Plan (v2)
 
-**Goal.** Turn this repo from an axiom-spined dissertation substrate into a
-proper, mathlib-shaped stochastic-calculus library: close every custom axiom
-and `sorry` with real proofs, refactor the layout to mathlib's conventions, and
-upstream the general results — solo, incrementally, without ever breaking the
-dissertation that depends on it.
+**Regenerated 2026-06-16** per the `GOAL.md` loop contract: Phase 0 (declutter)
+and Phase 1 (structural refactor) are complete, and Phase 3 #3
+(Kolmogorov–Chentsov continuous modification) is proved. Git history holds the
+old plan + the detailed per-phase notes. This v2 plan closes the remaining
+`GOAL.md` §1 gaps, **dissertation-blocking axioms first** (`GOAL.md` §3).
 
-**Status as of 2026-06-15 (audit baseline).** 14 custom `axiom`s, 1 real `sorry`
-(+4 forwarders), 31 source files / ~18.4k lines. Builds clean; lint green.
+## Where we stand (verified 2026-06-16)
 
-**Verified fact that frames everything.** All 14 citations are *upstream of*
-current mathlib. Grepped against mathlib `master` (2026-06-15) and our pinned
-rev (`0e20855`, 2026-05-01): mathlib has **no** stochastic/Itô integral, **no**
-BSDE, **no** Poisson random measure, **no** predictable representation, **no**
-càdlàg regularization, and only the Kolmogorov *condition* (not the continuity
-conclusion). Mathlib's new `Probability/BrownianMotion/` has BM *predicates* +
-projective family but **not** the construction (its own docstring: Kolmogorov
-extension theorem "not in Mathlib yet"). So nothing here is redundant — we are
-ahead of mathlib on the Itô/BSDE layer and co-temporal on the BM/KC layer.
+- **11 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**).
+  `cited_axioms.md` "11 live". The 3 standard axioms
+  (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
+- **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
+  `tools/sorry_baseline.txt`) — disappears with the #9 chain.
+- **6 of the 13 axioms gate the pinned dissertation surface** (the 21
+  `import_contract.md` symbols), traced via `#print axioms`:
+  **#5** `itoIsometry_brownian_unified_existence`,
+  **#6** `itoIsometry_compensated_unified_existence`,
+  **#15** `itoFormula_continuousSemimartingale_axiom`,
+  **#16** `itoLevyFormula_jumpResidual_canonical_axiom`,
+  **#9** `continuousBSDEJ_exists_unique`,
+  **#10** `bsdej_path_regularity`.
+  The other 7 (#1, #2, #4, #13a, #13b, #17, #18) are cited results but **not**
+  reached by the pinned surface.
+- **#5/#6 are foundational**: the audit shows #15, #16, #9, #10 *already carry*
+  #5/#6 transitively, so the Itô-formula and BSDE layers cannot go axiom-free
+  until the L² integrals are built. Hence #5 → #6 first.
+- Four-way invariant green; build = 2904 jobs.
 
----
-
-## Rules of engagement (apply to every task below)
+## Rules of engagement (unchanged, apply to every task)
 
 - **Invariant after every commit:** `lake build` ✅ · `bash tools/lint.sh` at
-  baseline ✅ · `bash tools/verify_import_contract.sh` ✅ · dissertation
-  (`D:/Dissertation`) `lake build` ✅. If any go red, the step isn't done.
-- **Never break the import contract** (`tools/import_contract.md`): 12 pinned
-  modules + 21 pinned symbols under `LevyStochCalc.*`. Rename/move only behind a
-  forwarding stub at the old path. Do **not** rename public symbols or the
-  top-level namespace in-tree — that is PR-prep, done per-result at extraction
-  time (Phase 4), not during in-tree refactor.
-- **Ponytail (look for a reason *not* to write code):** git history is the
-  archive — never keep dated copies in-tree. One mathematical idea per file.
-  Don't split/refactor a file speculatively; do it when extraction or size
-  forces it. The best diff is the one that deletes more than it adds.
-- **Mathlib hard gates** (for anything destined upstream): only the 3 standard
-  axioms, zero `sorry`, ≤100 cols, no `import Mathlib` umbrella, copyright header
-  (already correct), math-only docstrings (no `Tier 1`/`red-team`/`D:/...`),
-  `ProbabilityTheory` namespace, file under `Mathlib/Probability/...`, registered
-  in `Mathlib.lean`. **Disclose AI use in every PR + add `LLM-generated` label.**
+  baseline (one documented sorry + the live axioms) ✅ ·
+  `bash tools/verify_import_contract.sh` ✅ · (dissertation proxy) — if any goes
+  red and isn't fixable fast, revert that step.
+- **Never break the import contract** (`tools/import_contract.md`): 12 modules +
+  21 symbols resolve from their pinned path; no forwarding stubs; don't rename
+  public symbols or the top-level namespace.
+- **Axiom→theorem discipline** (as used for KC #3): develop the proof as
+  sorry-free standalone lemmas with the `axiom` left in place; only when the full
+  `theorem` is sorry-free do you replace the axiom, repoint consumers, drop the
+  entry from `tools/cited_axioms.md`, and confirm `#print axioms` shows the
+  consumers clean. **Never** commit a new `sorry` to the built library.
+- **No pin bump** (cross-repo mismatch risk). **Ponytail:** smallest diff, delete
+  more than you add, one idea per file.
 
----
+## Phase A — Close the 6 dissertation-surface axioms (critical path)
 
-## Phase 0 — De-clutter & build the safety net (low risk, do first)
+Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
+`cited_axioms.md` + repoint consumers.
 
-- [x] **0.1** Delete `redteam_findings/2026-05-20-archive/` (13 files). Git keeps
-      it; an in-tree dated duplicate is exactly the junk to remove. *(done
-      2026-06-15 on `claude/refactor-phase0-declutter`; STATUS.md pointer updated.)*
-- [ ] **0.2** Collapse the 12 live `redteam_findings/NN_*.md` persona files into a
-      single `redteam_findings/SUMMARY.md` (or delete if superseded). Keep
-      `STATUS.md` and `tools/*.md` as workflow docs but treat them as *this repo's*
-      scaffolding — they never travel into a mathlib PR.
-- [ ] **0.3** Strip in-source narrative comments project-wide: `P1 F2
-      INVESTIGATION`, `red-team Nth audit`, milestone tags, `D:/...` paths, dated
-      change-logs. Move any still-useful rationale into the decl docstring as math.
-- [ ] **0.4** Confirm the four-way green invariant is reproducible from a clean
-      clone *before* refactoring. This is the regression guard for all of Phase 1.
+- [x] **A1 / #5** `itoIsometry_brownian_unified_existence` — **DONE 2026-06-17**
+      (axiom→`theorem`; `cited_axioms.md` 13→12; `#print axioms` of it and its
+      consumers `itoIsometry`/`quadVar_stochasticIntegral`/`martingale_stochasticIntegral`
+      = the 3 standard only). `F := stochasticIntegralBrownian` on
+      `(naturalFiltration W).rightCont`. Conjunct 2 (the quadVar martingale) was the
+      gap: closed via the set-level Itô isometry at simple level
+      (`simpleIntegral_sub_eq_clamp_sum` → `offDiagonal_increment_integral_zero_weighted`
+      → `simpleIntegral_sub_sq_bochner_clamped_weighted`) + real clamped compensator
+      (`setIntegral_eval_sq_Icc_clamped`) → simple-level quadVar martingale
+      (`martingale_simpleIntegral_sq_sub_compensator`) → compensator `L¹`-convergence
+      (`masterApprox_compensator_tendsto_L1`) → conjunct 2 on naturalFiltration
+      (`martingale_quadVar_stochasticIntegralBrownian`) then `rightCont`
+      (`martingale_rightCont_quadVar_stochasticIntegralBrownian`).
+- [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
+      analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
+      `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
+- [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
+      cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
+      stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
+      then `isometry_diff_stochasticIntegralBrownian` (cross-integrand simple diff
+      isometry + L²-limit). **#18** `itoIsometry_diff_compensated` still blocked on A2/#6
+      (the compensated integral is `Classical.choose` on axiom #6 until #6 is built);
+      close it right after #6.
+- [ ] **A4 / #15** `itoFormula_continuousSemimartingale_axiom` — Itô formula for
+      continuous semimartingales (KS 3.3.6), now resting on a real A1.
+- [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
+      residual (Applebaum 4.4.10 + 4.4.7), on A2/A4.
+- [ ] **A6 / #9** `continuousBSDEJ_exists_unique` — BSDEJ existence/uniqueness via
+      the Picard chain (Tang–Li 1994 / AGPP 2025). **Retires the lone `sorry`**
+      (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).
+- [ ] **A7 / #10** `bsdej_path_regularity` — BSDEJ path regularity (Bouchard–Elie
+      2008), on A6.
 
-## Phase 1 — Structural refactor (in-tree, contract-safe)
+## Phase B — Close the 7 off-critical-path axioms (breadth)
 
-- [ ] **1.1** Consolidate the 10 `Ito/Picard*.lean` files (4739 lines, one
-      theorem) → 2–3 files organized by mathematics, not proof-iteration. None are
-      pinned in the contract, so this is free. **Highest-value cleanup.**
-- [ ] **1.2** Split the 3 oversized files along mathematical seams, each with a
-      forwarding aggregator at the old path so pinned imports still resolve:
-      - `Brownian/Ito.lean` (3999) → simple-integrand integral / isometry
-        extension / martingale & quadratic variation.
-      - `Poisson/Compensated.lean` (2102) → integral construction / isometry /
-        martingale property.
-      - `Brownian/SimplePredictableRefine.lean` (2290) → density / refinement.
-      Target: no file > ~600 lines (mathlib `Probability/` p90).
-- [ ] **1.3** Add `section … variable … end` blocks to every multi-concept file
-      (currently 0 in the big files). Pure hygiene, breaks nothing.
-- [ ] **1.4** Wrap the 180 lines > 100 cols. Replace the `import Mathlib` umbrella
-      in `Basic.lean` with precise imports (the file already flags this as
-      mandatory PR-prep); push the `ProbabilityTheory.*` imports down into the
-      consumer files as needed.
-- [ ] **1.5** Re-title module docstrings to describe the mathematics only; keep
-      the existing (good) per-decl docstring density.
-
-## Phase 2 — Align to mathlib's existing API (shrink the surface)
-
-- [ ] **2.1** Re-express the Brownian layer against mathlib: map our
-      `BrownianMotion` structure onto `ProbabilityTheory.IsBrownianReal` /
-      `IsPreBrownianReal`, and reuse `HasIndepIncrements`, `IsGaussianProcess`,
-      `BrownianReal.projectiveFamily`. This shrinks axioms #1/#3/#4 down to the
-      genuinely-missing pieces (Kolmogorov extension + KC continuity).
-- [ ] **2.2** Track mathlib (Degenne et al. BM project). When the Kolmogorov
-      extension theorem + KC continuity conclusion land, bump the mathlib pin and
-      collapse #1/#3 to imports.
-
-## Phase 3 — Close the axioms, object by object (the real math)
-
-Bottom-up by dependency. Each item: prove the statement as a real `theorem`,
-delete the `axiom`, update `_audit.lean`, drop it from `cited_axioms.md`. The
-single `sorry` (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`)
-disappears with the #9 chain.
-
-**Tier A — mathlib scaffolds it, finish the gap:**
-- [ ] **#3** `kolmogorovChentsov_modification` — KC continuity conclusion
-      (Karatzas–Shreve 2.2.8). Closest to landing upstream.
-- [ ] **#1** `BrownianMotion.exists` — construction via Kolmogorov extension.
-- [ ] **#4** `brownian_martingale_rightCont` — BM martingale wrt right-cont
-      filtration (KS 2.7.7/2.7.9), once #1 exists.
-
-**Tier B — partial machinery, theorem is greenfield:**
-- [ ] **#2** `PoissonRandomMeasure.exists_of_sigmaFinite` — via Ionescu–Tulcea
-      (Applebaum 2.3.1).
-- [ ] **#13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
+- [ ] **B1 / #4** `brownian_martingale_rightCont` — BM is a martingale wrt the
+      right-continuous augmentation (KS 2.7.7/2.7.9 + Blumenthal 0-1). Now more
+      tractable since the continuity/KC machinery exists.
+- [ ] **B2 / #1** `BrownianMotion.exists` — BM construction via Kolmogorov
+      extension (KS 2.2 / Le Gall 2). Pairs with mathlib's BM project (Phase D
+      alignment); consider `IsBrownianReal`/projective-family reuse first.
+- [ ] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — via Ionescu–Tulcea
+      (`Mathlib/Probability/Kernel/IonescuTulcea/`), Applebaum 2.3.1.
+- [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
       regularization (KS I.3.13) + Blumenthal 0-1.
-- [ ] **#13a** `jacodYor_PRP_martingale_axiom` — predictable representation
+- [ ] **B5 / #13a** `jacodYor_PRP_martingale_axiom` — predictable representation
       property (Jacod 1975 / Jacod–Shiryaev III.4.34).
 
-**Tier C — pure greenfield (deepest; each ~a mathlib project):**
-- [ ] **#5** `itoIsometry_brownian_unified_existence` — L² Itô integral
-      construction + isometry (KS 3.2.6). *Foundational for the rest of C.*
-- [ ] **#6** `itoIsometry_compensated_unified_existence` — compensated-Poisson L²
-      integral + isometry (Applebaum 4.2.3/4.2.4).
-- [ ] **#17 / #18** per-difference L² isometries — fall out of #5 / #6.
-- [ ] **#15** `itoFormula_continuousSemimartingale_axiom` — Itô formula
-      (KS 3.3.6).
-- [ ] **#16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
-      residual (Applebaum 4.4.10 + 4.4.7).
-- [ ] **#9** `continuousBSDEJ_exists_unique` — BSDEJ existence/uniqueness via the
-      Picard chain (Tang–Li 1994 / AGPP 2025). **Replaces the lone `sorry`.**
-- [ ] **#10** `bsdej_path_regularity` — BSDEJ path regularity (Bouchard–Elie
-      2008).
+## Phase C — Non-vacuity artifact (`GOAL.md` §B)
 
-## Phase 4 — Upstream to mathlib (per result, solo-friendly)
+- [ ] **C1** Add `examples/Nonvacuity.lean`: per cited result + pinned symbol, an
+      `example` discharging the hypotheses on a concrete non-degenerate model
+      (non-zero-variance BM, non-zero Itô integral, the intended BSDEJ solution),
+      so non-vacuity is CI-checked, not promised. Start with the now-closed
+      results (KC: the `brownian_continuous_modification` instantiation).
 
-For each *closed, general* result, in this order of mathlib-readiness:
-- [ ] **4.1** Smallest clean leaves first — the `Basic.lean` `eLpNorm`
-      reverse-triangle / L²-continuity helpers. Ideal first PR.
-- [ ] **4.2** BM-layer pieces — coordinate on Zulip with the active BM project
-      *before* writing, to avoid duplicate effort and align names.
-- [ ] **4.3** Then PointProcess (Poisson random measure) → StochasticIntegral →
-      SDE → BSDE, as each layer's axioms close.
-- [ ] **Per-PR checklist:** re-home to `ProbabilityTheory` + `Mathlib/Probability/
-      <Area>/...`; precise imports; ≤100 cols; jargon-free docstrings; register in
-      `Mathlib.lean`; `#print axioms` shows only the 3 standard; **AI disclosure +
-      `LLM-generated` label**; leave a forwarding stub here so the dissertation
-      keeps building against the old `LevyStochCalc.*` path.
+## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
-## Phase 5 — Definition of done (steady state)
+- [ ] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
+      `HasIndepIncrements`, `IsGaussianProcess`); track the Degenne BM project.
+- [ ] **D2** Per closed, general result, in mathlib-readiness order (smallest
+      `Basic.lean` `eLpNorm` helpers first; then BM/KC pieces — coordinate on
+      Zulip; then PointProcess → StochasticIntegral → SDE → BSDE): re-home to
+      `ProbabilityTheory` + `Mathlib/Probability/<Area>/…`, register, AI-disclosure
+      + `LLM-generated` label, update the dissertation import to the mathlib path.
 
-- [ ] `#print axioms` over the whole library shows only `propext`,
-      `Classical.choice`, `Quot.sound`.
-- [ ] Zero `sorry`. `tools/sorry_baseline.txt` empty.
-- [ ] Every file ≤ ~600 lines, sectioned, precise imports, math-only docstrings.
-- [ ] Upstreamable results live in `ProbabilityTheory` / `Mathlib/Probability`
-      shape; dissertation builds via forwarding stubs.
-- [ ] CI green; all general results either merged into mathlib or PR-open.
+## Definition of done
 
----
+Exactly `GOAL.md` §1: zero `sorry`/custom-axiom, non-vacuity CI artifact,
+mathlib-grade form, dissertation builds against pinned symbols, CI green, general
+results merged/PR-open. Regenerate this plan if it is exhausted before then.
 
-## Destination map (where each area goes in mathlib's tree)
+## Sequencing
 
-| This repo | Mathlib destination | mathlib status |
-|---|---|---|
-| `Brownian/{Construction,Continuity,Martingale,Multidim}` | `Mathlib/Probability/BrownianMotion/` | dir exists; align to `IsBrownianReal` |
-| `Brownian/{Ito,MultidimIto,SimplePredictableRefine}` | `Mathlib/Probability/StochasticIntegral/` | greenfield |
-| `Poisson/*` | `Mathlib/Probability/PointProcess/` | greenfield |
-| `Ito/{Setting,JumpFormula,Picard*}` | `Mathlib/Probability/SDE/` (+ Itô formula in StochasticIntegral) | greenfield |
-| `BSDEJ/*` | `Mathlib/Probability/BSDE/` | greenfield |
-
-## Sequencing summary
-
-Phase 0 → 1 are safe in-tree refactors (do now, in order). Phase 2 shrinks the
-BM surface. Phase 3 is the multi-year math, ordered #5 first (the integral
-unblocks all of Tier C). Phase 4 upstreams opportunistically as Phase 3 closes
-each object. Never advance a phase with the four-way invariant red.
+A1 (#5) → A2 (#6) → A3 (#17/#18) unblock A4/A5 (Itô/Lévy formula) and A6/A7
+(BSDE), in that order — this clears the entire pinned surface. Phase B widens to
+the remaining citations; C makes non-vacuity mechanical; D upstreams. Never
+advance with the four-way invariant red.

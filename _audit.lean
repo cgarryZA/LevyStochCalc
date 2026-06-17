@@ -73,16 +73,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
--- σ-side L² Lipschitz bound (Agent 1, PicardSigmaLipschitz.lean; depends on
--- new Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
+-- σ-side L² Lipschitz bound (Ito/Picard.lean; depends on
+-- Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_diff_lipschitz_sq_componentwise
 #print axioms LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian
--- γ-side L² Lipschitz bound (Agent 2, PicardGammaLipschitz.lean; depends on
--- new Tier 1 axiom itoIsometry_diff_compensated for compensated-Poisson
--- stochastic-integral linearity — added 2026-05-23 to drop bundled `h_lin`):
+-- γ-side L² Lipschitz bound (Ito/Picard.lean; depends on
+-- Tier 1 axiom itoIsometry_diff_compensated for compensated-Poisson
+-- stochastic-integral linearity):
 #print axioms LevyStochCalc.Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise
 #print axioms LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated
--- Bielecki β-norm contraction assembly (Agent 3, PicardContraction.lean):
+-- Bielecki β-norm contraction assembly (Ito/Picard.lean):
 #print axioms LevyStochCalc.Ito.Picard.sq_add_three_le
 #print axioms LevyStochCalc.Ito.Picard.sum_sq_add_three_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_sum_sq_le

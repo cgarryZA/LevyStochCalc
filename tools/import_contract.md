@@ -6,19 +6,14 @@ symbols from them. This file enumerates the contract.
 
 **Promise**: the modules and symbols listed below MUST continue to resolve from
 the public API of `LevyStochCalc` (on `master`) at the documented module path.
-A refactor that deletes or renames any of them must, at minimum, leave a
-forwarding stub at the old path so the dissertation continues to build without
-edits.
 
-A forwarding stub is a `.lean` file at the old path containing only:
-```
-import LevyStochCalc.<NewPath>
--- optional: re-export specific names
-export LevyStochCalc.<NewPath> (sym1 sym2 ...)
-```
-
-Last verified: 2026-05-24 against master `7a6be4d` (LevyStochCalc) +
-dissertation `Continuous.lean` HEAD.
+In-tree refactors keep this promise by *not relocating the pinned symbols*: when
+a file is split for size, the pinned symbols stay in the module of record and the
+non-pinned content moves into new sub-modules it imports. We do **not** add
+forwarding-stub files — those are dead-weight indirection. If a pinned symbol is
+ever genuinely relocated (e.g. Phase 4 upstreaming into mathlib's
+`ProbabilityTheory` namespace), the fix is to update the consumer's import in the
+dissertation repo, not to leave a stub behind here.
 
 ## 1. Pinned modules (12)
 
@@ -85,43 +80,26 @@ remain reachable under the listed namespace prefix.
 
 ## 3. Refactor protocol
 
-Before merging a branch that deletes or renames any path in §1 or any
-symbol in §2:
+**Splitting a pinned file for size (the common case).** Keep the pinned
+symbols (§2) in the module of record at their pinned path; move only the
+*non-pinned* content into new sub-modules that the module of record imports.
+The pinned path still resolves natively, so nothing downstream changes. Run
+`tools/verify_import_contract.sh` — it must stay green.
 
-1. **Build the dissertation against the branch.** From `D:/Dissertation`:
-   ```
-   lake build
-   ```
-   This must succeed. If it fails because a path moved, add a forwarding
-   stub at the old path.
+**Relocating a pinned symbol (rare — e.g. Phase 4 upstreaming).** If a pinned
+symbol genuinely has to leave its pinned path:
 
-2. **Forwarding-stub template.** Suppose `LevyStochCalc/Old/Path.lean` moved
-   to `LevyStochCalc/New/Path.lean`. Recreate the old file as:
-   ```
-   /-
-   Forwarding stub: this module was relocated to `LevyStochCalc.New.Path`.
-   Retained so the dissertation (and any other downstream consumer) keeps
-   building against the old import path.
-   -/
-   import LevyStochCalc.New.Path
+1. Update the consumer import in the dissertation repo (`D:/Dissertation`) to
+   the new path; rebuild it there with `lake build`. Do **not** leave a
+   forwarding stub in this repo.
+2. Update this file: change the symbol's path in §2 (and the module row in §1
+   if a module is retired), and note the dissertation commit that tracks it.
+3. Run `tools/lint.sh` (baseline 0) and `tools/verify_import_contract.sh`. If a
+   pinned symbol moved, update the probe in `verify_import_contract.sh` to its
+   new path in the same commit, so the contract guard tracks reality.
 
-   -- Optionally re-export specific names if the namespace also changed:
-   -- export LevyStochCalc.New.Path (symA symB ...)
-   ```
-   The stub adds ~3 lines and zero load-bearing logic, so it does not
-   affect axiom counts or sorry baselines.
-
-3. **Update this file.** Replace the row's "File" column with the new
-   path (keep the old module path in column 2 so the forwarding-stub
-   guarantee remains visible).
-
-4. **Run `tools/lint.sh`.** Must stay at baseline 0.
-
-5. **Coordinate with the dissertation.** If a rename is desired on the
-   dissertation side too (so the stub can eventually be removed), open
-   a PR over there and reference this contract. Don't delete a stub
-   until the dissertation has merged the new import path AND the next
-   dissertation release is cut.
+The dissertation cannot be built from the web container; relocations of pinned
+symbols are therefore coordinated with whoever can build `D:/Dissertation`.
 
 ## 4. How to (re-)verify the contract
 
@@ -136,10 +114,10 @@ bash tools/verify_import_contract.sh        # 3. import contract resolves
 lake build                                  # 4. dissertation builds
 ```
 
-All four must pass. If (3) fails the contract has been silently broken on
-the LevyStochCalc side; if (4) fails on a missing module/symbol, restore
-or add a forwarding stub on the LevyStochCalc side and re-run (3) — do
-NOT edit the dissertation imports as a first response.
+All four must pass. If (3) fails, a pinned symbol stopped resolving from its
+pinned path on the LevyStochCalc side — move it back (or re-export it from the
+module of record) and re-run (3). A deliberate relocation of a pinned symbol
+follows §3: update the dissertation import (4) and the §2 path together.
 
 Step (3) is now automated in CI (`.github/workflows/ci.yml`, the
 `tools/verify_import_contract.sh` step) — so the contract cannot be

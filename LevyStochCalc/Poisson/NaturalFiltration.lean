@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.RandomMeasure
+import Mathlib.Probability.Process.Filtration
 
 /-!
 # Natural filtration of a Poisson random measure
@@ -41,7 +42,8 @@ noncomputable def naturalFiltration
     MeasurableSpace.comap (fun ω => N.N ω B) inferInstance
   mono' s t hst := by
     refine iSup_le fun B => iSup_le fun hB => ?_
-    have hB_t : B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t ×ˢ Set.univ ∧ MeasurableSet C } := by
+    have hB_t :
+        B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t ×ˢ Set.univ ∧ MeasurableSet C } := by
       refine ⟨?_, hB.2⟩
       refine hB.1.trans ?_
       exact Set.prod_mono (Set.Iic_subset_Iic.mpr hst) (le_refl _)
