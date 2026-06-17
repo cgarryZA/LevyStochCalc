@@ -1497,4 +1497,18 @@ lemma martingale_simpleIntegral_sq_sub_compensator
               filter_upwards with ω
               rw [simpleIntegral_eq_zero_of_nonpos N φ (le_of_lt hs) ω, hA_neg s hs ω]; simp
 
+/-- **Joint measurability of the simple integrand `eval`** in `(s, e, ω)`. A finite
+sum of indicators of the measurable time-mark rectangles, with measurable coefficients.
+Needed for the `L²(P ⊗ ds ⊗ ν)` norm computations of the density layer. -/
+lemma SimplePredictable.eval_jointly_measurable
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ} (φ : SimplePredictable Ω E ν T) :
+    Measurable (fun p : ℝ × E × Ω => φ.eval p.1 p.2.1 p.2.2) := by
+  unfold SimplePredictable.eval
+  refine Finset.measurable_sum _ (fun i _ => ?_)
+  refine Measurable.ite ?_ ((φ.ξ_measurable i).comp (measurable_snd.comp measurable_snd))
+    measurable_const
+  exact MeasurableSet.inter (measurable_fst measurableSet_Ioi)
+    (MeasurableSet.inter (measurable_fst measurableSet_Iic)
+      ((measurable_fst.comp measurable_snd) (φ.A_measurable i)))
+
 end LevyStochCalc.Poisson.Compensated
