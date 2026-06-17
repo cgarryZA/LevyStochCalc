@@ -1753,13 +1753,13 @@ lemma eLpNorm_one_mul_le {μ : MeasureTheory.Measure Ω} {f g : Ω → ℝ}
 Proof: `aₙ²−b² = (aₙ−b)(aₙ+b)`, bounded by `eLpNorm_one_mul_le` and the triangle
 `‖aₙ+b‖₂ ≤ ‖aₙ−b‖₂ + 2‖b‖₂`, then squeezed. -/
 lemma tendsto_eLpNorm_one_sq_sub
-    {μ : MeasureTheory.Measure Ω} {a : ℕ → Ω → ℝ} {b : Ω → ℝ}
+    {μ : MeasureTheory.Measure Ω} {ι : Type*} {l : Filter ι} {a : ι → Ω → ℝ} {b : Ω → ℝ}
     (ha : ∀ n, AEMeasurable (a n) μ) (hb : AEMeasurable b μ)
     (hbfin : MeasureTheory.eLpNorm b 2 μ ≠ ⊤)
     (htend : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (a n - b) 2 μ)
-      Filter.atTop (nhds 0)) :
+      l (nhds 0)) :
     Filter.Tendsto (fun n => MeasureTheory.eLpNorm (fun ω => (a n ω) ^ 2 - (b ω) ^ 2) 1 μ)
-      Filter.atTop (nhds 0) := by
+      l (nhds 0) := by
   have hbound : ∀ n, MeasureTheory.eLpNorm (fun ω => (a n ω) ^ 2 - (b ω) ^ 2) 1 μ
       ≤ MeasureTheory.eLpNorm (a n - b) 2 μ
         * (MeasureTheory.eLpNorm (a n - b) 2 μ + 2 * MeasureTheory.eLpNorm b 2 μ) := by
@@ -1783,7 +1783,7 @@ lemma tendsto_eLpNorm_one_sq_sub
   have htend_bound : Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm (a n - b) 2 μ
         * (MeasureTheory.eLpNorm (a n - b) 2 μ + 2 * MeasureTheory.eLpNorm b 2 μ))
-      Filter.atTop (nhds 0) := by
+      l (nhds 0) := by
     have h1 := htend.add (tendsto_const_nhds (x := 2 * MeasureTheory.eLpNorm b 2 μ))
     have h2C : (2 : ℝ≥0∞) * MeasureTheory.eLpNorm b 2 μ ≠ ⊤ :=
       ENNReal.mul_ne_top (by norm_num) hbfin
@@ -3828,6 +3828,109 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
           Set.Icc_eq_empty (not_le.mpr ht)]
         simp
       simp only [hzero]; exact tendsto_const_nhds
+
+include h_meas h_progMeas h_sq_int_global in
+/-- **Conjunct 2 on `rightCont`: `(F)² − ∫₀ᵗH²` is a `rightCont`-martingale.**
+The naturalFiltration martingale (`martingale_quadVar_stochasticIntegralBrownian`) lifts
+via right-`L¹`-continuity: the `F²`-part is controlled by `F`'s right-`L²`-continuity
+(`tendsto_eLpNorm_one_sq_sub`), the compensator part by the horizon slab
+`∫⁻∫⁻_{(s,r]}‖H‖² → 0` (`tendsto_setLIntegral_Ioc_prod_zero`). -/
+lemma martingale_rightCont_quadVar_stochasticIntegralBrownian :
+    MeasureTheory.Martingale
+      (fun t ω => (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
+        - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume)
+      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
+  refine martingale_rightCont_of_tendsto_eLpNorm_one
+    (martingale_quadVar_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+    (fun s => ?_)
+  set F := stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global with hFdef
+  -- `F²`-part: right-`L¹`-continuity of the square.
+  have hF2 : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
+      (fun ω => (F r ω) ^ 2 - (F s ω) ^ 2) 1 P) (nhdsWithin s (Set.Ioi s)) (nhds 0) :=
+    tendsto_eLpNorm_one_sq_sub (l := nhdsWithin s (Set.Ioi s)) (a := fun r => F r) (b := F s)
+      (fun r => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas
+        h_sq_int_global r).1.aemeasurable)
+      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).1.aemeasurable
+      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).2.ne
+      (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W H h_meas h_progMeas h_sq_int_global s)
+  -- compensator part: right-`L¹`-continuity of `A_t = ∫₀ᵗ H²`.
+  have hA : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
+      (fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
+        - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) 1 P)
+      (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
+    rcases le_or_gt 0 s with hs | hs
+    · have hslab := tendsto_setLIntegral_Ioc_prod_zero (fun ω u => (‖H ω u‖₊ : ℝ≥0∞) ^ 2)
+        ((h_meas.nnnorm.coe_nnreal_ennreal).pow_const 2) hs (lt_add_one s)
+        (h_sq_int_global (s + 1) (by linarith)).ne
+      refine hslab.congr' ?_
+      filter_upwards [self_mem_nhdsWithin] with r hr
+      have hsr : s ≤ r := le_of_lt hr
+      have hrpos : 0 < r := lt_of_le_of_lt hs hr
+      have hHr : ∀ᵐ ω ∂P, MeasureTheory.Integrable
+          (fun u => (H ω u) ^ 2) (volume.restrict (Set.Icc (0 : ℝ) r)) :=
+        (compensatorH_memLp_prod H h_meas h_sq_int_global hrpos).integrable_sq.prod_right_ae
+      rw [MeasureTheory.eLpNorm_one_eq_lintegral_enorm]
+      refine (lintegral_congr_ae ?_).symm
+      filter_upwards [hHr] with ω hHrω
+      have hHsω : MeasureTheory.Integrable (fun u => (H ω u) ^ 2)
+          (volume.restrict (Set.Icc (0 : ℝ) s)) :=
+        hHrω.mono_measure (MeasureTheory.Measure.restrict_mono (Set.Icc_subset_Icc_right hsr)
+          (le_refl _))
+      have hHscω : MeasureTheory.Integrable (fun u => (H ω u) ^ 2)
+          (volume.restrict (Set.Ioc s r)) :=
+        hHrω.mono_measure (MeasureTheory.Measure.restrict_mono
+          (Set.Ioc_subset_Icc_self.trans (Set.Icc_subset_Icc_left hs)) (le_refl _))
+      have hsplit : (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
+          - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume
+          = ∫ u in Set.Ioc s r, (H ω u) ^ 2 ∂volume := by
+        rw [← Set.Icc_union_Ioc_eq_Icc hs hsr,
+          MeasureTheory.setIntegral_union
+            (Set.disjoint_left.mpr (fun x hx1 hx2 => absurd hx2.1 (not_lt.mpr hx1.2)))
+            measurableSet_Ioc hHsω hHscω]
+        ring
+      rw [hsplit, ← ofReal_norm_eq_enorm, Real.norm_eq_abs,
+        abs_of_nonneg (MeasureTheory.integral_nonneg (fun u => sq_nonneg _)),
+        MeasureTheory.ofReal_integral_eq_lintegral_ofReal hHscω
+          (Filter.Eventually.of_forall (fun u => sq_nonneg _))]
+      refine MeasureTheory.setLIntegral_congr_fun measurableSet_Ioc (fun u _ => ?_)
+      rw [show (‖H ω u‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal ((H ω u) ^ 2) from by
+        rw [show (‖H ω u‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H ω u‖ from (ofReal_norm_eq_enorm _).symm,
+          ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]]
+    · refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+      filter_upwards [Ioo_mem_nhdsGT hs] with r hr
+      have hAr : (fun u => (H · u) ^ 2) = (fun u => (H · u) ^ 2) := rfl
+      symm
+      rw [show (fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
+            - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) = (0 : Ω → ℝ) from by
+        funext ω
+        rw [Set.Icc_eq_empty (not_le.mpr hr.2), Set.Icc_eq_empty (not_le.mpr hs)]
+        simp]
+      exact MeasureTheory.eLpNorm_zero
+  -- combine the two parts.
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds (by simpa using hF2.add hA)
+    (Filter.Eventually.of_forall (fun r => bot_le)) (Filter.Eventually.of_forall (fun r => ?_))
+  have hF2aesm : MeasureTheory.AEStronglyMeasurable (fun ω => (F r ω) ^ 2 - (F s ω) ^ 2) P :=
+    (((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r).1.aemeasurable.pow_const
+        2).aestronglyMeasurable).sub
+      (((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).1.aemeasurable.pow_const
+        2).aestronglyMeasurable)
+  have hAaesm : MeasureTheory.AEStronglyMeasurable
+      (fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
+        - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) P :=
+    ((compensatorH_adapted W H h_progMeas r).mono
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le r)).aestronglyMeasurable.sub
+      (((compensatorH_adapted W H h_progMeas s).mono
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le s)).aestronglyMeasurable)
+  calc MeasureTheory.eLpNorm
+        ((fun t ω => (F t ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) r
+          - fun ω => (F s ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) 1 P
+      = MeasureTheory.eLpNorm
+          ((fun ω => (F r ω) ^ 2 - (F s ω) ^ 2)
+            - fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
+              - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) 1 P := by
+        refine MeasureTheory.eLpNorm_congr_ae (Filter.Eventually.of_forall (fun ω => ?_))
+        simp only [Pi.sub_apply]; ring
+    _ ≤ _ := MeasureTheory.eLpNorm_sub_le hF2aesm hAaesm le_rfl
 
 end MasterSequence
 
