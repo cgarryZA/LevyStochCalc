@@ -2120,6 +2120,17 @@ lemma simpleIntegral_eq_zero_of_nonpos
     rwa [H.partition_zero] at this
   rw [min_eq_right (ht.trans hp1), min_eq_right (ht.trans hp2), sub_self, mul_zero]
 
+/-- `∫⁻ ‖g‖₊² = ofReal (∫ g²)` for `g ∈ L²`. -/
+lemma lintegral_nnnorm_sq_eq_ofReal_integral
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    {g : Ω → ℝ} (hg : MeasureTheory.MemLp g 2 P) :
+    ∫⁻ ω, (‖g ω‖₊ : ℝ≥0∞) ^ 2 ∂P = ENNReal.ofReal (∫ ω, (g ω) ^ 2 ∂P) := by
+  rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hg.integrable_sq
+        (Filter.Eventually.of_forall (fun ω => sq_nonneg _))]
+  refine lintegral_congr (fun ω => ?_)
+  rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm_eq_enorm _).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
+
 section MasterSequence
 
 variable
@@ -2711,6 +2722,134 @@ lemma stochasticIntegralBrownian_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
     rw [← MeasureTheory.lintegral_zero (μ := P)]
     refine lintegral_congr (fun ω => ?_)
     rw [MeasureTheory.setLIntegral_measure_zero _ _ (by simp)]
+
+include h_meas in
+/-- Additivity of the horizon integral: `[0,r] = [0,s] ⊎ (s,r]`. -/
+lemma horizon_lintegral_add {s r : ℝ} (hs : 0 ≤ s) (hsr : s ≤ r) :
+    ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      = (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        + ∫⁻ ω, ∫⁻ u in Set.Ioc s r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have hinner : ∀ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume
+      = ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume
+        + ∫⁻ u in Set.Ioc s r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume := by
+    intro ω
+    rw [← Set.Icc_union_Ioc_eq_Icc hs hsr,
+        MeasureTheory.lintegral_union measurableSet_Ioc
+          (Set.disjoint_left.mpr (fun x hx1 hx2 => absurd hx2.1 (not_lt.mpr hx1.2)))]
+  rw [MeasureTheory.lintegral_congr hinner]
+  exact MeasureTheory.lintegral_add_left'
+    ((Measurable.lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) s))
+      (((h_meas.nnnorm).coe_nnreal_ennreal).pow_const 2)).aemeasurable) _
+
+include h_meas h_sq_int_global in
+/-- Right-continuity of the horizon integral `r ↦ ∫⁻∫⁻_{[0,r]}‖H‖²` at `s ≥ 0`. -/
+lemma horizon_lintegral_right_tendsto {s : ℝ} (hs : 0 ≤ s) :
+    Filter.Tendsto (fun r => ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r,
+        (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      (nhdsWithin s (Set.Ioi s))
+      (nhds (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) := by
+  have hz : Filter.Tendsto (fun r => ∫⁻ ω, ∫⁻ u in Set.Ioc s r,
+        (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) (nhdsWithin s (Set.Ioi s)) (nhds 0) :=
+    tendsto_setLIntegral_Ioc_prod_zero (fun ω u => (‖H ω u‖₊ : ℝ≥0∞) ^ 2)
+      ((h_meas.nnnorm.coe_nnreal_ennreal).pow_const 2) hs (lt_add_one s)
+      (h_sq_int_global (s + 1) (by linarith)).ne
+  have ht := (tendsto_const_nhds (x := ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s,
+    (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)).add hz
+  rw [add_zero] at ht
+  refine ht.congr' ?_
+  filter_upwards [self_mem_nhdsWithin] with r hr
+  exact (horizon_lintegral_add H h_meas hs (le_of_lt hr)).symm
+
+/-- **Conjunct 1 on `rightCont`: `F` is a martingale wrt `(naturalFiltration W).rightCont`.**
+Right-`L²`-continuity of the slices (`∫⁻‖F r − F s‖² = ofReal((∫⁻∫⁻_{[0,r]}).toReal −
+(∫⁻∫⁻_{[0,s]}).toReal)` via orthogonality + isometry, `→ 0` by horizon right-continuity)
+feeds `martingale_rightCont_of_tendsto_eLpNorm_one`. -/
+lemma martingale_rightCont_stochasticIntegralBrownian :
+    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
+  refine martingale_rightCont_of_tendsto_eLpNorm_one
+    (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) (fun s => ?_)
+  -- reduce L¹ to L² continuity
+  have hF_aesm : ∀ t, MeasureTheory.AEStronglyMeasurable
+      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) P :=
+    fun t => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).aestronglyMeasurable
+  suffices hsq : Filter.Tendsto (fun r => ∫⁻ ω,
+      (‖(stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
+        - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      (nhdsWithin s (Set.Ioi s)) (nhds 0) by
+    have hle2 : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
+        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) 2 P)
+        (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
+      have h2 := hsq.ennrpow_const ((1 : ℝ) / 2)
+      rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h2
+      refine h2.congr (fun r => ?_)
+      rw [← eLpNorm_sq_eq_lintegral_nnnorm_sq, ← ENNReal.rpow_mul,
+        show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
+    exact tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hle2
+      (Filter.Eventually.of_forall (fun r => bot_le))
+      (Filter.Eventually.of_forall (fun r => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le
+        (by norm_num) ((hF_aesm r).sub (hF_aesm s))))
+  -- the squared increment
+  rcases le_or_gt 0 s with hs | hs
+  · -- s ≥ 0: orthogonality + isometry + horizon continuity
+    have hFsq : ∀ {t : ℝ}, 0 ≤ t →
+        ∫ ω, (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) ^ 2 ∂P
+          = (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) t, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal := by
+      intro t ht
+      have hb := lintegral_nnnorm_sq_eq_ofReal_integral
+        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t)
+      rw [stochasticIntegralBrownian_lintegral_sq W H h_meas h_progMeas h_sq_int_global ht] at hb
+      rw [hb, ENNReal.toReal_ofReal (integral_nonneg (fun ω => sq_nonneg _))]
+    have hincr : ∀ {r : ℝ}, s ≤ r →
+        ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r ω
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+          = ENNReal.ofReal
+            ((∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
+              - (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal) := by
+      intro r hsr
+      rw [lintegral_nnnorm_sq_eq_ofReal_integral
+        (g := fun ω => stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r ω
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s ω)
+        ((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r).sub
+          (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s))]
+      congr 1
+      rw [integral_sq_increment_eq_of_martingale
+        (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s)
+        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r) hsr,
+        hFsq (le_trans hs hsr), hFsq hs]
+    -- the toReal-difference → 0
+    have hcont : Filter.Tendsto (fun r =>
+        ((∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
+          - (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal))
+        (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
+      have hfin_s : ∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤ :=
+        ne_top_of_le_ne_top (h_sq_int_global (s + 1) (by linarith)).ne
+          (MeasureTheory.lintegral_mono (fun ω =>
+            lintegral_mono_set (Set.Icc_subset_Icc_right (by linarith))))
+      have h0 := (ENNReal.tendsto_toReal hfin_s).comp
+        (horizon_lintegral_right_tendsto H h_meas h_sq_int_global hs)
+      have h1 := h0.sub_const
+        ((∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal)
+      rw [sub_self] at h1
+      exact h1
+    have hof := (ENNReal.continuous_ofReal.tendsto 0).comp hcont
+    rw [ENNReal.ofReal_zero] at hof
+    refine hof.congr' ?_
+    filter_upwards [self_mem_nhdsWithin] with r hr
+    exact (hincr (le_of_lt hr)).symm
+  · -- s < 0: eventually zero
+    refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+    filter_upwards [Ioo_mem_nhdsGT hs] with r hr
+    symm
+    rw [← MeasureTheory.lintegral_zero (μ := P)]
+    refine lintegral_congr_ae ?_
+    filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas
+        h_sq_int_global hr.2,
+      stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas h_sq_int_global hs]
+      with ω hr0 hs0
+    simp [hr0, hs0]
 
 end MasterSequence
 
