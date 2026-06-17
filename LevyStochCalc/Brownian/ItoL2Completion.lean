@@ -2248,6 +2248,53 @@ lemma integral_factor_increment_sq
     h_indep_g_ΔWsq.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable
     ((hΔW_meas.pow_const 2).aestronglyMeasurable), brownian_incr_sq_integral W ha hab]
 
+/-- `∫ (W_b − W_a) = 0` for `0 ≤ a < b`. -/
+lemma brownian_incr_mean
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    ∫ ω, (W.W b ω - W.W a ω) ∂P = 0 := by
+  have h_meas : Measurable (fun ω => W.W b ω - W.W a ω) :=
+    (W.measurable_eval b).sub (W.measurable_eval a)
+  rw [show (∫ ω, (W.W b ω - W.W a ω) ∂P)
+        = ∫ x : ℝ, x ∂(P.map (fun ω => W.W b ω - W.W a ω)) from
+      (MeasureTheory.integral_map h_meas.aemeasurable
+        (by fun_prop : MeasureTheory.AEStronglyMeasurable (fun x : ℝ => x) _)).symm,
+    W.increment_gaussian ha hab]
+  exact ProbabilityTheory.integral_id_gaussianReal
+
+/-- **Off-diagonal building block.** For a bounded `ℱ_a`-measurable factor `g`,
+`∫ g · (W_b − W_a) = 0` — the increment is centred and independent of `g`. -/
+lemma integral_factor_increment_eq_zero
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    {g : Ω → ℝ}
+    (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) g)
+    {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
+    ∫ ω, g ω * (W.W b ω - W.W a ω) ∂P = 0 := by
+  set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
+  have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
+  have hg_m : Measurable g :=
+    (hg_meas.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
+  have h_indep_F := W.joint_increment_independent ha hab
+  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤
+      ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
+    intro u hu
+    obtain ⟨v, hv, rfl⟩ := hu
+    have heq : (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a
+        = ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
+      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a = _
+      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration MeasureTheory.Filtration.natural
+      rfl
+    rw [← heq]; exact hg_meas.measurable hv
+  have h_indep_g_ΔW : ProbabilityTheory.IndepFun g ΔW P := by
+    rw [ProbabilityTheory.IndepFun_iff]; intro u v hu hv
+    rw [ProbabilityTheory.Indep_iff] at h_indep_F
+    exact h_indep_F u v (hg_comap_le u hu) hv
+  rw [show (fun ω => g ω * (W.W b ω - W.W a ω)) = g * ΔW from rfl,
+    h_indep_g_ΔW.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable hΔW_meas.aestronglyMeasurable,
+    brownian_incr_mean W ha hab, mul_zero]
+
 section MasterSequence
 
 variable
