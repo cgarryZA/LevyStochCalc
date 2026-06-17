@@ -200,4 +200,27 @@ lemma compensated_condExp_future_eq_zero
   filter_upwards with ω
   exact compensated_mean_zero N hB_meas h_finite
 
+/-- **a.e.-additivity of the compensated mass on disjoint finite-intensity sets.**
+`Ñ(B ∪ C) =ᵐ Ñ(B) + Ñ(C)`. The reference intensity is a measure (additive
+everywhere), and `N(B), N(C)` are a.e. finite (`integer_valued`), so the `toReal`
+of the `N`-sum splits a.e. -/
+lemma compensated_union_ae
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B C : Set (ℝ × E)} (hB : MeasurableSet B) (hC : MeasurableSet C) (hBC : Disjoint B C)
+    (hB_fin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤)
+    (hC_fin : LevyStochCalc.Poisson.referenceIntensity ν C ≠ ⊤) :
+    (fun ω => N.compensated (B ∪ C) ω)
+      =ᵐ[P] fun ω => N.compensated B ω + N.compensated C ω := by
+  filter_upwards [N.integer_valued hB hB_fin, N.integer_valued hC hC_fin] with ω hnB hnC
+  obtain ⟨nB, hnB⟩ := hnB
+  obtain ⟨nC, hnC⟩ := hnC
+  unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+  rw [MeasureTheory.measure_union hBC hC, MeasureTheory.measure_union hBC hC,
+    ENNReal.toReal_add (by rw [hnB]; exact ENNReal.natCast_ne_top nB)
+      (by rw [hnC]; exact ENNReal.natCast_ne_top nC),
+    ENNReal.toReal_add hB_fin hC_fin]
+  ring
+
 end LevyStochCalc.Poisson.Compensated
