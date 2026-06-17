@@ -1387,4 +1387,50 @@ lemma rectApprox_indicator (μ : Measure (Ω × E)) [IsFiniteMeasure μ]
       _ < ε / 2 + ε / 2 := ENNReal.add_lt_add_of_lt_of_le hfin_ne htail hfin_le
       _ = ε := ENNReal.add_halves ε
 
+/-- Rectangle-approximability in `L²` is preserved under scalar multiplication. -/
+lemma RectApprox.const_smul {μ : Measure (Ω × E)} {f : Ω × E → ℝ}
+    (hf : RectApprox μ f) (c : ℝ) : RectApprox μ (c • f) := by
+  rcases eq_or_ne c 0 with rfl | hc
+  · rw [zero_smul]
+    intro ε hε
+    refine ⟨fun _ => 0, IsRectSimple.zero, ?_⟩
+    rw [show (0 : Ω × E → ℝ) - (fun _ => 0) = 0 from by funext x; simp,
+      MeasureTheory.eLpNorm_zero]
+    exact hε
+  · intro ε hε
+    have hcn : ‖c‖ₑ ≠ 0 := by simp [hc]
+    obtain ⟨g, hg, hgerr⟩ := hf (ε / ‖c‖ₑ) (ENNReal.div_pos hε.ne' enorm_ne_top)
+    refine ⟨c • g, hg.smul c, ?_⟩
+    rw [show c • f - c • g = c • (f - g) from (smul_sub c f g).symm,
+      MeasureTheory.eLpNorm_const_smul]
+    calc ‖c‖ₑ * MeasureTheory.eLpNorm (f - g) 2 μ
+        < ‖c‖ₑ * (ε / ‖c‖ₑ) := ENNReal.mul_lt_mul_right hcn enorm_ne_top hgerr
+      _ = ε := ENNReal.mul_div_cancel hcn enorm_ne_top
+
+/-- The indicator of a measurable set scaled by a constant is `L²`-approximable by
+rectangle-simple functions (finite measure, **general `E`**). -/
+lemma rectApprox_indicator_const (μ : Measure (Ω × E)) [IsFiniteMeasure μ]
+    {s : Set (Ω × E)} (hs : MeasurableSet s) (c : ℝ) :
+    RectApprox μ (s.indicator (fun _ => c)) := by
+  have h := (rectApprox_indicator μ hs).const_smul c
+  rwa [show c • s.indicator (fun _ => (1 : ℝ)) = s.indicator (fun _ => c) from by
+    funext x
+    by_cases hx : x ∈ s
+    · simp [Set.indicator_of_mem hx]
+    · simp [Set.indicator_of_notMem hx]] at h
+
+/-- **Rectangle-simple functions are dense in `L²(μ)`** for any finite measure `μ` on
+`Ω × E`, with **no countable-generation/standard-Borel hypothesis on the mark space `E`**.
+Reduces (via `MemLp.induction_dense`) to the indicator case `rectApprox_indicator_const`,
+using closure of `IsRectSimple` under addition. -/
+lemma rectSimple_dense_L2 (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : Ω × E → ℝ}
+    (hf : MeasureTheory.MemLp f 2 μ) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+    ∃ g, IsRectSimple g ∧ MeasureTheory.eLpNorm (f - g) 2 μ ≤ ε := by
+  obtain ⟨g, hgerr, hg⟩ := MeasureTheory.MemLp.induction_dense (by norm_num) IsRectSimple
+    (fun c s hs hμs ε' hε' => by
+      obtain ⟨g, hg, hgerr⟩ := rectApprox_indicator_const μ hs c ε' (pos_iff_ne_zero.mpr hε')
+      exact ⟨g, by rw [MeasureTheory.eLpNorm_sub_comm]; exact hgerr.le, hg⟩)
+    (fun f g hf hg => hf.add hg) (fun f hf => hf.aestronglyMeasurable μ) hf hε
+  exact ⟨g, hg, hgerr⟩
+
 end LevyStochCalc.Poisson.Compensated
