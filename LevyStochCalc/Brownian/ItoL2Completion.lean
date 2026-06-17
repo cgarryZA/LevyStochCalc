@@ -3996,9 +3996,9 @@ theorem itoIsometry_brownian_unified_existence
 
 /-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
 
-Defined via `Classical.choose` on the 3-conjunct unified-existence axiom
-`itoIsometry_brownian_unified_existence`; the resulting `F : ℝ → Ω → ℝ`
-satisfies the L²-isometry at every `T > 0` and is a martingale. -/
+The **constructed** L²-limit process `stochasticIntegralBrownian` (the coherent
+`L²`-limit of the `masterApprox` simple integrals), not a `Classical.choose`
+witness — so it is genuinely linear-friendly (used by `itoIsometry_diff_brownian`). -/
 noncomputable def stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -4014,8 +4014,7 @@ noncomputable def stochasticIntegral
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (T : ℝ) : Ω → ℝ :=
-  Classical.choose
-    (itoIsometry_brownian_unified_existence W H h_meas h_progMeas h_sq_int_global) T
+  stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T
 
 /-- **Itô L² isometry.**
 
@@ -4043,11 +4042,8 @@ theorem itoIsometry
       : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         ((‖H ω s‖₊ : ℝ≥0∞))^2 ∂volume ∂P := by
-  -- Extract conjunct 3 (isometry) from the unified existence.
   unfold stochasticIntegral
-  exact (Classical.choose_spec
-    (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-      h_sq_int_global)).choose_spec.2.2.2 T hT
+  exact isometry_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global hT
 
 /-- **Quadratic variation of the L² Itô integral.**
 
@@ -4075,14 +4071,9 @@ theorem quadVar_stochasticIntegral
           (stochasticIntegral W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2)
         F P := by
-  -- Extract Filt + conjunct 2 (martingale of F²-∫H²) from the unified existence.
   unfold stochasticIntegral
-  exact ⟨(Classical.choose_spec
-    (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-      h_sq_int_global)).choose,
-    (Classical.choose_spec
-      (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-        h_sq_int_global)).choose_spec.2.2.1⟩
+  exact ⟨(LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont,
+    martingale_rightCont_quadVar_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global⟩
 
 /-- **The L² Itô integral is a martingale.**
 
@@ -4107,13 +4098,8 @@ theorem martingale_stochasticIntegral
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
         (fun t : ℝ => stochasticIntegral W H h_meas h_progMeas h_sq_int_global t) F P := by
-  -- Extract Filt + conjunct 1 (martingale of F) from the unified existence.
   unfold stochasticIntegral
-  exact ⟨(Classical.choose_spec
-    (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-      h_sq_int_global)).choose,
-    (Classical.choose_spec
-      (itoIsometry_brownian_unified_existence W H h_meas h_progMeas
-        h_sq_int_global)).choose_spec.2.1⟩
+  exact ⟨(LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont,
+    martingale_rightCont_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global⟩
 
 end LevyStochCalc.Brownian.Ito
