@@ -312,3 +312,34 @@ The entire **existence** construction is done, sorry-free, four-way green:
 
 No new `sorry` in the built library; keep the axiom until the full theorem is
 sorry-free; four-way invariant green every commit; no pin bump.
+
+## UPDATE 2026-06-17 (session 5) — F + conjuncts 1 & 3 DONE
+
+The integral process and TWO of the three conjuncts are now fully proved (sorry-free,
+four-way green, committed):
+- ✅ `stochasticIntegralBrownian` — the L² Itô integral process, honestly ℱ_t-adapted
+  (lpMeas representative), with `Iₙ(t) → F t` in L² (`masterApprox_tendsto_L2`).
+- ✅ **Conjunct 1** `martingale_stochasticIntegralBrownian` — F is a
+  `naturalFiltration`-martingale (via `martingale_of_tendsto_eLpNorm_one`).
+- ✅ **Conjunct 3** `isometry_stochasticIntegralBrownian` — `∫⁻‖F T‖² =
+  ∫⁻∫⁻_{[0,T]}‖H‖²` ∀T>0 (norm continuity + eval-norm convergence + uniqueness;
+  the eval-norm convergence `masterApprox_evalNorm_tendsto` is the product-space
+  Tonelli lift).
+- ✅ supporting: `eval_lintegral_sq_finite`, `simpleIntegral_eq_zero_of_nonpos`,
+  `stochasticIntegralBrownian_{ae_eq,stronglyAdapted,ae_zero_of_neg}`.
+
+**Remaining for the axiom swap:**
+- **rightCont lift of conjunct 1** — `martingale_rightCont_of_tendsto_eLpNorm_one`
+  with right-L²-continuity of F: `∫⁻‖F r − F s‖² = ∫⁻∫⁻_{(s,r]}‖H‖²` (orthogonality
+  `integral_sq_increment_eq_of_martingale` + isometry conjunct + Icc additivity) → 0
+  by `tendsto_setLIntegral_Ioc_prod_zero`. Edge cases at `s ≤ 0` (F vanishes).
+- **Conjunct 2 (quadVar martingale)** — the hard one: the simple-level
+  `(Iₙ(t))² − ∫_{[0,t]}Gₙ.eval²` is a `naturalFiltration`-martingale (conditional
+  Itô isometry: indicator-weighted diagonal/off-diagonal from `simpleIntegral_diagonal`/
+  `_offDiagonal` in `ItoSimple.lean`, tested against ℱ_s-sets via
+  `ae_eq_condExp_of_forall_setIntegral_eq`), then the L¹-limit
+  (`tendsto_eLpNorm_one_sq_sub` for `Iₙ²→F²` + compensator convergence
+  `∫Gₙ.eval²→∫H²` in L¹), then the rightCont lift (right-L¹-continuity of `F²−A`).
+- **Axiom assembly** — bundle the three conjuncts on `(naturalFiltration W).rightCont`,
+  replace the axiom, repoint `quadVar_stochasticIntegral`/`martingale_stochasticIntegral`,
+  drop #5 from `cited_axioms.md` (13→12).
