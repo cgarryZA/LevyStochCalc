@@ -891,4 +891,90 @@ lemma diagonal_increment_sq
       (N.measurable_eval hbox_meas)).sub_const _).pow_const 2).aestronglyMeasurable]
   rw [compensated_second_moment N hbox_meas hbox_fin]
 
+/-- **Off-diagonal increment vanishing (weighted).** For `i < j`, an `ℱ_s`-measurable
+weight `g`, and `0 ≤ s ≤ t` in the genuine case for `j`,
+`∫ g·(ξᵢ·Ñ(Rᵢ))·(ξⱼ·Ñ(Rⱼ)) = 0`. The factor `g·ξᵢ·Ñ(Rᵢ)·ξⱼ` is measurable w.r.t. the
+past at `aⱼ = max s (min tⱼ t)` (since `Rᵢ`'s times are `≤ tⱼ ≤ aⱼ`), hence independent
+of the future increment `Ñ(Rⱼ)`, whose mean is `0` (`compensated_mean_zero`). -/
+lemma offDiagonal_increment_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T) {i j : Fin φ.N} (hij : i < j)
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
+    (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+    (h_adapt_j : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition j.castSucc)) (φ.ξ j))
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+    (h_genuine_j :
+      max s (min (φ.partition j.castSucc) t) < max s (min (φ.partition j.succ) t)) :
+    ∫ ω, g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
+        * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)) ∂P = 0 := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  set pcj := φ.partition j.castSucc with hpcj
+  set psj := φ.partition j.succ with hpsj
+  set aj := max s (min pcj t) with haj_def
+  set bj := max s (min psj t) with hbj_def
+  have haj_nn : 0 ≤ aj := hs.trans (le_max_left _ _)
+  have hpcj_le_t : pcj ≤ t := by
+    by_contra h; push_neg at h
+    have hps_gt : pcj < psj := φ.partition_strictMono Fin.castSucc_lt_succ
+    rw [haj_def, hbj_def, min_eq_right h.le, min_eq_right (h.le.trans hps_gt.le)] at h_genuine_j
+    exact lt_irrefl _ h_genuine_j
+  have hpcj_le_aj : pcj ≤ aj := by rw [haj_def, min_eq_left hpcj_le_t]; exact le_max_right _ _
+  -- ps_i ≤ pc_j ≤ a_j, so R_i lies in the past of a_j.
+  have hpsi_le_pcj : φ.partition i.succ ≤ pcj :=
+    φ.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
+  have hboxj : φ.timeRect j t \ φ.timeRect j s = Set.Ioc aj bj ×ˢ φ.A j :=
+    timeRect_sdiff_eq_box φ j hs hst
+  have hboxj_meas : MeasurableSet (Set.Ioc aj bj ×ˢ φ.A j) :=
+    measurableSet_Ioc.prod (φ.A_measurable j)
+  have hboxj_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc aj bj ×ˢ φ.A j) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top (φ.A_finite j)
+  -- R_i ⊆ Iic a_j ×ˢ univ.
+  have hsub_i : φ.timeRect i t \ φ.timeRect i s ⊆ Set.Iic aj ×ˢ Set.univ := by
+    intro x hx
+    have hx_t : x ∈ φ.timeRect i t := hx.1
+    rw [SimplePredictable.timeRect, Set.mem_prod] at hx_t
+    refine Set.mem_prod.mpr ⟨?_, Set.mem_univ _⟩
+    exact (hx_t.1.2.trans (min_le_left _ _)).trans (hpsi_le_pcj.trans hpcj_le_aj)
+  have hRi_meas : MeasurableSet (φ.timeRect i t \ φ.timeRect i s) :=
+    (measurableSet_Ioc.prod (φ.A_measurable i)).diff (measurableSet_Ioc.prod (φ.A_measurable i))
+  have hÑRi_a : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq aj)
+      (fun ω => N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) := by
+    unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+    exact (((LevyStochCalc.Poisson.measurable_random_measure_of_le N hsub_i
+      hRi_meas).ennreal_toReal).sub measurable_const).stronglyMeasurable
+  -- f := g·ξᵢ·Ñ(Rᵢ)·ξⱼ is past-at-aⱼ measurable.
+  set f : Ω → ℝ := fun ω => g ω * φ.ξ i ω
+      * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω * φ.ξ j ω with hf_def
+  have hpci_le_aj : φ.partition i.castSucc ≤ aj :=
+    (le_of_lt (φ.partition_strictMono Fin.castSucc_lt_succ)).trans (hpsi_le_pcj.trans hpcj_le_aj)
+  have hf_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq aj) f := by
+    have hg_a := hg.mono (ℱ.mono (le_max_left s (min pcj t)))
+    have hξi_a := h_adapt_i.mono (ℱ.mono hpci_le_aj)
+    have hξj_a := h_adapt_j.mono (ℱ.mono hpcj_le_aj)
+    exact ((hg_a.mul hξi_a).mul hÑRi_a).mul hξj_a
+  have h_indep : ProbabilityTheory.IndepFun f
+      (fun ω => N.compensated (Set.Ioc aj bj ×ˢ φ.A j) ω) P :=
+    indepFun_past_compensated_box N haj_nn h_genuine_j (φ.A_measurable j) (φ.A_finite j) hf_meas
+  -- Factor the integrand as `f · Ñ(boxⱼ)` and apply independence.
+  rw [hboxj]
+  rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
+        * (φ.ξ j ω * N.compensated (Set.Ioc aj bj ×ˢ φ.A j) ω)))
+      = fun ω => f ω * N.compensated (Set.Ioc aj bj ×ˢ φ.A j) ω from by
+    funext ω; rw [hf_def]; ring]
+  have hf_m : Measurable f := by
+    have hg_m : Measurable g := (hg.mono (ℱ.le' s)).measurable
+    have hÑRi_m : Measurable (fun ω => N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) := by
+      unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+      exact (ENNReal.measurable_toReal.comp (N.measurable_eval hRi_meas)).sub_const _
+    exact ((hg_m.mul (φ.ξ_measurable i)).mul hÑRi_m).mul (φ.ξ_measurable j)
+  rw [h_indep.integral_fun_mul_eq_mul_integral hf_m.aestronglyMeasurable
+    (((ENNReal.measurable_toReal.comp
+      (N.measurable_eval hboxj_meas)).sub_const _).aestronglyMeasurable)]
+  rw [compensated_mean_zero N hboxj_meas hboxj_fin, mul_zero]
+
 end LevyStochCalc.Poisson.Compensated
