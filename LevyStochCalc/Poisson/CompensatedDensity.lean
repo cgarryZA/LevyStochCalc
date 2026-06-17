@@ -307,4 +307,43 @@ lemma dyadicAvg_shifted_measurable
   · simp only [h, ↓reduceDIte]; exact measurable_const
   · simp only [h, ↓reduceDIte]; exact dyadicAvg_measurable T φ h_meas n _
 
+/-- The dyadic average inherits the integrand's uniform bound: `|dyadicAvg| ≤ M`
+(the average of values bounded by `M` over an interval of length `T/2ⁿ`). -/
+lemma dyadicAvg_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) (e : E) :
+    |dyadicAvg T φ n i ω e| ≤ M := by
+  unfold dyadicAvg
+  set a := dyadicPartition T n i.castSucc with ha
+  set b := dyadicPartition T n i.succ with hb
+  have hab : a ≤ b := (dyadicPartition_strictMono hT n).monotone Fin.castSucc_lt_succ.le
+  have hlen : b - a = T / (2 ^ n : ℕ) := by
+    simp only [ha, hb, dyadicPartition, Fin.val_succ, Fin.coe_castSucc]; push_cast; ring
+  rw [abs_mul, abs_of_nonneg (by positivity : (0 : ℝ) ≤ (2 ^ n : ℕ) / T)]
+  have hint : |∫ s in Set.Ioc a b, φ ω s e| ≤ M * (b - a) := by
+    rw [← Real.norm_eq_abs]
+    have h := MeasureTheory.norm_setIntegral_le_of_norm_le_const (μ := volume)
+      (s := Set.Ioc a b) (f := fun s => φ ω s e) (C := M)
+      (by rw [Real.volume_Ioc]; exact ENNReal.ofReal_lt_top)
+      (fun x _ => by rw [Real.norm_eq_abs]; exact hM ω x e)
+    rw [Real.volume_real_Ioc_of_le hab] at h
+    exact h
+  calc (2 ^ n : ℕ) / T * |∫ s in Set.Ioc a b, φ ω s e|
+      ≤ (2 ^ n : ℕ) / T * (M * (b - a)) := mul_le_mul_of_nonneg_left hint (by positivity)
+    _ = M := by
+        rw [hlen]
+        have h2 : ((2 : ℝ) ^ n) ≠ 0 := by positivity
+        have hT' : T ≠ 0 := hT.ne'
+        push_cast; field_simp
+
+/-- The left-shifted dyadic average is bounded by `max M 0` (covering the `i = 0`
+case, which is the constant `0`). -/
+lemma dyadicAvg_shifted_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) (e : E) :
+    |dyadicAvg_shifted T φ n i ω e| ≤ max M 0 := by
+  unfold dyadicAvg_shifted
+  by_cases h : i.val = 0
+  · simp only [h, ↓reduceDIte, abs_zero]; exact le_max_right _ _
+  · simp only [h, ↓reduceDIte]
+    exact (dyadicAvg_bounded hT φ hM n _ ω e).trans (le_max_left _ _)
+
 end LevyStochCalc.Poisson.Compensated
