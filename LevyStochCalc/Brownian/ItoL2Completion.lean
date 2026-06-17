@@ -2295,6 +2295,86 @@ lemma integral_factor_increment_eq_zero
     h_indep_g_ΔW.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable hΔW_meas.aestronglyMeasurable,
     brownian_incr_mean W ha hab, mul_zero]
 
+/-- **Weighted off-diagonal vanishing.** For two increments with the second
+strictly after the first (`a₁ < b₁ ≤ a₂ < b₂`), `Fᵢ`-measurable coefficients, and
+a bounded `F_{a₁}`-measurable weight `g`,
+`∫ g · (ξ₁·ΔW₁)·(ξ₂·ΔW₂) = 0`. The weighted analogue of
+`offDiagonal_increment_integral_zero`: `f := g·ξ₁·ΔW₁·ξ₂` is `F_{a₂}`-measurable
+and `ΔW₂ ⟂ F_{a₂}` is centred, so `𝔼[f·ΔW₂] = 𝔼[f]·0 = 0`. With `g = 1_B`
+(`B ∈ F_s`, `s ≤ a₁`) this gives the off-diagonal of the set-level Itô isometry. -/
+lemma offDiagonal_increment_integral_zero_weighted
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {a₁ b₁ a₂ b₂ : ℝ} (ha₁ : 0 ≤ a₁) (h₁ : a₁ < b₁) (h₁₂ : b₁ ≤ a₂) (h₂ : a₂ < b₂)
+    (ξ₁ ξ₂ g : Ω → ℝ)
+    (hadapt₁ : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₁) ξ₁)
+    (hadapt₂ : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₂)
+    (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₁) g) :
+    ∫ ω, g ω * ((ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * (W.W b₂ ω - W.W a₂ ω))) ∂P
+      = 0 := by
+  set ΔW₂ : Ω → ℝ := fun ω => W.W b₂ ω - W.W a₂ ω with hΔW₂_def
+  have ha₂_nn : 0 ≤ a₂ := le_trans ha₁ (le_trans (le_of_lt h₁) h₁₂)
+  have ha₁a₂ : a₁ ≤ a₂ := le_trans (le_of_lt h₁) h₁₂
+  have hξ₁meas : Measurable ξ₁ :=
+    (hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₁)).measurable
+  have hξ₂meas : Measurable ξ₂ :=
+    (hadapt₂.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₂)).measurable
+  have hgmeas : Measurable g :=
+    (hg.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₁)).measurable
+  set f : Ω → ℝ := fun ω => g ω * (ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * ξ₂ ω with hf_def
+  rw [show (fun ω => g ω * ((ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * ΔW₂ ω)))
+        = fun ω => f ω * ΔW₂ ω from by funext ω; simp only [hf_def]; ring]
+  have h_Wb₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W b₁) :=
+    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
+      (fun u => (W.measurable_eval u).stronglyMeasurable) b₁).mono
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono h₁₂)
+  have h_Wa₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W a₁) :=
+    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
+      (fun u => (W.measurable_eval u).stronglyMeasurable) a₁).mono
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+        (le_trans (le_of_lt h₁) h₁₂))
+  have h_ξ₁_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₁ :=
+    hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono ha₁a₂)
+  have h_g_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) g :=
+    hg.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono ha₁a₂)
+  have h_f_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) f :=
+    (h_g_F_meas.mul (h_ξ₁_F_meas.mul (h_Wb₁_meas.sub h_Wa₁_meas))).mul hadapt₂
+  have h_indep_F_ΔW₂ := W.joint_increment_independent ha₂_nn h₂
+  have h_f_meas : Measurable f :=
+    (hgmeas.mul (hξ₁meas.mul ((W.measurable_eval b₁).sub (W.measurable_eval a₁)))).mul hξ₂meas
+  have h_ΔW₂_meas : Measurable ΔW₂ := (W.measurable_eval b₂).sub (W.measurable_eval a₂)
+  have h_f_comap_le :
+      MeasurableSpace.comap f inferInstance ≤
+        ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
+    intro u hu
+    obtain ⟨v, hv, rfl⟩ := hu
+    have h_naturalFilter_eq :
+        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂
+          = ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
+      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂ = _
+      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
+        MeasureTheory.Filtration.natural
+      rfl
+    rw [← h_naturalFilter_eq]
+    exact h_f_F_meas.measurable hv
+  have h_indep_f_ΔW₂ : ProbabilityTheory.IndepFun f ΔW₂ P := by
+    rw [ProbabilityTheory.IndepFun_iff]
+    intro u v hu hv
+    rw [ProbabilityTheory.Indep_iff] at h_indep_F_ΔW₂
+    exact h_indep_F_ΔW₂ u v (h_f_comap_le u hu) hv
+  have h_ΔW₂_mean : ∫ ω, ΔW₂ ω ∂P = 0 := brownian_incr_mean W ha₂_nn h₂
+  rw [show (fun ω => f ω * ΔW₂ ω) = f * ΔW₂ from rfl,
+    h_indep_f_ΔW₂.integral_mul_eq_mul_integral h_f_meas.aestronglyMeasurable
+    h_ΔW₂_meas.aestronglyMeasurable, h_ΔW₂_mean, mul_zero]
+
 /-- **Clamped-increment identity.** For `s ≤ t`,
 `simpleIntegral W H t − simpleIntegral W H s = ∑ᵢ ξᵢ·(W_{cᵢ₊₁} − W_{cᵢ})` where
 `cᵢ = max s (min pᵢ t)` clamps the partition points into `[s, t]`. The increment
