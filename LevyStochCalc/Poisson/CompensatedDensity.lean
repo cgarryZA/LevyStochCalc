@@ -1433,4 +1433,16 @@ lemma rectSimple_dense_L2 (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : Ω 
     (fun f g hf hg => hf.add hg) (fun f hf => hf.aestronglyMeasurable μ) hf hε
   exact ⟨g, hg, hgerr⟩
 
+/-- **Rectangle-simple `L²` approximating sequence.** Any `L²` function on `Ω × E`
+(finite `μ`, **general `E`**) is the `L²`-limit of a sequence of rectangle-simple
+functions — the form consumed by the `masterApprox` Cauchy/limit construction. -/
+lemma rectSimple_L2_tendsto (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : Ω × E → ℝ}
+    (hf : MeasureTheory.MemLp f 2 μ) :
+    ∃ g : ℕ → (Ω × E → ℝ), (∀ n, IsRectSimple (g n)) ∧
+      Filter.Tendsto (fun n => MeasureTheory.eLpNorm (f - g n) 2 μ) Filter.atTop (nhds 0) := by
+  choose g hg hgerr using fun n : ℕ =>
+    rectSimple_dense_L2 μ hf (ENNReal.inv_ne_zero.mpr (ENNReal.natCast_ne_top n))
+  exact ⟨g, hg, tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    ENNReal.tendsto_inv_nat_nhds_zero (fun _ => zero_le) hgerr⟩
+
 end LevyStochCalc.Poisson.Compensated
