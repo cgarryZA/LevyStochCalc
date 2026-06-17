@@ -1461,6 +1461,15 @@ noncomputable def stepIntegral
     {T : ℝ} {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T) (t : ℝ) (ω : Ω) : ℝ :=
   ∑ j, simpleIntegral N (Φ j) t ω
 
+/-- The step integral vanishes at time `0` (each piece does). -/
+lemma stepIntegral_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T) (ω : Ω) :
+    stepIntegral N Φ 0 ω = 0 := by
+  simp [stepIntegral, simpleIntegral_zero]
+
 /-- A finite family of adapted simple predictables integrates to a martingale on the
 natural filtration (the finite sum of the per-piece compensated martingales). -/
 lemma martingale_stepIntegral_compensated
