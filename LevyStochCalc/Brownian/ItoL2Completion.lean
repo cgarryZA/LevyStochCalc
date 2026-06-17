@@ -2622,6 +2622,48 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
   rw [hbridge Hp hHp_meas] at this
   exact this
 
+/-- **Conjunct 3: the L²-isometry** `∫⁻‖F T‖² = ∫⁻∫⁻_{[0,T]}‖H‖²` for `T > 0`.
+The squared `L²`-norm of `Iₙ(T)` equals `∫⁻∫⁻_{[0,T]}‖Gₙ.eval‖²` (intermediate
+isometry), converges to `∫⁻‖F T‖²` (norm continuity of the `L²`-limit) and to
+`∫⁻∫⁻_{[0,T]}‖H‖²` (`masterApprox_evalNorm_tendsto`); uniqueness of limits. -/
+lemma isometry_stochasticIntegralBrownian {T : ℝ} (hT : 0 < T) :
+    ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
+  set Flp := stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global T with hFlp
+  have htend : Filter.Tendsto (fun n => masterLp W H h_meas h_progMeas h_sq_int_global T n)
+      Filter.atTop (nhds Flp) :=
+    (masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global (le_of_lt hT)).tendsto_limUnder
+  have hn := (htend.enorm).ennrpow_const 2
+  simp only [MeasureTheory.Lp.enorm_def] at hn
+  -- limit `eLpNorm ↑↑Flp ^ 2 = ∫⁻‖F T‖²`
+  have hlim : MeasureTheory.eLpNorm (↑↑Flp : Ω → ℝ) 2 P ^ (2 : ℝ)
+      = ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+    rw [eLpNorm_sq_eq_lintegral_nnnorm_sq]
+    refine lintegral_congr_ae ?_
+    filter_upwards [stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global T]
+      with ω hF
+    rw [hF]
+  rw [hlim] at hn
+  have h_a : Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop
+      (nhds (∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)) := by
+    refine hn.congr' ?_
+    filter_upwards [Filter.eventually_ge_atTop ⌈T⌉₊] with n hn'
+    have hcn : T ≤ (n : ℝ) + 1 := by
+      have h1' : T ≤ (⌈T⌉₊ : ℝ) := Nat.le_ceil T
+      have h2' : (⌈T⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn'
+      linarith
+    rw [MeasureTheory.eLpNorm_congr_ae
+        (masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n (le_of_lt hT) hcn),
+      eLpNorm_sq_eq_lintegral_nnnorm_sq,
+      simpleIntegral_intermediate_isometry W
+        (masterApprox W H h_meas h_progMeas h_sq_int_global n)
+        (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) (le_of_lt hT)]
+  exact tendsto_nhds_unique h_a
+    (masterApprox_evalNorm_tendsto W H h_meas h_progMeas h_sq_int_global hT)
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
