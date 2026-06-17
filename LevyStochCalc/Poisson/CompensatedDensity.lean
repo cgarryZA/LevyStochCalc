@@ -1223,4 +1223,19 @@ lemma IsRectSimple.measurable {g : Ω × E → ℝ} (hg : IsRectSimple g) : Meas
     refine Measurable.add ?_ (ih (fun s hs => hL s (List.mem_cons_of_mem t hs)))
     exact measurable_const.mul (measurable_const.indicator (ht.1.prod ht.2))
 
+/-- Rectangle-simple functions are a.e.-strongly-measurable for any measure. -/
+lemma IsRectSimple.aestronglyMeasurable {g : Ω × E → ℝ} (hg : IsRectSimple g)
+    (μ : Measure (Ω × E)) : MeasureTheory.AEStronglyMeasurable g μ :=
+  hg.measurable.aestronglyMeasurable
+
+/-- Rectangle-simple functions are closed under finite sums. -/
+lemma IsRectSimple.sum {ι : Type*} (s : Finset ι) (f : ι → Ω × E → ℝ)
+    (h : ∀ i ∈ s, IsRectSimple (f i)) : IsRectSimple (∑ i ∈ s, f i) := by
+  classical
+  induction s using Finset.induction with
+  | empty => simpa using IsRectSimple.zero
+  | insert i s hi ih =>
+    rw [Finset.sum_insert hi]
+    exact (h i (Finset.mem_insert_self i s)).add (ih (fun j hj => h j (Finset.mem_insert_of_mem hj)))
+
 end LevyStochCalc.Poisson.Compensated
