@@ -739,4 +739,52 @@ lemma simpleIntegral_sub_eq_increment_ae
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [hω i]; ring
 
+/-- `Ioc a B \ Ioc a c = Ioc c B` when `a ≤ c`. -/
+lemma Ioc_diff_Ioc_left_eq {a c B : ℝ} (hac : a ≤ c) :
+    Set.Ioc a B \ Set.Ioc a c = Set.Ioc c B := by
+  ext x
+  simp only [Set.mem_diff, Set.mem_Ioc, not_and, not_le]
+  constructor
+  · rintro ⟨⟨hax, hxB⟩, h2⟩
+    exact ⟨h2 hax, hxB⟩
+  · rintro ⟨hcx, hxB⟩
+    exact ⟨⟨lt_of_le_of_lt hac hcx, hxB⟩, fun _ => hcx⟩
+
+/-- **The increment rectangle is a clean box.** For `0 ≤ s ≤ t`,
+`timeRect i t \ timeRect i s = Ioc (max s (min tᵢ t)) (max s (min tᵢ₊₁ t)) ×ˢ Aᵢ`.
+This is the compensated analogue of the Brownian clamped increment
+`W(max s (min tᵢ₊₁ t)) − W(max s (min tᵢ t))`; expressing the set-difference as a
+box lets the future-increment independence (`joint_past_future_independent`) apply. -/
+lemma timeRect_sdiff_eq_box
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    φ.timeRect i t \ φ.timeRect i s
+      = Set.Ioc (max s (min (φ.partition i.castSucc) t))
+          (max s (min (φ.partition i.succ) t)) ×ˢ φ.A i := by
+  have hpc_nn : 0 ≤ φ.partition i.castSucc := by
+    have := φ.partition_strictMono.monotone (Fin.zero_le i.castSucc)
+    rwa [φ.partition_zero] at this
+  have hpc_ps : φ.partition i.castSucc < φ.partition i.succ :=
+    φ.partition_strictMono Fin.castSucc_lt_succ
+  rw [SimplePredictable.timeRect, SimplePredictable.timeRect, Set.prod_diff_prod,
+    Set.diff_self, Set.prod_empty, Set.empty_union]
+  congr 1
+  set pc := φ.partition i.castSucc
+  set ps := φ.partition i.succ
+  by_cases hpc_s : pc ≤ s
+  · -- `tᵢ ≤ s`: lower clamps coincide at `tᵢ`; the `s`-rectangle's top is `min ps s`.
+    rw [min_eq_left hpc_s, min_eq_left (hpc_s.trans hst), max_eq_left hpc_s]
+    by_cases hsps : s ≤ ps
+    · rw [min_eq_right hsps, max_eq_right (le_min hsps hst),
+        Ioc_diff_Ioc_left_eq hpc_s]
+    · push_neg at hsps
+      rw [min_eq_left hsps.le, min_eq_left (hsps.le.trans hst), max_eq_left hsps.le,
+        Set.diff_self, Set.Ioc_self]
+  · -- `s < tᵢ`: the `s`-rectangle is empty; clamps reduce to the `t`-rectangle.
+    push_neg at hpc_s
+    rw [min_eq_right hpc_s.le, min_eq_right (hpc_s.le.trans hpc_ps.le),
+      Set.Ioc_self, Set.diff_empty,
+      max_eq_right (le_min hpc_s.le hst),
+      max_eq_right (le_min (hpc_s.trans hpc_ps).le hst)]
+
 end LevyStochCalc.Poisson.Compensated
