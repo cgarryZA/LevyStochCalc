@@ -547,4 +547,123 @@ lemma lintegral_eval_sq_clamped
   rw [MeasureTheory.lintegral_finsetSum _ (fun i _ => h_outer_meas i)]
   exact Finset.sum_congr rfl (fun i _ => lintegral_indicator_fullRect_clamped φ i _ ht)
 
+/-- The simple integrand `eval`, as a function of the mark `e` (with `s`, `ω`
+fixed), is measurable: it is a finite sum of indicators of the measurable mark
+sets `Aᵢ` (cut by whether `s` lies in the `i`-th time interval). -/
+lemma eval_mark_measurable
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (s : ℝ) (ω : Ω) :
+    Measurable (fun e : E => φ.eval s e ω) := by
+  simp_rw [SimplePredictable.eval_eq_sum_indicator φ s _ ω]
+  refine Finset.measurable_sum _ (fun i _ => ?_)
+  have h_meas_fullRect : MeasurableSet (φ.fullRect i) := by
+    unfold SimplePredictable.fullRect
+    exact measurableSet_Ioc.prod (φ.A_measurable i)
+  exact (Measurable.indicator measurable_const h_meas_fullRect).comp measurable_prodMk_left
+
+/-- The inner mark-integral `∫⁻_E ‖φ.eval s e ω‖² ∂ν`, as an explicit function of
+the running time `s`: `∑_i 1_{(tᵢ, tᵢ₊₁]}(s) · ‖ξᵢ ω‖² · ν(Aᵢ)`. Measurable in `s`
+and finite at each `s`. -/
+lemma inner_lintegral_eval_sq_eq
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (s : ℝ) (ω : Ω) :
+    ∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν
+      = ∑ i : Fin φ.N,
+        (Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ)).indicator
+          (fun _ => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 * ν (φ.A i)) s := by
+  simp_rw [SimplePredictable.eval_sq_eq_sum_indicator φ s _ ω]
+  have h_inner_meas : ∀ i : Fin φ.N,
+      Measurable (fun e : E =>
+        (φ.fullRect i).indicator (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e)) := by
+    intro i
+    have h_meas_fullRect : MeasurableSet (φ.fullRect i) := by
+      unfold SimplePredictable.fullRect
+      exact measurableSet_Ioc.prod (φ.A_measurable i)
+    exact (Measurable.indicator measurable_const h_meas_fullRect).comp measurable_prodMk_left
+  rw [MeasureTheory.lintegral_finsetSum _ (fun i _ => h_inner_meas i)]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  by_cases hs : s ∈ Set.Ioc (φ.partition i.castSucc) (φ.partition i.succ)
+  · rw [Set.indicator_of_mem hs]
+    rw [show (fun e : E => (φ.fullRect i).indicator
+          (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e))
+        = (φ.A i).indicator (fun _ : E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) from by
+      funext e
+      by_cases he : e ∈ φ.A i
+      · rw [Set.indicator_of_mem he, Set.indicator_of_mem
+          (show (s, e) ∈ φ.fullRect i from Set.mem_prod.mpr ⟨hs, he⟩)]
+      · rw [Set.indicator_of_notMem he, Set.indicator_of_notMem
+          (show (s, e) ∉ φ.fullRect i from fun hmem => he (Set.mem_prod.mp hmem).2)]]
+    rw [MeasureTheory.lintegral_indicator_const (φ.A_measurable i)]
+  · rw [Set.indicator_of_notMem hs]
+    rw [show (fun e : E => (φ.fullRect i).indicator
+          (fun _ : ℝ × E => (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2) (s, e)) = fun _ => 0 from by
+      funext e
+      rw [Set.indicator_of_notMem (show (s, e) ∉ φ.fullRect i from
+        fun hmem => hs (Set.mem_prod.mp hmem).1)]]
+    simp
+
+/-- The inner mark-integral `∫⁻_E ‖φ.eval s e ω‖² ∂ν` is finite at each `s`
+(each summand is bounded by `‖ξᵢ ω‖² · ν(Aᵢ) < ⊤`). -/
+lemma inner_lintegral_eval_sq_ne_top
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (s : ℝ) (ω : Ω) :
+    ∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ≠ ⊤ := by
+  rw [inner_lintegral_eval_sq_eq φ s ω]
+  refine (ENNReal.sum_lt_top.mpr (fun i _ => ?_)).ne
+  refine lt_of_le_of_lt (Set.indicator_le_self _ _ s) ?_
+  exact ENNReal.mul_lt_top (by simp) (lt_top_iff_ne_top.mpr (φ.A_finite i))
+
+/-- Measurability of the inner mark-integral as a function of running time `s`. -/
+lemma measurable_inner_lintegral_eval_sq
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (ω : Ω) :
+    Measurable (fun s : ℝ => ∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν) := by
+  simp_rw [inner_lintegral_eval_sq_eq φ _ ω]
+  refine Finset.measurable_sum _ (fun i _ => ?_)
+  exact (measurable_const.indicator measurableSet_Ioc)
+
+/-- **Clamped compensator, Bochner form.** For `0 ≤ t`,
+`∫₀ᵗ ∫_E (φ.eval s e ω)² ∂ν ∂s = ∑_i (referenceIntensity ν (timeRect i t)).toReal · ξᵢ²`.
+Bochner analogue of `lintegral_eval_sq_clamped`: convert both the inner mark-integral
+and the outer time-integral to lintegrals (both integrands are nonnegative; the inner
+mark-lintegral is finite by `inner_lintegral_eval_sq_ne_top`), apply
+`lintegral_eval_sq_clamped`, and take `toReal`. This is the explicit form of the
+quadratic-variation compensator. -/
+lemma setIntegral_eval_sq_Icc_clamped
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (ω : Ω) {t : ℝ} (ht : 0 ≤ t) :
+    ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ.eval s e ω) ^ 2 ∂ν ∂volume
+      = ∑ i : Fin φ.N,
+        (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t)).toReal
+          * (φ.ξ i ω) ^ 2 := by
+  have h_norm_sq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _), show ‖x‖ ^ 2 = x ^ 2 from by
+        rw [Real.norm_eq_abs, sq_abs]]
+  -- Inner mark-integral as a `toReal` of the inner lintegral.
+  have hg_eq : ∀ s : ℝ, ∫ e, (φ.eval s e ω) ^ 2 ∂ν
+      = (∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal := by
+    intro s
+    rw [MeasureTheory.integral_eq_lintegral_of_nonneg_ae
+      (Filter.Eventually.of_forall (fun e => sq_nonneg _))
+      ((eval_mark_measurable φ s ω).pow_const 2).aestronglyMeasurable]
+    congr 1
+    exact lintegral_congr (fun e => (h_norm_sq _).symm)
+  -- Outer time-integral as a `toReal` of the outer lintegral.
+  rw [show (fun s : ℝ => ∫ e, (φ.eval s e ω) ^ 2 ∂ν)
+        = (fun s : ℝ => (∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal) from funext hg_eq]
+  rw [MeasureTheory.integral_eq_lintegral_of_nonneg_ae
+    (Filter.Eventually.of_forall (fun s => ENNReal.toReal_nonneg))
+    (measurable_inner_lintegral_eval_sq φ ω).ennreal_toReal.aestronglyMeasurable.restrict]
+  rw [show (fun s : ℝ => ENNReal.ofReal (∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal)
+        = (fun s : ℝ => ∫⁻ e, (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν) from funext (fun s =>
+      ENNReal.ofReal_toReal (inner_lintegral_eval_sq_ne_top φ s ω))]
+  rw [lintegral_eval_sq_clamped φ ω ht]
+  rw [ENNReal.toReal_sum (fun i _ => ENNReal.mul_ne_top (by simp)
+    (referenceIntensity_timeRect_ne_top φ i t))]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [ENNReal.toReal_mul, mul_comm]
+  congr 1
+  rw [h_norm_sq, ENNReal.toReal_ofReal (sq_nonneg _)]
+
 end LevyStochCalc.Poisson.Compensated
