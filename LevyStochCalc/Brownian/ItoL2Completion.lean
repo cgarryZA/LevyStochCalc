@@ -3467,36 +3467,24 @@ lemma horizon_lintegral_right_tendsto {s : ℝ} (hs : 0 ≤ s) :
   filter_upwards [self_mem_nhdsWithin] with r hr
   exact (horizon_lintegral_add H h_meas hs (le_of_lt hr)).symm
 
-/-- **Conjunct 1 on `rightCont`: `F` is a martingale wrt `(naturalFiltration W).rightCont`.**
-Right-`L²`-continuity of the slices (`∫⁻‖F r − F s‖² = ofReal((∫⁻∫⁻_{[0,r]}).toReal −
-(∫⁻∫⁻_{[0,s]}).toReal)` via orthogonality + isometry, `→ 0` by horizon right-continuity)
-feeds `martingale_rightCont_of_tendsto_eLpNorm_one`. -/
-lemma martingale_rightCont_stochasticIntegralBrownian :
-    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
-  refine martingale_rightCont_of_tendsto_eLpNorm_one
-    (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) (fun s => ?_)
-  -- reduce L¹ to L² continuity
-  have hF_aesm : ∀ t, MeasureTheory.AEStronglyMeasurable
-      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) P :=
-    fun t => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).aestronglyMeasurable
+/-- **Right-`L²`-continuity of the Itô integral process.** `‖F r − F s‖_{L²} → 0` as
+`r ↓ s`. The squared increment `∫⁻‖F r − F s‖²` equals `ofReal((∫⁻∫⁻_{[0,r]}).toReal −
+(∫⁻∫⁻_{[0,s]}).toReal)` (orthogonality + isometry) and `→ 0` by horizon
+right-continuity. -/
+lemma stochasticIntegralBrownian_eLpNorm_two_right_tendsto (s : ℝ) :
+    Filter.Tendsto (fun r => MeasureTheory.eLpNorm
+        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) 2 P)
+      (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
   suffices hsq : Filter.Tendsto (fun r => ∫⁻ ω,
       (‖(stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
         - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
       (nhdsWithin s (Set.Ioi s)) (nhds 0) by
-    have hle2 : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
-        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) 2 P)
-        (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
-      have h2 := hsq.ennrpow_const ((1 : ℝ) / 2)
-      rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h2
-      refine h2.congr (fun r => ?_)
-      rw [← eLpNorm_sq_eq_lintegral_nnnorm_sq, ← ENNReal.rpow_mul,
-        show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
-    exact tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hle2
-      (Filter.Eventually.of_forall (fun r => bot_le))
-      (Filter.Eventually.of_forall (fun r => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le
-        (by norm_num) ((hF_aesm r).sub (hF_aesm s))))
+    have h2 := hsq.ennrpow_const ((1 : ℝ) / 2)
+    rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h2
+    refine h2.congr (fun r => ?_)
+    rw [← eLpNorm_sq_eq_lintegral_nnnorm_sq, ← ENNReal.rpow_mul,
+      show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
   -- the squared increment
   rcases le_or_gt 0 s with hs | hs
   · -- s ≥ 0: orthogonality + isometry + horizon continuity
@@ -3557,6 +3545,24 @@ lemma martingale_rightCont_stochasticIntegralBrownian :
       stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas h_sq_int_global hs]
       with ω hr0 hs0
     simp [hr0, hs0]
+
+/-- **Conjunct 1 on `rightCont`: `F` is a martingale wrt `(naturalFiltration W).rightCont`.**
+Right-`L²`-continuity of the slices (`stochasticIntegralBrownian_eLpNorm_two_right_tendsto`)
+feeds `martingale_rightCont_of_tendsto_eLpNorm_one`. -/
+lemma martingale_rightCont_stochasticIntegralBrownian :
+    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
+  refine martingale_rightCont_of_tendsto_eLpNorm_one
+    (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) (fun s => ?_)
+  have hF_aesm : ∀ t, MeasureTheory.AEStronglyMeasurable
+      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) P :=
+    fun t => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas
+      h_sq_int_global t).aestronglyMeasurable
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
+    (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W H h_meas h_progMeas h_sq_int_global s)
+    (Filter.Eventually.of_forall (fun r => bot_le))
+    (Filter.Eventually.of_forall (fun r => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le
+      (by norm_num) ((hF_aesm r).sub (hF_aesm s))))
 
 include h_meas h_sq_int_global in
 /-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is finite in `L²(P ⊗ vol|_{[0,t]})`,
