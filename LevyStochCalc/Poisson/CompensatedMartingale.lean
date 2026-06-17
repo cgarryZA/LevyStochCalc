@@ -787,4 +787,108 @@ lemma timeRect_sdiff_eq_box
       max_eq_right (le_min hpc_s.le hst),
       max_eq_right (le_min (hpc_s.trans hpc_ps).le hst)]
 
+/-! ### Set-level quadratic-variation isometry
+
+The increment squares onto the increment boxes; off-diagonal cross terms vanish
+(independence + zero mean), and diagonal terms give the box intensities
+(independence + `compensated_second_moment`). -/
+
+/-- **Past-independence of a future box increment.** For a box `B = Ioc a b ×ˢ A`
+(`0 ≤ a`, `A` measurable with finite `ν`-mass) and any `f` measurable w.r.t. the
+"past at `a`" σ-algebra, `f` and `Ñ(B)` are independent. Repackages
+`joint_past_future_independent` at the level of `IndepFun`. -/
+lemma indepFun_past_compensated_box
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {A : Set E} (hA : MeasurableSet A) (hAf : ν A ≠ ⊤)
+    {f : Ω → ℝ}
+    (hf : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic a ×ˢ Set.univ ∧ MeasurableSet C },
+        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) f) :
+    ProbabilityTheory.IndepFun f (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) P := by
+  have h_box_meas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
+  have hf_comap_le :
+      MeasurableSpace.comap f inferInstance ≤
+        ⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic a ×ˢ Set.univ ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance := by
+    intro u hu
+    obtain ⟨v, hv, rfl⟩ := hu
+    exact hf.measurable hv
+  have hÑ_comap_le :
+      MeasurableSpace.comap (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) inferInstance ≤
+        MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc a b ×ˢ A)) inferInstance := by
+    intro u hu
+    obtain ⟨v, hv, rfl⟩ := hu
+    refine ⟨(fun x : ℝ≥0∞ => x.toReal -
+      (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal) ⁻¹' v, ?_, ?_⟩
+    · exact (ENNReal.measurable_toReal.sub_const _) hv
+    · ext ω; rfl
+  rw [ProbabilityTheory.IndepFun_iff]
+  intro u v hu hv
+  have h_indep := N.joint_past_future_independent ha hab hA hAf
+  rw [ProbabilityTheory.Indep_iff] at h_indep
+  exact h_indep u v (hf_comap_le u hu) (hÑ_comap_le v hv)
+
+/-- **Diagonal increment second moment (weighted).** For an adapted `ξᵢ`, an
+`ℱ_s`-measurable weight `g`, and `0 ≤ s ≤ t` in the genuine case (the clamped
+increment box is non-degenerate), `∫ (g·ξᵢ²)·Ñ(Rᵢ)² = (∫ g·ξᵢ²)·ν̂(Rᵢ).toReal`,
+where `Rᵢ = timeRect i t \ timeRect i s`. By `timeRect_sdiff_eq_box` the increment
+is a box in the future of its lower clamp `a = max s (min tᵢ t)`; `g·ξᵢ²` is
+`ℱ_a`-measurable, so it is independent of `Ñ(Rᵢ)²`; the mean of `Ñ(Rᵢ)²` is
+`ν̂(Rᵢ).toReal` (`compensated_second_moment`). -/
+lemma diagonal_increment_sq
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
+    (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+    (h_genuine : max s (min (φ.partition i.castSucc) t) < max s (min (φ.partition i.succ) t)) :
+    ∫ ω, (g ω * (φ.ξ i ω) ^ 2) * (N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) ^ 2 ∂P
+      = (∫ ω, g ω * (φ.ξ i ω) ^ 2 ∂P)
+          * (LevyStochCalc.Poisson.referenceIntensity ν
+              (φ.timeRect i t \ φ.timeRect i s)).toReal := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  set pc := φ.partition i.castSucc with hpc
+  set ps := φ.partition i.succ with hps
+  set a := max s (min pc t) with ha_def
+  set b := max s (min ps t) with hb_def
+  have ha_nn : 0 ≤ a := hs.trans (le_max_left _ _)
+  -- genuine ⟹ pc ≤ t ⟹ pc ≤ a.
+  have hpc_le_t : pc ≤ t := by
+    by_contra h; push_neg at h
+    have hps_gt : pc < ps := φ.partition_strictMono Fin.castSucc_lt_succ
+    rw [ha_def, hb_def, min_eq_right h.le, min_eq_right (h.le.trans hps_gt.le)] at h_genuine
+    exact lt_irrefl _ h_genuine
+  have hpc_le_a : pc ≤ a := by rw [ha_def, min_eq_left hpc_le_t]; exact le_max_right _ _
+  have hbox : φ.timeRect i t \ φ.timeRect i s = Set.Ioc a b ×ˢ φ.A i :=
+    timeRect_sdiff_eq_box φ i hs hst
+  have hbox_meas : MeasurableSet (Set.Ioc a b ×ˢ φ.A i) := measurableSet_Ioc.prod (φ.A_measurable i)
+  have hbox_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ φ.A i) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top (φ.A_finite i)
+  -- `g·ξᵢ²` is `ℱ_a`-measurable.
+  have hf_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq a)
+      (fun ω => g ω * (φ.ξ i ω) ^ 2) := by
+    have hg_a := hg.mono (ℱ.mono (le_max_left s (min pc t)))
+    have hξ_a := h_adapt_i.mono (ℱ.mono hpc_le_a)
+    exact hg_a.mul (by simpa [pow_two] using hξ_a.mul hξ_a)
+  -- Independence of `g·ξᵢ²` and `Ñ(box)`.
+  have h_indep : ProbabilityTheory.IndepFun (fun ω => g ω * (φ.ξ i ω) ^ 2)
+      (fun ω => N.compensated (Set.Ioc a b ×ˢ φ.A i) ω) P :=
+    indepFun_past_compensated_box N ha_nn h_genuine (φ.A_measurable i) (φ.A_finite i) hf_meas
+  have h_indep_sq : ProbabilityTheory.IndepFun (fun ω => g ω * (φ.ξ i ω) ^ 2)
+      (fun ω => (N.compensated (Set.Ioc a b ×ˢ φ.A i) ω) ^ 2) P :=
+    h_indep.comp measurable_id (measurable_id.pow_const 2)
+  rw [hbox]
+  rw [h_indep_sq.integral_fun_mul_eq_mul_integral
+    (by
+      have hg_m : Measurable g := (hg.mono (ℱ.le' s)).measurable
+      exact (hg_m.mul ((φ.ξ_measurable i).pow_const 2)).aestronglyMeasurable)
+    (((ENNReal.measurable_toReal.comp
+      (N.measurable_eval hbox_meas)).sub_const _).pow_const 2).aestronglyMeasurable]
+  rw [compensated_second_moment N hbox_meas hbox_fin]
+
 end LevyStochCalc.Poisson.Compensated
