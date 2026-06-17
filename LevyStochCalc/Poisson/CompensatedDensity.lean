@@ -1445,4 +1445,51 @@ lemma rectSimple_L2_tendsto (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : �
   exact ⟨g, hg, tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     ENNReal.tendsto_inv_nat_nhds_zero (fun _ => zero_le) hgerr⟩
 
+/-! ### Step (finite-sum) predictable integrands
+
+The mark-discretised approximant is rank-`>1` in the mark, so it is a finite
+`ℝ`-combination of `SimplePredictable` pieces rather than a single one. Its
+compensated integral is the sum of the pieces' integrals, and (being a sum of the
+per-piece martingales) it is again a martingale on the natural filtration. -/
+
+/-- The compensated integral of a **finite family** of simple predictable
+integrands: `∑ⱼ ∫ φⱼ dÑ`. -/
+noncomputable def stepIntegral
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T) (t : ℝ) (ω : Ω) : ℝ :=
+  ∑ j, simpleIntegral N (Φ j) t ω
+
+/-- A finite family of adapted simple predictables integrates to a martingale on the
+natural filtration (the finite sum of the per-piece compensated martingales). -/
+lemma martingale_stepIntegral_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T)
+    (h_adapt : ∀ j : Fin k, ∀ i : Fin (Φ j).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Poisson.naturalFiltration N).seq ((Φ j).partition i.castSucc))
+        ((Φ j).ξ i)) :
+    MeasureTheory.Martingale (fun t : ℝ => stepIntegral N Φ t)
+      (LevyStochCalc.Poisson.naturalFiltration N) P := by
+  have hfun : (fun t : ℝ => stepIntegral N Φ t)
+      = ∑ j : Fin k, (fun t : ℝ => simpleIntegral N (Φ j) t) := by
+    funext t ω
+    simp only [stepIntegral, Finset.sum_apply]
+  rw [hfun]
+  have hmart : ∀ s : Finset (Fin k),
+      MeasureTheory.Martingale (∑ j ∈ s, fun t : ℝ => simpleIntegral N (Φ j) t)
+        (LevyStochCalc.Poisson.naturalFiltration N) P := by
+    intro s
+    induction s using Finset.induction with
+    | empty =>
+        simp only [Finset.sum_empty]
+        exact MeasureTheory.martingale_zero ℝ _ P
+    | insert j s hj ih =>
+        rw [Finset.sum_insert hj]
+        exact (martingale_simpleIntegral_compensated N (Φ j) (h_adapt j)).add ih
+  exact hmart Finset.univ
+
 end LevyStochCalc.Poisson.Compensated
