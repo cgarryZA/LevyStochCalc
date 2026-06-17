@@ -562,4 +562,82 @@ lemma dyadicEval_ae_tendsto_per_param
       dyadicAvg_eq_average_closedBall hT φ n (dyadicIndex n T hT x hx) ω e]
   simp_rw [h_bridge]; exact h_avg
 
+/-- `dyadicEval` inherits the bound `M`: at most one partition indicator fires, and each
+dyadic average is bounded by `M`. -/
+lemma dyadicEval_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (n : ℕ) (s : ℝ) (ω : Ω) (e : E) :
+    |dyadicEval T φ n s ω e| ≤ M := by
+  have hM_nn : 0 ≤ M := le_trans (abs_nonneg _) (hM ω 0 e)
+  unfold dyadicEval
+  by_cases h : ∃ i : Fin (2 ^ n),
+      dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ
+  · obtain ⟨i₀, hi₀⟩ := h
+    have huniq : ∀ j : Fin (2 ^ n), j ≠ i₀ →
+        ¬(dyadicPartition T n j.castSucc < s ∧ s ≤ dyadicPartition T n j.succ) := by
+      intro j hj ⟨hj1, hj2⟩
+      rcases lt_trichotomy i₀ j with hlt | heq | hgt
+      · have := (dyadicPartition_strictMono hT n).monotone (Fin.succ_le_castSucc_iff.mpr hlt)
+        linarith [hi₀.2]
+      · exact hj heq.symm
+      · have := (dyadicPartition_strictMono hT n).monotone (Fin.succ_le_castSucc_iff.mpr hgt)
+        linarith [hi₀.1]
+    rw [Finset.sum_eq_single i₀ (fun j _ hj => if_neg (huniq j hj))
+        (fun h => absurd (Finset.mem_univ _) h), if_pos hi₀]
+    exact dyadicAvg_bounded hT φ hM n i₀ ω e
+  · rw [not_exists] at h
+    rw [Finset.sum_eq_zero (fun i _ => if_neg (h i)), abs_zero]; exact hM_nn
+
+/-- `s ↦ dyadicEval T φ n s ω e` is measurable (finite sum of interval-indicators
+times constants). -/
+lemma dyadicEval_measurable_in_time {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (ω : Ω) (e : E) :
+    Measurable (fun s => dyadicEval T φ n s ω e) := by
+  unfold dyadicEval
+  exact Finset.measurable_sum _ (fun i _ =>
+    Measurable.ite measurableSet_Ioc measurable_const measurable_const)
+
+/-- **Per-`(ω,e)` `L²` time convergence:** for fixed `(ω, e)`, the time-`L²` error of
+the dyadic eval tends to `0`. Dominated convergence on the finite interval `[0,T]`
+(bound `(2M)²`, a.e. pointwise convergence from `dyadicEval_ae_tendsto_per_param`). -/
+lemma dyadicEval_inner_L2_tendsto
+    {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (ω : Ω) (e : E) :
+    Filter.Tendsto
+      (fun n => ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖φ ω s e - dyadicEval T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+      Filter.atTop (nhds 0) := by
+  have hM_nn : 0 ≤ M := le_trans (abs_nonneg _) (hM ω 0 e)
+  have h_meas_slice : Measurable (fun s : ℝ => φ ω s e) :=
+    h_meas.comp (by fun_prop : Measurable fun s : ℝ => ((ω, s, e) : Ω × ℝ × E))
+  have hsq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (‖x‖ ^ 2) := fun x => by
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _)]
+  rw [show (0 : ℝ≥0∞) = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0 : ℝ) T)) from by simp]
+  refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
+    (bound := fun _ => ENNReal.ofReal ((2 * M) ^ 2)) ?_ ?_ ?_ ?_
+  · intro n
+    exact ((ENNReal.continuous_coe.measurable.comp
+      (h_meas_slice.sub (dyadicEval_measurable_in_time φ n ω e)).nnnorm).pow_const 2).aemeasurable
+  · intro n
+    refine Filter.Eventually.of_forall (fun s => ?_)
+    simp only []
+    rw [hsq]
+    refine ENNReal.ofReal_le_ofReal ?_
+    have hb : ‖φ ω s e - dyadicEval T φ n s ω e‖ ≤ 2 * M := by
+      rw [Real.norm_eq_abs]
+      calc |φ ω s e - dyadicEval T φ n s ω e|
+          ≤ |φ ω s e| + |dyadicEval T φ n s ω e| := abs_sub _ _
+        _ ≤ M + M := add_le_add (hM ω s e) (dyadicEval_bounded hT φ hM n s ω e)
+        _ = 2 * M := by ring
+    nlinarith [norm_nonneg (φ ω s e - dyadicEval T φ n s ω e), hb, hM_nn]
+  · rw [MeasureTheory.lintegral_const]
+    exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top (MeasureTheory.measure_ne_top _ _)
+  · filter_upwards [dyadicEval_ae_tendsto_per_param hT φ h_meas hM ω e] with s hs
+    have hdiff : Filter.Tendsto (fun n => φ ω s e - dyadicEval T φ n s ω e)
+        Filter.atTop (nhds 0) := by
+      simpa using (tendsto_const_nhds (x := φ ω s e)).sub hs
+    have hg : Continuous (fun x : ℝ => (‖x‖₊ : ℝ≥0∞) ^ 2) :=
+      (ENNReal.continuous_pow 2).comp (ENNReal.continuous_coe.comp continuous_nnnorm)
+    simpa using (hg.tendsto 0).comp hdiff
+
 end LevyStochCalc.Poisson.Compensated
