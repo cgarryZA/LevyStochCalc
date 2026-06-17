@@ -237,4 +237,74 @@ lemma mark_truncation_L2_converges
         show (0 : ℝ≥0∞) = F N ω s e
         simp only [hF, Set.indicator_of_mem heS, sub_self]; simp
 
+/-! ### Dyadic time-discretisation (mark carried as a parameter)
+
+The time direction is discretised by dyadic averaging, mirroring `Brownian/ItoDensity`,
+but the integrand carries the mark `e`: the coefficient on the `k`-th dyadic interval is
+the *previous*-interval time-average `(2ⁿ/T)∫_{tₖ₋₁}^{tₖ} φ(ω,u,e) du` (shifted left, so
+it is `ℱ_{tₖ}`-measurable — adapted), evaluated as a function of `(ω, e)`. -/
+
+/-- Dyadic partition of `[0, T]` at level `n`: `tᵢ = i·T/2ⁿ`. -/
+noncomputable def dyadicPartition (T : ℝ) (n : ℕ) : Fin (2 ^ n + 1) → ℝ :=
+  fun i => (i : ℝ) * T / (2 ^ n : ℕ)
+
+lemma dyadicPartition_zero (T : ℝ) (n : ℕ) : dyadicPartition T n 0 = 0 := by
+  simp [dyadicPartition]
+
+lemma dyadicPartition_last (T : ℝ) (n : ℕ) :
+    dyadicPartition T n (Fin.last (2 ^ n)) = T := by
+  unfold dyadicPartition; rw [Fin.val_last]; field_simp
+
+lemma dyadicPartition_strictMono {T : ℝ} (hT : 0 < T) (n : ℕ) :
+    StrictMono (dyadicPartition T n) := by
+  intro i j hij
+  unfold dyadicPartition
+  have h_pos : (0 : ℝ) < (2 ^ n : ℕ) := by positivity
+  rw [div_lt_div_iff_of_pos_right h_pos]
+  exact mul_lt_mul_of_pos_right (by exact_mod_cast hij) hT
+
+lemma dyadicPartition_le_T {T : ℝ} (_hT : 0 < T) (n : ℕ) :
+    dyadicPartition T n (Fin.last (2 ^ n)) ≤ T :=
+  le_of_eq (dyadicPartition_last T n)
+
+/-- Dyadic mark-time average: the average of `φ(ω, ·, e)` over the `i`-th dyadic
+interval, as a function of `(ω, e)`. -/
+noncomputable def dyadicAvg
+    (T : ℝ) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) (e : E) : ℝ :=
+  ((2 ^ n : ℕ) / T) *
+    ∫ s in Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ), φ ω s e
+
+/-- Left-shifted dyadic average (value from the *previous* interval; `0` on the
+first), the adapted coefficient of the dyadic approximation. -/
+noncomputable def dyadicAvg_shifted
+    (T : ℝ) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (i : Fin (2 ^ n)) (ω : Ω) (e : E) : ℝ :=
+  if h : i.val = 0 then 0
+  else dyadicAvg T φ n ⟨i.val - 1, by omega⟩ ω e
+
+/-- Joint `(ω, e)`-measurability of the dyadic average (Fubini: the Bochner integral
+in `s` of a jointly measurable integrand is measurable in the remaining variables). -/
+lemma dyadicAvg_measurable
+    (T : ℝ) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (n : ℕ) (i : Fin (2 ^ n)) :
+    Measurable (fun q : Ω × E => dyadicAvg T φ n i q.1 q.2) := by
+  unfold dyadicAvg
+  refine Measurable.const_mul ?_ _
+  have h_reassoc : Measurable
+      (fun p : (Ω × E) × ℝ => φ p.1.1 p.2 p.1.2) :=
+    h_meas.comp (by fun_prop :
+      Measurable fun p : (Ω × E) × ℝ => ((p.1.1, p.2, p.1.2) : Ω × ℝ × E))
+  exact MeasureTheory.StronglyMeasurable.integral_prod_right'
+    (f := fun p : (Ω × E) × ℝ => φ p.1.1 p.2 p.1.2) h_reassoc.stronglyMeasurable |>.measurable
+
+lemma dyadicAvg_shifted_measurable
+    (T : ℝ) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (n : ℕ) (i : Fin (2 ^ n)) :
+    Measurable (fun q : Ω × E => dyadicAvg_shifted T φ n i q.1 q.2) := by
+  unfold dyadicAvg_shifted
+  by_cases h : i.val = 0
+  · simp only [h, ↓reduceDIte]; exact measurable_const
+  · simp only [h, ↓reduceDIte]; exact dyadicAvg_measurable T φ h_meas n _
+
 end LevyStochCalc.Poisson.Compensated
