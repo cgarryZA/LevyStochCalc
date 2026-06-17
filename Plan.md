@@ -66,6 +66,26 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
       analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
       `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
+      - *Density layer (`Poisson/CompensatedDensity.lean`) — DONE 2026-06-17.* The
+        analogue of Brownian `ItoDensity`. Time-discretisation (`dyadicEvalShifted`,
+        adapted, → φ in L²) **plus** the genuinely new mark-space piece kept fully
+        **general in `E`** (no countable-generation/standard-Borel): rectangle-simple
+        functions `∑ cⱼ 𝟙_{Aⱼ×ˢBⱼ}` are dense in `L²(μ)` on `Ω × E` via monotone-class
+        over the product π-system — `rectApprox_indicator` → `rectApprox_indicator_const`
+        / `RectApprox.const_smul` → `rectSimple_dense_L2` (`MemLp.induction_dense`) →
+        `rectSimple_L2_tendsto` (convergent sequence).
+      - *Next: masterApprox assembly + L²-limit + 4 conjuncts.* **Architectural note:**
+        `SimplePredictable` carries one mark set `Aᵢ`+coefficient `ξᵢ` per (strictly
+        increasing) time-piece, so its `eval` is rank-1 in the mark on each interval and
+        cannot represent `∑ⱼ ξⱼ(ω)𝟙_{Bⱼ}(e)`. The mark-discretised approximant is a
+        **finite sum** of such pieces; plan is a thin `StepPredictable` wrapper (finite
+        ℝ-combination of `SimplePredictable`s) whose `simpleIntegral` is the sum, so
+        martingale/quadVar/isometry pass by linearity (off-diagonal mark cross-terms
+        vanish on **disjoint** mark sets — arrange the rectangle approximation with
+        disjoint `Bⱼ`). This avoids touching the already-proven `CompensatedMartingale`
+        lemmas. Then mirror Brownian `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
+        `stochasticIntegralCompensated` as the `Lp` limit → 4 conjuncts → drop axiom
+        + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
