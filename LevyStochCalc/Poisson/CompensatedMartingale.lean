@@ -7,6 +7,7 @@ import LevyStochCalc.Poisson.CompensatedSimple
 import LevyStochCalc.Poisson.CompensatedIsometry
 import LevyStochCalc.Poisson.NaturalFiltration
 import Mathlib.Probability.Process.Adapted
+import Mathlib.Probability.ConditionalExpectation
 
 /-!
 # Martingale property of the simple compensated-Poisson integral
@@ -162,5 +163,41 @@ lemma simpleIntegral_term_integrable_compensated
     (φ.ξ_measurable i).aestronglyMeasurable (c := |M|) ?_
   filter_upwards with ω
   rw [Real.norm_eq_abs]; exact (hM ω).trans (le_abs_self _)
+
+/-- **Conditional mean-zero of a future compensated increment.** For `0 ≤ s < t'`
+and a finite-mass mark set `A`, the compensated mass of the future time-rectangle
+`(s, t'] ×ˢ A` has zero conditional expectation given `ℱ_s`: it is independent of
+`ℱ_s` (`joint_past_future_independent`) with mean `0` (`compensated_mean_zero`), so
+`condExp_indep_eq` collapses the conditional expectation to the (zero) mean. -/
+lemma compensated_condExp_future_eq_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {s t' : ℝ} (hs : 0 ≤ s) (hst : s < t') {A : Set E} (hA : MeasurableSet A)
+    (hA_fin : ν A ≠ ⊤) :
+    P[fun ω => N.compensated (Set.Ioc s t' ×ˢ A) ω
+        | (LevyStochCalc.Poisson.naturalFiltration N).seq s]
+      =ᵐ[P] fun _ => (0 : ℝ) := by
+  set B : Set (ℝ × E) := Set.Ioc s t' ×ˢ A with hB
+  have hB_meas : MeasurableSet B := measurableSet_Ioc.prod hA
+  have h_finite : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤ := by
+    rw [hB, LevyStochCalc.Poisson.referenceIntensity, MeasureTheory.Measure.prod_prod]
+    refine ENNReal.mul_ne_top ?_ hA_fin
+    refine ne_top_of_le_ne_top ?_ (MeasureTheory.Measure.restrict_le_self _)
+    rw [Real.volume_Ioc]; exact ENNReal.ofReal_ne_top
+  have hle₁ := (N.measurable_eval hB_meas).comap_le
+  have hle₂ := (LevyStochCalc.Poisson.naturalFiltration N).le' s
+  have hg : @Measurable Ω ℝ≥0∞ (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) _
+      (fun ω => N.N ω B) := fun u hu => ⟨u, hu, rfl⟩
+  have hf : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (fun ω => N.compensated B ω) :=
+    ((hg.ennreal_toReal).sub_const _).stronglyMeasurable
+  have hindep : ProbabilityTheory.Indep (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance)
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) P := by
+    rw [LevyStochCalc.Poisson.naturalFiltration_seq_eq]
+    exact (N.joint_past_future_independent hs hst hA hA_fin).symm
+  refine (MeasureTheory.condExp_indep_eq hle₁ hle₂ hf hindep).trans ?_
+  filter_upwards with ω
+  exact compensated_mean_zero N hB_meas h_finite
 
 end LevyStochCalc.Poisson.Compensated
