@@ -200,6 +200,41 @@ lemma compensated_condExp_future_eq_zero
   filter_upwards with ω
   exact compensated_mean_zero N hB_meas h_finite
 
+/-- **Conditional mean-zero of a time-rectangle increment `(a, b] ×ˢ A`** whose
+lower endpoint dominates the conditioning time when non-degenerate. Degenerate
+(`a = b`) increments are `0`; for `a = s` it is the base future increment; for
+`s < a` the tower property reduces it to the base case at `ℱ_a`. -/
+lemma compensated_condExp_Ioc_eq_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {s a b : ℝ} (hs : 0 ≤ s) (hab : a ≤ b) (hlow : a < b → s ≤ a)
+    {A : Set E} (hA : MeasurableSet A) (hA_fin : ν A ≠ ⊤) :
+    P[fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω
+        | (LevyStochCalc.Poisson.naturalFiltration N).seq s]
+      =ᵐ[P] fun _ => (0 : ℝ) := by
+  rcases eq_or_lt_of_le hab with hab_eq | hab_lt
+  · have hemp : (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) = fun _ => (0 : ℝ) := by
+      funext ω
+      rw [← hab_eq, Set.Ioc_self, Set.empty_prod]
+      unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp
+    rw [hemp]
+    exact Filter.EventuallyEq.of_eq
+      (MeasureTheory.condExp_const ((LevyStochCalc.Poisson.naturalFiltration N).le' s) (0 : ℝ))
+  · have hsa := hlow hab_lt
+    rcases eq_or_lt_of_le hsa with hsa_eq | hsa_lt
+    · rw [← hsa_eq]
+      exact compensated_condExp_future_eq_zero N hs (hsa_eq ▸ hab_lt) hA hA_fin
+    · have h_base := compensated_condExp_future_eq_zero N (le_trans hs hsa) hab_lt hA hA_fin
+      have hm₂a := (LevyStochCalc.Poisson.naturalFiltration N).le' a
+      haveI : SigmaFinite (P.trim hm₂a) := inferInstance
+      have h_tower := MeasureTheory.condExp_condExp_of_le (μ := P)
+        (f := fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω)
+        ((LevyStochCalc.Poisson.naturalFiltration N).mono hsa) hm₂a
+      refine h_tower.symm.trans ((MeasureTheory.condExp_congr_ae h_base).trans ?_)
+      exact Filter.EventuallyEq.of_eq
+        (MeasureTheory.condExp_const ((LevyStochCalc.Poisson.naturalFiltration N).le' s) (0 : ℝ))
+
 /-- **a.e.-additivity of the compensated mass on disjoint finite-intensity sets.**
 `Ñ(B ∪ C) =ᵐ Ñ(B) + Ñ(C)`. The reference intensity is a measure (additive
 everywhere), and `N(B), N(C)` are a.e. finite (`integer_valued`), so the `toReal`
