@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (12 currently live)
+## Tier 1: Honest cited axioms (11 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #3 (`kolmogorovChentsov_modification`) was PROVED axiom→theorem 2026-06-16: a
@@ -44,11 +44,11 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
-entries (#3, proved 2026-06-16; #5, proved 2026-06-17) are kept as
+entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17) are kept as
 `### Retired #N` / `### Resolved #N` headings below for traceability; they are
-NOT counted in the headline "12 currently live" figure. Only `### N.`
+NOT counted in the headline "11 currently live" figure. Only `### N.`
 (digit-leading) headings correspond to live axioms, so
-`grep -c "^### [0-9]" tools/cited_axioms.md == 12`.
+`grep -c "^### [0-9]" tools/cited_axioms.md == 11`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -180,13 +180,11 @@ literature integral forms.
 * **Mathlib status (May 2026)**: No compensated-Poisson integral in Mathlib (waits on PRM construction). The small/large decomposition is itself a derived statement once the integral exists; the `ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #18, in `Poisson/Compensated.lean`).
 * **Replacement plan**: derive as a theorem from `itoIsometry_diff_compensated` + a Mathlib-level linearity result on the compensated-Poisson L²-integral once that machinery becomes available.
 
-### 17. `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (added 2026-05-23; documented 2026-05-27 per 3rd-audit reconciliation)
+### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.
-* **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 3.2.6** + §3.2.B equation (2.20) (the L²-Itô integral is a continuous linear isometry from `L²(Ω × [0, T])` to `L²(Ω)`; the per-difference identity is the linear-isometry property applied to `(H₁ − H₂)`).
-* **Why a separate axiom**: in the present axiomatization `stochasticIntegral W H` is constructed via `Classical.choose` on `itoIsometry_brownian_unified_existence` (Tier 1 #5). The choose-witness depends on the integrand, so the difference-of-choices is not syntactically the choice-of-difference; linearity is not available from Tier 1 #5 alone. The per-difference isometry is therefore stated separately and used downstream in the σ-side Picard contraction estimate (`picardStep_diffusion_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`).
-* **Mathlib status (May 2026)**: same status as Tier 1 #5 — no general L²-Itô integral against Brownian motion in Mathlib (waits on BM construction). When Mathlib's L²-Itô integral lands as a continuous linear map, this axiom becomes a forwarder over its linearity + isometry.
-* **Replacement plan**: `theorem itoIsometry_diff_brownian := <linearity ∘ isometry>` when Mathlib's L²-Itô integral exposes the continuous-linear-isometry structure (likely follow-up to the Degenne et al stochastic-integration effort, arXiv:2511.20118).
+* **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 3.2.6** + §3.2.B.
+* **Status**: No longer an axiom — proved as a `theorem` in `Ito/Picard.lean`, forwarding to `isometry_diff_stochasticIntegralBrownian` (`Brownian/ItoL2Completion.lean`). This was unblocked by making `stochasticIntegral := stochasticIntegralBrownian` a genuine `L²`-limit construction (rather than `Classical.choose` on #5): both the integral difference and the integrand difference are realized as `L²`-limits of the same simple-integral difference sequence (`masterApprox_cross_diff_isometry`), and `tendsto_nhds_unique` equates the two limits. The consumer `picardStep_diffusion_diff_lipschitz_sq_componentwise` (`Ito/Picard.lean`) is unchanged.
 
 ### 18. `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (added 2026-05-23; documented 2026-05-27 per 3rd-audit reconciliation)
 

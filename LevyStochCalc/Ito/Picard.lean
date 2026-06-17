@@ -965,8 +965,8 @@ namespace LevyStochCalc.Brownian.Ito
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- **CITED AXIOM (Tier 1 #17): L²-isometry for the *difference* of two
-Brownian Itô integrals.**
+/-- **L²-isometry for the *difference* of two Brownian Itô integrals** (formerly
+cited axiom #17, now a theorem).
 
 For two progressively-measurable, L²-bounded integrands `H₁, H₂`, the
 difference `M¹_T - M²_T := ∫_0^T H₁ dW - ∫_0^T H₂ dW` satisfies the
@@ -974,22 +974,16 @@ L²-isometry against the *integrand difference*:
 
   `𝔼 |M¹_T - M²_T|² = 𝔼 ∫_0^T |H₁(s) - H₂(s)|² ds`.
 
-This is a standard consequence of L²-linearity + isometry of the Itô
-integral. In the present axiomatization, `stochasticIntegral W H` is
-constructed via `Classical.choose` on
-`itoIsometry_brownian_unified_existence` (Tier 1 #5), which does not
-expose linearity directly. We therefore state this difference-form
-isometry as a separate axiom.
-
 **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*,
 Springer 1991, **Theorem 3.2.6** + the unique-extension lemma for the
 L²-Itô integral as a continuous linear isometry from `L²(Ω × [0, T])`
-to `L²(Ω)` (Karatzas-Shreve §3.2.B, eq. (2.20) and following).
+to `L²(Ω)` (Karatzas-Shreve §3.2.B).
 
-**Replacement plan**: derive as a theorem from a Mathlib-level linearity
-result on the L²-Itô integral when that machinery becomes available.
-Tracked in `tools/cited_axioms.md` Tier 1 #17. -/
-axiom itoIsometry_diff_brownian
+Now that `stochasticIntegral` is the genuine `L²`-limit construction
+(`stochasticIntegralBrownian`), this follows from
+`isometry_diff_stochasticIntegralBrownian`: both the integral difference and the
+integrand difference are `L²`-limits of the same simple-integral difference. -/
+theorem itoIsometry_diff_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
     (H₁ H₂ : Ω → ℝ → ℝ)
@@ -1013,12 +1007,15 @@ axiom itoIsometry_diff_brownian
     (h_sq_int_global₂ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    (T : ℝ) (_hT : 0 < T) :
+    (T : ℝ) (hT : 0 < T) :
     ∫⁻ ω, (‖stochasticIntegral W H₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
               - stochasticIntegral W H₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
             : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+        (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  unfold stochasticIntegral
+  exact isometry_diff_stochasticIntegralBrownian W H₁ H₂ h_meas₁ h_meas₂
+    h_progMeas₁ h_progMeas₂ h_sq_int_global₁ h_sq_int_global₂ hT
 
 end LevyStochCalc.Brownian.Ito
 
