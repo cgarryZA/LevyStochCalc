@@ -8,9 +8,9 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **12 custom axioms** remain (was 13; **#5 closed 2026-06-17**). `cited_axioms.md`
-  "12 live". The 3 standard axioms (`propext`/`Classical.choice`/`Quot.sound`)
-  are the only others.
+- **11 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**).
+  `cited_axioms.md` "11 live". The 3 standard axioms
+  (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
 - **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
   `tools/sorry_baseline.txt`) — disappears with the #9 chain.
 - **6 of the 13 axioms gate the pinned dissertation surface** (the 21
@@ -66,10 +66,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
       analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
       `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
-- [ ] **A3 / #17, #18** `itoIsometry_diff_brownian`, `itoIsometry_diff_compensated`
-      — the per-difference L² isometries; fall out of A1/A2 (linearity of the
-      integral). Close immediately after. *(Off the pinned surface but trivial
-      once A1/A2 land; closing them removes axioms the Picard chain carries.)*
+- [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
+      cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
+      stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
+      then `isometry_diff_stochasticIntegralBrownian` (cross-integrand simple diff
+      isometry + L²-limit). **#18** `itoIsometry_diff_compensated` still blocked on A2/#6
+      (the compensated integral is `Classical.choose` on axiom #6 until #6 is built);
+      close it right after #6.
 - [ ] **A4 / #15** `itoFormula_continuousSemimartingale_axiom` — Itô formula for
       continuous semimartingales (KS 3.3.6), now resting on a real A1.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
