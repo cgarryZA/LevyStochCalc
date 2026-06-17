@@ -1126,4 +1126,36 @@ lemma simpleIntegral_sub_sq_weighted
       · exact offDiagonal_increment_zero N φ h_gt hs hst (h_adapt i) (h_adapt j) hg h_gen
   · intro h; exact absurd (Finset.mem_univ _) h
 
+/-- **`simpleIntegral N φ t ∈ L²(P)` at every running time `t`.** Each summand
+`ξᵢ·Ñ(timeRect i t)` is the product of a bounded coefficient and a compensated mass
+in `L²` (`compensated_sq_integrable`), so the finite sum is in `L²`. No adaptedness
+needed (unlike the full-horizon isometry route). -/
+lemma simpleIntegral_memLp_at
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T) (t : ℝ) :
+    MeasureTheory.MemLp (fun ω => simpleIntegral N φ t ω) 2 P := by
+  have h_unfold : (fun ω => simpleIntegral N φ t ω)
+      = ∑ i : Fin φ.N, fun ω => φ.ξ i ω * N.compensated (φ.timeRect i t) ω := by
+    funext ω; rw [Finset.sum_apply]; rfl
+  rw [h_unfold]
+  refine MeasureTheory.memLp_finsetSum' _ (fun i _ => ?_)
+  obtain ⟨M, hM⟩ := φ.ξ_bounded i
+  have hmeas : MeasurableSet (φ.timeRect i t) := measurableSet_Ioc.prod (φ.A_measurable i)
+  have hÑ_aesm : MeasureTheory.AEStronglyMeasurable
+      (fun ω => N.compensated (φ.timeRect i t) ω) P :=
+    ((ENNReal.measurable_toReal.comp (N.measurable_eval hmeas)).sub_const _).aestronglyMeasurable
+  have hÑ_memLp : MeasureTheory.MemLp (fun ω => N.compensated (φ.timeRect i t) ω) 2 P :=
+    (MeasureTheory.memLp_two_iff_integrable_sq hÑ_aesm).mpr
+      (compensated_sq_integrable N hmeas (referenceIntensity_timeRect_ne_top φ i t))
+  refine MeasureTheory.MemLp.mono' (hÑ_memLp.norm.const_mul |M|)
+    ((φ.ξ_measurable i).aestronglyMeasurable.mul hÑ_aesm) ?_
+  filter_upwards with ω
+  change ‖φ.ξ i ω * N.compensated (φ.timeRect i t) ω‖
+    ≤ |M| * ‖N.compensated (φ.timeRect i t) ω‖
+  rw [norm_mul]
+  refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
+  rw [Real.norm_eq_abs]; exact (hM ω).trans (le_abs_self M)
+
 end LevyStochCalc.Poisson.Compensated
