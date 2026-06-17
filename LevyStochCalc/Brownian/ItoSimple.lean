@@ -414,7 +414,7 @@ lemma simpleIntegral_diagonal
 
 /-- **Integrability of Brownian increment squared.** For `0 ≤ s < t`,
 `(W_t − W_s)² ∈ L¹(P)`. Pushforward + Gaussian `MemLp 2`. -/
-private lemma brownian_increment_sq_integrable
+lemma brownian_increment_sq_integrable
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
     {s t : ℝ} (h_s_nn : 0 ≤ s) (h_st : s < t) :

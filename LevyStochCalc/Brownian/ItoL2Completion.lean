@@ -2194,6 +2194,60 @@ lemma lintegral_nnnorm_sq_eq_ofReal_integral
   rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm_eq_enorm _).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
 
+/-- `∫ (W_b − W_a)² = b − a` for `0 ≤ a < b`. -/
+lemma brownian_incr_sq_integral
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    ∫ ω, (W.W b ω - W.W a ω) ^ 2 ∂P = b - a := by
+  have h_meas : Measurable (fun ω => W.W b ω - W.W a ω) :=
+    (W.measurable_eval b).sub (W.measurable_eval a)
+  rw [show (∫ ω, (W.W b ω - W.W a ω) ^ 2 ∂P)
+        = ∫ x : ℝ, x ^ 2 ∂(P.map (fun ω => W.W b ω - W.W a ω)) from
+      (MeasureTheory.integral_map h_meas.aemeasurable
+        (by fun_prop : MeasureTheory.AEStronglyMeasurable (fun x : ℝ => x ^ 2) _)).symm,
+    W.increment_gaussian ha hab]
+  exact LevyStochCalc.Brownian.Martingale.gaussianReal_second_moment ⟨b - a, by linarith⟩
+
+/-- **Conditional diagonal.** For a bounded `ℱ_a`-measurable factor `g`,
+`∫ g · (W_b − W_a)² = (∫ g) · (b − a)` — the increment square is independent of the
+`ℱ_a`-measurable `g`, with second moment `b − a`. -/
+lemma integral_factor_increment_sq
+    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    {g : Ω → ℝ}
+    (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) g)
+    {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
+    ∫ ω, g ω * (W.W b ω - W.W a ω) ^ 2 ∂P = (∫ ω, g ω ∂P) * (b - a) := by
+  set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
+  have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
+  have hg_m : Measurable g :=
+    (hg_meas.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
+  -- IndepFun g ΔW
+  have h_indep_F := W.joint_increment_independent ha hab
+  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤
+      ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
+    have hgF : @Measurable Ω ℝ
+        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) _ g := hg_meas.measurable
+    intro u hu
+    obtain ⟨v, hv, rfl⟩ := hu
+    have heq : (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a
+        = ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
+      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a = _
+      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration MeasureTheory.Filtration.natural
+      rfl
+    rw [← heq]; exact hgF hv
+  have h_indep_g_ΔW : ProbabilityTheory.IndepFun g ΔW P := by
+    rw [ProbabilityTheory.IndepFun_iff]; intro u v hu hv
+    rw [ProbabilityTheory.Indep_iff] at h_indep_F
+    exact h_indep_F u v (hg_comap_le u hu) hv
+  have h_indep_g_ΔWsq : ProbabilityTheory.IndepFun g (fun ω => (ΔW ω) ^ 2) P := by
+    have := h_indep_g_ΔW.comp measurable_id (measurable_id.pow_const 2)
+    simpa [Function.comp] using this
+  rw [show (fun ω => g ω * (W.W b ω - W.W a ω) ^ 2) = g * (fun ω => (ΔW ω) ^ 2) from rfl,
+    h_indep_g_ΔWsq.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable
+    ((hΔW_meas.pow_const 2).aestronglyMeasurable), brownian_incr_sq_integral W ha hab]
+
 section MasterSequence
 
 variable
