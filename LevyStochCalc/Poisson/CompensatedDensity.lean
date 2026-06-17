@@ -976,4 +976,187 @@ lemma dyadicEvalShifted_ae_tendsto_per_param
     rw [dyadicAvg_eq_average_closedBall hT φ n (jp n) ω e]
   exact Filter.Tendsto.congr' (hbridge.mono (fun n h => h.symm)) (h_leb_x w δ hδ_nhds hxball)
 
+/-- If `φ(ω, ·, e)` vanishes identically in time, so does its shifted dyadic eval. -/
+lemma dyadicEvalShifted_eq_zero {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (ω : Ω) (e : E)
+    (h0 : ∀ u, φ ω u e = 0) : dyadicEvalShifted T φ n s ω e = 0 := by
+  unfold dyadicEvalShifted
+  refine Finset.sum_eq_zero (fun i _ => ?_)
+  have havg : dyadicAvg_shifted T φ n i ω e = 0 := by
+    unfold dyadicAvg_shifted
+    split_ifs with h
+    · rfl
+    · unfold dyadicAvg; simp [h0]
+  split_ifs with h
+  · exact havg
+  · rfl
+
+/-- Joint `(s, e)`-measurability of the shifted eval (with `ω` fixed). -/
+lemma dyadicEvalShifted_measurable_prod
+    {T : ℝ} (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)) (n : ℕ) (ω : Ω) :
+    Measurable (fun q : ℝ × E => dyadicEvalShifted T φ n q.1 ω q.2) := by
+  unfold dyadicEvalShifted
+  refine Finset.measurable_sum _ (fun i _ => ?_)
+  refine Measurable.ite (measurable_fst measurableSet_Ioc) ?_ measurable_const
+  unfold dyadicAvg_shifted
+  by_cases h : i.val = 0
+  · simp only [h, ↓reduceDIte]; exact measurable_const
+  · simp only [h, ↓reduceDIte]
+    exact (dyadicAvg_measurable T φ h_meas n _).comp
+      (by fun_prop : Measurable fun q : ℝ × E => ((ω, q.2) : Ω × E))
+
+/-- **Per-`(ω,e)` time-`L²` convergence of the shifted eval.** -/
+lemma dyadicEvalShifted_inner_L2_tendsto
+    {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (ω : Ω) (e : E) :
+    Filter.Tendsto
+      (fun n => ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+      Filter.atTop (nhds 0) := by
+  have hM'_nn : 0 ≤ max M 0 := le_max_right _ _
+  have hsq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (‖x‖ ^ 2) := fun x => by
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _)]
+  rw [show (0 : ℝ≥0∞) = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0 : ℝ) T)) from by simp]
+  refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
+    (bound := fun _ => ENNReal.ofReal ((2 * max M 0) ^ 2)) ?_ ?_ ?_ ?_
+  · intro n
+    exact ((ENNReal.continuous_coe.measurable.comp
+      ((h_meas.comp (by fun_prop : Measurable fun s : ℝ => ((ω, s, e) : Ω × ℝ × E))).sub
+        ((dyadicEvalShifted_measurable_prod φ h_meas n ω).comp
+          (by fun_prop : Measurable fun s : ℝ => ((s, e) : ℝ × E)))).nnnorm).pow_const 2).aemeasurable
+  · intro n
+    refine Filter.Eventually.of_forall (fun s => ?_)
+    simp only []
+    rw [hsq]
+    refine ENNReal.ofReal_le_ofReal ?_
+    have hb : ‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ ≤ 2 * max M 0 := by
+      rw [Real.norm_eq_abs]
+      calc |φ ω s e - dyadicEvalShifted T φ n s ω e|
+          ≤ |φ ω s e| + |dyadicEvalShifted T φ n s ω e| := abs_sub _ _
+        _ ≤ max M 0 + max M 0 :=
+            add_le_add ((hM ω s e).trans (le_max_left _ _))
+              (dyadicEvalShifted_bounded hT φ hM n s ω e)
+        _ = 2 * max M 0 := by ring
+    nlinarith [norm_nonneg (φ ω s e - dyadicEvalShifted T φ n s ω e), hb, hM'_nn]
+  · rw [MeasureTheory.lintegral_const]
+    exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top (MeasureTheory.measure_ne_top _ _)
+  · filter_upwards [dyadicEvalShifted_ae_tendsto_per_param hT φ h_meas hM ω e] with s hs
+    have hdiff : Filter.Tendsto (fun n => φ ω s e - dyadicEvalShifted T φ n s ω e)
+        Filter.atTop (nhds 0) := by
+      simpa using (tendsto_const_nhds (x := φ ω s e)).sub hs
+    have hg : Continuous (fun x : ℝ => (‖x‖₊ : ℝ≥0∞) ^ 2) :=
+      (ENNReal.continuous_pow 2).comp (ENNReal.continuous_coe.comp continuous_nnnorm)
+    simpa using (hg.tendsto 0).comp hdiff
+
+set_option maxHeartbeats 1000000 in
+/-- **`L²` convergence of the adapted (shifted) eval (finite-mark-support).** -/
+lemma dyadicEvalShifted_L2_tendsto
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ} (hT : 0 < T)
+    (φ : Ω → ℝ → E → ℝ) (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
+    {S : Set E} (hS_meas : MeasurableSet S) (hS_fin : ν S ≠ ⊤)
+    (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0) :
+    Filter.Tendsto
+      (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+      Filter.atTop (nhds 0) := by
+  set M' : ℝ := max M 0 with hM'def
+  have hM'_nn : 0 ≤ M' := le_max_right _ _
+  have hφM' : ∀ ω s e, |φ ω s e| ≤ M' := fun ω s e => (hM ω s e).trans (le_max_left _ _)
+  set cT : ℝ≥0∞ := ENNReal.ofReal ((2 * M') ^ 2 * T) with hcT
+  have hFmeas : ∀ n : ℕ, Measurable (fun p : Ω × ℝ × E =>
+      (‖φ p.1 p.2.1 p.2.2 - dyadicEvalShifted T φ n p.2.1 p.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) := fun n =>
+    (ENNReal.continuous_coe.measurable.comp
+      (h_meas.sub (dyadicEvalShifted_measurable_triple φ h_meas n)).nnnorm).pow_const 2
+  have hF_se : ∀ n ω, Measurable (fun q : ℝ × E =>
+      (‖φ ω q.1 q.2 - dyadicEvalShifted T φ n q.1 ω q.2‖₊ : ℝ≥0∞) ^ 2) := fun n ω =>
+    (ENNReal.continuous_coe.measurable.comp
+      ((h_meas.comp (by fun_prop : Measurable fun q : ℝ × E => ((ω, q.1, q.2) : Ω × ℝ × E))).sub
+        ((dyadicEvalShifted_measurable_prod φ h_meas n ω))).nnnorm).pow_const 2
+  have hswap : ∀ n ω, (∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume)
+      = ∫⁻ e, (∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume) ∂ν := by
+    intro n ω
+    exact MeasureTheory.lintegral_lintegral_swap (hF_se n ω).aemeasurable
+  have h_inner_le : ∀ n ω e,
+      (∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+        ≤ S.indicator (fun _ => cT) e := by
+    intro n ω e
+    by_cases he : e ∈ S
+    · rw [Set.indicator_of_mem he]
+      calc (∫⁻ s in Set.Icc (0 : ℝ) T,
+              (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+          ≤ ∫⁻ s in Set.Icc (0 : ℝ) T, ENNReal.ofReal ((2 * M') ^ 2) ∂volume := by
+            refine MeasureTheory.lintegral_mono (fun s => ?_)
+            rw [show (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2
+                  = ENNReal.ofReal (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ ^ 2) from by
+                rw [show (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞)
+                      = ENNReal.ofReal ‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ from
+                    (ofReal_norm_eq_enorm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]]
+            refine ENNReal.ofReal_le_ofReal ?_
+            have hb : ‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ ≤ 2 * M' := by
+              rw [Real.norm_eq_abs]
+              calc |φ ω s e - dyadicEvalShifted T φ n s ω e|
+                  ≤ |φ ω s e| + |dyadicEvalShifted T φ n s ω e| := abs_sub _ _
+                _ ≤ M' + M' := add_le_add (hφM' ω s e) (dyadicEvalShifted_bounded hT φ hM n s ω e)
+                _ = 2 * M' := by ring
+            nlinarith [norm_nonneg (φ ω s e - dyadicEvalShifted T φ n s ω e), hb, hM'_nn]
+        _ = cT := by
+            rw [MeasureTheory.setLIntegral_const, Real.volume_Icc, hcT,
+              ← ENNReal.ofReal_mul (by positivity)]
+            congr 1; rw [sub_zero]
+    · have hzero : ∀ s, φ ω s e - dyadicEvalShifted T φ n s ω e = 0 := by
+        intro s
+        rw [hSupp ω e he s, dyadicEvalShifted_eq_zero φ n s ω e (hSupp ω e he), sub_zero]
+      rw [Set.indicator_of_notMem he]
+      simp only [hzero, nnnorm_zero, ENNReal.coe_zero]
+      simp
+  simp_rw [hswap]
+  rw [show (0 : ℝ≥0∞) = ∫⁻ _ : Ω, (0 : ℝ≥0∞) ∂P from by simp]
+  refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
+    (bound := fun _ => cT * ν S) ?_ ?_ (by
+      rw [MeasureTheory.lintegral_const]
+      exact ENNReal.mul_ne_top (ENNReal.mul_ne_top ENNReal.ofReal_ne_top hS_fin)
+        (MeasureTheory.measure_ne_top _ _)) ?_
+  · intro n
+    refine Measurable.aemeasurable ?_
+    have hmeas2 : Measurable (fun q : Ω × E => ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖φ q.1 s q.2 - dyadicEvalShifted T φ n s q.1 q.2‖₊ : ℝ≥0∞) ^ 2 ∂volume) := by
+      have hr : Measurable (fun p : (Ω × E) × ℝ =>
+          (‖φ p.1.1 p.2 p.1.2 - dyadicEvalShifted T φ n p.2 p.1.1 p.1.2‖₊ : ℝ≥0∞) ^ 2) :=
+        (hFmeas n).comp (by fun_prop :
+          Measurable fun p : (Ω × E) × ℝ => ((p.1.1, p.2, p.1.2) : Ω × ℝ × E))
+      exact hr.lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) T))
+    exact hmeas2.lintegral_prod_right' (ν := ν)
+  · intro n
+    refine Filter.Eventually.of_forall (fun ω => ?_)
+    calc (∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν)
+        ≤ ∫⁻ e, S.indicator (fun _ => cT) e ∂ν :=
+          MeasureTheory.lintegral_mono (fun e => h_inner_le n ω e)
+      _ = cT * ν S := by
+          rw [MeasureTheory.lintegral_indicator hS_meas, MeasureTheory.setLIntegral_const]
+  · refine Filter.Eventually.of_forall (fun ω => ?_)
+    rw [show (0 : ℝ≥0∞) = ∫⁻ _ : E, (0 : ℝ≥0∞) ∂ν from by simp]
+    refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
+      (bound := fun e => S.indicator (fun _ => cT) e) ?_ ?_ (by
+        rw [MeasureTheory.lintegral_indicator hS_meas, MeasureTheory.setLIntegral_const]
+        exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top hS_fin) ?_
+    · intro n
+      have hes : Measurable (fun q : E × ℝ =>
+          (‖φ ω q.2 q.1 - dyadicEvalShifted T φ n q.2 ω q.1‖₊ : ℝ≥0∞) ^ 2) := by
+        refine (ENNReal.continuous_coe.measurable.comp (Measurable.sub ?_ ?_).nnnorm).pow_const 2
+        · exact h_meas.comp (by fun_prop : Measurable fun q : E × ℝ => ((ω, q.2, q.1) : Ω × ℝ × E))
+        · exact (dyadicEvalShifted_measurable_prod φ h_meas n ω).comp measurable_swap
+      exact (hes.lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) T))).aemeasurable
+    · intro n
+      exact Filter.Eventually.of_forall (fun e => h_inner_le n ω e)
+    · exact Filter.Eventually.of_forall
+        (fun e => dyadicEvalShifted_inner_L2_tendsto hT φ h_meas hM ω e)
+
 end LevyStochCalc.Poisson.Compensated
