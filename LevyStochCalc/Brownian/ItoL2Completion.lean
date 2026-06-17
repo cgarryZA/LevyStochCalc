@@ -3558,6 +3558,55 @@ lemma martingale_rightCont_stochasticIntegralBrownian :
       with ω hr0 hs0
     simp [hr0, hs0]
 
+include h_meas h_sq_int_global in
+/-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is finite in `L²(P ⊗ vol|_{[0,t]})`,
+i.e. `(ω, u) ↦ H ω u` is square-integrable over the product. -/
+lemma compensatorH_memLp_prod {t : ℝ} (ht : 0 < t) :
+    MeasureTheory.MemLp (fun p : Ω × ℝ => H p.1 p.2) 2
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) t))) := by
+  refine ⟨h_meas.aestronglyMeasurable, ?_⟩
+  rw [MeasureTheory.eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
+    (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤), show (2 : ℝ≥0∞).toReal = 2 from by simp]
+  have hbridge : ∫⁻ p : Ω × ℝ, (‖H p.1 p.2‖ₑ) ^ (2 : ℝ)
+        ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) t)))
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+    rw [MeasureTheory.lintegral_prod _
+      ((((h_meas.nnnorm).coe_nnreal_ennreal).pow_const 2).aemeasurable.congr
+        (Filter.Eventually.of_forall (fun p => by
+          rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl)))]
+    refine lintegral_congr (fun ω => ?_)
+    refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
+    rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+  rw [hbridge]; exact h_sq_int_global t ht
+
+include h_meas h_sq_int_global in
+/-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is `P`-integrable (`t ≥ 0`). -/
+lemma compensatorH_integrable {t : ℝ} (ht : 0 ≤ t) :
+    MeasureTheory.Integrable (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) P := by
+  rcases lt_or_eq_of_le ht with ht' | ht'
+  · exact (compensatorH_memLp_prod H h_meas h_sq_int_global ht').integrable_sq.integral_prod_left
+  · have heq : (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
+      funext ω; rw [← ht', Set.Icc_self, MeasureTheory.setIntegral_measure_zero _ (by simp)]
+    rw [heq]; exact MeasureTheory.integrable_const 0
+
+include h_progMeas in
+/-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is `ℱ_t`-adapted. -/
+lemma compensatorH_adapted (t : ℝ) :
+    @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+      (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) := by
+  rcases le_or_gt 0 t with ht | ht
+  · have hsq : @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
+        (@Prod.instMeasurableSpace Ω ℝ
+          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
+        (fun p : Ω × ℝ => (H p.1 p.2) ^ 2) := by
+      simpa [pow_two] using (h_progMeas t).mul (h_progMeas t)
+    letI : MeasurableSpace Ω := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t
+    exact hsq.integral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) t))
+  · have heq : (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
+      funext ω; rw [Set.Icc_eq_empty (not_le.mpr ht)]; simp
+    rw [heq]; exact stronglyMeasurable_const
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
