@@ -666,4 +666,77 @@ lemma setIntegral_eval_sq_Icc_clamped
   congr 1
   rw [h_norm_sq, ENNReal.toReal_ofReal (sq_nonneg _)]
 
+/-! ### Increment decomposition
+
+The increment `simpleIntegral t − simpleIntegral s` decomposes (a.e.) over the
+increment rectangles `timeRect i t \ timeRect i s`, the basis for the set-level
+quadratic-variation isometry. -/
+
+/-- For `s ≤ t`, the clamped time-rectangle at `s` is contained in the one at `t`.
+(Whenever the `s`-rectangle is non-empty in time, `tᵢ ≤ s`, so the lower clamp
+points coincide.) -/
+lemma timeRect_subset
+    {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hst : s ≤ t) :
+    φ.timeRect i s ⊆ φ.timeRect i t := by
+  unfold SimplePredictable.timeRect
+  refine Set.prod_mono ?_ (Set.Subset.refl _)
+  intro x hx
+  obtain ⟨hlo, hhi⟩ := Set.mem_Ioc.mp hx
+  refine Set.mem_Ioc.mpr ⟨?_, hhi.trans (min_le_min (le_refl _) hst)⟩
+  by_cases hpc_s : φ.partition i.castSucc ≤ s
+  · rw [min_eq_left (hpc_s.trans hst)]
+    rwa [min_eq_left hpc_s] at hlo
+  · push_neg at hpc_s
+    exfalso
+    have hps : φ.partition i.castSucc < φ.partition i.succ :=
+      φ.partition_strictMono Fin.castSucc_lt_succ
+    rw [min_eq_right hpc_s.le] at hlo
+    rw [min_eq_right (hpc_s.trans hps).le] at hhi
+    exact absurd (lt_of_lt_of_le hlo hhi) (lt_irrefl s)
+
+/-- **Increment decomposition (a.e.).** For `s ≤ t`,
+`simpleIntegral N φ t − simpleIntegral N φ s =ᵐ ∑_i ξᵢ · Ñ(timeRect i t \ timeRect i s)`.
+The compensated mass of `timeRect i t` splits (a.e.) over the disjoint union
+`timeRect i s ∪ (timeRect i t \ timeRect i s)` (`compensated_union_ae`); the `ξᵢ`-weighted
+telescoping then leaves the increment-rectangle masses. -/
+lemma simpleIntegral_sub_eq_increment_ae
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T) {s t : ℝ} (hst : s ≤ t) :
+    (fun ω => simpleIntegral N φ t ω - simpleIntegral N φ s ω)
+      =ᵐ[P] fun ω => ∑ i : Fin φ.N,
+        φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω := by
+  have h_per_term : ∀ i : Fin φ.N,
+      (fun ω => N.compensated (φ.timeRect i t) ω) =ᵐ[P]
+        fun ω => N.compensated (φ.timeRect i s) ω
+          + N.compensated (φ.timeRect i t \ φ.timeRect i s) ω := by
+    intro i
+    have hsub := timeRect_subset φ i hst
+    have hmeas_s : MeasurableSet (φ.timeRect i s) := by
+      rw [SimplePredictable.timeRect]; exact measurableSet_Ioc.prod (φ.A_measurable i)
+    have hmeas_t : MeasurableSet (φ.timeRect i t) := by
+      rw [SimplePredictable.timeRect]; exact measurableSet_Ioc.prod (φ.A_measurable i)
+    have hmeas_d : MeasurableSet (φ.timeRect i t \ φ.timeRect i s) := hmeas_t.diff hmeas_s
+    have hunion : φ.timeRect i s ∪ (φ.timeRect i t \ φ.timeRect i s) = φ.timeRect i t :=
+      Set.union_diff_cancel hsub
+    have hdisj : Disjoint (φ.timeRect i s) (φ.timeRect i t \ φ.timeRect i s) :=
+      Set.disjoint_left.mpr (fun x hx hxd => hxd.2 hx)
+    have hfin_d : LevyStochCalc.Poisson.referenceIntensity ν
+        (φ.timeRect i t \ φ.timeRect i s) ≠ ⊤ :=
+      ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t) (measure_mono Set.diff_subset)
+    have h := compensated_union_ae N hmeas_s hmeas_d hdisj
+      (referenceIntensity_timeRect_ne_top φ i s) hfin_d
+    rwa [hunion] at h
+  have h_all : ∀ᵐ ω ∂P, ∀ i : Fin φ.N,
+      N.compensated (φ.timeRect i t) ω = N.compensated (φ.timeRect i s) ω
+        + N.compensated (φ.timeRect i t \ φ.timeRect i s) ω :=
+    (MeasureTheory.ae_all_iff).mpr h_per_term
+  filter_upwards [h_all] with ω hω
+  unfold simpleIntegral
+  rw [← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [hω i]; ring
+
 end LevyStochCalc.Poisson.Compensated
