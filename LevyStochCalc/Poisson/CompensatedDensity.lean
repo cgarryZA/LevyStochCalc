@@ -6,6 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Poisson.CompensatedMartingale
 import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.MeasureTheory.Covering.DensityTheorem
+import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 /-!
 # Density of adapted simple predictable integrands (compensated Poisson)
@@ -319,7 +320,7 @@ lemma dyadicAvg_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
   set b := dyadicPartition T n i.succ with hb
   have hab : a ≤ b := (dyadicPartition_strictMono hT n).monotone Fin.castSucc_lt_succ.le
   have hlen : b - a = T / (2 ^ n : ℕ) := by
-    simp only [ha, hb, dyadicPartition, Fin.val_succ, Fin.coe_castSucc]; push_cast; ring
+    simp only [ha, hb, dyadicPartition, Fin.val_succ, Fin.val_castSucc]; push_cast; ring
   rw [abs_mul, abs_of_nonneg (by positivity : (0 : ℝ) ≤ (2 ^ n : ℕ) / T)]
   have hint : |∫ s in Set.Ioc a b, φ ω s e| ≤ M * (b - a) := by
     rw [← Real.norm_eq_abs]
@@ -353,7 +354,7 @@ lemma dyadicPartition_diff {T : ℝ} (n : ℕ) (i : Fin (2 ^ n)) :
     dyadicPartition T n i.succ - dyadicPartition T n i.castSucc = T / (2 ^ n : ℕ) := by
   unfold dyadicPartition
   have hi_succ : ((i.succ : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) + 1 := by simp [Fin.val_succ]
-  have hi_castSucc : ((i.castSucc : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) := by simp [Fin.coe_castSucc]
+  have hi_castSucc : ((i.castSucc : Fin (2 ^ n + 1)) : ℝ) = (i : ℝ) := by simp [Fin.val_castSucc]
   rw [hi_succ, hi_castSucc]; ring
 
 /-- **Dyadic index:** for `s ∈ (0, T]`, the index `i ∈ Fin (2ⁿ)` with
@@ -466,7 +467,7 @@ lemma dyadicEval_eq_dyadicAvg_at_index
   set i := dyadicIndex n T hT s hs with hi
   have hi_mem := dyadicIndex_mem n T hT s hs
   have h_pcast : dyadicPartition T n i.castSucc = ((i : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
-    unfold dyadicPartition; rw [Fin.coe_castSucc]
+    unfold dyadicPartition; rw [Fin.val_castSucc]
   have h_psucc : dyadicPartition T n i.succ = (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
     unfold dyadicPartition; rw [Fin.val_succ]; push_cast; ring
   have h_i_fires : dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ := by
@@ -483,5 +484,82 @@ lemma dyadicEval_eq_dyadicAvg_at_index
     · have := (dyadicPartition_strictMono hT n).monotone (Fin.succ_le_castSucc_iff.mpr hgt)
       linarith [h_i_fires.1]
   · intro h_not; exact absurd (Finset.mem_univ i) h_not
+
+/-- **Per-`(ω,e)` a.e. time convergence (Lebesgue differentiation).** For a bounded
+jointly measurable `φ`, for each fixed `(ω, e)`, the dyadic eval converges to
+`φ(ω, s, e)` for a.e. `s ∈ [0, T]`. Applies Mathlib's
+`IsUnifLocDoublingMeasure.ae_tendsto_average` to `s ↦ φ ω s e`, bridged to the dyadic
+averages via `dyadicAvg_eq_average_closedBall` + `dyadicEval_eq_dyadicAvg_at_index`. -/
+lemma dyadicEval_ae_tendsto_per_param
+    {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M) (ω : Ω) (e : E) :
+    ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      Filter.Tendsto (fun n => dyadicEval T φ n s ω e) Filter.atTop (nhds (φ ω s e)) := by
+  have h_meas_slice : Measurable (fun s : ℝ => φ ω s e) :=
+    h_meas.comp (by fun_prop : Measurable fun s : ℝ => ((ω, s, e) : Ω × ℝ × E))
+  have h_loc : MeasureTheory.LocallyIntegrable (fun s : ℝ => φ ω s e) volume :=
+    bounded_locallyIntegrable _ h_meas_slice M (fun s => hM ω s e)
+  have h_leb := IsUnifLocDoublingMeasure.ae_tendsto_average (volume : Measure ℝ) h_loc 1
+  have h_leb_r : ∀ᵐ x ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      ∀ {ι : Type} {l : Filter ι} (w : ι → ℝ) (δ : ι → ℝ),
+        Filter.Tendsto δ l (nhdsWithin 0 (Set.Ioi 0)) →
+        (∀ᶠ j in l, x ∈ Metric.closedBall (w j) (1 * δ j)) →
+        Filter.Tendsto (fun j => ⨍ y in Metric.closedBall (w j) (δ j), φ ω y e ∂volume)
+          l (nhds (φ ω x e)) :=
+    MeasureTheory.ae_restrict_of_ae h_leb
+  have h_pos_ae : ∀ᵐ x ∂(volume.restrict (Set.Icc (0 : ℝ) T)), x ≠ 0 := by
+    refine MeasureTheory.ae_restrict_of_ae ?_
+    rw [MeasureTheory.ae_iff]
+    have : {x : ℝ | ¬ x ≠ 0} = {0} := by ext x; simp
+    rw [this, Real.volume_singleton]
+  filter_upwards [h_leb_r, h_pos_ae, MeasureTheory.ae_restrict_mem measurableSet_Icc]
+    with x h_leb_x hx_ne hx_mem
+  have hx : 0 < x ∧ x ≤ T := ⟨lt_of_le_of_ne hx_mem.1 (Ne.symm hx_ne), hx_mem.2⟩
+  -- per-level dyadic interval endpoints of `x`.
+  have hmem : ∀ n, dyadicPartition T n (dyadicIndex n T hT x hx).castSucc < x ∧
+      x ≤ dyadicPartition T n (dyadicIndex n T hT x hx).succ := by
+    intro n
+    have h := dyadicIndex_mem n T hT x hx
+    have hpc : dyadicPartition T n (dyadicIndex n T hT x hx).castSucc
+        = ((dyadicIndex n T hT x hx : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
+      unfold dyadicPartition; rw [Fin.val_castSucc]
+    have hps : dyadicPartition T n (dyadicIndex n T hT x hx).succ
+        = (((dyadicIndex n T hT x hx : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
+      unfold dyadicPartition; rw [Fin.val_succ]; push_cast; ring
+    rw [hpc, hps]; exact h
+  set w : ℕ → ℝ := fun n =>
+    (dyadicPartition T n (dyadicIndex n T hT x hx).castSucc +
+      dyadicPartition T n (dyadicIndex n T hT x hx).succ) / 2 with hw
+  set δ : ℕ → ℝ := fun n =>
+    (dyadicPartition T n (dyadicIndex n T hT x hx).succ -
+      dyadicPartition T n (dyadicIndex n T hT x hx).castSucc) / 2 with hδ
+  have hδ_eq : ∀ n, δ n = T / (2 * (2 ^ n : ℕ)) := by
+    intro n
+    show (dyadicPartition T n (dyadicIndex n T hT x hx).succ -
+      dyadicPartition T n (dyadicIndex n T hT x hx).castSucc) / 2 = _
+    rw [dyadicPartition_diff]; ring
+  have hδ_pos : ∀ n, 0 < δ n := fun n => by rw [hδ_eq]; positivity
+  have hδ0 : Filter.Tendsto δ Filter.atTop (nhds 0) := by
+    have h2pow : Filter.Tendsto (fun n : ℕ => 2 * ((2 ^ n : ℕ) : ℝ))
+        Filter.atTop Filter.atTop := by
+      have : Filter.Tendsto (fun n : ℕ => ((2 ^ n : ℕ) : ℝ)) Filter.atTop Filter.atTop :=
+        tendsto_natCast_atTop_iff.mpr (tendsto_pow_atTop_atTop_of_one_lt (by norm_num : 1 < 2))
+      exact this.atTop_mul_const' (by norm_num : (0 : ℝ) < 2) |>.congr (fun n => by ring)
+    exact (Filter.Tendsto.div_atTop tendsto_const_nhds h2pow).congr (fun n => (hδ_eq n).symm)
+  have hδ_nhds : Filter.Tendsto δ Filter.atTop (nhdsWithin 0 (Set.Ioi 0)) :=
+    tendsto_nhdsWithin_iff.mpr ⟨hδ0, Filter.Eventually.of_forall hδ_pos⟩
+  have hxball : ∀ n, x ∈ Metric.closedBall (w n) (1 * δ n) := by
+    intro n
+    rw [one_mul, Metric.mem_closedBall, Real.dist_eq]
+    obtain ⟨h1, h2⟩ := hmem n
+    rw [hw, hδ, abs_le]; constructor <;> simp only <;> linarith
+  have h_avg := h_leb_x w δ hδ_nhds (Filter.Eventually.of_forall hxball)
+  have h_bridge : ∀ n, dyadicEval T φ n x ω e
+      = ⨍ y in Metric.closedBall (w n) (δ n), φ ω y e ∂volume := by
+    intro n
+    rw [dyadicEval_eq_dyadicAvg_at_index hT φ n x hx ω e,
+      dyadicAvg_eq_average_closedBall hT φ n (dyadicIndex n T hT x hx) ω e]
+  simp_rw [h_bridge]; exact h_avg
 
 end LevyStochCalc.Poisson.Compensated
