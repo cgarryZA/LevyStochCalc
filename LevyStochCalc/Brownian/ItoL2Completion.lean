@@ -2664,6 +2664,54 @@ lemma isometry_stochasticIntegralBrownian {T : ℝ} (hT : 0 < T) :
   exact tendsto_nhds_unique h_a
     (masterApprox_evalNorm_tendsto W H h_meas h_progMeas h_sq_int_global hT)
 
+/-- `F t ∈ L²(P)`. -/
+lemma stochasticIntegralBrownian_memLp (t : ℝ) :
+    MeasureTheory.MemLp (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) 2 P :=
+  (MeasureTheory.Lp.memLp _).ae_eq
+    (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).symm
+
+/-- `F t =ᵐ 0` for `t ≤ 0`. -/
+lemma stochasticIntegralBrownian_ae_zero_of_nonpos {t : ℝ} (ht : t ≤ 0) :
+    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
+  rcases lt_or_eq_of_le ht with ht' | ht'
+  · exact stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas h_sq_int_global ht'
+  · subst ht'
+    have h := masterApprox_tendsto_L2 W H h_meas h_progMeas h_sq_int_global (le_refl (0 : ℝ))
+    have hconst : ∀ n, MeasureTheory.eLpNorm
+        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) 0 ω
+          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0 ω) 2 P
+        = MeasureTheory.eLpNorm
+          (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0) 2 P := by
+      intro n
+      rw [← MeasureTheory.eLpNorm_neg
+        (f := stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0)]
+      refine MeasureTheory.eLpNorm_congr_ae ?_
+      filter_upwards with ω
+      simp [simpleIntegral_eq_zero_of_nonpos W _ (le_refl (0 : ℝ)) ω]
+    simp only [hconst] at h
+    have hz : MeasureTheory.eLpNorm
+        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0) 2 P = 0 :=
+      tendsto_nhds_unique tendsto_const_nhds h
+    rwa [MeasureTheory.eLpNorm_eq_zero_iff
+      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global 0).aestronglyMeasurable
+      (by norm_num)] at hz
+
+/-- `∫⁻‖F t‖² = ∫⁻∫⁻_{[0,t]}‖H‖²` for all `t ≥ 0` (isometry, incl. `t = 0`). -/
+lemma stochasticIntegralBrownian_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
+    ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  rcases lt_or_eq_of_le ht with ht' | ht'
+  · exact isometry_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global ht'
+  · subst ht'
+    rw [lintegral_congr_ae (by
+      filter_upwards [stochasticIntegralBrownian_ae_zero_of_nonpos W H h_meas h_progMeas
+        h_sq_int_global (le_refl (0:ℝ))] with ω hω; rw [hω]; simp : _ =ᵐ[P] fun _ => (0:ℝ≥0∞))]
+    rw [MeasureTheory.lintegral_zero]
+    symm
+    rw [← MeasureTheory.lintegral_zero (μ := P)]
+    refine lintegral_congr (fun ω => ?_)
+    rw [MeasureTheory.setLIntegral_measure_zero _ _ (by simp)]
+
 end MasterSequence
 
 /-- **CITED AXIOM: Unified L²-Itô integral with martingale + quadVar + isometry.**
