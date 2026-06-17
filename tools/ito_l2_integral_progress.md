@@ -343,3 +343,29 @@ four-way green, committed):
 - **Axiom assembly** — bundle the three conjuncts on `(naturalFiltration W).rightCont`,
   replace the axiom, repoint `quadVar_stochasticIntegral`/`martingale_stochasticIntegral`,
   drop #5 from `cited_axioms.md` (13→12).
+
+## UPDATE 2026-06-17 (session 6) — conjunct 2 reduced to the conditional Itô isometry
+
+- ✅ `condExp_sq_increment_of_martingale` — conditional Pythagoras: `𝔼[(M t−M s)²|ℱ s]
+  =ᵐ 𝔼[(M t)²|ℱ s] − (M s)²` for any L² martingale (set-integral characterization +
+  pull-out cross term). Committed, building, lint-green.
+
+**This reduces conjunct 2 to the conditional Itô isometry**
+`𝔼[(F t − F s)²|ℱ s] = 𝔼[∫_{(s,t]}H²|ℱ s]` (equivalently the simple-level
+`∫_B (Iₙ t − Iₙ s)² = ∫_B (A_t^n − A_s^n)` for `B ∈ ℱ s`), then the L¹ limit.
+
+**Remaining (the one hard piece):** the conditional/indicator-weighted
+orthogonal-increments computation — a generalization of `simpleIntegral_diagonal`
+(`∫ (ξ_i ΔW_i)² = Δt_i ∫ ξ_i²`, ~120 lines, via `IndepFun ξ_i ΔW_i` from
+`joint_increment_independent`) and `simpleIntegral_offDiagonal` to carry a bounded
+`ℱ_{a_i}`-measurable factor `1_B` (the independence is the SAME, `1_B ξ_i` is still
+`ℱ_{a_i}`-measurable). Then: assemble the simple-level quadVar martingale via
+`condExp_sq_increment_of_martingale` + this conditional isometry +
+`ae_eq_condExp_of_forall_setIntegral_eq`; the L¹ limit (`tendsto_eLpNorm_one_sq_sub`
+for `Iₙ²→F²` + compensator convergence `∫Gₙ.eval²→∫H²`); the rightCont lift; bundle.
+Est. ~400 lines. This is the entire remaining content for the axiom swap (13→12).
+
+## DONE for #5 (all committed, sorry-free, lake/lint/contract green):
+`stochasticIntegralBrownian` (the process) · conjunct 1 (martingale, naturalFiltration
+AND rightCont) · conjunct 3 (isometry ∀T) · conditional Pythagoras. Only conjunct 2's
+conditional Itô isometry remains.
