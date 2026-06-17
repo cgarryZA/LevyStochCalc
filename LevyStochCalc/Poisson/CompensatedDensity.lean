@@ -436,4 +436,52 @@ lemma dyadicAvg_eq_average_closedBall
   have h_pow_ne : ((2 ^ n : ℕ) : ℝ) ≠ 0 := ne_of_gt h_pow_pos
   rw [smul_eq_mul]; field_simp; ring
 
+/-- A bounded measurable real function is locally integrable. -/
+private lemma bounded_locallyIntegrable (g : ℝ → ℝ) (h_meas : Measurable g)
+    (M : ℝ) (h_bound : ∀ s, |g s| ≤ M) : MeasureTheory.LocallyIntegrable g volume := by
+  intro x
+  refine ⟨Set.Ioo (x - 1) (x + 1), isOpen_Ioo.mem_nhds (by simp), ?_⟩
+  refine ⟨h_meas.aestronglyMeasurable, ?_⟩
+  refine MeasureTheory.HasFiniteIntegral.restrict_of_bounded_enorm
+    (C := ENNReal.ofReal M) ?_ ?_ ?_
+  · simp
+  · rw [Real.volume_Ioo]; exact ENNReal.ofReal_ne_top
+  · refine Filter.Eventually.of_forall (fun s => ?_)
+    rw [show ‖g s‖ₑ = ENNReal.ofReal ‖g s‖ from (ofReal_norm_eq_enorm _).symm]
+    exact ENNReal.ofReal_le_ofReal (by rw [Real.norm_eq_abs]; exact h_bound s)
+
+/-- The (unshifted) dyadic eval at running time `s`, carrying the mark `e`: the
+dyadic average of `φ(ω, ·, e)` over the interval containing `s` (0 outside `(0,T]`). -/
+noncomputable def dyadicEval
+    (T : ℝ) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (ω : Ω) (e : E) : ℝ :=
+  ∑ i : Fin (2 ^ n),
+    if dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ
+    then dyadicAvg T φ n i ω e else 0
+
+/-- For `s ∈ (0, T]`, `dyadicEval` collapses to the dyadic average at the index of `s`. -/
+lemma dyadicEval_eq_dyadicAvg_at_index
+    {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (hs : 0 < s ∧ s ≤ T)
+    (ω : Ω) (e : E) :
+    dyadicEval T φ n s ω e = dyadicAvg T φ n (dyadicIndex n T hT s hs) ω e := by
+  set i := dyadicIndex n T hT s hs with hi
+  have hi_mem := dyadicIndex_mem n T hT s hs
+  have h_pcast : dyadicPartition T n i.castSucc = ((i : ℕ) : ℝ) * T / (2 ^ n : ℕ) := by
+    unfold dyadicPartition; rw [Fin.coe_castSucc]
+  have h_psucc : dyadicPartition T n i.succ = (((i : ℕ) + 1) : ℝ) * T / (2 ^ n : ℕ) := by
+    unfold dyadicPartition; rw [Fin.val_succ]; push_cast; ring
+  have h_i_fires : dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ := by
+    rw [h_pcast, h_psucc]; exact hi_mem
+  unfold dyadicEval
+  rw [Finset.sum_eq_single i]
+  · rw [if_pos h_i_fires]
+  · intro j _ hji
+    refine if_neg (fun ⟨hj1, hj2⟩ => ?_)
+    rcases lt_trichotomy i j with hlt | heq | hgt
+    · have := (dyadicPartition_strictMono hT n).monotone (Fin.succ_le_castSucc_iff.mpr hlt)
+      linarith [h_i_fires.2]
+    · exact hji heq.symm
+    · have := (dyadicPartition_strictMono hT n).monotone (Fin.succ_le_castSucc_iff.mpr hgt)
+      linarith [h_i_fires.1]
+  · intro h_not; exact absurd (Finset.mem_univ i) h_not
+
 end LevyStochCalc.Poisson.Compensated
