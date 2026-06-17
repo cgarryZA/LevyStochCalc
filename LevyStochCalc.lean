@@ -16,6 +16,7 @@ import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.NaturalFiltration
 import LevyStochCalc.Poisson.CompensatedSimple
 import LevyStochCalc.Poisson.CompensatedIsometry
+import LevyStochCalc.Poisson.CompensatedMartingale
 import LevyStochCalc.Poisson.Compensated
 
 -- Layer 1: Itô-Lévy isometry  → I02
