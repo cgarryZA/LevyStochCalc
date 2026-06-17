@@ -977,4 +977,153 @@ lemma offDiagonal_increment_zero
       (N.measurable_eval hboxj_meas)).sub_const _).aestronglyMeasurable)]
   rw [compensated_mean_zero N hboxj_meas hboxj_fin, mul_zero]
 
+/-- Cross-integrability of two compensated masses: `Ñ(B)·Ñ(C)` is `P`-integrable
+when both `B`, `C` have finite intensity (each `Ñ ∈ L²`, dominated by
+`½(Ñ(B)² + Ñ(C)²)`). -/
+lemma compensated_cross_integrable
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B C : Set (ℝ × E)} (hB : MeasurableSet B) (hC : MeasurableSet C)
+    (hBf : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤)
+    (hCf : LevyStochCalc.Poisson.referenceIntensity ν C ≠ ⊤) :
+    MeasureTheory.Integrable (fun ω => N.compensated B ω * N.compensated C ω) P := by
+  have hBsq := compensated_sq_integrable N hB hBf
+  have hCsq := compensated_sq_integrable N hC hCf
+  have hmeas : Measurable (fun ω => N.compensated B ω * N.compensated C ω) := by
+    unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+    exact ((ENNReal.measurable_toReal.comp (N.measurable_eval hB)).sub_const _).mul
+      ((ENNReal.measurable_toReal.comp (N.measurable_eval hC)).sub_const _)
+  refine MeasureTheory.Integrable.mono'
+    (hBsq.add hCsq) hmeas.aestronglyMeasurable ?_
+  filter_upwards with ω
+  change ‖N.compensated B ω * N.compensated C ω‖ ≤ (N.compensated B ω)^2 + (N.compensated C ω)^2
+  rw [Real.norm_eq_abs]
+  rcases abs_cases (N.compensated B ω * N.compensated C ω) with ⟨he, _⟩ | ⟨he, _⟩ <;> rw [he] <;>
+    nlinarith [two_mul_le_add_sq (N.compensated B ω) (N.compensated C ω),
+      two_mul_le_add_sq (N.compensated B ω) (-N.compensated C ω),
+      sq_nonneg (N.compensated B ω), sq_nonneg (N.compensated C ω)]
+
+/-- **Set-level weighted quadratic-variation isometry.** For an adapted simple
+integrand `φ`, an `ℱ_s`-measurable bounded weight `g`, and `0 ≤ s ≤ t`,
+`∫ g·(Iₜ − Iₛ)² = ∑_i ν̂(Rᵢ).toReal · ∫ g·ξᵢ²` with `Rᵢ = timeRect i t \ timeRect i s`.
+The increment squares onto the increment boxes (`simpleIntegral_sub_eq_increment_ae`);
+off-diagonal terms vanish (`offDiagonal_increment_zero`) and diagonal terms give the
+box intensities (`diagonal_increment_sq`). The compensated analogue of the Brownian
+`simpleIntegral_sub_sq_bochner_clamped_weighted`. -/
+lemma simpleIntegral_sub_sq_weighted
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (φ : SimplePredictable Ω E ν T)
+    (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+    {Cg : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ Cg) :
+    ∫ ω, g ω * (simpleIntegral N φ t ω - simpleIntegral N φ s ω) ^ 2 ∂P
+      = ∑ i : Fin φ.N,
+        (LevyStochCalc.Poisson.referenceIntensity ν
+            (φ.timeRect i t \ φ.timeRect i s)).toReal
+          * ∫ ω, g ω * (φ.ξ i ω) ^ 2 ∂P := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  have hgmeas : Measurable g := (hg.mono (ℱ.le' s)).measurable
+  have hRm : ∀ i : Fin φ.N, MeasurableSet (φ.timeRect i t \ φ.timeRect i s) := fun i =>
+    (measurableSet_Ioc.prod (φ.A_measurable i)).diff (measurableSet_Ioc.prod (φ.A_measurable i))
+  have hRf : ∀ i : Fin φ.N,
+      LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t \ φ.timeRect i s) ≠ ⊤ := fun i =>
+    ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t) (measure_mono Set.diff_subset)
+  have hRbox : ∀ k : Fin φ.N, φ.timeRect k t \ φ.timeRect k s
+      = Set.Ioc (max s (min (φ.partition k.castSucc) t))
+          (max s (min (φ.partition k.succ) t)) ×ˢ φ.A k :=
+    fun k => timeRect_sdiff_eq_box φ k hs hst
+  have h_a_le_b : ∀ k : Fin φ.N,
+      max s (min (φ.partition k.castSucc) t) ≤ max s (min (φ.partition k.succ) t) :=
+    fun k => max_le_max (le_refl s)
+      (min_le_min (le_of_lt (φ.partition_strictMono Fin.castSucc_lt_succ)) (le_refl t))
+  set term : Fin φ.N → Ω → ℝ :=
+    fun i ω => φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω with hterm
+  -- integrability of every weighted cross product
+  have h_cross : ∀ i j : Fin φ.N,
+      MeasureTheory.Integrable (fun ω => g ω * (term i ω * term j ω)) P := by
+    intro i j
+    obtain ⟨Mi, hMi⟩ := φ.ξ_bounded i
+    obtain ⟨Mj, hMj⟩ := φ.ξ_bounded j
+    have hcross := compensated_cross_integrable N (hRm i) (hRm j) (hRf i) (hRf j)
+    have hbdd_part : MeasureTheory.Integrable
+        (fun ω => (g ω * (φ.ξ i ω * φ.ξ j ω))
+          * (N.compensated (φ.timeRect i t \ φ.timeRect i s) ω
+              * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)) P := by
+      refine MeasureTheory.Integrable.bdd_mul hcross
+        ((hgmeas.mul ((φ.ξ_measurable i).mul (φ.ξ_measurable j))).aestronglyMeasurable)
+        (c := Cg * (|Mi| * |Mj|)) ?_
+      filter_upwards with ω
+      rw [Real.norm_eq_abs, abs_mul, abs_mul]
+      exact mul_le_mul (hg_bdd ω)
+        (mul_le_mul ((hMi ω).trans (le_abs_self Mi)) ((hMj ω).trans (le_abs_self Mj))
+          (abs_nonneg _) (abs_nonneg _))
+        (mul_nonneg (abs_nonneg _) (abs_nonneg _)) (le_trans (abs_nonneg _) (hg_bdd ω))
+    refine hbdd_part.congr (Filter.Eventually.of_forall (fun ω => ?_))
+    simp only [hterm]; ring
+  -- expand the squared increment as a double sum
+  have h_expand : (fun ω => g ω * (simpleIntegral N φ t ω - simpleIntegral N φ s ω) ^ 2)
+      =ᵐ[P] fun ω => ∑ i : Fin φ.N, ∑ j : Fin φ.N, g ω * (term i ω * term j ω) := by
+    filter_upwards [simpleIntegral_sub_eq_increment_ae N φ hst] with ω hω
+    rw [hω]
+    rw [show (∑ i : Fin φ.N, term i ω) ^ 2
+          = ∑ i : Fin φ.N, ∑ j : Fin φ.N, term i ω * term j ω from by
+        rw [sq, Finset.sum_mul_sum]]
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl (fun i _ => by rw [Finset.mul_sum])
+  rw [MeasureTheory.integral_congr_ae h_expand]
+  rw [MeasureTheory.integral_finsetSum _
+    (fun i _ => MeasureTheory.integrable_finsetSum _ (fun j _ => h_cross i j))]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun j _ => h_cross i j), Finset.sum_eq_single i]
+  · -- diagonal j = i
+    rcases eq_or_lt_of_le (h_a_le_b i) with h_deg | h_gen
+    · -- degenerate: increment empty, both sides 0
+      have hRe : φ.timeRect i t \ φ.timeRect i s = ∅ := by
+        rw [hRbox i, ← h_deg, Set.Ioc_self, Set.empty_prod]
+      have h0 : (fun ω => g ω * (term i ω * term i ω)) = fun _ => (0 : ℝ) := by
+        funext ω; simp only [hterm, hRe]
+        unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp
+      rw [h0, MeasureTheory.integral_zero, hRe]; simp
+    · -- genuine: diagonal second moment
+      rw [show (fun ω => g ω * (term i ω * term i ω))
+            = fun ω => (g ω * (φ.ξ i ω) ^ 2)
+                * (N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) ^ 2 from by
+          funext ω; simp only [hterm]; ring]
+      rw [diagonal_increment_sq N φ i hs hst (h_adapt i) hg h_gen, mul_comm]
+  · intro j _ hj
+    simp only [hterm]
+    rcases lt_or_gt_of_ne hj with h_lt | h_gt
+    · rcases eq_or_lt_of_le (h_a_le_b i) with h_deg | h_gen
+      · have hRe : φ.timeRect i t \ φ.timeRect i s = ∅ := by
+          rw [hRbox i, ← h_deg, Set.Ioc_self, Set.empty_prod]
+        rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
+              * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)))
+            = fun _ => (0 : ℝ) from by
+          funext ω; rw [hRe]
+          unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp,
+          MeasureTheory.integral_zero]
+      · rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
+              * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)))
+              = fun ω => g ω * ((φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)
+                * (φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)) from by
+            funext ω; ring]
+        exact offDiagonal_increment_zero N φ h_lt hs hst (h_adapt j) (h_adapt i) hg h_gen
+    · rcases eq_or_lt_of_le (h_a_le_b j) with h_deg | h_gen
+      · have hRe : φ.timeRect j t \ φ.timeRect j s = ∅ := by
+          rw [hRbox j, ← h_deg, Set.Ioc_self, Set.empty_prod]
+        rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
+              * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)))
+            = fun _ => (0 : ℝ) from by
+          funext ω; rw [hRe]
+          unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp,
+          MeasureTheory.integral_zero]
+      · exact offDiagonal_increment_zero N φ h_gt hs hst (h_adapt i) (h_adapt j) hg h_gen
+  · intro h; exact absurd (Finset.mem_univ _) h
+
 end LevyStochCalc.Poisson.Compensated

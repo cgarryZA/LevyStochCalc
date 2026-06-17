@@ -392,7 +392,7 @@ lemma compensated_second_moment
 
 /-- **Integrability of `(N.compensated B)²` w.r.t. P.** Follows from pushforward
 through `poisson_law` + integrability of `(n − r)²` w.r.t. `poissonMeasure r`. -/
-private lemma compensated_sq_integrable
+lemma compensated_sq_integrable
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
