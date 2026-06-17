@@ -2534,6 +2534,42 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
     · exact h_off i j h_gt
   · intro h; exact absurd (Finset.mem_univ _) h
 
+/-- **Real clamped compensator integral.** For `0 ≤ t`,
+`∫_{[0,t]} (G.eval u ω)² du = ∑ᵢ (min pᵢ₊₁ t − min pᵢ t)·ξᵢ²`. The real-Bochner
+companion of `lintegral_eval_sq_clamped`, obtained from it by
+`integral_eq_lintegral_of_nonneg_ae` and `ENNReal.toReal`. The simple-level
+quadratic-variation compensator `A_t = ∫_{[0,t]} (eval)²` in closed sum form. -/
+lemma setIntegral_eval_sq_Icc_clamped {T : ℝ} (G : SimplePredictable Ω T) (ω : Ω)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ∫ u in Set.Icc (0 : ℝ) t, (G.eval u ω) ^ 2 ∂volume
+      = ∑ i : Fin G.N,
+        (min (G.partition i.succ) t - min (G.partition i.castSucc) t) * (G.ξ i ω) ^ 2 := by
+  have h_len_nn : ∀ i : Fin G.N,
+      0 ≤ min (G.partition i.succ) t - min (G.partition i.castSucc) t :=
+    fun i => sub_nonneg.mpr (min_le_min_right t
+      (le_of_lt (G.partition_strictMono Fin.castSucc_lt_succ)))
+  have h_eval_meas : Measurable (fun u => G.eval u ω) :=
+    G.eval_jointly_measurable.comp
+      (by fun_prop : Measurable (fun s : ℝ => ((ω, s) : Ω × ℝ)))
+  have h_norm_sq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _), show ‖x‖ ^ 2 = x ^ 2 from by
+        rw [Real.norm_eq_abs, sq_abs]]
+  rw [MeasureTheory.integral_eq_lintegral_of_nonneg_ae
+        (Filter.Eventually.of_forall (fun u => sq_nonneg _))
+        (h_eval_meas.pow_const 2).aestronglyMeasurable]
+  rw [show (fun u => ENNReal.ofReal ((G.eval u ω) ^ 2))
+        = fun u => (‖G.eval u ω‖₊ : ℝ≥0∞) ^ 2 from funext (fun u => (h_norm_sq _).symm),
+    lintegral_eval_sq_clamped G ω ht,
+    show (fun i : Fin G.N => ENNReal.ofReal (min (G.partition i.succ) t
+          - min (G.partition i.castSucc) t) * (‖G.ξ i ω‖₊ : ℝ≥0∞) ^ 2)
+        = fun i => ENNReal.ofReal ((min (G.partition i.succ) t
+            - min (G.partition i.castSucc) t) * (G.ξ i ω) ^ 2) from
+      funext (fun i => by rw [h_norm_sq, ← ENNReal.ofReal_mul (h_len_nn i)]),
+    ← ENNReal.ofReal_sum_of_nonneg (fun i _ => mul_nonneg (h_len_nn i) (sq_nonneg _)),
+    ENNReal.toReal_ofReal
+      (Finset.sum_nonneg (fun i _ => mul_nonneg (h_len_nn i) (sq_nonneg _)))]
+
 section MasterSequence
 
 variable
