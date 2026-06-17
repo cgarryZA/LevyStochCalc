@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (13 currently live)
+## Tier 1: Honest cited axioms (12 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #3 (`kolmogorovChentsov_modification`) was PROVED axiom→theorem 2026-06-16: a
@@ -44,10 +44,11 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
-entries (#3, proved 2026-06-16) are kept as `### Retired #N` / `### Resolved #N`
-headings below for traceability; they are NOT counted in the headline "13
-currently live" figure. Only `### N.` (digit-leading) headings correspond to
-live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 13`.
+entries (#3, proved 2026-06-16; #5, proved 2026-06-17) are kept as
+`### Retired #N` / `### Resolved #N` headings below for traceability; they are
+NOT counted in the headline "12 currently live" figure. Only `### N.`
+(digit-leading) headings correspond to live axioms, so
+`grep -c "^### [0-9]" tools/cited_axioms.md == 12`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -81,12 +82,11 @@ to the Mathlib version, no other changes needed downstream.
 * **Mathlib status (May 2026)**: `MeasureTheory.Filtration.rightCont` is defined; `MeasureTheory.Filtration.IsRightContinuous` predicate available. Blumenthal 0-1 law is NOT in Mathlib for Brownian motion (waits on BM construction). No current activity.
 * **Replacement plan**: `theorem brownian_martingale_rightCont := <Blumenthal 0-1 corollary>` when Blumenthal 0-1 for BM lands.
 
-### 5. `LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence`
+### Resolved #5: `LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For predictable square-integrable `H`, there is a process `F` and filtration `Filt` such that `F` is a `Filt`-martingale, `(F t)² − ∫_0^t H² ds` is a `Filt`-martingale (quadratic variation identity), and the L²-isometry `∫⁻ ‖F T‖₊² = ∫⁻ ∫⁻ ‖H‖² over [0,T]` holds at every `T > 0`.
-* **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.4** + equation **(5.8)** (Itô isometry; correcting the previous "Theorem 5.13" citation flagged by red-team P11 — Le Gall 2016 p. 121 "Theorem 5.13" is Dambis–Dubins–Schwarz, not Itô isometry; L² Itô isometry is Le Gall Thm 5.4 with the explicit norm-equality at eq. (5.8)).
-* **Mathlib status (May 2026)**: No general L²-Itô integral against Brownian motion in Mathlib (waits on BM construction). `MeasureTheory.condExpL2_continuous` and `MeasureTheory.Martingale` provide the analytic glue for the L²-limit-of-martingales argument; the simple-level martingale + quadVar + L²-isometry combine via that glue. arXiv:2511.20118 (Degenne et al, late 2025) is targeting this.
-* **Replacement plan**: `theorem itoIsometry_brownian_unified_existence := <Mathlib forwarder>` when Mathlib gains the L²-Itô integral with these properties.
+* **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.4** + equation **(5.8)** (Itô isometry).
+* **Status**: No longer an axiom — proved as a `theorem` in `Brownian/ItoL2Completion.lean`. The witness is `F := stochasticIntegralBrownian` (the coherent `L²`-limit of the `masterApprox` simple integrals), `Filt := (naturalFiltration W).rightCont`. Conjunct 1 = `martingale_rightCont_stochasticIntegralBrownian`; conjunct 2 = `martingale_rightCont_quadVar_stochasticIntegralBrownian` (set-level Itô isometry at simple level → `L¹`-limit of the compensated squares → `rightCont` right-`L¹`-continuity); conjunct 3 = `isometry_stochasticIntegralBrownian`. The consumers `itoIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral` (and `stochasticIntegral` itself, via `Classical.choose`) are unchanged. `#print axioms` for these now lists only `propext, Classical.choice, Quot.sound`.
 
 ### 6. `LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence`
 

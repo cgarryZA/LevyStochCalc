@@ -1,5 +1,15 @@
 # Axiom #5 — `itoIsometry_brownian_unified_existence` — construction plan
 
+> **DONE (2026-06-17).** `itoIsometry_brownian_unified_existence` is now a
+> `theorem` (no `axiom`, no `sorry`). `#print axioms` for it and its consumers
+> (`itoIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`)
+> lists only `propext, Classical.choice, Quot.sound`. `cited_axioms.md` updated
+> 13→12. The full chain landed as Phase A1–A6: clamped-increment identity →
+> weighted off-diagonal → weighted clamped Bochner increment (set-level Itô
+> isometry) → real clamped compensator → simple-level quadVar martingale →
+> H-compensator helpers → compensator L¹-convergence → conjunct 2 on
+> naturalFiltration → conjunct 2 on rightCont → bundle.
+
 **Target (Plan.md A1).** Replace the `axiom` in `Brownian/ItoL2Completion.lean`
 with a `theorem`: for predictable square-integrable `H`, a single process
 `F : ℝ → Ω → ℝ` and the filtration `Filt = (naturalFiltration W).rightCont` with
