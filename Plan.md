@@ -8,8 +8,8 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **13 custom axioms** remain (`#print axioms` over `_audit.lean`; `cited_axioms.md`
-  "13 live"). The 3 standard axioms (`propext`/`Classical.choice`/`Quot.sound`)
+- **12 custom axioms** remain (was 13; **#5 closed 2026-06-17**). `cited_axioms.md`
+  "12 live". The 3 standard axioms (`propext`/`Classical.choice`/`Quot.sound`)
   are the only others.
 - **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
   `tools/sorry_baseline.txt`) — disappears with the #9 chain.
@@ -50,22 +50,19 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 `cited_axioms.md` + repoint consumers.
 
-- [ ] **A1 / #5** `itoIsometry_brownian_unified_existence` — the L² Itô integral
-      `t ↦ ∫_0^t H_s dW_s` against `W`, as a single `F : ℝ → Ω → ℝ` on
-      `(naturalFiltration W).rightCont`, with **(i)** martingale, **(ii)** the
-      quadratic-variation martingale `(F_t)² − ∫_0^t H² ds`, **(iii)** the
-      L²-isometry at every `T` (KS 3.2.6). **Already sorry-free** (in
-      `ItoSimple`/`ItoDensity`/`SimplePredictableRefine`/`ItoL2Completion`): the
-      simple-integrand isometry (`simpleIntegral_isometry`), density
-      (`simplePredictable_dense_L2`), Lp-Cauchy (`cauchySeq_simpleIntegralLp_brownian`),
-      and the **per-`T`** isometry existence (`exists_itoIntegralL2_brownian`,
-      `itoIntegralLp_brownian_L2_isometry`, `itoIsometry_brownian_existence`).
-      **Gap to close:** (a) a single `F` across all `t` (not per-`T`); (b) its
-      martingale property on `rightCont` (have the simple-level ingredients:
-      `simpleIntegral_condExp_brownian`, `simpleIntegral_stronglyAdapted_brownian`,
-      `simpleIntegral_integrable_brownian` — pass to the L²-limit via condExp
-      L²-continuity); (c) the quadVar martingale (simple-level orthogonal-increment
-      identity → limit). **Foundational — do first.**
+- [x] **A1 / #5** `itoIsometry_brownian_unified_existence` — **DONE 2026-06-17**
+      (axiom→`theorem`; `cited_axioms.md` 13→12; `#print axioms` of it and its
+      consumers `itoIsometry`/`quadVar_stochasticIntegral`/`martingale_stochasticIntegral`
+      = the 3 standard only). `F := stochasticIntegralBrownian` on
+      `(naturalFiltration W).rightCont`. Conjunct 2 (the quadVar martingale) was the
+      gap: closed via the set-level Itô isometry at simple level
+      (`simpleIntegral_sub_eq_clamp_sum` → `offDiagonal_increment_integral_zero_weighted`
+      → `simpleIntegral_sub_sq_bochner_clamped_weighted`) + real clamped compensator
+      (`setIntegral_eval_sq_Icc_clamped`) → simple-level quadVar martingale
+      (`martingale_simpleIntegral_sq_sub_compensator`) → compensator `L¹`-convergence
+      (`masterApprox_compensator_tendsto_L1`) → conjunct 2 on naturalFiltration
+      (`martingale_quadVar_stochasticIntegralBrownian`) then `rightCont`
+      (`martingale_rightCont_quadVar_stochasticIntegralBrownian`).
 - [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
       analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
       `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
