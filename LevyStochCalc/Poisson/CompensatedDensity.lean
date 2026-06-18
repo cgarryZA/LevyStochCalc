@@ -1952,6 +1952,135 @@ lemma weighted_box_diff_sq_disjoint
     weighted_box_sq_eq N ha hab hC hCf hg, weighted_box_sq_eq N ha hab hD hDf hg]
   ring
 
+/-- **Weighted same-time bilinear covariance.** For an `ℱ_a`-measurable bounded weight `g`
+and two same-time boxes on arbitrary marks `A, A'`,
+`E[g·Ñ((a,b]×A)·Ñ((a,b]×A')] = E[g]·ν̂((a,b]×(A∩A'))`. The weighted polarisation of
+`weighted_box_sq_eq` (`Ñ(R)−Ñ(R') =ᵃᵉ Ñ((a,b]×(A∖A'))−Ñ((a,b]×(A'∖A))`, the weighted
+disjoint difference value, and intensity inclusion–exclusion). Enables the
+overlapping-mark step-integral isometry. -/
+lemma weighted_box_cross_sametime
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A')
+    (hAf : ν A ≠ ⊤) (hA'f : ν A' ≠ ⊤)
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g)
+    {M : ℝ} (hgb : ∀ ω, |g ω| ≤ M) :
+    ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+        * N.compensated (Set.Ioc a b ×ˢ A') ω) ∂P
+      = (∫ ω, g ω ∂P)
+        * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A'))).toReal := by
+  have hAm : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
+  have hA'm : MeasurableSet (Set.Ioc a b ×ˢ A') := measurableSet_Ioc.prod hA'
+  have hAf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAf
+  have hA'f' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A') ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hA'f
+  have hmcf : ν (A \ A') ≠ ⊤ := ne_top_of_le_ne_top hAf (measure_mono Set.diff_subset)
+  have hmdf : ν (A' \ A) ≠ ⊤ := ne_top_of_le_ne_top hA'f (measure_mono Set.diff_subset)
+  have hmif : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A')) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top (ne_top_of_le_ne_top hAf (measure_mono Set.inter_subset_left))
+  have hmcf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A \ A')) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hmcf
+  have hmdf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A' \ A)) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hmdf
+  -- box set identities.
+  have hBdiff : Set.Ioc a b ×ˢ A \ Set.Ioc a b ×ˢ A' = Set.Ioc a b ×ˢ (A \ A') := by
+    ext ⟨x, e⟩; simp only [Set.mem_diff, Set.mem_prod]; tauto
+  have hBa'diff : Set.Ioc a b ×ˢ A' \ Set.Ioc a b ×ˢ A = Set.Ioc a b ×ˢ (A' \ A) := by
+    ext ⟨x, e⟩; simp only [Set.mem_diff, Set.mem_prod]; tauto
+  have hBinter : Set.Ioc a b ×ˢ A ∩ Set.Ioc a b ×ˢ A' = Set.Ioc a b ×ˢ (A ∩ A') := by
+    ext ⟨x, e⟩; simp only [Set.mem_inter_iff, Set.mem_prod]; tauto
+  -- a.e. `Ñ(R) − Ñ(R') = Ñ((a,b]×(A∖A')) − Ñ((a,b]×(A'∖A))`.
+  have hsub_ae : (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω
+        - N.compensated (Set.Ioc a b ×ˢ A') ω)
+      =ᵐ[P] (fun ω => N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
+        - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω) := by
+    filter_upwards [compensated_inter_add_diff_ae N hAm hA'm hAf',
+      compensated_inter_add_diff_ae N hA'm hAm hA'f'] with ω h1 h2
+    rw [h1, h2, Set.inter_comm (Set.Ioc a b ×ˢ A') (Set.Ioc a b ×ˢ A), hBdiff, hBa'diff]
+    ring
+  have hg_aesm : MeasureTheory.AEStronglyMeasurable g P :=
+    (hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable
+  have hgbnd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ M :=
+    Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hgb ω)
+  -- `∫ g·(Ñ(R)−Ñ(R'))²` via the weighted disjoint-difference value.
+  have hsq_ae : (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+        - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2)
+      =ᵐ[P] (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
+        - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω) ^ 2) :=
+    hsub_ae.mono (fun ω h => by
+      show g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+          - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2
+        = g ω * (N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
+          - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω) ^ 2
+      rw [show N.compensated (Set.Ioc a b ×ˢ A) ω - N.compensated (Set.Ioc a b ×ˢ A') ω
+          = N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
+            - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω from h])
+  have hsq_eq : ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+        - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2 ∂P
+      = (∫ ω, g ω ∂P) * (LevyStochCalc.Poisson.referenceIntensity ν
+            (Set.Ioc a b ×ˢ (A \ A'))).toReal
+        + (∫ ω, g ω ∂P) * (LevyStochCalc.Poisson.referenceIntensity ν
+            (Set.Ioc a b ×ˢ (A' \ A))).toReal :=
+    (MeasureTheory.integral_congr_ae hsq_ae).trans
+      (weighted_box_diff_sq_disjoint N ha hab (hA.diff hA') (hA'.diff hA) hmcf hmdf
+        disjoint_sdiff_sdiff hg hgb)
+  -- weighted polarisation expansion (cross term left symbolic).
+  have hexp : ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+        - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2 ∂P
+      = (∫ ω, g ω ∂P) * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal
+        - 2 * (∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+            * N.compensated (Set.Ioc a b ×ˢ A') ω) ∂P)
+        + (∫ ω, g ω ∂P)
+          * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A')).toReal := by
+    have hiA : MeasureTheory.Integrable
+        (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2) P :=
+      (compensated_sq_integrable N hAm hAf').bdd_mul hg_aesm hgbnd
+    have hiA' : MeasureTheory.Integrable
+        (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2) P :=
+      (compensated_sq_integrable N hA'm hA'f').bdd_mul hg_aesm hgbnd
+    have hicross : MeasureTheory.Integrable
+        (fun ω => 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+          * N.compensated (Set.Ioc a b ×ˢ A') ω))) P :=
+      ((compensated_cross_integrable N hAm hA'm hAf' hA'f').bdd_mul hg_aesm hgbnd).const_mul 2
+    have hmid : MeasureTheory.Integrable
+        (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2
+          - 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+            * N.compensated (Set.Ioc a b ×ˢ A') ω))) P := hiA.sub hicross
+    rw [show (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+            - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2)
+          = fun ω => (g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2
+            - 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+              * N.compensated (Set.Ioc a b ×ˢ A') ω)))
+            + g ω * (N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2 from funext (fun ω => by ring),
+      MeasureTheory.integral_add hmid hiA', MeasureTheory.integral_sub hiA hicross,
+      MeasureTheory.integral_const_mul,
+      weighted_box_sq_eq N ha hab hA hAf hg, weighted_box_sq_eq N ha hab hA' hA'f hg]
+  -- intensity inclusion–exclusion (in `toReal`).
+  have hrefBa : (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal
+      = (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A'))).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A \ A'))).toReal := by
+    rw [show LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)
+          = LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A ∩ Set.Ioc a b ×ˢ A')
+            + LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A \ Set.Ioc a b ×ˢ A')
+          from (measure_inter_add_diff _ hA'm).symm,
+      hBinter, hBdiff, ENNReal.toReal_add hmif hmcf']
+  have hrefBa' : (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A')).toReal
+      = (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A'))).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A' \ A))).toReal := by
+    rw [show LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A')
+          = LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A' ∩ Set.Ioc a b ×ˢ A)
+            + LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A' \ Set.Ioc a b ×ˢ A)
+          from (measure_inter_add_diff _ hAm).symm,
+      Set.inter_comm (Set.Ioc a b ×ˢ A') (Set.Ioc a b ×ˢ A), hBinter, hBa'diff,
+      ENNReal.toReal_add hmif hmdf']
+  have key := hsq_eq.symm.trans hexp
+  rw [hrefBa, hrefBa'] at key
+  linear_combination (1 / 2 : ℝ) * key
+
 /-- **Cross term of two disjoint-mark full-rect sums vanishes.** For a shared time
 partition `p`, pairwise-disjoint marks (`Disjoint (A i) (A' i)`), and adapted bounded
 coefficients, `E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))] = 0`. Every term
