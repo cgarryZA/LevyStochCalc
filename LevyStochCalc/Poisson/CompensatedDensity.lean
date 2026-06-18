@@ -3511,6 +3511,27 @@ To compare the step integrals of two density approximants at *different* dyadic
 levels, both are re-expressed on the common (finer) dyadic refinement. The basic
 brick is additivity of the compensated integral over a split time-interval. -/
 
+/-- **Coarse×fine sum split.** For `n ≤ m`, a sum over the fine dyadic index
+`Fin 2^m` splits into the coarse index `Fin 2^n` and the within-coarse offset
+`Fin 2^{m-n}`, via `i' = 2^{m-n}·i + j`. -/
+lemma dyadic_sum_split {M : Type*} [AddCommMonoid M] {n m : ℕ} (hnm : n ≤ m)
+    (g : Fin (2 ^ m) → M) :
+    ∑ i' : Fin (2 ^ m), g i'
+      = ∑ i : Fin (2 ^ n), ∑ j : Fin (2 ^ (m - n)),
+        g (finCongr (by rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))) := by
+  rw [← Equiv.sum_comp (finProdFinEquiv.trans
+    (finCongr (by rw [← pow_add, Nat.add_sub_cancel' hnm]))) g, Fintype.sum_prod_type]
+  rfl
+
+/-- The `Fin 2^m` index produced by `dyadic_sum_split` has value `2^{m-n}·i + j`. -/
+lemma dyadic_combine_val {n m : ℕ} (hnm : n ≤ m) (i : Fin (2 ^ n)) (j : Fin (2 ^ (m - n))) :
+    ((finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j)) : Fin (2 ^ m)) : ℕ)
+      = 2 ^ (m - n) * i.val + j.val := by
+  simp only [finCongr_apply, Fin.coe_cast]
+  show (finProdFinEquiv (i, j) : ℕ) = _
+  simp [finProdFinEquiv, Nat.add_comm]
+
 /-- **Time-additivity of the compensated integral over a split interval.** For
 `a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
 (disjoint union `(a,b]×B ⊔ (b,c]×B = (a,c]×B`). -/
@@ -3530,6 +3551,21 @@ lemma compensated_Ioc_split
   rw [← hunion]
   exact compensated_union_ae N (measurableSet_Ioc.prod hB) (measurableSet_Ioc.prod hB) hdisj
     (referenceIntensity_Ioc_prod_ne_top hBfin) (referenceIntensity_Ioc_prod_ne_top hBfin)
+
+/-- **Indicator tiling.** For a monotone mesh `q : ℕ → ℝ`, the indicator of the coarse
+interval `(q 0, q m]` is the sum of the indicators of its fine sub-intervals
+`(q j, q (j+1)]`, `j < m` (they tile it disjointly). -/
+lemma indicator_Ioc_telescope (q : ℕ → ℝ) (hmono : Monotone q) (m : ℕ) (s : ℝ) :
+    (Set.Ioc (q 0) (q m)).indicator (fun _ => (1 : ℝ)) s
+      = ∑ j ∈ Finset.range m, (Set.Ioc (q j) (q (j + 1))).indicator (fun _ => (1 : ℝ)) s := by
+  induction m with
+  | zero => simp [Set.Ioc_self]
+  | succ m ih =>
+    have hdisj : Disjoint (Set.Ioc (q 0) (q m)) (Set.Ioc (q m) (q (m + 1))) := by
+      rw [Set.disjoint_left]; rintro x hx1 hx2; exact absurd hx1.2 (not_le.mpr hx2.1)
+    have hunion : Set.Ioc (q 0) (q m) ∪ Set.Ioc (q m) (q (m + 1)) = Set.Ioc (q 0) (q (m + 1)) :=
+      Set.Ioc_union_Ioc_eq_Ioc (hmono (Nat.zero_le m)) (hmono (Nat.le_succ m))
+    rw [Finset.sum_range_succ, ← ih, ← hunion, Set.indicator_union_of_disjoint hdisj]
 
 /-- **Telescoping refinement of a compensated interval integral.** For a monotone
 mesh `q : ℕ → ℝ`, `Ñ((q 0, q m]×B) =ᵐ ∑_{j<m} Ñ((q j, q (j+1)]×B)` — a coarse interval
