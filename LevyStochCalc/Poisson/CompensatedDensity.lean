@@ -2259,4 +2259,68 @@ lemma stepIntegral_multimark_isometry
       (fun i => h_adapt i k) (fun i => h_adapt i k')
   · intro h; exact absurd (Finset.mem_univ k) h
 
+/-- **Mark-sum square at one time interval (overlapping marks).** For a single interval
+`(a,b]`, arbitrary marks `B k`, and adapted bounded coeffs `ξ k`,
+`E[(∑ₖ ξₖ Ñ((a,b]×Bₖ))²] = ∑ₖ ∑ₖ' ν̂((a,b]×(Bₖ∩Bₖ'))·E[ξₖ·ξₖ']`. Expand the square and
+apply the weighted same-time bilinear covariance to each `(k,k')` term. -/
+lemma markSum_sq_sametime
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {K : ℕ}
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (ξ : Fin K → Ω → ℝ) (hξb : ∀ k, ∃ M, ∀ ω, |ξ k ω| ≤ M) (hξm : ∀ k, Measurable (ξ k))
+    (hadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (ξ k)) :
+    ∫ ω, (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω) ^ 2 ∂P
+      = ∑ k : Fin K, ∑ k' : Fin K,
+        (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (B k ∩ B k'))).toReal
+        * ∫ ω, ξ k ω * ξ k' ω ∂P := by
+  have hBxm : ∀ k, MeasurableSet (Set.Ioc a b ×ˢ B k) := fun k => measurableSet_Ioc.prod (hBm k)
+  have hBxf : ∀ k, LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ B k) ≠ ⊤ :=
+    fun k => referenceIntensity_Ioc_prod_ne_top (hBf k)
+  -- integrability of each cross term.
+  have hint : ∀ k k', MeasureTheory.Integrable
+      (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+        * (ξ k' ω * N.compensated (Set.Ioc a b ×ˢ B k') ω)) P := by
+    intro k k'
+    obtain ⟨Mk, hMk⟩ := hξb k
+    obtain ⟨Mk', hMk'⟩ := hξb k'
+    have hcross := compensated_cross_integrable N (hBxm k) (hBxm k') (hBxf k) (hBxf k')
+    have heq : (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ξ k' ω * N.compensated (Set.Ioc a b ×ˢ B k') ω))
+        = (fun ω => (ξ k ω * ξ k' ω)
+          * (N.compensated (Set.Ioc a b ×ˢ B k) ω
+            * N.compensated (Set.Ioc a b ×ˢ B k') ω)) := funext (fun ω => by ring)
+    rw [heq]
+    refine hcross.bdd_mul (c := Mk * Mk') ((hξm k).mul (hξm k')).aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun ω => ?_))
+    rw [Real.norm_eq_abs, abs_mul]
+    exact mul_le_mul (hMk ω) (hMk' ω) (abs_nonneg _) ((abs_nonneg _).trans (hMk ω))
+  rw [show (fun ω => (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω) ^ 2)
+      = fun ω => ∑ k : Fin K, ∑ k' : Fin K,
+          (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ξ k' ω * N.compensated (Set.Ioc a b ×ˢ B k') ω) from
+    funext (fun ω => by rw [sq]; exact Finset.sum_mul_sum _ _ _ _),
+    MeasureTheory.integral_finsetSum _ (fun k _ => MeasureTheory.integrable_finsetSum _
+      (fun k' _ => hint k k'))]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun k' _ => hint k k')]
+  refine Finset.sum_congr rfl (fun k' _ => ?_)
+  obtain ⟨Mk, hMk⟩ := hξb k
+  obtain ⟨Mk', hMk'⟩ := hξb k'
+  have hbnd : ∀ ω, |ξ k ω * ξ k' ω| ≤ Mk * Mk' := fun ω => by
+    rw [abs_mul]
+    exact mul_le_mul (hMk ω) (hMk' ω) (abs_nonneg _) ((abs_nonneg _).trans (hMk ω))
+  have hgadapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (fun ω => ξ k ω * ξ k' ω) :=
+    (hadapt k).mul (hadapt k')
+  rw [show (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ξ k' ω * N.compensated (Set.Ioc a b ×ˢ B k') ω))
+        = fun ω => (ξ k ω * ξ k' ω)
+          * (N.compensated (Set.Ioc a b ×ˢ B k) ω
+            * N.compensated (Set.Ioc a b ×ˢ B k') ω) from funext (fun ω => by ring),
+    weighted_box_cross_sametime N ha hab (hBm k) (hBm k') (hBf k) (hBf k') hgadapt hbnd,
+    mul_comm]
+
 end LevyStochCalc.Poisson.Compensated
