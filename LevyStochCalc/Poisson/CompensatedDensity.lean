@@ -1564,4 +1564,40 @@ lemma compensated_cross_disjoint_zero
   rw [hindep.integral_fun_mul_eq_mul_integral hasm hasm',
     compensated_mean_zero N hB hfin, zero_mul]
 
+/-- **Second moment of a difference of disjoint compensated increments.** For
+measurable disjoint `C, D` with finite intensity,
+`E[(Ñ(C) − Ñ(D))²] = ν̂(C).toReal + ν̂(D).toReal` — the cross term drops out by
+`compensated_cross_disjoint_zero`, the squares by `compensated_second_moment`.
+This is the two-piece isometry for the disjoint-support step-integral route. -/
+lemma compensated_diff_sq_disjoint
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {C D : Set (ℝ × E)} (hC : MeasurableSet C) (hD : MeasurableSet D)
+    (hCf : LevyStochCalc.Poisson.referenceIntensity ν C ≠ ⊤)
+    (hDf : LevyStochCalc.Poisson.referenceIntensity ν D ≠ ⊤)
+    (hdisj : Disjoint C D) :
+    ∫ ω, (N.compensated C ω - N.compensated D ω) ^ 2 ∂P
+      = (LevyStochCalc.Poisson.referenceIntensity ν C).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν D).toReal := by
+  have hCsq := compensated_sq_integrable N hC hCf
+  have hDsq := compensated_sq_integrable N hD hDf
+  have hCD := compensated_cross_integrable N hC hD hCf hDf
+  have h2UV : MeasureTheory.Integrable
+      (fun ω => 2 * (N.compensated C ω * N.compensated D ω)) P := hCD.const_mul 2
+  have hmid : MeasureTheory.Integrable
+      (fun ω => (N.compensated C ω) ^ 2 - 2 * (N.compensated C ω * N.compensated D ω)) P :=
+    hCsq.sub h2UV
+  have hpt : (fun ω => (N.compensated C ω - N.compensated D ω) ^ 2)
+      = (fun ω => (N.compensated C ω) ^ 2
+          - 2 * (N.compensated C ω * N.compensated D ω) + (N.compensated D ω) ^ 2) := by
+    funext ω; ring
+  rw [hpt,
+    MeasureTheory.integral_add hmid hDsq,
+    MeasureTheory.integral_sub hCsq h2UV,
+    MeasureTheory.integral_const_mul,
+    compensated_cross_disjoint_zero N hC hD hCf hdisj,
+    compensated_second_moment N hC hCf, compensated_second_moment N hD hDf]
+  ring
+
 end LevyStochCalc.Poisson.Compensated
