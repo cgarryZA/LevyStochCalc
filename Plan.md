@@ -111,14 +111,24 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `simpleIntegral_L2_isometry_compensatedPoisson_sumForm`, cross via
         `crossSum_disjointMark_zero`. **The full isometry conjunct for general (rank->1)
         integrands is now proved** — no axiom strengthening, mark space `E` fully general.
-      - *Next (completion plumbing, mirrors Brownian `ItoL2Completion`):* `masterApprox` —
-        combine `dyadicEvalShifted` (adapted time-discretisation → φ in L²) with the
-        disjoint-mark rectangle discretisation (`rectSimple_dense_L2` + disjointification) to
-        produce a sequence of multi-mark adapted integrands → φ in `L²(P⊗vol⊗ν)`; the
-        integrals are Cauchy in `L²(P)` by `stepIntegral_multimark_isometry` applied to the
-        difference; define `stochasticIntegralCompensated` as the `Lp`-limit; pass the 4
-        conjuncts (martingale via `martingale_stepIntegral_compensated` + limit; quadVar;
-        isometry; càdlàg) to the limit → drop axiom #6 + close #18.
+      - *Overlapping-mark route enabled — 2026-06-17.* To avoid disjointifying the marks of
+        integrand *differences* in `masterApprox`, the same-time bilinear covariance is now
+        weighted: `weighted_box_diff_sq_disjoint` and `weighted_box_cross_sametime`
+        (`E[g·Ñ((a,b]×A)·Ñ((a,b]×A')] = E[g]·ν̂((a,b]×(A∩A'))`, arbitrary marks). With these
+        + `weighted_box_cross_timeordered_zero`, the **overlapping-mark** step-integral
+        isometry `E[(stepIntegral)²] = E[∫∫ integrand²]` holds for any marks (the cleanest
+        Cauchy input). **Both isometry routes are now fully supported** (disjoint capstone
+        `stepIntegral_multimark_isometry`, and the overlapping bilinear pieces).
+      - *Next (completion plumbing, mirrors Brownian `ItoL2Completion`):* (1) assemble the
+        overlapping-mark isometry `E[(∑ₖᵢ ξᵢₖ Ñ(Rᵢₖ))²] = E[∫∫ integrand²]` (quadruple sum:
+        diagonal `weighted_box_sq_eq`, same-time-cross `weighted_box_cross_sametime`,
+        time-ordered `weighted_box_cross_timeordered_zero`); (2) `masterApprox` — combine
+        `dyadicEvalShifted` (adapted time-discretisation → φ in L²) with the mark-rectangle
+        discretisation (`rectSimple_dense_L2`, marks adapted via running density at `ℱ_t`) →
+        multi-mark adapted integrands → φ in `L²(P⊗vol⊗ν)`; integrals Cauchy by the isometry
+        on the difference; (3) `stochasticIntegralCompensated` as the `Lp`-limit; (4) pass the
+        4 conjuncts (martingale via `martingale_stepIntegral_compensated` + limit; quadVar;
+        isometry; càdlàg) → drop axiom #6 + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
