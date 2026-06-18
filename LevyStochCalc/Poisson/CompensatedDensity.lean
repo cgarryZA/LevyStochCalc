@@ -2323,4 +2323,68 @@ lemma markSum_sq_sametime
     weighted_box_cross_sametime N ha hab (hBm k) (hBm k') (hBf k) (hBf k') hgadapt hbnd,
     mul_comm]
 
+/-- **Cross of mark-sums over time-ordered intervals vanishes.** For two intervals
+`(a,b]`, `(c,d]` with `b ≤ c`, marks `B`, coeffs `ξ` (adapted at `a`) and `ζ` (adapted
+at `c`), `E[(∑ₖ ξₖ Ñ((a,b]×Bₖ))·(∑ₗ ζₗ Ñ((c,d]×Bₗ))] = 0`. Each `(k,l)` term vanishes
+by `weighted_box_cross_timeordered_zero`. -/
+lemma markSum_cross_timeordered
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b c d : ℝ} (hc : 0 ≤ c) (hab : a < b) (hbc : b ≤ c) (hcd : c < d) {K : ℕ}
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (ξ ζ : Fin K → Ω → ℝ)
+    (hξb : ∀ k, ∃ M, ∀ ω, |ξ k ω| ≤ M) (hζb : ∀ k, ∃ M, ∀ ω, |ζ k ω| ≤ M)
+    (hξm : ∀ k, Measurable (ξ k)) (hζm : ∀ k, Measurable (ζ k))
+    (hξadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (ξ k))
+    (hζadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq c) (ζ k)) :
+    ∫ ω, (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+        * (∑ l : Fin K, ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω) ∂P = 0 := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  have hac : a ≤ c := hab.le.trans hbc
+  have hBxm : ∀ k, MeasurableSet (Set.Ioc a b ×ˢ B k) := fun k => measurableSet_Ioc.prod (hBm k)
+  have hCxm : ∀ l, MeasurableSet (Set.Ioc c d ×ˢ B l) := fun l => measurableSet_Ioc.prod (hBm l)
+  have hBxf : ∀ k, LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ B k) ≠ ⊤ :=
+    fun k => referenceIntensity_Ioc_prod_ne_top (hBf k)
+  have hCxf : ∀ l, LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc c d ×ˢ B l) ≠ ⊤ :=
+    fun l => referenceIntensity_Ioc_prod_ne_top (hBf l)
+  have hint : ∀ k l, MeasureTheory.Integrable
+      (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+        * (ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω)) P := by
+    intro k l
+    obtain ⟨Mk, hMk⟩ := hξb k
+    obtain ⟨Ml, hMl⟩ := hζb l
+    have hcross := compensated_cross_integrable N (hBxm k) (hCxm l) (hBxf k) (hCxf l)
+    have heq : (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω))
+        = (fun ω => (ξ k ω * ζ l ω)
+          * (N.compensated (Set.Ioc a b ×ˢ B k) ω
+            * N.compensated (Set.Ioc c d ×ˢ B l) ω)) := funext (fun ω => by ring)
+    rw [heq]
+    refine hcross.bdd_mul (c := Mk * Ml) ((hξm k).mul (hζm l)).aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun ω => ?_))
+    rw [Real.norm_eq_abs, abs_mul]
+    exact mul_le_mul (hMk ω) (hMl ω) (abs_nonneg _) ((abs_nonneg _).trans (hMk ω))
+  rw [show (fun ω => (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (∑ l : Fin K, ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω))
+      = fun ω => ∑ k : Fin K, ∑ l : Fin K,
+          (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω) from
+    funext (fun ω => Finset.sum_mul_sum _ _ _ _),
+    MeasureTheory.integral_finsetSum _ (fun k _ => MeasureTheory.integrable_finsetSum _
+      (fun l _ => hint k l))]
+  refine Finset.sum_eq_zero (fun k _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun l _ => hint k l)]
+  refine Finset.sum_eq_zero (fun l _ => ?_)
+  have hgadapt : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c) (fun ω => ξ k ω * ζ l ω) :=
+    ((hξadapt k).mono (ℱ.mono hac)).mul (hζadapt l)
+  rw [show (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
+          * (ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω))
+        = fun ω => (ξ k ω * ζ l ω)
+          * (N.compensated (Set.Ioc a b ×ˢ B k) ω
+            * N.compensated (Set.Ioc c d ×ˢ B l) ω) from funext (fun ω => by ring)]
+  exact weighted_box_cross_timeordered_zero N hc hab hbc hcd (hBm k) (hBm l) (hBf l) hgadapt
+
 end LevyStochCalc.Poisson.Compensated
