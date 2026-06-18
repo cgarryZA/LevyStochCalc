@@ -1599,6 +1599,49 @@ lemma exists_markSimple_adapted_within
               rw [hε', ← ENNReal.rpow_mul, show (1 / 2 : ℝ) * 2 = 1 from by norm_num,
                 ENNReal.rpow_one]
 
+/-- **Adaptedness of the shifted dyadic average (mark-jointly).** Under progressive
+measurability of `φ`, the coefficient `(ω, e) ↦ dyadicAvg_shifted T φ n i ω e` is
+`(ℱ_{pᵢ} ⊗ E)`-measurable, where `pᵢ = dyadicPartition T n i.castSucc`. (Integrates
+out the time variable from the `ℱ_{pᵢ} ⊗ Borel ⊗ E`-measurable integrand `φ`.) -/
+lemma dyadicAvg_shifted_adapted_prod
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (T : ℝ) (φ : Ω → ℝ → E → ℝ)
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (n : ℕ) (i : Fin (2 ^ n)) :
+    @Measurable (Ω × E) ℝ
+      (((LevyStochCalc.Poisson.naturalFiltration N).seq
+        (dyadicPartition T n i.castSucc)).prod inferInstance) _
+      (fun q : Ω × E => dyadicAvg_shifted T φ n i q.1 q.2) := by
+  set m := (LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc) with hm
+  unfold dyadicAvg_shifted
+  by_cases hi : i.val = 0
+  · simp only [hi, ↓reduceDIte]; exact measurable_const
+  · simp only [hi, ↓reduceDIte, dyadicAvg]
+    set j : Fin (2 ^ n) := ⟨i.val - 1, by omega⟩ with hj
+    have h_f_meas : @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E) m inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) := h_progMeas _
+    have hr : @Measurable ((Ω × E) × ℝ) (Ω × ℝ × E)
+        ((m.prod inferInstance).prod inferInstance) (m.prod inferInstance)
+        (fun p : (Ω × E) × ℝ => (p.1.1, p.2, p.1.2)) := by
+      refine Measurable.prodMk ?_ (Measurable.prodMk ?_ ?_)
+      · exact (@measurable_fst Ω E m _).comp (@measurable_fst (Ω × E) ℝ (m.prod inferInstance) _)
+      · exact @measurable_snd (Ω × E) ℝ (m.prod inferInstance) _
+      · exact (@measurable_snd Ω E m _).comp (@measurable_fst (Ω × E) ℝ (m.prod inferInstance) _)
+    have hψ : @MeasureTheory.StronglyMeasurable ((Ω × E) × ℝ) ℝ _
+        ((m.prod inferInstance).prod inferInstance)
+        (fun p : (Ω × E) × ℝ => φ p.1.1 p.2 p.1.2) :=
+      (h_f_meas.measurable.comp hr).stronglyMeasurable
+    have hint := hψ.integral_prod_right'
+      (ν := volume.restrict (Set.Ioc (dyadicPartition T n j.castSucc)
+        (dyadicPartition T n j.succ)))
+    have hfin := hint.measurable.const_mul ((2 ^ n : ℕ) / T : ℝ)
+    convert hfin using 1
+
 /-! ### Step (finite-sum) predictable integrands
 
 The mark-discretised approximant is rank-`>1` in the mark, so it is a finite
