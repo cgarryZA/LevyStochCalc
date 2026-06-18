@@ -126,15 +126,25 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `markSumProcess_L2_eq` (RHS = sum-form, Tonelli of `timeIndicator_sq_integral` ×
         `mark_sq_integral` + `referenceIntensity_Ioc_prod_eq`). **The entire isometry
         conjunct for general integrands is proved**, no axiom strengthening, `E` general.
-      - *Next (completion plumbing): masterApprox → `Lp`-limit → 4 conjuncts.* (1)
-        `masterApprox` — combine `dyadicEvalShifted` (adapted time-discretisation → φ in
-        L²) with per-time-piece mark discretisation (`rectSimple_L2_tendsto` at `ℱ_t`;
-        overlapping marks are fine — collect them into a shared `B`) → multi-mark adapted
-        integrands `g_n → φ` in `L²(P⊗vol⊗ν)`; (2) integrals Cauchy in `L²(P)` via
-        `markSumProcess_isometry_L2` on the difference (`g_n−g_m` on the common dyadic
-        refinement); (3) `stochasticIntegralCompensated` as the `Lp`-limit; (4) pass the four
-        #5-style conjuncts (martingale via `martingale_stepIntegral_compensated` + limit;
-        quadVar; isometry; càdlàg). Càdlàg routes through Doob regularization (#13b).
+      - *masterApprox **density** — DONE 2026-06-18.* The adapted step (Euler) approximants
+        are `L²(P⊗vol⊗ν)`-dense in `φ`: `exists_markEval_L2_tendsto`. Built bottom-up:
+        `lintegral_prod_trim_left` (trim–product bridge) + `IsRectSimple.eq_finSum` →
+        `exists_markSimple_adapted_within` (per-time-piece mark discretisation at the
+        sub-σ-algebra `ℱ_{pᵢ}`, forcing **adapted** rectangle sides via `Measure.trim`);
+        `dyadicAvg_shifted_adapted_prod` (mark-joint adaptedness of the shifted average);
+        `sq_nnnorm_disjoint_indicator_sum` (disjoint-interval collapse) →
+        `exists_markEval_close_dyadic` (mark-half within `T·δ`); diagonalised against the
+        time-half (`dyadicEvalShifted_L2_tendsto`) via `sq_nnnorm_add_le_two_mul` +
+        `lintegral_triple_add`/`_const_mul` + squeeze. **Mark space `E` fully general** (no
+        countable-generation). This was the sole analytical gate for dissertation #2(B).
+      - *Next (completion plumbing): masterApprox → `Lp`-limit → 4 conjuncts.* (2) integrals
+        Cauchy in `L²(P)` via `markSumProcess_diff_isometry_L2` on the difference (`g_n−g_m`
+        re-expressed on the common dyadic refinement + shared marks; needs refinement
+        invariance of `simpleIntegral`/eval via time-additivity of `N.compensated`); (3)
+        `stochasticIntegralCompensated` as the `Lp`-limit (`exists_L2_limit_of_memLp_cauchySeq`);
+        (4) pass the four #5-style conjuncts (martingale via
+        `martingale_stepIntegral_compensated` + limit; quadVar; isometry; càdlàg). Càdlàg
+        routes through Doob regularization (#13b).
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
