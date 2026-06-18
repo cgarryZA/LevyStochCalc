@@ -3412,4 +3412,52 @@ lemma martingale_norm_tail_maximal
   exact MeasureTheory.setIntegral_le_integral (hf.integrable N).norm
     (Filter.Eventually.of_forall (fun ω => norm_nonneg _))
 
+/-! ### Cross-resolution refinement (toward the `L²(P)` Cauchy property)
+
+To compare the step integrals of two density approximants at *different* dyadic
+levels, both are re-expressed on the common (finer) dyadic refinement. The basic
+brick is additivity of the compensated integral over a split time-interval. -/
+
+/-- **Time-additivity of the compensated integral over a split interval.** For
+`a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
+(disjoint union `(a,b]×B ⊔ (b,c]×B = (a,c]×B`). -/
+lemma compensated_Ioc_split
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {a b c : ℝ} (hab : a ≤ b) (hbc : b ≤ c)
+    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) :
+    (fun ω => N.compensated (Set.Ioc a c ×ˢ B) ω)
+      =ᵐ[P] fun ω => N.compensated (Set.Ioc a b ×ˢ B) ω + N.compensated (Set.Ioc b c ×ˢ B) ω := by
+  have hdisj : Disjoint (Set.Ioc a b ×ˢ B) (Set.Ioc b c ×ˢ B) := by
+    rw [Set.disjoint_left]
+    rintro ⟨x, y⟩ hx1 hx2
+    rw [Set.mem_prod] at hx1 hx2
+    exact absurd hx1.1.2 (not_le.mpr hx2.1.1)
+  have hunion : Set.Ioc a b ×ˢ B ∪ Set.Ioc b c ×ˢ B = Set.Ioc a c ×ˢ B := by
+    rw [← Set.union_prod, Set.Ioc_union_Ioc_eq_Ioc hab hbc]
+  rw [← hunion]
+  exact compensated_union_ae N (measurableSet_Ioc.prod hB) (measurableSet_Ioc.prod hB) hdisj
+    (referenceIntensity_Ioc_prod_ne_top hBfin) (referenceIntensity_Ioc_prod_ne_top hBfin)
+
+/-- **Telescoping refinement of a compensated interval integral.** For a monotone
+mesh `q : ℕ → ℝ`, `Ñ((q 0, q m]×B) =ᵐ ∑_{j<m} Ñ((q j, q (j+1)]×B)` — a coarse interval
+is the sum of its fine sub-intervals. (Induction on `m` via `compensated_Ioc_split`.) -/
+lemma compensated_Ioc_telescope
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (q : ℕ → ℝ) (hmono : Monotone q)
+    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) (m : ℕ) :
+    (fun ω => N.compensated (Set.Ioc (q 0) (q m) ×ˢ B) ω)
+      =ᵐ[P] fun ω => ∑ j ∈ Finset.range m,
+        N.compensated (Set.Ioc (q j) (q (j + 1)) ×ˢ B) ω := by
+  induction m with
+  | zero =>
+    refine Filter.Eventually.of_forall (fun ω => ?_)
+    simp only [Finset.range_zero, Finset.sum_empty, Set.Ioc_self, Set.empty_prod]
+    show N.compensated ∅ ω = 0
+    simp [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
+  | succ m ih =>
+    have hsplit := compensated_Ioc_split N (hmono (Nat.zero_le m))
+      (hmono (Nat.le_succ m)) hB hBfin
+    filter_upwards [ih, hsplit] with ω h1 h2
+    rw [Finset.sum_range_succ, ← h1, ← h2]
+
 end LevyStochCalc.Poisson.Compensated
