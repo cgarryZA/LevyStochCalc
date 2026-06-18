@@ -1896,6 +1896,62 @@ lemma weighted_box_cross_timeordered_zero
         (N.measurable_eval hR'meas)).sub_const _).aestronglyMeasurable,
     compensated_mean_zero N hR'meas hR'f, mul_zero]
 
+/-- **Weighted disjoint-difference second moment.** For an `ℱ_a`-measurable bounded
+weight `g` and two same-time boxes on disjoint marks `C, D`,
+`E[g·(Ñ((a,b]×C) − Ñ((a,b]×D))²] = E[g]·ν̂((a,b]×C) + E[g]·ν̂((a,b]×D)`. Polarisation
+expansion: squares via `weighted_box_sq_eq`, cross via `weighted_box_cross_disjoint_zero`. -/
+lemma weighted_box_diff_sq_disjoint
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    {C D : Set E} (hC : MeasurableSet C) (hD : MeasurableSet D)
+    (hCf : ν C ≠ ⊤) (hDf : ν D ≠ ⊤) (hdisjCD : Disjoint C D)
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g)
+    {M : ℝ} (hgb : ∀ ω, |g ω| ≤ M) :
+    ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
+        - N.compensated (Set.Ioc a b ×ˢ D) ω) ^ 2 ∂P
+      = (∫ ω, g ω ∂P) * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ C)).toReal
+        + (∫ ω, g ω ∂P)
+          * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ D)).toReal := by
+  have hCm : MeasurableSet (Set.Ioc a b ×ˢ C) := measurableSet_Ioc.prod hC
+  have hDm : MeasurableSet (Set.Ioc a b ×ˢ D) := measurableSet_Ioc.prod hD
+  have hCf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ C) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hCf
+  have hDf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ D) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hDf
+  have hg_aesm : MeasureTheory.AEStronglyMeasurable g P :=
+    (hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable
+  have hgbnd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ M :=
+    Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hgb ω)
+  have hiC : MeasureTheory.Integrable
+      (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω) ^ 2) P :=
+    (compensated_sq_integrable N hCm hCf').bdd_mul hg_aesm hgbnd
+  have hiD : MeasureTheory.Integrable
+      (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ D) ω) ^ 2) P :=
+    (compensated_sq_integrable N hDm hDf').bdd_mul hg_aesm hgbnd
+  have hiCD : MeasureTheory.Integrable
+      (fun ω => 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
+        * N.compensated (Set.Ioc a b ×ˢ D) ω))) P :=
+    ((compensated_cross_integrable N hCm hDm hCf' hDf').bdd_mul hg_aesm hgbnd).const_mul 2
+  have hmid : MeasureTheory.Integrable
+      (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω) ^ 2
+        - 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
+          * N.compensated (Set.Ioc a b ×ˢ D) ω))) P := hiC.sub hiCD
+  have hpt : (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
+        - N.compensated (Set.Ioc a b ×ˢ D) ω) ^ 2)
+      = (fun ω => (g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω) ^ 2
+          - 2 * (g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
+            * N.compensated (Set.Ioc a b ×ˢ D) ω)))
+          + g ω * (N.compensated (Set.Ioc a b ×ˢ D) ω) ^ 2) := by
+    funext ω; ring
+  rw [hpt, MeasureTheory.integral_add hmid hiD,
+    MeasureTheory.integral_sub hiC hiCD, MeasureTheory.integral_const_mul,
+    weighted_box_cross_disjoint_zero N ha hab hC hD hCf hDf hdisjCD hg hgb,
+    weighted_box_sq_eq N ha hab hC hCf hg, weighted_box_sq_eq N ha hab hD hDf hg]
+  ring
+
 /-- **Cross term of two disjoint-mark full-rect sums vanishes.** For a shared time
 partition `p`, pairwise-disjoint marks (`Disjoint (A i) (A' i)`), and adapted bounded
 coefficients, `E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))] = 0`. Every term
