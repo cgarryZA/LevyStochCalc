@@ -85,16 +85,24 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         untouched). The bilinear isometry's cross terms vanish on disjoint sets:
         `compensated_cross_disjoint_zero` (`E[Ñ(B)Ñ(B')]=0` for `Disjoint B B'`, via the
         PRM `independent_disjoint` field + `compensated_mean_zero`).
-      - *Next: isometry → masterApprox → L²-limit → 4 conjuncts.* Two viable routes for
-        the step-integral isometry `E[(stepIntegral)²]`: (a) **disjoint-support** — arrange
-        the mark-discretisation with pairwise-disjoint `(time×mark)` rectangles so all
-        cross terms vanish via `compensated_cross_disjoint_zero` and `E[(∑Iⱼ)²]=∑E[Iⱼ²]`;
-        (b) **general bilinear covariance** `E[Ñ(B)Ñ(B')]=ν̂(B∩B').toReal` (polarise
-        `compensated_second_moment` via `Ñ(B)−Ñ(B')=Ñ(B∖B')−Ñ(B'∖B)` + disjoint covariance
-        + inclusion–exclusion) — heavier but construction-agnostic. Then mirror Brownian
-        `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
-        `stochasticIntegralCompensated` as the `Lp` limit → 4 conjuncts → drop axiom
-        + close #18.
+      - *Covariance + cross-term theory (`CompensatedDensity.lean`) — DONE 2026-06-17.*
+        All atomic lemmas for the multi-mark isometry are proved, and **no strengthening
+        of the per-box past/future independence (cited axiom #2) is needed**: the same-time
+        disjoint-mark weighted cross term is killed by polarising through the union box.
+        Bricks: `compensated_cross_disjoint_zero`, `compensated_diff_sq_disjoint`,
+        `compensated_inter_add_diff_ae`, `compensated_diff_sq_expand`,
+        `compensated_cross_covariance` (`E[Ñ(B)Ñ(B')]=ν̂(B∩B')`),
+        `weighted_box_sq_eq` (`E[g·Ñ(box)²]=E[g]·ν̂(box)`),
+        `weighted_box_cross_disjoint_zero` (`E[g·Ñ(R)Ñ(R')]=0`, same-time disjoint marks).
+        Decision: **multi-mark** design (per user) — K disjoint mark-sets per shared
+        time-partition; isometry = ∑ₖ per-mark isometry (cross-mark terms vanish: same-time
+        via `weighted_box_cross_disjoint_zero`, time-ordered via the off-diagonal arg).
+      - *Next (assembly-scale): isometry → masterApprox → L²-limit → 4 conjuncts.* Generalise
+        the single-φ off-diagonal/diagonal (`offDiagonal_increment_zero`/`diagonal_increment_sq`)
+        to **cross-φ shared-partition** form, assemble the multi-mark/`stepIntegral`
+        disjoint-mark isometry `E[(∑ₖ Iₖ)²]=∑ₖ∫∫evalₖ²`, then mirror Brownian
+        `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` → `stochasticIntegralCompensated`
+        as the `Lp` limit → pass the 4 conjuncts → drop axiom #6 + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
