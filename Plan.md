@@ -104,15 +104,21 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         (`E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))]=0` for a shared partition
         and disjoint marks). All atomic isometry content for the multi-mark design is now
         proved, structure-free, using only the existing per-box independence.
-      - *Next (assembly + plumbing): multi-mark isometry → masterApprox → L²-limit → 4
-        conjuncts.* Construct the disjoint-mark, shared-partition `SimplePredictable`
-        family from the mark-discretised `dyadicEvalShifted`; the step-integral isometry
-        `E[(∑ₖ Iₖ)²]=∑ₖ∫∫evalₖ²` is then the k-level expansion: diagonal `E[Iₖ²]` via the
-        existing `simpleIntegral_isometry`, cross `E[IₖIₖ']` via `crossSum_disjointMark_zero`
-        (rewriting each `simpleIntegral` through `simpleIntegral_eq_sum_fullRect`). Then
-        mirror Brownian `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
-        `stochasticIntegralCompensated` as the `Lp` limit → pass the 4 conjuncts → drop
-        axiom #6 + close #18.
+      - *Multi-mark isometry — DONE 2026-06-17.* `stepIntegral_multimark_isometry`:
+        `E[(∑ₖ∑ᵢ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = ∑ₖ∑ᵢ ν̂((pᵢ,pᵢ₊₁]×Bₖ)·E[ξᵢₖ²]` for a shared
+        partition, pairwise-disjoint marks, adapted bounded coeffs. Builds the single-mark
+        `SimplePredictable` per mark, expands at the `k`-level, diagonal via
+        `simpleIntegral_L2_isometry_compensatedPoisson_sumForm`, cross via
+        `crossSum_disjointMark_zero`. **The full isometry conjunct for general (rank->1)
+        integrands is now proved** — no axiom strengthening, mark space `E` fully general.
+      - *Next (completion plumbing, mirrors Brownian `ItoL2Completion`):* `masterApprox` —
+        combine `dyadicEvalShifted` (adapted time-discretisation → φ in L²) with the
+        disjoint-mark rectangle discretisation (`rectSimple_dense_L2` + disjointification) to
+        produce a sequence of multi-mark adapted integrands → φ in `L²(P⊗vol⊗ν)`; the
+        integrals are Cauchy in `L²(P)` by `stepIntegral_multimark_isometry` applied to the
+        difference; define `stochasticIntegralCompensated` as the `Lp`-limit; pass the 4
+        conjuncts (martingale via `martingale_stepIntegral_compensated` + limit; quadVar;
+        isometry; càdlàg) to the limit → drop axiom #6 + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
