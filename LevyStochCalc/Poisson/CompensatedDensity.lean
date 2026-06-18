@@ -1896,4 +1896,117 @@ lemma weighted_box_cross_timeordered_zero
         (N.measurable_eval hR'meas)).sub_const _).aestronglyMeasurable,
     compensated_mean_zero N hR'meas hR'f, mul_zero]
 
+/-- **Cross term of two disjoint-mark full-rect sums vanishes.** For a shared time
+partition `p`, pairwise-disjoint marks (`Disjoint (A i) (A' i)`), and adapted bounded
+coefficients, `E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))] = 0`. Every term
+of the `(i,j)` double sum vanishes: `i=j` (same interval, disjoint marks) by
+`weighted_box_cross_disjoint_zero`, `i≠j` (time-ordered) by
+`weighted_box_cross_timeordered_zero`. The bilinear cross-vanishing underlying the
+multi-mark step-integral isometry. -/
+lemma crossSum_disjointMark_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
+    (A A' : Fin N₀ → Set E)
+    (hAm : ∀ i, MeasurableSet (A i)) (hA'm : ∀ i, MeasurableSet (A' i))
+    (hAf : ∀ i, ν (A i) ≠ ⊤) (hA'f : ∀ i, ν (A' i) ≠ ⊤)
+    (hdisj : ∀ i, Disjoint (A i) (A' i))
+    (ξ ξ' : Fin N₀ → Ω → ℝ)
+    (hξb : ∀ i, ∃ M, ∀ ω, |ξ i ω| ≤ M) (hξ'b : ∀ i, ∃ M, ∀ ω, |ξ' i ω| ≤ M)
+    (hξm : ∀ i, Measurable (ξ i)) (hξ'm : ∀ i, Measurable (ξ' i))
+    (h_adapt : ∀ i, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i))
+    (h_adapt' : ∀ i, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ' i)) :
+    ∫ ω, (∑ i : Fin N₀, ξ i ω
+            * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+        * (∑ j : Fin N₀, ξ' j ω
+            * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω) ∂P = 0 := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  -- partition facts.
+  have hpnn : ∀ k : Fin (N₀ + 1), 0 ≤ p k := fun k => by
+    have := hpmono.monotone (Fin.zero_le k); rwa [hp0] at this
+  have hlt : ∀ i : Fin N₀, p i.castSucc < p i.succ := fun i => hpmono Fin.castSucc_lt_succ
+  -- measurability + finiteness of the boxes.
+  have hRm : ∀ i, MeasurableSet (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) :=
+    fun i => measurableSet_Ioc.prod (hAm i)
+  have hR'm : ∀ i, MeasurableSet (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A' i) :=
+    fun i => measurableSet_Ioc.prod (hA'm i)
+  have hRf : ∀ i, LevyStochCalc.Poisson.referenceIntensity ν
+      (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ≠ ⊤ :=
+    fun i => referenceIntensity_Ioc_prod_ne_top (hAf i)
+  have hR'f : ∀ i, LevyStochCalc.Poisson.referenceIntensity ν
+      (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A' i) ≠ ⊤ :=
+    fun i => referenceIntensity_Ioc_prod_ne_top (hA'f i)
+  -- integrability of each cross product term.
+  have hint : ∀ i j : Fin N₀, MeasureTheory.Integrable
+      (fun ω => (ξ i ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+        * (ξ' j ω * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω)) P := by
+    intro i j
+    obtain ⟨Mi, hMi⟩ := hξb i
+    obtain ⟨Mj, hMj⟩ := hξ'b j
+    have hcross := compensated_cross_integrable N (hRm i) (hR'm j) (hRf i) (hR'f j)
+    have heq : (fun ω => (ξ i ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+          * (ξ' j ω * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω))
+        = (fun ω => (ξ i ω * ξ' j ω)
+          * (N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω
+            * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω)) := by
+      funext ω; ring
+    rw [heq]
+    refine hcross.bdd_mul (c := Mi * Mj) ((hξm i).mul (hξ'm j)).aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun ω => ?_))
+    rw [Real.norm_eq_abs, abs_mul]
+    exact mul_le_mul (hMi ω) (hMj ω) (abs_nonneg _) ((abs_nonneg _).trans (hMi ω))
+  -- expand the product of sums into a double sum and integrate term-by-term.
+  rw [show (fun ω => (∑ i : Fin N₀, ξ i ω
+            * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+          * (∑ j : Fin N₀, ξ' j ω
+            * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω))
+      = fun ω => ∑ i : Fin N₀, ∑ j : Fin N₀,
+          (ξ i ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+          * (ξ' j ω * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω) from
+    funext (fun ω => Finset.sum_mul_sum _ _ _ _),
+    MeasureTheory.integral_finsetSum _
+      (fun i _ => MeasureTheory.integrable_finsetSum _ (fun j _ => hint i j))]
+  refine Finset.sum_eq_zero (fun i _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun j _ => hint i j)]
+  refine Finset.sum_eq_zero (fun j _ => ?_)
+  -- reassociate to `g·(Ñ·Ñ)` with `g = ξᵢ·ξ'ⱼ`.
+  rw [show (fun ω => (ξ i ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
+          * (ξ' j ω * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω))
+      = fun ω => (ξ i ω * ξ' j ω)
+          * (N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω
+            * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω) from
+    funext (fun ω => by ring)]
+  rcases lt_trichotomy i j with hij | hij | hij
+  · -- i < j: time-ordered (`pᵢ₊₁ ≤ pⱼ`).
+    have hbc : p i.succ ≤ p j.castSucc :=
+      hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
+    exact weighted_box_cross_timeordered_zero N (hpnn _) (hlt i) hbc (hlt j)
+      (hAm i) (hA'm j) (hA'f j)
+      (((h_adapt i).mono (ℱ.mono ((hlt i).le.trans hbc))).mul (h_adapt' j))
+  · -- i = j: same interval, disjoint marks.
+    subst hij
+    obtain ⟨Mi, hMi⟩ := hξb i
+    obtain ⟨Mj, hMj⟩ := hξ'b i
+    have hbnd : ∀ ω, |ξ i ω * ξ' i ω| ≤ Mi * Mj := fun ω => by
+      rw [abs_mul]
+      exact mul_le_mul (hMi ω) (hMj ω) (abs_nonneg _) ((abs_nonneg _).trans (hMi ω))
+    exact weighted_box_cross_disjoint_zero N (hpnn _) (hlt i)
+      (hAm i) (hA'm i) (hAf i) (hA'f i) (hdisj i) ((h_adapt i).mul (h_adapt' i)) hbnd
+  · -- j < i: time-ordered the other way (commute the two compensated factors).
+    have hbc : p j.succ ≤ p i.castSucc :=
+      hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
+    rw [show (fun ω => (ξ i ω * ξ' j ω)
+            * (N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω
+              * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω))
+        = fun ω => (ξ i ω * ξ' j ω)
+            * (N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω
+              * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω) from
+      funext (fun ω => by ring)]
+    exact weighted_box_cross_timeordered_zero N (hpnn _) (hlt j) hbc (hlt i)
+      (hA'm j) (hAm i) (hAf i)
+      ((h_adapt i).mul ((h_adapt' j).mono (ℱ.mono ((hlt j).le.trans hbc))))
+
 end LevyStochCalc.Poisson.Compensated
