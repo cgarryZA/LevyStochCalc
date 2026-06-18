@@ -1728,4 +1728,31 @@ lemma compensated_cross_covariance
   rw [hexp] at hsq_eq
   linarith [hsq_eq, hrefB, hrefB']
 
+/-- **Weighted second moment of a future-box compensated value.** For a past-at-`a`
+(i.e. `ℱ_a`-)measurable weight `g` and a future box `(a,b] × A`,
+`E[g·Ñ((a,b]×A)²] = E[g]·ν̂((a,b]×A).toReal`: `g` is independent of `Ñ(box)`
+(`indepFun_past_compensated_box`), hence of its square, and `E[Ñ(box)²] = ν̂(box)`. -/
+lemma weighted_box_sq_eq
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {A : Set E} (hA : MeasurableSet A) (hAf : ν A ≠ ⊤)
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g) :
+    ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2 ∂P
+      = (∫ ω, g ω ∂P)
+        * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal := by
+  have hbox_meas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
+  have hbox_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAf
+  have h_indep := indepFun_past_compensated_box N ha hab hA hAf hg
+  have h_indep_sq : ProbabilityTheory.IndepFun g
+      (fun ω => (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2) P :=
+    h_indep.comp measurable_id (measurable_id.pow_const 2)
+  rw [h_indep_sq.integral_fun_mul_eq_mul_integral
+      ((hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable)
+      (((ENNReal.measurable_toReal.comp
+        (N.measurable_eval hbox_meas)).sub_const _).pow_const 2).aestronglyMeasurable,
+    compensated_second_moment N hbox_meas hbox_fin]
+
 end LevyStochCalc.Poisson.Compensated
