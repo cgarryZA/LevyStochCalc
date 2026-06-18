@@ -1850,23 +1850,23 @@ lemma weighted_box_cross_disjoint_zero
       ENNReal.toReal_add hRf hR'f]
   rw [hrefU]; ring
 
-/-- **Time-ordered weighted cross term vanishes.** For an `ℱ_a`-measurable weight `g`
+/-- **Time-ordered weighted cross term vanishes.** For an `ℱ_c`-measurable weight `g`
 and boxes `(a,b]×A`, `(c,d]×A'` with `b ≤ c` (time-ordered), the earlier factor
 `g·Ñ((a,b]×A)` is past-at-`c` measurable while `Ñ((c,d]×A')` is a future increment, so
 `E[g·Ñ((a,b]×A)·Ñ((c,d]×A')] = E[g·Ñ((a,b]×A)]·E[Ñ((c,d]×A')] = 0`. The full-box
-analogue of `offDiagonal_increment_zero`. -/
+analogue of `offDiagonal_increment_zero` (the weight is measurable up to the *later*
+box's start `c`, which is what the cross-`φ` isometry supplies). -/
 lemma weighted_box_cross_timeordered_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    {a b c d : ℝ} (ha : 0 ≤ a) (hab : a < b) (hbc : b ≤ c) (hcd : c < d)
-    {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A') (hAf : ν A ≠ ⊤) (hA'f : ν A' ≠ ⊤)
+    {a b c d : ℝ} (hc : 0 ≤ c) (hab : a < b) (hbc : b ≤ c) (hcd : c < d)
+    {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A') (hA'f : ν A' ≠ ⊤)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g) :
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq c) g) :
     ∫ ω, g ω
         * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω) ∂P = 0 := by
   set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
-  have hac : a ≤ c := hab.le.trans hbc
   have hRmeas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
   have hR'meas : MeasurableSet (Set.Ioc c d ×ˢ A') := measurableSet_Ioc.prod hA'
   have hR'f : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc c d ×ˢ A') ≠ ⊤ :=
@@ -1881,11 +1881,11 @@ lemma weighted_box_cross_timeordered_zero
       hRmeas).ennreal_toReal).sub measurable_const).stronglyMeasurable
   have hf_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c)
       (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω) :=
-    (hg.mono (ℱ.mono hac)).mul hÑR_c
+    hg.mul hÑR_c
   have h_indep : ProbabilityTheory.IndepFun
       (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
       (fun ω => N.compensated (Set.Ioc c d ×ˢ A') ω) P :=
-    indepFun_past_compensated_box N (ha.trans hac) hcd hA' hA'f hf_meas
+    indepFun_past_compensated_box N hc hcd hA' hA'f hf_meas
   rw [show (fun ω => g ω
         * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω))
       = (fun ω => (g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
