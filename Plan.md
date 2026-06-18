@@ -74,16 +74,25 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         over the product π-system — `rectApprox_indicator` → `rectApprox_indicator_const`
         / `RectApprox.const_smul` → `rectSimple_dense_L2` (`MemLp.induction_dense`) →
         `rectSimple_L2_tendsto` (convergent sequence).
-      - *Next: masterApprox assembly + L²-limit + 4 conjuncts.* **Architectural note:**
+      - *Step-integral foundation (`CompensatedDensity.lean`) — DONE 2026-06-17.*
         `SimplePredictable` carries one mark set `Aᵢ`+coefficient `ξᵢ` per (strictly
         increasing) time-piece, so its `eval` is rank-1 in the mark on each interval and
         cannot represent `∑ⱼ ξⱼ(ω)𝟙_{Bⱼ}(e)`. The mark-discretised approximant is a
-        **finite sum** of such pieces; plan is a thin `StepPredictable` wrapper (finite
-        ℝ-combination of `SimplePredictable`s) whose `simpleIntegral` is the sum, so
-        martingale/quadVar/isometry pass by linearity (off-diagonal mark cross-terms
-        vanish on **disjoint** mark sets — arrange the rectangle approximation with
-        disjoint `Bⱼ`). This avoids touching the already-proven `CompensatedMartingale`
-        lemmas. Then mirror Brownian `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
+        **finite sum** of pieces, captured by `stepIntegral N (Φ : Fin k → SimplePredictable)
+        = ∑ⱼ simpleIntegral N (Φ j)` — proved `martingale_stepIntegral_compensated`
+        (sum of per-piece martingales), `stepIntegral_zero`, `stepIntegral_memLp_compensated`
+        (all by reusing the proven `CompensatedMartingale`/`CompensatedIsometry` lemmas
+        untouched). The bilinear isometry's cross terms vanish on disjoint sets:
+        `compensated_cross_disjoint_zero` (`E[Ñ(B)Ñ(B')]=0` for `Disjoint B B'`, via the
+        PRM `independent_disjoint` field + `compensated_mean_zero`).
+      - *Next: isometry → masterApprox → L²-limit → 4 conjuncts.* Two viable routes for
+        the step-integral isometry `E[(stepIntegral)²]`: (a) **disjoint-support** — arrange
+        the mark-discretisation with pairwise-disjoint `(time×mark)` rectangles so all
+        cross terms vanish via `compensated_cross_disjoint_zero` and `E[(∑Iⱼ)²]=∑E[Iⱼ²]`;
+        (b) **general bilinear covariance** `E[Ñ(B)Ñ(B')]=ν̂(B∩B').toReal` (polarise
+        `compensated_second_moment` via `Ñ(B)−Ñ(B')=Ñ(B∖B')−Ñ(B'∖B)` + disjoint covariance
+        + inclusion–exclusion) — heavier but construction-agnostic. Then mirror Brownian
+        `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
         `stochasticIntegralCompensated` as the `Lp` limit → 4 conjuncts → drop axiom
         + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
