@@ -3556,6 +3556,66 @@ lemma dyadic_point_coarse {T : ℝ} {n m : ℕ} (hnm : n ≤ m) (a : ℕ) :
   have hmn : ((2 ^ (m - n) : ℕ) : ℝ) ≠ 0 := by positivity
   rw [h2m]; push_cast; field_simp
 
+/-- **Indicator tiling.** For a monotone mesh `q : ℕ → ℝ`, the indicator of the coarse
+interval `(q 0, q m]` is the sum of the indicators of its fine sub-intervals
+`(q j, q (j+1)]`, `j < m` (they tile it disjointly). -/
+lemma indicator_Ioc_telescope (q : ℕ → ℝ) (hmono : Monotone q) (m : ℕ) (s : ℝ) :
+    (Set.Ioc (q 0) (q m)).indicator (fun _ => (1 : ℝ)) s
+      = ∑ j ∈ Finset.range m, (Set.Ioc (q j) (q (j + 1))).indicator (fun _ => (1 : ℝ)) s := by
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    have hdisj : Disjoint (Set.Ioc (q 0) (q m)) (Set.Ioc (q m) (q (m + 1))) := by
+      rw [Set.disjoint_left]; rintro x hx1 hx2; exact absurd hx1.2 (not_le.mpr hx2.1)
+    have hunion : Set.Ioc (q 0) (q m) ∪ Set.Ioc (q m) (q (m + 1)) = Set.Ioc (q 0) (q (m + 1)) :=
+      Set.Ioc_union_Ioc_eq_Ioc (hmono (Nat.zero_le m)) (hmono (Nat.le_succ m))
+    rw [Finset.sum_range_succ, ← ih, ← hunion, Set.indicator_union_of_disjoint hdisj]
+
+/-- **Fine-interval tiling of a coarse dyadic interval (indicator form).** The level-`m`
+sub-intervals of a level-`n` interval `i` tile it: `∑_j 𝟙_{fine(i,j)}(s) = 𝟙_{coarse i}(s)`. -/
+lemma dyadic_indicator_refine {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m)
+    (i : Fin (2 ^ n)) (s : ℝ) :
+    (∑ j : Fin (2 ^ (m - n)),
+      (Set.Ioc (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+        (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ)).indicator
+        (fun _ => (1 : ℝ)) s)
+      = (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)).indicator
+          (fun _ => (1 : ℝ)) s := by
+  set q : ℕ → ℝ := fun jj => ((2 ^ (m - n) * i.val + jj : ℕ) : ℝ) * T / ((2 ^ m : ℕ) : ℝ) with hq
+  have hqmono : Monotone q := by
+    intro a b hab
+    simp only [hq]
+    rw [div_le_div_iff_of_pos_right (by positivity : (0 : ℝ) < ((2 ^ m : ℕ) : ℝ))]
+    exact mul_le_mul_of_nonneg_right (by exact_mod_cast Nat.add_le_add_left hab _) hT.le
+  have hval : ∀ j : Fin (2 ^ (m - n)),
+      ((finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j)) : Fin (2 ^ m)) : ℕ)
+        = 2 ^ (m - n) * i.val + j.val := fun j => dyadic_combine_val hnm i j
+  have hcombine_cast : ∀ j : Fin (2 ^ (m - n)),
+      (dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc) = q j.val
+      ∧ (dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ) = q (j.val + 1) := by
+    intro j
+    refine ⟨?_, ?_⟩
+    · simp only [dyadicPartition, Fin.val_castSucc, hval j, hq]
+    · simp only [dyadicPartition, Fin.val_succ, hval j, hq]; push_cast; ring_nf
+  rw [Finset.sum_congr rfl (fun j _ => by rw [(hcombine_cast j).1, (hcombine_cast j).2]),
+    Fin.sum_univ_eq_sum_range (fun jj => (Set.Ioc (q jj) (q (jj + 1))).indicator
+      (fun _ => (1 : ℝ)) s) (2 ^ (m - n)), ← indicator_Ioc_telescope q hqmono (2 ^ (m - n)) s]
+  have hq0 : q 0 = dyadicPartition T n i.castSucc := by
+    simp only [hq, Nat.add_zero, dyadicPartition, Fin.val_castSucc]
+    rw [dyadic_point_coarse hnm i.val]
+  have hqr : q (2 ^ (m - n)) = dyadicPartition T n i.succ := by
+    simp only [hq, dyadicPartition, Fin.val_succ]
+    rw [show 2 ^ (m - n) * i.val + 2 ^ (m - n) = 2 ^ (m - n) * (i.val + 1) from by ring,
+      dyadic_point_coarse hnm (i.val + 1)]
+  rw [hq0, hqr]
+
 /-- **Time-additivity of the compensated integral over a split interval.** For
 `a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
 (disjoint union `(a,b]×B ⊔ (b,c]×B = (a,c]×B`). -/
@@ -3575,21 +3635,6 @@ lemma compensated_Ioc_split
   rw [← hunion]
   exact compensated_union_ae N (measurableSet_Ioc.prod hB) (measurableSet_Ioc.prod hB) hdisj
     (referenceIntensity_Ioc_prod_ne_top hBfin) (referenceIntensity_Ioc_prod_ne_top hBfin)
-
-/-- **Indicator tiling.** For a monotone mesh `q : ℕ → ℝ`, the indicator of the coarse
-interval `(q 0, q m]` is the sum of the indicators of its fine sub-intervals
-`(q j, q (j+1)]`, `j < m` (they tile it disjointly). -/
-lemma indicator_Ioc_telescope (q : ℕ → ℝ) (hmono : Monotone q) (m : ℕ) (s : ℝ) :
-    (Set.Ioc (q 0) (q m)).indicator (fun _ => (1 : ℝ)) s
-      = ∑ j ∈ Finset.range m, (Set.Ioc (q j) (q (j + 1))).indicator (fun _ => (1 : ℝ)) s := by
-  induction m with
-  | zero => simp
-  | succ m ih =>
-    have hdisj : Disjoint (Set.Ioc (q 0) (q m)) (Set.Ioc (q m) (q (m + 1))) := by
-      rw [Set.disjoint_left]; rintro x hx1 hx2; exact absurd hx1.2 (not_le.mpr hx2.1)
-    have hunion : Set.Ioc (q 0) (q m) ∪ Set.Ioc (q m) (q (m + 1)) = Set.Ioc (q 0) (q (m + 1)) :=
-      Set.Ioc_union_Ioc_eq_Ioc (hmono (Nat.zero_le m)) (hmono (Nat.le_succ m))
-    rw [Finset.sum_range_succ, ← ih, ← hunion, Set.indicator_union_of_disjoint hdisj]
 
 /-- **Telescoping refinement of a compensated interval integral.** For a monotone
 mesh `q : ℕ → ℝ`, `Ñ((q 0, q m]×B) =ᵐ ∑_{j<m} Ñ((q j, q (j+1)]×B)` — a coarse interval
