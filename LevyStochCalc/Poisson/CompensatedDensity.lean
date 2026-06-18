@@ -1448,6 +1448,157 @@ lemma rectSimple_L2_tendsto (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : �
   exact ⟨g, hg, tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     ENNReal.tendsto_inv_nat_nhds_zero (fun _ => zero_le) hgerr⟩
 
+/-- **Trim–product iterated-lintegral bridge.** For a sub-σ-algebra `m ≤ m₀` on `Ω`
+and an `m ⊗ E`-measurable `F : Ω × E → ℝ≥0∞`, the integral against the product
+`(P.trim hm) ⊗ ν` equals the iterated integral against `ν` then `P`. (Tonelli on the
+trimmed space, then `lintegral_trim` on the `m`-measurable inner integral.) -/
+lemma lintegral_prod_trim_left
+    {m0 : MeasurableSpace Ω} {P : @Measure Ω m0} {ν : Measure E} [SigmaFinite ν]
+    {m : MeasurableSpace Ω} (hm : m ≤ m0)
+    {F : Ω × E → ℝ≥0∞} (hF : @Measurable (Ω × E) ℝ≥0∞ (m.prod inferInstance) _ F) :
+    ∫⁻ q, F q ∂((P.trim hm).prod ν) = ∫⁻ ω, ∫⁻ e, F (ω, e) ∂ν ∂P := by
+  rw [MeasureTheory.lintegral_prod _ hF.aemeasurable]
+  exact MeasureTheory.lintegral_trim hm
+    (@Measurable.lintegral_prod_right' Ω E m _ ν _ F hF)
+
+/-- A rectangle-simple function is a finite `Fin`-indexed sum of separable
+indicator products `aₖ · 𝟙_{Aₖ}(ω) · 𝟙_{Bₖ}(e)`, with `Aₖ`, `Bₖ` measurable in the
+ambient σ-algebras. (Repackages the defining `List` into a `Fin`-indexed family.) -/
+lemma IsRectSimple.eq_finSum {g : Ω × E → ℝ} (hg : IsRectSimple g) :
+    ∃ (K : ℕ) (a : Fin K → ℝ) (A : Fin K → Set Ω) (B : Fin K → Set E),
+      (∀ k, MeasurableSet (A k)) ∧ (∀ k, MeasurableSet (B k)) ∧
+      (∀ ω e, g (ω, e) = ∑ k : Fin K, a k * (A k).indicator (fun _ => (1 : ℝ)) ω
+                              * (B k).indicator (fun _ => (1 : ℝ)) e) := by
+  classical
+  obtain ⟨L, hL, hgeq⟩ := hg
+  refine ⟨L.length, fun k => (L.get k).1, fun k => (L.get k).2.1, fun k => (L.get k).2.2,
+    fun k => (hL (L.get k) (List.get_mem L k)).1,
+    fun k => (hL (L.get k) (List.get_mem L k)).2, ?_⟩
+  intro ω e
+  rw [hgeq]
+  show (L.map (fun t => t.1 * (t.2.1 ×ˢ t.2.2).indicator (fun _ => (1 : ℝ)) (ω, e))).sum = _
+  rw [← List.ofFn_getElem_eq_map L
+        (fun t => t.1 * (t.2.1 ×ˢ t.2.2).indicator (fun _ => (1 : ℝ)) (ω, e)),
+      Fin.sum_ofFn]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  simp only [List.get_eq_getElem]
+  rw [show ((L[(k : ℕ)]).2.1 ×ˢ (L[(k : ℕ)]).2.2).indicator (fun _ => (1 : ℝ)) (ω, e)
+        = ((L[(k : ℕ)]).2.1).indicator (fun _ => (1 : ℝ)) ω
+          * ((L[(k : ℕ)]).2.2).indicator (fun _ => (1 : ℝ)) e from by
+    by_cases hω : ω ∈ (L[(k : ℕ)]).2.1 <;> by_cases he : e ∈ (L[(k : ℕ)]).2.2 <;>
+      simp [Set.indicator_apply, Set.mem_prod, hω, he]]
+  ring
+
+/-- **Adapted mark-discretisation (per-time-piece).** A bounded `h : Ω → E → ℝ` that
+is `m ⊗ E`-measurable (for a sub-σ-algebra `m ≤ m₀`) and supported on marks in a
+finite-measure set `S` is approximated in `L²(P ⊗ ν)` by a finite mark-simple function
+`∑ₖ cₖ(ω) 𝟙_{Bₖ}(e)` whose mark sets `Bₖ ⊆ S` and whose coefficients `cₖ` are bounded
+and `m`-measurable (hence adapted). Runs `rectSimple_dense_L2` on the trimmed product
+`(P.trim hm) ⊗ (ν|S)` to force `m`-measurable rectangle sides, then transfers the bound
+back through `lintegral_prod_trim_left`. -/
+lemma exists_markSimple_adapted_within
+    {m0 : MeasurableSpace Ω} {P : @Measure Ω m0} [@IsFiniteMeasure Ω m0 P]
+    {ν : Measure E} [SigmaFinite ν]
+    {m : MeasurableSpace Ω} (hm : m ≤ m0)
+    (h : Ω → E → ℝ)
+    (h_meas : @Measurable (Ω × E) ℝ (m.prod inferInstance) _ (fun q => h q.1 q.2))
+    {C : ℝ} (h_bdd : ∀ ω e, |h ω e| ≤ C)
+    {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
+    (hsupp : ∀ ω e, e ∉ S → h ω e = 0)
+    {δ : ℝ≥0∞} (hδ : δ ≠ 0) :
+    ∃ (K : ℕ) (B : Fin K → Set E) (c : Fin K → Ω → ℝ),
+      (∀ k, MeasurableSet (B k)) ∧ (∀ k, B k ⊆ S) ∧
+      (∀ k, @Measurable Ω ℝ m _ (c k)) ∧
+      (∀ k, ∃ M, ∀ ω, |c k ω| ≤ M) ∧
+      ∫⁻ ω, ∫⁻ e, (‖h ω e
+          - ∑ k, c k ω * (B k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂P ≤ δ := by
+  classical
+  -- finite product measure on the trimmed space.
+  haveI hPt : IsFiniteMeasure (P.trim hm) := MeasureTheory.isFiniteMeasure_trim hm
+  haveI hνS : IsFiniteMeasure (ν.restrict S) :=
+    ⟨by rw [Measure.restrict_apply_univ]; exact lt_of_le_of_ne le_top hSfin⟩
+  set μ : @Measure (Ω × E) (m.prod inferInstance) := (P.trim hm).prod (ν.restrict S) with hμ
+  haveI : IsFiniteMeasure μ := by rw [hμ]; infer_instance
+  set f : Ω × E → ℝ := fun q => h q.1 q.2 with hf
+  -- `f ∈ L²(μ)`: bounded on a finite measure.
+  have hmem : MeasureTheory.MemLp f 2 μ := by
+    refine MeasureTheory.MemLp.mono_exponent ?_ (le_top)
+    refine MeasureTheory.memLp_top_of_bound h_meas.aestronglyMeasurable C ?_
+    exact Filter.Eventually.of_forall (fun q => by
+      rw [Real.norm_eq_abs]; exact h_bdd q.1 q.2)
+  -- tolerance `ε' = √δ`, so `ε'² = δ`.
+  set ε' : ℝ≥0∞ := δ ^ (1 / 2 : ℝ) with hε'
+  have hε'0 : ε' ≠ 0 := by
+    rw [hε', Ne, ENNReal.rpow_eq_zero_iff]; push_neg
+    exact ⟨fun h0 => absurd h0 hδ, fun _ => by norm_num⟩
+  obtain ⟨g, hg_rs, hg_err⟩ :=
+    @rectSimple_dense_L2 Ω m E _ μ _ f hmem ε' hε'0
+  obtain ⟨K, a, A, B, hA, hB, hgeq⟩ := @IsRectSimple.eq_finSum Ω m E _ g hg_rs
+  -- repackage into a `Fin`-indexed mark-simple family (mark sides ∩ S).
+  refine ⟨K, fun k => B k ∩ S, fun k ω => a k * (A k).indicator (fun _ => (1 : ℝ)) ω,
+    fun k => (hB k).inter hS, fun k => Set.inter_subset_right, ?_, ?_, ?_⟩
+  · intro k
+    exact measurable_const.mul (Measurable.indicator measurable_const (hA k))
+  · exact fun k => ⟨|a k|, fun ω => by
+      rw [abs_mul]
+      calc |a k| * |(A k).indicator (fun _ => (1 : ℝ)) ω|
+          ≤ |a k| * 1 := by
+            refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+            rw [Set.indicator_apply]; split_ifs <;> simp
+        _ = |a k| := mul_one _⟩
+  -- the eval reproduces `g · 𝟙_S` in the mark.
+  have heval : ∀ ω e, (∑ k, (a k * (A k).indicator (fun _ => (1 : ℝ)) ω)
+        * (B k ∩ S).indicator (fun _ => (1 : ℝ)) e)
+      = g (ω, e) * S.indicator (fun _ => (1 : ℝ)) e := by
+    intro ω e
+    rw [hgeq ω e, Finset.sum_mul]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    rw [show (B k ∩ S).indicator (fun _ => (1 : ℝ)) e
+          = (B k).indicator (fun _ => (1 : ℝ)) e * S.indicator (fun _ => (1 : ℝ)) e from by
+      simp only [Set.indicator_apply, Set.mem_inter_iff]
+      by_cases hk : e ∈ B k <;> by_cases hs : e ∈ S <;> simp [hk, hs]]
+    ring
+  -- transfer the `L²` bound through the trim bridge; the difference is supported on `S`.
+  have hg_meas : @Measurable (Ω × E) ℝ (m.prod inferInstance) _ g :=
+    @IsRectSimple.measurable Ω m E _ g hg_rs
+  have hFmeas : @Measurable (Ω × E) ℝ≥0∞ (m.prod inferInstance) _
+      (fun q => (‖f q - g q‖₊ : ℝ≥0∞) ^ 2) :=
+    (ENNReal.continuous_coe.measurable.comp (h_meas.sub hg_meas).nnnorm).pow_const 2
+  have hpt : ∀ ω e, (‖h ω e - ∑ k, (a k * (A k).indicator (fun _ => (1 : ℝ)) ω)
+        * (B k ∩ S).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2
+      = S.indicator (fun e' => (‖h ω e' - g (ω, e')‖₊ : ℝ≥0∞) ^ 2) e := by
+    intro ω e
+    rw [heval ω e]
+    by_cases he : e ∈ S
+    · rw [Set.indicator_of_mem he, Set.indicator_of_mem he, mul_one]
+    · rw [Set.indicator_of_notMem he, mul_zero, sub_zero, hsupp ω e he,
+        Set.indicator_of_notMem he]
+      simp
+  calc ∫⁻ ω, ∫⁻ e, (‖h ω e - ∑ k, (a k * (A k).indicator (fun _ => (1 : ℝ)) ω)
+          * (B k ∩ S).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂P
+      = ∫⁻ ω, ∫⁻ e in S, (‖h ω e - g (ω, e)‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂P := by
+        refine lintegral_congr (fun ω => ?_)
+        rw [← MeasureTheory.lintegral_indicator hS]
+        exact lintegral_congr (fun e => hpt ω e)
+    _ = ∫⁻ q, (‖f q - g q‖₊ : ℝ≥0∞) ^ 2 ∂((P.trim hm).prod (ν.restrict S)) :=
+        (lintegral_prod_trim_left hm hFmeas).symm
+    _ ≤ δ := by
+        rw [← hμ]
+        have hsq : MeasureTheory.eLpNorm (f - g) 2 μ ^ (2 : ℝ)
+            = ∫⁻ q, (‖f q - g q‖₊ : ℝ≥0∞) ^ 2 ∂μ := by
+          have hL := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral
+            (μ := μ) (p := (2 : ℝ≥0)) (f := f - g) (by norm_num)
+          rw [show ((2 : ℝ≥0) : ℝ≥0∞) = (2 : ℝ≥0∞) from by simp,
+            show ((2 : ℝ≥0) : ℝ) = (2 : ℝ) from by norm_num] at hL
+          rw [hL]; refine lintegral_congr (fun q => ?_)
+          rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+        calc ∫⁻ q, (‖f q - g q‖₊ : ℝ≥0∞) ^ 2 ∂μ
+            = MeasureTheory.eLpNorm (f - g) 2 μ ^ (2 : ℝ) := hsq.symm
+          _ ≤ ε' ^ (2 : ℝ) := ENNReal.rpow_le_rpow hg_err (by norm_num)
+          _ = δ := by
+              rw [hε', ← ENNReal.rpow_mul, show (1 / 2 : ℝ) * 2 = 1 from by norm_num,
+                ENNReal.rpow_one]
+
 /-! ### Step (finite-sum) predictable integrands
 
 The mark-discretised approximant is rank-`>1` in the mark, so it is a finite
