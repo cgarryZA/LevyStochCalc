@@ -2009,4 +2009,69 @@ lemma crossSum_disjointMark_zero
       (hA'm j) (hAm i) (hAf i)
       ((h_adapt i).mul ((h_adapt' j).mono (ℱ.mono ((hlt j).le.trans hbc))))
 
+/-- **Multi-mark step-integral L² isometry (sum form).** For a shared partition `p`,
+pairwise-disjoint marks `B k`, and adapted bounded coefficients `ξ i k`,
+`E[(∑ₖ ∑ᵢ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = ∑ₖ ∑ᵢ ν̂((pᵢ,pᵢ₊₁]×Bₖ)·E[ξᵢₖ²]`. The `k`-level
+expansion: the diagonal `E[Iₖ²]` is the single-mark isometry
+(`simpleIntegral_L2_isometry_compensatedPoisson_sumForm`), the cross `E[IₖIₖ']` (`k≠k'`)
+vanishes by `crossSum_disjointMark_zero` (disjoint marks). -/
+lemma stepIntegral_multimark_isometry
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {N₀ K : ℕ} {T : ℝ} (hT : 0 < T)
+    (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpleT : p (Fin.last N₀) ≤ T) (hpmono : StrictMono p)
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (hBdisj : Pairwise (fun k k' => Disjoint (B k) (B k')))
+    (ξ : Fin N₀ → Fin K → Ω → ℝ)
+    (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k))
+    (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) :
+    ∫ ω, (∑ k : Fin K, ∑ i : Fin N₀,
+        ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 ∂P
+      = ∑ k : Fin K, ∑ i : Fin N₀,
+        (LevyStochCalc.Poisson.referenceIntensity ν
+          (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k)).toReal * ∫ ω, (ξ i k ω) ^ 2 ∂P := by
+  -- the single-mark predictable for each mark `B k` (shared partition `p`).
+  let φ : Fin K → SimplePredictable Ω E ν T := fun k =>
+    { N := N₀, partition := p, partition_zero := hp0, partition_le_T := hpleT
+      partition_strictMono := hpmono, A := fun _ => B k, A_measurable := fun _ => hBm k
+      A_finite := fun _ => hBf k, ξ := fun i => ξ i k, ξ_bounded := fun i => hξb i k
+      ξ_measurable := fun i => hξm i k }
+  have hI_eq : ∀ k ω, simpleIntegral N (φ k) T ω
+      = ∑ i : Fin N₀, ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω := by
+    intro k ω; rw [simpleIntegral_eq_sum_fullRect]; rfl
+  have hmemLp : ∀ k, MeasureTheory.MemLp (fun ω => simpleIntegral N (φ k) T ω) 2 P :=
+    fun k => simpleIntegral_memLp_compensated N hT (φ k) (fun i => h_adapt i k)
+  have hII : ∀ k k', MeasureTheory.Integrable
+      (fun ω => simpleIntegral N (φ k) T ω * simpleIntegral N (φ k') T ω) P :=
+    fun k k' => (hmemLp k).integrable_mul (hmemLp k')
+  -- rewrite the integrand and the goal in terms of `simpleIntegral N (φ k) T`.
+  have hrw : (fun ω => (∑ k : Fin K, ∑ i : Fin N₀,
+        ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2)
+      = fun ω => (∑ k : Fin K, simpleIntegral N (φ k) T ω) ^ 2 := by
+    funext ω; congr 1; exact Finset.sum_congr rfl (fun k _ => (hI_eq k ω).symm)
+  rw [hrw, show (fun ω => (∑ k : Fin K, simpleIntegral N (φ k) T ω) ^ 2)
+        = fun ω => ∑ k : Fin K, ∑ k' : Fin K,
+            simpleIntegral N (φ k) T ω * simpleIntegral N (φ k') T ω from
+      funext (fun ω => by rw [sq]; exact Finset.sum_mul_sum _ _ _ _),
+    MeasureTheory.integral_finsetSum _ (fun k _ => MeasureTheory.integrable_finsetSum _
+      (fun k' _ => hII k k'))]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun k' _ => hII k k')]
+  rw [Finset.sum_eq_single k]
+  · -- diagonal `k' = k`: single-mark isometry.
+    rw [show (fun ω => simpleIntegral N (φ k) T ω * simpleIntegral N (φ k) T ω)
+          = fun ω => (simpleIntegral N (φ k) T ω) ^ 2 from funext (fun ω => (sq _).symm)]
+    exact simpleIntegral_L2_isometry_compensatedPoisson_sumForm N (φ k) (fun i => h_adapt i k)
+  · -- off-diagonal `k' ≠ k`: disjoint-mark cross vanishes.
+    intro k' _ hk'
+    simp_rw [hI_eq]
+    exact crossSum_disjointMark_zero N p hp0 hpmono (fun _ => B k) (fun _ => B k')
+      (fun _ => hBm k) (fun _ => hBm k') (fun _ => hBf k) (fun _ => hBf k')
+      (fun _ => hBdisj (Ne.symm hk')) (fun i => ξ i k) (fun i => ξ i k')
+      (fun i => hξb i k) (fun i => hξb i k') (fun i => hξm i k) (fun i => hξm i k')
+      (fun i => h_adapt i k) (fun i => h_adapt i k')
+  · intro h; exact absurd (Finset.mem_univ k) h
+
 end LevyStochCalc.Poisson.Compensated
