@@ -2695,4 +2695,30 @@ lemma markSumProcess_L2_eq
   rw [MeasureTheory.integral_mul_const, hfact i k k']
   ring
 
+/-- **Itô–Lévy `L²` isometry (multi-mark, integrand form).** For a shared partition `p`
+in `[0,T]`, arbitrary marks `B`, adapted bounded coeffs `ξ`,
+`E[(∑ᵢ∑ₖ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = E[∫_E ∫_{[0,T]} eval² ds dν]` where
+`eval(ω,s,e) = ∑ᵢ 𝟙_{(pᵢ,pᵢ₊₁]}(s)·∑ₖ ξᵢₖ(ω)·𝟙_{Bₖ}(e)`. Both sides equal the
+isometry sum-form (`markSumProcess_isometry`, `markSumProcess_L2_eq`). This is the
+isometry in the textbook `E[(∫dÑ)²] = E[∫∫|φ|²]` form the `Lp`-limit consumes. -/
+lemma markSumProcess_isometry_L2
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
+    {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (ξ : Fin N₀ → Fin K → Ω → ℝ)
+    (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k))
+    (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) :
+    ∫ ω, (∑ i : Fin N₀, ∑ k : Fin K,
+        ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 ∂P
+      = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
+        (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
+          * (∑ k : Fin K, ξ i k ω * (B k).indicator (fun _ => (1 : ℝ)) e)) ^ 2
+        ∂volume ∂ν) ∂P :=
+  (markSumProcess_isometry N p hp0 hpmono B hBm hBf ξ hξb hξm h_adapt).trans
+    (markSumProcess_L2_eq p hp0 hpmono hpleT B hBm hBf ξ hξb hξm).symm
+
 end LevyStochCalc.Poisson.Compensated
