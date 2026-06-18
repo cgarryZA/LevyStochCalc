@@ -2779,6 +2779,23 @@ lemma markSumProcess_diff_isometry_L2
       ring]
   exact key
 
+/-- **`L²`-limit of a Cauchy sequence of integrands/integrals.** If `Mₙ ∈ L²(P)` and the
+`Lp` lifts form a Cauchy sequence, there is an `M ∈ L²(P)` with `eLpNorm(Mₙ − M) → 0`.
+Lp completeness + `tendsto_Lp_iff_tendsto_eLpNorm''`. The "define the integral as the
+`L²`-limit" half of the masterApprox construction (→ dissertation #2(B)). -/
+lemma exists_L2_limit_of_memLp_cauchySeq
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {Mₙ : ℕ → Ω → ℝ} (hmem : ∀ n, MeasureTheory.MemLp (Mₙ n) 2 P)
+    (hcs : CauchySeq (fun n => (hmem n).toLp (Mₙ n))) :
+    ∃ M : Ω → ℝ, MeasureTheory.MemLp M 2 P ∧
+      Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Mₙ n - M) 2 P) Filter.atTop (nhds 0) := by
+  haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
+  obtain ⟨g, hg⟩ := cauchySeq_tendsto_of_complete hcs
+  refine ⟨g, MeasureTheory.Lp.memLp g, ?_⟩
+  rw [← MeasureTheory.Lp.tendsto_Lp_iff_tendsto_eLpNorm'' Mₙ hmem (↑↑g)
+    (MeasureTheory.Lp.memLp g)]
+  rwa [MeasureTheory.Lp.toLp_coeFn g (MeasureTheory.Lp.memLp g)]
+
 /-! ### Doob `L²` machinery (toward the càdlàg conjunct of #6)
 
 Mathlib has only the discrete *tail* maximal inequality (`maximal_ineq`), the
