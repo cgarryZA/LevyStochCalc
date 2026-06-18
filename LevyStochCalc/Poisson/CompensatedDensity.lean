@@ -1600,4 +1600,132 @@ lemma compensated_diff_sq_disjoint
     compensated_second_moment N hC hCf, compensated_second_moment N hD hDf]
   ring
 
+/-- **Compensated additivity over `inter`/`diff`** (a.e.). For measurable `B` with
+finite intensity and measurable `C`, `Ñ(B) = Ñ(B ∩ C) + Ñ(B ∖ C)` a.e. (where the
+`ℕ`-valued count `N(·,B)` is finite). Measure additivity (`measure_inter_add_diff`)
+in `toReal`. -/
+lemma compensated_inter_add_diff_ae
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B C : Set (ℝ × E)} (hB : MeasurableSet B) (hC : MeasurableSet C)
+    (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤) :
+    (fun ω => N.compensated B ω)
+      =ᵐ[P] (fun ω => N.compensated (B ∩ C) ω + N.compensated (B \ C) ω) := by
+  filter_upwards [N.integer_valued hB hfin] with ω hω
+  obtain ⟨n, hn⟩ := hω
+  have hBfin : N.N ω B ≠ ⊤ := by rw [hn]; exact ENNReal.natCast_ne_top n
+  have hint_ne : N.N ω (B ∩ C) ≠ ⊤ :=
+    ne_top_of_le_ne_top hBfin (measure_mono Set.inter_subset_left)
+  have hdiff_ne : N.N ω (B \ C) ≠ ⊤ :=
+    ne_top_of_le_ne_top hBfin (measure_mono Set.diff_subset)
+  have hrefint : LevyStochCalc.Poisson.referenceIntensity ν (B ∩ C) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
+  have hrefdiff : LevyStochCalc.Poisson.referenceIntensity ν (B \ C) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono Set.diff_subset)
+  simp only [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
+  rw [show N.N ω B = N.N ω (B ∩ C) + N.N ω (B \ C) from
+        (measure_inter_add_diff (μ := N.N ω) B hC).symm,
+      show LevyStochCalc.Poisson.referenceIntensity ν B
+          = LevyStochCalc.Poisson.referenceIntensity ν (B ∩ C)
+            + LevyStochCalc.Poisson.referenceIntensity ν (B \ C) from
+        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hC).symm,
+      ENNReal.toReal_add hint_ne hdiff_ne, ENNReal.toReal_add hrefint hrefdiff]
+  ring
+
+/-- **Polarisation expansion** of the squared difference: for measurable `B, B'`
+with finite intensity, `E[(Ñ(B) − Ñ(B'))²] = ν̂(B).toReal − 2·E[Ñ(B)Ñ(B')] + ν̂(B').toReal`
+(squares via `compensated_second_moment`, cross term left symbolic). -/
+lemma compensated_diff_sq_expand
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B B' : Set (ℝ × E)} (hB : MeasurableSet B) (hB' : MeasurableSet B')
+    (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤)
+    (hfin' : LevyStochCalc.Poisson.referenceIntensity ν B' ≠ ⊤) :
+    ∫ ω, (N.compensated B ω - N.compensated B' ω) ^ 2 ∂P
+      = (LevyStochCalc.Poisson.referenceIntensity ν B).toReal
+        - 2 * (∫ ω, N.compensated B ω * N.compensated B' ω ∂P)
+        + (LevyStochCalc.Poisson.referenceIntensity ν B').toReal := by
+  have hBsq := compensated_sq_integrable N hB hfin
+  have hB'sq := compensated_sq_integrable N hB' hfin'
+  have hBB' := compensated_cross_integrable N hB hB' hfin hfin'
+  have h2 : MeasureTheory.Integrable
+      (fun ω => 2 * (N.compensated B ω * N.compensated B' ω)) P := hBB'.const_mul 2
+  have hmid : MeasureTheory.Integrable
+      (fun ω => (N.compensated B ω) ^ 2 - 2 * (N.compensated B ω * N.compensated B' ω)) P :=
+    hBsq.sub h2
+  have hpt : (fun ω => (N.compensated B ω - N.compensated B' ω) ^ 2)
+      = (fun ω => (N.compensated B ω) ^ 2
+          - 2 * (N.compensated B ω * N.compensated B' ω) + (N.compensated B' ω) ^ 2) := by
+    funext ω; ring
+  rw [hpt, MeasureTheory.integral_add hmid hB'sq,
+    MeasureTheory.integral_sub hBsq h2, MeasureTheory.integral_const_mul,
+    compensated_second_moment N hB hfin, compensated_second_moment N hB' hfin']
+
+/-- **Bilinear covariance of compensated increments.** For measurable `B, B'` with
+finite intensity, `E[Ñ(B)·Ñ(B')] = ν̂(B ∩ B').toReal` — the full polarisation of
+`compensated_second_moment`, construction-agnostic (no disjointness). Combines the
+`Ñ(B)−Ñ(B') =ᵃᵉ Ñ(B∖B')−Ñ(B'∖B)` decomposition (`compensated_inter_add_diff_ae`),
+the disjoint two-piece value (`compensated_diff_sq_disjoint`), the polarisation
+expansion (`compensated_diff_sq_expand`), and intensity inclusion–exclusion. -/
+lemma compensated_cross_covariance
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B B' : Set (ℝ × E)} (hB : MeasurableSet B) (hB' : MeasurableSet B')
+    (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤)
+    (hfin' : LevyStochCalc.Poisson.referenceIntensity ν B' ≠ ⊤) :
+    ∫ ω, N.compensated B ω * N.compensated B' ω ∂P
+      = (LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')).toReal := by
+  set C := B \ B' with hCdef
+  set D := B' \ B with hDdef
+  have hCmeas : MeasurableSet C := hB.diff hB'
+  have hDmeas : MeasurableSet D := hB'.diff hB
+  have hdisj : Disjoint C D := disjoint_sdiff_sdiff
+  have hCf : LevyStochCalc.Poisson.referenceIntensity ν C ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono Set.diff_subset)
+  have hDf : LevyStochCalc.Poisson.referenceIntensity ν D ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin' (measure_mono Set.diff_subset)
+  have hrefint : LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B') ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
+  -- a.e. `Ñ(B) − Ñ(B') = Ñ(C) − Ñ(D)`.
+  have hsub_ae : (fun ω => N.compensated B ω - N.compensated B' ω)
+      =ᵐ[P] (fun ω => N.compensated C ω - N.compensated D ω) := by
+    filter_upwards [compensated_inter_add_diff_ae N hB hB' hfin,
+      compensated_inter_add_diff_ae N hB' hB hfin'] with ω h1 h2
+    rw [h1, h2, Set.inter_comm B' B]; ring
+  have hsq_ae : (fun ω => (N.compensated B ω - N.compensated B' ω) ^ 2)
+      =ᵐ[P] (fun ω => (N.compensated C ω - N.compensated D ω) ^ 2) :=
+    hsub_ae.mono (fun ω h => by
+      show (N.compensated B ω - N.compensated B' ω) ^ 2
+        = (N.compensated C ω - N.compensated D ω) ^ 2
+      rw [show N.compensated B ω - N.compensated B' ω
+            = N.compensated C ω - N.compensated D ω from h])
+  have hsq_eq : ∫ ω, (N.compensated B ω - N.compensated B' ω) ^ 2 ∂P
+      = (LevyStochCalc.Poisson.referenceIntensity ν C).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν D).toReal :=
+    (MeasureTheory.integral_congr_ae hsq_ae).trans
+      (compensated_diff_sq_disjoint N hCmeas hDmeas hCf hDf hdisj)
+  have hexp := compensated_diff_sq_expand N hB hB' hfin hfin'
+  -- intensity inclusion–exclusion (in `toReal`).
+  have hrefB : (LevyStochCalc.Poisson.referenceIntensity ν B).toReal
+      = (LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν C).toReal := by
+    rw [show LevyStochCalc.Poisson.referenceIntensity ν B
+          = LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')
+            + LevyStochCalc.Poisson.referenceIntensity ν C from
+        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hB').symm,
+      ENNReal.toReal_add hrefint hCf]
+  have hrefB' : (LevyStochCalc.Poisson.referenceIntensity ν B').toReal
+      = (LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')).toReal
+        + (LevyStochCalc.Poisson.referenceIntensity ν D).toReal := by
+    rw [show LevyStochCalc.Poisson.referenceIntensity ν B'
+          = LevyStochCalc.Poisson.referenceIntensity ν (B' ∩ B)
+            + LevyStochCalc.Poisson.referenceIntensity ν D from
+        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B' hB).symm,
+      Set.inter_comm B' B, ENNReal.toReal_add hrefint hDf]
+  rw [hexp] at hsq_eq
+  linarith [hsq_eq, hrefB, hrefB']
+
 end LevyStochCalc.Poisson.Compensated
