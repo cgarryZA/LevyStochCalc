@@ -2724,6 +2724,61 @@ lemma markSumProcess_isometry_L2
   (markSumProcess_isometry N p hp0 hpmono B hBm hBf ξ hξb hξm h_adapt).trans
     (markSumProcess_L2_eq p hp0 hpmono hpleT B hBm hBf ξ hξb hξm).symm
 
+/-- **Difference isometry (Cauchy engine).** For two adapted bounded coefficient families
+`ξ, ξ'` on the same partition/marks,
+`E[(I(ξ) − I(ξ'))²] = E[∫∫ (eval(ξ) − eval(ξ'))²]`, i.e. the `L²(P)` distance of the
+two simple ("Euler") integrals equals the `L²(P⊗vol⊗ν)` distance of their integrands.
+Immediate from `markSumProcess_isometry_L2` on the coefficient difference `ξ − ξ'`,
+using `ℝ`-linearity of both the integral and the eval in the coefficients. -/
+lemma markSumProcess_diff_isometry_L2
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
+    {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (ξ ξ' : Fin N₀ → Fin K → Ω → ℝ)
+    (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξ'b : ∀ i k, ∃ M, ∀ ω, |ξ' i k ω| ≤ M)
+    (hξm : ∀ i k, Measurable (ξ i k)) (hξ'm : ∀ i k, Measurable (ξ' i k))
+    (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k))
+    (h_adapt' : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ' i k)) :
+    ∫ ω, ((∑ i : Fin N₀, ∑ k : Fin K,
+          ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)
+        - (∑ i : Fin N₀, ∑ k : Fin K,
+          ξ' i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)) ^ 2 ∂P
+      = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
+        (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
+          * (∑ k : Fin K, (ξ i k ω - ξ' i k ω) * (B k).indicator (fun _ => (1 : ℝ)) e)) ^ 2
+        ∂volume ∂ν) ∂P := by
+  -- bounds/measurability/adaptedness of the difference coefficients.
+  have hηb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω - ξ' i k ω| ≤ M := by
+    intro i k; obtain ⟨M, hM⟩ := hξb i k; obtain ⟨M', hM'⟩ := hξ'b i k
+    exact ⟨M + M', fun ω => (abs_sub _ _).trans (add_le_add (hM ω) (hM' ω))⟩
+  have hηm : ∀ i k, Measurable (fun ω => ξ i k ω - ξ' i k ω) :=
+    fun i k => (hξm i k).sub (hξ'm i k)
+  have hηa : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc))
+      (fun ω => ξ i k ω - ξ' i k ω) := fun i k => (h_adapt i k).sub (h_adapt' i k)
+  have key := markSumProcess_isometry_L2 p hp0 hpmono hpleT N B hBm hBf
+    (fun i k ω => ξ i k ω - ξ' i k ω) hηb hηm hηa
+  rw [show (fun ω => ((∑ i : Fin N₀, ∑ k : Fin K,
+            ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)
+          - (∑ i : Fin N₀, ∑ k : Fin K,
+            ξ' i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)) ^ 2)
+        = fun ω => (∑ i : Fin N₀, ∑ k : Fin K,
+            (ξ i k ω - ξ' i k ω)
+              * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 from by
+      funext ω
+      congr 1
+      rw [← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl (fun i _ => ?_)
+      rw [← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl (fun k _ => ?_)
+      ring]
+  exact key
+
 /-! ### Doob `L²` machinery (toward the càdlàg conjunct of #6)
 
 Mathlib has only the discrete *tail* maximal inequality (`maximal_ineq`), the
