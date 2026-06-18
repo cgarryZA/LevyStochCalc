@@ -3511,6 +3511,48 @@ To compare the step integrals of two density approximants at *different* dyadic
 levels, both are re-expressed on the common (finer) dyadic refinement. The basic
 brick is additivity of the compensated integral over a split time-interval. -/
 
+/-- **Time-additivity of the compensated integral over a split interval.** For
+`a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
+(disjoint union `(a,b]×B ⊔ (b,c]×B = (a,c]×B`). -/
+lemma compensated_Ioc_split
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {a b c : ℝ} (hab : a ≤ b) (hbc : b ≤ c)
+    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) :
+    (fun ω => N.compensated (Set.Ioc a c ×ˢ B) ω)
+      =ᵐ[P] fun ω => N.compensated (Set.Ioc a b ×ˢ B) ω + N.compensated (Set.Ioc b c ×ˢ B) ω := by
+  have hdisj : Disjoint (Set.Ioc a b ×ˢ B) (Set.Ioc b c ×ˢ B) := by
+    rw [Set.disjoint_left]
+    rintro ⟨x, y⟩ hx1 hx2
+    rw [Set.mem_prod] at hx1 hx2
+    exact absurd hx1.1.2 (not_le.mpr hx2.1.1)
+  have hunion : Set.Ioc a b ×ˢ B ∪ Set.Ioc b c ×ˢ B = Set.Ioc a c ×ˢ B := by
+    rw [← Set.union_prod, Set.Ioc_union_Ioc_eq_Ioc hab hbc]
+  rw [← hunion]
+  exact compensated_union_ae N (measurableSet_Ioc.prod hB) (measurableSet_Ioc.prod hB) hdisj
+    (referenceIntensity_Ioc_prod_ne_top hBfin) (referenceIntensity_Ioc_prod_ne_top hBfin)
+
+/-- **Telescoping refinement of a compensated interval integral.** For a monotone
+mesh `q : ℕ → ℝ`, `Ñ((q 0, q m]×B) =ᵐ ∑_{j<m} Ñ((q j, q (j+1)]×B)` — a coarse interval
+is the sum of its fine sub-intervals. (Induction on `m` via `compensated_Ioc_split`.) -/
+lemma compensated_Ioc_telescope
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (q : ℕ → ℝ) (hmono : Monotone q)
+    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) (m : ℕ) :
+    (fun ω => N.compensated (Set.Ioc (q 0) (q m) ×ˢ B) ω)
+      =ᵐ[P] fun ω => ∑ j ∈ Finset.range m,
+        N.compensated (Set.Ioc (q j) (q (j + 1)) ×ˢ B) ω := by
+  induction m with
+  | zero =>
+    refine Filter.Eventually.of_forall (fun ω => ?_)
+    simp only [Finset.range_zero, Finset.sum_empty, Set.Ioc_self, Set.empty_prod]
+    show N.compensated ∅ ω = 0
+    simp [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
+  | succ m ih =>
+    have hsplit := compensated_Ioc_split N (hmono (Nat.zero_le m))
+      (hmono (Nat.le_succ m)) hB hBfin
+    filter_upwards [ih, hsplit] with ω h1 h2
+    rw [Finset.sum_range_succ, ← h1, ← h2]
+
 /-- **Coarse×fine sum split.** For `n ≤ m`, a sum over the fine dyadic index
 `Fin 2^m` splits into the coarse index `Fin 2^n` and the within-coarse offset
 `Fin 2^{m-n}`, via `i' = 2^{m-n}·i + j`. -/
@@ -3571,6 +3613,35 @@ lemma indicator_Ioc_telescope (q : ℕ → ℝ) (hmono : Monotone q) (m : ℕ) (
       Set.Ioc_union_Ioc_eq_Ioc (hmono (Nat.zero_le m)) (hmono (Nat.le_succ m))
     rw [Finset.sum_range_succ, ← ih, ← hunion, Set.indicator_union_of_disjoint hdisj]
 
+/-- **Shared mesh for fine sub-intervals of a coarse dyadic interval.** Produces a
+monotone mesh `q` with `q 0`/`q 2^{m-n}` the coarse endpoints and `q j`/`q (j+1)` the
+`j`-th fine sub-interval endpoints — the common engine for the eval/integral refinements. -/
+lemma dyadic_fine_endpoints {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m) (i : Fin (2 ^ n)) :
+    ∃ q : ℕ → ℝ, Monotone q ∧ q 0 = dyadicPartition T n i.castSucc
+      ∧ q (2 ^ (m - n)) = dyadicPartition T n i.succ
+      ∧ ∀ j : Fin (2 ^ (m - n)),
+        dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc = q j.val
+        ∧ dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ = q (j.val + 1) := by
+  refine ⟨fun jj => ((2 ^ (m - n) * i.val + jj : ℕ) : ℝ) * T / ((2 ^ m : ℕ) : ℝ), ?_, ?_, ?_, ?_⟩
+  · intro a b hab
+    simp only
+    rw [div_le_div_iff_of_pos_right (by positivity : (0 : ℝ) < ((2 ^ m : ℕ) : ℝ))]
+    exact mul_le_mul_of_nonneg_right (by exact_mod_cast Nat.add_le_add_left hab _) hT.le
+  · simp only [Nat.add_zero, dyadicPartition, Fin.val_castSucc]
+    rw [dyadic_point_coarse hnm i.val]
+  · simp only [dyadicPartition, Fin.val_succ]
+    rw [show 2 ^ (m - n) * i.val + 2 ^ (m - n) = 2 ^ (m - n) * (i.val + 1) from by ring,
+      dyadic_point_coarse hnm (i.val + 1)]
+  · intro j
+    have hval : ((finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j)) : Fin (2 ^ m)) : ℕ)
+          = 2 ^ (m - n) * i.val + j.val := dyadic_combine_val hnm i j
+    refine ⟨?_, ?_⟩
+    · simp only [dyadicPartition, Fin.val_castSucc, hval]
+    · simp only [dyadicPartition, Fin.val_succ, hval]; push_cast; ring_nf
+
 /-- **Fine-interval tiling of a coarse dyadic interval (indicator form).** The level-`m`
 sub-intervals of a level-`n` interval `i` tile it: `∑_j 𝟙_{fine(i,j)}(s) = 𝟙_{coarse i}(s)`. -/
 lemma dyadic_indicator_refine {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m)
@@ -3585,77 +3656,43 @@ lemma dyadic_indicator_refine {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m)
         (fun _ => (1 : ℝ)) s)
       = (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)).indicator
           (fun _ => (1 : ℝ)) s := by
-  set q : ℕ → ℝ := fun jj => ((2 ^ (m - n) * i.val + jj : ℕ) : ℝ) * T / ((2 ^ m : ℕ) : ℝ) with hq
-  have hqmono : Monotone q := by
-    intro a b hab
-    simp only [hq]
-    rw [div_le_div_iff_of_pos_right (by positivity : (0 : ℝ) < ((2 ^ m : ℕ) : ℝ))]
-    exact mul_le_mul_of_nonneg_right (by exact_mod_cast Nat.add_le_add_left hab _) hT.le
-  have hval : ∀ j : Fin (2 ^ (m - n)),
-      ((finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
-        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j)) : Fin (2 ^ m)) : ℕ)
-        = 2 ^ (m - n) * i.val + j.val := fun j => dyadic_combine_val hnm i j
-  have hcombine_cast : ∀ j : Fin (2 ^ (m - n)),
-      (dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
-        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc) = q j.val
-      ∧ (dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
-        rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ) = q (j.val + 1) := by
-    intro j
-    refine ⟨?_, ?_⟩
-    · simp only [dyadicPartition, Fin.val_castSucc, hval j, hq]
-    · simp only [dyadicPartition, Fin.val_succ, hval j, hq]; push_cast; ring_nf
-  rw [Finset.sum_congr rfl (fun j _ => by rw [(hcombine_cast j).1, (hcombine_cast j).2]),
+  obtain ⟨q, hqmono, hq0, hqr, hcc⟩ := dyadic_fine_endpoints hT hnm i
+  rw [Finset.sum_congr rfl (fun j _ => by rw [(hcc j).1, (hcc j).2]),
     Fin.sum_univ_eq_sum_range (fun jj => (Set.Ioc (q jj) (q (jj + 1))).indicator
-      (fun _ => (1 : ℝ)) s) (2 ^ (m - n)), ← indicator_Ioc_telescope q hqmono (2 ^ (m - n)) s]
-  have hq0 : q 0 = dyadicPartition T n i.castSucc := by
-    simp only [hq, Nat.add_zero, dyadicPartition, Fin.val_castSucc]
-    rw [dyadic_point_coarse hnm i.val]
-  have hqr : q (2 ^ (m - n)) = dyadicPartition T n i.succ := by
-    simp only [hq, dyadicPartition, Fin.val_succ]
-    rw [show 2 ^ (m - n) * i.val + 2 ^ (m - n) = 2 ^ (m - n) * (i.val + 1) from by ring,
-      dyadic_point_coarse hnm (i.val + 1)]
-  rw [hq0, hqr]
+      (fun _ => (1 : ℝ)) s) (2 ^ (m - n)), ← indicator_Ioc_telescope q hqmono (2 ^ (m - n)) s,
+    hq0, hqr]
 
-/-- **Time-additivity of the compensated integral over a split interval.** For
-`a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
-(disjoint union `(a,b]×B ⊔ (b,c]×B = (a,c]×B`). -/
-lemma compensated_Ioc_split
+/-- **Fine-interval tiling of a coarse dyadic interval (compensated form).** The
+compensated integral over a coarse dyadic interval is a.e. the sum over its level-`m`
+fine sub-intervals: `∑_j Ñ(fine(i,j)×B) =ᵐ Ñ(coarse i × B)`. -/
+lemma dyadic_compensated_refine
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {a b c : ℝ} (hab : a ≤ b) (hbc : b ≤ c)
-    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) :
-    (fun ω => N.compensated (Set.Ioc a c ×ˢ B) ω)
-      =ᵐ[P] fun ω => N.compensated (Set.Ioc a b ×ˢ B) ω + N.compensated (Set.Ioc b c ×ˢ B) ω := by
-  have hdisj : Disjoint (Set.Ioc a b ×ˢ B) (Set.Ioc b c ×ˢ B) := by
-    rw [Set.disjoint_left]
-    rintro ⟨x, y⟩ hx1 hx2
-    rw [Set.mem_prod] at hx1 hx2
-    exact absurd hx1.1.2 (not_le.mpr hx2.1.1)
-  have hunion : Set.Ioc a b ×ˢ B ∪ Set.Ioc b c ×ˢ B = Set.Ioc a c ×ˢ B := by
-    rw [← Set.union_prod, Set.Ioc_union_Ioc_eq_Ioc hab hbc]
-  rw [← hunion]
-  exact compensated_union_ae N (measurableSet_Ioc.prod hB) (measurableSet_Ioc.prod hB) hdisj
-    (referenceIntensity_Ioc_prod_ne_top hBfin) (referenceIntensity_Ioc_prod_ne_top hBfin)
-
-/-- **Telescoping refinement of a compensated interval integral.** For a monotone
-mesh `q : ℕ → ℝ`, `Ñ((q 0, q m]×B) =ᵐ ∑_{j<m} Ñ((q j, q (j+1)]×B)` — a coarse interval
-is the sum of its fine sub-intervals. (Induction on `m` via `compensated_Ioc_split`.) -/
-lemma compensated_Ioc_telescope
-    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (q : ℕ → ℝ) (hmono : Monotone q)
-    {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) (m : ℕ) :
-    (fun ω => N.compensated (Set.Ioc (q 0) (q m) ×ˢ B) ω)
-      =ᵐ[P] fun ω => ∑ j ∈ Finset.range m,
-        N.compensated (Set.Ioc (q j) (q (j + 1)) ×ˢ B) ω := by
-  induction m with
-  | zero =>
-    refine Filter.Eventually.of_forall (fun ω => ?_)
-    simp only [Finset.range_zero, Finset.sum_empty, Set.Ioc_self, Set.empty_prod]
-    show N.compensated ∅ ω = 0
-    simp [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
-  | succ m ih =>
-    have hsplit := compensated_Ioc_split N (hmono (Nat.zero_le m))
-      (hmono (Nat.le_succ m)) hB hBfin
-    filter_upwards [ih, hsplit] with ω h1 h2
-    rw [Finset.sum_range_succ, ← h1, ← h2]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (hnm : n ≤ m) (i : Fin (2 ^ n)) {B : Set E} (hB : MeasurableSet B) (hBfin : ν B ≠ ⊤) :
+    (fun ω => ∑ j : Fin (2 ^ (m - n)), N.compensated (Set.Ioc (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+        (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ) ×ˢ B) ω)
+      =ᵐ[P] fun ω => N.compensated
+        (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ) ×ˢ B) ω := by
+  obtain ⟨q, hqmono, hq0, hqr, hcc⟩ := dyadic_fine_endpoints hT hnm i
+  have htel := compensated_Ioc_telescope N q hqmono hB hBfin (2 ^ (m - n))
+  rw [hq0, hqr] at htel
+  have hfun : (fun ω => ∑ j : Fin (2 ^ (m - n)), N.compensated (Set.Ioc (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+        (dyadicPartition T m
+        (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ) ×ˢ B) ω)
+      = fun ω => ∑ jj ∈ Finset.range (2 ^ (m - n)),
+          N.compensated (Set.Ioc (q jj) (q (jj + 1)) ×ˢ B) ω := by
+    funext ω
+    rw [Finset.sum_congr rfl (fun j _ => by rw [(hcc j).1, (hcc j).2]),
+      Fin.sum_univ_eq_sum_range (fun jj => N.compensated
+        (Set.Ioc (q jj) (q (jj + 1)) ×ˢ B) ω) (2 ^ (m - n))]
+  rw [hfun]
+  exact htel.symm
 
 end LevyStochCalc.Poisson.Compensated
