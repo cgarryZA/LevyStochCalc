@@ -7,6 +7,9 @@ import LevyStochCalc.Poisson.CompensatedMartingale
 import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.MeasureTheory.Covering.DensityTheorem
 import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+import Mathlib.MeasureTheory.Function.ConditionalExpectation.CondJensen
+import Mathlib.Probability.Martingale.OptionalStopping
+import Mathlib.MeasureTheory.Integral.Layercake
 
 /-!
 # Density of adapted simple predictable integrands (compensated Poisson)
@@ -2720,5 +2723,25 @@ lemma markSumProcess_isometry_L2
         ∂volume ∂ν) ∂P :=
   (markSumProcess_isometry N p hp0 hpmono B hBm hBf ξ hξb hξm h_adapt).trans
     (markSumProcess_L2_eq p hp0 hpmono hpleT B hBm hBf ξ hξb hξm).symm
+
+/-! ### Doob `L²` machinery (toward the càdlàg conjunct of #6)
+
+Mathlib has only the discrete *tail* maximal inequality (`maximal_ineq`), the
+layer-cake formula, and conditional Jensen. The continuous-time Doob `L²` maximal
+inequality and the càdlàg regularization are built here from those pieces. -/
+
+/-- **`‖M‖` is a submartingale.** For a real martingale `M`, `fun i ω => ‖M i ω‖` is a
+submartingale: `‖Mᵢ‖ = ‖E[Mⱼ|ℱᵢ]‖ ≤ E[‖Mⱼ‖ ∣ ℱᵢ]` a.e. (conditional Jensen,
+`norm_condExp_le`). -/
+lemma martingale_norm_submartingale
+    {ι : Type*} [Preorder ι] {mΩ : MeasurableSpace Ω} {ℱ : MeasureTheory.Filtration ι mΩ}
+    {μ : Measure Ω} {f : ι → Ω → ℝ} (hf : MeasureTheory.Martingale f ℱ μ) :
+    MeasureTheory.Submartingale (fun i ω => ‖f i ω‖) ℱ μ := by
+  refine ⟨fun i => (hf.stronglyMeasurable i).norm, fun i j hij => ?_,
+    fun i => (hf.integrable i).norm⟩
+  have hmg : f i =ᵐ[μ] μ[f j | ℱ i] := (hf.2 i j hij).symm
+  filter_upwards [hmg, norm_condExp_le (μ := μ) (m := ℱ i) (f := f j)]
+    with ω h1 h2
+  rw [h1]; exact h2
 
 end LevyStochCalc.Poisson.Compensated
