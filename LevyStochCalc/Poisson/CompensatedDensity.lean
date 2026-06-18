@@ -1850,4 +1850,50 @@ lemma weighted_box_cross_disjoint_zero
       ENNReal.toReal_add hRf hR'f]
   rw [hrefU]; ring
 
+/-- **Time-ordered weighted cross term vanishes.** For an `ℱ_a`-measurable weight `g`
+and boxes `(a,b]×A`, `(c,d]×A'` with `b ≤ c` (time-ordered), the earlier factor
+`g·Ñ((a,b]×A)` is past-at-`c` measurable while `Ñ((c,d]×A')` is a future increment, so
+`E[g·Ñ((a,b]×A)·Ñ((c,d]×A')] = E[g·Ñ((a,b]×A)]·E[Ñ((c,d]×A')] = 0`. The full-box
+analogue of `offDiagonal_increment_zero`. -/
+lemma weighted_box_cross_timeordered_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {a b c d : ℝ} (ha : 0 ≤ a) (hab : a < b) (hbc : b ≤ c) (hcd : c < d)
+    {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A') (hAf : ν A ≠ ⊤) (hA'f : ν A' ≠ ⊤)
+    {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g) :
+    ∫ ω, g ω
+        * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω) ∂P = 0 := by
+  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+  have hac : a ≤ c := hab.le.trans hbc
+  have hRmeas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
+  have hR'meas : MeasurableSet (Set.Ioc c d ×ˢ A') := measurableSet_Ioc.prod hA'
+  have hR'f : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc c d ×ˢ A') ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hA'f
+  have hRsub : Set.Ioc a b ×ˢ A ⊆ Set.Iic c ×ˢ Set.univ :=
+    fun x hx => ⟨le_trans hx.1.2 hbc, Set.mem_univ _⟩
+  -- `Ñ((a,b]×A)` is past-at-`c` measurable.
+  have hÑR_c : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c)
+      (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) := by
+    unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
+    exact (((LevyStochCalc.Poisson.measurable_random_measure_of_le N hRsub
+      hRmeas).ennreal_toReal).sub measurable_const).stronglyMeasurable
+  have hf_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c)
+      (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω) :=
+    (hg.mono (ℱ.mono hac)).mul hÑR_c
+  have h_indep : ProbabilityTheory.IndepFun
+      (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
+      (fun ω => N.compensated (Set.Ioc c d ×ˢ A') ω) P :=
+    indepFun_past_compensated_box N (ha.trans hac) hcd hA' hA'f hf_meas
+  rw [show (fun ω => g ω
+        * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω))
+      = (fun ω => (g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
+          * N.compensated (Set.Ioc c d ×ˢ A') ω) from by funext ω; ring,
+    h_indep.integral_fun_mul_eq_mul_integral
+      (hf_meas.mono (ℱ.le' c)).measurable.aestronglyMeasurable
+      ((ENNReal.measurable_toReal.comp
+        (N.measurable_eval hR'meas)).sub_const _).aestronglyMeasurable,
+    compensated_mean_zero N hR'meas hR'f, mul_zero]
+
 end LevyStochCalc.Poisson.Compensated
