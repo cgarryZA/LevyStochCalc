@@ -1517,4 +1517,51 @@ lemma stepIntegral_memLp_compensated
   MeasureTheory.memLp_finsetSum Finset.univ
     (fun j _ => simpleIntegral_memLp_compensated N hT (Φ j) (h_adapt j))
 
+/-- **Disjoint compensated increments are uncorrelated.** For measurable `B, B'`
+with finite reference intensity and `Disjoint B B'`, the compensated values
+`Ñ(B), Ñ(B')` are independent (Poisson disjoint independence) and mean-zero, so
+`E[Ñ(B)·Ñ(B')] = 0`. The bilinear building block for the step-integral isometry.
+(The two-set family is indexed by `ULift (Fin 2)` to match the structure-field
+universe of `independent_disjoint`.) -/
+lemma compensated_cross_disjoint_zero
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B B' : Set (ℝ × E)} (hB : MeasurableSet B) (hB' : MeasurableSet B')
+    (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤)
+    (hdisj : Disjoint B B') :
+    ∫ ω, N.compensated B ω * N.compensated B' ω ∂P = 0 := by
+  -- index the pair by `ULift (Fin 2)` (universe of `independent_disjoint`'s `ι`).
+  set G : ULift (Fin 2) → Set (ℝ × E) := fun i => ![B, B'] i.down with hG
+  have hmeas : ∀ i, MeasurableSet (G i) := by
+    rintro ⟨i⟩; fin_cases i <;> first | exact hB | exact hB'
+  have hpair : Pairwise (fun i j => Disjoint (G i) (G j)) := by
+    rintro ⟨i⟩ ⟨j⟩ hij
+    fin_cases i <;> fin_cases j <;>
+      first | exact absurd rfl hij | exact hdisj | exact hdisj.symm
+  -- `N(·,B)` and `N(·,B')` are independent.
+  have hidx : ProbabilityTheory.IndepFun (fun ω => N.N ω B) (fun ω => N.N ω B') P := by
+    have h01 : (ULift.up (0 : Fin 2)) ≠ ULift.up (1 : Fin 2) := by
+      simp [ULift.up_inj]
+    have h := (N.independent_disjoint G hmeas hpair).indepFun h01
+    simpa [hG] using h
+  -- `Ñ(B) = (·.toReal − ν̂(B).toReal) ∘ N(·,B)`, so independence is preserved.
+  have hcompeq : (fun ω => N.compensated B ω)
+      = (fun x : ℝ≥0∞ => x.toReal - (LevyStochCalc.Poisson.referenceIntensity ν B).toReal)
+        ∘ (fun ω => N.N ω B) := by funext ω; rfl
+  have hcompeq' : (fun ω => N.compensated B' ω)
+      = (fun x : ℝ≥0∞ => x.toReal - (LevyStochCalc.Poisson.referenceIntensity ν B').toReal)
+        ∘ (fun ω => N.N ω B') := by funext ω; rfl
+  have hindep : ProbabilityTheory.IndepFun
+      (fun ω => N.compensated B ω) (fun ω => N.compensated B' ω) P := by
+    rw [hcompeq, hcompeq']
+    exact hidx.comp (ENNReal.measurable_toReal.sub_const _)
+      (ENNReal.measurable_toReal.sub_const _)
+  have hasm : MeasureTheory.AEStronglyMeasurable (fun ω => N.compensated B ω) P :=
+    ((ENNReal.measurable_toReal.comp (N.measurable_eval hB)).sub_const _).aestronglyMeasurable
+  have hasm' : MeasureTheory.AEStronglyMeasurable (fun ω => N.compensated B' ω) P :=
+    ((ENNReal.measurable_toReal.comp (N.measurable_eval hB')).sub_const _).aestronglyMeasurable
+  rw [hindep.integral_fun_mul_eq_mul_integral hasm hasm',
+    compensated_mean_zero N hB hfin, zero_mul]
+
 end LevyStochCalc.Poisson.Compensated
