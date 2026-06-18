@@ -1674,6 +1674,19 @@ lemma sq_nnnorm_disjoint_indicator_sum
       Finset.sum_eq_zero (fun i _ => Set.indicator_of_notMem (hex i) _)]
     simp
 
+/-- `(‖x + y‖₊)² ≤ 2((‖x‖₊)² + (‖y‖₊)²)` in `ℝ≥0∞` (the `2(a²+b²)` triangle bound). -/
+lemma sq_nnnorm_add_le_two_mul (x y : ℝ) :
+    (‖x + y‖₊ : ℝ≥0∞) ^ 2 ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
+  have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) := fun z => by
+    rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from (ofReal_norm_eq_enorm z).symm,
+      ← ENNReal.ofReal_pow (norm_nonneg _),
+      show ‖z‖ ^ 2 = z ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
+  rw [h_norm_sq, h_norm_sq, h_norm_sq,
+    show (2 : ℝ≥0∞) = ENNReal.ofReal 2 from by simp [ENNReal.ofReal_ofNat],
+    ← ENNReal.ofReal_add (sq_nonneg _) (sq_nonneg _),
+    ← ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2)]
+  exact ENNReal.ofReal_le_ofReal (by nlinarith [sq_nonneg (x - y)])
+
 /-- **Mark-discretisation error of the shifted dyadic eval.** For each level `n` and
 tolerance `δ`, there is a per-piece adapted mark-simple family approximating the shifted
 dyadic eval within `T·δ` in `L²(P ⊗ vol ⊗ ν)`: each time-piece coefficient
@@ -1860,6 +1873,159 @@ lemma exists_markEval_close_dyadic
               have h2 : (2 ^ n : ℝ) ≠ 0 := by positivity
               push_cast
               field_simp
+
+/-- Additivity of the nested `∫⁻ω∫⁻s∫⁻e` triple integral over jointly measurable
+summands. -/
+lemma lintegral_triple_add
+    {P : Measure Ω} {ν : Measure E} [SigmaFinite ν] {T : ℝ}
+    {u v : Ω → ℝ → E → ℝ≥0∞}
+    (hu : Measurable (fun p : Ω × ℝ × E => u p.1 p.2.1 p.2.2))
+    (hv : Measurable (fun p : Ω × ℝ × E => v p.1 p.2.1 p.2.2)) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (u ω s e + v ω s e) ∂ν ∂volume ∂P
+      = (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, u ω s e ∂ν ∂volume ∂P)
+        + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, v ω s e ∂ν ∂volume ∂P := by
+  have hue : ∀ ω s, Measurable (fun e => u ω s e) :=
+    fun ω s => hu.comp (measurable_prodMk_left.comp measurable_prodMk_left)
+  have hus : ∀ ω, Measurable (fun s => ∫⁻ e, u ω s e ∂ν) :=
+    fun ω => (hu.comp measurable_prodMk_left).lintegral_prod_right'
+  have huω : Measurable (fun ω => ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, u ω s e ∂ν ∂volume) := by
+    have h2 : Measurable (fun q : Ω × ℝ => ∫⁻ e, u q.1 q.2 e ∂ν) :=
+      (hu.comp (by fun_prop : Measurable fun r : (Ω × ℝ) × E => ((r.1.1, r.1.2, r.2) : Ω × ℝ × E)))
+        |>.lintegral_prod_right'
+    exact h2.lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) T))
+  rw [← MeasureTheory.lintegral_add_left huω]
+  refine lintegral_congr (fun ω => ?_)
+  rw [← MeasureTheory.lintegral_add_left (hus ω)]
+  refine lintegral_congr (fun s => ?_)
+  rw [← MeasureTheory.lintegral_add_left (hue ω s)]
+
+/-- Pulling a finite constant out of the nested `∫⁻ω∫⁻s∫⁻e` triple integral. -/
+lemma lintegral_triple_const_mul
+    {P : Measure Ω} {ν : Measure E} {T : ℝ} (c : ℝ≥0∞) (hc : c ≠ ⊤) (u : Ω → ℝ → E → ℝ≥0∞) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, c * u ω s e ∂ν ∂volume ∂P
+      = c * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, u ω s e ∂ν ∂volume ∂P := by
+  simp_rw [MeasureTheory.lintegral_const_mul' c _ hc]
+
+/-- **`L²` density of the adapted step (Euler) approximants.** For a bounded,
+progressively measurable `φ` with finite mark support, there is a sequence of adapted
+mark-simple step approximants converging to `φ` in `L²(P ⊗ vol ⊗ ν)`. Diagonalises the
+time-half (`dyadicEvalShifted_L2_tendsto`) against the mark-half
+(`exists_markEval_close_dyadic` with tolerance `δₙ = (n+1)⁻¹`), via the `2(a²+b²)`
+triangle bound and a squeeze. -/
+lemma exists_markEval_L2_tendsto
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T)
+    (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
+    {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
+    (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0) :
+    ∃ (Ki : (n : ℕ) → Fin (2 ^ n) → ℕ)
+      (Bi : (n : ℕ) → (i : Fin (2 ^ n)) → Fin (Ki n i) → Set E)
+      (ci : (n : ℕ) → (i : Fin (2 ^ n)) → Fin (Ki n i) → Ω → ℝ),
+      (∀ n i k, MeasurableSet (Bi n i k)) ∧ (∀ n i k, Bi n i k ⊆ S) ∧
+      (∀ n i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+        ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc))
+        (ci n i k)) ∧
+      (∀ n i k, ∃ C, ∀ ω, |ci n i k ω| ≤ C) ∧
+      Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖φ ω s e - ∑ i : Fin (2 ^ n),
+            (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)).indicator
+              (fun _ => (1 : ℝ)) s
+            * ∑ k, ci n i k ω * (Bi n i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2
+        ∂ν ∂volume ∂P) Filter.atTop (nhds 0) := by
+  classical
+  have hδne : ∀ n : ℕ, ((n : ℝ≥0∞) + 1)⁻¹ ≠ 0 := fun n =>
+    ENNReal.inv_ne_zero.mpr (ENNReal.add_ne_top.mpr ⟨ENNReal.natCast_ne_top n, ENNReal.one_ne_top⟩)
+  choose Ki Bi ci hBim hBiS hcim hcib herr using fun n =>
+    exists_markEval_close_dyadic N hT φ h_meas h_progMeas hM hS hSfin hSupp n (hδne n)
+  refine ⟨Ki, Bi, ci, hBim, hBiS, hcim, hcib, ?_⟩
+  -- the markEval step approximant and its triple-measurability.
+  set mk : ℕ → Ω → ℝ → E → ℝ := fun n ω s e =>
+    ∑ i : Fin (2 ^ n),
+      (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)).indicator
+        (fun _ => (1 : ℝ)) s
+      * ∑ k, ci n i k ω * (Bi n i k).indicator (fun _ => (1 : ℝ)) e with hmkdef
+  have hmkm : ∀ n, Measurable (fun p : Ω × ℝ × E => mk n p.1 p.2.1 p.2.2) := by
+    intro n
+    refine Finset.measurable_sum _ (fun i _ => Measurable.mul ?_ ?_)
+    · exact (measurable_const.indicator measurableSet_Ioc).comp
+        (measurable_fst.comp measurable_snd)
+    · refine Finset.measurable_sum _ (fun k _ => Measurable.mul ?_ ?_)
+      · exact (((hcim n i k).measurable.mono
+          ((LevyStochCalc.Poisson.naturalFiltration N).le _) le_rfl)).comp measurable_fst
+      · exact (measurable_const.indicator (hBim n i k)).comp
+          (measurable_snd.comp measurable_snd)
+  -- joint measurabilities of the two triangle summands.
+  have hφm : ∀ n, Measurable (fun p : Ω × ℝ × E =>
+      (‖φ p.1 p.2.1 p.2.2 - dyadicEvalShifted T φ n p.2.1 p.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) := fun n =>
+    (ENNReal.continuous_coe.measurable.comp
+      (h_meas.sub (dyadicEvalShifted_measurable_triple φ h_meas n)).nnnorm).pow_const 2
+  have hvm : ∀ n, Measurable (fun p : Ω × ℝ × E =>
+      (‖dyadicEvalShifted T φ n p.2.1 p.1 p.2.2 - mk n p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) := fun n =>
+    (ENNReal.continuous_coe.measurable.comp
+      ((dyadicEvalShifted_measurable_triple φ h_meas n).sub (hmkm n)).nnnorm).pow_const 2
+  set A : ℕ → ℝ≥0∞ := fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+    (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P with hAdef
+  have htime : Filter.Tendsto A Filter.atTop (nhds 0) :=
+    dyadicEvalShifted_L2_tendsto hT φ h_meas hM hS hSfin hSupp
+  -- the markEval error is dominated by `2·Aₙ + 2·(T·δₙ)`.
+  have hbound : ∀ n, (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+      ≤ 2 * A n + 2 * (ENNReal.ofReal T * ((n : ℝ≥0∞) + 1)⁻¹) := by
+    intro n
+    calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (‖φ ω s e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
+        ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (2 * (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2
+              + 2 * (‖dyadicEvalShifted T φ n s ω e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2)
+            ∂ν ∂volume ∂P := by
+          refine lintegral_mono (fun ω => lintegral_mono (fun s => lintegral_mono (fun e => ?_)))
+          have h := sq_nnnorm_add_le_two_mul (φ ω s e - dyadicEvalShifted T φ n s ω e)
+            (dyadicEvalShifted T φ n s ω e - mk n ω s e)
+          rw [show φ ω s e - dyadicEvalShifted T φ n s ω e
+                + (dyadicEvalShifted T φ n s ω e - mk n ω s e) = φ ω s e - mk n ω s e from by ring,
+            mul_add] at h
+          exact h
+      _ = (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            2 * (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            2 * (‖dyadicEvalShifted T φ n s ω e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P :=
+          lintegral_triple_add ((hφm n).const_mul 2) ((hvm n).const_mul 2)
+      _ = 2 * A n + 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖dyadicEvalShifted T φ n s ω e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
+          rw [lintegral_triple_const_mul 2 (by norm_num) _,
+            lintegral_triple_const_mul 2 (by norm_num) _]
+      _ ≤ 2 * A n + 2 * (ENNReal.ofReal T * ((n : ℝ≥0∞) + 1)⁻¹) := by
+          gcongr
+          exact herr n
+  -- the dominating sequence tends to `0`; squeeze.
+  have hinv : Filter.Tendsto (fun n : ℕ => ((n : ℝ≥0∞) + 1)⁻¹) Filter.atTop (nhds 0) := by
+    have hcomp : Filter.Tendsto (fun n : ℕ => ((n + 1 : ℕ) : ℝ≥0∞)⁻¹) Filter.atTop (nhds 0) :=
+      ENNReal.tendsto_inv_nat_nhds_zero.comp (Filter.tendsto_add_atTop_nat 1)
+    simpa [Nat.cast_add, Nat.cast_one] using hcomp
+  have hup : Filter.Tendsto (fun n => 2 * A n + 2 * (ENNReal.ofReal T * ((n : ℝ≥0∞) + 1)⁻¹))
+      Filter.atTop (nhds 0) := by
+    have h1 : Filter.Tendsto (fun n => 2 * A n) Filter.atTop (nhds 0) := by
+      have := ENNReal.Tendsto.const_mul htime (Or.inr (by norm_num : (2 : ℝ≥0∞) ≠ ⊤))
+      simpa using this
+    have h2 : Filter.Tendsto (fun n : ℕ => 2 * (ENNReal.ofReal T * ((n : ℝ≥0∞) + 1)⁻¹))
+        Filter.atTop (nhds 0) := by
+      have ha : Filter.Tendsto (fun n : ℕ => ENNReal.ofReal T * ((n : ℝ≥0∞) + 1)⁻¹)
+          Filter.atTop (nhds (ENNReal.ofReal T * 0)) :=
+        ENNReal.Tendsto.const_mul hinv (Or.inr ENNReal.ofReal_ne_top)
+      rw [mul_zero] at ha
+      have hb := ENNReal.Tendsto.const_mul ha (Or.inr (by norm_num : (2 : ℝ≥0∞) ≠ ⊤))
+      rwa [mul_zero] at hb
+    have := h1.add h2
+    rwa [add_zero] at this
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hup
+    (fun _ => zero_le) hbound
 
 /-! ### Step (finite-sum) predictable integrands
 
