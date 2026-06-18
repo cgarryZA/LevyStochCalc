@@ -2480,4 +2480,16 @@ lemma markSumProcess_isometry
         (fun k => hξm i' k) (fun k => hξm i k) (fun k => h_adapt i' k) (fun k => h_adapt i k)
   · intro h; exact absurd (Finset.mem_univ i) h
 
+/-- **Reference-intensity of a time-mark box factorises.** For `0 ≤ a`,
+`ν̂((a,b]×A) = ofReal(b−a)·ν(A)` (`referenceIntensity = (volume.restrict (Ici 0)).prod ν`
+and `(a,b] ⊆ [0,∞)`). -/
+lemma referenceIntensity_Ioc_prod_eq
+    {ν : Measure E} [SigmaFinite ν] {a b : ℝ} (ha : 0 ≤ a) {A : Set E} :
+    LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)
+      = ENNReal.ofReal (b - a) * ν A := by
+  unfold LevyStochCalc.Poisson.referenceIntensity
+  rw [MeasureTheory.Measure.prod_prod, MeasureTheory.Measure.restrict_apply measurableSet_Ioc,
+    Set.inter_eq_self_of_subset_left
+      (show Set.Ioc a b ⊆ Set.Ici 0 from fun x hx => ha.trans hx.1.le), Real.volume_Ioc]
+
 end LevyStochCalc.Poisson.Compensated
