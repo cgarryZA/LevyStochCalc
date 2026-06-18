@@ -97,12 +97,22 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         Decision: **multi-mark** design (per user) — K disjoint mark-sets per shared
         time-partition; isometry = ∑ₖ per-mark isometry (cross-mark terms vanish: same-time
         via `weighted_box_cross_disjoint_zero`, time-ordered via the off-diagonal arg).
-      - *Next (assembly-scale): isometry → masterApprox → L²-limit → 4 conjuncts.* Generalise
-        the single-φ off-diagonal/diagonal (`offDiagonal_increment_zero`/`diagonal_increment_sq`)
-        to **cross-φ shared-partition** form, assemble the multi-mark/`stepIntegral`
-        disjoint-mark isometry `E[(∑ₖ Iₖ)²]=∑ₖ∫∫evalₖ²`, then mirror Brownian
-        `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` → `stochasticIntegralCompensated`
-        as the `Lp` limit → pass the 4 conjuncts → drop axiom #6 + close #18.
+      - *Cross-φ bilinear vanishing — DONE 2026-06-17.* `weighted_box_sq_eq` (weighted
+        future-box 2nd moment), `weighted_box_cross_disjoint_zero` (same-time disjoint
+        marks), `weighted_box_cross_timeordered_zero` (time-ordered, weight adapted to the
+        later interval's start), and `crossSum_disjointMark_zero`
+        (`E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))]=0` for a shared partition
+        and disjoint marks). All atomic isometry content for the multi-mark design is now
+        proved, structure-free, using only the existing per-box independence.
+      - *Next (assembly + plumbing): multi-mark isometry → masterApprox → L²-limit → 4
+        conjuncts.* Construct the disjoint-mark, shared-partition `SimplePredictable`
+        family from the mark-discretised `dyadicEvalShifted`; the step-integral isometry
+        `E[(∑ₖ Iₖ)²]=∑ₖ∫∫evalₖ²` is then the k-level expansion: diagonal `E[Iₖ²]` via the
+        existing `simpleIntegral_isometry`, cross `E[IₖIₖ']` via `crossSum_disjointMark_zero`
+        (rewriting each `simpleIntegral` through `simpleIntegral_eq_sum_fullRect`). Then
+        mirror Brownian `masterApprox`/`*_cauchy_le`/`*_eval_tendsto` →
+        `stochasticIntegralCompensated` as the `Lp` limit → pass the 4 conjuncts → drop
+        axiom #6 + close #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
