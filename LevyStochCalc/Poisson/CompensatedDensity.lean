@@ -1642,6 +1642,38 @@ lemma dyadicAvg_shifted_adapted_prod
     have hfin := hint.measurable.const_mul ((2 ^ n : ℕ) / T : ℝ)
     convert hfin using 1
 
+/-- **Disjoint-interval collapse of a squared indicator sum.** The intervals
+`(pᵢ, pᵢ₊₁]` are pairwise disjoint (`p` strictly monotone), so at any `s` at most one
+indicator fires and the squared norm of the weighted sum equals the sum of indicators
+of the squared weights. -/
+lemma sq_nnnorm_disjoint_indicator_sum
+    {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) (hpmono : StrictMono p) (g : Fin N₀ → ℝ) (s : ℝ) :
+    (‖∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s * g i‖₊
+        : ℝ≥0∞) ^ 2
+      = ∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator
+          (fun _ => (‖g i‖₊ : ℝ≥0∞) ^ 2) s := by
+  by_cases hex : ∃ i : Fin N₀, s ∈ Set.Ioc (p i.castSucc) (p i.succ)
+  · obtain ⟨i₀, hi₀⟩ := hex
+    have huniq : ∀ j : Fin N₀, j ≠ i₀ → s ∉ Set.Ioc (p j.castSucc) (p j.succ) := by
+      intro j hj hmem
+      rcases lt_trichotomy j i₀ with hlt | heq | hgt
+      · have hle := hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hlt)
+        exact absurd hi₀.1 (not_lt.mpr (le_trans hmem.2 hle))
+      · exact hj heq
+      · have hle := hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hgt)
+        exact absurd hmem.1 (not_lt.mpr (le_trans hi₀.2 hle))
+    rw [Finset.sum_eq_single i₀ (fun j _ hj => by
+        rw [Set.indicator_of_notMem (huniq j hj), zero_mul])
+      (fun h => absurd (Finset.mem_univ _) h),
+      Set.indicator_of_mem hi₀, one_mul,
+      Finset.sum_eq_single i₀ (fun j _ hj => Set.indicator_of_notMem (huniq j hj) _)
+        (fun h => absurd (Finset.mem_univ _) h),
+      Set.indicator_of_mem hi₀]
+  · push_neg at hex
+    rw [Finset.sum_eq_zero (fun i _ => by rw [Set.indicator_of_notMem (hex i), zero_mul]),
+      Finset.sum_eq_zero (fun i _ => Set.indicator_of_notMem (hex i) _)]
+    simp
+
 /-! ### Step (finite-sum) predictable integrands
 
 The mark-discretised approximant is rank-`>1` in the mark, so it is a finite
