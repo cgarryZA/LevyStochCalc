@@ -2744,4 +2744,21 @@ lemma martingale_norm_submartingale
     with ω h1 h2
   rw [h1]; exact h2
 
+/-- **`L¹`-tail Doob maximal inequality.** For a real martingale `M` on a finite measure,
+`μ{ supₖ≤N ‖Mₖ‖ ≥ ε } ≤ E[‖M_N‖] / ε`. From `maximal_ineq` applied to the submartingale
+`‖M‖`, bounding the set-integral by the full integral. -/
+lemma martingale_norm_tail_maximal
+    {mΩ : MeasurableSpace Ω} {ℱ : MeasureTheory.Filtration ℕ mΩ} {μ : Measure Ω}
+    [MeasureTheory.IsFiniteMeasure μ] {M : ℕ → Ω → ℝ} (hf : MeasureTheory.Martingale M ℱ μ)
+    (N : ℕ) {ε : ℝ≥0} (hε : 0 < ε) :
+    μ {ω | (ε : ℝ) ≤ (Finset.range (N + 1)).sup' Finset.nonempty_range_add_one
+        (fun k => ‖M k ω‖)} ≤ ENNReal.ofReal (∫ ω, ‖M N ω‖ ∂μ) / ε := by
+  have hmax := MeasureTheory.maximal_ineq (martingale_norm_submartingale hf)
+    (fun _ _ => norm_nonneg _) (ε := ε) N
+  rw [ENNReal.le_div_iff_mul_le (Or.inl (by exact_mod_cast hε.ne')) (Or.inl (by simp)),
+    mul_comm]
+  refine le_trans hmax (ENNReal.ofReal_le_ofReal ?_)
+  exact MeasureTheory.setIntegral_le_integral (hf.integrable N).norm
+    (Filter.Eventually.of_forall (fun ω => norm_nonneg _))
+
 end LevyStochCalc.Poisson.Compensated
