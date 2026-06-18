@@ -119,16 +119,22 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         isometry `E[(stepIntegral)²] = E[∫∫ integrand²]` holds for any marks (the cleanest
         Cauchy input). **Both isometry routes are now fully supported** (disjoint capstone
         `stepIntegral_multimark_isometry`, and the overlapping bilinear pieces).
-      - *Next (completion plumbing, mirrors Brownian `ItoL2Completion`):* (1) assemble the
-        overlapping-mark isometry `E[(∑ₖᵢ ξᵢₖ Ñ(Rᵢₖ))²] = E[∫∫ integrand²]` (quadruple sum:
-        diagonal `weighted_box_sq_eq`, same-time-cross `weighted_box_cross_sametime`,
-        time-ordered `weighted_box_cross_timeordered_zero`); (2) `masterApprox` — combine
-        `dyadicEvalShifted` (adapted time-discretisation → φ in L²) with the mark-rectangle
-        discretisation (`rectSimple_dense_L2`, marks adapted via running density at `ℱ_t`) →
-        multi-mark adapted integrands → φ in `L²(P⊗vol⊗ν)`; integrals Cauchy by the isometry
-        on the difference; (3) `stochasticIntegralCompensated` as the `Lp`-limit; (4) pass the
-        4 conjuncts (martingale via `martingale_stepIntegral_compensated` + limit; quadVar;
-        isometry; càdlàg) → drop axiom #6 + close #18.
+      - *Overlapping-mark isometry + Tonelli bridge — DONE 2026-06-17.* The textbook
+        isometry `markSumProcess_isometry_L2`:
+        `E[(∑ᵢ∑ₖ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = E[∫_E∫_{[0,T]} eval² ds dν]` for **arbitrary
+        (overlapping) marks**, via `markSumProcess_isometry` (LHS = sum-form) and
+        `markSumProcess_L2_eq` (RHS = sum-form, Tonelli of `timeIndicator_sq_integral` ×
+        `mark_sq_integral` + `referenceIntensity_Ioc_prod_eq`). **The entire isometry
+        conjunct for general integrands is proved**, no axiom strengthening, `E` general.
+      - *Next (completion plumbing): masterApprox → `Lp`-limit → 4 conjuncts.* (1)
+        `masterApprox` — combine `dyadicEvalShifted` (adapted time-discretisation → φ in
+        L²) with per-time-piece mark discretisation (`rectSimple_L2_tendsto` at `ℱ_t`;
+        overlapping marks are fine — collect them into a shared `B`) → multi-mark adapted
+        integrands `g_n → φ` in `L²(P⊗vol⊗ν)`; (2) integrals Cauchy in `L²(P)` via
+        `markSumProcess_isometry_L2` on the difference (`g_n−g_m` on the common dyadic
+        refinement); (3) `stochasticIntegralCompensated` as the `Lp`-limit; (4) pass the four
+        #5-style conjuncts (martingale via `martingale_stepIntegral_compensated` + limit;
+        quadVar; isometry; càdlàg). Càdlàg routes through Doob regularization (#13b).
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
