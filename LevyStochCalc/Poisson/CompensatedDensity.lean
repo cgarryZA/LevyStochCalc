@@ -2631,4 +2631,68 @@ lemma eval_sq_integral
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [MeasureTheory.integral_const_mul, mark_sq_integral B hBm hBf (fun k => c i k)]
 
+/-- **Tonelli bridge: integrand `L²` norm = isometry sum-form.** For a partition `p`
+in `[0,T]`, arbitrary marks `B`, adapted bounded coeffs `ξ`,
+`E[∫_E ∫_{[0,T]} (∑ᵢ 𝟙_{(pᵢ,pᵢ₊₁]}(s)·(∑ₖ ξᵢₖ·𝟙_{Bₖ}(e)))² ds dν]
+  = ∑ᵢ∑ₖ∑ₖ' ν̂((pᵢ,pᵢ₊₁]×(Bₖ∩Bₖ'))·E[ξᵢₖ·ξᵢₖ']`, matching `markSumProcess_isometry`. -/
+lemma markSumProcess_L2_eq
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
+    {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
+    (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
+    (ξ : Fin N₀ → Fin K → Ω → ℝ)
+    (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k)) :
+    ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
+        (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
+          * (∑ k : Fin K, ξ i k ω * (B k).indicator (fun _ => (1 : ℝ)) e)) ^ 2
+        ∂volume ∂ν) ∂P
+      = ∑ i : Fin N₀, ∑ k : Fin K, ∑ k' : Fin K,
+        (LevyStochCalc.Poisson.referenceIntensity ν
+          (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ (B k ∩ B k'))).toReal
+        * ∫ ω, ξ i k ω * ξ i k' ω ∂P := by
+  have hpnn : ∀ j : Fin (N₀ + 1), 0 ≤ p j := fun j => by
+    have := hpmono.monotone (Fin.zero_le j); rwa [hp0] at this
+  have hle : ∀ i : Fin N₀, p i.castSucc ≤ p i.succ := fun i => (hpmono Fin.castSucc_lt_succ).le
+  have hinterf : ∀ k k', ν (B k ∩ B k') ≠ ⊤ :=
+    fun k k' => ne_top_of_le_ne_top (hBf k) (measure_mono Set.inter_subset_left)
+  have hξint : ∀ i k, MeasureTheory.Integrable (ξ i k) P := by
+    intro i k; obtain ⟨M, hM⟩ := hξb i k
+    exact (MeasureTheory.integrable_const M).mono' (hξm i k).aestronglyMeasurable
+      (Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hM ω))
+  have hξξint : ∀ i k k', MeasureTheory.Integrable (fun ω => ξ i k ω * ξ i k' ω) P := by
+    intro i k k'; obtain ⟨M, hM⟩ := hξb i k
+    exact (hξint i k').bdd_mul (hξm i k).aestronglyMeasurable
+      (c := M) (Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hM ω))
+  -- factorisation `ν̂((pᵢ,pᵢ₊₁]×(Bₖ∩Bₖ')) = (pᵢ₊₁−pᵢ)·ν(Bₖ∩Bₖ')` in `toReal`.
+  have hfact : ∀ (i : Fin N₀) (k k' : Fin K), (LevyStochCalc.Poisson.referenceIntensity ν
+        (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ (B k ∩ B k'))).toReal
+      = (p i.succ - p i.castSucc) * (ν (B k ∩ B k')).toReal := by
+    intro i k k'
+    rw [referenceIntensity_Ioc_prod_eq (hpnn _), ENNReal.toReal_mul,
+      ENNReal.toReal_ofReal (by linarith [hle i])]
+  -- replace the `ω`-integrand by its `(s,e)` value.
+  rw [show (fun ω => ∫ e, ∫ s in Set.Icc (0 : ℝ) T,
+        (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
+          * (∑ k : Fin K, ξ i k ω * (B k).indicator (fun _ => (1 : ℝ)) e)) ^ 2 ∂volume ∂ν)
+      = fun ω => ∑ i : Fin N₀, (p i.succ - p i.castSucc)
+          * ∑ k : Fin K, ∑ k' : Fin K,
+            ξ i k ω * ξ i k' ω * (ν (B k ∩ B k')).toReal from
+    funext (fun ω => eval_sq_integral p hp0 hpmono hpleT B hBm hBf (fun i k => ξ i k ω))]
+  -- pull the finite sums and constants through `E[·]`, then refold via `hfact`.
+  rw [MeasureTheory.integral_finsetSum _ (fun i _ =>
+    (MeasureTheory.integrable_finsetSum _ (fun k _ =>
+      MeasureTheory.integrable_finsetSum _ (fun k' _ =>
+        (hξξint i k k').mul_const _))).const_mul _)]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [MeasureTheory.integral_const_mul, MeasureTheory.integral_finsetSum _ (fun k _ =>
+    MeasureTheory.integrable_finsetSum _ (fun k' _ => (hξξint i k k').mul_const _)),
+    Finset.mul_sum]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [MeasureTheory.integral_finsetSum _ (fun k' _ => (hξξint i k k').mul_const _),
+    Finset.mul_sum]
+  refine Finset.sum_congr rfl (fun k' _ => ?_)
+  rw [MeasureTheory.integral_mul_const, hfact i k k']
+  ring
+
 end LevyStochCalc.Poisson.Compensated
