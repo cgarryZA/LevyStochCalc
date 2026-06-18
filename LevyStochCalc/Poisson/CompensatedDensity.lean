@@ -3528,9 +3528,33 @@ lemma dyadic_combine_val {n m : ℕ} (hnm : n ≤ m) (i : Fin (2 ^ n)) (j : Fin 
     ((finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
         rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j)) : Fin (2 ^ m)) : ℕ)
       = 2 ^ (m - n) * i.val + j.val := by
-  simp only [finCongr_apply, Fin.coe_cast]
+  simp only [finCongr_apply, Fin.val_cast]
   show (finProdFinEquiv (i, j) : ℕ) = _
   simp [finProdFinEquiv, Nat.add_comm]
+
+/-- Coarse dyadic index: the level-`n` interval containing fine level-`m` interval `i'`. -/
+def dyadicCoarse (n m : ℕ) (hnm : n ≤ m) (i' : Fin (2 ^ m)) : Fin (2 ^ n) :=
+  ⟨i'.val / 2 ^ (m - n), by
+    rw [Nat.div_lt_iff_lt_mul (by positivity), ← pow_add, Nat.add_sub_cancel' hnm]
+    exact i'.isLt⟩
+
+/-- The coarse index of the combined fine index `2^{m-n}·i + j` is `i`. -/
+lemma dyadicCoarse_combine {n m : ℕ} (hnm : n ≤ m) (i : Fin (2 ^ n)) (j : Fin (2 ^ (m - n))) :
+    dyadicCoarse n m hnm (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+      rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))) = i := by
+  apply Fin.ext
+  show (finCongr _ (finProdFinEquiv (i, j)) : Fin (2 ^ m)).val / 2 ^ (m - n) = i.val
+  rw [dyadic_combine_val hnm, Nat.mul_add_div (by positivity),
+    Nat.div_eq_of_lt j.isLt, add_zero]
+
+/-- Coarse/fine dyadic endpoint identity: `(2^{m-n}·a)·T/2^m = a·T/2^n`. -/
+lemma dyadic_point_coarse {T : ℝ} {n m : ℕ} (hnm : n ≤ m) (a : ℕ) :
+    ((2 ^ (m - n) * a : ℕ) : ℝ) * T / ((2 ^ m : ℕ) : ℝ) = (a : ℝ) * T / ((2 ^ n : ℕ) : ℝ) := by
+  have h2m : ((2 ^ m : ℕ) : ℝ) = ((2 ^ n : ℕ) : ℝ) * ((2 ^ (m - n) : ℕ) : ℝ) := by
+    rw [← Nat.cast_mul, ← pow_add, Nat.add_sub_cancel' hnm]
+  have hn : ((2 ^ n : ℕ) : ℝ) ≠ 0 := by positivity
+  have hmn : ((2 ^ (m - n) : ℕ) : ℝ) ≠ 0 := by positivity
+  rw [h2m]; push_cast; field_simp
 
 /-- **Time-additivity of the compensated integral over a split interval.** For
 `a ≤ b ≤ c` and a finite-mass mark set `B`, `Ñ((a,c]×B) =ᵐ Ñ((a,b]×B) + Ñ((b,c]×B)`
@@ -3559,7 +3583,7 @@ lemma indicator_Ioc_telescope (q : ℕ → ℝ) (hmono : Monotone q) (m : ℕ) (
     (Set.Ioc (q 0) (q m)).indicator (fun _ => (1 : ℝ)) s
       = ∑ j ∈ Finset.range m, (Set.Ioc (q j) (q (j + 1))).indicator (fun _ => (1 : ℝ)) s := by
   induction m with
-  | zero => simp [Set.Ioc_self]
+  | zero => simp
   | succ m ih =>
     have hdisj : Disjoint (Set.Ioc (q 0) (q m)) (Set.Ioc (q m) (q (m + 1))) := by
       rw [Set.disjoint_left]; rintro x hx1 hx2; exact absurd hx1.2 (not_le.mpr hx2.1)
