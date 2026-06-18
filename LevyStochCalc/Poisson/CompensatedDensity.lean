@@ -1501,4 +1501,20 @@ lemma martingale_stepIntegral_compensated
         exact (martingale_simpleIntegral_compensated N (Φ j) (h_adapt j)).add ih
   exact hmart Finset.univ
 
+/-- A finite family of simple predictables integrates to an `L²` function at the
+horizon `T` (finite sum of the per-piece `L²` integrals). -/
+lemma stepIntegral_memLp_compensated
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {T : ℝ} (hT : 0 < T) {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T)
+    (h_adapt : ∀ j : Fin k, ∀ i : Fin (Φ j).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((Φ j).partition i.castSucc) ×ˢ Set.univ
+                                    ∧ MeasurableSet C },
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((Φ j).ξ i)) :
+    MeasureTheory.MemLp (fun ω => stepIntegral N Φ T ω) 2 P :=
+  MeasureTheory.memLp_finsetSum Finset.univ
+    (fun j _ => simpleIntegral_memLp_compensated N hT (Φ j) (h_adapt j))
+
 end LevyStochCalc.Poisson.Compensated
