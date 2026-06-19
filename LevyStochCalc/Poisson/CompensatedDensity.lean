@@ -3891,6 +3891,54 @@ lemma stepIntegral_dyadic_refine_eval {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : 
   rw [Finset.sum_congr rfl (fun j _ => by rw [dyadicCoarse_combine hnm i j]),
     ← Finset.sum_mul, dyadic_indicator_refine hT hnm i s]
 
+/-- The compensated integral of a finite-intensity box is in `L²(P)`. -/
+lemma compensated_memLp
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {B : Set (ℝ × E)} (hB : MeasurableSet B)
+    (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤) :
+    MeasureTheory.MemLp (fun ω => N.compensated B ω) 2 P := by
+  have hmeas : Measurable (fun ω => N.compensated B ω) := by
+    show Measurable (fun ω => (N.N ω B).toReal
+      - (LevyStochCalc.Poisson.referenceIntensity ν B).toReal)
+    exact ((N.measurable_eval hB).ennreal_toReal).sub_const _
+  exact (MeasureTheory.memLp_two_iff_integrable_sq hmeas.aestronglyMeasurable).mpr
+    (compensated_sq_integrable N hB hfin)
+
+/-- A bounded measurable factor preserves `L²`-membership. -/
+lemma memLp_bdd_mul {P : Measure Ω} {f g : Ω → ℝ} (hf : Measurable f) {M : ℝ}
+    (hfb : ∀ ω, |f ω| ≤ M) (hg : MeasureTheory.MemLp g 2 P) :
+    MeasureTheory.MemLp (fun ω => f ω * g ω) 2 P := by
+  refine (MeasureTheory.memLp_two_iff_integrable_sq
+    (hf.aestronglyMeasurable.mul hg.aestronglyMeasurable)).mpr ?_
+  refine MeasureTheory.Integrable.mono' (hg.integrable_sq.const_mul (M ^ 2))
+    ((hf.aemeasurable.mul hg.aemeasurable).pow_const 2).aestronglyMeasurable
+    (Filter.Eventually.of_forall (fun ω => ?_))
+  have hM0 : 0 ≤ M := le_trans (abs_nonneg _) (hfb ω)
+  simp only [Pi.mul_apply, Real.norm_eq_abs]
+  rw [show (f ω * g ω) ^ 2 = f ω ^ 2 * g ω ^ 2 from by ring, abs_of_nonneg (by positivity)]
+  exact mul_le_mul_of_nonneg_right
+    (by nlinarith [hfb ω, abs_nonneg (f ω), sq_abs (f ω), hM0]) (sq_nonneg _)
+
+/-- The Euler step integral `∑ᵢ∑ₖ ciₖ·Ñ((pᵢ,pᵢ₊₁]×Biₖ)` is in `L²(P)`. -/
+lemma eulerStepIntegral_memLp
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
+    {Ki : Fin N₀ → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (hBim : ∀ i k, MeasurableSet (Bi i k)) (hBif : ∀ i k, ν (Bi i k) ≠ ⊤)
+    (hcib : ∀ i k, ∃ M, ∀ ω, |ci i k ω| ≤ M) (hcim : ∀ i k, Measurable (ci i k)) :
+    MeasureTheory.MemLp (fun ω => ∑ i : Fin N₀, ∑ k₀, ci i k₀ ω
+      * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ Bi i k₀) ω) 2 P := by
+  have hterm : ∀ (i : Fin N₀) (k₀ : Fin (Ki i)),
+      MeasureTheory.MemLp (fun ω => ci i k₀ ω
+        * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ Bi i k₀) ω) 2 P := by
+    intro i k₀
+    obtain ⟨M, hM⟩ := hcib i k₀
+    exact memLp_bdd_mul (hcim i k₀) hM
+      (compensated_memLp N (measurableSet_Ioc.prod (hBim i k₀))
+        (referenceIntensity_Ioc_prod_ne_top (hBif i k₀)))
+  exact MeasureTheory.memLp_finsetSum Finset.univ (fun i _ =>
+    MeasureTheory.memLp_finsetSum Finset.univ (fun k₀ _ => hterm i k₀))
+
 /-- **Cross-resolution difference isometry.** For two step approximants at dyadic
 levels `n ≤ m`, the `L²(P)` distance of the integrals equals the `L²(P⊗vol⊗ν)`
 distance of the integrands. The level-`n` integral/eval are re-expressed on the
