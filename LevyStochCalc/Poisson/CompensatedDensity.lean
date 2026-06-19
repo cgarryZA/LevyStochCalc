@@ -3760,6 +3760,35 @@ lemma stepIntegral_dyadic_refine_integral
   filter_upwards [hall] with ω hω
   exact Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun k₀ _ => by rw [hω i k₀]))
 
+/-- The coarse left endpoint is `≤` the fine left endpoint: `p^n_{coarse i'} ≤ p^m_{i'}`. -/
+lemma dyadic_coarse_point_le {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m) (i' : Fin (2 ^ m)) :
+    dyadicPartition T n (dyadicCoarse n m hnm i').castSucc
+      ≤ dyadicPartition T m i'.castSucc := by
+  simp only [dyadicPartition, Fin.val_castSucc, dyadicCoarse]
+  rw [div_le_div_iff₀ (by positivity : (0 : ℝ) < ((2 ^ n : ℕ) : ℝ))
+    (by positivity : (0 : ℝ) < ((2 ^ m : ℕ) : ℝ))]
+  have hkey : ((i'.val / 2 ^ (m - n) : ℕ) : ℝ) * ((2 ^ (m - n) : ℕ) : ℝ) ≤ (i'.val : ℝ) := by
+    rw [← Nat.cast_mul]; exact_mod_cast Nat.div_mul_le_self i'.val (2 ^ (m - n))
+  have h2m : ((2 ^ m : ℕ) : ℝ) = ((2 ^ n : ℕ) : ℝ) * ((2 ^ (m - n) : ℕ) : ℝ) := by
+    rw [← Nat.cast_mul, ← pow_add, Nat.add_sub_cancel' hnm]
+  rw [h2m]
+  nlinarith [mul_le_mul_of_nonneg_right hkey (by positivity : (0 : ℝ) ≤ T * ((2 ^ n : ℕ) : ℝ))]
+
+/-- Refined coefficients stay adapted at the finer dyadic endpoint: `ci(coarse i')` is
+`ℱ_{p^m_{i'}}`-measurable (it is `ℱ_{p^n_{coarse i'}}`-measurable and `ℱ` is monotone). -/
+lemma dyadic_refine_adapted
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (hnm : n ≤ m) {Ki : Fin (2 ^ n) → ℕ} (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (hcia : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc)) (ci i k))
+    (i' : Fin (2 ^ m)) (k₀ : Fin (Ki (dyadicCoarse n m hnm i'))) :
+    @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T m i'.castSucc))
+      (ci (dyadicCoarse n m hnm i') k₀) :=
+  (hcia (dyadicCoarse n m hnm i') k₀).mono
+    ((LevyStochCalc.Poisson.naturalFiltration N).mono (dyadic_coarse_point_le hT hnm i'))
+
 /-- **Step-eval refinement.** The level-`n` step eval equals (pointwise) the level-`m`
 step eval whose fine pieces inherit their coarse piece's marks and coefficients. (Sum
 `dyadic_indicator_refine` over the coarse pieces via `dyadic_sum_split`.) -/
