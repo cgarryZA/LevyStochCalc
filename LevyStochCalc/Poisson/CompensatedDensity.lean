@@ -3760,4 +3760,26 @@ lemma stepIntegral_dyadic_refine_integral
   filter_upwards [hall] with ω hω
   exact Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun k₀ _ => by rw [hω i k₀]))
 
+/-- **Step-eval refinement.** The level-`n` step eval equals (pointwise) the level-`m`
+step eval whose fine pieces inherit their coarse piece's marks and coefficients. (Sum
+`dyadic_indicator_refine` over the coarse pieces via `dyadic_sum_split`.) -/
+lemma stepIntegral_dyadic_refine_eval {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m)
+    {Ki : Fin (2 ^ n) → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (s : ℝ) (ω : Ω) (e : E) :
+    (∑ i' : Fin (2 ^ m), (Set.Ioc (dyadicPartition T m i'.castSucc)
+          (dyadicPartition T m i'.succ)).indicator (fun _ => (1 : ℝ)) s
+        * ∑ k₀ : Fin (Ki (dyadicCoarse n m hnm i')), ci (dyadicCoarse n m hnm i') k₀ ω
+            * (Bi (dyadicCoarse n m hnm i') k₀).indicator (fun _ => (1 : ℝ)) e)
+      = ∑ i : Fin (2 ^ n), (Set.Ioc (dyadicPartition T n i.castSucc)
+          (dyadicPartition T n i.succ)).indicator (fun _ => (1 : ℝ)) s
+        * ∑ k₀, ci i k₀ ω * (Bi i k₀).indicator (fun _ => (1 : ℝ)) e := by
+  classical
+  rw [dyadic_sum_split hnm (fun i' => (Set.Ioc (dyadicPartition T m i'.castSucc)
+      (dyadicPartition T m i'.succ)).indicator (fun _ => (1 : ℝ)) s
+      * ∑ k₀ : Fin (Ki (dyadicCoarse n m hnm i')), ci (dyadicCoarse n m hnm i') k₀ ω
+          * (Bi (dyadicCoarse n m hnm i') k₀).indicator (fun _ => (1 : ℝ)) e)]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [Finset.sum_congr rfl (fun j _ => by rw [dyadicCoarse_combine hnm i j]),
+    ← Finset.sum_mul, dyadic_indicator_refine hT hnm i s]
+
 end LevyStochCalc.Poisson.Compensated
