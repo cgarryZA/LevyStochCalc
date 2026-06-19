@@ -4376,4 +4376,70 @@ lemma monotone_tendsto_nhdsWithin_Iio {g : ℝ → ℝ≥0∞} (hg : Monotone g)
     refine Filter.eventually_inf_principal.mpr (Filter.Eventually.of_forall (fun s hs => ?_))
     exact lt_of_le_of_lt (le_iSup (fun s : {s : ℝ // s < t} => g s.1) ⟨s, hs⟩) hu
 
+/-- The clamped time-rectangle base `(min a s, min b s]` grows with `s` (for `a ≤ b`):
+when `s ≤ a` it is empty, and for `s > a` it is `(a, min b s]`, increasing in `s`. -/
+lemma minIoc_subset {a b : ℝ} (hab : a ≤ b) {s s' : ℝ} (hss : s ≤ s') :
+    Set.Ioc (min a s) (min b s) ⊆ Set.Ioc (min a s') (min b s') := by
+  rintro x ⟨hx1, hx2⟩
+  by_cases hsa : s ≤ a
+  · rw [min_eq_right hsa] at hx1
+    rw [min_eq_right (hsa.trans hab)] at hx2
+    exact absurd (hx1.trans_le hx2) (lt_irrefl s)
+  · push_neg at hsa
+    refine ⟨?_, hx2.trans (min_le_min (le_refl b) hss)⟩
+    rw [min_eq_left (hsa.le.trans hss)]
+    rwa [min_eq_left hsa.le] at hx1
+
+/-- The clamped base `(min a s, min b s]` is always contained in `(a, b]` (for `a ≤ b`). -/
+lemma minIoc_subset_Ioc {a b : ℝ} (hab : a ≤ b) (s : ℝ) :
+    Set.Ioc (min a s) (min b s) ⊆ Set.Ioc a b := by
+  rintro x ⟨hx1, hx2⟩
+  by_cases hsa : s ≤ a
+  · rw [min_eq_right hsa] at hx1
+    rw [min_eq_right (hsa.trans hab)] at hx2
+    exact absurd (hx1.trans_le hx2) (lt_irrefl s)
+  · push_neg at hsa
+    rw [min_eq_left hsa.le] at hx1
+    exact ⟨hx1, hx2.trans (min_le_left b s)⟩
+
+/-- **Count-part right-continuity.** For `a ≤ b`, a finite-mass mark set `A`, and a
+measure `m` finite on `(a,b]×A`, the clamped count `s ↦ m((min a s, min b s]×A)` is
+right-continuous (measure continuity from above along `t + 1/(n+1) ↓ t`). -/
+lemma measure_minIoc_prod_rightCont (m : Measure (ℝ × E)) {a b : ℝ} (hab : a ≤ b)
+    {A : Set E} (hA : MeasurableSet A) (hfin : m (Set.Ioc a b ×ˢ A) ≠ ⊤) (t : ℝ) :
+    Filter.Tendsto (fun s => m (Set.Ioc (min a s) (min b s) ×ˢ A))
+      (nhdsWithin t (Set.Ioi t)) (nhds (m (Set.Ioc (min a t) (min b t) ×ˢ A))) := by
+  have hgmono : Monotone (fun s => m (Set.Ioc (min a s) (min b s) ×ˢ A)) := fun s s' hss =>
+    measure_mono (Set.prod_mono (minIoc_subset hab hss) (le_refl A))
+  refine monotone_tendsto_nhdsWithin_Ioi hgmono ?_
+  set u : ℕ → ℝ := fun n => t + 1 / ((n : ℝ) + 1) with hu
+  have htu : ∀ n, t ≤ u n := fun n => le_add_of_nonneg_right (by positivity)
+  have hu_anti : Antitone u := by
+    intro n n' hnn
+    simp only [hu]
+    have h : (1 : ℝ) / ((n' : ℝ) + 1) ≤ 1 / ((n : ℝ) + 1) :=
+      one_div_le_one_div_of_le (by positivity) (by exact_mod_cast Nat.add_le_add_right hnn 1)
+    linarith
+  have hut : Filter.Tendsto u Filter.atTop (nhds t) := by
+    have h0 : Filter.Tendsto (fun n : ℕ => t + 1 / ((n : ℝ) + 1)) Filter.atTop (nhds (t + 0)) :=
+      Filter.Tendsto.const_add t tendsto_one_div_add_atTop_nhds_zero_nat
+    simpa [hu] using h0
+  have hset_anti : Antitone (fun n => Set.Ioc (min a (u n)) (min b (u n)) ×ˢ A) :=
+    fun n n' hnn => Set.prod_mono (minIoc_subset hab (hu_anti hnn)) (le_refl A)
+  have hInter : ⋂ n, Set.Ioc (min a (u n)) (min b (u n)) ×ˢ A
+      = Set.Ioc (min a t) (min b t) ×ˢ A := by
+    refine Set.Subset.antisymm (fun x hx => ?_)
+      (Set.subset_iInter (fun n => Set.prod_mono (minIoc_subset hab (htu n)) (le_refl A)))
+    rw [Set.mem_iInter] at hx
+    refine Set.mem_prod.mpr ⟨⟨?_, ?_⟩, (Set.mem_prod.mp (hx 0)).2⟩
+    · exact lt_of_le_of_lt (min_le_min (le_refl a) (htu 0)) (Set.mem_prod.mp (hx 0)).1.1
+    · exact ge_of_tendsto' (tendsto_const_nhds.min hut)
+        (fun n => (Set.mem_prod.mp (hx n)).1.2)
+  have hfin0 : m (Set.Ioc (min a (u 0)) (min b (u 0)) ×ˢ A) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono (Set.prod_mono (minIoc_subset_Ioc hab (u 0)) (le_refl A)))
+  have hlim := tendsto_measure_iInter_atTop
+    (fun n => (measurableSet_Ioc.prod hA).nullMeasurableSet) hset_anti ⟨0, hfin0⟩
+  rw [hInter] at hlim
+  exact hlim
+
 end LevyStochCalc.Poisson.Compensated
