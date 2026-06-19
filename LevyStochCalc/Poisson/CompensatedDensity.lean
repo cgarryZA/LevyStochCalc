@@ -3695,4 +3695,69 @@ lemma dyadic_compensated_refine
   rw [hfun]
   exact htel.symm
 
+/-- **Step-integral refinement.** The level-`n` step integral equals (a.e.) the
+level-`m` step integral whose fine pieces inherit their coarse piece's marks and
+coefficients. (Sum `dyadic_compensated_refine` over the coarse pieces via
+`dyadic_sum_split`.) -/
+lemma stepIntegral_dyadic_refine_integral
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (hnm : n ≤ m) {Ki : Fin (2 ^ n) → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E)
+    (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (hBim : ∀ i k, MeasurableSet (Bi i k)) (hBif : ∀ i k, ν (Bi i k) ≠ ⊤) :
+    (fun ω => ∑ i' : Fin (2 ^ m), ∑ k₀ : Fin (Ki (dyadicCoarse n m hnm i')),
+        ci (dyadicCoarse n m hnm i') k₀ ω
+        * N.compensated (Set.Ioc (dyadicPartition T m i'.castSucc) (dyadicPartition T m i'.succ)
+            ×ˢ Bi (dyadicCoarse n m hnm i') k₀) ω)
+      =ᵐ[P] fun ω => ∑ i : Fin (2 ^ n), ∑ k₀, ci i k₀ ω
+        * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)
+            ×ˢ Bi i k₀) ω := by
+  classical
+  have hLHS : (fun ω => ∑ i' : Fin (2 ^ m), ∑ k₀ : Fin (Ki (dyadicCoarse n m hnm i')),
+        ci (dyadicCoarse n m hnm i') k₀ ω
+        * N.compensated (Set.Ioc (dyadicPartition T m i'.castSucc) (dyadicPartition T m i'.succ)
+            ×ˢ Bi (dyadicCoarse n m hnm i') k₀) ω)
+      = fun ω => ∑ i : Fin (2 ^ n), ∑ k₀ : Fin (Ki i), ci i k₀ ω
+        * ∑ j : Fin (2 ^ (m - n)), N.compensated (Set.Ioc (dyadicPartition T m
+            (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+              rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+            (dyadicPartition T m
+            (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+              rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ)
+            ×ˢ Bi i k₀) ω := by
+    funext ω
+    rw [dyadic_sum_split hnm (fun i' => ∑ k₀ : Fin (Ki (dyadicCoarse n m hnm i')),
+      ci (dyadicCoarse n m hnm i') k₀ ω
+      * N.compensated (Set.Ioc (dyadicPartition T m i'.castSucc) (dyadicPartition T m i'.succ)
+          ×ˢ Bi (dyadicCoarse n m hnm i') k₀) ω)]
+    refine Finset.sum_congr rfl (fun i _ => ?_)
+    rw [Finset.sum_congr rfl (fun j _ => by rw [dyadicCoarse_combine hnm i j]),
+      Finset.sum_comm]
+    exact Finset.sum_congr rfl (fun k₀ _ => (Finset.mul_sum _ _ _).symm)
+  rw [hLHS]
+  have hae : ∀ (i : Fin (2 ^ n)) (k₀ : Fin (Ki i)), ∀ᵐ ω ∂P,
+      (∑ j : Fin (2 ^ (m - n)), N.compensated (Set.Ioc (dyadicPartition T m
+          (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+            rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+          (dyadicPartition T m
+          (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+            rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ)
+          ×ˢ Bi i k₀) ω)
+        = N.compensated (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)
+            ×ˢ Bi i k₀) ω := fun i k₀ =>
+    dyadic_compensated_refine N hT hnm i (hBim i k₀) (hBif i k₀)
+  have hall : ∀ᵐ ω ∂P, ∀ (i : Fin (2 ^ n)) (k₀ : Fin (Ki i)),
+      (∑ j : Fin (2 ^ (m - n)), N.compensated (Set.Ioc (dyadicPartition T m
+          (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+            rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc)
+          (dyadicPartition T m
+          (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
+            rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ)
+          ×ˢ Bi i k₀) ω)
+        = N.compensated (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)
+            ×ˢ Bi i k₀) ω := by
+    rw [MeasureTheory.ae_all_iff]; intro i; rw [MeasureTheory.ae_all_iff]; exact hae i
+  filter_upwards [hall] with ω hω
+  exact Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun k₀ _ => by rw [hω i k₀]))
+
 end LevyStochCalc.Poisson.Compensated
