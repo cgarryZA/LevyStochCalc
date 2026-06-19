@@ -137,14 +137,28 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         time-half (`dyadicEvalShifted_L2_tendsto`) via `sq_nnnorm_add_le_two_mul` +
         `lintegral_triple_add`/`_const_mul` + squeeze. **Mark space `E` fully general** (no
         countable-generation). This was the sole analytical gate for dissertation #2(B).
-      - *Next (completion plumbing): masterApprox → `Lp`-limit → 4 conjuncts.* (2) integrals
-        Cauchy in `L²(P)` via `markSumProcess_diff_isometry_L2` on the difference (`g_n−g_m`
-        re-expressed on the common dyadic refinement + shared marks; needs refinement
-        invariance of `simpleIntegral`/eval via time-additivity of `N.compensated`); (3)
-        `stochasticIntegralCompensated` as the `Lp`-limit (`exists_L2_limit_of_memLp_cauchySeq`);
-        (4) pass the four #5-style conjuncts (martingale via
-        `martingale_stepIntegral_compensated` + limit; quadVar; isometry; càdlàg). Càdlàg
-        routes through Doob regularization (#13b).
+      - *Cross-resolution diff isometry — DONE 2026-06-19.* The full chain making the Euler
+        integrals `L²(P)`-Cauchy: mark collection to shared `Fin K`
+        (`exists_sharedMark_blockDiag`) → per-resolution isometry (`markStepIntegral_isometry`)
+        and same-partition diff isometry (`markStepIntegral_diff_isometry`, via `Fin.append`);
+        dyadic refinement (`compensated_Ioc_split`/`_telescope`, `indicator_Ioc_telescope`,
+        `dyadic_sum_split`, `dyadicCoarse`, `dyadic_point_coarse`, `dyadic_fine_endpoints`,
+        `dyadic_indicator_refine`/`dyadic_compensated_refine`,
+        `stepIntegral_dyadic_refine_integral`/`_eval`, `dyadic_coarse_point_le`,
+        `dyadic_refine_adapted`) → **`stepIntegral_crossres_diff_isometry`**:
+        `‖Iₙ−Iₘ‖²_{L²(P)} = ‖evalₙ−evalₘ‖²_{L²(P⊗vol⊗ν)}` for any dyadic levels `n ≤ m`.
+        Plus `L²`-membership of the Euler integral (`compensated_memLp`, `memLp_bdd_mul`,
+        `eulerStepIntegral_memLp`). **The entire novel content of #2(B) and #6's isometry
+        conjunct is formalised.**
+      - *Next (completion plumbing): `Lp`-limit → 4 conjuncts.* (3) measure bridge
+        `∫⁻‖·‖² = ofReal ∫(·)²` (real↔`ℝ≥0∞`, triple Tonelli) turning `crossres_diff_isometry`
+        + density (`exists_markEval_L2_tendsto`, triangle) into `eLpNorm(Iₙ−Iₘ) → 0` ⟹ Cauchy
+        ⟹ `stochasticIntegralCompensated := exists_L2_limit_of_memLp_cauchySeq` (**this is #2(B)**);
+        (4) the four #5-style conjuncts (martingale via `martingale_stepIntegral_compensated` +
+        limit; quadVar; isometry; **càdlàg** — routes through continuous-time Doob `L²`
+        regularization, a separate sizeable build, only the discrete bricks
+        `martingale_norm_submartingale`/`_tail_maximal` exist). #6 cannot drop the axiom until
+        the càdlàg conjunct lands.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
