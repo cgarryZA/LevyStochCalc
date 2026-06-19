@@ -3891,4 +3891,69 @@ lemma stepIntegral_dyadic_refine_eval {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : 
   rw [Finset.sum_congr rfl (fun j _ => by rw [dyadicCoarse_combine hnm i j]),
     ← Finset.sum_mul, dyadic_indicator_refine hT hnm i s]
 
+/-- **Cross-resolution difference isometry.** For two step approximants at dyadic
+levels `n ≤ m`, the `L²(P)` distance of the integrals equals the `L²(P⊗vol⊗ν)`
+distance of the integrands. The level-`n` integral/eval are re-expressed on the
+level-`m` partition (`stepIntegral_dyadic_refine_integral`/`_eval`), reducing to the
+same-partition `markStepIntegral_diff_isometry`. -/
+lemma stepIntegral_crossres_diff_isometry
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (hnm : n ≤ m)
+    {Ki1 : Fin (2 ^ n) → ℕ} {Ki2 : Fin (2 ^ m) → ℕ}
+    (Bi1 : ∀ i, Fin (Ki1 i) → Set E) (Bi2 : ∀ i, Fin (Ki2 i) → Set E)
+    (ci1 : ∀ i, Fin (Ki1 i) → Ω → ℝ) (ci2 : ∀ i, Fin (Ki2 i) → Ω → ℝ)
+    (hBi1m : ∀ i k, MeasurableSet (Bi1 i k)) (hBi2m : ∀ i k, MeasurableSet (Bi2 i k))
+    (hBi1f : ∀ i k, ν (Bi1 i k) ≠ ⊤) (hBi2f : ∀ i k, ν (Bi2 i k) ≠ ⊤)
+    (hci1b : ∀ i k, ∃ M, ∀ ω, |ci1 i k ω| ≤ M) (hci2b : ∀ i k, ∃ M, ∀ ω, |ci2 i k ω| ≤ M)
+    (hci1m : ∀ i k, Measurable (ci1 i k)) (hci2m : ∀ i k, Measurable (ci2 i k))
+    (hci1a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc)) (ci1 i k))
+    (hci2a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T m i.castSucc)) (ci2 i k)) :
+    ∫ ω, ((∑ i : Fin (2 ^ n), ∑ k₀, ci1 i k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
+              (dyadicPartition T n i.succ) ×ˢ Bi1 i k₀) ω)
+        - ∑ i : Fin (2 ^ m), ∑ k₀, ci2 i k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T m i.castSucc)
+              (dyadicPartition T m i.succ) ×ˢ Bi2 i k₀) ω) ^ 2 ∂P
+      = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
+        ((∑ i : Fin (2 ^ n), (Set.Ioc (dyadicPartition T n i.castSucc)
+              (dyadicPartition T n i.succ)).indicator (fun _ => (1 : ℝ)) s
+            * ∑ k₀, ci1 i k₀ ω * (Bi1 i k₀).indicator (fun _ => (1 : ℝ)) e)
+          - ∑ i : Fin (2 ^ m), (Set.Ioc (dyadicPartition T m i.castSucc)
+              (dyadicPartition T m i.succ)).indicator (fun _ => (1 : ℝ)) s
+            * ∑ k₀, ci2 i k₀ ω * (Bi2 i k₀).indicator (fun _ => (1 : ℝ)) e) ^ 2
+        ∂volume ∂ν) ∂P := by
+  -- diff isometry on (refined level-n family, level-m family) over the level-m partition.
+  have hdiff := markStepIntegral_diff_isometry N (dyadicPartition T m)
+    (dyadicPartition_zero T m) (dyadicPartition_strictMono hT m) (dyadicPartition_le_T hT m)
+    (fun i' => Bi1 (dyadicCoarse n m hnm i')) Bi2
+    (fun i' => ci1 (dyadicCoarse n m hnm i')) ci2
+    (fun i' k => hBi1m _ k) hBi2m (fun i' k => hBi1f _ k) hBi2f
+    (fun i' k => hci1b _ k) hci2b (fun i' k => hci1m _ k) hci2m
+    (fun i' k => dyadic_refine_adapted N hT hnm ci1 hci1a i' k) hci2a
+  have hrefI := stepIntegral_dyadic_refine_integral N hT hnm Bi1 ci1 hBi1m hBi1f
+  have hrefE := stepIntegral_dyadic_refine_eval (E := E) hT hnm Bi1 ci1
+  rw [show ∫ ω, ((∑ i : Fin (2 ^ n), ∑ k₀, ci1 i k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
+              (dyadicPartition T n i.succ) ×ˢ Bi1 i k₀) ω)
+        - ∑ i : Fin (2 ^ m), ∑ k₀, ci2 i k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T m i.castSucc)
+              (dyadicPartition T m i.succ) ×ˢ Bi2 i k₀) ω) ^ 2 ∂P
+      = ∫ ω, ((∑ i' : Fin (2 ^ m), ∑ k₀, ci1 (dyadicCoarse n m hnm i') k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T m i'.castSucc)
+              (dyadicPartition T m i'.succ) ×ˢ Bi1 (dyadicCoarse n m hnm i') k₀) ω)
+        - ∑ i : Fin (2 ^ m), ∑ k₀, ci2 i k₀ ω
+          * N.compensated (Set.Ioc (dyadicPartition T m i.castSucc)
+              (dyadicPartition T m i.succ) ×ˢ Bi2 i k₀) ω) ^ 2 ∂P from by
+    refine MeasureTheory.integral_congr_ae ?_
+    filter_upwards [hrefI] with ω h
+    rw [h]]
+  rw [hdiff]
+  refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall (fun ω => ?_))
+  refine congrArg _ (funext (fun e => ?_))
+  refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
+  rw [hrefE s ω e]
+
 end LevyStochCalc.Poisson.Compensated
