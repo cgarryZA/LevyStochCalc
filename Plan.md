@@ -150,15 +150,22 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         Plus `L²`-membership of the Euler integral (`compensated_memLp`, `memLp_bdd_mul`,
         `eulerStepIntegral_memLp`). **The entire novel content of #2(B) and #6's isometry
         conjunct is formalised.**
-      - *Next (completion plumbing): `Lp`-limit → 4 conjuncts.* (3) measure bridge
-        `∫⁻‖·‖² = ofReal ∫(·)²` (real↔`ℝ≥0∞`, triple Tonelli) turning `crossres_diff_isometry`
-        + density (`exists_markEval_L2_tendsto`, triangle) into `eLpNorm(Iₙ−Iₘ) → 0` ⟹ Cauchy
-        ⟹ `stochasticIntegralCompensated := exists_L2_limit_of_memLp_cauchySeq` (**this is #2(B)**);
-        (4) the four #5-style conjuncts (martingale via `martingale_stepIntegral_compensated` +
-        limit; quadVar; isometry; **càdlàg** — routes through continuous-time Doob `L²`
-        regularization, a separate sizeable build, only the discrete bricks
-        `martingale_norm_submartingale`/`_tail_maximal` exist). #6 cannot drop the axiom until
-        the càdlàg conjunct lands.
+      - *Dissertation #2(B) — DONE 2026-06-19.* **`compensated_eulerSum_L2_limit`**: the
+        adapted Euler step integrals converge in `L²(P)` to an `L²` limit `F` (the L²-Itô-Lévy
+        integral). Final assembly: `lintegral_sq_eq_ofReal_integral` +
+        `triple_ofReal_integral_eq_lintegral` (real↔`ℝ≥0∞` bridges) + `eulerStepIntegral_memLp`
+        + `eulerStepIntegral_cauchy_le` (`‖Iₘ−Iₙ‖² ≤ 2Aφₘ+2Aφₙ` via the crossres diff isometry
+        + triple bridge + Tonelli swap + `2(a²+b²)` triangle) + `eLpNorm_two_rpow_eq_lintegral_sq`
+        + `EMetric.cauchySeq_iff` (`δ=ε²/4`) + `exists_L2_limit_of_memLp_cauchySeq`. The
+        dissertation's Euler-sum → stochastic-integral identification is formalised.
+      - *Remaining for #6 (drop the axiom): the process + càdlàg.* `compensated_eulerSum_L2_limit`
+        builds the integral at a fixed horizon as an `L²` RV; #6's `axiom` is the whole process
+        `F : ℝ → Ω → ℝ` with martingale + quadVar-martingale + isometry + **càdlàg** on
+        `(naturalFiltration N).rightCont`. The martingale/quadVar/isometry conjuncts mirror #5
+        (per-`t` limit of `martingale_stepIntegral_compensated`); the **càdlàg** conjunct needs
+        continuous-time Doob `L²` regularization — *not in Mathlib*, only the discrete bricks
+        `martingale_norm_submartingale`/`_tail_maximal` exist. **#6 stays an axiom until the Doob
+        càdlàg build lands** (a separate sizeable project).
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
