@@ -4338,4 +4338,42 @@ theorem compensated_eulerSum_L2_limit
   obtain ⟨F, hF_mem, hF_tend⟩ := exists_L2_limit_of_memLp_cauchySeq hImem hcauchy
   exact ⟨Ki, Bi, ci, F, hF_mem, hF_tend⟩
 
+/-! ### Path regularity bricks (toward the càdlàg conjunct of #6)
+
+The compensated step integral is càdlàg in `t`: the compensator part is continuous,
+and the count part is a Stieltjes function of `t` (monotone, right-continuous with
+left limits via measure continuity). These bricks give the right-continuity and
+left-limit existence of monotone `ℝ≥0∞`-valued functions, the substrate for the
+Doob `L²` càdlàg modification. -/
+
+/-- **Right-continuity of a monotone `ℝ≥0∞` function from sequential right-continuity.**
+If `g` is monotone and `g (t + 1/(n+1)) → g t`, then `g` is right-continuous at `t`. -/
+lemma monotone_tendsto_nhdsWithin_Ioi {g : ℝ → ℝ≥0∞} (hg : Monotone g) {t : ℝ}
+    (hseq : Filter.Tendsto (fun n : ℕ => g (t + 1 / (n + 1))) Filter.atTop (nhds (g t))) :
+    Filter.Tendsto g (nhdsWithin t (Set.Ioi t)) (nhds (g t)) := by
+  refine tendsto_order.2 ⟨fun l hl => ?_, fun u hu => ?_⟩
+  · refine Filter.eventually_inf_principal.mpr (Filter.Eventually.of_forall (fun s hs => ?_))
+    exact hl.trans_le (hg (le_of_lt hs))
+  · obtain ⟨N, hN⟩ := (hseq.eventually_lt_const hu).exists
+    have hδ : t < t + 1 / ((N : ℝ) + 1) := lt_add_of_pos_right t (by positivity)
+    refine Filter.Eventually.filter_mono nhdsWithin_le_nhds ?_
+    filter_upwards [Iio_mem_nhds hδ] with s hs
+    exact (hg (le_of_lt hs)).trans_lt hN
+
+/-- **Left-limit existence for a monotone `ℝ≥0∞` function.** A monotone function has a
+left limit at `t`, namely `⨆_{s<t} g s` (no continuity hypothesis needed). -/
+lemma monotone_tendsto_nhdsWithin_Iio {g : ℝ → ℝ≥0∞} (hg : Monotone g) (t : ℝ) :
+    Filter.Tendsto g (nhdsWithin t (Set.Iio t)) (nhds (⨆ s : {s : ℝ // s < t}, g s.1)) := by
+  set L : ℝ≥0∞ := ⨆ s : {s : ℝ // s < t}, g s.1 with hL
+  refine tendsto_order.2 ⟨fun l hl => ?_, fun u hu => ?_⟩
+  · -- `l < L = ⨆ g s`, so some `s₀ < t` has `l < g s₀`; for `s ∈ (s₀, t)`, `g s ≥ g s₀ > l`.
+    rw [hL, lt_iSup_iff] at hl
+    obtain ⟨⟨s₀, hs₀t⟩, hs₀⟩ := hl
+    refine Filter.eventually_inf_principal.mpr ?_
+    filter_upwards [Ioi_mem_nhds hs₀t] with s hs _
+    exact hs₀.trans_le (hg (le_of_lt hs))
+  · -- `g s ≤ L < u` for all `s < t`.
+    refine Filter.eventually_inf_principal.mpr (Filter.Eventually.of_forall (fun s hs => ?_))
+    exact lt_of_le_of_lt (le_iSup (fun s : {s : ℝ // s < t} => g s.1) ⟨s, hs⟩) hu
+
 end LevyStochCalc.Poisson.Compensated
