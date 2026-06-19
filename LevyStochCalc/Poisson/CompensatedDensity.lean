@@ -4042,6 +4042,45 @@ lemma triple_ofReal_integral_eq_lintegral
   rw [show ((h ω s e) ^ 2) = ‖h ω s e‖ ^ 2 from by rw [Real.norm_eq_abs, sq_abs],
     ENNReal.ofReal_pow (norm_nonneg _), ofReal_norm_eq_enorm, enorm_eq_nnnorm]
 
+/-- The mark-step eval is uniformly bounded (finite sum of bounded-coeff × indicators). -/
+lemma markEval_bounded {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}
+    (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (hcib : ∀ i k, ∃ M, ∀ ω, |ci i k ω| ≤ M) :
+    ∃ C, ∀ ω s e, |∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator
+        (fun _ => (1 : ℝ)) s * ∑ k, ci i k ω * (Bi i k).indicator (fun _ => (1 : ℝ)) e| ≤ C := by
+  classical
+  refine ⟨∑ i : Fin N₀, ∑ k, (hcib i k).choose, fun ω s e => ?_⟩
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum (fun i _ => ?_))
+  rw [abs_mul]
+  refine (mul_le_of_le_one_left (abs_nonneg _) (by rw [Set.indicator_apply]; split_ifs <;>
+    simp)).trans ((Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum (fun k _ => ?_)))
+  rw [abs_mul]
+  exact (mul_le_of_le_one_right (abs_nonneg _) (by rw [Set.indicator_apply]; split_ifs <;>
+    simp)).trans ((hcib i k).choose_spec ω)
+
+/-- The mark-step eval vanishes for marks outside the (shared) support set `S`. -/
+lemma markEval_supp {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}
+    (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    {S : Set E} (hBiS : ∀ i k, Bi i k ⊆ S) (ω : Ω) (s : ℝ) (e : E) (he : e ∉ S) :
+    (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
+      * ∑ k, ci i k ω * (Bi i k).indicator (fun _ => (1 : ℝ)) e) = 0 := by
+  refine Finset.sum_eq_zero (fun i _ => ?_)
+  rw [Finset.sum_eq_zero (fun k _ => ?_), mul_zero]
+  rw [Set.indicator_of_notMem (fun h => he (hBiS i k h)), mul_zero]
+
+/-- Joint `(ω,s,e)`-measurability of the mark-step eval. -/
+lemma markEval_measurable {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}
+    (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
+    (hBim : ∀ i k, MeasurableSet (Bi i k)) (hcim : ∀ i k, Measurable (ci i k)) :
+    Measurable (fun q : Ω × ℝ × E => ∑ i : Fin N₀,
+      (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) q.2.1
+      * ∑ k, ci i k q.1 * (Bi i k).indicator (fun _ => (1 : ℝ)) q.2.2) := by
+  refine Finset.measurable_sum _ (fun i _ => Measurable.mul ?_ ?_)
+  · exact (measurable_const.indicator measurableSet_Ioc).comp (measurable_fst.comp measurable_snd)
+  · refine Finset.measurable_sum _ (fun k _ => Measurable.mul ?_ ?_)
+    · exact (hcim i k).comp measurable_fst
+    · exact (measurable_const.indicator (hBim i k)).comp (measurable_snd.comp measurable_snd)
+
 /-- **Cross-resolution difference isometry.** For two step approximants at dyadic
 levels `n ≤ m`, the `L²(P)` distance of the integrals equals the `L²(P⊗vol⊗ν)`
 distance of the integrands. The level-`n` integral/eval are re-expressed on the
@@ -4106,5 +4145,197 @@ lemma stepIntegral_crossres_diff_isometry
   refine congrArg _ (funext (fun e => ?_))
   refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
   rw [hrefE s ω e]
+
+/-- **Euler-sum `L²(P)` Cauchy bound.** For dyadic levels `a ≤ b`, the squared
+`L²(P)`-distance of the two Euler step integrals is bounded by `2·(L²-density error at a)
++ 2·(at b)`: chain the bridge `∫⁻‖·‖²=ofReal∫(·)²`, the cross-resolution diff isometry,
+the triple real↔`ℝ≥0∞` bridge, a Tonelli swap, and the `2(a²+b²)` triangle against `φ`. -/
+lemma eulerStepIntegral_cauchy_le
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤) {a b : ℕ} (hab : a ≤ b)
+    {Kia : Fin (2 ^ a) → ℕ} {Kib : Fin (2 ^ b) → ℕ}
+    (Bia : ∀ i, Fin (Kia i) → Set E) (Bib : ∀ i, Fin (Kib i) → Set E)
+    (cia : ∀ i, Fin (Kia i) → Ω → ℝ) (cib : ∀ i, Fin (Kib i) → Ω → ℝ)
+    (hBiam : ∀ i k, MeasurableSet (Bia i k)) (hBibm : ∀ i k, MeasurableSet (Bib i k))
+    (hBiaS : ∀ i k, Bia i k ⊆ S) (hBibS : ∀ i k, Bib i k ⊆ S)
+    (hciab : ∀ i k, ∃ M, ∀ ω, |cia i k ω| ≤ M) (hcibb : ∀ i k, ∃ M, ∀ ω, |cib i k ω| ≤ M)
+    (hciam : ∀ i k, Measurable (cia i k)) (hcibm : ∀ i k, Measurable (cib i k))
+    (hciaa : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T a i.castSucc)) (cia i k))
+    (hciba : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T b i.castSucc)) (cib i k)) :
+    ∫⁻ ω, (‖(∑ i : Fin (2 ^ a), ∑ k, cia i k ω
+          * N.compensated (Set.Ioc (dyadicPartition T a i.castSucc)
+              (dyadicPartition T a i.succ) ×ˢ Bia i k) ω)
+        - ∑ i : Fin (2 ^ b), ∑ k, cib i k ω
+          * N.compensated (Set.Ioc (dyadicPartition T b i.castSucc)
+              (dyadicPartition T b i.succ) ×ˢ Bib i k) ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e
+            - ∑ i : Fin (2 ^ a), (Set.Ioc (dyadicPartition T a i.castSucc)
+                (dyadicPartition T a i.succ)).indicator (fun _ => (1 : ℝ)) s
+              * ∑ k, cia i k ω * (Bia i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+        + 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e
+            - ∑ i : Fin (2 ^ b), (Set.Ioc (dyadicPartition T b i.castSucc)
+                (dyadicPartition T b i.succ)).indicator (fun _ => (1 : ℝ)) s
+              * ∑ k, cib i k ω * (Bib i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
+  have hBiaf : ∀ i k, ν (Bia i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBiaS i k))
+  have hBibf : ∀ i k, ν (Bib i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBibS i k))
+  set ea : Ω → ℝ → E → ℝ := fun ω s e => ∑ i : Fin (2 ^ a),
+    (Set.Ioc (dyadicPartition T a i.castSucc) (dyadicPartition T a i.succ)).indicator
+      (fun _ => (1 : ℝ)) s * ∑ k, cia i k ω * (Bia i k).indicator (fun _ => (1 : ℝ)) e with hea
+  set eb : Ω → ℝ → E → ℝ := fun ω s e => ∑ i : Fin (2 ^ b),
+    (Set.Ioc (dyadicPartition T b i.castSucc) (dyadicPartition T b i.succ)).indicator
+      (fun _ => (1 : ℝ)) s * ∑ k, cib i k ω * (Bib i k).indicator (fun _ => (1 : ℝ)) e with heb
+  obtain ⟨Ca, hCa⟩ := markEval_bounded (dyadicPartition T a) Bia cia hciab
+  obtain ⟨Cb, hCb⟩ := markEval_bounded (dyadicPartition T b) Bib cib hcibb
+  have hh_bdd : ∀ ω s e, |ea ω s e - eb ω s e| ≤ Ca + Cb := fun ω s e =>
+    (abs_sub _ _).trans (add_le_add (hCa ω s e) (hCb ω s e))
+  have hh_supp : ∀ ω s e, e ∉ S → ea ω s e - eb ω s e = 0 := fun ω s e he => by
+    simp only [hea, heb]
+    rw [markEval_supp (dyadicPartition T a) Bia cia hBiaS ω s e he,
+      markEval_supp (dyadicPartition T b) Bib cib hBibS ω s e he, sub_zero]
+  have hh_meas : Measurable (fun p : Ω × ℝ × E => ea p.1 p.2.1 p.2.2 - eb p.1 p.2.1 p.2.2) :=
+    (markEval_measurable (dyadicPartition T a) Bia cia hBiam hciam).sub
+      (markEval_measurable (dyadicPartition T b) Bib cib hBibm hcibm)
+  have hmemdiff : MeasureTheory.MemLp (fun ω => (∑ i : Fin (2 ^ a), ∑ k, cia i k ω
+        * N.compensated (Set.Ioc (dyadicPartition T a i.castSucc)
+            (dyadicPartition T a i.succ) ×ˢ Bia i k) ω)
+      - ∑ i : Fin (2 ^ b), ∑ k, cib i k ω
+        * N.compensated (Set.Ioc (dyadicPartition T b i.castSucc)
+            (dyadicPartition T b i.succ) ×ˢ Bib i k) ω) 2 P :=
+    (eulerStepIntegral_memLp N (dyadicPartition T a) Bia cia hBiam hBiaf hciab hciam).sub
+      (eulerStepIntegral_memLp N (dyadicPartition T b) Bib cib hBibm hBibf hcibb hcibm)
+  rw [lintegral_sq_eq_ofReal_integral hmemdiff,
+    stepIntegral_crossres_diff_isometry N hT hab Bia Bib cia cib hBiam hBibm hBiaf hBibf
+      hciab hcibb hciam hcibm hciaa hciba,
+    triple_ofReal_integral_eq_lintegral (fun ω s e => ea ω s e - eb ω s e) hh_meas hh_bdd hS hSfin
+      hh_supp]
+  -- swap the `e` and `s` integrals to the density order.
+  have hswap : ∀ ω, (∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖ea ω s e - eb ω s e‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂ν)
+      = ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖ea ω s e - eb ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume := by
+    intro ω
+    rw [MeasureTheory.lintegral_lintegral_swap]
+    exact ((ENNReal.continuous_coe.measurable.comp
+      (((hh_meas.comp (by fun_prop : Measurable fun q : E × ℝ =>
+        ((ω, q.2, q.1) : Ω × ℝ × E)))).nnnorm)).pow_const 2).aemeasurable
+  simp_rw [hswap]
+  -- pointwise `2(a²+b²)` triangle against `φ`.
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖ea ω s e - eb ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+          (2 * (‖φ ω s e - ea ω s e‖₊ : ℝ≥0∞) ^ 2 + 2 * (‖φ ω s e - eb ω s e‖₊ : ℝ≥0∞) ^ 2)
+          ∂ν ∂volume ∂P := by
+        refine lintegral_mono (fun ω => lintegral_mono (fun s => lintegral_mono (fun e => ?_)))
+        have h := sq_nnnorm_add_le_two_mul (ea ω s e - φ ω s e) (φ ω s e - eb ω s e)
+        rw [show ea ω s e - φ ω s e + (φ ω s e - eb ω s e) = ea ω s e - eb ω s e from by ring,
+          show (‖ea ω s e - φ ω s e‖₊ : ℝ≥0∞) = ‖φ ω s e - ea ω s e‖₊ from by
+            rw [show φ ω s e - ea ω s e = -(ea ω s e - φ ω s e) from by ring, nnnorm_neg],
+          mul_add] at h
+        exact h
+      _ = 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖φ ω s e - ea ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+          + 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+            (‖φ ω s e - eb ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
+        rw [lintegral_triple_add
+          ((ENNReal.continuous_coe.measurable.comp
+            ((h_meas.sub (markEval_measurable (dyadicPartition T a) Bia cia hBiam
+              hciam)).nnnorm)).pow_const 2 |>.const_mul 2)
+          ((ENNReal.continuous_coe.measurable.comp
+            ((h_meas.sub (markEval_measurable (dyadicPartition T b) Bib cib hBibm
+              hcibm)).nnnorm)).pow_const 2 |>.const_mul 2),
+          lintegral_triple_const_mul 2 (by norm_num) _, lintegral_triple_const_mul 2 (by norm_num) _]
+
+/-- `eLpNorm g 2 μ ^ (2:ℝ) = ∫⁻ ‖g‖₊²`. -/
+lemma eLpNorm_two_rpow_eq_lintegral_sq {P : Measure Ω} (g : Ω → ℝ) :
+    MeasureTheory.eLpNorm g 2 P ^ (2 : ℝ) = ∫⁻ ω, (‖g ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+  have h := MeasureTheory.eLpNorm_nnreal_pow_eq_lintegral (μ := P) (p := (2 : ℝ≥0))
+    (f := g) (by norm_num)
+  rw [show ((2 : ℝ≥0) : ℝ≥0∞) = (2 : ℝ≥0∞) from by simp,
+    show ((2 : ℝ≥0) : ℝ) = (2 : ℝ) from by norm_num] at h
+  rw [h]; refine lintegral_congr (fun ω => ?_)
+  rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
+
+/-- **Dissertation #2(B): the compensated Euler sums converge in `L²(P)`.** For a
+bounded, progressively measurable `φ` with finite mark support, there is an
+`L²(P)` random variable `F` (the L²-Itô-Lévy integral) such that the adapted Euler
+step integrals `∑ᵢ∑ₖ ciₖⁿ·Ñ((pᵢⁿ,pᵢ₊₁ⁿ]×Biₖⁿ)` converge to `F` in `L²(P)`.
+Assembles the density (`exists_markEval_L2_tendsto`), the cross-resolution Cauchy
+bound (`eulerStepIntegral_cauchy_le`), and `Lp`-completeness
+(`exists_L2_limit_of_memLp_cauchySeq`). -/
+theorem compensated_eulerSum_L2_limit
+    {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : ∀ t : ℝ,
+      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
+        (@Prod.instMeasurableSpace Ω (ℝ × E)
+          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
+        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
+    {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
+    (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0) :
+    ∃ (Ki : (n : ℕ) → Fin (2 ^ n) → ℕ)
+      (Bi : (n : ℕ) → (i : Fin (2 ^ n)) → Fin (Ki n i) → Set E)
+      (ci : (n : ℕ) → (i : Fin (2 ^ n)) → Fin (Ki n i) → Ω → ℝ) (F : Ω → ℝ),
+      MeasureTheory.MemLp F 2 P ∧
+      Filter.Tendsto (fun n => MeasureTheory.eLpNorm
+        ((fun ω => ∑ i : Fin (2 ^ n), ∑ k, ci n i k ω
+          * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
+              (dyadicPartition T n i.succ) ×ˢ Bi n i k) ω) - F) 2 P) Filter.atTop (nhds 0) := by
+  classical
+  obtain ⟨Ki, Bi, ci, hBim, hBiS, hcia, hcib, htend⟩ :=
+    exists_markEval_L2_tendsto N hT φ h_meas h_progMeas hM hS hSfin hSupp
+  have hcim : ∀ n i k, Measurable (ci n i k) := fun n i k =>
+    (hcia n i k).measurable.mono ((LevyStochCalc.Poisson.naturalFiltration N).le _) le_rfl
+  set I : ℕ → Ω → ℝ := fun n ω => ∑ i : Fin (2 ^ n), ∑ k, ci n i k ω
+    * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
+        (dyadicPartition T n i.succ) ×ˢ Bi n i k) ω with hI
+  have hImem : ∀ n, MeasureTheory.MemLp (I n) 2 P := fun n =>
+    eulerStepIntegral_memLp N (dyadicPartition T n) (Bi n) (ci n) (hBim n)
+      (fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBiS n i k))) (hcib n) (hcim n)
+  set Aφ : ℕ → ℝ≥0∞ := fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+    (‖φ ω s e - ∑ i : Fin (2 ^ n),
+      (Set.Ioc (dyadicPartition T n i.castSucc) (dyadicPartition T n i.succ)).indicator
+        (fun _ => (1 : ℝ)) s * ∑ k, ci n i k ω * (Bi n i k).indicator (fun _ => (1 : ℝ)) e‖₊
+      : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P with hAφ
+  have hcauchy : CauchySeq (fun n => (hImem n).toLp (I n)) := by
+    rw [EMetric.cauchySeq_iff]
+    intro ε hε
+    by_cases hε_top : ε = ⊤
+    · exact ⟨0, fun m _ n _ => by rw [hε_top]; exact lt_top_iff_ne_top.mpr (edist_ne_top _ _)⟩
+    set δ : ℝ≥0∞ := ε ^ (2 : ℝ) / 4 with hδ
+    have hδ_pos : 0 < δ := ENNReal.div_pos (ENNReal.rpow_pos hε hε_top).ne' (by norm_num)
+    obtain ⟨N0, hN0⟩ := Filter.eventually_atTop.mp (htend (Iio_mem_nhds hδ_pos))
+    refine ⟨N0, fun m hm n hn => ?_⟩
+    rw [MeasureTheory.Lp.edist_toLp_toLp]
+    have hsq : MeasureTheory.eLpNorm (I m - I n) 2 P ^ (2 : ℝ) < ε ^ (2 : ℝ) := by
+      rw [eLpNorm_two_rpow_eq_lintegral_sq]
+      have hle : ∫⁻ ω, (‖(I m - I n) ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n := by
+        show ∫⁻ ω, (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n
+        rcases le_total m n with hmn | hnm
+        · exact eulerStepIntegral_cauchy_le N hT φ h_meas hS hSfin hmn (Bi m) (Bi n) (ci m) (ci n)
+            (hBim m) (hBim n) (hBiS m) (hBiS n) (hcib m) (hcib n) (hcim m) (hcim n)
+            (hcia m) (hcia n)
+        · rw [show (fun ω => (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2)
+                = (fun ω => (‖I n ω - I m ω‖₊ : ℝ≥0∞) ^ 2) from funext (fun ω => by
+              rw [show I m ω - I n ω = -(I n ω - I m ω) from by ring, nnnorm_neg]),
+            add_comm (2 * Aφ m)]
+          exact eulerStepIntegral_cauchy_le N hT φ h_meas hS hSfin hnm (Bi n) (Bi m) (ci n) (ci m)
+            (hBim n) (hBim m) (hBiS n) (hBiS m) (hcib n) (hcib m) (hcim n) (hcim m)
+            (hcia n) (hcia m)
+      refine lt_of_le_of_lt hle ?_
+      calc 2 * Aφ m + 2 * Aφ n = Aφ m * 2 + Aφ n * 2 := by ring
+        _ < δ * 2 + δ * 2 :=
+            ENNReal.add_lt_add
+              (ENNReal.mul_lt_mul_left (by norm_num) (by norm_num) (hN0 m hm))
+              (ENNReal.mul_lt_mul_left (by norm_num) (by norm_num) (hN0 n hn))
+        _ = ε ^ (2 : ℝ) := by
+            rw [show δ * 2 + δ * 2 = 4 * δ from by ring, hδ,
+              ENNReal.mul_div_cancel (by norm_num) (by norm_num)]
+    exact (ENNReal.rpow_lt_rpow_iff (by norm_num : (0 : ℝ) < 2)).mp hsq
+  obtain ⟨F, hF_mem, hF_tend⟩ := exists_L2_limit_of_memLp_cauchySeq hImem hcauchy
+  exact ⟨Ki, Bi, ci, F, hF_mem, hF_tend⟩
 
 end LevyStochCalc.Poisson.Compensated
