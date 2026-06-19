@@ -66,6 +66,106 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
       analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
       `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
+      - *Density layer (`Poisson/CompensatedDensity.lean`) — DONE 2026-06-17.* The
+        analogue of Brownian `ItoDensity`. Time-discretisation (`dyadicEvalShifted`,
+        adapted, → φ in L²) **plus** the genuinely new mark-space piece kept fully
+        **general in `E`** (no countable-generation/standard-Borel): rectangle-simple
+        functions `∑ cⱼ 𝟙_{Aⱼ×ˢBⱼ}` are dense in `L²(μ)` on `Ω × E` via monotone-class
+        over the product π-system — `rectApprox_indicator` → `rectApprox_indicator_const`
+        / `RectApprox.const_smul` → `rectSimple_dense_L2` (`MemLp.induction_dense`) →
+        `rectSimple_L2_tendsto` (convergent sequence).
+      - *Step-integral foundation (`CompensatedDensity.lean`) — DONE 2026-06-17.*
+        `SimplePredictable` carries one mark set `Aᵢ`+coefficient `ξᵢ` per (strictly
+        increasing) time-piece, so its `eval` is rank-1 in the mark on each interval and
+        cannot represent `∑ⱼ ξⱼ(ω)𝟙_{Bⱼ}(e)`. The mark-discretised approximant is a
+        **finite sum** of pieces, captured by `stepIntegral N (Φ : Fin k → SimplePredictable)
+        = ∑ⱼ simpleIntegral N (Φ j)` — proved `martingale_stepIntegral_compensated`
+        (sum of per-piece martingales), `stepIntegral_zero`, `stepIntegral_memLp_compensated`
+        (all by reusing the proven `CompensatedMartingale`/`CompensatedIsometry` lemmas
+        untouched). The bilinear isometry's cross terms vanish on disjoint sets:
+        `compensated_cross_disjoint_zero` (`E[Ñ(B)Ñ(B')]=0` for `Disjoint B B'`, via the
+        PRM `independent_disjoint` field + `compensated_mean_zero`).
+      - *Covariance + cross-term theory (`CompensatedDensity.lean`) — DONE 2026-06-17.*
+        All atomic lemmas for the multi-mark isometry are proved, and **no strengthening
+        of the per-box past/future independence (cited axiom #2) is needed**: the same-time
+        disjoint-mark weighted cross term is killed by polarising through the union box.
+        Bricks: `compensated_cross_disjoint_zero`, `compensated_diff_sq_disjoint`,
+        `compensated_inter_add_diff_ae`, `compensated_diff_sq_expand`,
+        `compensated_cross_covariance` (`E[Ñ(B)Ñ(B')]=ν̂(B∩B')`),
+        `weighted_box_sq_eq` (`E[g·Ñ(box)²]=E[g]·ν̂(box)`),
+        `weighted_box_cross_disjoint_zero` (`E[g·Ñ(R)Ñ(R')]=0`, same-time disjoint marks).
+        Decision: **multi-mark** design (per user) — K disjoint mark-sets per shared
+        time-partition; isometry = ∑ₖ per-mark isometry (cross-mark terms vanish: same-time
+        via `weighted_box_cross_disjoint_zero`, time-ordered via the off-diagonal arg).
+      - *Cross-φ bilinear vanishing — DONE 2026-06-17.* `weighted_box_sq_eq` (weighted
+        future-box 2nd moment), `weighted_box_cross_disjoint_zero` (same-time disjoint
+        marks), `weighted_box_cross_timeordered_zero` (time-ordered, weight adapted to the
+        later interval's start), and `crossSum_disjointMark_zero`
+        (`E[(∑ᵢ ξᵢ Ñ((pᵢ,pᵢ₊₁]×Aᵢ))·(∑ⱼ ξ'ⱼ Ñ((pⱼ,pⱼ₊₁]×A'ⱼ))]=0` for a shared partition
+        and disjoint marks). All atomic isometry content for the multi-mark design is now
+        proved, structure-free, using only the existing per-box independence.
+      - *Multi-mark isometry — DONE 2026-06-17.* `stepIntegral_multimark_isometry`:
+        `E[(∑ₖ∑ᵢ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = ∑ₖ∑ᵢ ν̂((pᵢ,pᵢ₊₁]×Bₖ)·E[ξᵢₖ²]` for a shared
+        partition, pairwise-disjoint marks, adapted bounded coeffs. Builds the single-mark
+        `SimplePredictable` per mark, expands at the `k`-level, diagonal via
+        `simpleIntegral_L2_isometry_compensatedPoisson_sumForm`, cross via
+        `crossSum_disjointMark_zero`. **The full isometry conjunct for general (rank->1)
+        integrands is now proved** — no axiom strengthening, mark space `E` fully general.
+      - *Overlapping-mark route enabled — 2026-06-17.* To avoid disjointifying the marks of
+        integrand *differences* in `masterApprox`, the same-time bilinear covariance is now
+        weighted: `weighted_box_diff_sq_disjoint` and `weighted_box_cross_sametime`
+        (`E[g·Ñ((a,b]×A)·Ñ((a,b]×A')] = E[g]·ν̂((a,b]×(A∩A'))`, arbitrary marks). With these
+        + `weighted_box_cross_timeordered_zero`, the **overlapping-mark** step-integral
+        isometry `E[(stepIntegral)²] = E[∫∫ integrand²]` holds for any marks (the cleanest
+        Cauchy input). **Both isometry routes are now fully supported** (disjoint capstone
+        `stepIntegral_multimark_isometry`, and the overlapping bilinear pieces).
+      - *Overlapping-mark isometry + Tonelli bridge — DONE 2026-06-17.* The textbook
+        isometry `markSumProcess_isometry_L2`:
+        `E[(∑ᵢ∑ₖ ξᵢₖ Ñ((pᵢ,pᵢ₊₁]×Bₖ))²] = E[∫_E∫_{[0,T]} eval² ds dν]` for **arbitrary
+        (overlapping) marks**, via `markSumProcess_isometry` (LHS = sum-form) and
+        `markSumProcess_L2_eq` (RHS = sum-form, Tonelli of `timeIndicator_sq_integral` ×
+        `mark_sq_integral` + `referenceIntensity_Ioc_prod_eq`). **The entire isometry
+        conjunct for general integrands is proved**, no axiom strengthening, `E` general.
+      - *masterApprox **density** — DONE 2026-06-18.* The adapted step (Euler) approximants
+        are `L²(P⊗vol⊗ν)`-dense in `φ`: `exists_markEval_L2_tendsto`. Built bottom-up:
+        `lintegral_prod_trim_left` (trim–product bridge) + `IsRectSimple.eq_finSum` →
+        `exists_markSimple_adapted_within` (per-time-piece mark discretisation at the
+        sub-σ-algebra `ℱ_{pᵢ}`, forcing **adapted** rectangle sides via `Measure.trim`);
+        `dyadicAvg_shifted_adapted_prod` (mark-joint adaptedness of the shifted average);
+        `sq_nnnorm_disjoint_indicator_sum` (disjoint-interval collapse) →
+        `exists_markEval_close_dyadic` (mark-half within `T·δ`); diagonalised against the
+        time-half (`dyadicEvalShifted_L2_tendsto`) via `sq_nnnorm_add_le_two_mul` +
+        `lintegral_triple_add`/`_const_mul` + squeeze. **Mark space `E` fully general** (no
+        countable-generation). This was the sole analytical gate for dissertation #2(B).
+      - *Cross-resolution diff isometry — DONE 2026-06-19.* The full chain making the Euler
+        integrals `L²(P)`-Cauchy: mark collection to shared `Fin K`
+        (`exists_sharedMark_blockDiag`) → per-resolution isometry (`markStepIntegral_isometry`)
+        and same-partition diff isometry (`markStepIntegral_diff_isometry`, via `Fin.append`);
+        dyadic refinement (`compensated_Ioc_split`/`_telescope`, `indicator_Ioc_telescope`,
+        `dyadic_sum_split`, `dyadicCoarse`, `dyadic_point_coarse`, `dyadic_fine_endpoints`,
+        `dyadic_indicator_refine`/`dyadic_compensated_refine`,
+        `stepIntegral_dyadic_refine_integral`/`_eval`, `dyadic_coarse_point_le`,
+        `dyadic_refine_adapted`) → **`stepIntegral_crossres_diff_isometry`**:
+        `‖Iₙ−Iₘ‖²_{L²(P)} = ‖evalₙ−evalₘ‖²_{L²(P⊗vol⊗ν)}` for any dyadic levels `n ≤ m`.
+        Plus `L²`-membership of the Euler integral (`compensated_memLp`, `memLp_bdd_mul`,
+        `eulerStepIntegral_memLp`). **The entire novel content of #2(B) and #6's isometry
+        conjunct is formalised.**
+      - *Dissertation #2(B) — DONE 2026-06-19.* **`compensated_eulerSum_L2_limit`**: the
+        adapted Euler step integrals converge in `L²(P)` to an `L²` limit `F` (the L²-Itô-Lévy
+        integral). Final assembly: `lintegral_sq_eq_ofReal_integral` +
+        `triple_ofReal_integral_eq_lintegral` (real↔`ℝ≥0∞` bridges) + `eulerStepIntegral_memLp`
+        + `eulerStepIntegral_cauchy_le` (`‖Iₘ−Iₙ‖² ≤ 2Aφₘ+2Aφₙ` via the crossres diff isometry
+        + triple bridge + Tonelli swap + `2(a²+b²)` triangle) + `eLpNorm_two_rpow_eq_lintegral_sq`
+        + `EMetric.cauchySeq_iff` (`δ=ε²/4`) + `exists_L2_limit_of_memLp_cauchySeq`. The
+        dissertation's Euler-sum → stochastic-integral identification is formalised.
+      - *Remaining for #6 (drop the axiom): the process + càdlàg.* `compensated_eulerSum_L2_limit`
+        builds the integral at a fixed horizon as an `L²` RV; #6's `axiom` is the whole process
+        `F : ℝ → Ω → ℝ` with martingale + quadVar-martingale + isometry + **càdlàg** on
+        `(naturalFiltration N).rightCont`. The martingale/quadVar/isometry conjuncts mirror #5
+        (per-`t` limit of `martingale_stepIntegral_compensated`); the **càdlàg** conjunct needs
+        continuous-time Doob `L²` regularization — *not in Mathlib*, only the discrete bricks
+        `martingale_norm_submartingale`/`_tail_maximal` exist. **#6 stays an axiom until the Doob
+        càdlàg build lands** (a separate sizeable project).
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
