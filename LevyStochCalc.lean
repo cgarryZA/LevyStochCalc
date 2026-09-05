@@ -13,6 +13,7 @@ import LevyStochCalc.Basic
 
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Poisson.RandomMeasure
+import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.NaturalFiltration
 import LevyStochCalc.Poisson.CompensatedSimple
 import LevyStochCalc.Poisson.CompensatedIsometry
