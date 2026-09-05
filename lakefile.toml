@@ -9,6 +9,16 @@ relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 maxSynthPendingDepth = 3
 
+# RemyDegenne/brownian-motion: the Brownian motion construction (`brownian` on `gaussianLimit`,
+# `isBrownianReal_brownian`) that discharges cited axiom #1. Pinned to the commit whose
+# lake-manifest resolves Mathlib to this repo's pin (81a5d257), so no second Mathlib is built.
+# Declared BEFORE mathlib: Lake resolves transitive conflicts in favour of later requires, so
+# mathlib-last keeps batteries/aesop/etc. at Mathlib's own revs.
+[[require]]
+name = "BrownianMotion"
+git = "https://github.com/RemyDegenne/brownian-motion.git"
+rev = "4d52fa776130a29d4ad7d6eda2035a919c0b4696"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

@@ -1,8 +1,9 @@
-# LevyStochCalc — Status (2026-05-27)
+# LevyStochCalc — Status (2026-09-05)
 
 ## Headline
 
-**Library builds clean** (`lake build`: 8402 jobs, no errors).
+**Library builds clean** (`lake build`: 3286 jobs, no errors; Mathlib `81a5d257` /
+Lean `v4.32.0` since decision D1, with `RemyDegenne/brownian-motion` as a lake dependency).
 **Lint passes** (`bash tools/lint.sh`: PASS at baseline of the
 JumpDiffusion Picard-chain wrap-up sorry — see below).
 
@@ -43,8 +44,8 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
 1 entry**: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
 (carries the entire literature Picard chain for Applebaum 6.2.9).
 
-* **Brownian foundations** (4 axioms): `BrownianMotion.exists` (#1),
-  `kolmogorovChentsov_modification` (#3), `brownian_martingale_rightCont`
+* **Brownian foundations** (3 axioms; #1 `BrownianMotion.exists` became a theorem
+  2026-09-05 via RemyDegenne/brownian-motion): `kolmogorovChentsov_modification` (#3), `brownian_martingale_rightCont`
   (#4), `itoIsometry_brownian_unified_existence` (#5).
 * **Compensated-Poisson foundations** (2 axioms):
   `PoissonRandomMeasure.exists_of_sigmaFinite` (#2),
@@ -99,7 +100,8 @@ Following a 12-persona red-team audit that identified 24+ findings, all
 LevyStochCalc/
 ├── Basic.lean                                 — common imports + L² bridge lemmas
 ├── Brownian/
-│   ├── Construction.lean                      — BrownianMotion structure + Tier 1 #1 axiom
+│   ├── Construction.lean                      — BrownianMotion structure
+│   ├── Existence.lean                         — BrownianMotion.exists (ex-Tier-1 #1, thm)
 │   ├── Continuity.lean                        — KC modification + ae_eq
 │   ├── Martingale.lean                        — naturalFiltration W + Tier 1 #4 axiom
 │   ├── Ito.lean                               — L² Itô integral (4000+ lines)

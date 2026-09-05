@@ -23,9 +23,10 @@ A Lean 4 + Mathlib formalization of Lévy-driven stochastic calculus (L² Itô
 integrals, the Itô–Lévy formula, BSDEs with jumps). It is the substrate the main
 dissertation (`D:/Dissertation`) imports for its continuous-time foundations.
 
-All 14 cited results are currently **upstream of** mathlib (no Itô integral,
-BSDE, Poisson random measure, or PRP exists in mathlib yet), so the math here is
-being proved, not ported. See `Plan.md` for the verified comparison.
+Of the 14 cited results, Brownian existence (#1) is now discharged upstream
+(`RemyDegenne/brownian-motion`, a `lake require` at the shared Mathlib pin); the rest
+remain **upstream of** mathlib (no Itô integral, BSDE, Poisson random measure, or PRP
+exists in mathlib yet), so that math is being proved, not ported. See `Plan.md`.
 
 ## Hard invariants (never break)
 
@@ -63,13 +64,11 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 collaborative Lean platform Anthropic's FLT formalization was assembled on. The
 `prove2me` skill under `.claude/skills/` loads the upstream agent skill.
 
-- **Blocked on the pin.** Prove2Me has an environment at Mathlib
-  `c5ea00351c28e24afc9f0f84379aa41082b1188f` / `v4.30.0` — the Dissertation's exact pin.
-  This repo is on `0e208554…` / `v4.30.0-rc2` and matches none. Imports never cross
-  environments, so nothing here can connect to Dissertation nodes until the pin moves.
-  `Plan.md`'s "no pin bump" rule was written to protect the Dissertation build; verify on
-  the real machine whether that repo has already moved ahead of us.
-- **The payload is the debt, not the library.** The 11 cited axioms and the one
+- **Pin vs. environments.** Since decision D1 (2026-09-05) both repos sit on Mathlib
+  `81a5d257` / `v4.32.0`, which matches **no** Prove2Me environment (nearest: `c5ea003`
+  behind, `0df444a` ahead). Imports never cross environments, so any upload is re-verified
+  against the environment it targets; see `PROVE2ME.md`.
+- **The payload is the debt, not the library.** The 10 cited axioms and the one
   `PicardSpace.lean` `sorry` are the natural Open nodes — each already carries a precise
   literature citation in `tools/cited_axioms.md`. Publishing them makes the boundary
   machine-visible instead of ledger-visible.

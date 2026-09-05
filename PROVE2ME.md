@@ -17,7 +17,7 @@ names one open analytic boundary — `BackwardStepStochasticInputs` — and its 
 is a LevyStochCalc problem (Jacod–Yor PRP + Itô–Lévy isometry from real increments).
 `GOAL.md` §1.A already demands what Prove2Me would make publicly checkable:
 
-- **11 live cited axioms** (`grep -c "^### [0-9]" tools/cited_axioms.md`)
+- **10 live cited axioms** (`grep -c "^### [0-9]" tools/cited_axioms.md`; #1 closed 2026-09-05)
 - **1 real `sorry`** — `PicardSpace.lean:955`, surfacing as 4 baseline entries in
   `tools/sorry_baseline.txt`
 - **6 of those axioms gate the pinned dissertation surface** (`Plan.md`): #5, #6, #15,
@@ -90,7 +90,7 @@ Dissertation still building.
 
 ## 3. What to upload, in what order
 
-Not the library. The **11 cited axioms as Open theorems**, plus the definitions their
+Not the library. The **10 cited axioms as Open theorems**, plus the definitions their
 statements need. That is a `submit-problem` batch, not the full-project transplant
 playbook — a fundamentally smaller and safer job than the Dissertation's Stage 3–6.
 
@@ -104,7 +104,7 @@ coincides with mathematical foundation order:
 | 3 | #16 `itoLevyFormula_jumpResidual_canonical_axiom` | Itô–Lévy layer |
 | 4 | #13a/#13b Jacod–Yor PRP pair | **the Dissertation's `BackwardStepStochasticInputs` bottleneck** |
 | 5 | #9 `continuousBSDEJ_exists_unique`, #10 `bsdej_path_regularity` | BSDEJ layer |
-| 6 | #1, #2, #4, #18 | cited but off the pinned surface |
+| 6 | #2, #4, #18 | cited but off the pinned surface |
 
 Then the `sorry`: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
 (`PicardSpace.lean:955`) is a single Bielecki-norm contraction argument that four baseline

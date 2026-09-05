@@ -23,8 +23,9 @@ import LevyStochCalc.Poisson.Compensated
 -- Layer 1: Itô-Lévy isometry  → I02
 import LevyStochCalc.Poisson.L2Isometry
 
--- Layer 1.5: Brownian motion (in-project, no external dep)
+-- Layer 1.5: Brownian motion (existence via RemyDegenne/brownian-motion)
 import LevyStochCalc.Brownian.Construction
+import LevyStochCalc.Brownian.Existence
 import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Multidim

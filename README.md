@@ -32,7 +32,8 @@ Lean toolchain: `leanprover/lean4:v4.30.0-rc2`. Mathlib pin: see
 LevyStochCalc/
 ├── Basic.lean                                 — common imports + L² bridge lemmas
 ├── Brownian/
-│   ├── Construction.lean                      — BrownianMotion structure + Tier 1 #1 axiom
+│   ├── Construction.lean                      — BrownianMotion structure
+│   ├── Existence.lean                         — BrownianMotion.exists via RemyDegenne/brownian-motion (ex-Tier-1 #1)
 │   ├── Continuity.lean                        — KC modification + ae_eq (proven)
 │   ├── Martingale.lean                        — naturalFiltration W + Tier 1 #4 axiom
 │   ├── Ito.lean                               — L² Itô integral (4000+ lines)
@@ -95,7 +96,8 @@ published theorem from the literature with paper references in
 
 Currently-live axioms:
 
-1. `BrownianMotion.exists` — Karatzas-Shreve Thm 2.2.2+2.2.8 / Le Gall Def 2.1+2.12+Cor 2.11.
+1. ~~`BrownianMotion.exists`~~ — resolved 2026-09-05: a theorem in `Brownian/Existence.lean`,
+   forwarding to `RemyDegenne/brownian-motion` (`isBrownianReal_brownian`).
 2. `PoissonRandomMeasure.exists_of_sigmaFinite` — Applebaum 2009 Thm 2.3.1.
 3. `kolmogorovChentsov_modification` — Karatzas-Shreve Thm 2.2.8 / Le Gall Thm 2.9.
 4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.

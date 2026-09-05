@@ -7,9 +7,17 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (11 currently live)
+## Tier 1: Honest cited axioms (10 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
+* #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
+  upstream construction in `RemyDegenne/brownian-motion` (`isBrownianReal_brownian` on the
+  projective-limit space `gaussianLimit`, pinned at `4d52fa77`, a `lake require` since decision
+  D1). `Brownian/Existence.lean` supplies the real-time extension `t ↦ X (t⁺) − X 0`, the
+  σ-algebra independence field via the weak Markov property (`IsPreBrownianReal.indepFun_shift`,
+  Mathlib), and the `ULift` transport to `Type u`; `#print axioms` shows the 3 standard axioms.
+  The statement is unchanged; the in-house construction stubs (`measurable_gaussianReal`,
+  `brownianKernel`) were dead and deleted. Entry #1 retained below, marked RESOLVED.
 * #3 (`kolmogorovChentsov_modification`) was PROVED axiom→theorem 2026-06-16: a
   from-scratch Karatzas–Shreve 2.2.8 / Le Gall 2.9 proof on the current mathlib
   pin (per-dyadic-level Markov bound → Borel–Cantelli a.s. dyadic Hölder →
@@ -55,8 +63,13 @@ declaration faithfully matches the cited statement. When Mathlib formalises
 the underlying theorem, the `axiom` is replaced with a `theorem` forwarding
 to the Mathlib version, no other changes needed downstream.
 
-### 1. `LevyStochCalc.Brownian.BrownianMotion.exists`
+### Resolved #1: `LevyStochCalc.Brownian.BrownianMotion.exists` (proved axiom→theorem 2026-09-05)
 
+* **Status**: `theorem` in `LevyStochCalc/Brownian/Existence.lean`, derived from
+  `ProbabilityTheory.isBrownianReal_brownian` (`RemyDegenne/brownian-motion` @ `4d52fa77`, Mathlib
+  `81a5d257`) through `BrownianMotion.ofIsPreBrownianReal`; axiom set `{propext, Classical.choice,
+  Quot.sound}`. The sorry-bearing modules of that dependency (`Auxiliary/StandardBorel`,
+  `StochasticIntegral/*`, `Choquet/*`) are outside the imported closure.
 * **Statement**: There exists a probability space carrying a 1-dimensional Brownian motion.
 * **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 2.2.2** (Daniell-Kolmogorov consistency) + **Theorem 2.2.8** (Kolmogorov-Čentsov continuous-modification existence) — Chapter 2 §2.2 "First Construction of Brownian Motion" pp. 49-56 (correcting the previous "Theorem 2.1.5" citation flagged by red-team P11 2nd audit — §2.1 of K-S is the chapter Introduction, no theorem 2.1.5 exists); Le Gall, *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, **Definition 2.1** / **Definition 2.12** / **Corollary 2.11** (the Brownian-motion construction; correcting the previous "Theorem 2.1" citation flagged by red-team P11 — Le Gall 2016 has no "Theorem 2.1"; the existence statement combines the definition + the explicit Wiener-measure construction in Chapter 2). Wiener measure construction via Kolmogorov extension + KC modification.
 * **Mathlib status (May 2026)**: No current `MeasureTheory.WienerMeasure` or `BrownianMotion` definition. Adjacent infrastructure exists: `ProbabilityTheory.gaussianReal` (Real Gaussian distribution), `ProbabilityTheory.IsGaussianProcess`, `MeasureTheory.IsProjectiveLimit`, `Probability.Kernel.IonescuTulcea.trajMeasure` (dyadic-time Markov chains). The "Degenne et al stochastic integration" effort (arXiv:2511.20118, late 2025) is the most active push toward Mathlib-Brownian; no Mathlib PR merged at time of writing.
@@ -301,7 +314,7 @@ plain `theorem`-axioms.
 
 | Theorem | Forwards via |
 |---|---|
-| `LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists` | `BrownianMotion.exists` |
+| `LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists` | `BrownianMotion.exists` (a theorem since 2026-09-05; this row is now fully proven) |
 | `LevyStochCalc.Brownian.Continuity.brownian_continuous_modification` | `kolmogorovChentsov_modification` |
 | `LevyStochCalc.Brownian.Continuity.kolmogorov_modification_ae_eq` | derived from Kolmogorov continuity-in-probability + dyadic density (no Tier 1 axiom) |
 | `LevyStochCalc.Brownian.Martingale.brownian_filtration_rightContinuous` | `brownian_martingale_rightCont` |

@@ -8,8 +8,8 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **11 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**).
-  `cited_axioms.md` "11 live". The 3 standard axioms
+- **10 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**, **#1 closed
+  2026-09-05** via `RemyDegenne/brownian-motion`). `cited_axioms.md` "10 live". The 3 standard axioms
   (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
 - **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
   `tools/sorry_baseline.txt`) — disappears with the #9 chain.
@@ -21,7 +21,7 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   **#16** `itoLevyFormula_jumpResidual_canonical_axiom`,
   **#9** `continuousBSDEJ_exists_unique`,
   **#10** `bsdej_path_regularity`.
-  The other 7 (#1, #2, #4, #13a, #13b, #17, #18) are cited results but **not**
+  The other 6 (#2, #4, #13a, #13b, #17, #18) are cited results but **not**
   reached by the pinned surface.
 - **#5/#6 are foundational**: the audit shows #15, #16, #9, #10 *already carry*
   #5/#6 transitively, so the Itô-formula and BSDE layers cannot go axiom-free
@@ -210,9 +210,10 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **B1 / #4** `brownian_martingale_rightCont` — BM is a martingale wrt the
       right-continuous augmentation (KS 2.7.7/2.7.9 + Blumenthal 0-1). Now more
       tractable since the continuity/KC machinery exists.
-- [ ] **B2 / #1** `BrownianMotion.exists` — BM construction via Kolmogorov
-      extension (KS 2.2 / Le Gall 2). Pairs with mathlib's BM project (Phase D
-      alignment); consider `IsBrownianReal`/projective-family reuse first.
+- [x] **B2 / #1** `BrownianMotion.exists` — closed 2026-09-05: `Brownian/Existence.lean`
+      forwards to `isBrownianReal_brownian` (`RemyDegenne/brownian-motion` @ `4d52fa77`, a
+      `lake require` since D1); real-time extension + weak Markov property for the
+      σ-algebra field; `ULift` transport to `Type u`. Axiom set: the 3 standard.
 - [ ] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — via Ionescu–Tulcea
       (`Mathlib/Probability/Kernel/IonescuTulcea/`), Applebaum 2.3.1.
 - [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
