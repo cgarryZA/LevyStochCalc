@@ -114,7 +114,9 @@ LevyStochCalc/
 │   ├── Compensated.lean                       — L² Itô-Lévy integral (2900+ lines)
 │   │                                            + Tier 1 auxiliary axiom
 │   │                                            itoIsometry_diff_compensated
-│   └── L2Isometry.lean                        — public isometry forwarder
+│   ├── L2Isometry.lean                        — public isometry forwarder
+│   ├── IndependentScattering.lean             — σ-algebra independent scattering
+│   └── MathFinBridge.lean                     — PRM bridge to formal-mathfin (#6 isometry conjunct)
 ├── Ito/
 │   ├── Setting.lean                           — JumpDiffusion structure
 │   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived

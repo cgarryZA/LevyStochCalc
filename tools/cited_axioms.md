@@ -107,6 +107,17 @@ to the Mathlib version, no other changes needed downstream.
 * **Reference**: Applebaum 2009 **Theorem 4.2.3** (martingale + quadVar + L²-isometry) + **Theorem 4.2.4** (càdlàg modification); Ikeda–Watanabe **Section II.3**.
 * **Mathlib status (May 2026)**: No compensated-Poisson L² integral in Mathlib (waits on Poisson random measure construction). No current activity.
 * **Replacement plan**: `theorem itoIsometry_compensated_unified_existence := <Mathlib forwarder>` when Mathlib gains compensated-Poisson L² integration.
+* **Partial upstream discharge (2026-09-05)**: `raphaelrrcoelho/formal-mathfin` (@ `784a8311`, a `lake require`)
+  proves the compensated-Poisson `L²` isometry for the continuous linear extension of the elementary
+  integral to the `L²`-closure of *marked simple* integrands (`MathFin.itoLevyIntegralL2_norm`), over its
+  own `PoissonRandomMeasure` structure. `Poisson/MathFinBridge.lean` shows every PRM of this library is one
+  of theirs (`toMathFin`; the σ-algebra independent-scattering field is `indep_of_disjoint_region`,
+  proved in `Poisson/IndependentScattering.lean`) and reads the isometry back
+  (`PoissonRandomMeasure.itoLevyIntegralL2_norm`). **What this does not discharge** — and why the axiom
+  stays live: (i) that every progressively measurable `L²` integrand `φ` of the axiom's hypothesis class lies
+  in that closure (the predictable-`L²` density the upstream calls a deferred summit), (ii) the martingale
+  and compensator-martingale conjuncts, (iii) the càdlàg modification. The bridge is a `def`, not a
+  relocation of the axiom's statement.
 
 ### Retired #7: `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` (DELETED 2026-05-22)
 

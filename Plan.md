@@ -41,6 +41,11 @@ The end-to-end program for the three papers now lives in
   (the càdlàg conjunct — the exact residue named under A2 above) nor the CLM over the
   *predictable* `L²`, which it calls "a declared, deferred Summit". So the isometry conjunct
   can become a forwarder once the pins agree; the càdlàg build stays ours.
+  **Done 2026-09-05 (as far as it goes):** formal-mathfin is a `lake require`; `Poisson/MathFinBridge.lean`
+  maps our PRM to theirs (`toMathFin`, via the σ-algebra scattering theorem in
+  `Poisson/IndependentScattering.lean`) and reads back `itoLevyIntegralL2_norm`. #6 stays an axiom: the
+  density of progressively measurable integrands in their closure, the martingale conjuncts and the
+  càdlàg modification are not upstream (see `tools/cited_axioms.md` #6).
 - **Pins do not agree.** formal-mathfin is at Mathlib `81a5d257` (v4.32.0, 2026-07-13); this
   repo is at `0e208554` (v4.30.0-rc2), the Dissertation at `c5ea003` (v4.30.0), Prove2Me's
   default at `0df444a` (v4.33.1). Our `c5ea003` is a verified ancestor of `81a5d257`, 1,306

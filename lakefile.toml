@@ -19,6 +19,15 @@ name = "BrownianMotion"
 git = "https://github.com/RemyDegenne/brownian-motion.git"
 rev = "4d52fa776130a29d4ad7d6eda2035a919c0b4696"
 
+# raphaelrrcoelho/formal-mathfin: the compensated-Poisson (Itô-Lévy) `L²` isometry on the closure
+# of marked simple integrands, consumed through `Poisson/MathFinBridge.lean` (cited axiom #6's
+# isometry conjunct). Pinned to the commit whose lake-manifest resolves Mathlib to this repo's pin
+# and BrownianMotion to the revision required above. Declared before mathlib for the same reason.
+[[require]]
+name = "MathFin"
+git = "https://github.com/raphaelrrcoelho/formal-mathfin.git"
+rev = "784a8311f75a1519a23717856df9982bd6a9a370"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

@@ -20,6 +20,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_iSup_comap_of_disjoint
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_of_disjoint_region
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.toMathFin
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.itoLevyIntegralL2_norm
 #print axioms LevyStochCalc.Poisson.poissonRandomMeasure_finite_exists
 #print axioms LevyStochCalc.Poisson.Compensated.itoLevyIsometry
 #print axioms LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral
