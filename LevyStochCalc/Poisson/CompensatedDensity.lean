@@ -451,7 +451,7 @@ private lemma bounded_locallyIntegrable (g : ℝ → ℝ) (h_meas : Measurable g
   · simp
   · rw [Real.volume_Ioo]; exact ENNReal.ofReal_ne_top
   · refine Filter.Eventually.of_forall (fun s => ?_)
-    rw [show ‖g s‖ₑ = ENNReal.ofReal ‖g s‖ from (ofReal_norm_eq_enorm _).symm]
+    rw [show ‖g s‖ₑ = ENNReal.ofReal ‖g s‖ from (ofReal_norm _).symm]
     exact ENNReal.ofReal_le_ofReal (by rw [Real.norm_eq_abs]; exact h_bound s)
 
 /-- The (unshifted) dyadic eval at running time `s`, carrying the mark `e`: the
@@ -613,7 +613,7 @@ lemma dyadicEval_inner_L2_tendsto
   have h_meas_slice : Measurable (fun s : ℝ => φ ω s e) :=
     h_meas.comp (by fun_prop : Measurable fun s : ℝ => ((ω, s, e) : Ω × ℝ × E))
   have hsq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (‖x‖ ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm x).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _)]
   rw [show (0 : ℝ≥0∞) = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0 : ℝ) T)) from by simp]
   refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
@@ -641,7 +641,7 @@ lemma dyadicEval_inner_L2_tendsto
       simpa using (tendsto_const_nhds (x := φ ω s e)).sub hs
     have hg : Continuous (fun x : ℝ => (‖x‖₊ : ℝ≥0∞) ^ 2) :=
       (ENNReal.continuous_pow 2).comp (ENNReal.continuous_coe.comp continuous_nnnorm)
-    simpa using (hg.tendsto 0).comp hdiff
+    simpa [Function.comp_def] using (hg.tendsto 0).comp hdiff
 
 /-- If `φ(ω, ·, e)` vanishes identically in time, so does its dyadic eval. -/
 lemma dyadicEval_eq_zero {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (ω : Ω) (e : E)
@@ -732,7 +732,7 @@ lemma dyadicEval_L2_tendsto
                   = ENNReal.ofReal (‖φ ω s e - dyadicEval T φ n s ω e‖ ^ 2) from by
                 rw [show (‖φ ω s e - dyadicEval T φ n s ω e‖₊ : ℝ≥0∞)
                       = ENNReal.ofReal ‖φ ω s e - dyadicEval T φ n s ω e‖ from
-                    (ofReal_norm_eq_enorm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]]
+                    (ofReal_norm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]]
             refine ENNReal.ofReal_le_ofReal ?_
             have hb : ‖φ ω s e - dyadicEval T φ n s ω e‖ ≤ 2 * M' := by
               rw [Real.norm_eq_abs]
@@ -1019,7 +1019,7 @@ lemma dyadicEvalShifted_inner_L2_tendsto
       Filter.atTop (nhds 0) := by
   have hM'_nn : 0 ≤ max M 0 := le_max_right _ _
   have hsq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (‖x‖ ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm x).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _)]
   rw [show (0 : ℝ≥0∞) = ∫⁻ _ : ℝ, (0 : ℝ≥0∞) ∂(volume.restrict (Set.Icc (0 : ℝ) T)) from by simp]
   refine MeasureTheory.tendsto_lintegral_of_dominated_convergence'
@@ -1051,7 +1051,7 @@ lemma dyadicEvalShifted_inner_L2_tendsto
       simpa using (tendsto_const_nhds (x := φ ω s e)).sub hs
     have hg : Continuous (fun x : ℝ => (‖x‖₊ : ℝ≥0∞) ^ 2) :=
       (ENNReal.continuous_pow 2).comp (ENNReal.continuous_coe.comp continuous_nnnorm)
-    simpa using (hg.tendsto 0).comp hdiff
+    simpa [Function.comp_def] using (hg.tendsto 0).comp hdiff
 
 set_option maxHeartbeats 1000000 in
 /-- **`L²` convergence of the adapted (shifted) eval (finite-mark-support).** -/
@@ -1100,7 +1100,7 @@ lemma dyadicEvalShifted_L2_tendsto
                   = ENNReal.ofReal (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ ^ 2) from by
                 rw [show (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞)
                       = ENNReal.ofReal ‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ from
-                    (ofReal_norm_eq_enorm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]]
+                    (ofReal_norm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]]
             refine ENNReal.ofReal_le_ofReal ?_
             have hb : ‖φ ω s e - dyadicEvalShifted T φ n s ω e‖ ≤ 2 * M' := by
               rw [Real.norm_eq_abs]
@@ -1236,7 +1236,7 @@ lemma IsRectSimple.sum {ι : Type*} (s : Finset ι) (f : ι → Ω × E → ℝ)
     (h : ∀ i ∈ s, IsRectSimple (f i)) : IsRectSimple (∑ i ∈ s, f i) := by
   classical
   induction s using Finset.induction with
-  | empty => simpa using IsRectSimple.zero
+  | empty => simp only [Finset.sum_empty]; exact IsRectSimple.zero
   | insert i s hi ih =>
     rw [Finset.sum_insert hi]
     exact (h i (Finset.mem_insert_self i s)).add
@@ -1343,7 +1343,7 @@ lemma rectApprox_indicator (μ : Measure (Ω × E)) [IsFiniteMeasure μ]
         ((⋃ i, F i).indicator (fun _ => (1 : ℝ)) - (S N).indicator (fun _ => 1)) 2 μ < ε / 2 := by
       rw [show ((⋃ i, F i).indicator (fun _ => (1 : ℝ)) - (S N).indicator (fun _ => 1))
             = ((⋃ i, F i) \ S N).indicator (fun _ => 1) from
-          (Set.indicator_diff (hSsub N) _).symm,
+          (Set.indicator_sdiff (hSsub N) _).symm,
         MeasureTheory.eLpNorm_indicator_const
           (MeasurableSet.diff (MeasurableSet.iUnion hFm) (hSmeas N))
           (by norm_num) (by norm_num)]
@@ -1678,7 +1678,7 @@ lemma sq_nnnorm_disjoint_indicator_sum
 lemma sq_nnnorm_add_le_two_mul (x y : ℝ) :
     (‖x + y‖₊ : ℝ≥0∞) ^ 2 ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
   have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) := fun z => by
-    rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from (ofReal_norm_eq_enorm z).symm,
+    rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from (ofReal_norm z).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _),
       show ‖z‖ ^ 2 = z ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
   rw [h_norm_sq, h_norm_sq, h_norm_sq,
@@ -3946,7 +3946,7 @@ lemma lintegral_sq_eq_ofReal_integral {P : Measure Ω} {g : Ω → ℝ}
   rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hg.integrable_sq
     (Filter.Eventually.of_forall (fun ω => sq_nonneg _))]
   refine lintegral_congr (fun ω => ?_)
-  rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm_eq_enorm _).symm,
+  rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm _).symm,
     ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
 
 /-- **Real↔`ℝ≥0∞` triple-integral bridge.** For a bounded `φ`-difference-style function
@@ -4040,7 +4040,7 @@ lemma triple_ofReal_integral_eq_lintegral
     (Filter.Eventually.of_forall (fun s => sq_nonneg _))]
   refine lintegral_congr (fun s => ?_)
   rw [show ((h ω s e) ^ 2) = ‖h ω s e‖ ^ 2 from by rw [Real.norm_eq_abs, sq_abs],
-    ENNReal.ofReal_pow (norm_nonneg _), ofReal_norm_eq_enorm, enorm_eq_nnnorm]
+    ENNReal.ofReal_pow (norm_nonneg _), ofReal_norm, enorm_eq_nnnorm]
 
 /-- The mark-step eval is uniformly bounded (finite sum of bounded-coeff × indicators). -/
 lemma markEval_bounded {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}

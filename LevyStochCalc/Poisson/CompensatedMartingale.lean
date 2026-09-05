@@ -874,7 +874,7 @@ lemma diagonal_increment_sq
       (fun ω => g ω * (φ.ξ i ω) ^ 2) := by
     have hg_a := hg.mono (ℱ.mono (le_max_left s (min pc t)))
     have hξ_a := h_adapt_i.mono (ℱ.mono hpc_le_a)
-    exact hg_a.mul (by simpa [pow_two] using hξ_a.mul hξ_a)
+    exact hg_a.mul (by simpa [pow_two, Pi.mul_def] using hξ_a.mul hξ_a)
   -- Independence of `g·ξᵢ²` and `Ñ(box)`.
   have h_indep : ProbabilityTheory.IndepFun (fun ω => g ω * (φ.ξ i ω) ^ 2)
       (fun ω => N.compensated (Set.Ioc a b ×ˢ φ.A i) ω) P :=
@@ -1207,11 +1207,12 @@ private lemma condExp_sq_increment_of_martingale
     rw [heq]; exact (hMt2.sub (hcr.const_mul 2)).add hMs2
   have hcross_ae : P[(fun ω => M s ω * M t ω) | ℱ s] =ᵐ[P] fun ω => (M s ω) ^ 2 := by
     have hpull := MeasureTheory.condExp_mul_of_stronglyMeasurable_left (m := ℱ s) hMsm
-      (show MeasureTheory.Integrable ((M s) * (M t)) P by simpa [Pi.mul_apply] using hcr)
+      (show MeasureTheory.Integrable ((M s) * (M t)) P from hcr)
       (hmart.integrable t)
     filter_upwards [hpull, hmart.condExp_ae_eq hst] with ω hp hmeq
     have hp' : P[(fun ω => M s ω * M t ω) | ℱ s] ω = M s ω * (P[M t | ℱ s]) ω := by
-      simpa [Pi.mul_apply] using hp
+      have : (fun ω => M s ω * M t ω) = (M s) * (M t) := rfl
+      rw [this]; simpa [Pi.mul_apply] using hp
     rw [hp', hmeq, ← pow_two]
   symm
   refine MeasureTheory.ae_eq_condExp_of_forall_setIntegral_eq hm hf_int
@@ -1317,7 +1318,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
       by_cases hpc : φ.partition i.castSucc ≤ u
       · have hξ2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u)
             (fun ω => (φ.ξ i ω) ^ 2) := by
-          simpa [pow_two] using ((h_adapt i).mono (ℱ.mono hpc)).mul ((h_adapt i).mono (ℱ.mono hpc))
+          simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono (ℱ.mono hpc)).mul ((h_adapt i).mono (ℱ.mono hpc))
         exact hξ2.const_mul _
       · push_neg at hpc
         rw [show (fun ω => c i u * (φ.ξ i ω) ^ 2) = fun _ => (0 : ℝ) from by
@@ -1364,7 +1365,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           - ∫ u in Set.Icc (0 : ℝ) s, ∫ e, (φ.eval u e ω) ^ 2 ∂ν ∂volume) := by
       have hIs2m : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s)
           (fun ω => (simpleIntegral N φ s ω) ^ 2) := by
-        simpa [pow_two] using (hImart.stronglyAdapted s).mul (hImart.stronglyAdapted s)
+        simpa [pow_two, Pi.mul_def] using (hImart.stronglyAdapted s).mul (hImart.stronglyAdapted s)
       exact hIs2m.sub (hA_adapt s)
     refine (MeasureTheory.ae_eq_condExp_of_forall_setIntegral_eq hm (hIt2.sub (hAint t))
       (fun B _ _ => (hIs2.sub (hAint s)).integrableOn) (fun B hB _ => ?_)
@@ -1443,7 +1444,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
   · intro u
     have hI2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u)
         (fun ω => (simpleIntegral N φ u ω) ^ 2) := by
-      simpa [pow_two] using (hImart.stronglyAdapted u).mul (hImart.stronglyAdapted u)
+      simpa [pow_two, Pi.mul_def] using (hImart.stronglyAdapted u).mul (hImart.stronglyAdapted u)
     exact hI2.sub (hA_adapt u)
   · rcases le_or_gt 0 s with hs | hs
     · exact hcond s t hs hst

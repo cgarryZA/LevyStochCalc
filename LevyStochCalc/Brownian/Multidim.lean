@@ -167,7 +167,7 @@ private noncomputable def project_BM
       (MeasureTheory.measurePreserving_eval (fun _ : Fin d => P₀) i).map_eq
     have h_inc := W₀.increment_gaussian hs hst
     rw [show (fun ω : Fin d → Ω₀ => W₀.W t (ω i) - W₀.W s (ω i))
-        = (fun ω₀ : Ω₀ => W₀.W t ω₀ - W₀.W s ω₀) ∘ Function.eval i from rfl,
+        = (W₀.W t - W₀.W s) ∘ Function.eval i from rfl,
       ← MeasureTheory.Measure.map_map
         ((W₀.measurable_eval t).sub (W₀.measurable_eval s))
         (measurable_pi_apply i),
@@ -282,6 +282,7 @@ theorem MultidimBrownianMotion.exists (d : ℕ) :
     (X := fun _ : Fin d => fun ω₀ : Ω₀ => fun t : ℝ => W₀.W t ω₀)
     (μ := fun _ : Fin d => P₀) h_meas_W₀
   convert this using 1
+  rfl
 
 /-- **Joint increment Gaussianity with diagonal covariance.**
 

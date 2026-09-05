@@ -1285,7 +1285,7 @@ lemma brownian_increment_fourth_moment
   rw [h_increment hst]
   -- Goal: ∫ x, x^4 ∂(gaussianReal 0 ⟨t-s, _⟩) = 3 * (t-s)^2.
   have h := gaussianReal_fourth_moment ⟨t - s, by linarith⟩
-  simpa using h
+  exact h
 
 /-- **Auxiliary: Kolmogorov bound for Brownian increments (`s < t` case).**
 For a process `X` with Brownian-law increments,

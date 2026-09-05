@@ -538,7 +538,7 @@ lemma simpleIntegral_diagonal
         (fun ω => (‖ξi ω‖₊ : ℝ≥0∞)^2)
         (fun ω => (‖ÑB ω‖₊ : ℝ≥0∞)^2) P := by
     have := h_indep_ξ_ÑB.comp h_nn_meas h_nn_meas
-    simpa [Function.comp] using this
+    simpa [Function.comp_def] using this
   -- Step 3: ‖ξ · ÑB‖² = ‖ξ‖² · ‖ÑB‖² pointwise.
   have h_norm_mul : ∀ ω, (‖ξi ω * ÑB ω‖₊ : ℝ≥0∞)^2
       = (‖ξi ω‖₊ : ℝ≥0∞)^2 * (‖ÑB ω‖₊ : ℝ≥0∞)^2 := by
@@ -586,7 +586,7 @@ lemma simpleIntegral_diagonal
     have h_norm_eq : ∀ ω, (‖ÑB ω‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal ((ÑB ω)^2) := by
       intro ω
       rw [show (‖ÑB ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖ÑB ω‖ from
-        ofReal_norm_eq_enorm (ÑB ω) |>.symm]
+        ofReal_norm (ÑB ω) |>.symm]
       rw [← ENNReal.ofReal_pow (norm_nonneg _)]
       rw [show ‖ÑB ω‖^2 = (ÑB ω)^2 from by rw [Real.norm_eq_abs, sq_abs]]
     rw [show (∫⁻ ω, (‖ÑB ω‖₊ : ℝ≥0∞)^2 ∂P)
@@ -809,7 +809,7 @@ private lemma simpleIntegral_diagonal_bochner
         ∫ ω, (φ.ξ i ω)^2 ∂P := by
   -- Common identity: (‖x‖₊ : ℝ≥0∞)² = ENNReal.ofReal(x²) for x : ℝ.
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal (x^2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
   -- Get the lintegral version of diagonal.
@@ -1117,7 +1117,7 @@ lemma simpleIntegral_sq_lintegral_eq
   simp_rw [simpleIntegral_eq_sum_fullRect N φ]
   -- Step 2: convert (‖x‖)² to ENNReal.ofReal(x²).
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal (x^2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
   rw [show (∫⁻ ω,
@@ -1275,7 +1275,7 @@ lemma simpleIntegral_lintegral_sq_finite_compensated
     have h_norm_le : ∀ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal (max M 0) := by
       intro ω
       rw [show (‖φ.ξ i ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖φ.ξ i ω‖
-            from (ofReal_norm_eq_enorm _).symm]
+            from (ofReal_norm _).symm]
       exact ENNReal.ofReal_le_ofReal (Real.norm_eq_abs _ ▸ h_bound ω)
     calc ∫⁻ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P
         ≤ ∫⁻ _ω, (ENNReal.ofReal (max M 0)) ^ 2 ∂P := by
