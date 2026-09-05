@@ -28,6 +28,25 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   until the L² integrals are built. Hence #5 → #6 first.
 - Four-way invariant green; build = 2904 jobs.
 
+## Cross-repo roadmap and an upstream discharge of #6 (2026-09-05)
+
+The end-to-end program for the three papers now lives in
+`../Dissertation/FORMALIZATION_ROADMAP.md`; this file remains the route for the foundations
+(its WP5–WP9 are Phase A/B here). Two facts it records that bear on this plan directly:
+
+- **A2/#6 has a partial upstream discharge.** `raphaelrrcoelho/formal-mathfin`
+  (`MathFin/Foundations/PoissonCompensatedIntegralL2*.lean`, Apache-2.0, sorry-free, build-audited)
+  proves the compensated-Poisson isometry for simple integrands with `L²` closure and cites
+  this repo's axiom #6 by name as the statement it proves. It does **not** build the process
+  (the càdlàg conjunct — the exact residue named under A2 above) nor the CLM over the
+  *predictable* `L²`, which it calls "a declared, deferred Summit". So the isometry conjunct
+  can become a forwarder once the pins agree; the càdlàg build stays ours.
+- **Pins do not agree.** formal-mathfin is at Mathlib `81a5d257` (v4.32.0, 2026-07-13); this
+  repo is at `0e208554` (v4.30.0-rc2), the Dissertation at `c5ea003` (v4.30.0), Prove2Me's
+  default at `0df444a` (v4.33.1). Our `c5ea003` is a verified ancestor of `81a5d257`, 1,306
+  commits back. The "No pin bump" rule below was written to protect the Dissertation build;
+  consuming the discharge requires revisiting it deliberately (roadmap decision **D1**).
+
 ## Rules of engagement (unchanged, apply to every task)
 
 - **Invariant after every commit:** `lake build` ✅ · `bash tools/lint.sh` at
