@@ -9,6 +9,8 @@ audit_output.txt
 !.claude/hooks/
 .claude/hooks/*
 !.claude/hooks/session-start.sh
+!.claude/skills/
+!.claude/skills/**
 .codex/
 .mcp.json
 .vscode/

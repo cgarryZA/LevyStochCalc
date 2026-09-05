@@ -56,3 +56,22 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 - `tools/sorry_baseline.txt` — currently-deferred theorems.
 - `STATUS.md` — point-in-time build/axiom status.
 - `_audit.lean` — `#print axioms` budget check (input to `tools/lint.sh`).
+
+## Prove2Me (planned; nothing uploaded yet)
+
+`PROVE2ME.md` is the plan of record for publishing on [Prove2Me](https://prove2.me), the
+collaborative Lean platform Anthropic's FLT formalization was assembled on. The
+`prove2me` skill under `.claude/skills/` loads the upstream agent skill.
+
+- **Blocked on the pin.** Prove2Me has an environment at Mathlib
+  `c5ea00351c28e24afc9f0f84379aa41082b1188f` / `v4.30.0` — the Dissertation's exact pin.
+  This repo is on `0e208554…` / `v4.30.0-rc2` and matches none. Imports never cross
+  environments, so nothing here can connect to Dissertation nodes until the pin moves.
+  `Plan.md`'s "no pin bump" rule was written to protect the Dissertation build; verify on
+  the real machine whether that repo has already moved ahead of us.
+- **The payload is the debt, not the library.** The 11 cited axioms and the one
+  `PicardSpace.lean` `sorry` are the natural Open nodes — each already carries a precise
+  literature citation in `tools/cited_axioms.md`. Publishing them makes the boundary
+  machine-visible instead of ledger-visible.
+- **A badge is not non-vacuity.** `GOAL.md` §1.B is unaffected by any platform verdict;
+  the platform type-checks, it does not audit meaning.
