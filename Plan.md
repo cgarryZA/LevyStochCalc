@@ -61,7 +61,10 @@ The end-to-end program for the three papers now lives in
   `theorem` is sorry-free do you replace the axiom, repoint consumers, drop the
   entry from `tools/cited_axioms.md`, and confirm `#print axioms` shows the
   consumers clean. **Never** commit a new `sorry` to the built library.
-- **No pin bump** (cross-repo mismatch risk). **Ponytail:** smallest diff, delete
+- **Pin policy (decision D1, 2026-09-05):** both repos sit on Mathlib
+  `81a5d257c8e410db227a6665ed08f64fea08e997` / Lean `v4.32.0` — formal-mathfin's exact pin.
+  A bump is a deliberate, cross-repo event: both repos together, the four-way invariant green
+  before either commit, never incrementally. **Ponytail:** smallest diff, delete
   more than you add, one idea per file.
 
 ## Phase A — Close the 6 dissertation-surface axioms (critical path)

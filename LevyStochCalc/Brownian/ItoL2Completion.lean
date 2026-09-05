@@ -56,7 +56,7 @@ lemma simpleIntegral_lintegral_sq_finite_brownian
   have h_norm_le : ∀ ω, (‖H.ξ i ω‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal (max M 0) := by
     intro ω
     rw [show (‖H.ξ i ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H.ξ i ω‖
-          from (ofReal_norm_eq_enorm _).symm]
+          from (ofReal_norm _).symm]
     exact ENNReal.ofReal_le_ofReal
       (Real.norm_eq_abs _ ▸ h_bound ω)
   calc ∫⁻ ω, (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P
@@ -1091,7 +1091,7 @@ lemma diagonal_increment_lint
       ProbabilityTheory.IndepFun
         (fun ω => (‖ξ ω‖₊ : ℝ≥0∞) ^ 2) (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞) ^ 2) P := by
     have := h_indep_ξ_ΔW.comp h_nn_meas h_nn_meas
-    simpa [Function.comp] using this
+    simpa [Function.comp_def] using this
   have h_norm_mul : ∀ ω, (‖ξ ω * ΔW ω‖₊ : ℝ≥0∞) ^ 2
       = (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 * (‖ΔW ω‖₊ : ℝ≥0∞) ^ 2 := by
     intro ω
@@ -1126,7 +1126,7 @@ lemma diagonal_increment_lint
         fun x : ℝ => x ^ 2 := by filter_upwards with x; positivity
     have h_norm_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := by
       intro x
-      rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+      rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
       rw [← ENNReal.ofReal_pow (norm_nonneg _)]
       rw [show ‖x‖ ^ 2 = x ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
     rw [show (∫⁻ x, (‖x‖₊ : ℝ≥0∞) ^ 2 ∂(ProbabilityTheory.gaussianReal 0
@@ -1257,7 +1257,7 @@ lemma diagonal_increment_bochner
   have hξ_meas : Measurable ξ :=
     (h_adapt.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖ ^ 2 = x ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
   have h_lint := diagonal_increment_lint W ha hab ξ h_adapt
@@ -1521,7 +1521,7 @@ lemma simpleIntegral_intermediate_isometry
       min (H.partition i.castSucc) t ≤ min (H.partition i.succ) t :=
     fun i => min_le_min_right t (le_of_lt (H.partition_strictMono Fin.castSucc_lt_succ))
   have h_norm_sq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm,
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm,
       ← ENNReal.ofReal_pow (norm_nonneg _), show ‖x‖ ^ 2 = x ^ 2 from by
         rw [Real.norm_eq_abs, sq_abs]]
   have hξsqmeas : ∀ i : Fin H.N, Measurable (fun ω => (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2) :=
@@ -1829,7 +1829,7 @@ lemma tendsto_setLIntegral_Ioc_prod_zero
       rw [sub_self] at h0
       exact h0.mono_left nhdsWithin_le_nhds
     have := (ENNReal.continuous_ofReal.tendsto 0).comp h1
-    simpa using this
+    simpa [Function.comp_def] using this
   have h_zero := MeasureTheory.tendsto_setLIntegral_zero (μ := P.prod volume) (f := f)
     (s := fun r => (Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r) h_tot h_meas_to_zero
   refine h_zero.congr' ?_
@@ -1871,9 +1871,8 @@ lemma integral_sq_increment_eq_of_martingale
     have h_pull : P[(fun ω => M s ω * M t ω) | ℱ s]
         =ᵐ[P] fun ω => M s ω * P[M t | ℱ s] ω := by
       have := MeasureTheory.condExp_mul_of_stronglyMeasurable_left
-        (m := ℱ s) (hmart.stronglyAdapted s)
-        (by simpa [Pi.mul_apply] using hcr) (hmart.integrable t)
-      simpa [Pi.mul_apply] using this
+        (m := ℱ s) (hmart.stronglyAdapted s) hcr (hmart.integrable t)
+      exact this
     calc ∫ ω, M s ω * M t ω ∂P
         = ∫ ω, P[(fun ω => M s ω * M t ω) | ℱ s] ω ∂P :=
           (MeasureTheory.integral_condExp hm).symm
@@ -1942,11 +1941,12 @@ lemma condExp_sq_increment_of_martingale
     rw [heq]; exact (hMt2.sub (hcr.const_mul 2)).add hMs2
   have hcross_ae : P[(fun ω => M s ω * M t ω) | ℱ s] =ᵐ[P] fun ω => (M s ω) ^ 2 := by
     have hpull := MeasureTheory.condExp_mul_of_stronglyMeasurable_left (m := ℱ s) hMsm
-      (show MeasureTheory.Integrable ((M s) * (M t)) P by simpa [Pi.mul_apply] using hcr)
+      (show MeasureTheory.Integrable ((M s) * (M t)) P from hcr)
       (hmart.integrable t)
     filter_upwards [hpull, hmart.condExp_ae_eq hst] with ω hp hmeq
     have hp' : P[(fun ω => M s ω * M t ω) | ℱ s] ω = M s ω * (P[M t | ℱ s]) ω := by
-      simpa [Pi.mul_apply] using hp
+      have : (fun ω => M s ω * M t ω) = (M s) * (M t) := rfl
+      rw [this]; simpa [Pi.mul_apply] using hp
     rw [hp', hmeq, ← pow_two]
   symm
   refine MeasureTheory.ae_eq_condExp_of_forall_setIntegral_eq hm hf_int
@@ -2020,7 +2020,7 @@ lemma simpleIntegral_lintegral_sq_sub_le_endpoint_brownian
     rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hu.integrable_sq
         (Filter.Eventually.of_forall (fun ω => sq_nonneg _))]
     refine lintegral_congr (fun ω => ?_)
-    rw [show (‖M u ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖M u ω‖ from (ofReal_norm_eq_enorm _).symm,
+    rw [show (‖M u ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖M u ω‖ from (ofReal_norm _).symm,
         ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
   calc ∫⁻ ω, (‖M t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ENNReal.ofReal (∫ ω, (M t ω) ^ 2 ∂P) := h_bridge (hMemLp ht_nn htT)
@@ -2065,7 +2065,7 @@ lemma martingale_rightCont_of_tendsto_eLpNorm_one
   -- `r ↦ ∫_A F r → ∫_A F s` from right-`L¹`-continuity.
   have htend_s : Filter.Tendsto (fun r => ∫ x in A, F r x ∂P)
       (nhdsWithin s (Set.Ioi s)) (nhds (∫ x in A, F s x ∂P)) :=
-    MeasureTheory.tendsto_setIntegral_of_L1' (F s) (hmart.integrable s)
+    MeasureTheory.tendsto_setIntegral_of_L1' (F s) (hmart.integrable s).aestronglyMeasurable
       (Filter.Eventually.of_forall (fun r => hmart.integrable r)) (hrc s) A
   -- `r ↦ ∫_A F r` is constantly `∫_A F t` on `(s, t)`.
   have heq_ev : ∀ᶠ r in nhdsWithin s (Set.Ioi s),
@@ -2155,7 +2155,7 @@ lemma eval_lintegral_sq_finite
   have hbound : ∀ ω s, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (C ^ 2) := by
     intro ω s
     rw [show (‖H.eval s ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H.eval s ω‖
-          from (ofReal_norm_eq_enorm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]
+          from (ofReal_norm _).symm, ← ENNReal.ofReal_pow (norm_nonneg _)]
     refine ENNReal.ofReal_le_ofReal ?_
     have h1 : ‖H.eval s ω‖ ≤ C := by
       rw [Real.norm_eq_abs]; exact eval_abs_le_sum_bounds H s ω
@@ -2191,7 +2191,7 @@ lemma lintegral_nnnorm_sq_eq_ofReal_integral
   rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hg.integrable_sq
         (Filter.Eventually.of_forall (fun ω => sq_nonneg _))]
   refine lintegral_congr (fun ω => ?_)
-  rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm_eq_enorm _).symm,
+  rw [show (‖g ω‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖g ω‖ from (ofReal_norm _).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]
 
 /-- `∫ (W_b − W_a)² = b − a` for `0 ≤ a < b`. -/
@@ -2243,7 +2243,7 @@ lemma integral_factor_increment_sq
     exact h_indep_F u v (hg_comap_le u hu) hv
   have h_indep_g_ΔWsq : ProbabilityTheory.IndepFun g (fun ω => (ΔW ω) ^ 2) P := by
     have := h_indep_g_ΔW.comp measurable_id (measurable_id.pow_const 2)
-    simpa [Function.comp] using this
+    simpa [Function.comp_def] using this
   rw [show (fun ω => g ω * (W.W b ω - W.W a ω) ^ 2) = g * (fun ω => (ΔW ω) ^ 2) from rfl,
     h_indep_g_ΔWsq.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable
     ((hΔW_meas.pow_const 2).aestronglyMeasurable), brownian_incr_sq_integral W ha hab]
@@ -2511,7 +2511,7 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
       have hg2 : @MeasureTheory.StronglyMeasurable Ω ℝ _
           (ℱ.seq (max s (min (H.partition i.castSucc) t))) (fun ω => g ω * (H.ξ i ω) ^ 2) := by
         refine (hg.mono (ℱ.mono (le_max_left s (min (H.partition i.castSucc) t)))).mul ?_
-        simpa [pow_two] using (h_ξ_cl i hi_lt).mul (h_ξ_cl i hi_lt)
+        simpa [pow_two, Pi.mul_def] using (h_ξ_cl i hi_lt).mul (h_ξ_cl i hi_lt)
       have hbdd2 : ∀ ω, |g ω * (H.ξ i ω) ^ 2| ≤ Cg * Mi ^ 2 := fun ω => by
         have h2 : (H.ξ i ω) ^ 2 ≤ Mi ^ 2 :=
           sq_le_sq' (neg_le_of_abs_le (hMi ω)) (le_of_abs_le (hMi ω))
@@ -2552,7 +2552,7 @@ lemma setIntegral_eval_sq_Icc_clamped {T : ℝ} (G : SimplePredictable Ω T) (ω
     G.eval_jointly_measurable.comp
       (by fun_prop : Measurable (fun s : ℝ => ((ω, s) : Ω × ℝ)))
   have h_norm_sq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm x).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _), show ‖x‖ ^ 2 = x ^ 2 from by
         rw [Real.norm_eq_abs, sq_abs]]
   rw [MeasureTheory.integral_eq_lintegral_of_nonneg_ae
@@ -2650,7 +2650,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
       by_cases hc : G.partition i.castSucc < u
       · have hle : ℱ.seq (G.partition i.castSucc) ≤ ℱ.seq u := ℱ.mono (le_of_lt hc)
         have hξ2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u) (fun ω => (G.ξ i ω) ^ 2) := by
-          simpa [pow_two] using ((h_adapt i).mono hle).mul ((h_adapt i).mono hle)
+          simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono hle).mul ((h_adapt i).mono hle)
         exact hξ2.const_mul _
       · push_neg at hc
         have hcoef : min (G.partition i.succ) u - min (G.partition i.castSucc) u = 0 := by
@@ -2691,7 +2691,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           - ∫ u in Set.Icc (0 : ℝ) s, (G.eval u ω) ^ 2 ∂volume) := by
       have hIs2m : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s)
           (fun ω => (simpleIntegral W G s ω) ^ 2) := by
-        simpa [pow_two] using (hImart.stronglyAdapted s).mul (hImart.stronglyAdapted s)
+        simpa [pow_two, Pi.mul_def] using (hImart.stronglyAdapted s).mul (hImart.stronglyAdapted s)
       exact hIs2m.sub (hA_adapt s)
     refine (MeasureTheory.ae_eq_condExp_of_forall_setIntegral_eq hm (hIt2.sub (hAint t))
       (fun B _ _ => (hIs2.sub (hAint s)).integrableOn) (fun B hB _ => ?_)
@@ -2782,7 +2782,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
   · intro u
     have hI2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u)
         (fun ω => (simpleIntegral W G u ω) ^ 2) := by
-      simpa [pow_two] using (hImart.stronglyAdapted u).mul (hImart.stronglyAdapted u)
+      simpa [pow_two, Pi.mul_def] using (hImart.stronglyAdapted u).mul (hImart.stronglyAdapted u)
     exact hI2.sub (hA_adapt u)
   · rcases le_or_gt 0 s with hs | hs
     · exact hcond s t hs hst
@@ -3609,7 +3609,7 @@ lemma compensatorH_adapted (t : ℝ) :
         (@Prod.instMeasurableSpace Ω ℝ
           ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
         (fun p : Ω × ℝ => (H p.1 p.2) ^ 2) := by
-      simpa [pow_two] using (h_progMeas t).mul (h_progMeas t)
+      simpa [pow_two, Pi.mul_def] using (h_progMeas t).mul (h_progMeas t)
     letI : MeasurableSpace Ω := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t
     exact hsq.integral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) t))
   · have heq : (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
@@ -3756,7 +3756,7 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
   · -- StronglyAdapted
     have hFsq : @MeasureTheory.StronglyMeasurable Ω ℝ _
         ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) (fun ω => (F t ω) ^ 2) := by
-      simpa [pow_two] using
+      simpa [pow_two, Pi.mul_def] using
         (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t).mul
           (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t)
     exact hFsq.sub (compensatorH_adapted W H h_progMeas t)
@@ -3891,13 +3891,13 @@ lemma martingale_rightCont_quadVar_stochasticIntegralBrownian :
             (Set.disjoint_left.mpr (fun x hx1 hx2 => absurd hx2.1 (not_lt.mpr hx1.2)))
             measurableSet_Ioc hHsω hHscω]
         ring
-      rw [hsplit, ← ofReal_norm_eq_enorm, Real.norm_eq_abs,
+      rw [hsplit, ← ofReal_norm, Real.norm_eq_abs,
         abs_of_nonneg (MeasureTheory.integral_nonneg (fun u => sq_nonneg _)),
         MeasureTheory.ofReal_integral_eq_lintegral_ofReal hHscω
           (Filter.Eventually.of_forall (fun u => sq_nonneg _))]
       refine MeasureTheory.setLIntegral_congr_fun measurableSet_Ioc (fun u _ => ?_)
       rw [show (‖H ω u‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal ((H ω u) ^ 2) from by
-        rw [show (‖H ω u‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H ω u‖ from (ofReal_norm_eq_enorm _).symm,
+        rw [show (‖H ω u‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖H ω u‖ from (ofReal_norm _).symm,
           ← ENNReal.ofReal_pow (norm_nonneg _), Real.norm_eq_abs, sq_abs]]
     · refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
       filter_upwards [Ioo_mem_nhdsGT hs] with r hr

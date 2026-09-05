@@ -637,7 +637,7 @@ lemma setIntegral_eval_sq_Icc_clamped
         (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t)).toReal
           * (φ.ξ i ω) ^ 2 := by
   have h_norm_sq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm_eq_enorm x).symm,
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from (ofReal_norm x).symm,
       ← ENNReal.ofReal_pow (norm_nonneg _), show ‖x‖ ^ 2 = x ^ 2 from by
         rw [Real.norm_eq_abs, sq_abs]]
   -- Inner mark-integral as a `toReal` of the inner lintegral.
@@ -1338,7 +1338,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     show (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t)).toReal
         - (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i s)).toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t \ φ.timeRect i s)).toReal
-    rw [MeasureTheory.measure_diff hsub hmeas_s.nullMeasurableSet hfin_s,
+    rw [MeasureTheory.measure_sdiff hsub hmeas_s.nullMeasurableSet hfin_s,
       ENNReal.toReal_sub_of_le (measure_mono hsub) (referenceIntensity_timeRect_ne_top φ i t)]
   -- conditional martingale identity for `0 ≤ s ≤ t`, via set integrals.
   have hcond : ∀ s t : ℝ, 0 ≤ s → s ≤ t →

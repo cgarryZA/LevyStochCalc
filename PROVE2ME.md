@@ -55,7 +55,12 @@ worse than the axiom it replaced, because the axiom was at least labelled.
 | Prove2Me env #2 | `v4.30.0` | `c5ea003…` ✅ |
 | Prove2Me default env | `v4.33.1` | `0df444a…` |
 
-**This repo's pin matches no Prove2Me environment.** The Dissertation's matches one
+**Update 2026-09-05 (decision D1).** Both repos now sit on Mathlib `81a5d257` / Lean `v4.32.0`
+(formal-mathfin's pin). The cross-repo discrepancy below is resolved; the Prove2Me mismatch is
+now *shared* by both repos and accepted knowingly — the platform's nearest environments are
+`c5ea003` (v4.30.0) behind and `0df444a` (v4.33.1) ahead.
+
+**This repo's pin matched no Prove2Me environment.** The Dissertation's matches one
 exactly. Two independent consequences:
 
 1. **Prove2Me is blocked here until the pin moves to `c5ea003…` / `v4.30.0`.** There is

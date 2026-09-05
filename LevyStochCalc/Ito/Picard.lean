@@ -1064,7 +1064,7 @@ used below for `Fin n → ℝ`-valued differences `X s ω - Y s ω`. -/
 lemma ennreal_nnnorm_sq_normed {α : Type*} [NormedAddCommGroup α] (r : α) :
     ((‖r‖₊ : ℝ≥0∞)) ^ 2 = ENNReal.ofReal (‖r‖ ^ 2) := by
   have h : ((‖r‖₊ : ℝ≥0∞)) = ENNReal.ofReal ‖r‖ :=
-    (ofReal_norm_eq_enorm r).symm
+    (ofReal_norm r).symm
   rw [h, ← ENNReal.ofReal_pow (norm_nonneg _)]
 
 omit [MeasurableSpace E] in

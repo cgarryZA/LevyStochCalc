@@ -142,7 +142,7 @@ lemma sq_nnnorm_add_le_two_mul_brownian (x y : ℝ) :
       ≤ 2 * ((‖x‖₊ : ℝ≥0∞) ^ 2 + (‖y‖₊ : ℝ≥0∞) ^ 2) := by
   have h_norm_sq : ∀ z : ℝ, (‖z‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (z ^ 2) :=
     fun z => by
-    rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from ofReal_norm_eq_enorm z |>.symm]
+    rw [show (‖z‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖z‖ from ofReal_norm z |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖z‖ ^ 2 = z ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
   rw [h_norm_sq, h_norm_sq, h_norm_sq]
@@ -499,6 +499,7 @@ lemma dyadicAvg_shifted_brownian_adapted
     have h_const_meas := h_int_step.const_mul ((2 ^ n : ℕ) / T : ℝ)
     -- This is exactly dyadicAvg_brownian g n ⟨i.val - 1, _⟩ ω.
     convert h_const_meas using 1
+    rfl
 
 /-- **Boundedness of the eval of `predictableDyadicSimple_brownian`.**
 The eval at any (s, ω) is bounded by `max M 0`. -/
@@ -603,7 +604,7 @@ private lemma bounded_locallyIntegrable
   · simp
   · rw [Real.volume_Ioo]; exact ENNReal.ofReal_ne_top
   · refine Filter.Eventually.of_forall (fun s => ?_)
-    rw [show ‖g s‖ₑ = ENNReal.ofReal ‖g s‖ from (ofReal_norm_eq_enorm _).symm]
+    rw [show ‖g s‖ₑ = ENNReal.ofReal ‖g s‖ from (ofReal_norm _).symm]
     apply ENNReal.ofReal_le_ofReal
     rw [Real.norm_eq_abs]
     exact h_bound s
@@ -1192,7 +1193,7 @@ private lemma dyadicSimplePredictable_brownian_L2_converges
        (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞)) = ENNReal.ofReal ‖g p.1 p.2 -
        (dyadicSimplePredictable_brownian hT g h_meas M h_bound n).eval p.2 p.1‖ :=
-      (ofReal_norm_eq_enorm _).symm
+      (ofReal_norm _).symm
     rw [this, ← ENNReal.ofReal_pow h_norm_nn]
     apply ENNReal.ofReal_le_ofReal
     nlinarith [sq_nonneg (g p.1 p.2 -
@@ -1605,7 +1606,7 @@ lemma predictableDyadicSimple_brownian_L2_converges
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖₊
         : ℝ≥0∞)) = ENNReal.ofReal ‖g p.1 p.2 -
        (predictableDyadicSimple_brownian hT g h_meas M h_bound n).eval p.2 p.1‖ :=
-      (ofReal_norm_eq_enorm _).symm
+      (ofReal_norm _).symm
     rw [this, ← ENNReal.ofReal_pow h_norm_nn]
     apply ENNReal.ofReal_le_ofReal
     nlinarith [sq_nonneg (g p.1 p.2 -

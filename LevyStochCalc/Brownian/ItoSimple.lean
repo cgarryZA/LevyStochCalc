@@ -345,7 +345,7 @@ lemma simpleIntegral_diagonal
         (fun ω => (‖ξ ω‖₊ : ℝ≥0∞)^2)
         (fun ω => (‖ΔW ω‖₊ : ℝ≥0∞)^2) P := by
     have := h_indep_ξ_ΔW.comp h_nn_meas h_nn_meas
-    simpa [Function.comp] using this
+    simpa [Function.comp_def] using this
   -- Step 3: ‖ξ · ΔW‖₊² = ‖ξ‖₊² · ‖ΔW‖₊² pointwise.
   have h_norm_mul : ∀ ω, (‖ξ ω * ΔW ω‖₊ : ℝ≥0∞)^2
       = (‖ξ ω‖₊ : ℝ≥0∞)^2 * (‖ΔW ω‖₊ : ℝ≥0∞)^2 := by
@@ -398,7 +398,7 @@ lemma simpleIntegral_diagonal
     have h_norm_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal (x^2) := by
       intro x
       rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from
-            ofReal_norm_eq_enorm x |>.symm]
+            ofReal_norm x |>.symm]
       rw [← ENNReal.ofReal_pow (norm_nonneg _)]
       rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
     rw [show (∫⁻ x, (‖x‖₊ : ℝ≥0∞)^2 ∂(ProbabilityTheory.gaussianReal 0
@@ -458,7 +458,7 @@ private lemma simpleIntegral_diagonal_bochner
     H.partition_strictMono Fin.castSucc_lt_succ
   -- Common identity.
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal (x^2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
   have h_lint := simpleIntegral_diagonal W H i h_part_nn h_adapt
@@ -821,7 +821,7 @@ lemma simpleIntegral_sq_lintegral_eq
   simp_rw [simpleIntegral_eq_sum W H]
   -- Convert (‖x‖)² to ENNReal.ofReal(x²).
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞)^2 = ENNReal.ofReal (x^2) := fun x => by
-    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm_eq_enorm x |>.symm]
+    rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
   rw [show (∫⁻ ω, (‖∑ i : Fin H.N, H.ξ i ω * (W.W (H.partition i.succ) ω
