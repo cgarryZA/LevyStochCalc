@@ -262,6 +262,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_of_time
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_pow_four_le_Ioc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_sub_pow_four_le
+-- B1a-2d (2026-09-06): orthogonality of martingale differences.
+#print axioms LevyStochCalc.Probability.integral_sum_mul_of_condExp_eq_zero
+#print axioms LevyStochCalc.Probability.integral_sq_sum_of_condExp_eq_zero
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
