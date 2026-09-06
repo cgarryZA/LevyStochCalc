@@ -70,8 +70,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.indep_iSup_comap_of_disjoint_families
 #print axioms LevyStochCalc.Poisson.indep_of_disjoint_region_families
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_of_disjoint_region_pair
-#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_countSigma
-#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_countSigma_rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_regionSigma
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_stepSigma
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_stepSigma_rightCont
 -- A2f (2026-09-06): the grid induction — successive increment tuples, and tuples measured from
@@ -79,6 +78,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.comap_add_le
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma_start
+-- A2g-i (2026-09-06): the driver's data at finitely many positive times against `ℱ₊ 0`.
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_valueSigma
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
