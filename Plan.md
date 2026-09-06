@@ -206,6 +206,18 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         master approximants across horizons from `exists_markEval_L2_tendsto` +
         truncation, `Filter.limUnder`, martingale/quadVar/isometry conjuncts), then feed
         `martingale_rightCont_of_tendsto_eLpNorm_one` and this brick.
+      - *Mark-step calculus — DONE 2026-09-06* (`Poisson/MarkStep.lean`). The simple class for
+        the process construction: `TimeGrid` (finite time grid) and `MarkStep g` (shared
+        marks, bounded coefficients) with `integral` (compensated integral up to `t`),
+        `full`, `eval`, `Adapted`; martingale property and `L²` membership (through
+        `stepIntegral`); the isometry at every time `t ≥ 0` (`integral_sq_at`,
+        `lintegral_integral_sq_at`) via the clamped grid `TimeGrid.clamp`; sums/negation on
+        a common grid and the difference isometry (`lintegral_integral_sub_sq_at`); the
+        set-level increment isometry between grid points against an earlier-measurable
+        weight (`integral_weight_increment_sq`, the input for the quadratic-variation
+        conjunct); dyadic grids with refinement (`full_dyadicRefine`) and prefix
+        restriction (`full_dyadicRestrict`). Next: the master approximating sequence
+        (horizons `2ⁿ`, nested dyadic levels, truncation of `φ`) and the `L²` process.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

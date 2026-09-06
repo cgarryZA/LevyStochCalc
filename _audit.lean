@@ -28,6 +28,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.cadlag_modification_exists
 
+-- ===== Layer 0.25: mark-step integrands (toward #6) =====
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.martingale_integral
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_sq_at
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.lintegral_integral_sq_at
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.lintegral_integral_sub_sq_at
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_weight_increment_sq
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.full_dyadicRefine
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.full_dyadicRestrict
+
 -- ===== Layer 0.5: martingale path regularity =====
 #print axioms LevyStochCalc.Martingale.isRealQuasimartingale
 #print axioms LevyStochCalc.Martingale.exists_adapted_ae_isCadlag_nnreal
