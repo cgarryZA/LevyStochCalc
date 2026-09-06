@@ -17,6 +17,12 @@ Mirrors `D:/Dissertation/_audit.lean`.
 import LevyStochCalc
 
 -- ===== Layer 0: Compensated Poisson =====
+-- Poisson splitting (toward #2): counts of a Poisson number of iid marks on
+-- disjoint sets are independent Poisson variables.
+#print axioms LevyStochCalc.Poisson.map_markCount_eq_pi
+#print axioms LevyStochCalc.Poisson.hasLaw_markCount_real
+#print axioms LevyStochCalc.Poisson.map_markCount_ennreal
+#print axioms LevyStochCalc.Poisson.iIndepFun_markCount_ennreal
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_iSup_comap_of_disjoint
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_of_disjoint_region

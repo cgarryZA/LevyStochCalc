@@ -319,8 +319,24 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       forwards to `isBrownianReal_brownian` (`RemyDegenne/brownian-motion` @ `4d52fa77`, a
       `lake require` since D1); real-time extension + weak Markov property for the
       σ-algebra field; `ULift` transport to `Type u`. Axiom set: the 3 standard.
-- [ ] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — via Ionescu–Tulcea
-      (`Mathlib/Probability/Kernel/IonescuTulcea/`), Applebaum 2.3.1.
+- [ ] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — the Poisson recipe
+      (Applebaum 2.3.1 / Kallenberg 3.6), staged (started 2026-09-06):
+      - *S1 `Poisson/PoissonSplitting.lean`*: a Poisson(r) number `K` of iid marks with law
+        `ρ`, independent of `K`, scattered over disjoint measurable `B₁, …, Bₙ`: the counts
+        `∑_{j<K} 1_{Bᵢ}(Xⱼ)` are independent, `Poisson(r ρ(Bᵢ))`. Characteristic functions:
+        `E exp(i ∑ tᵢ Nᵢ) = ∑ₙ P(K=n) cⁿ` with `c = ∑ pᵢ e^{itᵢ} + (1 − ∑ pᵢ)`, the exponential
+        series, `charFun_pi`, `Measure.ext_of_charFun` on `EuclideanSpace ℝ (Fin n)`.
+      - *S2 piece*: for a finite-intensity measurable piece `A` of `[0,∞) × E`, the random
+        measure `∑_{j<K} δ_{Xⱼ}` with `K ~ Poisson(Λ(A))` and marks `Λ|_A / Λ(A)`, on the
+        product space of `exists_hasLaw_indepFun`; evaluations measurable; S1 on `B ∩ A`.
+      - *S3 superposition*: countably many independent pieces (index `ℕ ⊕ ℕ × ℕ` on one
+        product space), `N := Measure.sum`; Poisson law of `N(B)` for `Λ(B) < ∞` (monotone
+        limit of Poisson partial sums, `IndepFun.hasLaw_add_poissonMeasure`), countable
+        independence on disjoint sets (`iIndepFun_uncurry` + limits), integer values,
+        `N(B) = ∞` when `Λ(B) = ∞` (Borel–Cantelli II, `measure_limsup_eq_one`),
+        the σ-algebra past/future field from a raw-`N` version of
+        `indep_of_disjoint_region`.
+      - *S4 assembly* in `Poisson/RandomMeasure.lean`, statement unchanged.
 - [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
       regularization (KS I.3.13) + Blumenthal 0-1.
 - [ ] **B5 / #13a** `jacodYor_PRP_martingale_axiom` — predictable representation
