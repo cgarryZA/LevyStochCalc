@@ -250,12 +250,21 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `integral_weight_incr_sq` (`0 < s < t`, increment grid `TimeGrid.incr`) and
         `integral_weight_zero_sq` (`s ≤ 0 < t`) with the indicator of `B` as weight, plus
         Fubini in `(u, e)`. `martingale_sq_sub_compensator`: `I_G(t)² − A_G(t)` is a
-        natural-filtration martingale. Remaining: conjunct 2 for the process (the
-        process compensator `∫_{[0,t]}∫_E φ²` is adapted and integrable, the stage
-        compensators converge to it in `L¹` through `L²`-convergence of the evals on
-        `P ⊗ vol|[0,t] ⊗ ν`, then `martingale_of_tendsto_eLpNorm_one` and the
-        `rightCont` lift as in the Brownian mirror), then the assembly with the càdlàg
-        brick and the replacement of the axiom; then #18.
+        natural-filtration martingale.
+      - *Conjunct 2 for the process — DONE 2026-09-06*
+        (`Poisson/CompensatedProcessQuadVar.lean`). The compensator
+        `compensator ν φ t := ∫_{[0,t]} ∫_E φ(u,e)² ν(de) du` is adapted (progressive
+        measurability through `prodAssoc` and two parametrised Bochner integrals) and
+        integrable (square-integrability of `φ` for the horizon measure
+        `P ⊗ vol|[0,t] ⊗ ν`); the stage integrands converge to `φ` in `L²` of the horizon
+        measure (`stageEval_tendsto`, from `master_err`), so their squares converge in
+        `L¹` and the stage compensators converge in `L¹(P)` to the compensator
+        (`stage_compensator_tendsto_L1`). `martingale_quadVar_process` (natural filtration,
+        via `martingale_of_tendsto_eLpNorm_one`) and `martingale_rightCont_quadVar_process`
+        (right-`L¹`-continuity of `F²` and of the compensator, the latter from the slab
+        integral `∫⁻∫⁻_{(s,r]} markSq → 0`). Remaining: the assembly with the càdlàg brick
+        (`exists_adapted_ae_cadlag_of_eLpNorm` on `process`), transfer of the four
+        conjuncts to the modification, and the replacement of the axiom; then #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

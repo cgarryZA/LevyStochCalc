@@ -24,6 +24,7 @@ import LevyStochCalc.Poisson.MarkStep
 import LevyStochCalc.Poisson.CompensatedApprox
 import LevyStochCalc.Poisson.CompensatedProcess
 import LevyStochCalc.Poisson.CompensatedQuadVar
+import LevyStochCalc.Poisson.CompensatedProcessQuadVar
 import LevyStochCalc.Poisson.Compensated
 
 -- Layer 0.5: martingale path regularity (càdlàg modifications)
