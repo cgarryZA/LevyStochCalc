@@ -232,6 +232,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.exists_mul_simple
 #print axioms LevyStochCalc.Brownian.Ito.isometry_simple_sub_stochasticIntegralBrownian
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.stepIoc_eval
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indicator_Ioc
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

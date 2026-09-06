@@ -32,6 +32,9 @@ simple integrand is its elementary integral.
 * `stochasticIntegralBrownian_integralAgainst` — summing the increments of the `L²` Itô integral
   of `H` against the coefficients of a simple integrand `G` gives the `L²` Itô integral of the
   product `G · H`.
+* `stepIoc`, `stepIoc₀` — the simple integrand `1_{(a, b]}`.
+* `stochasticIntegralBrownian_indicator_Ioc` — restricting the integrand to `(a, b]` gives the
+  increment of the integral across `(a, b]`.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -896,5 +899,180 @@ theorem stochasticIntegralBrownian_integralAgainst {t : ℝ} (ht : 0 < t) :
   simpa [sub_eq_zero] using h0
 
 end Associativity
+
+/-- The simple integrand `1_{(a, b]}`, for `0 < a < b`. -/
+noncomputable def stepIoc (Ω) [MeasurableSpace Ω] {a b : ℝ} (ha : 0 < a) (hab : a < b) :
+    SimplePredictable Ω b where
+  N := 2
+  partition := ![0, a, b]
+  partition_zero := by simp
+  partition_le_T := by simp
+  partition_strictMono := by
+    refine Fin.strictMono_iff_lt_succ.mpr fun i => ?_
+    fin_cases i
+    · simpa using ha
+    · simpa using hab
+  ξ := ![fun _ => 0, fun _ => 1]
+  ξ_bounded := by intro i; fin_cases i <;> exact ⟨1, fun ω => by norm_num⟩
+  ξ_measurable := by intro i; fin_cases i <;> exact measurable_const
+
+/-- The simple integrand `1_{(0, b]}`, for `0 < b`. -/
+noncomputable def stepIoc₀ (Ω) [MeasurableSpace Ω] {b : ℝ} (hb : 0 < b) :
+    SimplePredictable Ω b where
+  N := 1
+  partition := ![0, b]
+  partition_zero := by simp
+  partition_le_T := by simp
+  partition_strictMono := by
+    refine Fin.strictMono_iff_lt_succ.mpr fun i => ?_
+    fin_cases i
+    simpa using hb
+  ξ := ![fun _ => 1]
+  ξ_bounded := by intro i; fin_cases i; exact ⟨1, fun ω => by norm_num⟩
+  ξ_measurable := by intro i; fin_cases i; exact measurable_const
+
+theorem stepIoc_eval {a b : ℝ} (ha : 0 < a) (hab : a < b) (s : ℝ) (ω : Ω) :
+    (stepIoc Ω ha hab).eval s ω = (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s := by
+  have hrw : (stepIoc Ω ha hab).eval s ω
+      = ∑ i : Fin 2, if (![0, a, b] : Fin 3 → ℝ) i.castSucc < s
+            ∧ s ≤ (![0, a, b] : Fin 3 → ℝ) i.succ
+          then (![fun _ => (0 : ℝ), fun _ => (1 : ℝ)] : Fin 2 → Ω → ℝ) i ω else 0 := rfl
+  rw [hrw, Fin.sum_univ_two]
+  by_cases h : a < s ∧ s ≤ b
+  · rw [Set.indicator_of_mem (Set.mem_Ioc.mpr h)]
+    simp [h]
+  · rw [Set.indicator_of_notMem fun hm => h (Set.mem_Ioc.mp hm)]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Fin.isValue,
+      Matrix.cons_val_two, Matrix.tail_cons, Fin.castSucc_zero, Fin.succ_zero_eq_one,
+      Fin.castSucc_one, Fin.succ_one_eq_two]
+    simp only [ite_self, zero_add]
+    exact if_neg h
+
+theorem stepIoc₀_eval {b : ℝ} (hb : 0 < b) (s : ℝ) (ω : Ω) :
+    (stepIoc₀ Ω hb).eval s ω = (Set.Ioc 0 b).indicator (fun _ => (1 : ℝ)) s := by
+  have hrw : (stepIoc₀ Ω hb).eval s ω
+      = ∑ i : Fin 1, if (![0, b] : Fin 2 → ℝ) i.castSucc < s
+            ∧ s ≤ (![0, b] : Fin 2 → ℝ) i.succ
+          then (![fun _ => (1 : ℝ)] : Fin 1 → Ω → ℝ) i ω else 0 := rfl
+  rw [hrw, Fin.sum_univ_one]
+  by_cases h : (0 : ℝ) < s ∧ s ≤ b
+  · rw [Set.indicator_of_mem (Set.mem_Ioc.mpr h)]
+    simp [h]
+  · rw [Set.indicator_of_notMem fun hm => h (Set.mem_Ioc.mp hm)]
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Fin.isValue,
+      Fin.castSucc_zero, Fin.succ_zero_eq_one]
+    exact if_neg h
+
+theorem stepIoc_adapt (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {a b : ℝ} (ha : 0 < a)
+    (hab : a < b) :
+    ∀ i : Fin (stepIoc Ω ha hab).N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (ℱ ((stepIoc Ω ha hab).partition i.castSucc)) ((stepIoc Ω ha hab).ξ i) := by
+  intro i
+  fin_cases i <;> exact MeasureTheory.stronglyMeasurable_const
+
+theorem stepIoc₀_adapt (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {b : ℝ} (hb : 0 < b) :
+    ∀ i : Fin (stepIoc₀ Ω hb).N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (ℱ ((stepIoc₀ Ω hb).partition i.castSucc)) ((stepIoc₀ Ω hb).ξ i) := by
+  intro i
+  fin_cases i
+  exact MeasureTheory.stronglyMeasurable_const
+
+theorem stepIoc_integralAgainst {a b : ℝ} (ha : 0 < a) (hab : a < b) (M : ℝ → Ω → ℝ)
+    (t : ℝ) (ω : Ω) :
+    (stepIoc Ω ha hab).integralAgainst M t ω = M (min b t) ω - M (min a t) ω := by
+  have hrw : (stepIoc Ω ha hab).integralAgainst M t ω
+      = ∑ i : Fin 2, (![fun _ => (0 : ℝ), fun _ => (1 : ℝ)] : Fin 2 → Ω → ℝ) i ω
+        * (M (min ((![0, a, b] : Fin 3 → ℝ) i.succ) t) ω
+          - M (min ((![0, a, b] : Fin 3 → ℝ) i.castSucc) t) ω) := rfl
+  rw [hrw, Fin.sum_univ_two]
+  simp
+
+theorem stepIoc₀_integralAgainst {b : ℝ} (hb : 0 < b) (M : ℝ → Ω → ℝ) (t : ℝ) (ω : Ω) :
+    (stepIoc₀ Ω hb).integralAgainst M t ω = M (min b t) ω - M (min 0 t) ω := by
+  have hrw : (stepIoc₀ Ω hb).integralAgainst M t ω
+      = ∑ i : Fin 1, (![fun _ => (1 : ℝ)] : Fin 1 → Ω → ℝ) i ω
+        * (M (min ((![0, b] : Fin 2 → ℝ) i.succ) t) ω
+          - M (min ((![0, b] : Fin 2 → ℝ) i.castSucc) t) ω) := rfl
+  rw [hrw, Fin.sum_univ_one]
+  simp
+
+/-- The `L²` Itô integral depends on the integrand only through the function itself. -/
+theorem stochasticIntegralBrownian_congr_fun
+    {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+    {F₁ F₂ : Ω → ℝ → ℝ} (hEq : F₁ = F₂)
+    (hm₁ : Measurable (Function.uncurry F₁))
+    (hp₁ : Probability.ProgressivelyMeasurable ℱ F₁)
+    (hq₁ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖F₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hm₂ : Measurable (Function.uncurry F₂))
+    (hp₂ : Probability.ProgressivelyMeasurable ℱ F₂)
+    (hq₂ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖F₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (t : ℝ) :
+    stochasticIntegralBrownian W ℱ hℱ F₁ hm₁ hp₁ hq₁ t
+      = stochasticIntegralBrownian W ℱ hℱ F₂ hm₂ hp₂ hq₂ t := by
+  subst hEq; rfl
+
+/-- **Locality of the `L²` Itô integral.** Restricting the integrand to `(a, b]` gives the
+increment of the integral across `(a, b]`. -/
+theorem stochasticIntegralBrownian_indicator_Ioc
+    {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+    (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+    (hp : Probability.ProgressivelyMeasurable ℱ H)
+    (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    (him : Measurable (Function.uncurry fun ω s =>
+      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s))
+    (hip : Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s)
+    (hiq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 < t) :
+    stochasticIntegralBrownian W ℱ hℱ
+        (fun ω s => (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s) him hip hiq t
+      =ᵐ[P] fun ω => stochasticIntegralBrownian W ℱ hℱ H hm hp hq (min b t) ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (min a t) ω := by
+  rcases eq_or_lt_of_le ha with rfl | ha'
+  · have hfun : (fun ω s => (stepIoc₀ Ω hab).eval s ω * H ω s)
+        = fun ω s => (Set.Ioc 0 b).indicator (fun _ => (1 : ℝ)) s * H ω s := by
+      funext ω s; rw [stepIoc₀_eval]
+    have hpt : ∀ (ω : Ω) (s : ℝ), (stepIoc₀ Ω hab).eval s ω * H ω s
+        = (Set.Ioc 0 b).indicator (fun _ => (1 : ℝ)) s * H ω s :=
+      fun ω s => congrFun (congrFun hfun ω) s
+    have him' : Measurable
+        (Function.uncurry fun ω s => (stepIoc₀ Ω hab).eval s ω * H ω s) := by
+      rw [hfun]; exact him
+    have hip' : Probability.ProgressivelyMeasurable ℱ
+        (fun ω s => (stepIoc₀ Ω hab).eval s ω * H ω s) := by rw [hfun]; exact hip
+    have hiq' : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(stepIoc₀ Ω hab).eval s ω * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+      intro T hT; simp_rw [hpt]; exact hiq T hT
+    have hkey := stochasticIntegralBrownian_integralAgainst W ℱ hℱ (stepIoc₀ Ω hab)
+      (stepIoc₀_adapt ℱ hab) H hm hp hq him' hip' hiq' ht
+    rw [stochasticIntegralBrownian_congr_fun W ℱ hℱ hfun him' hip' hiq' him hip hiq t] at hkey
+    exact hkey.symm.trans
+      (Filter.Eventually.of_forall fun ω => stepIoc₀_integralAgainst hab _ t ω)
+  · have hfun : (fun ω s => (stepIoc Ω ha' hab).eval s ω * H ω s)
+        = fun ω s => (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s := by
+      funext ω s; rw [stepIoc_eval]
+    have hpt : ∀ (ω : Ω) (s : ℝ), (stepIoc Ω ha' hab).eval s ω * H ω s
+        = (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s :=
+      fun ω s => congrFun (congrFun hfun ω) s
+    have him' : Measurable
+        (Function.uncurry fun ω s => (stepIoc Ω ha' hab).eval s ω * H ω s) := by
+      rw [hfun]; exact him
+    have hip' : Probability.ProgressivelyMeasurable ℱ
+        (fun ω s => (stepIoc Ω ha' hab).eval s ω * H ω s) := by rw [hfun]; exact hip
+    have hiq' : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(stepIoc Ω ha' hab).eval s ω * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+      intro T hT; simp_rw [hpt]; exact hiq T hT
+    have hkey := stochasticIntegralBrownian_integralAgainst W ℱ hℱ (stepIoc Ω ha' hab)
+      (stepIoc_adapt ℱ ha' hab) H hm hp hq him' hip' hiq' ht
+    rw [stochasticIntegralBrownian_congr_fun W ℱ hℱ hfun him' hip' hiq' him hip hiq t] at hkey
+    exact hkey.symm.trans
+      (Filter.Eventually.of_forall fun ω => stepIoc_integralAgainst ha' hab _ t ω)
 
 end LevyStochCalc.Brownian.Ito
