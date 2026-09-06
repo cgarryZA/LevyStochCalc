@@ -847,18 +847,17 @@ noncomputable def picardStep_jump
     (h_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
     -- Per-row progressive measurability wrt N's natural filtration.
-    (h_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_progMeas : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     -- Per-row L² boundedness on every finite horizon.
     (h_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (t : ℝ) (ω : Ω) : Fin n → ℝ :=
   fun i => LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+      (LevyStochCalc.Poisson.naturalFiltration N)
+      (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
     (fun ω' s e => coeffs.γ s (X s ω') e i)
     (h_meas i) (h_progMeas i) (h_sq i) t ω
 
@@ -896,12 +895,9 @@ noncomputable def picardStep
     -- γ-side hypotheses for the compensated-Poisson integral.
     (h_γ_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1445,24 +1441,18 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
     -- Hypothesis bundles for `picardStep_jump` well-typedness — X side:
     (hX_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (hX_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (hX_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+        (fun ω s e => coeffs.γ s (X s ω) e i))
     (hX_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     -- Hypothesis bundles — Y side:
     (hY_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
-    (hY_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (hY_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+        (fun ω s e => coeffs.γ s (Y s ω) e i))
     (hY_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1477,7 +1467,8 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
   -- the L²-norm-squared of the difference of two `Compensated.stochasticIntegral`
   -- outputs, matching the LHS of the `itoIsometry_diff_compensated` axiom.
   -- `picardStep_jump` is `noncomputable def`-ed as
-  --   `fun i => Compensated.stochasticIntegral N (fun ω' s e => γ s (X s ω') e i) ... T ω`
+  --   `fun i => Compensated.stochasticIntegral N (naturalFiltration N)
+  --     (isPoissonFiltration_natural N) (fun ω' s e => γ s (X s ω') e i) ... T ω`
   -- so the lemma's LHS is, by `unfold + simp only [picardStep_jump]`,
   -- exactly the LHS of Tier 1 axiom #14 with
   --   φ₁ ω' s e := γ s (X s ω') e i
@@ -1485,7 +1476,8 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
   -- Step 2: apply the axiom to get equality with the inner double-lintegral
   -- of `‖γ(s, X_s, e) i − γ(s, Y_s, e) i‖²`.
   have h_iso := LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated
-    N (fun ω' s e => coeffs.γ s (X s ω') e i)
+    N (LevyStochCalc.Poisson.naturalFiltration N)
+    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) (fun ω' s e => coeffs.γ s (X s ω') e i)
       (fun ω' s e => coeffs.γ s (Y s ω') e i)
     (hX_meas i) (hY_meas i)
     (hX_progMeas i) (hY_progMeas i)
@@ -1575,12 +1567,9 @@ noncomputable def SBoundedProcess.ofPicardStep
     -- γ-side hypotheses for the compensated-Poisson integral
     (h_γ_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1655,12 +1644,9 @@ noncomputable def picardStepOnS2
     -- γ-side hypotheses along X.X
     (h_γ_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X.X s ω) e i))
     (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
         (‖coeffs.γ s (X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1717,12 +1703,9 @@ lemma picardStepOnS2_X
         (‖coeffs.σ s (X.X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X.X s ω) e i))
     (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
         (‖coeffs.γ s (X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1830,12 +1813,9 @@ lemma picardStep_diff_sum_sq_le
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_X : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_X : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_X : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq_X : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1849,12 +1829,9 @@ lemma picardStep_diff_sum_sq_le
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_Y : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_Y : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_Y : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (Y s ω) e i))
     (h_γ_sq_Y : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1925,12 +1902,9 @@ lemma picardStep_diff_lintegral_sum_sq_le
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_X : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_X : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_X : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq_X : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -1944,12 +1918,9 @@ lemma picardStep_diff_lintegral_sum_sq_le
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_Y : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_Y : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_Y : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (Y s ω) e i))
     (h_γ_sq_Y : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -2081,12 +2052,9 @@ theorem picardStep_bielecki_contraction
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_X : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_X : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_X : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq_X : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -2100,12 +2068,9 @@ theorem picardStep_bielecki_contraction
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_Y : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_Y : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_Y : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (Y s ω) e i))
     (h_γ_sq_Y : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -2442,12 +2407,9 @@ theorem picardStep_bielecki_contraction_tight
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_X : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_X : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_X : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (X s ω) e i))
     (h_γ_sq_X : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -2461,12 +2423,9 @@ theorem picardStep_bielecki_contraction_tight
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_γ_meas_Y : ∀ i : Fin n,
       Measurable (fun (p : Ω × ℝ × E) => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
-    (h_γ_progMeas_Y : ∀ i : Fin n, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_Y : ∀ i : Fin n,
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω s e => coeffs.γ s (Y s ω) e i))
     (h_γ_sq_Y : ∀ i : Fin n, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)

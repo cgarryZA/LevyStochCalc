@@ -33,6 +33,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.IsBrownianFiltration.condExp_eq
 #print axioms LevyStochCalc.Brownian.IsBrownianFiltration.of_le_sup
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_natural
+-- X2-2 (2026-09-06): marked progressive measurability for the compensated-Poisson chain.
+#print axioms LevyStochCalc.Probability.MarkedProgressivelyMeasurable.indicator_mark
+#print axioms
+  LevyStochCalc.Probability.MarkedProgressivelyMeasurable.stronglyMeasurable_setIntegral_prod
+#print axioms
+  LevyStochCalc.Probability.MarkedProgressivelyMeasurable.stronglyMeasurable_setIntegral_integral
 -- ===== Layer 0: Compensated Poisson =====
 -- Poisson splitting (toward #2): counts of a Poisson number of iid marks on
 -- disjoint sets are independent Poisson variables.
@@ -121,7 +127,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
 -- 1.5d: multi-dimensional Brownian motion
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.joint_increment_gaussian_diagonal
+#print axioms
+  LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.joint_increment_gaussian_diagonal
 -- 1.5e: L² Itô integral against W
 #print axioms LevyStochCalc.Brownian.Ito.itoIsometry
 #print axioms LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral

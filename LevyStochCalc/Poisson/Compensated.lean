@@ -55,105 +55,109 @@ variable {E : Type v} [MeasurableSpace E]
 section Integral
 
 variable {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-  (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (φ : Ω → ℝ → E → ℝ)
+  (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ
+    : IsPoissonFiltration N ℱ)
+  (φ : Ω → ℝ → E → ℝ)
   (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-  (h_progMeas : ∀ t : ℝ,
-    @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-      (@Prod.instMeasurableSpace Ω (ℝ × E)
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-        inferInstance)
-      (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+  (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
   (h_sq_int_global : ∀ T : ℝ, 0 < T →
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
 
+include hℱ in
 /-- The `L²` integral process `t ↦ ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` has a modification adapted to
 the right-continuous natural filtration whose paths are almost surely càdlàg. -/
 theorem exists_cadlag_modification :
-    ∃ Y : ℝ → Ω → ℝ, Adapted (naturalFiltration N).rightCont Y ∧
-      (∀ t, Y t =ᵐ[P] process N φ h_meas h_progMeas h_sq_int_global t) ∧
+    ∃ Y : ℝ → Ω → ℝ, Adapted ℱ.rightCont Y ∧
+      (∀ t, Y t =ᵐ[P] process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) ∧
       ∀ᵐ ω ∂P, ∀ t : ℝ,
         Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω)) ∧
           ∃ L : ℝ, Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L) :=
   LevyStochCalc.Martingale.exists_adapted_ae_cadlag_of_eLpNorm
-    (martingale_rightCont_process N φ h_meas h_progMeas h_sq_int_global)
-    (process_eLpNorm_two_right_tendsto N φ h_meas h_progMeas h_sq_int_global)
-    (fun _ ht => process_ae_zero_of_nonpos N φ h_meas h_progMeas h_sq_int_global ht.le)
+    (martingale_rightCont_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
+    (process_eLpNorm_two_right_tendsto N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
+    (fun _ ht => process_ae_zero_of_nonpos N ℱ hℱ φ h_meas h_progMeas h_sq_int_global ht.le)
 
 /-- The L² Itô–Lévy integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` against the compensated
 measure of a Poisson random measure: the càdlàg adapted modification of the `L²` integral
 process `process`, the `L²`-limit of the integrals of the mark-step approximants of `φ`. -/
 noncomputable def stochasticIntegral (T : ℝ) : Ω → ℝ :=
-  Classical.choose (exists_cadlag_modification N φ h_meas h_progMeas h_sq_int_global) T
+  Classical.choose (exists_cadlag_modification N ℱ hℱ φ h_meas h_progMeas h_sq_int_global) T
 
+include hℱ in
 lemma stochasticIntegral_adapted :
-    Adapted (naturalFiltration N).rightCont
-      (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global) :=
-  (Classical.choose_spec (exists_cadlag_modification N φ h_meas h_progMeas h_sq_int_global)).1
+    Adapted ℱ.rightCont
+      (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global) :=
+  (Classical.choose_spec (exists_cadlag_modification N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)).1
 
+include hℱ in
 /-- The stochastic integral agrees almost surely with the `L²` integral process at every
 time. -/
 lemma stochasticIntegral_ae_eq_process (t : ℝ) :
-    stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t
-      =ᵐ[P] process N φ h_meas h_progMeas h_sq_int_global t :=
+    stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t
+      =ᵐ[P] process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t :=
   (Classical.choose_spec
-    (exists_cadlag_modification N φ h_meas h_progMeas h_sq_int_global)).2.1 t
+    (exists_cadlag_modification N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)).2.1 t
 
+include hℱ in
 /-- The paths of the stochastic integral are almost surely càdlàg. -/
 lemma stochasticIntegral_cadlag :
     ∀ᵐ ω ∂P, ∀ t : ℝ,
-      Filter.Tendsto (fun s => stochasticIntegral N φ h_meas h_progMeas h_sq_int_global s ω)
+      Filter.Tendsto (fun s => stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global s ω)
           (nhdsWithin t (Set.Ioi t))
-          (nhds (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω))
+          (nhds (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω))
         ∧ ∃ L : ℝ,
             Filter.Tendsto
-              (fun s => stochasticIntegral N φ h_meas h_progMeas h_sq_int_global s ω)
+              (fun s => stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global s ω)
               (nhdsWithin t (Set.Iio t)) (nhds L) :=
   (Classical.choose_spec
-    (exists_cadlag_modification N φ h_meas h_progMeas h_sq_int_global)).2.2
+    (exists_cadlag_modification N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)).2.2
 
+include hℱ in
 /-- The stochastic integral is a martingale on the right-continuous natural filtration. -/
 theorem martingale_stochasticIntegral_rightCont :
-    Martingale (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global)
-      (naturalFiltration N).rightCont P :=
+    Martingale (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
+      ℱ.rightCont P :=
   LevyStochCalc.Martingale.martingale_of_ae_eq
-    (martingale_rightCont_process N φ h_meas h_progMeas h_sq_int_global)
-    (fun t => (stochasticIntegral_adapted N φ h_meas h_progMeas h_sq_int_global
+    (martingale_rightCont_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
+    (fun t => (stochasticIntegral_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global
       t).stronglyMeasurable)
-    (stochasticIntegral_ae_eq_process N φ h_meas h_progMeas h_sq_int_global)
+    (stochasticIntegral_ae_eq_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
 
+include hℱ in
 /-- The compensated square `M_t² − ∫_0^t ∫_E φ(s, e)² ν(de) ds` of the stochastic integral is a
 martingale on the right-continuous natural filtration. -/
 theorem martingale_quadVar_stochasticIntegral_rightCont :
     Martingale
-      (fun t ω => (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
+      (fun t ω => (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
         - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
-      (naturalFiltration N).rightCont P :=
+      ℱ.rightCont P :=
   LevyStochCalc.Martingale.martingale_of_ae_eq
-    (martingale_rightCont_quadVar_process N φ h_meas h_progMeas h_sq_int_global)
-    (fun t => ((stochasticIntegral_adapted N φ h_meas h_progMeas h_sq_int_global
+    (martingale_rightCont_quadVar_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global)
+    (fun t => ((stochasticIntegral_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global
       t).stronglyMeasurable.pow 2).sub
-      ((compensator_stronglyAdapted N φ h_progMeas t).mono ((naturalFiltration N).le_rightCont t)))
+      ((compensator_stronglyAdapted ℱ φ h_progMeas t).mono (ℱ.le_rightCont t)))
     (fun t => by
-      filter_upwards [stochasticIntegral_ae_eq_process N φ h_meas h_progMeas h_sq_int_global t]
+      filter_upwards [stochasticIntegral_ae_eq_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t]
         with ω hω
-      show (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2 - _
-        = (process N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2 - _
+      show (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2 - _
+        = (process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2 - _
       rw [hω]
       rfl)
 
+include hℱ in
 /-- The Itô–Lévy isometry of the stochastic integral at every time `T > 0`. -/
 theorem isometry_stochasticIntegral (T : ℝ) (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegral N φ h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
-  rw [← process_lintegral_sq' N φ h_meas h_progMeas h_sq_int_global hT.le]
+  rw [← process_lintegral_sq' N ℱ hℱ φ h_meas h_progMeas h_sq_int_global hT.le]
   refine lintegral_congr_ae ?_
-  filter_upwards [stochasticIntegral_ae_eq_process N φ h_meas h_progMeas h_sq_int_global T]
+  filter_upwards [stochasticIntegral_ae_eq_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global T]
     with ω hω
   rw [hω]
 
-include h_meas h_progMeas h_sq_int_global in
+include h_meas h_progMeas h_sq_int_global hℱ in
 /-- **Unified L²-Itô-Lévy integral with martingale + quadVar + isometry + càdlàg.**
 
 For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists a process
@@ -171,12 +175,12 @@ For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists 
 Consolidates Applebaum 2009 Thm 4.2.3 + Thm 4.2.4.
 
 The integrand hypotheses (`h_meas` joint measurability on `Ω×ℝ×E`,
-`h_progMeas` progressive measurability w.r.t. `(naturalFiltration N).seq t`,
+`h_progMeas` progressive measurability w.r.t. `ℱ t`,
 `h_sq_int_global` a global L² bound) are taken as *outer* hypotheses, mirroring
 the Brownian-side statement; the existential body is then unconditional on them.
 This matches Applebaum Thm 4.2.3's predictable-`φ` hypothesis class and prevents
 a `Measurable`-only `F ≡ 0` from satisfying the conjuncts vacuously. `Filt` is
-pinned to `(naturalFiltration N).rightCont`, ruling out trivial-filtration
+pinned to `ℱ.rightCont`, ruling out trivial-filtration
 witnesses such as `Filt = const ⊤`.
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
@@ -197,7 +201,7 @@ conjunct 3 is `isometry_stochasticIntegral`, conjunct 4 is
 `stochasticIntegral_cadlag`. -/
 theorem itoIsometry_compensated_unified_existence :
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
-      Filt = (LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+      Filt = ℱ.rightCont ∧
       MeasureTheory.Martingale F Filt P ∧
       MeasureTheory.Martingale
         (fun t ω => (F t ω) ^ 2
@@ -210,24 +214,26 @@ theorem itoIsometry_compensated_unified_existence :
         Filter.Tendsto (fun s => F s ω) (nhdsWithin t (Set.Ioi t)) (nhds (F t ω))
           ∧ ∃ L : ℝ,
               Filter.Tendsto (fun s => F s ω) (nhdsWithin t (Set.Iio t)) (nhds L)) :=
-  ⟨stochasticIntegral N φ h_meas h_progMeas h_sq_int_global, (naturalFiltration N).rightCont, rfl,
-    martingale_stochasticIntegral_rightCont N φ h_meas h_progMeas h_sq_int_global,
-    martingale_quadVar_stochasticIntegral_rightCont N φ h_meas h_progMeas h_sq_int_global,
-    isometry_stochasticIntegral N φ h_meas h_progMeas h_sq_int_global,
-    stochasticIntegral_cadlag N φ h_meas h_progMeas h_sq_int_global⟩
+  ⟨stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global, ℱ.rightCont, rfl,
+    martingale_stochasticIntegral_rightCont N ℱ hℱ φ h_meas h_progMeas h_sq_int_global,
+    martingale_quadVar_stochasticIntegral_rightCont N ℱ hℱ φ h_meas h_progMeas h_sq_int_global,
+    isometry_stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global,
+    stochasticIntegral_cadlag N ℱ hℱ φ h_meas h_progMeas h_sq_int_global⟩
 
+include hℱ in
 /-- Itô-Lévy L² isometry on the bounded interval `[0, T]`.
 
   `𝔼[ (∫_0^T ∫_E φ(s, e) Ñ(ds, de))² ] = 𝔼[ ∫_0^T ∫_E |φ(s, e)|² ν(de) ds ]`
 
 ENNReal form. -/
 theorem itoLevyIsometry (T : ℝ) (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegral N φ h_meas h_progMeas h_sq_int_global T ω‖₊
+    ∫⁻ ω, (‖stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global T ω‖₊
         : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P :=
-  isometry_stochasticIntegral N φ h_meas h_progMeas h_sq_int_global T hT
+  isometry_stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global T hT
 
+include hℱ in
 /-- **Quadratic variation of the L² Itô-Lévy integral.**
 
 For predictable square-integrable `φ`, the process
@@ -237,12 +243,13 @@ theorem quadVar_stochasticIntegral :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
         (fun t : ℝ => fun ω : Ω =>
-          (stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
+          (stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ ω s e) ^ 2 ∂ν)
         F P :=
-  ⟨(naturalFiltration N).rightCont,
-    martingale_quadVar_stochasticIntegral_rightCont N φ h_meas h_progMeas h_sq_int_global⟩
+  ⟨ℱ.rightCont,
+    martingale_quadVar_stochasticIntegral_rightCont N ℱ hℱ φ h_meas h_progMeas h_sq_int_global⟩
 
+include hℱ in
 /-- **The L² Itô-Lévy integral is a martingale.**
 
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
@@ -250,20 +257,21 @@ is a square-integrable martingale w.r.t. the right-continuous natural filtration
 theorem martingale_stochasticIntegral :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
-        (fun t : ℝ => stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t) F P :=
-  ⟨(naturalFiltration N).rightCont,
-    martingale_stochasticIntegral_rightCont N φ h_meas h_progMeas h_sq_int_global⟩
+        (fun t : ℝ => stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) F P :=
+  ⟨ℱ.rightCont,
+    martingale_stochasticIntegral_rightCont N ℱ hℱ φ h_meas h_progMeas h_sq_int_global⟩
 
+include hℱ in
 /-- **Càdlàg modification of L² Itô-Lévy integral.**
 
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
 admits a càdlàg modification: there exists `M' : ℝ → Ω → ℝ` equal to
-`stochasticIntegral N φ` a.s. at each `t`, with càdlàg paths a.s. The integral is
-itself càdlàg, so `M' := stochasticIntegral N φ`. -/
+`stochasticIntegral N ℱ hℱ φ` a.s. at each `t`, with càdlàg paths a.s. The integral is
+itself càdlàg, so `M' := stochasticIntegral N ℱ hℱ φ`. -/
 theorem cadlag_modification_exists :
     ∃ M' : ℝ → Ω → ℝ,
       (∀ t : ℝ, ∀ᵐ ω ∂P,
-        M' t ω = stochasticIntegral N φ h_meas h_progMeas h_sq_int_global t ω) ∧
+        M' t ω = stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ∧
       (∀ᵐ ω ∂P,
         ∀ t : ℝ,
           (Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Ioi t))
@@ -271,9 +279,9 @@ theorem cadlag_modification_exists :
             ∧ ∃ L : ℝ,
                 Filter.Tendsto (fun s => M' s ω) (nhdsWithin t (Set.Iio t))
                   (nhds L)) :=
-  ⟨stochasticIntegral N φ h_meas h_progMeas h_sq_int_global,
+  ⟨stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global,
     fun _ => Filter.Eventually.of_forall (fun _ => rfl),
-    stochasticIntegral_cadlag N φ h_meas h_progMeas h_sq_int_global⟩
+    stochasticIntegral_cadlag N ℱ hℱ φ h_meas h_progMeas h_sq_int_global⟩
 
 end Integral
 
@@ -297,21 +305,12 @@ theorem itoIsometry_diff_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     (φ₁ φ₂ : Ω → ℝ → E → ℝ)
     (h_meas₁ : Measurable (fun (p : Ω × ℝ × E) => φ₁ p.1 p.2.1 p.2.2))
     (h_meas₂ : Measurable (fun (p : Ω × ℝ × E) => φ₂ p.1 p.2.1 p.2.2))
-    (h_progMeas₁ : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => φ₁ p.1 p.2.1 p.2.2))
-    (h_progMeas₂ : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => φ₂ p.1 p.2.1 p.2.2))
+    (h_progMeas₁ : Probability.MarkedProgressivelyMeasurable ℱ φ₁)
+    (h_progMeas₂ : Probability.MarkedProgressivelyMeasurable ℱ φ₂)
     (h_sq_int_global₁ : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ₁ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
@@ -319,16 +318,16 @@ theorem itoIsometry_diff_compensated
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (T : ℝ) (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegral N φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
-              - stochasticIntegral N φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
+    ∫⁻ ω, (‖stochasticIntegral N ℱ hℱ φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
+              - stochasticIntegral N ℱ hℱ φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
             : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ₁ ω s e - φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
-  rw [← process_sub_lintegral_sq N φ₁ φ₂ h_meas₁ h_meas₂ h_progMeas₁ h_progMeas₂
+  rw [← process_sub_lintegral_sq N ℱ hℱ φ₁ φ₂ h_meas₁ h_meas₂ h_progMeas₁ h_progMeas₂
     h_sq_int_global₁ h_sq_int_global₂ hT]
   refine lintegral_congr_ae ?_
-  filter_upwards [stochasticIntegral_ae_eq_process N φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T,
-    stochasticIntegral_ae_eq_process N φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T] with ω h₁ h₂
+  filter_upwards [stochasticIntegral_ae_eq_process N ℱ hℱ φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T,
+    stochasticIntegral_ae_eq_process N ℱ hℱ φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T] with ω h₁ h₂
   rw [h₁, h₂]
 
 end LevyStochCalc.Poisson.Compensated

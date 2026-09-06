@@ -118,4 +118,106 @@ theorem ProgressivelyMeasurable.stronglyMeasurable_setIntegral (h : Progressivel
 
 end Integral
 
+section Marked
+
+variable {E : Type*} [MeasurableSpace E] [TopologicalSpace F] [Zero F]
+
+/-- A marked process `φ : Ω → ℝ → E → F` is progressively measurable for `ℱ` when, for every
+time `t`, `(ω, s, e) ↦ φ ω s e` restricted to times `s ≤ t` (and `0` after `t`) is
+`ℱ t ⊗ Borel ⊗ 𝓔`-measurable. -/
+def MarkedProgressivelyMeasurable (ℱ : Filtration ℝ mΩ) (φ : Ω → ℝ → E → F) : Prop :=
+  ∀ t : ℝ,
+    @StronglyMeasurable (Ω × ℝ × E) F _
+      (@Prod.instMeasurableSpace Ω (ℝ × E) (ℱ t) inferInstance)
+      fun p : Ω × ℝ × E => (Set.Iic t).indicator (fun s => φ p.1 s p.2.2) p.2.1
+
+namespace MarkedProgressivelyMeasurable
+
+variable {ℱ : Filtration ℝ mΩ} {φ : Ω → ℝ → E → F}
+
+/-- Composition with a continuous map fixing `0` preserves progressive measurability. -/
+theorem _root_.Continuous.comp_markedProgressivelyMeasurable {G : Type*} [TopologicalSpace G]
+    [Zero G] {g : F → G} (hg : Continuous g) (hg0 : g 0 = 0)
+    (h : MarkedProgressivelyMeasurable ℱ φ) :
+    MarkedProgressivelyMeasurable ℱ fun ω s e => g (φ ω s e) := by
+  intro t
+  have : (fun p : Ω × ℝ × E => (Set.Iic t).indicator (fun s => g (φ p.1 s p.2.2)) p.2.1)
+      = fun p : Ω × ℝ × E => g ((Set.Iic t).indicator (fun s => φ p.1 s p.2.2) p.2.1) := by
+    funext p
+    exact congrFun (Set.indicator_comp_of_zero (f := fun s => φ p.1 s p.2.2)
+      (s := Set.Iic t) hg0) p.2.1
+  rw [this]
+  exact hg.comp_stronglyMeasurable (h t)
+
+/-- Restricting the marks to a measurable set preserves progressive measurability. -/
+theorem indicator_mark (h : MarkedProgressivelyMeasurable ℱ φ) {S : Set E}
+    (hS : MeasurableSet S) :
+    MarkedProgressivelyMeasurable ℱ fun ω s e => S.indicator (fun _ => φ ω s e) e := by
+  intro t
+  letI : MeasurableSpace Ω := ℱ t
+  have : (fun p : Ω × ℝ × E =>
+        (Set.Iic t).indicator (fun s => S.indicator (fun _ => φ p.1 s p.2.2) p.2.2) p.2.1)
+      = {p : Ω × ℝ × E | p.2.2 ∈ S}.indicator
+        (fun p => (Set.Iic t).indicator (fun s => φ p.1 s p.2.2) p.2.1) := by
+    funext p
+    by_cases hp : p.2.2 ∈ S
+    · simp [hp]
+    · simp [hp]
+  rw [this]
+  exact (h t).indicator (measurable_snd.snd hS)
+
+end MarkedProgressivelyMeasurable
+
+end Marked
+
+section MarkedIntegral
+
+variable {E : Type*} [MeasurableSpace E] [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {ℱ : Filtration ℝ mΩ} {φ : Ω → ℝ → E → F}
+
+/-- The integral over a measurable set of times `≤ t` of a progressively measurable marked
+process is `ℱ t ⊗ 𝓔`-measurable in `(ω, e)`. -/
+theorem MarkedProgressivelyMeasurable.stronglyMeasurable_setIntegral_prod
+    (h : MarkedProgressivelyMeasurable ℱ φ) {t : ℝ} {S : Set ℝ} (hS : MeasurableSet S)
+    (hSt : S ⊆ Set.Iic t) (μ : Measure ℝ) [SFinite μ] :
+    @StronglyMeasurable (Ω × E) F _ (@Prod.instMeasurableSpace Ω E (ℱ t) inferInstance)
+      fun q : Ω × E => ∫ s in S, φ q.1 s q.2 ∂μ := by
+  letI : MeasurableSpace Ω := ℱ t
+  have hr : Measurable fun r : (Ω × E) × ℝ => (r.1.1, r.2, r.1.2) :=
+    (measurable_fst.comp measurable_fst).prodMk
+      (measurable_snd.prodMk (measurable_snd.comp measurable_fst))
+  have h1 : StronglyMeasurable fun q : Ω × E =>
+      ∫ s in S, (Set.Iic t).indicator (fun s => φ q.1 s q.2) s ∂μ :=
+    ((h t).comp_measurable hr).integral_prod_right' (ν := μ.restrict S)
+  have : (fun q : Ω × E => ∫ s in S, φ q.1 s q.2 ∂μ)
+      = fun q : Ω × E => ∫ s in S, (Set.Iic t).indicator (fun s => φ q.1 s q.2) s ∂μ := by
+    funext q
+    exact setIntegral_congr_fun hS fun s hs =>
+      (Set.indicator_of_mem (hSt hs) (fun s => φ q.1 s q.2)).symm
+  rw [this]
+  exact h1
+
+/-- The integral over a measurable set of times `≤ t` and over the marks of a progressively
+measurable marked process is `ℱ t`-measurable. -/
+theorem MarkedProgressivelyMeasurable.stronglyMeasurable_setIntegral_integral
+    (h : MarkedProgressivelyMeasurable ℱ φ) {t : ℝ} {S : Set ℝ} (hS : MeasurableSet S)
+    (hSt : S ⊆ Set.Iic t) (μ : Measure ℝ) [SFinite μ] (ν : Measure E) [SFinite ν] :
+    StronglyMeasurable[ℱ t] fun ω => ∫ s in S, ∫ e, φ ω s e ∂ν ∂μ := by
+  letI : MeasurableSpace Ω := ℱ t
+  have h1 : StronglyMeasurable fun r : (Ω × ℝ) × E =>
+      (Set.Iic t).indicator (fun s => φ r.1.1 s r.2) r.1.2 :=
+    (h t).comp_measurable MeasurableEquiv.prodAssoc.measurable
+  have h2 : StronglyMeasurable fun ω =>
+      ∫ s in S, ∫ e, (Set.Iic t).indicator (fun s => φ ω s e) s ∂ν ∂μ :=
+    (h1.integral_prod_right' (ν := ν)).integral_prod_right' (ν := μ.restrict S)
+  have : (fun ω => ∫ s in S, ∫ e, φ ω s e ∂ν ∂μ)
+      = fun ω => ∫ s in S, ∫ e, (Set.Iic t).indicator (fun s => φ ω s e) s ∂ν ∂μ := by
+    funext ω
+    refine setIntegral_congr_fun hS fun s hs => ?_
+    simp only [Set.indicator_of_mem (hSt hs)]
+  rw [this]
+  exact h2
+
+end MarkedIntegral
+
 end LevyStochCalc.Probability

@@ -109,11 +109,12 @@ noncomputable def eval (G : MarkStep Ω E ν g) (s : ℝ) (e : E) (ω : Ω) : �
 
 /-- Adaptedness of the coefficients to the natural filtration at the left endpoints of
 their pieces. -/
-def Adapted (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) : Prop :=
+def Adapted (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (G : MarkStep Ω E ν g) : Prop :=
   ∀ i, i < g.N₀ → ∀ k,
-    @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p i)) (G.ξ i k)
+    @StronglyMeasurable Ω ℝ _ (ℱ (g.p i)) (G.ξ i k)
 
-variable (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g)
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ) (G : MarkStep Ω E ν g)
 
 lemma full_eq_fin (ω : Ω) :
     G.full N ω = ∑ i : Fin g.N₀, ∑ k, G.ξ i k ω
@@ -176,14 +177,15 @@ lemma integral_eq_stepIntegral (t : ℝ) (ω : Ω) :
     * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω) g.N₀]
   rfl
 
+include hℱ in
 /-- The compensated integral of an adapted mark-step integrand is a martingale on the
 natural filtration. -/
-lemma martingale_integral (hG : G.Adapted N) :
-    Martingale (fun t => G.integral N t) (naturalFiltration N) P := by
+lemma martingale_integral (hG : G.Adapted ℱ) :
+    Martingale (fun t => G.integral N t) ℱ P := by
   have hfun : (fun t => G.integral N t) = fun t => stepIntegral N G.toSimple t :=
     funext fun t => funext fun ω => G.integral_eq_stepIntegral N t ω
   rw [hfun]
-  exact martingale_stepIntegral_compensated N G.toSimple (fun k i => hG i i.isLt k)
+  exact martingale_stepIntegral_compensated N ℱ hℱ G.toSimple (fun k i => hG i i.isLt k)
 
 /-- The compensated integral of a mark-step integrand up to any time is square
 integrable. -/
@@ -201,12 +203,13 @@ lemma memLp_full : MemLp (fun ω => G.full N ω) 2 P := by
   rw [this]
   exact G.memLp_integral N _
 
+include hℱ in
 /-- The `L²` isometry of the compensated integral over the whole horizon. -/
-theorem integral_full_sq (hG : G.Adapted N) {T : ℝ} (hT : g.horizon ≤ T) :
+theorem integral_full_sq (hG : G.Adapted ℱ) {T : ℝ} (hT : g.horizon ≤ T) :
     ∫ ω, (G.full N ω) ^ 2 ∂P
       = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T, (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
   have key := markSumProcess_isometry_L2 (fun i : Fin (g.N₀ + 1) => g.p i)
-    (by simp [g.p_zero]) g.strictMono_fin (T := T) (by simpa [TimeGrid.horizon] using hT) N G.B
+    (by simp [g.p_zero]) g.strictMono_fin (T := T) (by simpa [TimeGrid.horizon] using hT) N ℱ hℱ G.B
     G.B_measurable G.B_finite (fun i k => G.ξ i k) (fun i k => G.ξ_bounded i k)
     (fun i k => G.ξ_measurable i k) (fun i k => hG i i.isLt k)
   simp only [Fin.val_castSucc, Fin.val_succ] at key
@@ -335,7 +338,7 @@ noncomputable def incr (s t : ℝ) (hs : 0 < s) (hst : s < t) : TimeGrid where
         rw [hz, add_zero] at hmono
         exact lt_min (lt_of_lt_of_le hsa1 (le_max_left _ _)) hst
       · have hgt : s < g.p (g.startIndex s + (i - 1)) :=
-          hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
+        hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
         rw [max_eq_left hgt.le, min_eq_left hlt.2.le]
         exact lt_min (lt_of_lt_of_le hmono (le_max_left _ _)) hlt.2
 
@@ -428,20 +431,22 @@ lemma eval_clamp (G : MarkStep Ω E ν g) (t : ℝ) (ht : 0 ≤ t) (s : ℝ) (e 
     intro hs
     exact hst (hs.2.trans (min_le_right _ _))
 
-lemma Adapted.clamp (hG : G.Adapted N) (t : ℝ) (ht : 0 ≤ t) :
-    (G.clamp t ht).Adapted N := by
+lemma Adapted.clamp (hG : G.Adapted ℱ) (t : ℝ) (ht : 0 ≤ t) :
+    (G.clamp t ht).Adapted ℱ := by
   intro i hi k
   have h := hG i (g.lt_of_lt_clampIndex hi).1 k
-  show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (min (g.p i) t)) (G.ξ i k)
+  show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p i) t)) (G.ξ i k)
   rwa [min_eq_left (g.lt_of_lt_clampIndex hi).2.le]
 
 /-- The `L²` isometry of the compensated integral up to any time `t ≥ 0`. -/
-theorem integral_sq_at (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g)
-    (hG : G.Adapted N) {t : ℝ} (ht : 0 ≤ t) :
+theorem integral_sq_at (N : PoissonRandomMeasure P ν)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ : IsPoissonFiltration N ℱ)
+    (G : MarkStep Ω E ν g)
+    (hG : G.Adapted ℱ) {t : ℝ} (ht : 0 ≤ t) :
     ∫ ω, (G.integral N t ω) ^ 2 ∂P
       = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) t, (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
   simp_rw [G.integral_eq_full_clamp N t ht]
-  rw [(G.clamp t ht).integral_full_sq N (hG.clamp t ht) (g.clamp_horizon_le t ht)]
+  rw [(G.clamp t ht).integral_full_sq N hℱ (hG.clamp t ht) (g.clamp_horizon_le t ht)]
   refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
   refine integral_congr_ae (Filter.Eventually.of_forall fun e => ?_)
   refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
@@ -492,25 +497,28 @@ lemma measure_iUnion_B_ne_top : ν (⋃ k, G.B k) ≠ ⊤ :=
   ne_top_of_le_ne_top (ENNReal.sum_ne_top.2 fun k _ => G.B_finite k)
     (measure_iUnion_fintype_le ν G.B)
 
-variable (N : PoissonRandomMeasure P ν)
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ)
 
+include hℱ in
 /-- The `L²` isometry over the whole horizon, in `ℝ≥0∞` form. -/
-theorem lintegral_full_sq (hG : G.Adapted N) {T : ℝ} (hT : g.horizon ≤ T) :
+theorem lintegral_full_sq (hG : G.Adapted ℱ) {T : ℝ} (hT : g.horizon ≤ T) :
     ∫⁻ ω, (‖G.full N ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν ∂P := by
   obtain ⟨C, hC⟩ := G.eval_bounded
-  rw [lintegral_sq_eq_ofReal_integral (G.memLp_full N), G.integral_full_sq N hG hT]
+  rw [lintegral_sq_eq_ofReal_integral (G.memLp_full N), G.integral_full_sq N hℱ hG hT]
   exact triple_ofReal_integral_eq_lintegral (fun ω s e => G.eval s e ω) G.eval_measurable hC
     G.measurableSet_iUnion_B G.measure_iUnion_B_ne_top (fun ω s e he => G.eval_support ω s e he)
 
+include hℱ in
 /-- The `L²` isometry up to any time `t ≥ 0`, in `ℝ≥0∞` form. -/
-theorem lintegral_integral_sq_at (hG : G.Adapted N) {t : ℝ} (ht : 0 ≤ t) :
+theorem lintegral_integral_sq_at (hG : G.Adapted ℱ) {t : ℝ} (ht : 0 ≤ t) :
     ∫⁻ ω, (‖G.integral N t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) t,
           (‖G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν ∂P := by
   simp_rw [G.integral_eq_full_clamp N t ht]
-  rw [(G.clamp t ht).lintegral_full_sq N (hG.clamp t ht) (g.clamp_horizon_le t ht)]
+  rw [(G.clamp t ht).lintegral_full_sq N hℱ (hG.clamp t ht) (g.clamp_horizon_le t ht)]
   refine lintegral_congr fun ω => lintegral_congr fun e => ?_
   refine setLIntegral_congr_fun measurableSet_Icc fun s hs => ?_
   rw [G.eval_clamp t ht, if_pos hs.2]
@@ -552,7 +560,8 @@ def neg (G : MarkStep Ω E ν g) : MarkStep Ω E ν g where
     exact ⟨M, fun ω => by rw [abs_neg]; exact hM ω⟩
   ξ_measurable := fun i k => (G.ξ_measurable i k).neg
 
-variable (N : PoissonRandomMeasure P ν) (G G' : MarkStep Ω E ν g)
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ) (G G' : MarkStep Ω E ν g)
 
 lemma integral_append (t : ℝ) (ω : Ω) :
     (G.append G').integral N t ω = G.integral N t ω + G'.integral N t ω := by
@@ -586,15 +595,15 @@ lemma eval_append (s : ℝ) (e : E) (ω : Ω) :
   rw [Fin.sum_univ_add]
   simp only [Fin.append_left, Fin.append_right]
 
-lemma Adapted.append {N : PoissonRandomMeasure P ν} {G G' : MarkStep Ω E ν g}
-    (hG : G.Adapted N) (hG' : G'.Adapted N) : (G.append G').Adapted N := by
+lemma Adapted.append {G G' : MarkStep Ω E ν g}
+    (hG : G.Adapted ℱ) (hG' : G'.Adapted ℱ) : (G.append G').Adapted ℱ := by
   intro i hi k
   refine Fin.addCases (fun k => ?_) (fun k => ?_) k
-  · show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p i))
+  · show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
       (Fin.append (G.ξ i) (G'.ξ i) (Fin.castAdd _ k))
     rw [Fin.append_left]
     exact hG i hi k
-  · show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p i))
+  · show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
       (Fin.append (G.ξ i) (G'.ξ i) (Fin.natAdd _ k))
     rw [Fin.append_right]
     exact hG' i hi k
@@ -630,27 +639,29 @@ lemma eval_neg (s : ℝ) (e : E) (ω : Ω) : G.neg.eval s e ω = -G.eval s e ω 
     = -(G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e)
   exact neg_mul _ _
 
-lemma Adapted.neg {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG : G.Adapted N) :
-    G.neg.Adapted N := fun i hi k => (hG i hi k).neg
+lemma Adapted.neg {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ) :
+    G.neg.Adapted ℱ := fun i hi k => (hG i hi k).neg
 
+include hℱ in
 /-- The `L²` distance of the compensated integrals of two adapted mark-step integrands on
 a common grid, up to time `t ≥ 0`, is the `L²` distance of the integrands. -/
-theorem integral_sub_sq_at (hG : G.Adapted N) (hG' : G'.Adapted N) {t : ℝ} (ht : 0 ≤ t) :
+theorem integral_sub_sq_at (hG : G.Adapted ℱ) (hG' : G'.Adapted ℱ) {t : ℝ} (ht : 0 ≤ t) :
     ∫ ω, (G.integral N t ω - G'.integral N t ω) ^ 2 ∂P
       = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) t,
           (G.eval s e ω - G'.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
-  have key := (G.append G'.neg).integral_sq_at N (hG.append hG'.neg) ht
+  have key := (G.append G'.neg).integral_sq_at N hℱ (hG.append hG'.neg) ht
   simp only [integral_append, integral_neg, eval_append, eval_neg, ← sub_eq_add_neg] at key
   exact key
 
+include hℱ in
 /-- The `L²` distance of the compensated integrals of two adapted mark-step integrands on
 a common grid, up to time `t ≥ 0`, in `ℝ≥0∞` form. -/
-theorem lintegral_integral_sub_sq_at (hG : G.Adapted N) (hG' : G'.Adapted N) {t : ℝ}
+theorem lintegral_integral_sub_sq_at (hG : G.Adapted ℱ) (hG' : G'.Adapted ℱ) {t : ℝ}
     (ht : 0 ≤ t) :
     ∫⁻ ω, (‖G.integral N t ω - G'.integral N t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) t,
           (‖G.eval s e ω - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν ∂P := by
-  have key := (G.append G'.neg).lintegral_integral_sq_at N (hG.append hG'.neg) ht
+  have key := (G.append G'.neg).lintegral_integral_sq_at N hℱ (hG.append hG'.neg) ht
   simp only [integral_append, integral_neg, eval_append, eval_neg, ← sub_eq_add_neg] at key
   exact key
 
@@ -687,19 +698,20 @@ def weight (G : MarkStep Ω E ν g) (w : Ω → ℝ) (hw : ∃ C : ℝ, ∀ ω, 
     · simp only [h, if_false]
       exact measurable_const
 
-variable (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) {w : Ω → ℝ}
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ) (G : MarkStep Ω E ν g) {w : Ω → ℝ}
   (hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C) (hwm : Measurable w)
 
 include hw hwm in
-lemma Adapted.weight {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG : G.Adapted N)
-    {a : ℕ} (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p a)) w) :
-    (G.weight w hw hwm a).Adapted N := by
+lemma Adapted.weight {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ)
+    {a : ℕ} (hwa : @StronglyMeasurable Ω ℝ _ (ℱ (g.p a)) w) :
+    (G.weight w hw hwm a).Adapted ℱ := by
   intro i hi k
-  show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p i))
+  show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
     (fun ω => if a ≤ i then w ω * G.ξ i k ω else 0)
   by_cases h : a ≤ i
   · simp only [h, if_true]
-    exact (hwa.mono ((naturalFiltration N).mono (g.p_mono h hi.le))).mul (hG i hi k)
+    exact (hwa.mono (ℱ.mono (g.p_mono h hi.le))).mul (hG i hi k)
   · simp only [h, if_false]
     exact stronglyMeasurable_const
 
@@ -808,21 +820,21 @@ lemma eval_weight_clamp {a b : ℕ} (hab : a ≤ b) (hb : b ≤ g.N₀) (s : ℝ
       exact hs ⟨(g.p_mono hai (hi.le.trans hb)).trans_lt hs'.1, hs'.2.trans (g.p_mono hi hb)⟩
     · simp [hai]
 
+include hℱ in
 /-- The set-level `L²` isometry of the increment of the integral between two grid points,
 against a bounded weight measurable at the earlier grid point. -/
-theorem integral_weight_increment_sq (hG : G.Adapted N) {w : Ω → ℝ}
+theorem integral_weight_increment_sq (hG : G.Adapted ℱ) {w : Ω → ℝ}
     (hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C) (hwm : Measurable w) {a b : ℕ} (hab : a ≤ b)
     (hb : b ≤ g.N₀)
-    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (g.p a)) w) :
+    (hwa : @StronglyMeasurable Ω ℝ _ (ℱ (g.p a)) w) :
     ∫ ω, (w ω * (G.integral N (g.p b) ω - G.integral N (g.p a) ω)) ^ 2 ∂P
       = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ s in Set.Ioc (g.p a) (g.p b),
           (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
   have hb0 := g.p_nonneg hb
-  have hwa' : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq
-      ((g.clamp (g.p b) hb0).p a)) w := by
-    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (min (g.p a) (g.p b))) w
+  have hwa' : @StronglyMeasurable Ω ℝ _ (ℱ ((g.clamp (g.p b) hb0).p a)) w := by
+    show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p a) (g.p b))) w
     rwa [min_eq_left (g.p_mono hab hb)]
-  have key := ((G.clamp (g.p b) hb0).weight w hw hwm a).integral_full_sq N
+  have key := ((G.clamp (g.p b) hb0).weight w hw hwm a).integral_full_sq N hℱ
     ((hG.clamp (g.p b) hb0).weight hw hwm hwa') (g.clamp_horizon_le (g.p b) hb0)
   simp_rw [G.full_weight_clamp N hw hwm hab hb, G.eval_weight_clamp hw hwm hab hb] at key
   rw [key]
@@ -870,17 +882,18 @@ lemma eval_weight_zero (s : ℝ) (e : E) (ω : Ω) :
   ring
 
 include hw hwm in
+include hℱ in
 /-- The set-level `L²` isometry of the integral up to time `t ≥ 0` against a bounded weight
 measurable at time `0`. -/
-theorem integral_weight_zero_sq (hG : G.Adapted N) {t : ℝ} (ht : 0 ≤ t)
-    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq 0) w) :
+theorem integral_weight_zero_sq (hG : G.Adapted ℱ) {t : ℝ} (ht : 0 ≤ t)
+    (hwa : @StronglyMeasurable Ω ℝ _ (ℱ 0) w) :
     ∫ ω, (w ω * G.integral N t ω) ^ 2 ∂P
       = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ s in Set.Icc (0 : ℝ) t,
           (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
-  have hwa' : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.clamp t ht).p 0)) w := by
-    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (min (g.p 0) t)) w
+  have hwa' : @StronglyMeasurable Ω ℝ _ (ℱ ((g.clamp t ht).p 0)) w := by
+    show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p 0) t)) w
     rwa [g.p_zero, min_eq_left ht]
-  have key := ((G.clamp t ht).weight w hw hwm 0).integral_full_sq N
+  have key := ((G.clamp t ht).weight w hw hwm 0).integral_full_sq N hℱ
     ((hG.clamp t ht).weight hw hwm hwa') (g.clamp_horizon_le t ht)
   simp_rw [(G.clamp t ht).full_weight_zero N hw hwm, (G.clamp t ht).eval_weight_zero hw hwm,
     ← G.integral_eq_full_clamp N t ht, G.eval_clamp t ht] at key
@@ -941,7 +954,8 @@ def dyadicRefine (G : MarkStep Ω E ν (TimeGrid.dyadic T hT n)) (_hnm : n ≤ m
   ξ_bounded := fun _ k => G.ξ_bounded _ k
   ξ_measurable := fun _ k => G.ξ_measurable _ k
 
-variable (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν (TimeGrid.dyadic T hT n))
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ) (G : MarkStep Ω E ν (TimeGrid.dyadic T hT n))
   (hnm : n ≤ m)
 
 lemma full_dyadicRefine : (fun ω => (G.dyadicRefine hnm).full N ω) =ᵐ[P] fun ω => G.full N ω := by
@@ -957,16 +971,17 @@ lemma eval_dyadicRefine (s : ℝ) (e : E) (ω : Ω) :
   exact stepIntegral_dyadic_refine_eval hT hnm (Ki := fun _ => G.K) (fun _ => G.B)
     (fun i k => G.ξ i k) s ω e
 
-lemma Adapted.dyadicRefine {N : PoissonRandomMeasure P ν}
-    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT n)} (hG : G.Adapted N) (hnm : n ≤ m) :
-    (G.dyadicRefine hnm).Adapted N := by
+lemma Adapted.dyadicRefine (N : PoissonRandomMeasure P ν)
+    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT n)} (hG : G.Adapted ℱ) (hnm : n ≤ m) :
+    (G.dyadicRefine hnm).Adapted ℱ := by
   intro i hi k
-  exact dyadic_refine_adapted N hT hnm (Ki := fun _ => G.K) (fun i k => G.ξ i k)
+  exact dyadic_refine_adapted N ℱ hT hnm (Ki := fun _ => G.K) (fun i k => G.ξ i k)
     (fun i k => hG i i.isLt k) ⟨i, hi⟩ k
 
+include hℱ in
 /-- The integral of a refined adapted mark-step integrand agrees almost surely with the
 integral of the integrand at every time. -/
-lemma integral_dyadicRefine (hG : G.Adapted N) (t : ℝ) :
+lemma integral_dyadicRefine (hG : G.Adapted ℱ) (t : ℝ) :
     (fun ω => (G.dyadicRefine hnm).integral N t ω) =ᵐ[P] fun ω => G.integral N t ω := by
   have hfull : (fun ω => (G.dyadicRefine hnm).integral N T ω)
       =ᵐ[P] fun ω => G.integral N T ω := by
@@ -978,8 +993,8 @@ lemma integral_dyadicRefine (hG : G.Adapted N) (t : ℝ) :
     simp only [h1, h2]
     exact G.full_dyadicRefine N hnm
   rcases le_or_gt t T with htT | htT
-  · have hM₁ := (G.dyadicRefine hnm).martingale_integral N (hG.dyadicRefine hnm)
-    have hM₂ := G.martingale_integral N hG
+  · have hM₁ := (G.dyadicRefine hnm).martingale_integral N hℱ (hG.dyadicRefine N hnm)
+    have hM₂ := G.martingale_integral N hℱ hG
     exact (hM₁.condExp_ae_eq htT).symm.trans
       ((condExp_congr_ae hfull).trans (hM₂.condExp_ae_eq htT))
   · have h1 : ∀ ω, (G.dyadicRefine hnm).integral N t ω = (G.dyadicRefine hnm).full N ω :=
@@ -1051,12 +1066,11 @@ lemma eval_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T
   rw [dyadic_p_pow (hT := hT) hd h] at this
   exact absurd (hs.trans this) (not_le.2 hs'.1)
 
-lemma Adapted.dyadicRestrict {N : PoissonRandomMeasure P ν} {ℓ d : ℕ}
-    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)} (hG : G.Adapted N) {T' : ℝ} (hT' : 0 < T')
-    (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) : (G.dyadicRestrict hT' hd h).Adapted N := by
+lemma Adapted.dyadicRestrict {ℓ d : ℕ}
+    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)} (hG : G.Adapted ℱ) {T' : ℝ} (hT' : 0 < T')
+    (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) : (G.dyadicRestrict hT' hd h).Adapted ℱ := by
   intro i hi k
-  show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq
-    ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)) (G.ξ i k)
+  show @StronglyMeasurable Ω ℝ _ (ℱ ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)) (G.ξ i k)
   rw [dyadic_p_restrict (hT := hT) hT' hd h]
   exact hG i (lt_of_lt_of_le hi (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))) k
 
@@ -1094,17 +1108,18 @@ noncomputable def incr (G : MarkStep Ω E ν g) (w : Ω → ℝ) (hw : ∃ C : �
     · simp only [h, if_false]
       exact hwm.mul (G.ξ_measurable _ k)
 
-variable (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) {w : Ω → ℝ}
+variable (N : PoissonRandomMeasure P ν) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ :
+  IsPoissonFiltration N ℱ) (G : MarkStep Ω E ν g) {w : Ω → ℝ}
   (hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C) (hwm : Measurable w) {s t : ℝ} (hs : 0 < s) (hst : s < t)
 
 include hw hwm in
-lemma Adapted.incr {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG : G.Adapted N)
-    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq s) w) :
-    (G.incr w hw hwm s t hs hst).Adapted N := by
+lemma Adapted.incr {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ)
+    (hwa : @StronglyMeasurable Ω ℝ _ (ℱ s) w) :
+    (G.incr w hw hwm s t hs hst).Adapted ℱ := by
   intro i hi k
   rcases Nat.eq_zero_or_pos i with h0 | hpos
   · subst h0
-    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.incr s t hs hst).p 0))
+    show @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p 0))
       (fun ω => if (0 : ℕ) = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (0 - 1)) k ω)
     simp only [if_true]
     exact stronglyMeasurable_const
@@ -1112,7 +1127,7 @@ lemma Adapted.incr {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG 
     have hi' : j + 1 < g.clampIndex t - g.startIndex s + 1 := hi
     have hj : g.startIndex s + j < g.clampIndex t := by omega
     have hlt := g.lt_of_lt_clampIndex hj
-    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.incr s t hs hst).p (j + 1)))
+    show @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p (j + 1)))
       (fun ω => if j + 1 = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (j + 1 - 1)) k ω)
     simp only [Nat.succ_ne_zero, if_false, Nat.add_sub_cancel]
     rw [g.incr_p_succ]
@@ -1121,12 +1136,12 @@ lemma Adapted.incr {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG 
     · subst hz
       rw [add_zero, max_eq_right (g.p_startIndex_le hs.le), min_eq_left hst.le]
       rw [add_zero] at hξ
-      exact hwa.mul (hξ.mono ((naturalFiltration N).mono (g.p_startIndex_le hs.le)))
+      exact hwa.mul (hξ.mono (ℱ.mono (g.p_startIndex_le hs.le)))
     · have haN : g.startIndex s < g.N₀ := lt_of_le_of_lt (Nat.le_add_right _ _) hlt.1
       have hgt : s < g.p (g.startIndex s + j) :=
         (g.lt_p_succ_startIndex haN).trans_le (g.p_mono (by omega) hlt.1.le)
       rw [max_eq_left hgt.le, min_eq_left hlt.2.le]
-      exact (hwa.mono ((naturalFiltration N).mono hgt.le)).mul hξ
+      exact (hwa.mono (ℱ.mono hgt.le)).mul hξ
 
 /-- The integrand of the weighted increment, as a sum over the pieces meeting `(s, t]`. -/
 lemma eval_incr_eq (σ : ℝ) (e : E) (ω : Ω) :
@@ -1286,7 +1301,7 @@ lemma full_incr :
         min_eq_left (hpa.trans hst.le), min_eq_left hpa, min_eq_right hsa1.le, hω k]
       ring
     · have hgt : s < g.p (g.startIndex s + j) :=
-        hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
+      hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
       have hgt' : s < g.p (g.startIndex s + j + 1) :=
         hgt.trans (g.p_lt _ hlt.1)
       rw [max_eq_left hgt.le, min_eq_left hlt.2.le, max_eq_left hgt'.le, min_eq_right hgt.le,
@@ -1302,13 +1317,14 @@ lemma full_incr :
     simp
 
 include hw hwm hs hst in
+include hℱ in
 /-- The set-level `L²` isometry of the increment of the integral over `(s, t]` against a
 bounded weight measurable at time `s`. -/
-theorem integral_weight_incr_sq (hG : G.Adapted N)
-    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq s) w) :
+theorem integral_weight_incr_sq (hG : G.Adapted ℱ)
+    (hwa : @StronglyMeasurable Ω ℝ _ (ℱ s) w) :
     ∫ ω, (w ω * (G.integral N t ω - G.integral N s ω)) ^ 2 ∂P
       = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ σ in Set.Ioc s t, (G.eval σ e ω) ^ 2 ∂volume ∂ν) ∂P := by
-  have key := (G.incr w hw hwm s t hs hst).integral_full_sq N (hG.incr hw hwm hs hst hwa)
+  have key := (G.incr w hw hwm s t hs hst).integral_full_sq N hℱ (hG.incr hw hwm hs hst hwa)
     (g.incr_horizon_le s t hs hst)
   have hL : ∫ ω, ((G.incr w hw hwm s t hs hst).full N ω) ^ 2 ∂P
       = ∫ ω, (w ω * (G.integral N t ω - G.integral N s ω)) ^ 2 ∂P := by

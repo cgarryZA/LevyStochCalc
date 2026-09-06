@@ -359,8 +359,20 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
             dissertation's Cu03) pass `W.naturalFiltration`; their Poisson integrands still use
             `naturalFiltration N` (X2-2), so the common filtration of `(W, N)` is X2-3. Axiom
             set: the 3 standard.
-      - [ ] **X2-2 Poisson chain** over `(ℱ, hℱ : IsPoissonFiltration N ℱ)`: `MarkStep`,
-            `CompensatedSimple` … `Compensated`.
+      - [x] **X2-2 Poisson chain** (2026-09-06). `MarkedProgressivelyMeasurable ℱ φ`
+            (`Probability/Progressive.lean`: `(ω, s, e) ↦ 1_{s ≤ t} φ ω s e` is
+            `ℱ t ⊗ Borel ⊗ 𝓔`-measurable for every `t`; continuous images fixing `0`,
+            restriction of the marks to a measurable set, `ℱ t ⊗ 𝓔`-measurability of
+            `∫_S φ ds` and `ℱ t`-measurability of `∫_S ∫_E φ dν ds` for `S ⊆ (-∞, t]`).
+            `CompensatedIsometry` → `CompensatedMartingale` → `CompensatedDensity` → `MarkStep` →
+            `CompensatedApprox` → `CompensatedProcess` → `CompensatedQuadVar` →
+            `CompensatedProcessQuadVar` → `CompensatedDiff` → `Compensated` → `L2Isometry` now
+            take `(ℱ, hℱ : IsPoissonFiltration N ℱ)` and
+            `h_progMeas : MarkedProgressivelyMeasurable ℱ φ`; the past-measurability and the
+            future-independence of `N` enter only through `hℱ.measurable` and `hℱ.indep`, and
+            `MarkStep.Adapted ℱ G` replaces `MarkStep.Adapted N G`. The consumers pass
+            `naturalFiltration N` for the Poisson integrands and `W.naturalFiltration` for the
+            Brownian ones; the common filtration of `(W, N)` is X2-3. Axiom set: the 3 standard.
       - [ ] **X2-3 consumers**: `Ito/Setting` (`JumpDiffusion` driven by a `LevyDriver` on its
             joint filtration), `Ito/Picard*`, `Ito/JumpFormula` (#16 restated), `BSDEJ/Definition`
             (`IsBSDEJSolution` over the joint right-continuous filtration), #13b over the driver;

@@ -41,13 +41,13 @@ lemma simpleIntegral_term_adapted_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) (t : ℝ)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+      (ℱ t)
       (fun ω => φ.ξ i ω * N.compensated (φ.timeRect i t) ω) := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   have hpre_lt_post : φ.partition i.castSucc < φ.partition i.succ :=
     φ.partition_strictMono Fin.castSucc_lt_succ
   by_cases ht_pre : φ.partition i.castSucc ≤ t
@@ -62,7 +62,7 @@ lemma simpleIntegral_term_adapted_compensated
     have h_comp : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t)
         (N.compensated (φ.timeRect i t)) := by
       unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
-      exact (((LevyStochCalc.Poisson.measurable_random_measure_of_le N h_rect_sub
+      exact (((hℱ.measurable h_rect_sub
         h_rect_meas).ennreal_toReal).sub measurable_const).stronglyMeasurable
     exact (h_adapt_i.mono (ℱ.mono ht_pre)).mul h_comp
   · -- `t < tᵢ`: the time-rectangle is empty, so the term is `0`.
@@ -86,17 +86,18 @@ lemma simpleIntegral_stronglyAdapted_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i)) :
-    MeasureTheory.StronglyAdapted (LevyStochCalc.Poisson.naturalFiltration N)
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
+    MeasureTheory.StronglyAdapted ℱ
       (fun t => simpleIntegral N φ t) := by
   intro t
   change @MeasureTheory.StronglyMeasurable Ω ℝ _
-    ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
+    (ℱ t)
     (fun ω => ∑ i : Fin φ.N, φ.ξ i ω * N.compensated (φ.timeRect i t) ω)
   exact Finset.stronglyMeasurable_fun_sum _
-    (fun i _ => simpleIntegral_term_adapted_compensated N φ i t (h_adapt i))
+    (fun i _ => simpleIntegral_term_adapted_compensated N ℱ hℱ φ i t (h_adapt i))
 
 /-- **First-moment integrability of a compensated mass.** For `B` with finite
 reference intensity, `ω ↦ Ñ(B) = N(B) − referenceIntensity B` is `P`-integrable.
@@ -175,10 +176,11 @@ lemma compensated_condExp_future_eq_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {s t' : ℝ} (hs : 0 ≤ s) (hst : s < t') {A : Set E} (hA : MeasurableSet A)
     (hA_fin : ν A ≠ ⊤) :
     P[fun ω => N.compensated (Set.Ioc s t' ×ˢ A) ω
-        | (LevyStochCalc.Poisson.naturalFiltration N).seq s]
+        | ℱ s]
       =ᵐ[P] fun _ => (0 : ℝ) := by
   set B : Set (ℝ × E) := Set.Ioc s t' ×ˢ A with hB
   have hB_meas : MeasurableSet B := measurableSet_Ioc.prod hA
@@ -188,16 +190,15 @@ lemma compensated_condExp_future_eq_zero
     refine ne_top_of_le_ne_top ?_ (MeasureTheory.Measure.restrict_le_self _)
     rw [Real.volume_Ioc]; exact ENNReal.ofReal_ne_top
   have hle₁ := (N.measurable_eval hB_meas).comap_le
-  have hle₂ := (LevyStochCalc.Poisson.naturalFiltration N).le' s
+  have hle₂ := ℱ.le' s
   have hg : @Measurable Ω ℝ≥0∞ (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) _
       (fun ω => N.N ω B) := fun u hu => ⟨u, hu, rfl⟩
   have hf : @MeasureTheory.StronglyMeasurable Ω ℝ _
       (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (fun ω => N.compensated B ω) :=
     ((hg.ennreal_toReal).sub_const _).stronglyMeasurable
   have hindep : ProbabilityTheory.Indep (MeasurableSpace.comap (fun ω => N.N ω B) inferInstance)
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) P := by
-    rw [LevyStochCalc.Poisson.naturalFiltration_seq_eq]
-    exact (N.joint_past_future_independent hs hst hA hA_fin).symm
+      (ℱ s) P := by
+    exact (hℱ.indep hs hst hA hA_fin).symm
   refine (MeasureTheory.condExp_indep_eq hle₁ hle₂ hf hindep).trans ?_
   filter_upwards with ω
   exact compensated_mean_zero N hB_meas h_finite
@@ -210,10 +211,11 @@ lemma compensated_condExp_Ioc_eq_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {s a b : ℝ} (hs : 0 ≤ s) (hab : a ≤ b) (hlow : a < b → s ≤ a)
     {A : Set E} (hA : MeasurableSet A) (hA_fin : ν A ≠ ⊤) :
     P[fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω
-        | (LevyStochCalc.Poisson.naturalFiltration N).seq s]
+        | ℱ s]
       =ᵐ[P] fun _ => (0 : ℝ) := by
   rcases eq_or_lt_of_le hab with hab_eq | hab_lt
   · have hemp : (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) = fun _ => (0 : ℝ) := by
@@ -222,20 +224,20 @@ lemma compensated_condExp_Ioc_eq_zero
       unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp
     rw [hemp]
     exact Filter.EventuallyEq.of_eq
-      (MeasureTheory.condExp_const ((LevyStochCalc.Poisson.naturalFiltration N).le' s) (0 : ℝ))
+      (MeasureTheory.condExp_const (ℱ.le' s) (0 : ℝ))
   · have hsa := hlow hab_lt
     rcases eq_or_lt_of_le hsa with hsa_eq | hsa_lt
     · rw [← hsa_eq]
-      exact compensated_condExp_future_eq_zero N hs (hsa_eq ▸ hab_lt) hA hA_fin
-    · have h_base := compensated_condExp_future_eq_zero N (le_trans hs hsa) hab_lt hA hA_fin
-      have hm₂a := (LevyStochCalc.Poisson.naturalFiltration N).le' a
+      exact compensated_condExp_future_eq_zero N ℱ hℱ hs (hsa_eq ▸ hab_lt) hA hA_fin
+    · have h_base := compensated_condExp_future_eq_zero N ℱ hℱ (le_trans hs hsa) hab_lt hA hA_fin
+      have hm₂a := ℱ.le' a
       haveI : SigmaFinite (P.trim hm₂a) := inferInstance
       have h_tower := MeasureTheory.condExp_condExp_of_le (μ := P)
         (f := fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω)
-        ((LevyStochCalc.Poisson.naturalFiltration N).mono hsa) hm₂a
+        (ℱ.mono hsa) hm₂a
       refine h_tower.symm.trans ((MeasureTheory.condExp_congr_ae h_base).trans ?_)
       exact Filter.EventuallyEq.of_eq
-        (MeasureTheory.condExp_const ((LevyStochCalc.Poisson.naturalFiltration N).le' s) (0 : ℝ))
+        (MeasureTheory.condExp_const (ℱ.le' s) (0 : ℝ))
 
 /-- **a.e.-additivity of the compensated mass on disjoint finite-intensity sets.**
 `Ñ(B ∪ C) =ᵐ Ñ(B) + Ñ(C)`. The reference intensity is a measure (additive
@@ -284,14 +286,14 @@ lemma simpleIntegral_term_condExp_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     {s t : ℝ} (hst : s ≤ t) :
     P[fun ω => φ.ξ i ω * N.compensated (φ.timeRect i t) ω
-        | (LevyStochCalc.Poisson.naturalFiltration N).seq s]
+        | ℱ s]
       =ᵐ[P] fun ω => φ.ξ i ω * N.compensated (φ.timeRect i s) ω := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   obtain ⟨M, hM⟩ := φ.ξ_bounded i
   have hξmeas : Measurable (φ.ξ i) := φ.ξ_measurable i
   have hpc_lt_ps : φ.partition i.castSucc < φ.partition i.succ :=
@@ -355,11 +357,11 @@ lemma simpleIntegral_term_condExp_compensated
     have hself := MeasureTheory.condExp_of_stronglyMeasurable (ℱ.le' s)
       (show @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s)
         ((φ.ξ i) * fun ω => N.compensated (φ.timeRect i s) ω) from
-        simpleIntegral_term_adapted_compensated N φ i s h_adapt_i) hint_s
+        simpleIntegral_term_adapted_compensated N ℱ hℱ φ i s h_adapt_i) hint_s
     have hpull := MeasureTheory.condExp_mul_of_stronglyMeasurable_left
       (m := ℱ.seq s) hξ_Fs hint_new (compensated_integrable N hnew_meas hnew_fin)
     have hnew_zero : P[fun ω => N.compensated newset ω | ℱ.seq s] =ᵐ[P] fun _ => (0 : ℝ) := by
-      refine compensated_condExp_Ioc_eq_zero N hs_nn hbs_le_bt (fun hlt => ?_) hAmeas hAfin
+      refine compensated_condExp_Ioc_eq_zero N ℱ hℱ hs_nn hbs_le_bt (fun hlt => ?_) hAmeas hAfin
       have hps_gt : s < φ.partition i.succ := by
         by_contra hle; push_neg at hle
         rw [hbs, hbt, min_eq_left hle, min_eq_left (hle.trans hst)] at hlt
@@ -391,7 +393,7 @@ lemma simpleIntegral_term_condExp_compensated
         (compensated_integrable N hrect_t_meas hrect_t_fin)
     have ht_zero : P[gt | ℱ.seq (φ.partition i.castSucc)] =ᵐ[P] fun _ => (0 : ℝ) := by
       rw [hgt, SimplePredictable.timeRect]
-      refine compensated_condExp_Ioc_eq_zero N hpc_nn
+      refine compensated_condExp_Ioc_eq_zero N ℱ hℱ hpc_nn
         (min_le_min hpc_lt_ps.le (le_refl t)) (fun hlt => ?_) hAmeas hAfin
       have hpct : φ.partition i.castSucc ≤ t := by
         by_contra h; push_neg at h
@@ -420,13 +422,13 @@ lemma martingale_simpleIntegral_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     MeasureTheory.Martingale (fun t : ℝ => simpleIntegral N φ t)
-      (LevyStochCalc.Poisson.naturalFiltration N) P := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
-  refine ⟨simpleIntegral_stronglyAdapted_compensated N φ h_adapt, ?_⟩
+      ℱ P := by
+  refine ⟨simpleIntegral_stronglyAdapted_compensated N ℱ hℱ φ h_adapt, ?_⟩
   intro s t hst
   have h_unfold_pi : ∀ u : ℝ, (fun ω => simpleIntegral N φ u ω) =
       ∑ i : Fin φ.N, (fun ω : Ω => φ.ξ i ω * N.compensated (φ.timeRect i u) ω) := by
@@ -441,7 +443,7 @@ lemma martingale_simpleIntegral_compensated
   refine (MeasureTheory.condExp_finsetSum h_int (m := ℱ.seq s)).trans ?_
   refine eventuallyEq_sum ?_
   intro i _
-  exact simpleIntegral_term_condExp_compensated N φ i (h_adapt i) hst
+  exact simpleIntegral_term_condExp_compensated N ℱ hℱ φ i (h_adapt i) hst
 
 /-! ### Clamped compensator
 
@@ -776,7 +778,7 @@ lemma timeRect_sdiff_eq_box
     rw [min_eq_left hpc_s, min_eq_left (hpc_s.trans hst), max_eq_left hpc_s]
     by_cases hsps : s ≤ ps
     · rw [min_eq_right hsps, max_eq_right (le_min hsps hst),
-        Ioc_diff_Ioc_left_eq hpc_s]
+      Ioc_diff_Ioc_left_eq hpc_s]
     · push_neg at hsps
       rw [min_eq_left hsps.le, min_eq_left (hsps.le.trans hst), max_eq_left hsps.le,
         Set.diff_self, Set.Ioc_self]
@@ -801,20 +803,15 @@ lemma indepFun_past_compensated_box
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {A : Set E} (hA : MeasurableSet A) (hAf : ν A ≠ ⊤)
     {f : Ω → ℝ}
     (hf : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic a ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) f) :
+      (ℱ a) f) :
     ProbabilityTheory.IndepFun f (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) P := by
   have h_box_meas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
-  have hf_comap_le :
-      MeasurableSpace.comap f inferInstance ≤
-        ⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic a ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance := by
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    exact hf.measurable hv
+  have hf_comap_le : MeasurableSpace.comap f inferInstance ≤ ℱ a :=
+    hf.measurable.comap_le
   have hÑ_comap_le :
       MeasurableSpace.comap (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) inferInstance ≤
         MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc a b ×ˢ A)) inferInstance := by
@@ -826,7 +823,7 @@ lemma indepFun_past_compensated_box
     · ext ω; rfl
   rw [ProbabilityTheory.IndepFun_iff]
   intro u v hu hv
-  have h_indep := N.joint_past_future_independent ha hab hA hAf
+  have h_indep := hℱ.indep ha hab hA hAf
   rw [ProbabilityTheory.Indep_iff] at h_indep
   exact h_indep u v (hf_comap_le u hu) (hÑ_comap_le v hv)
 
@@ -841,17 +838,17 @@ lemma diagonal_increment_sq
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+      (ℱ s) g)
     (h_genuine : max s (min (φ.partition i.castSucc) t) < max s (min (φ.partition i.succ) t)) :
     ∫ ω, (g ω * (φ.ξ i ω) ^ 2) * (N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) ^ 2 ∂P
       = (∫ ω, g ω * (φ.ξ i ω) ^ 2 ∂P)
           * (LevyStochCalc.Poisson.referenceIntensity ν
               (φ.timeRect i t \ φ.timeRect i s)).toReal := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   set pc := φ.partition i.castSucc with hpc
   set ps := φ.partition i.succ with hps
   set a := max s (min pc t) with ha_def
@@ -878,7 +875,7 @@ lemma diagonal_increment_sq
   -- Independence of `g·ξᵢ²` and `Ñ(box)`.
   have h_indep : ProbabilityTheory.IndepFun (fun ω => g ω * (φ.ξ i ω) ^ 2)
       (fun ω => N.compensated (Set.Ioc a b ×ˢ φ.A i) ω) P :=
-    indepFun_past_compensated_box N ha_nn h_genuine (φ.A_measurable i) (φ.A_finite i) hf_meas
+    indepFun_past_compensated_box N ℱ hℱ ha_nn h_genuine (φ.A_measurable i) (φ.A_finite i) hf_meas
   have h_indep_sq : ProbabilityTheory.IndepFun (fun ω => g ω * (φ.ξ i ω) ^ 2)
       (fun ω => (N.compensated (Set.Ioc a b ×ˢ φ.A i) ω) ^ 2) P :=
     h_indep.comp measurable_id (measurable_id.pow_const 2)
@@ -900,19 +897,19 @@ lemma offDiagonal_increment_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) {i j : Fin φ.N} (hij : i < j)
     {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     (h_adapt_j : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition j.castSucc)) (φ.ξ j))
+      (ℱ (φ.partition j.castSucc)) (φ.ξ j))
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+      (ℱ s) g)
     (h_genuine_j :
       max s (min (φ.partition j.castSucc) t) < max s (min (φ.partition j.succ) t)) :
     ∫ ω, g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
         * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)) ∂P = 0 := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   set pcj := φ.partition j.castSucc with hpcj
   set psj := φ.partition j.succ with hpsj
   set aj := max s (min pcj t) with haj_def
@@ -945,7 +942,7 @@ lemma offDiagonal_increment_zero
   have hÑRi_a : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq aj)
       (fun ω => N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) := by
     unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
-    exact (((LevyStochCalc.Poisson.measurable_random_measure_of_le N hsub_i
+    exact (((hℱ.measurable hsub_i
       hRi_meas).ennreal_toReal).sub measurable_const).stronglyMeasurable
   -- f := g·ξᵢ·Ñ(Rᵢ)·ξⱼ is past-at-aⱼ measurable.
   set f : Ω → ℝ := fun ω => g ω * φ.ξ i ω
@@ -959,7 +956,8 @@ lemma offDiagonal_increment_zero
     exact ((hg_a.mul hξi_a).mul hÑRi_a).mul hξj_a
   have h_indep : ProbabilityTheory.IndepFun f
       (fun ω => N.compensated (Set.Ioc aj bj ×ˢ φ.A j) ω) P :=
-    indepFun_past_compensated_box N haj_nn h_genuine_j (φ.A_measurable j) (φ.A_finite j) hf_meas
+    indepFun_past_compensated_box N ℱ hℱ haj_nn h_genuine_j (φ.A_measurable j) (φ.A_finite j)
+      hf_meas
   -- Factor the integrand as `f · Ñ(boxⱼ)` and apply independence.
   rw [hboxj]
   rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
@@ -1015,19 +1013,19 @@ lemma simpleIntegral_sub_sq_weighted
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq s) g)
+      (ℱ s) g)
     {Cg : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ Cg) :
     ∫ ω, g ω * (simpleIntegral N φ t ω - simpleIntegral N φ s ω) ^ 2 ∂P
       = ∑ i : Fin φ.N,
         (LevyStochCalc.Poisson.referenceIntensity ν
             (φ.timeRect i t \ φ.timeRect i s)).toReal
           * ∫ ω, g ω * (φ.ξ i ω) ^ 2 ∂P := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   have hgmeas : Measurable g := (hg.mono (ℱ.le' s)).measurable
   have hRm : ∀ i : Fin φ.N, MeasurableSet (φ.timeRect i t \ φ.timeRect i s) := fun i =>
     (measurableSet_Ioc.prod (φ.A_measurable i)).diff (measurableSet_Ioc.prod (φ.A_measurable i))
@@ -1095,13 +1093,13 @@ lemma simpleIntegral_sub_sq_weighted
             = fun ω => (g ω * (φ.ξ i ω) ^ 2)
                 * (N.compensated (φ.timeRect i t \ φ.timeRect i s) ω) ^ 2 from by
           funext ω; simp only [hterm]; ring]
-      rw [diagonal_increment_sq N φ i hs hst (h_adapt i) hg h_gen, mul_comm]
+      rw [diagonal_increment_sq N ℱ hℱ φ i hs hst (h_adapt i) hg h_gen, mul_comm]
   · intro j _ hj
     simp only [hterm]
     rcases lt_or_gt_of_ne hj with h_lt | h_gt
     · rcases eq_or_lt_of_le (h_a_le_b i) with h_deg | h_gen
       · have hRe : φ.timeRect i t \ φ.timeRect i s = ∅ := by
-          rw [hRbox i, ← h_deg, Set.Ioc_self, Set.empty_prod]
+            rw [hRbox i, ← h_deg, Set.Ioc_self, Set.empty_prod]
         rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
               * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)))
             = fun _ => (0 : ℝ) from by
@@ -1113,17 +1111,17 @@ lemma simpleIntegral_sub_sq_weighted
               = fun ω => g ω * ((φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)
                 * (φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)) from by
             funext ω; ring]
-        exact offDiagonal_increment_zero N φ h_lt hs hst (h_adapt j) (h_adapt i) hg h_gen
+        exact offDiagonal_increment_zero N ℱ hℱ φ h_lt hs hst (h_adapt j) (h_adapt i) hg h_gen
     · rcases eq_or_lt_of_le (h_a_le_b j) with h_deg | h_gen
       · have hRe : φ.timeRect j t \ φ.timeRect j s = ∅ := by
-          rw [hRbox j, ← h_deg, Set.Ioc_self, Set.empty_prod]
+            rw [hRbox j, ← h_deg, Set.Ioc_self, Set.empty_prod]
         rw [show (fun ω => g ω * ((φ.ξ i ω * N.compensated (φ.timeRect i t \ φ.timeRect i s) ω)
               * (φ.ξ j ω * N.compensated (φ.timeRect j t \ φ.timeRect j s) ω)))
             = fun _ => (0 : ℝ) from by
           funext ω; rw [hRe]
           unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated; simp,
           MeasureTheory.integral_zero]
-      · exact offDiagonal_increment_zero N φ h_gt hs hst (h_adapt i) (h_adapt j) hg h_gen
+      · exact offDiagonal_increment_zero N ℱ hℱ φ h_gt hs hst (h_adapt i) (h_adapt j) hg h_gen
   · intro h; exact absurd (Finset.mem_univ _) h
 
 /-- **`simpleIntegral N φ t ∈ L²(P)` at every running time `t`.** Each summand
@@ -1256,16 +1254,16 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (φ.partition i.castSucc)) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     MeasureTheory.Martingale
       (fun t ω => (simpleIntegral N φ t ω) ^ 2
         - ∫ s in Set.Icc (0 : ℝ) t, ∫ e, (φ.eval s e ω) ^ 2 ∂ν ∂volume)
-      (LevyStochCalc.Poisson.naturalFiltration N) P := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
+      ℱ P := by
   have hImart : MeasureTheory.Martingale (fun u => simpleIntegral N φ u) ℱ P :=
-    martingale_simpleIntegral_compensated N φ h_adapt
+    martingale_simpleIntegral_compensated N ℱ hℱ φ h_adapt
   have hIL2 : ∀ u, MeasureTheory.MemLp (fun ω => simpleIntegral N φ u ω) 2 P :=
     fun u => simpleIntegral_memLp_at N φ u
   set c : Fin φ.N → ℝ → ℝ :=
@@ -1318,7 +1316,8 @@ lemma martingale_simpleIntegral_sq_sub_compensator
       by_cases hpc : φ.partition i.castSucc ≤ u
       · have hξ2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u)
             (fun ω => (φ.ξ i ω) ^ 2) := by
-          simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono (ℱ.mono hpc)).mul ((h_adapt i).mono (ℱ.mono hpc))
+          simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono (ℱ.mono hpc)).mul ((h_adapt i).mono
+            (ℱ.mono hpc))
         exact hξ2.const_mul _
       · push_neg at hpc
         rw [show (fun ω => c i u * (φ.ξ i ω) ^ 2) = fun _ => (0 : ℝ) from by
@@ -1417,7 +1416,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     -- set isometry: `∫_B (I_t−I_s)² = ∑ᵢ ν̂(Rᵢ).toReal · ∫_B ξᵢ²`.
     have hiso_set : ∫ ω in B, (simpleIntegral N φ t ω - simpleIntegral N φ s ω) ^ 2 ∂P
         = ∑ i : Fin φ.N, (c i t - c i s) * ∫ ω in B, (φ.ξ i ω) ^ 2 ∂P := by
-      rw [hind, simpleIntegral_sub_sq_weighted N φ h_adapt hs hst hg hg_bdd]
+      rw [hind, simpleIntegral_sub_sq_weighted N ℱ hℱ φ h_adapt hs hst hg hg_bdd]
       refine Finset.sum_congr rfl (fun i _ => ?_)
       rw [hnu_sub i hs hst, hind (fun ω => (φ.ξ i ω) ^ 2)]
     -- compensator increment: `∫_B (A_t − A_s) = ∑ᵢ (c i t − c i s)·∫_B ξᵢ²`.

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CompensatedMartingale
+import LevyStochCalc.Probability.Progressive
 import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.MeasureTheory.Covering.DensityTheorem
 import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
@@ -1028,7 +1029,8 @@ lemma dyadicEvalShifted_inner_L2_tendsto
     exact ((ENNReal.continuous_coe.measurable.comp
       ((h_meas.comp (by fun_prop : Measurable fun s : ℝ => ((ω, s, e) : Ω × ℝ × E))).sub
         ((dyadicEvalShifted_measurable_prod φ h_meas n ω).comp
-          (by fun_prop : Measurable fun s : ℝ => ((s, e) : ℝ × E)))).nnnorm).pow_const 2).aemeasurable
+          (by fun_prop : Measurable fun s : ℝ => ((s, e) : ℝ × E)))).nnnorm).pow_const
+            2).aemeasurable
   · intro n
     refine Filter.Eventually.of_forall (fun s => ?_)
     simp only []
@@ -1281,9 +1283,9 @@ lemma rectApprox_indicator (μ : Measure (Ω × E)) [IsFiniteMeasure μ]
       simp only [Pi.sub_apply, Pi.add_apply, Pi.neg_apply]
       by_cases hx : x ∈ u
       · rw [Set.indicator_of_mem hx, Set.indicator_of_notMem (by simpa using hx),
-          Set.indicator_of_mem (Set.mem_prod.mpr ⟨Set.mem_univ _, Set.mem_univ _⟩)]; ring
+        Set.indicator_of_mem (Set.mem_prod.mpr ⟨Set.mem_univ _, Set.mem_univ _⟩)]; ring
       · rw [Set.indicator_of_notMem hx, Set.indicator_of_mem (by simpa using hx),
-          Set.indicator_of_mem (Set.mem_prod.mpr ⟨Set.mem_univ _, Set.mem_univ _⟩)]; ring
+        Set.indicator_of_mem (Set.mem_prod.mpr ⟨Set.mem_univ _, Set.mem_univ _⟩)]; ring
     rw [heq, MeasureTheory.eLpNorm_neg]
     exact hgerr
   | iUnion F hFd hFm ih =>
@@ -1572,7 +1574,7 @@ lemma exists_markSimple_adapted_within
     by_cases he : e ∈ S
     · rw [Set.indicator_of_mem he, Set.indicator_of_mem he, mul_one]
     · rw [Set.indicator_of_notMem he, mul_zero, sub_zero, hsupp ω e he,
-        Set.indicator_of_notMem he]
+      Set.indicator_of_notMem he]
       simp
   calc ∫⁻ ω, ∫⁻ e, (‖h ω e - ∑ k, (a k * (A k).indicator (fun _ => (1 : ℝ)) ω)
           * (B k ∩ S).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂P
@@ -1605,41 +1607,33 @@ measurability of `φ`, the coefficient `(ω, e) ↦ dyadicAvg_shifted T φ n i �
 out the time variable from the `ℱ_{pᵢ} ⊗ Borel ⊗ E`-measurable integrand `φ`.) -/
 lemma dyadicAvg_shifted_adapted_prod
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (T : ℝ) (φ : Ω → ℝ → E → ℝ)
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) (φ : Ω → ℝ → E → ℝ)
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
     (n : ℕ) (i : Fin (2 ^ n)) :
     @Measurable (Ω × E) ℝ
-      (((LevyStochCalc.Poisson.naturalFiltration N).seq
-        (dyadicPartition T n i.castSucc)).prod inferInstance) _
+      ((ℱ (dyadicPartition T n i.castSucc)).prod inferInstance) _
       (fun q : Ω × E => dyadicAvg_shifted T φ n i q.1 q.2) := by
-  set m := (LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc) with hm
   unfold dyadicAvg_shifted
   by_cases hi : i.val = 0
   · simp only [hi, ↓reduceDIte]; exact measurable_const
   · simp only [hi, ↓reduceDIte, dyadicAvg]
     set j : Fin (2 ^ n) := ⟨i.val - 1, by omega⟩ with hj
-    have h_f_meas : @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E) m inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) := h_progMeas _
-    have hr : @Measurable ((Ω × E) × ℝ) (Ω × ℝ × E)
-        ((m.prod inferInstance).prod inferInstance) (m.prod inferInstance)
-        (fun p : (Ω × E) × ℝ => (p.1.1, p.2, p.1.2)) := by
-      refine Measurable.prodMk ?_ (Measurable.prodMk ?_ ?_)
-      · exact (@measurable_fst Ω E m _).comp (@measurable_fst (Ω × E) ℝ (m.prod inferInstance) _)
-      · exact @measurable_snd (Ω × E) ℝ (m.prod inferInstance) _
-      · exact (@measurable_snd Ω E m _).comp (@measurable_fst (Ω × E) ℝ (m.prod inferInstance) _)
-    have hψ : @MeasureTheory.StronglyMeasurable ((Ω × E) × ℝ) ℝ _
-        ((m.prod inferInstance).prod inferInstance)
-        (fun p : (Ω × E) × ℝ => φ p.1.1 p.2 p.1.2) :=
-      (h_f_meas.measurable.comp hr).stronglyMeasurable
-    have hint := hψ.integral_prod_right'
-      (ν := volume.restrict (Set.Ioc (dyadicPartition T n j.castSucc)
-        (dyadicPartition T n j.succ)))
-    have hfin := hint.measurable.const_mul ((2 ^ n : ℕ) / T : ℝ)
+    have hsucc : dyadicPartition T n j.succ = dyadicPartition T n i.castSucc := by
+      congr 1
+      ext
+      simp only [Fin.val_succ, Fin.val_castSucc, hj]
+      omega
+    -- The average over `(p_{i-1}, p_i] ⊆ (-∞, p_i]` is `ℱ p_i ⊗ 𝓔`-measurable.
+    have hint : @Measurable (Ω × E) ℝ
+        ((ℱ (dyadicPartition T n i.castSucc)).prod inferInstance) _
+        (fun q : Ω × E => ∫ s in Set.Ioc (dyadicPartition T n j.castSucc)
+          (dyadicPartition T n j.succ), φ q.1 s q.2) :=
+      (h_progMeas.stronglyMeasurable_setIntegral_prod (t := dyadicPartition T n i.castSucc)
+        (S := Set.Ioc (dyadicPartition T n j.castSucc) (dyadicPartition T n j.succ))
+        measurableSet_Ioc
+        (Set.Ioc_subset_Iic_self.trans (Set.Iic_subset_Iic.mpr hsucc.le)) volume).measurable
+    have hfin := hint.const_mul ((2 ^ n : ℕ) / T : ℝ)
     convert hfin using 1
 
 /-- **Disjoint-interval collapse of a squared indicator sum.** The intervals
@@ -1695,14 +1689,11 @@ to within `δ` in `L²(P ⊗ ν)`, and the disjoint-interval collapse pays a fac
 `∑ᵢ vol(pᵢ, pᵢ₊₁] = T`. -/
 lemma exists_markEval_close_dyadic
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {T : ℝ} (hT : 0 < T)
     (φ : Ω → ℝ → E → ℝ)
     (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
     {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
     {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
     (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0)
@@ -1710,7 +1701,7 @@ lemma exists_markEval_close_dyadic
     ∃ (Ki : Fin (2 ^ n) → ℕ) (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ),
       (∀ i k, MeasurableSet (Bi i k)) ∧ (∀ i k, Bi i k ⊆ S) ∧
       (∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc))
+        (ℱ (dyadicPartition T n i.castSucc))
         (ci i k)) ∧
       (∀ i k, ∃ C, ∀ ω, |ci i k ω| ≤ C) ∧
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
@@ -1725,7 +1716,7 @@ lemma exists_markEval_close_dyadic
   have hpiece : ∀ i : Fin (2 ^ n), ∃ (K : ℕ) (B : Fin K → Set E) (c : Fin K → Ω → ℝ),
       (∀ k, MeasurableSet (B k)) ∧ (∀ k, B k ⊆ S) ∧
       (∀ k, @Measurable Ω ℝ
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc)) _ (c k)) ∧
+        (ℱ (dyadicPartition T n i.castSucc)) _ (c k)) ∧
       (∀ k, ∃ C, ∀ ω, |c k ω| ≤ C) ∧
       ∫⁻ ω, ∫⁻ e, (‖dyadicAvg_shifted T φ n i ω e
           - ∑ k, c k ω * (B k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂P ≤ δ := by
@@ -1739,8 +1730,8 @@ lemma exists_markEval_close_dyadic
         rw [MeasureTheory.setIntegral_congr_fun measurableSet_Ioc
           (fun s _ => hSupp ω e he s)]
         simp
-    exact exists_markSimple_adapted_within ((LevyStochCalc.Poisson.naturalFiltration N).le _)
-      (dyadicAvg_shifted T φ n i) (dyadicAvg_shifted_adapted_prod N T φ h_progMeas n i)
+    exact exists_markSimple_adapted_within (ℱ.le _)
+      (dyadicAvg_shifted T φ n i) (dyadicAvg_shifted_adapted_prod N ℱ T φ h_progMeas n i)
       (dyadicAvg_shifted_bounded hT φ hM n i) hS hSfin hsupp_i hδ
   choose Ki Bi ci hBim hBiS hcim hcib hci_err using hpiece
   refine ⟨Ki, Bi, ci, hBim, hBiS, fun i k => (hcim i k).stronglyMeasurable, hcib, ?_⟩
@@ -1757,7 +1748,7 @@ lemma exists_markEval_close_dyadic
   have hmk2 : ∀ i, Measurable (fun q : Ω × E => mk i q.1 q.2) := by
     intro i
     refine Finset.measurable_sum _ (fun k _ => ?_)
-    exact (((hcim i k).mono ((LevyStochCalc.Poisson.naturalFiltration N).le _) le_rfl).comp
+    exact (((hcim i k).mono (ℱ.le _) le_rfl).comp
       measurable_fst).mul ((measurable_const.indicator (hBim i k)).comp measurable_snd)
   have hjoint : ∀ i, Measurable (fun q : Ω × E => (‖d i q.1 q.2 - mk i q.1 q.2‖₊ : ℝ≥0∞) ^ 2) :=
     fun i => (ENNReal.continuous_coe.measurable.comp ((hd2 i).sub (hmk2 i)).nnnorm).pow_const 2
@@ -1914,14 +1905,11 @@ time-half (`dyadicEvalShifted_L2_tendsto`) against the mark-half
 triangle bound and a squeeze. -/
 lemma exists_markEval_L2_tendsto
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {T : ℝ} (hT : 0 < T)
     (φ : Ω → ℝ → E → ℝ)
     (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
     {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
     {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
     (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0) :
@@ -1930,7 +1918,7 @@ lemma exists_markEval_L2_tendsto
       (ci : (n : ℕ) → (i : Fin (2 ^ n)) → Fin (Ki n i) → Ω → ℝ),
       (∀ n i k, MeasurableSet (Bi n i k)) ∧ (∀ n i k, Bi n i k ⊆ S) ∧
       (∀ n i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc))
+        (ℱ (dyadicPartition T n i.castSucc))
         (ci n i k)) ∧
       (∀ n i k, ∃ C, ∀ ω, |ci n i k ω| ≤ C) ∧
       Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
@@ -1943,7 +1931,7 @@ lemma exists_markEval_L2_tendsto
   have hδne : ∀ n : ℕ, ((n : ℝ≥0∞) + 1)⁻¹ ≠ 0 := fun n =>
     ENNReal.inv_ne_zero.mpr (ENNReal.add_ne_top.mpr ⟨ENNReal.natCast_ne_top n, ENNReal.one_ne_top⟩)
   choose Ki Bi ci hBim hBiS hcim hcib herr using fun n =>
-    exists_markEval_close_dyadic N hT φ h_meas h_progMeas hM hS hSfin hSupp n (hδne n)
+    exists_markEval_close_dyadic N ℱ hT φ h_meas h_progMeas hM hS hSfin hSupp n (hδne n)
   refine ⟨Ki, Bi, ci, hBim, hBiS, hcim, hcib, ?_⟩
   -- the markEval step approximant and its triple-measurability.
   set mk : ℕ → Ω → ℝ → E → ℝ := fun n ω s e =>
@@ -1958,7 +1946,7 @@ lemma exists_markEval_L2_tendsto
         (measurable_fst.comp measurable_snd)
     · refine Finset.measurable_sum _ (fun k _ => Measurable.mul ?_ ?_)
       · exact (((hcim n i k).measurable.mono
-          ((LevyStochCalc.Poisson.naturalFiltration N).le _) le_rfl)).comp measurable_fst
+            (ℱ.le _) le_rfl)).comp measurable_fst
       · exact (measurable_const.indicator (hBim n i k)).comp
           (measurable_snd.comp measurable_snd)
   -- joint measurabilities of the two triangle summands.
@@ -2058,13 +2046,14 @@ lemma martingale_stepIntegral_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T)
     (h_adapt : ∀ j : Fin k, ∀ i : Fin (Φ j).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq ((Φ j).partition i.castSucc))
+        (ℱ ((Φ j).partition i.castSucc))
         ((Φ j).ξ i)) :
     MeasureTheory.Martingale (fun t : ℝ => stepIntegral N Φ t)
-      (LevyStochCalc.Poisson.naturalFiltration N) P := by
+      ℱ P := by
   have hfun : (fun t : ℝ => stepIntegral N Φ t)
       = ∑ j : Fin k, (fun t : ℝ => simpleIntegral N (Φ j) t) := by
     funext t ω
@@ -2072,7 +2061,7 @@ lemma martingale_stepIntegral_compensated
   rw [hfun]
   have hmart : ∀ s : Finset (Fin k),
       MeasureTheory.Martingale (∑ j ∈ s, fun t : ℝ => simpleIntegral N (Φ j) t)
-        (LevyStochCalc.Poisson.naturalFiltration N) P := by
+        ℱ P := by
     intro s
     induction s using Finset.induction with
     | empty =>
@@ -2080,7 +2069,7 @@ lemma martingale_stepIntegral_compensated
         exact MeasureTheory.martingale_zero ℝ _ P
     | insert j s hj ih =>
         rw [Finset.sum_insert hj]
-        exact (martingale_simpleIntegral_compensated N (Φ j) (h_adapt j)).add ih
+        exact (martingale_simpleIntegral_compensated N ℱ hℱ (Φ j) (h_adapt j)).add ih
   exact hmart Finset.univ
 
 /-- A finite family of simple predictables integrates to an `L²` function at the
@@ -2089,15 +2078,14 @@ lemma stepIntegral_memLp_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (hT : 0 < T) {k : ℕ} (Φ : Fin k → SimplePredictable Ω E ν T)
     (h_adapt : ∀ j : Fin k, ∀ i : Fin (Φ j).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic ((Φ j).partition i.castSucc) ×ˢ Set.univ
-                                    ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ((Φ j).ξ i)) :
+        (ℱ ((Φ j).partition i.castSucc)) ((Φ j).ξ i)) :
     MeasureTheory.MemLp (fun ω => stepIntegral N Φ T ω) 2 P :=
   MeasureTheory.memLp_finsetSum Finset.univ
-    (fun j _ => simpleIntegral_memLp_compensated N hT (Φ j) (h_adapt j))
+    (fun j _ => simpleIntegral_memLp_compensated N ℱ hℱ hT (Φ j) (h_adapt j))
 
 /-- **Disjoint compensated increments are uncorrelated.** For measurable `B, B'`
 with finite reference intensity and `Disjoint B B'`, the compensated values
@@ -2318,21 +2306,22 @@ lemma weighted_box_sq_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {A : Set E} (hA : MeasurableSet A) (hAf : ν A ≠ ⊤)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g) :
+      (ℱ a) g) :
     ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2 ∂P
       = (∫ ω, g ω ∂P)
         * (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal := by
   have hbox_meas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
   have hbox_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A) ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top hAf
-  have h_indep := indepFun_past_compensated_box N ha hab hA hAf hg
+  have h_indep := indepFun_past_compensated_box N ℱ hℱ ha hab hA hAf hg
   have h_indep_sq : ProbabilityTheory.IndepFun g
       (fun ω => (N.compensated (Set.Ioc a b ×ˢ A) ω) ^ 2) P :=
     h_indep.comp measurable_id (measurable_id.pow_const 2)
   rw [h_indep_sq.integral_fun_mul_eq_mul_integral
-      ((hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable)
+      ((hg.mono (ℱ.le' a)).measurable.aestronglyMeasurable)
       (((ENNReal.measurable_toReal.comp
         (N.measurable_eval hbox_meas)).sub_const _).pow_const 2).aestronglyMeasurable,
     compensated_second_moment N hbox_meas hbox_fin]
@@ -2347,11 +2336,12 @@ lemma weighted_box_cross_disjoint_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
     {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A')
     (hAf : ν A ≠ ⊤) (hA'f : ν A' ≠ ⊤) (hdisjA : Disjoint A A')
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g)
+      (ℱ a) g)
     {M : ℝ} (hgb : ∀ ω, |g ω| ≤ M) :
     ∫ ω, g ω
         * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc a b ×ˢ A') ω) ∂P = 0 := by
@@ -2386,7 +2376,7 @@ lemma weighted_box_cross_disjoint_zero
     ring
   -- integrability of `g·Ñ(box)²` (bounded weight × square-integrable).
   have hg_aesm : MeasureTheory.AEStronglyMeasurable g P :=
-    (hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable
+    (hg.mono (ℱ.le' a)).measurable.aestronglyMeasurable
   have hgbnd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ M :=
     Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hgb ω)
   have hiR : MeasureTheory.Integrable (fun ω => g ω * (N.compensated R ω) ^ 2) P :=
@@ -2420,8 +2410,8 @@ lemma weighted_box_cross_disjoint_zero
   -- evaluate each weighted square via `weighted_box_sq_eq`.
   rw [show (∫ ω, g ω * (N.compensated (R ∪ R') ω) ^ 2 ∂P)
         = ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ (A ∪ A')) ω) ^ 2 ∂P from by rw [hRUeq],
-    weighted_box_sq_eq N ha hab (hA.union hA') hUAf hg,
-    weighted_box_sq_eq N ha hab hA hAf hg, weighted_box_sq_eq N ha hab hA' hA'f hg]
+    weighted_box_sq_eq N ℱ hℱ ha hab (hA.union hA') hUAf hg,
+    weighted_box_sq_eq N ℱ hℱ ha hab hA hAf hg, weighted_box_sq_eq N ℱ hℱ ha hab hA' hA'f hg]
   -- `ν̂(R∪R') = ν̂(R)+ν̂(R')` (disjoint) ⇒ the bracket cancels.
   have hrefU : (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∪ A'))).toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν R).toReal
@@ -2442,13 +2432,13 @@ lemma weighted_box_cross_timeordered_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b c d : ℝ} (hc : 0 ≤ c) (hab : a < b) (hbc : b ≤ c) (hcd : c < d)
     {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A') (hA'f : ν A' ≠ ⊤)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq c) g) :
+      (ℱ c) g) :
     ∫ ω, g ω
         * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω) ∂P = 0 := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   have hRmeas : MeasurableSet (Set.Ioc a b ×ˢ A) := measurableSet_Ioc.prod hA
   have hR'meas : MeasurableSet (Set.Ioc c d ×ˢ A') := measurableSet_Ioc.prod hA'
   have hR'f : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc c d ×ˢ A') ≠ ⊤ :=
@@ -2459,7 +2449,7 @@ lemma weighted_box_cross_timeordered_zero
   have hÑR_c : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c)
       (fun ω => N.compensated (Set.Ioc a b ×ˢ A) ω) := by
     unfold LevyStochCalc.Poisson.PoissonRandomMeasure.compensated
-    exact (((LevyStochCalc.Poisson.measurable_random_measure_of_le N hRsub
+    exact (((hℱ.measurable hRsub
       hRmeas).ennreal_toReal).sub measurable_const).stronglyMeasurable
   have hf_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq c)
       (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω) :=
@@ -2467,7 +2457,7 @@ lemma weighted_box_cross_timeordered_zero
   have h_indep : ProbabilityTheory.IndepFun
       (fun ω => g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
       (fun ω => N.compensated (Set.Ioc c d ×ˢ A') ω) P :=
-    indepFun_past_compensated_box N hc hcd hA' hA'f hf_meas
+    indepFun_past_compensated_box N ℱ hℱ hc hcd hA' hA'f hf_meas
   rw [show (fun ω => g ω
         * (N.compensated (Set.Ioc a b ×ˢ A) ω * N.compensated (Set.Ioc c d ×ˢ A') ω))
       = (fun ω => (g ω * N.compensated (Set.Ioc a b ×ˢ A) ω)
@@ -2486,11 +2476,12 @@ lemma weighted_box_diff_sq_disjoint
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
     {C D : Set E} (hC : MeasurableSet C) (hD : MeasurableSet D)
     (hCf : ν C ≠ ⊤) (hDf : ν D ≠ ⊤) (hdisjCD : Disjoint C D)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g)
+      (ℱ a) g)
     {M : ℝ} (hgb : ∀ ω, |g ω| ≤ M) :
     ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ C) ω
         - N.compensated (Set.Ioc a b ×ˢ D) ω) ^ 2 ∂P
@@ -2504,7 +2495,7 @@ lemma weighted_box_diff_sq_disjoint
   have hDf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ D) ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top hDf
   have hg_aesm : MeasureTheory.AEStronglyMeasurable g P :=
-    (hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable
+    (hg.mono (ℱ.le' a)).measurable.aestronglyMeasurable
   have hgbnd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ M :=
     Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hgb ω)
   have hiC : MeasureTheory.Integrable
@@ -2530,8 +2521,8 @@ lemma weighted_box_diff_sq_disjoint
     funext ω; ring
   rw [hpt, MeasureTheory.integral_add hmid hiD,
     MeasureTheory.integral_sub hiC hiCD, MeasureTheory.integral_const_mul,
-    weighted_box_cross_disjoint_zero N ha hab hC hD hCf hDf hdisjCD hg hgb,
-    weighted_box_sq_eq N ha hab hC hCf hg, weighted_box_sq_eq N ha hab hD hDf hg]
+    weighted_box_cross_disjoint_zero N ℱ hℱ ha hab hC hD hCf hDf hdisjCD hg hgb,
+    weighted_box_sq_eq N ℱ hℱ ha hab hC hCf hg, weighted_box_sq_eq N ℱ hℱ ha hab hD hDf hg]
   ring
 
 /-- **Weighted same-time bilinear covariance.** For an `ℱ_a`-measurable bounded weight `g`
@@ -2544,11 +2535,12 @@ lemma weighted_box_cross_sametime
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
     {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A')
     (hAf : ν A ≠ ⊤) (hA'f : ν A' ≠ ⊤)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) g)
+      (ℱ a) g)
     {M : ℝ} (hgb : ∀ ω, |g ω| ≤ M) :
     ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
         * N.compensated (Set.Ioc a b ×ˢ A') ω) ∂P
@@ -2563,7 +2555,8 @@ lemma weighted_box_cross_sametime
   have hmcf : ν (A \ A') ≠ ⊤ := ne_top_of_le_ne_top hAf (measure_mono Set.diff_subset)
   have hmdf : ν (A' \ A) ≠ ⊤ := ne_top_of_le_ne_top hA'f (measure_mono Set.diff_subset)
   have hmif : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A')) ≠ ⊤ :=
-    referenceIntensity_Ioc_prod_ne_top (ne_top_of_le_ne_top hAf (measure_mono Set.inter_subset_left))
+    referenceIntensity_Ioc_prod_ne_top (ne_top_of_le_ne_top hAf (measure_mono
+      Set.inter_subset_left))
   have hmcf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A \ A')) ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top hmcf
   have hmdf' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A' \ A)) ≠ ⊤ :=
@@ -2585,7 +2578,7 @@ lemma weighted_box_cross_sametime
     rw [h1, h2, Set.inter_comm (Set.Ioc a b ×ˢ A') (Set.Ioc a b ×ˢ A), hBdiff, hBa'diff]
     ring
   have hg_aesm : MeasureTheory.AEStronglyMeasurable g P :=
-    (hg.mono ((LevyStochCalc.Poisson.naturalFiltration N).le' a)).measurable.aestronglyMeasurable
+    (hg.mono (ℱ.le' a)).measurable.aestronglyMeasurable
   have hgbnd : ∀ᵐ ω ∂P, ‖g ω‖ ≤ M :=
     Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hgb ω)
   -- `∫ g·(Ñ(R)−Ñ(R'))²` via the weighted disjoint-difference value.
@@ -2608,7 +2601,7 @@ lemma weighted_box_cross_sametime
         + (∫ ω, g ω ∂P) * (LevyStochCalc.Poisson.referenceIntensity ν
             (Set.Ioc a b ×ˢ (A' \ A))).toReal :=
     (MeasureTheory.integral_congr_ae hsq_ae).trans
-      (weighted_box_diff_sq_disjoint N ha hab (hA.diff hA') (hA'.diff hA) hmcf hmdf
+      (weighted_box_diff_sq_disjoint N ℱ hℱ ha hab (hA.diff hA') (hA'.diff hA) hmcf hmdf
         disjoint_sdiff_sdiff hg hgb)
   -- weighted polarisation expansion (cross term left symbolic).
   have hexp : ∫ ω, g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
@@ -2640,7 +2633,7 @@ lemma weighted_box_cross_sametime
             + g ω * (N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2 from funext (fun ω => by ring),
       MeasureTheory.integral_add hmid hiA', MeasureTheory.integral_sub hiA hicross,
       MeasureTheory.integral_const_mul,
-      weighted_box_sq_eq N ha hab hA hAf hg, weighted_box_sq_eq N ha hab hA' hA'f hg]
+      weighted_box_sq_eq N ℱ hℱ ha hab hA hAf hg, weighted_box_sq_eq N ℱ hℱ ha hab hA' hA'f hg]
   -- intensity inclusion–exclusion (in `toReal`).
   have hrefBa : (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)).toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A'))).toReal
@@ -2674,6 +2667,7 @@ lemma crossSum_disjointMark_zero
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
     (A A' : Fin N₀ → Set E)
     (hAm : ∀ i, MeasurableSet (A i)) (hA'm : ∀ i, MeasurableSet (A' i))
@@ -2683,14 +2677,13 @@ lemma crossSum_disjointMark_zero
     (hξb : ∀ i, ∃ M, ∀ ω, |ξ i ω| ≤ M) (hξ'b : ∀ i, ∃ M, ∀ ω, |ξ' i ω| ≤ M)
     (hξm : ∀ i, Measurable (ξ i)) (hξ'm : ∀ i, Measurable (ξ' i))
     (h_adapt : ∀ i, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i))
+      (ℱ (p i.castSucc)) (ξ i))
     (h_adapt' : ∀ i, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ' i)) :
+      (ℱ (p i.castSucc)) (ξ' i)) :
     ∫ ω, (∑ i : Fin N₀, ξ i ω
             * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω)
         * (∑ j : Fin N₀, ξ' j ω
             * N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω) ∂P = 0 := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   -- partition facts.
   have hpnn : ∀ k : Fin (N₀ + 1), 0 ≤ p k := fun k => by
     have := hpmono.monotone (Fin.zero_le k); rwa [hp0] at this
@@ -2750,7 +2743,7 @@ lemma crossSum_disjointMark_zero
   · -- i < j: time-ordered (`pᵢ₊₁ ≤ pⱼ`).
     have hbc : p i.succ ≤ p j.castSucc :=
       hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
-    exact weighted_box_cross_timeordered_zero N (hpnn _) (hlt i) hbc (hlt j)
+    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) (hlt i) hbc (hlt j)
       (hAm i) (hA'm j) (hA'f j)
       (((h_adapt i).mono (ℱ.mono ((hlt i).le.trans hbc))).mul (h_adapt' j))
   · -- i = j: same interval, disjoint marks.
@@ -2760,7 +2753,7 @@ lemma crossSum_disjointMark_zero
     have hbnd : ∀ ω, |ξ i ω * ξ' i ω| ≤ Mi * Mj := fun ω => by
       rw [abs_mul]
       exact mul_le_mul (hMi ω) (hMj ω) (abs_nonneg _) ((abs_nonneg _).trans (hMi ω))
-    exact weighted_box_cross_disjoint_zero N (hpnn _) (hlt i)
+    exact weighted_box_cross_disjoint_zero N ℱ hℱ (hpnn _) (hlt i)
       (hAm i) (hA'm i) (hAf i) (hA'f i) (hdisj i) ((h_adapt i).mul (h_adapt' i)) hbnd
   · -- j < i: time-ordered the other way (commute the two compensated factors).
     have hbc : p j.succ ≤ p i.castSucc :=
@@ -2772,7 +2765,7 @@ lemma crossSum_disjointMark_zero
             * (N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω
               * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω) from
       funext (fun ω => by ring)]
-    exact weighted_box_cross_timeordered_zero N (hpnn _) (hlt j) hbc (hlt i)
+    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) (hlt j) hbc (hlt i)
       (hA'm j) (hAm i) (hAf i)
       ((h_adapt i).mul ((h_adapt' j).mono (ℱ.mono ((hlt j).le.trans hbc))))
 
@@ -2786,6 +2779,7 @@ lemma stepIntegral_multimark_isometry
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {N₀ K : ℕ} {T : ℝ} (hT : 0 < T)
     (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpleT : p (Fin.last N₀) ≤ T) (hpmono : StrictMono p)
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
@@ -2793,7 +2787,7 @@ lemma stepIntegral_multimark_isometry
     (ξ : Fin N₀ → Fin K → Ω → ℝ)
     (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k))
     (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) :
+      (ℱ (p i.castSucc)) (ξ i k)) :
     ∫ ω, (∑ k : Fin K, ∑ i : Fin N₀,
         ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 ∂P
       = ∑ k : Fin K, ∑ i : Fin N₀,
@@ -2809,7 +2803,7 @@ lemma stepIntegral_multimark_isometry
       = ∑ i : Fin N₀, ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω := by
     intro k ω; rw [simpleIntegral_eq_sum_fullRect]; rfl
   have hmemLp : ∀ k, MeasureTheory.MemLp (fun ω => simpleIntegral N (φ k) T ω) 2 P :=
-    fun k => simpleIntegral_memLp_compensated N hT (φ k) (fun i => h_adapt i k)
+    fun k => simpleIntegral_memLp_compensated N ℱ hℱ hT (φ k) (fun i => h_adapt i k)
   have hII : ∀ k k', MeasureTheory.Integrable
       (fun ω => simpleIntegral N (φ k) T ω * simpleIntegral N (φ k') T ω) P :=
     fun k k' => (hmemLp k).integrable_mul (hmemLp k')
@@ -2830,11 +2824,11 @@ lemma stepIntegral_multimark_isometry
   · -- diagonal `k' = k`: single-mark isometry.
     rw [show (fun ω => simpleIntegral N (φ k) T ω * simpleIntegral N (φ k) T ω)
           = fun ω => (simpleIntegral N (φ k) T ω) ^ 2 from funext (fun ω => (sq _).symm)]
-    exact simpleIntegral_L2_isometry_compensatedPoisson_sumForm N (φ k) (fun i => h_adapt i k)
+    exact simpleIntegral_L2_isometry_compensatedPoisson_sumForm N ℱ hℱ (φ k) (fun i => h_adapt i k)
   · -- off-diagonal `k' ≠ k`: disjoint-mark cross vanishes.
     intro k' _ hk'
     simp_rw [hI_eq]
-    exact crossSum_disjointMark_zero N p hp0 hpmono (fun _ => B k) (fun _ => B k')
+    exact crossSum_disjointMark_zero N ℱ hℱ p hp0 hpmono (fun _ => B k) (fun _ => B k')
       (fun _ => hBm k) (fun _ => hBm k') (fun _ => hBf k) (fun _ => hBf k')
       (fun _ => hBdisj (Ne.symm hk')) (fun i => ξ i k) (fun i => ξ i k')
       (fun i => hξb i k) (fun i => hξb i k') (fun i => hξm i k) (fun i => hξm i k')
@@ -2849,11 +2843,12 @@ lemma markSum_sq_sametime
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) {K : ℕ}
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
     (ξ : Fin K → Ω → ℝ) (hξb : ∀ k, ∃ M, ∀ ω, |ξ k ω| ≤ M) (hξm : ∀ k, Measurable (ξ k))
     (hadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (ξ k)) :
+      (ℱ a) (ξ k)) :
     ∫ ω, (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω) ^ 2 ∂P
       = ∑ k : Fin K, ∑ k' : Fin K,
         (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (B k ∩ B k'))).toReal
@@ -2895,14 +2890,14 @@ lemma markSum_sq_sametime
     rw [abs_mul]
     exact mul_le_mul (hMk ω) (hMk' ω) (abs_nonneg _) ((abs_nonneg _).trans (hMk ω))
   have hgadapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (fun ω => ξ k ω * ξ k' ω) :=
+      (ℱ a) (fun ω => ξ k ω * ξ k' ω) :=
     (hadapt k).mul (hadapt k')
   rw [show (fun ω => (ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
           * (ξ k' ω * N.compensated (Set.Ioc a b ×ˢ B k') ω))
         = fun ω => (ξ k ω * ξ k' ω)
           * (N.compensated (Set.Ioc a b ×ˢ B k) ω
             * N.compensated (Set.Ioc a b ×ˢ B k') ω) from funext (fun ω => by ring),
-    weighted_box_cross_sametime N ha hab (hBm k) (hBm k') (hBf k) (hBf k') hgadapt hbnd,
+    weighted_box_cross_sametime N ℱ hℱ ha hab (hBm k) (hBm k') (hBf k) (hBf k') hgadapt hbnd,
     mul_comm]
 
 /-- **Cross of mark-sums over time-ordered intervals vanishes.** For two intervals
@@ -2913,18 +2908,18 @@ lemma markSum_cross_timeordered
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {a b c d : ℝ} (hc : 0 ≤ c) (hab : a < b) (hbc : b ≤ c) (hcd : c < d) {K : ℕ}
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
     (ξ ζ : Fin K → Ω → ℝ)
     (hξb : ∀ k, ∃ M, ∀ ω, |ξ k ω| ≤ M) (hζb : ∀ k, ∃ M, ∀ ω, |ζ k ω| ≤ M)
     (hξm : ∀ k, Measurable (ξ k)) (hζm : ∀ k, Measurable (ζ k))
     (hξadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq a) (ξ k))
+      (ℱ a) (ξ k))
     (hζadapt : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq c) (ζ k)) :
+      (ℱ c) (ζ k)) :
     ∫ ω, (∑ k : Fin K, ξ k ω * N.compensated (Set.Ioc a b ×ˢ B k) ω)
         * (∑ l : Fin K, ζ l ω * N.compensated (Set.Ioc c d ×ˢ B l) ω) ∂P = 0 := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   have hac : a ≤ c := hab.le.trans hbc
   have hBxm : ∀ k, MeasurableSet (Set.Ioc a b ×ˢ B k) := fun k => measurableSet_Ioc.prod (hBm k)
   have hCxm : ∀ l, MeasurableSet (Set.Ioc c d ×ˢ B l) := fun l => measurableSet_Ioc.prod (hBm l)
@@ -2967,7 +2962,7 @@ lemma markSum_cross_timeordered
         = fun ω => (ξ k ω * ζ l ω)
           * (N.compensated (Set.Ioc a b ×ˢ B k) ω
             * N.compensated (Set.Ioc c d ×ˢ B l) ω) from funext (fun ω => by ring)]
-  exact weighted_box_cross_timeordered_zero N hc hab hbc hcd (hBm k) (hBm l) (hBf l) hgadapt
+  exact weighted_box_cross_timeordered_zero N ℱ hℱ hc hab hbc hcd (hBm k) (hBm l) (hBf l) hgadapt
 
 /-- **Overlapping-mark step-integral isometry (sum form).** For a shared partition `p`,
 arbitrary marks `B`, adapted bounded coeffs `ξ`,
@@ -2978,19 +2973,19 @@ lemma markSumProcess_isometry
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
     (ξ : Fin N₀ → Fin K → Ω → ℝ)
     (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k))
     (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) :
+      (ℱ (p i.castSucc)) (ξ i k)) :
     ∫ ω, (∑ i : Fin N₀, ∑ k : Fin K,
         ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 ∂P
       = ∑ i : Fin N₀, ∑ k : Fin K, ∑ k' : Fin K,
         (LevyStochCalc.Poisson.referenceIntensity ν
           (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ (B k ∩ B k'))).toReal
         * ∫ ω, ξ i k ω * ξ i k' ω ∂P := by
-  set ℱ := LevyStochCalc.Poisson.naturalFiltration N with hℱ
   have hpnn : ∀ j : Fin (N₀ + 1), 0 ≤ p j := fun j => by
     have := hpmono.monotone (Fin.zero_le j); rwa [hp0] at this
   have hlt : ∀ i : Fin N₀, p i.castSucc < p i.succ := fun i => hpmono Fin.castSucc_lt_succ
@@ -3043,21 +3038,21 @@ lemma markSumProcess_isometry
   rw [MeasureTheory.integral_finsetSum _ (fun i' _ => hSS i i'), Finset.sum_eq_single i]
   · -- diagonal `i' = i`: `∫ Sᵢ² = markSum_sq_sametime`.
     rw [show (fun ω => S i ω * S i ω) = fun ω => (S i ω) ^ 2 from funext (fun ω => (sq _).symm)]
-    exact markSum_sq_sametime N (hpnn _) (hlt i) B hBm hBf (fun k => ξ i k)
+    exact markSum_sq_sametime N ℱ hℱ (hpnn _) (hlt i) B hBm hBf (fun k => ξ i k)
       (fun k => hξb i k) (fun k => hξm i k) (fun k => h_adapt i k)
   · -- off-diagonal `i' ≠ i`: time-ordered, vanishes.
     intro i' _ hi'
     rcases lt_trichotomy i i' with hlt' | hlt' | hlt'
     · have hbc : p i.succ ≤ p i'.castSucc :=
-        hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hlt')
-      exact markSum_cross_timeordered N (hpnn _) (hlt i) hbc (hlt i') B hBm hBf
+      hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hlt')
+      exact markSum_cross_timeordered N ℱ hℱ (hpnn _) (hlt i) hbc (hlt i') B hBm hBf
         (fun k => ξ i k) (fun k => ξ i' k) (fun k => hξb i k) (fun k => hξb i' k)
         (fun k => hξm i k) (fun k => hξm i' k) (fun k => h_adapt i k) (fun k => h_adapt i' k)
     · exact absurd hlt' hi'.symm
     · have hbc : p i'.succ ≤ p i.castSucc :=
-        hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hlt')
+      hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hlt')
       rw [show (fun ω => S i ω * S i' ω) = fun ω => S i' ω * S i ω from funext (fun ω => by ring)]
-      exact markSum_cross_timeordered N (hpnn _) (hlt i') hbc (hlt i) B hBm hBf
+      exact markSum_cross_timeordered N ℱ hℱ (hpnn _) (hlt i') hbc (hlt i) B hBm hBf
         (fun k => ξ i' k) (fun k => ξ i k) (fun k => hξb i' k) (fun k => hξb i k)
         (fun k => hξm i' k) (fun k => hξm i k) (fun k => h_adapt i' k) (fun k => h_adapt i k)
   · intro h; exact absurd (Finset.mem_univ i) h
@@ -3135,7 +3130,7 @@ lemma timeIndicator_sq_integral
     refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [Finset.sum_eq_single i]
     · by_cases hs : s ∈ Set.Ioc (p i.castSucc) (p i.succ) <;>
-        simp [Set.indicator_of_mem, Set.indicator_of_notMem, hs] <;> ring
+      simp [Set.indicator_of_mem, Set.indicator_of_notMem, hs] <;> ring
     · intro i' _ hi'
       have hdisj : Disjoint (Set.Ioc (p i.castSucc) (p i.succ))
           (Set.Ioc (p i'.castSucc) (p i'.succ)) := by
@@ -3289,18 +3284,19 @@ lemma markSumProcess_isometry_L2
     {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
     {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
     (ξ : Fin N₀ → Fin K → Ω → ℝ)
     (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξm : ∀ i k, Measurable (ξ i k))
     (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) :
+      (ℱ (p i.castSucc)) (ξ i k)) :
     ∫ ω, (∑ i : Fin N₀, ∑ k : Fin K,
         ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω) ^ 2 ∂P
       = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
         (∑ i : Fin N₀, (Set.Ioc (p i.castSucc) (p i.succ)).indicator (fun _ => (1 : ℝ)) s
           * (∑ k : Fin K, ξ i k ω * (B k).indicator (fun _ => (1 : ℝ)) e)) ^ 2
         ∂volume ∂ν) ∂P :=
-  (markSumProcess_isometry N p hp0 hpmono B hBm hBf ξ hξb hξm h_adapt).trans
+  (markSumProcess_isometry N ℱ hℱ p hp0 hpmono B hBm hBf ξ hξb hξm h_adapt).trans
     (markSumProcess_L2_eq p hp0 hpmono hpleT B hBm hBf ξ hξb hξm).symm
 
 /-- **Difference isometry (Cauchy engine).** For two adapted bounded coefficient families
@@ -3315,14 +3311,15 @@ lemma markSumProcess_diff_isometry_L2
     {N₀ K : ℕ} (p : Fin (N₀ + 1) → ℝ) (hp0 : p 0 = 0) (hpmono : StrictMono p)
     {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     (B : Fin K → Set E) (hBm : ∀ k, MeasurableSet (B k)) (hBf : ∀ k, ν (B k) ≠ ⊤)
     (ξ ξ' : Fin N₀ → Fin K → Ω → ℝ)
     (hξb : ∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) (hξ'b : ∀ i k, ∃ M, ∀ ω, |ξ' i k ω| ≤ M)
     (hξm : ∀ i k, Measurable (ξ i k)) (hξ'm : ∀ i k, Measurable (ξ' i k))
     (h_adapt : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k))
+      (ℱ (p i.castSucc)) (ξ i k))
     (h_adapt' : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ' i k)) :
+      (ℱ (p i.castSucc)) (ξ' i k)) :
     ∫ ω, ((∑ i : Fin N₀, ∑ k : Fin K,
           ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)
         - (∑ i : Fin N₀, ∑ k : Fin K,
@@ -3338,9 +3335,9 @@ lemma markSumProcess_diff_isometry_L2
   have hηm : ∀ i k, Measurable (fun ω => ξ i k ω - ξ' i k ω) :=
     fun i k => (hξm i k).sub (hξ'm i k)
   have hηa : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc))
+      (ℱ (p i.castSucc))
       (fun ω => ξ i k ω - ξ' i k ω) := fun i k => (h_adapt i k).sub (h_adapt' i k)
-  have key := markSumProcess_isometry_L2 p hp0 hpmono hpleT N B hBm hBf
+  have key := markSumProcess_isometry_L2 p hp0 hpmono hpleT N ℱ hℱ B hBm hBf
     (fun i k ω => ξ i k ω - ξ' i k ω) hηb hηm hηa
   rw [show (fun ω => ((∑ i : Fin N₀, ∑ k : Fin K,
             ξ i k ω * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)
@@ -3422,17 +3419,18 @@ measurability/finiteness/bounds/adaptedness. This converts each step approximant
 the rectangular `markSumProcess` form the isometry consumes (overlapping marks fine). -/
 lemma exists_sharedMark_blockDiag
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
     {Ki : Fin N₀ → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
     (hBim : ∀ i k, MeasurableSet (Bi i k)) (hBif : ∀ i k, ν (Bi i k) ≠ ⊤)
     (hcib : ∀ i k, ∃ M, ∀ ω, |ci i k ω| ≤ M) (hcim : ∀ i k, Measurable (ci i k))
     (hcia : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ci i k)) :
+      (ℱ (p i.castSucc)) (ci i k)) :
     ∃ (K : ℕ) (B : Fin K → Set E) (ξ : Fin N₀ → Fin K → Ω → ℝ),
       (∀ k, MeasurableSet (B k)) ∧ (∀ k, ν (B k) ≠ ⊤) ∧
       (∀ i k, ∃ M, ∀ ω, |ξ i k ω| ≤ M) ∧ (∀ i k, Measurable (ξ i k)) ∧
       (∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ξ i k)) ∧
+        (ℱ (p i.castSucc)) (ξ i k)) ∧
       (∀ (i : Fin N₀) (ω : Ω) (F : Set E → ℝ),
         (∑ k, ξ i k ω * F (B k)) = ∑ k₀, ci i k₀ ω * F (Bi i k₀)) := by
   classical
@@ -3473,13 +3471,15 @@ with **per-time-piece** mark families. Collects the marks into the shared form
 (`exists_sharedMark_blockDiag`), then applies `markSumProcess_isometry_L2`. -/
 lemma markStepIntegral_isometry
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ) {N₀ : ℕ} (p : Fin (N₀ +
+      1) → ℝ)
     (hp0 : p 0 = 0) (hpmono : StrictMono p) {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
     {Ki : Fin N₀ → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
     (hBim : ∀ i k, MeasurableSet (Bi i k)) (hBif : ∀ i k, ν (Bi i k) ≠ ⊤)
     (hcib : ∀ i k, ∃ M, ∀ ω, |ci i k ω| ≤ M) (hcim : ∀ i k, Measurable (ci i k))
     (hcia : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ci i k)) :
+      (ℱ (p i.castSucc)) (ci i k)) :
     ∫ ω, (∑ i : Fin N₀, ∑ k₀, ci i k₀ ω
         * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ Bi i k₀) ω) ^ 2 ∂P
       = ∫ ω, (∫ e, ∫ s in Set.Icc (0 : ℝ) T,
@@ -3487,8 +3487,8 @@ lemma markStepIntegral_isometry
           * ∑ k₀, ci i k₀ ω * (Bi i k₀).indicator (fun _ => (1 : ℝ)) e) ^ 2
         ∂volume ∂ν) ∂P := by
   obtain ⟨K, B, ξ, hBm, hBf, hξb, hξm, hξa, hF⟩ :=
-    exists_sharedMark_blockDiag N p Bi ci hBim hBif hcib hcim hcia
-  have key := markSumProcess_isometry_L2 p hp0 hpmono hpleT N B hBm hBf ξ hξb hξm hξa
+    exists_sharedMark_blockDiag N ℱ p Bi ci hBim hBif hcib hcim hcia
+  have key := markSumProcess_isometry_L2 p hp0 hpmono hpleT N ℱ hℱ B hBm hBf ξ hξb hξm hξa
   have hint : ∀ ω, (∑ i : Fin N₀, ∑ k, ξ i k ω
         * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ B k) ω)
       = ∑ i : Fin N₀, ∑ k₀, ci i k₀ ω
@@ -3512,7 +3512,9 @@ per-piece-mark step integral (append the marks, negate the second coefficients),
 this is `markStepIntegral_isometry` applied to the combined family. -/
 lemma markStepIntegral_diff_isometry
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ) {N₀ : ℕ} (p : Fin (N₀ +
+      1) → ℝ)
     (hp0 : p 0 = 0) (hpmono : StrictMono p) {T : ℝ} (hpleT : p (Fin.last N₀) ≤ T)
     {Ki1 Ki2 : Fin N₀ → ℕ} (Bi1 : ∀ i, Fin (Ki1 i) → Set E) (Bi2 : ∀ i, Fin (Ki2 i) → Set E)
     (ci1 : ∀ i, Fin (Ki1 i) → Ω → ℝ) (ci2 : ∀ i, Fin (Ki2 i) → Ω → ℝ)
@@ -3521,9 +3523,9 @@ lemma markStepIntegral_diff_isometry
     (hci1b : ∀ i k, ∃ M, ∀ ω, |ci1 i k ω| ≤ M) (hci2b : ∀ i k, ∃ M, ∀ ω, |ci2 i k ω| ≤ M)
     (hci1m : ∀ i k, Measurable (ci1 i k)) (hci2m : ∀ i k, Measurable (ci2 i k))
     (hci1a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ci1 i k))
+      (ℱ (p i.castSucc)) (ci1 i k))
     (hci2a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ci2 i k)) :
+      (ℱ (p i.castSucc)) (ci2 i k)) :
     ∫ ω, ((∑ i : Fin N₀, ∑ k₀, ci1 i k₀ ω
           * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ Bi1 i k₀) ω)
         - ∑ i : Fin N₀, ∑ k₀, ci2 i k₀ ω
@@ -3554,10 +3556,11 @@ lemma markStepIntegral_diff_isometry
     Fin.addCases (fun k => by simp only [hciC, Fin.append_left]; exact hci1m i k)
       (fun k => by simp only [hciC, Fin.append_right]; exact (hci2m i k).neg)
   have hciCa : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (p i.castSucc)) (ciC i k) := fun i =>
+      (ℱ (p i.castSucc)) (ciC i k) := fun i =>
     Fin.addCases (fun k => by simp only [hciC, Fin.append_left]; exact hci1a i k)
       (fun k => by simp only [hciC, Fin.append_right]; exact (hci2a i k).neg)
-  have key := markStepIntegral_isometry N p hp0 hpmono hpleT BiC ciC hBiCm hBiCf hciCb hciCm hciCa
+  have key := markStepIntegral_isometry N ℱ hℱ p hp0 hpmono hpleT BiC ciC hBiCm hBiCf hciCb hciCm
+    hciCa
   have hI : ∀ ω, (∑ i : Fin N₀, ∑ k, ciC i k ω
         * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ BiC i k) ω)
       = (∑ i : Fin N₀, ∑ k₀, ci1 i k₀ ω
@@ -3703,7 +3706,8 @@ lemma dyadic_fine_endpoints {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m) (
         dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
           rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).castSucc = q j.val
         ∧ dyadicPartition T m (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
-          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ = q (j.val + 1) := by
+          rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))).succ = q (j.val + 1)
+            := by
   refine ⟨fun jj => ((2 ^ (m - n) * i.val + jj : ℕ) : ℝ) * T / ((2 ^ m : ℕ) : ℝ), ?_, ?_, ?_, ?_⟩
   · intro a b hab
     simp only
@@ -3858,16 +3862,17 @@ lemma dyadic_coarse_point_le {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m) 
 `ℱ_{p^m_{i'}}`-measurable (it is `ℱ_{p^n_{coarse i'}}`-measurable and `ℱ` is monotone). -/
 lemma dyadic_refine_adapted
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {T : ℝ} (hT : 0 < T) {n m : ℕ}
     (hnm : n ≤ m) {Ki : Fin (2 ^ n) → ℕ} (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
     (hcia : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc)) (ci i k))
+      (ℱ (dyadicPartition T n i.castSucc)) (ci i k))
     (i' : Fin (2 ^ m)) (k₀ : Fin (Ki (dyadicCoarse n m hnm i'))) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T m i'.castSucc))
+      (ℱ (dyadicPartition T m i'.castSucc))
       (ci (dyadicCoarse n m hnm i') k₀) :=
   (hcia (dyadicCoarse n m hnm i') k₀).mono
-    ((LevyStochCalc.Poisson.naturalFiltration N).mono (dyadic_coarse_point_le hT hnm i'))
+    (ℱ.mono (dyadic_coarse_point_le hT hnm i'))
 
 /-- **Step-eval refinement.** The level-`n` step eval equals (pointwise) the level-`m`
 step eval whose fine pieces inherit their coarse piece's marks and coefficients. (Sum
@@ -4088,7 +4093,9 @@ level-`m` partition (`stepIntegral_dyadic_refine_integral`/`_eval`), reducing to
 same-partition `markStepIntegral_diff_isometry`. -/
 lemma stepIntegral_crossres_diff_isometry
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) {n m : ℕ}
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ) {T : ℝ} (hT : 0 < T) {n
+      m : ℕ}
     (hnm : n ≤ m)
     {Ki1 : Fin (2 ^ n) → ℕ} {Ki2 : Fin (2 ^ m) → ℕ}
     (Bi1 : ∀ i, Fin (Ki1 i) → Set E) (Bi2 : ∀ i, Fin (Ki2 i) → Set E)
@@ -4098,9 +4105,9 @@ lemma stepIntegral_crossres_diff_isometry
     (hci1b : ∀ i k, ∃ M, ∀ ω, |ci1 i k ω| ≤ M) (hci2b : ∀ i k, ∃ M, ∀ ω, |ci2 i k ω| ≤ M)
     (hci1m : ∀ i k, Measurable (ci1 i k)) (hci2m : ∀ i k, Measurable (ci2 i k))
     (hci1a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T n i.castSucc)) (ci1 i k))
+      (ℱ (dyadicPartition T n i.castSucc)) (ci1 i k))
     (hci2a : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T m i.castSucc)) (ci2 i k)) :
+      (ℱ (dyadicPartition T m i.castSucc)) (ci2 i k)) :
     ∫ ω, ((∑ i : Fin (2 ^ n), ∑ k₀, ci1 i k₀ ω
           * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
               (dyadicPartition T n i.succ) ×ˢ Bi1 i k₀) ω)
@@ -4116,13 +4123,13 @@ lemma stepIntegral_crossres_diff_isometry
             * ∑ k₀, ci2 i k₀ ω * (Bi2 i k₀).indicator (fun _ => (1 : ℝ)) e) ^ 2
         ∂volume ∂ν) ∂P := by
   -- diff isometry on (refined level-n family, level-m family) over the level-m partition.
-  have hdiff := markStepIntegral_diff_isometry N (dyadicPartition T m)
+  have hdiff := markStepIntegral_diff_isometry N ℱ hℱ (dyadicPartition T m)
     (dyadicPartition_zero T m) (dyadicPartition_strictMono hT m) (dyadicPartition_le_T hT m)
     (fun i' => Bi1 (dyadicCoarse n m hnm i')) Bi2
     (fun i' => ci1 (dyadicCoarse n m hnm i')) ci2
     (fun i' k => hBi1m _ k) hBi2m (fun i' k => hBi1f _ k) hBi2f
     (fun i' k => hci1b _ k) hci2b (fun i' k => hci1m _ k) hci2m
-    (fun i' k => dyadic_refine_adapted N hT hnm ci1 hci1a i' k) hci2a
+    (fun i' k => dyadic_refine_adapted N ℱ hT hnm ci1 hci1a i' k) hci2a
   have hrefI := stepIntegral_dyadic_refine_integral N hT hnm Bi1 ci1 hBi1m hBi1f
   have hrefE := stepIntegral_dyadic_refine_eval (E := E) hT hnm Bi1 ci1
   rw [show ∫ ω, ((∑ i : Fin (2 ^ n), ∑ k₀, ci1 i k₀ ω
@@ -4152,7 +4159,9 @@ lemma stepIntegral_crossres_diff_isometry
 the triple real↔`ℝ≥0∞` bridge, a Tonelli swap, and the `2(a²+b²)` triangle against `φ`. -/
 lemma eulerStepIntegral_cauchy_le
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ) {T : ℝ} (hT : 0 < T) (φ
+      : Ω → ℝ → E → ℝ)
     (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
     {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤) {a b : ℕ} (hab : a ≤ b)
     {Kia : Fin (2 ^ a) → ℕ} {Kib : Fin (2 ^ b) → ℕ}
@@ -4163,9 +4172,9 @@ lemma eulerStepIntegral_cauchy_le
     (hciab : ∀ i k, ∃ M, ∀ ω, |cia i k ω| ≤ M) (hcibb : ∀ i k, ∃ M, ∀ ω, |cib i k ω| ≤ M)
     (hciam : ∀ i k, Measurable (cia i k)) (hcibm : ∀ i k, Measurable (cib i k))
     (hciaa : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T a i.castSucc)) (cia i k))
+      (ℱ (dyadicPartition T a i.castSucc)) (cia i k))
     (hciba : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Poisson.naturalFiltration N).seq (dyadicPartition T b i.castSucc)) (cib i k)) :
+      (ℱ (dyadicPartition T b i.castSucc)) (cib i k)) :
     ∫⁻ ω, (‖(∑ i : Fin (2 ^ a), ∑ k, cia i k ω
           * N.compensated (Set.Ioc (dyadicPartition T a i.castSucc)
               (dyadicPartition T a i.succ) ×ˢ Bia i k) ω)
@@ -4175,13 +4184,17 @@ lemma eulerStepIntegral_cauchy_le
       ≤ 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e
             - ∑ i : Fin (2 ^ a), (Set.Ioc (dyadicPartition T a i.castSucc)
                 (dyadicPartition T a i.succ)).indicator (fun _ => (1 : ℝ)) s
-              * ∑ k, cia i k ω * (Bia i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
+              * ∑ k, cia i k ω * (Bia i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume
+                ∂P)
         + 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e
             - ∑ i : Fin (2 ^ b), (Set.Ioc (dyadicPartition T b i.castSucc)
                 (dyadicPartition T b i.succ)).indicator (fun _ => (1 : ℝ)) s
-              * ∑ k, cib i k ω * (Bib i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
-  have hBiaf : ∀ i k, ν (Bia i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBiaS i k))
-  have hBibf : ∀ i k, ν (Bib i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBibS i k))
+              * ∑ k, cib i k ω * (Bib i k).indicator (fun _ => (1 : ℝ)) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume
+                ∂P) := by
+  have hBiaf : ∀ i k, ν (Bia i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBiaS
+    i k))
+  have hBibf : ∀ i k, ν (Bib i k) ≠ ⊤ := fun i k => ne_top_of_le_ne_top hSfin (measure_mono (hBibS
+    i k))
   set ea : Ω → ℝ → E → ℝ := fun ω s e => ∑ i : Fin (2 ^ a),
     (Set.Ioc (dyadicPartition T a i.castSucc) (dyadicPartition T a i.succ)).indicator
       (fun _ => (1 : ℝ)) s * ∑ k, cia i k ω * (Bia i k).indicator (fun _ => (1 : ℝ)) e with hea
@@ -4208,7 +4221,7 @@ lemma eulerStepIntegral_cauchy_le
     (eulerStepIntegral_memLp N (dyadicPartition T a) Bia cia hBiam hBiaf hciab hciam).sub
       (eulerStepIntegral_memLp N (dyadicPartition T b) Bib cib hBibm hBibf hcibb hcibm)
   rw [lintegral_sq_eq_ofReal_integral hmemdiff,
-    stepIntegral_crossres_diff_isometry N hT hab Bia Bib cia cib hBiam hBibm hBiaf hBibf
+    stepIntegral_crossres_diff_isometry N ℱ hℱ hT hab Bia Bib cia cib hBiam hBibm hBiaf hBibf
       hciab hcibb hciam hcibm hciaa hciba,
     triple_ofReal_integral_eq_lintegral (fun ω s e => ea ω s e - eb ω s e) hh_meas hh_bdd hS hSfin
       hh_supp]
@@ -4245,7 +4258,8 @@ lemma eulerStepIntegral_cauchy_le
           ((ENNReal.continuous_coe.measurable.comp
             ((h_meas.sub (markEval_measurable (dyadicPartition T b) Bib cib hBibm
               hcibm)).nnnorm)).pow_const 2 |>.const_mul 2),
-          lintegral_triple_const_mul 2 (by norm_num) _, lintegral_triple_const_mul 2 (by norm_num) _]
+          lintegral_triple_const_mul 2 (by norm_num) _, lintegral_triple_const_mul 2 (by norm_num)
+            _]
 
 /-- `eLpNorm g 2 μ ^ (2:ℝ) = ∫⁻ ‖g‖₊²`. -/
 lemma eLpNorm_two_rpow_eq_lintegral_sq {P : Measure Ω} (g : Ω → ℝ) :
@@ -4266,13 +4280,11 @@ bound (`eulerStepIntegral_cauchy_le`), and `Lp`-completeness
 (`exists_L2_limit_of_memLp_cauchySeq`). -/
 theorem compensated_eulerSum_L2_limit
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ) {T : ℝ} (hT : 0 < T) (φ
+      : Ω → ℝ → E → ℝ)
     (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t) inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
     {M : ℝ} (hM : ∀ ω s e, |φ ω s e| ≤ M)
     {S : Set E} (hS : MeasurableSet S) (hSfin : ν S ≠ ⊤)
     (hSupp : ∀ ω e, e ∉ S → ∀ u, φ ω u e = 0) :
@@ -4286,9 +4298,9 @@ theorem compensated_eulerSum_L2_limit
               (dyadicPartition T n i.succ) ×ˢ Bi n i k) ω) - F) 2 P) Filter.atTop (nhds 0) := by
   classical
   obtain ⟨Ki, Bi, ci, hBim, hBiS, hcia, hcib, htend⟩ :=
-    exists_markEval_L2_tendsto N hT φ h_meas h_progMeas hM hS hSfin hSupp
+    exists_markEval_L2_tendsto N ℱ hT φ h_meas h_progMeas hM hS hSfin hSupp
   have hcim : ∀ n i k, Measurable (ci n i k) := fun n i k =>
-    (hcia n i k).measurable.mono ((LevyStochCalc.Poisson.naturalFiltration N).le _) le_rfl
+    (hcia n i k).measurable.mono (ℱ.le _) le_rfl
   set I : ℕ → Ω → ℝ := fun n ω => ∑ i : Fin (2 ^ n), ∑ k, ci n i k ω
     * N.compensated (Set.Ioc (dyadicPartition T n i.castSucc)
         (dyadicPartition T n i.succ) ×ˢ Bi n i k) ω with hI
@@ -4315,14 +4327,16 @@ theorem compensated_eulerSum_L2_limit
       have hle : ∫⁻ ω, (‖(I m - I n) ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n := by
         show ∫⁻ ω, (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n
         rcases le_total m n with hmn | hnm
-        · exact eulerStepIntegral_cauchy_le N hT φ h_meas hS hSfin hmn (Bi m) (Bi n) (ci m) (ci n)
+        · exact eulerStepIntegral_cauchy_le N ℱ hℱ hT φ h_meas hS hSfin hmn (Bi m) (Bi n) (ci m)
+            (ci n)
             (hBim m) (hBim n) (hBiS m) (hBiS n) (hcib m) (hcib n) (hcim m) (hcim n)
             (hcia m) (hcia n)
         · rw [show (fun ω => (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2)
                 = (fun ω => (‖I n ω - I m ω‖₊ : ℝ≥0∞) ^ 2) from funext (fun ω => by
               rw [show I m ω - I n ω = -(I n ω - I m ω) from by ring, nnnorm_neg]),
             add_comm (2 * Aφ m)]
-          exact eulerStepIntegral_cauchy_le N hT φ h_meas hS hSfin hnm (Bi n) (Bi m) (ci n) (ci m)
+          exact eulerStepIntegral_cauchy_le N ℱ hℱ hT φ h_meas hS hSfin hnm (Bi n) (Bi m) (ci n)
+            (ci m)
             (hBim n) (hBim m) (hBiS n) (hBiS m) (hcib n) (hcib m) (hcim n) (hcim m)
             (hcia n) (hcia m)
       refine lt_of_le_of_lt hle ?_
@@ -4436,7 +4450,8 @@ lemma measure_minIoc_prod_rightCont (m : Measure (ℝ × E)) {a b : ℝ} (hab : 
     · exact ge_of_tendsto' (tendsto_const_nhds.min hut)
         (fun n => (Set.mem_prod.mp (hx n)).1.2)
   have hfin0 : m (Set.Ioc (min a (u 0)) (min b (u 0)) ×ˢ A) ≠ ⊤ :=
-    ne_top_of_le_ne_top hfin (measure_mono (Set.prod_mono (minIoc_subset_Ioc hab (u 0)) (le_refl A)))
+    ne_top_of_le_ne_top hfin (measure_mono (Set.prod_mono (minIoc_subset_Ioc hab (u 0)) (le_refl
+      A)))
   have hlim := tendsto_measure_iInter_atTop
     (fun n => (measurableSet_Ioc.prod hA).nullMeasurableSet) hset_anti ⟨0, hfin0⟩
   rw [hInter] at hlim

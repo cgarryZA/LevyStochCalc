@@ -30,6 +30,7 @@ namespace MarkStep
 
 variable {ν : Measure E} [SigmaFinite ν] {P : Measure Ω} [IsProbabilityMeasure P]
   {g : TimeGrid} (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g)
+  {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ : IsPoissonFiltration N ℱ)
 
 /-- The compensator `∫_0^t ∫_E G(u, e)² ν(de) du` of a mark-step integrand. -/
 noncomputable def compensator (t : ℝ) (ω : Ω) : ℝ :=
@@ -56,7 +57,7 @@ lemma integral_eval_sq_le : ∃ C : ℝ, 0 ≤ C ∧ ∀ u ω, ∫ e, (G.eval u 
         refine setIntegral_mono_on ?_ hint G.measurableSet_iUnion_B fun e _ => ?_
         · refine hint.mono' ?_ (Filter.Eventually.of_forall fun e => ?_)
           · exact ((G.eval_measurable.comp (by fun_prop :
-              Measurable fun e : E => ((ω, u, e) : Ω × ℝ × E))).pow_const 2).aestronglyMeasurable
+                Measurable fun e : E => ((ω, u, e) : Ω × ℝ × E))).pow_const 2).aestronglyMeasurable
           · rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
             nlinarith [hC ω u e, abs_nonneg (G.eval u e ω), sq_abs (G.eval u e ω)]
         · nlinarith [hC ω u e, abs_nonneg (G.eval u e ω), sq_abs (G.eval u e ω)]
@@ -149,7 +150,7 @@ lemma integral_integral_eval_sq_swap {S : Set ℝ} (hSfin : volume S ≠ ⊤) (�
   show ‖(G.eval q.2 q.1 ω) ^ 2‖ ≤ _
   by_cases hq : q.1 ∈ ⋃ k, G.B k
   · rw [Set.indicator_of_mem (Set.mem_prod.2 ⟨hq, Set.mem_univ _⟩), Real.norm_eq_abs,
-      abs_of_nonneg (sq_nonneg _)]
+    abs_of_nonneg (sq_nonneg _)]
     nlinarith [hC ω q.2 q.1, abs_nonneg (G.eval q.2 q.1 ω), sq_abs (G.eval q.2 q.1 ω)]
   · rw [Set.indicator_of_notMem (fun h => hq h.1), G.eval_support ω q.2 q.1 hq]
     simp
@@ -169,14 +170,14 @@ lemma integrable_compensator (t : ℝ) : Integrable (G.compensator t) P := by
     exact integrable_const 0
 
 /-- The compensator up to time `t` is measurable for the natural filtration at time `t`. -/
-lemma compensator_stronglyMeasurable (hG : G.Adapted N) (t : ℝ) :
-    @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq t) (G.compensator t) := by
+lemma compensator_stronglyMeasurable (hG : G.Adapted ℱ) (t : ℝ) :
+    @StronglyMeasurable Ω ℝ _ (ℱ t) (G.compensator t) := by
   rcases lt_or_ge t 0 with ht | ht
   · have h : G.compensator t = fun _ => 0 := funext fun ω => G.compensator_of_nonpos ht.le ω
     rw [h]
     exact stronglyMeasurable_const
-  · let G' : @MarkStep Ω ((naturalFiltration N).seq t) E _ ν _ (g.clamp t ht) :=
-      @MarkStep.mk Ω ((naturalFiltration N).seq t) E _ ν _ (g.clamp t ht) G.K G.B
+  · let G' : @MarkStep Ω (ℱ t) E _ ν _ (g.clamp t ht) :=
+      @MarkStep.mk Ω (ℱ t) E _ ν _ (g.clamp t ht) G.K G.B
         G.B_measurable G.B_finite
         (fun i k ω => if i < (g.clamp t ht).N₀ then G.ξ i k ω else 0)
         (fun i k => by
@@ -190,10 +191,10 @@ lemma compensator_stronglyMeasurable (hG : G.Adapted N) (t : ℝ) :
           by_cases hi : i < (g.clamp t ht).N₀
           · simp only [hi, if_true]
             exact ((hG i (g.lt_of_lt_clampIndex hi).1 k).mono
-              ((naturalFiltration N).mono (g.lt_of_lt_clampIndex hi).2.le)).measurable
+              (ℱ.mono (g.lt_of_lt_clampIndex hi).2.le)).measurable
           · simp only [hi, if_false]
             exact measurable_const)
-    have hev : ∀ u e ω, @eval Ω ((naturalFiltration N).seq t) E _ ν _ (g.clamp t ht) G' u e ω
+    have hev : ∀ u e ω, @eval Ω (ℱ t) E _ ν _ (g.clamp t ht) G' u e ω
         = (G.clamp t ht).eval u e ω := by
       intro u e ω
       unfold eval
@@ -204,7 +205,7 @@ lemma compensator_stronglyMeasurable (hG : G.Adapted N) (t : ℝ) :
         = _ * ∑ k : Fin G.K, G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e
       simp only [hi, if_true]
     have hcomp : G.compensator t
-        = @compensator Ω ((naturalFiltration N).seq t) E _ ν _ (g.clamp t ht) G' t := by
+        = @compensator Ω (ℱ t) E _ ν _ (g.clamp t ht) G' t := by
       funext ω
       unfold compensator
       refine setIntegral_congr_fun measurableSet_Icc fun u hu => ?_
@@ -212,20 +213,21 @@ lemma compensator_stronglyMeasurable (hG : G.Adapted N) (t : ℝ) :
       beta_reduce
       rw [hev, G.eval_clamp t ht, if_pos hu.2]
     rw [hcomp]
-    exact (@measurable_compensator Ω ((naturalFiltration N).seq t) E _ ν _ (g.clamp t ht) G'
+    exact (@measurable_compensator Ω (ℱ t) E _ ν _ (g.clamp t ht) G'
       t).stronglyMeasurable
 
+include hℱ in
 /-- The set integral of the squared increment of the integral over a set measurable at the
 earlier time equals that of the increment of the compensator. -/
-theorem setIntegral_increment_sq_eq (hG : G.Adapted N) {s t : ℝ} (hst : s ≤ t) {B : Set Ω}
-    (hB : MeasurableSet[(naturalFiltration N).seq s] B) :
+theorem setIntegral_increment_sq_eq (hG : G.Adapted ℱ) {s t : ℝ} (hst : s ≤ t) {B : Set Ω}
+    (hB : MeasurableSet[ℱ s] B) :
     ∫ ω in B, (G.integral N t ω - G.integral N s ω) ^ 2 ∂P
       = ∫ ω in B, (G.compensator t ω - G.compensator s ω) ∂P := by
-  have hBm : MeasurableSet B := (naturalFiltration N).le s B hB
+  have hBm : MeasurableSet B := ℱ.le s B hB
   set w : Ω → ℝ := B.indicator (fun _ => (1 : ℝ)) with hwdef
   have hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C := ⟨1, fun ω => abs_indicator_one_le B ω⟩
   have hwm : Measurable w := measurable_const.indicator hBm
-  have hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq s) w :=
+  have hwa : @StronglyMeasurable Ω ℝ _ (ℱ s) w :=
     stronglyMeasurable_const.indicator hB
   have hind : ∀ f : Ω → ℝ, ∫ ω, (w ω) ^ 2 * f ω ∂P = ∫ ω in B, f ω ∂P := by
     intro f
@@ -243,7 +245,7 @@ theorem setIntegral_increment_sq_eq (hG : G.Adapted N) {s t : ℝ} (hst : s ≤ 
   · simp
   rcases le_or_gt t 0 with ht | ht
   · have h1 : ∀ ω, G.integral N t ω - G.integral N s ω = 0 := fun ω => by
-      rw [G.integral_eq_zero_of_nonpos N ht, G.integral_eq_zero_of_nonpos N (hst.trans ht),
+        rw [G.integral_eq_zero_of_nonpos N ht, G.integral_eq_zero_of_nonpos N (hst.trans ht),
         sub_zero]
     have h2 : ∀ ω, G.compensator t ω - G.compensator s ω = 0 := fun ω => by
       rw [G.compensator_of_nonpos ht, G.compensator_of_nonpos (hst.trans ht), sub_zero]
@@ -255,27 +257,28 @@ theorem setIntegral_increment_sq_eq (hG : G.Adapted N) {s t : ℝ} (hst : s ≤ 
     have h2 : ∀ ω, G.compensator t ω - G.compensator s ω = G.compensator t ω := fun ω => by
       rw [G.compensator_of_nonpos hs, sub_zero]
     simp only [h1, h2]
-    rw [← hsq, G.integral_weight_zero_sq N hw hwm hG ht.le
-      (hwa.mono ((naturalFiltration N).mono hs)), ← hind]
+    rw [← hsq, G.integral_weight_zero_sq N hℱ hw hwm hG ht.le
+      (hwa.mono (ℱ.mono hs)), ← hind]
     refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
     beta_reduce
     rw [G.integral_integral_eval_sq_swap measure_Icc_lt_top.ne]
     rfl
-  · rw [← hsq, G.integral_weight_incr_sq N hw hwm hs hlt hG hwa, ← hind]
+  · rw [← hsq, G.integral_weight_incr_sq N hℱ hw hwm hs hlt hG hwa, ← hind]
     refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
     beta_reduce
     rw [G.integral_integral_eval_sq_swap measure_Ioc_lt_top.ne,
       G.compensator_sub hs.le hlt.le]
 
+include hℱ in
 /-- The compensated square `(∫_0^t ∫_E G dÑ)² − ∫_0^t ∫_E G² dν du` of an adapted mark-step
 integrand is a martingale on the natural filtration. -/
-theorem martingale_sq_sub_compensator (hG : G.Adapted N) :
+theorem martingale_sq_sub_compensator (hG : G.Adapted ℱ) :
     Martingale (fun t ω => (G.integral N t ω) ^ 2 - G.compensator t ω)
-      (naturalFiltration N) P :=
-  LevyStochCalc.Martingale.martingale_sq_sub_of_setIntegral (G.martingale_integral N hG)
-    (fun t => G.memLp_integral N t) (fun t => G.compensator_stronglyMeasurable N hG t)
+      ℱ P :=
+  LevyStochCalc.Martingale.martingale_sq_sub_of_setIntegral (G.martingale_integral N hℱ hG)
+    (fun t => G.memLp_integral N t) (fun t => G.compensator_stronglyMeasurable hG t)
     (fun t => G.integrable_compensator t)
-    (fun _ _ hst _ hB => G.setIntegral_increment_sq_eq N hG hst hB)
+    (fun _ _ hst _ hB => G.setIntegral_increment_sq_eq N hℱ hG hst hB)
 
 end MarkStep
 

@@ -150,7 +150,9 @@ we identify it as the sum of the *jump martingale* term and the
   `R_canonical T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
 
 where
-* `jump_mart_T(ω) = Compensated.stochasticIntegral N (u(·+γ) − u along X) T ω`,
+* `jump_mart_T(ω) = Compensated.stochasticIntegral N
+    (LevyStochCalc.Poisson.naturalFiltration N)
+    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) (u(·+γ) − u along X) T ω`,
 * `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 
 **Narrowing compared to the previous Tier 1 #16 axiom**: the previous
@@ -214,14 +216,9 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-          (@Prod.instMeasurableSpace Ω (ℝ × E)
-            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ × E =>
-            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
-                            - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+    (h_jumpInt_progMeas : 
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
           (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
@@ -239,6 +236,8 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω)
         =
         LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (LevyStochCalc.Poisson.naturalFiltration N)
+            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
@@ -255,7 +254,9 @@ identifies it as the sum of the *jump martingale* term and the
   `R T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
 
 where
-* `jump_mart_T(ω) = Compensated.stochasticIntegral N (u(·+γ) − u along X) T ω`,
+* `jump_mart_T(ω) = Compensated.stochasticIntegral N
+    (LevyStochCalc.Poisson.naturalFiltration N)
+    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) (u(·+γ) − u along X) T ω`,
 * `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 
 Derived by per-`ω` algebra from the narrower axiom
@@ -306,14 +307,9 @@ theorem itoLevyFormula_jumpResidual_axiom
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-          (@Prod.instMeasurableSpace Ω (ℝ × E)
-            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ × E =>
-            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
-                            - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+    (h_jumpInt_progMeas : 
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
           (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
@@ -336,6 +332,8 @@ theorem itoLevyFormula_jumpResidual_axiom
     ∀ᵐ ω ∂P,
       R T ω =
         LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (LevyStochCalc.Poisson.naturalFiltration N)
+            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
@@ -404,14 +402,9 @@ theorem itoLevyFormula
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-          (@Prod.instMeasurableSpace Ω (ℝ × E)
-            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ × E =>
-            (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
-                            - u s (X.X s ω')) p.1 p.2.1 p.2.2))
+    (h_jumpInt_progMeas : 
+        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
           (‖u s (X.X s ω + coeffs.γ s (X.X s ω) e)
@@ -428,6 +421,8 @@ theorem itoLevyFormula
             (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (LevyStochCalc.Poisson.naturalFiltration N)
+            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω

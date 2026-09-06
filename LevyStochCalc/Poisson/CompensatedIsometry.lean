@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CompensatedSimple
+import LevyStochCalc.Poisson.Filtered
 import Mathlib.Probability.Independence.Integration
 
 /-!
@@ -454,12 +455,11 @@ lemma simpleIntegral_diagonal
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N)
     (h_part_nn : 0 ≤ φ.partition i.castSucc)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫⁻ ω, (‖φ.ξ i ω * N.compensated (φ.timeRect i T) ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i T)
           * ∫⁻ ω, (‖φ.ξ i ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
@@ -492,20 +492,10 @@ lemma simpleIntegral_diagonal
     · exact measurable_const
   -- Step 1: Show IndepFun ξi ÑB.
   -- B = Set.Ioc s t ×ˢ A, so B ⊆ (s, t] × E type set.
-  have h_indep_struct := N.joint_past_future_independent h_part_nn hst
+  have h_indep_struct := hℱ.indep h_part_nn hst
     (φ.A_measurable i) (φ.A_finite i)
-  have h_ξi_comap_le :
-      MeasurableSpace.comap ξi inferInstance ≤
-        ⨆ B' ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic s ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B') inferInstance := by
-    -- ξi is measurable w.r.t. the past σ-algebra (h_adapt).
-    have h_ξi_past : @Measurable Ω ℝ
-        (⨆ B' ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic s ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B') inferInstance) _ ξi :=
-      h_adapt.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    exact h_ξi_past hv
+  have h_ξi_comap_le : MeasurableSpace.comap ξi inferInstance ≤ ℱ s :=
+    h_adapt.measurable.comap_le
   have h_ÑB_comap_le :
       MeasurableSpace.comap ÑB inferInstance ≤
         MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc s t ×ˢ A)) inferInstance := by
@@ -522,10 +512,7 @@ lemma simpleIntegral_diagonal
   have h_indep_ξ_ÑB : ProbabilityTheory.IndepFun ξi ÑB P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ B' ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic s ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B') inferInstance) u :=
-      h_ξi_comap_le u hu
+    have hu_F : MeasurableSet[ℱ s] u := h_ξi_comap_le u hu
     have hv_F : @MeasurableSet Ω
         (MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc s t ×ˢ A)) inferInstance) v :=
       h_ÑB_comap_le v hv
@@ -609,15 +596,12 @@ lemma simpleIntegral_offDiagonal
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) {i j : Fin φ.N} (hij : i < j)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     (h_adapt_j : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition j.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ j)) :
+      (ℱ (φ.partition j.castSucc)) (φ.ξ j)) :
     ∫ ω, (φ.ξ i ω * N.compensated (φ.timeRect i T) ω) *
          (φ.ξ j ω * N.compensated (φ.timeRect j T) ω) ∂P = 0 := by
   set t_i_pre : ℝ := φ.partition i.castSucc with hti0_def
@@ -681,57 +665,42 @@ lemma simpleIntegral_offDiagonal
     obtain ⟨hx_time, _⟩ := Set.mem_prod.mp hx
     exact Set.mem_prod.mpr ⟨(Set.mem_Ioc.mp hx_time).2.trans h_i_le_j_pre, Set.mem_univ _⟩
   -- past-at-t_i_pre ≤ past-at-t_j_pre (since t_i_pre ≤ t_j_pre)
-  have h_pastIp_le_pastJp :
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_i_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ≤
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) := by
-    refine iSup_le (fun B => iSup_le (fun hB => ?_))
-    refine le_iSup_of_le B (le_iSup_of_le ⟨?_, hB.2⟩ le_rfl)
-    refine hB.1.trans (Set.prod_mono ?_ Set.Subset.rfl)
-    exact Set.Iic_subset_Iic.mpr h_t_i_pre_le_t_j_pre
+  have h_pastIp_le_pastJp : (ℱ t_i_pre) ≤ (ℱ t_j_pre) := ℱ.mono h_t_i_pre_le_t_j_pre
   -- ξi is past-at-t_j_pre measurable (lift h_adapt_i via .mono)
   have h_ξi_pastJp : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ξi :=
+      (ℱ t_j_pre) ξi :=
     h_adapt_i.mono h_pastIp_le_pastJp
   -- σ(N(B_i)) ≤ past-at-t_j_pre (since B_i is in the past family)
   have h_NBi_in_pastJp :
       MeasurableSpace.comap (fun ω => N.N ω B_i) inferInstance ≤
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) :=
-    le_iSup_of_le B_i (le_iSup_of_le ⟨h_B_i_in_past_j, h_B_i_meas⟩ le_rfl)
+      (ℱ t_j_pre) :=
+    (hℱ.measurable h_B_i_in_past_j h_B_i_meas).comap_le
   -- N(B_i) is past-at-t_j_pre measurable
   have h_NBi_self : @Measurable Ω ℝ≥0∞
       (MeasurableSpace.comap (fun ω => N.N ω B_i) inferInstance) _
       (fun ω => N.N ω B_i) := fun u hu => ⟨u, hu, rfl⟩
   have h_NBi_pastJp_meas : @Measurable Ω ℝ≥0∞
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) _
+      (ℱ t_j_pre) _
       (fun ω => N.N ω B_i) :=
     h_NBi_self.mono h_NBi_in_pastJp le_rfl
   -- ÑB_i = (N(B_i)).toReal - c is past-at-t_j_pre measurable
   -- Stated in unfolded form to avoid `show` σ-algebra inference issues.
   have h_ÑB_i_pastJp_meas_unfolded : @Measurable Ω ℝ
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) _
+      (ℱ t_j_pre) _
       (fun ω => (N.N ω B_i).toReal -
         (LevyStochCalc.Poisson.referenceIntensity ν B_i).toReal) :=
     (ENNReal.measurable_toReal.sub_const _).comp h_NBi_pastJp_meas
   have h_ÑB_i_pastJp : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ÑB_i :=
+      (ℱ t_j_pre) ÑB_i :=
     h_ÑB_i_pastJp_meas_unfolded.stronglyMeasurable
   -- ξj is past-at-t_j_pre measurable directly
   have h_ξj_pastJp : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) ξj :=
+      (ℱ t_j_pre) ξj :=
     h_adapt_j
   -- f := ξi · ÑB_i · ξj is past-at-t_j_pre measurable
   set f : Ω → ℝ := fun ω => ξi ω * ÑB_i ω * ξj ω with hf_def
   have h_f_pastJp : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) f :=
+      (ℱ t_j_pre) f :=
     (h_ξi_pastJp.mul h_ÑB_i_pastJp).mul h_ξj_pastJp
   -- Factor (ξi · ÑB_i)(ξj · ÑB_j) = f · ÑB_j
   have h_factored : (fun ω => (ξi ω * ÑB_i ω) * (ξj ω * ÑB_j ω))
@@ -743,17 +712,12 @@ lemma simpleIntegral_offDiagonal
               (φ.ξ j ω * N.compensated (Set.Ioc t_j_pre t_j ×ˢ A_j) ω))
         = fun ω => f ω * ÑB_j ω from h_factored]
   -- Step: σ(f) ⊥ σ(ÑB_j) under P (joint past/future independence)
-  have h_indep_struct := N.joint_past_future_independent h_j_pre_nn h_j_pre_lt
+  have h_indep_struct := hℱ.indep h_j_pre_nn h_j_pre_lt
     (φ.A_measurable j) (φ.A_finite j)
   have h_f_meas : Measurable f :=
     (h_ξi_meas.mul h_ÑB_i_meas).mul h_ξj_meas
-  have h_f_comap_le :
-      MeasurableSpace.comap f inferInstance ≤
-        ⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance := by
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    exact h_f_pastJp.measurable hv
+  have h_f_comap_le : MeasurableSpace.comap f inferInstance ≤ ℱ t_j_pre :=
+    h_f_pastJp.measurable.comap_le
   have h_ÑB_j_comap_le :
       MeasurableSpace.comap ÑB_j inferInstance ≤
         MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc t_j_pre t_j ×ˢ A_j)) inferInstance := by
@@ -766,10 +730,7 @@ lemma simpleIntegral_offDiagonal
   have h_indep_f_ÑB_j : ProbabilityTheory.IndepFun f ÑB_j P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic t_j_pre ×ˢ Set.univ ∧ MeasurableSet C },
-          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) u :=
-      h_f_comap_le u hu
+    have hu_F : MeasurableSet[ℱ t_j_pre] u := h_f_comap_le u hu
     have hv_F : @MeasurableSet Ω
         (MeasurableSpace.comap (fun ω => N.N ω (Set.Ioc t_j_pre t_j ×ˢ A_j)) inferInstance) v :=
       h_ÑB_j_comap_le v hv
@@ -798,12 +759,11 @@ private lemma simpleIntegral_diagonal_bochner
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N)
     (h_part_nn : 0 ≤ φ.partition i.castSucc)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫ ω, (φ.ξ i ω * N.compensated (φ.timeRect i T) ω)^2 ∂P
       = (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i T)).toReal *
         ∫ ω, (φ.ξ i ω)^2 ∂P := by
@@ -813,7 +773,7 @@ private lemma simpleIntegral_diagonal_bochner
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
   -- Get the lintegral version of diagonal.
-  have h_lint := simpleIntegral_diagonal N φ i h_part_nn h_adapt
+  have h_lint := simpleIntegral_diagonal N ℱ hℱ φ i h_part_nn h_adapt
   -- Rewrite (‖·‖)² to ENNReal.ofReal(·²) on both sides.
   rw [show (∫⁻ ω,
         (‖φ.ξ i ω * N.compensated (φ.timeRect i T) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
@@ -1002,36 +962,32 @@ private lemma simpleIntegral_diagonal_bochner_fullRect
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) (i : Fin φ.N)
     (h_part_nn : 0 ≤ φ.partition i.castSucc)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫ ω, (φ.ξ i ω * N.compensated (φ.fullRect i) ω)^2 ∂P
       = (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i)).toReal *
         ∫ ω, (φ.ξ i ω)^2 ∂P := by
   rw [← φ.timeRect_eq_fullRect i]
-  exact simpleIntegral_diagonal_bochner N φ i h_part_nn h_adapt
+  exact simpleIntegral_diagonal_bochner N ℱ hℱ φ i h_part_nn h_adapt
 
 /-- OffDiagonal restated in `fullRect` form. -/
 private lemma simpleIntegral_offDiagonal_fullRect
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T) {i j : Fin φ.N} (hij : i < j)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i))
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i))
     (h_adapt_j : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition j.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ j)) :
+      (ℱ (φ.partition j.castSucc)) (φ.ξ j)) :
     ∫ ω, (φ.ξ i ω * N.compensated (φ.fullRect i) ω) *
          (φ.ξ j ω * N.compensated (φ.fullRect j) ω) ∂P = 0 := by
   rw [← φ.timeRect_eq_fullRect i, ← φ.timeRect_eq_fullRect j]
-  exact simpleIntegral_offDiagonal N φ hij h_adapt_i h_adapt_j
+  exact simpleIntegral_offDiagonal N ℱ hℱ φ hij h_adapt_i h_adapt_j
 
 set_option maxHeartbeats 800000 in
 -- maxHeartbeats: typechecker budget for proof-heavy goal below.
@@ -1041,11 +997,10 @@ private lemma simpleIntegral_sq_bochner_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫ ω, (∑ i : Fin φ.N, φ.ξ i ω * N.compensated (φ.fullRect i) ω)^2 ∂P
       = ∑ i : Fin φ.N,
         (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i)).toReal *
@@ -1080,7 +1035,7 @@ private lemma simpleIntegral_sq_bochner_eq
                        (φ.ξ i ω * N.compensated (φ.fullRect i) ω))
           = fun ω => (φ.ξ i ω * N.compensated (φ.fullRect i) ω)^2 from by
       funext ω; ring]
-    exact simpleIntegral_diagonal_bochner_fullRect N φ i h_part_nn (h_adapt i)
+    exact simpleIntegral_diagonal_bochner_fullRect N ℱ hℱ φ i h_part_nn (h_adapt i)
   · -- Terms at j ≠ i: vanish via offDiagonal (with symmetry).
     intro j _ hj
     rcases lt_or_gt_of_ne hj with h_lt | h_gt
@@ -1090,9 +1045,9 @@ private lemma simpleIntegral_sq_bochner_eq
             = fun ω => (φ.ξ j ω * N.compensated (φ.fullRect j) ω) *
                        (φ.ξ i ω * N.compensated (φ.fullRect i) ω) from by
         funext ω; ring]
-      exact simpleIntegral_offDiagonal_fullRect N φ h_lt (h_adapt j) (h_adapt i)
+      exact simpleIntegral_offDiagonal_fullRect N ℱ hℱ φ h_lt (h_adapt j) (h_adapt i)
     · -- i < j: direct offDiagonal.
-      exact simpleIntegral_offDiagonal_fullRect N φ h_gt (h_adapt i) (h_adapt j)
+      exact simpleIntegral_offDiagonal_fullRect N ℱ hℱ φ h_gt (h_adapt i) (h_adapt j)
   · intro h_not; exact absurd (Finset.mem_univ _) h_not
 
 set_option maxHeartbeats 800000 in
@@ -1104,11 +1059,10 @@ lemma simpleIntegral_sq_lintegral_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (_hT : 0 < T) (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∑ i : Fin φ.N,
         LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i) *
@@ -1147,7 +1101,7 @@ lemma simpleIntegral_sq_lintegral_eq
   -- Step 4: apply ofReal_integral_eq_lintegral_ofReal
   rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal h_int_sum_sq h_nn_sum_sq]
   -- Step 5: apply Bochner LHS reduction.
-  rw [simpleIntegral_sq_bochner_eq N φ h_adapt]
+  rw [simpleIntegral_sq_bochner_eq N ℱ hℱ φ h_adapt]
   -- Step 6: convert ENNReal.ofReal of finite sum to finite sum of ENNReal terms.
   rw [show
         ENNReal.ofReal (∑ i : Fin φ.N,
@@ -1195,15 +1149,14 @@ lemma simpleIntegral_isometry
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
-  rw [simpleIntegral_sq_lintegral_eq N hT φ h_adapt]
+  rw [simpleIntegral_sq_lintegral_eq N ℱ hℱ hT φ h_adapt]
   rw [SimplePredictable.lintegral_eval_sq_outer φ]
 
 /-- **B3 sum form: L² isometry (Bochner) for the compensated-Poisson simple
@@ -1216,11 +1169,10 @@ theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫ ω, (simpleIntegral N φ T ω) ^ 2 ∂P
       = ∑ i : Fin φ.N,
         (LevyStochCalc.Poisson.referenceIntensity ν (φ.fullRect i)).toReal *
@@ -1229,7 +1181,7 @@ theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
       = (∑ i : Fin φ.N, φ.ξ i ω * N.compensated (φ.fullRect i) ω) ^ 2 := by
     intro ω; rw [simpleIntegral_eq_sum_fullRect]
   simp_rw [h_eq]
-  exact simpleIntegral_sq_bochner_eq N φ h_adapt
+  exact simpleIntegral_sq_bochner_eq N ℱ hℱ φ h_adapt
 
 /-! ## C0b-Compensated mirror chain (in progress)
 
@@ -1243,13 +1195,12 @@ lemma simpleIntegral_lintegral_sq_finite_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤ := by
-  rw [simpleIntegral_isometry N hT φ h_adapt]
+  rw [simpleIntegral_isometry N ℱ hℱ hT φ h_adapt]
   rw [SimplePredictable.lintegral_eval_sq_outer φ]
   -- Goal: ∑ i, ν̂(fullRect i) * ∫⁻ ‖ξ i‖₊² ∂P < ⊤
   refine ENNReal.sum_lt_top.mpr (fun i _ => ?_)
@@ -1295,11 +1246,10 @@ lemma simpleIntegral_memLp_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
     {T : ℝ} (hT : 0 < T) (φ : SimplePredictable Ω E ν T)
     (h_adapt : ∀ i : Fin φ.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (⨆ B ∈ { C : Set (ℝ × E) | C ⊆ Set.Iic (φ.partition i.castSucc) ×ˢ Set.univ
-                                  ∧ MeasurableSet C },
-        MeasurableSpace.comap (fun ω => N.N ω B) inferInstance) (φ.ξ i)) :
+      (ℱ (φ.partition i.castSucc)) (φ.ξ i)) :
     MeasureTheory.MemLp (fun ω => simpleIntegral N φ T ω) 2 P := by
   refine ⟨?_, ?_⟩
   · -- AEStronglyMeasurable.
@@ -1321,7 +1271,7 @@ lemma simpleIntegral_memLp_compensated
         (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
     have h_two_toReal : (2 : ℝ≥0∞).toReal = 2 := by simp
     rw [h_two_toReal]
-    have h_pre := simpleIntegral_lintegral_sq_finite_compensated N hT φ h_adapt
+    have h_pre := simpleIntegral_lintegral_sq_finite_compensated N ℱ hℱ hT φ h_adapt
     have h_rewrite : ∀ ω : Ω,
         (‖simpleIntegral N φ T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ)
           = (‖simpleIntegral N φ T ω‖₊ : ℝ≥0∞) ^ 2 := by

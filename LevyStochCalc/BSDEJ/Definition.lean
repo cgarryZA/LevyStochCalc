@@ -181,12 +181,10 @@ def IsBSDEJSolution
           (∃ (h_U_meas : Measurable
                 (fun (p : Ω × ℝ × E) =>
                   (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
-             (h_U_progMeas : ∀ t : ℝ,
-                @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-                  (@Prod.instMeasurableSpace Ω (ℝ × E)
-                    ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-                    inferInstance)
-                  (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+             (h_U_progMeas : 
+                 Probability.MarkedProgressivelyMeasurable
+                   (LevyStochCalc.Poisson.naturalFiltration N)
+                   (fun ω' s e => U s ω' e))
              (h_U_sq : ∀ T' : ℝ, 0 < T' →
                 ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
                   (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
@@ -194,6 +192,8 @@ def IsBSDEJSolution
             ∀ T' : ℝ, ∀ᵐ ω ∂P,
               M_N T' ω =
                 LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+                    (LevyStochCalc.Poisson.naturalFiltration N)
+                    (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
                   (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω) ∧
           -- M_W and M_N are martingales w.r.t. the same Filt:
           MeasureTheory.Martingale M_W Filt P ∧
@@ -334,7 +334,9 @@ theorem M_W_eq_canonical_brownianIto
 /-- **Regression test #7 (M_N pinned to canonical compensated-Poisson
 integral)**: The Poisson martingale leg `M_N` of every solution agrees a.s.
 (at every T') with the canonical compensated-Poisson L² integral
-`Compensated.stochasticIntegral N U ...` — not merely with some
+`Compensated.stochasticIntegral N
+    (LevyStochCalc.Poisson.naturalFiltration N)
+    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) U ...` — not merely with some
 L²-isometric stand-in. The U-side hypotheses are bundled as existential
 witnesses to make the canonical-integral expression well-typed (per-mark
 adaptedness of `U` alone would not type-check the canonical compensator). -/
@@ -344,12 +346,9 @@ theorem M_N_eq_canonical_compensatedPoisson
       ∃ (h_U_meas : Measurable
             (fun (p : Ω × ℝ × E) =>
               (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
-         (h_U_progMeas : ∀ t : ℝ,
-            @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-              (@Prod.instMeasurableSpace Ω (ℝ × E)
-                ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-                inferInstance)
-              (fun p : Ω × ℝ × E => (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
+         (h_U_progMeas : 
+             Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+               (fun ω' s e => U s ω' e))
          (h_U_sq : ∀ T' : ℝ, 0 < T' →
             ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
               (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
@@ -357,6 +356,8 @@ theorem M_N_eq_canonical_compensatedPoisson
         ∀ T' : ℝ, ∀ᵐ ω ∂P,
           M_N T' ω =
             LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+                (LevyStochCalc.Poisson.naturalFiltration N)
+                (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
               (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω := by
   obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
           _, M_N, _, _, _, _,

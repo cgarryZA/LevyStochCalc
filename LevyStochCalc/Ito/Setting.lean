@@ -162,13 +162,9 @@ structure JumpDiffusion
       (h_γ_meas : ∀ i : Fin n,
         Measurable (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => coeffs.γ s (X s ω') e i) p.1 p.2.1 p.2.2))
-      (h_γ_progMeas : ∀ i : Fin n, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-          (@Prod.instMeasurableSpace Ω (ℝ × E)
-            ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ × E =>
-            (fun ω' s e => coeffs.γ s (X s ω') e i) p.1 p.2.1 p.2.2))
+      (h_γ_progMeas : ∀ i : Fin n,
+          Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+            (fun ω' s e => coeffs.γ s (X s ω') e i))
       (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
           (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
@@ -182,6 +178,8 @@ structure JumpDiffusion
             (fun j => h_σ_progMeas i j)
             (fun j => h_σ_sq i j) t ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (LevyStochCalc.Poisson.naturalFiltration N)
+            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
             (fun ω' s e => coeffs.γ s (X s ω') e i)
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
