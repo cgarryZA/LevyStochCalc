@@ -143,7 +143,6 @@ import LevyStochCalc
 -- (`itoLevyFormula_jumpResidual_canonical_axiom`); the previous
 -- universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a
 -- derived THEOREM forwarding over the narrower axiom by per-ω algebra.
-#print axioms LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula

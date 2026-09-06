@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (7 currently live)
+## Tier 1: Honest cited axioms (6 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
@@ -51,12 +51,13 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   CRITICAL #1 finding). They are the per-difference L²-isometries used by the
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
-Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
+Retired/deleted entries (#7, #8, #11, #12, #13, #14, and #15, retired 2026-09-06
+because its Lean statement was trivially satisfiable) and resolved-by-proof
 entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
 2026-09-05; #6, #18 and #4, proved 2026-09-06) are kept as `### Retired #N` /
 `### Resolved #N` headings below for traceability; they are NOT counted in the
-headline "7 currently live" figure. Only `### N.` (digit-leading) headings correspond
-to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 7`.
+headline "6 currently live" figure. Only `### N.` (digit-leading) headings correspond
+to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 6`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -187,13 +188,13 @@ literature integral forms.
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.7**; Cont & Tankov, *Financial Modelling with Jump Processes*, Chapman & Hall/CRC 2003, **Proposition 8.18**.
 
-### 15. `LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom`
+### Retired #15: `LevyStochCalc.Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom` (RETIRED 2026-09-06 — statement trivially satisfiable; content in #16)
 
 * **Statement**: For `u ∈ C^{1,2}` and a jump-diffusion `X = (μ, σ, γ)`-driven by `(W, N)`, the classical continuous-semimartingale Itô formula (Karatzas–Shreve 3.3.6) applied to `u(t, X^c_t)` (where `X^c` is the continuous-semimartingale part in the Lévy–Itô decomposition `X = X^c + X^d`) produces the drift + diff-mart identity with an existential residual `R`: there exists `R : ℝ → Ω → ℝ` such that a.s.,  `u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`.
 * **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, 2nd ed., Springer 1991, **Theorem 3.3.6** (Itô formula for continuous semimartingales — multidimensional vector form, equation (3.3.5)); Le Gall, *Brownian Motion, Martingales and Stochastic Calculus*, Springer 2016, **Theorem 5.10**; Revuz–Yor, *Continuous Martingales and Brownian Motion*, 3rd ed., Springer 1999, **Theorem IV.3.3**.
 * **Mathlib status (May 2026)**: No Itô formula in Mathlib (waits on Brownian motion construction + L² Itô integral; tracked alongside Tier 1 #5). The Degenne et al stochastic-integration effort (arXiv:2511.20118, late 2025) is the most active push toward a Mathlib Itô formula; no PR merged at time of writing.
 * **Replacement plan**: when Mathlib gains the Itô formula for continuous semimartingales (Karatzas–Shreve 3.3.6), this axiom is replaced by a forwarder that decomposes `X = X^c + X^d` via the Lévy–Itô decomposition and applies the Mathlib theorem to `X^c`.
-* **Statement audit (2026-09-06)**: as written in Lean, the axiom asserts only `∃ R, ∀ᵐ ω, u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω` with `R` unconstrained, which is satisfied by `R T ω := u(T, X_T ω) − u(0, X_0 ω) − drift − diff_mart` and therefore carries **no** content of Karatzas–Shreve 3.3.6: the Lean statement and the cited result do not match (a prose-vs-artifact gap). It has deliberately **not** been discharged by that trivial witness, since doing so would relocate rather than close the gap. The analytical content of the Itô–Lévy formula lives entirely in #16 (which pins the canonical residual to the jump terms); `itoLevyFormula` needs #15 only to name an `R`. WP8 should (a) retire #15 as an axiom by re-stating `itoLevyFormula` over #16 alone, and (b) prove #16, whose continuous part *is* KS 3.3.6 for this library's multidimensional Brownian Itô integral. Author decision pending on the exact restatement.
+* **Statement audit (2026-09-06)**: as written in Lean, the axiom asserts only `∃ R, ∀ᵐ ω, u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω` with `R` unconstrained, which is satisfied by `R T ω := u(T, X_T ω) − u(0, X_0 ω) − drift − diff_mart` and therefore carries **no** content of Karatzas–Shreve 3.3.6: the Lean statement and the cited result do not match (a prose-vs-artifact gap). It has deliberately **not** been discharged by that trivial witness, since doing so would relocate rather than close the gap. The analytical content of the Itô–Lévy formula lives entirely in #16 (which pins the canonical residual to the jump terms); `itoLevyFormula` needs #15 only to name an `R`. Retired the same day: `itoLevyFormula` is now derived from #16 alone (the canonical-residual identity rearranged), the axiom declaration was deleted from `Ito/JumpFormula.lean`, and no theorem in the library depends on it. The Itô formula for continuous semimartingales (KS 3.3.6) that this entry cited is part of the content of #16 and will be proved there (WP8).
 
 ### 16. `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` (NARROWED 2026-05-26 from previous monolithic #16)
 
@@ -348,7 +349,7 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (transitively over `_via_aeQuot`'s sorry) |
 | `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | `bsdej_path_regularity` (Tier 1 #10; specializes the polynomial-exponential constant to a single `C : ℝ` evaluated at `(T, L, ‖ξ‖_L²)` so downstream chapters can take `ψ(h) := C · h`) |
 | `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom` | derived theorem (was Tier 1 axiom #16 prior to 2026-05-26 narrowing); forwards over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity) |
-| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | derived theorem forwarding over Tier 1 #15 `itoFormula_continuousSemimartingale_axiom` + Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` (transitively via the universal-`R` derived theorem `itoLevyFormula_jumpResidual_axiom`); the previous Tier 1 #11 axiom (`itoLevyFormula`) was retired 2026-05-24 |
+| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | derived theorem forwarding over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` alone (since 2026-09-06; the vacuous #15 was retired); the previous Tier 1 #11 axiom (`itoLevyFormula`) was retired 2026-05-24 |
 
 ### Literature-pinned baseline-sorry theorems (count: 1 — 2026-05-26 update)
 
@@ -547,18 +548,19 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **7 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
-  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #4, #6 and #18 2026-09-06): #2
+* **6 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #4, #6 and #18 2026-09-06;
+  #15 retired 2026-09-06 as a vacuous statement): #2
   (Poisson random measure existence; the Brownian foundations #1, #3, #4, #5 and the
   Poisson integral #6 are theorems), #9 + #10
   (BSDEJ existence + path regularity), #13a + #13b (the two strictly
   narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
   `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26
   decomposition of the previously-monolithic `jacodYor_representation_axiom`,
-  now demoted to a derived theorem), #15 + #16 (the two pieces of the
-  decomposed Itô-Lévy formula: `itoFormula_continuousSemimartingale_axiom`
-  + `itoLevyFormula_jumpResidual_canonical_axiom`, with the previously-
-  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem). The two
+  now demoted to a derived theorem), and #16 (the Itô-Lévy formula's content,
+  `itoLevyFormula_jumpResidual_canonical_axiom`; the previously-monolithic
+  Tier 1 #11 `itoLevyFormula` is a derived theorem over it alone since the
+  vacuous #15 was retired on 2026-09-06). The two
   per-difference L²-isometries #17 (`itoIsometry_diff_brownian`, 2026-06-17)
   and #18 (`itoIsometry_diff_compensated`, 2026-09-06) are theorems.
   Each axiom has paper reference + Mathlib status + replacement plan.

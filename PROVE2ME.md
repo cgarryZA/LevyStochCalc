@@ -100,7 +100,7 @@ coincides with mathematical foundation order:
 | Order | Axiom | Why first |
 |---|---|---|
 | 1 | #6 `itoIsometry_compensated_unified_existence` | `Plan.md` A2, in progress; #15/#16/#9/#10 all carry it transitively |
-| 2 | #15 `itoFormula_continuousSemimartingale_axiom` | Itô layer |
+| 2 | #15 — retired 2026-09-06 (its Lean statement was trivially satisfiable; the content is #16) | — |
 | 3 | #16 `itoLevyFormula_jumpResidual_canonical_axiom` | Itô–Lévy layer |
 | 4 | #13a/#13b Jacod–Yor PRP pair | **the Dissertation's `BackwardStepStochasticInputs` bottleneck** |
 | 5 | #9 `continuousBSDEJ_exists_unique`, #10 `bsdej_path_regularity` | BSDEJ layer |

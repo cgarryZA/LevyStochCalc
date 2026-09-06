@@ -25,25 +25,22 @@ where `𝓛u = μᵀ ∇u + ½ Tr(σ σᵀ ∇²u)` is the diffusion generator.
 
 ## Structure
 
-`itoLevyFormula` is a `theorem`, obtained by algebraic re-bundling of two cited
-sub-primitives that expose the content of the Applebaum 4.4.7 proof:
-
-* `itoFormula_continuousSemimartingale_axiom` (cited axiom #15, Karatzas–Shreve
-  3.3.6) — the Itô formula for continuous semimartingales applied to
-  `u(t, X^c_t)`, where `X^c` is the continuous part of the Lévy–Itô
-  decomposition `X = X^c + X^d`; produces the drift + diffusion-martingale
-  identity with a packaged residual `R`.
-* `itoLevyFormula_jumpResidual_canonical_axiom` (cited axiom #16, Applebaum
-  4.4.10 + 4.4.7 step II) — the canonical residual
-  `R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` equals the sum
-  of the jump-martingale and compensator-drift terms, via the small/large jump
-  decomposition and the `ε → 0` limit using the L²-isometry of the
-  compensated-Poisson integral (cited axioms #6 / #18).
+`itoLevyFormula` is a `theorem` derived by algebra from the cited sub-primitive
+`itoLevyFormula_jumpResidual_canonical_axiom` (cited axiom #16, Applebaum
+4.4.10 + 4.4.7 step II): the canonical residual
+`R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` equals the sum
+of the jump-martingale and compensator-drift terms. This is the whole content
+of the Itô–Lévy formula; its continuous part is the Itô formula for the
+Brownian Itô integral of this library (Karatzas–Shreve 3.3.6), and its jump
+part is the small/large jump decomposition and the `ε → 0` limit through the
+`L²`-isometry of the compensated-Poisson integral.
 
 The universal-`R` form `itoLevyFormula_jumpResidual_axiom` is a derived theorem
 forwarding over the canonical-`R` axiom by per-`ω` algebra. The qualified name
 `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` is preserved so the dissertation
-forwarder is unaffected.
+forwarder is unaffected. (A former cited axiom #15, an unconstrained existential
+residual for the continuous part, was retired on 2026-09-06: its statement was
+satisfiable by the trivial residual and carried no content.)
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -112,30 +109,15 @@ noncomputable def driftIntegrand {n d : ℕ}
     (s : ℝ) (x : Fin n → ℝ) : ℝ :=
   timeDeriv u s x + levyGenerator u coeffs.μ coeffs.σ s x
 
-/-! ### Tier 1 sub-primitives for the Itô–Lévy formula
+/-! ### The cited sub-primitive of the Itô–Lévy formula
 
-The headline `itoLevyFormula` (Applebaum 4.4.7) is derived by
-algebraic re-bundling from TWO Tier 1 cited sub-primitives below.
-Each is a real literature theorem in its own right; their conjunction
-gives the headline four-term identity.
-
-* `itoFormula_continuousSemimartingale_axiom` (Karatzas–Shreve 3.3.6):
-  Itô formula for the continuous part of `X` in the Lévy–Itô
-  decomposition `X = X^c + X^d`. Produces `drift + diff_mart + R T ω`
-  with the jump correction packaged as an existential residual `R`.
-
-* `itoLevyFormula_jumpResidual_canonical_axiom` (Applebaum 4.4.10 +
-  4.4.7 step II): for the canonical residual `R_canonical T ω :=
-  u(T, X_T) − u(0, X_0) − drift − diff_mart`, we have
-  `R_canonical = jump_mart + comp_drift` a.s., via the small/large
-  jump decomposition + `ε → 0` limit (using the `L²`-isometry of the
-  compensated-Poisson integral, Tier 1 #6 / #18).
-
-  This is the **narrower** form of the (previous, retired)
-  `itoLevyFormula_jumpResidual_axiom` (universal-`R` form, now a
-  derived theorem). The narrowing eliminates the unbound `R`
-  quantifier, which is the algebraic-glue layer (any two `R`s
-  satisfying the continuous-part identity agree a.s.).
+The headline `itoLevyFormula` (Applebaum 4.4.7) is derived by algebra from
+`itoLevyFormula_jumpResidual_canonical_axiom` (Applebaum 4.4.10 + 4.4.7
+step II): for the canonical residual `R_canonical T ω :=
+u(T, X_T) − u(0, X_0) − drift − diff_mart`, we have
+`R_canonical = jump_mart + comp_drift` a.s. The universal-`R` form
+`itoLevyFormula_jumpResidual_axiom` (any `R` satisfying the continuous-part
+identity) is a derived theorem: any two such `R`s agree a.s.
 -/
 
 end Integrands
@@ -143,98 +125,6 @@ end Integrands
 section Formula
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
-
-/-- **CITED AXIOM (Tier 1 #15): Itô formula for continuous semimartingales
-applied to the continuous part of `X`.**
-
-For `u ∈ C^{1,2}` and a jump-diffusion `X = (μ, σ, γ)`, apply the
-classical Itô formula (Karatzas–Shreve 3.3.6) to `u(t, X^c_t)`, where
-`X^c` is the continuous-semimartingale part in the Lévy–Itô
-decomposition `X = X^c + X^d`. The output is
-
-  `u(T, X^c_T) − u(0, X^c_0)`
-    `= ∫₀^T (∂_t u + 𝓛^c u)(s, X_{s-}) ds + ∫₀^T ∇uᵀσ dW_s`,
-
-where `𝓛^c u = μᵀ∇u + ½ Tr(σσᵀ ∇²u)` is the *continuous* part of the
-Lévy generator (no jump correction). For the full
-`u(T, X_T) − u(0, X_0)` the residual
-
-  `R T ω := u(T, X_T) − u(0, X_0) − ∫₀^T (∂_t u + 𝓛^c u) ds`
-            `  − ∫₀^T ∇uᵀσ dW`
-
-is the "jump correction" identified by
-`itoLevyFormula_jumpResidual_axiom`.
-
-In the present axiomatisation the residual `R` is exposed as an
-existential, packaged together with the continuous-part identity:
-
-  `∃ R : ℝ → Ω → ℝ, ∀ᵐ ω, u(T, X_T) − u(0, X_0)`
-    `= (∫₀^T (∂_t u + 𝓛^c u)(s, X_s) ds)`
-    `+ (multidim-Brownian Itô integral of ∇uᵀσ along X at time T)`
-    `+ R T ω`.
-
-The conjunction with `itoLevyFormula_jumpResidual_axiom` (which
-identifies `R T ω = jump_mart + comp_drift`) reconstructs the
-literature four-term identity.
-
-**Note on `X_{s-}` vs `X_s`**: the literature continuous Itô formula
-uses `X_{s-}` (the left-continuous version) in the integrand for
-predictability hygiene. For the càdlàg-adapted `X` of `JumpDiffusion`
-(field `cadlag_paths`), the set `{s : X_{s-} ω ≠ X_s ω}` has Lebesgue
-measure zero a.s., so the `ds` integrals and Brownian Itô integrals
-agree pointwise a.s. with the `X_s`-evaluated versions used in the
-statement here.
-
-**Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic
-Calculus*, 2nd ed., Springer 1991, **Theorem 3.3.6** (Itô formula for
-continuous semimartingales — multidimensional vector form, equation
-(3.3.5)); Le Gall, *Brownian Motion, Martingales and Stochastic
-Calculus*, Springer 2016, **Theorem 5.10**; Revuz–Yor, *Continuous
-Martingales and Brownian Motion*, 3rd ed., Springer 1999,
-**Theorem IV.3.3**.
-
-**Mathlib status (May 2026)**: No Itô formula in Mathlib (waits on
-Brownian motion construction + L² Itô integral; tracked alongside
-Tier 1 #5). The Degenne et al stochastic-integration effort
-(arXiv:2511.20118, late 2025) is the most active push toward a
-Mathlib Itô formula; no PR merged at time of writing.
-
-**Replacement plan**: when Mathlib gains the Itô formula for
-continuous semimartingales (Karatzas–Shreve 3.3.6), this axiom is
-replaced by a forwarder that decomposes `X = X^c + X^d` via the
-Lévy–Itô decomposition and applies the Mathlib theorem to `X^c`. -/
-axiom itoFormula_continuousSemimartingale_axiom
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-    (x₀ : Fin n → ℝ)
-    (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
-    (u : ℝ → (Fin n → ℝ) → ℝ)
-    (T : ℝ) (_hT : 0 < T)
-    (h_sigmaGrad_meas : ∀ j : Fin d,
-        Measurable (Function.uncurry
-          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
-    (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-          (@Prod.instMeasurableSpace Ω ℝ
-            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
-    (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
-        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-          (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
-            ∂volume ∂P < ⊤) :
-    ∃ R : ℝ → Ω → ℝ,
-      ∀ᵐ ω ∂P,
-        u T (X.X T ω) - u 0 (X.X 0 ω) =
-          (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
-          + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-              W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-              h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
-          + R T ω
 
 /-- **CITED AXIOM (Tier 1 #16, narrower than the previous #16):
 Canonical-residual jump decomposition (Applebaum 4.4.10 + 4.4.7 step II).**
@@ -348,8 +238,8 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
 
 /-- **Universal-residual form of the jump decomposition.**
 
-Given any residual `R` arising from the continuous-part Itô identity
-(see `itoFormula_continuousSemimartingale_axiom`), this theorem
+Given any residual `R` satisfying the continuous-part identity
+`u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω` a.s., this theorem
 identifies it as the sum of the *jump martingale* term and the
 *compensator drift* term:
 
@@ -473,17 +363,10 @@ generator.
 Cont, R. & Tankov, P. *Financial Modelling with Jump Processes*,
 Chapman & Hall/CRC, 2003, Proposition 8.18.
 
-Derived by algebraic re-bundling from
-`itoFormula_continuousSemimartingale_axiom` (cited axiom #15) and
-`itoLevyFormula_jumpResidual_axiom` (cited axiom #16).
-
-**Proof**: extract the residual `R` from the continuous-semimartingale
-Itô identity (`Classical.choose`); apply
-`itoLevyFormula_jumpResidual_axiom` to `R` (which satisfies the
-continuous-part identity by construction of `R`); substitute the
-identification `R T ω = jump_mart + comp_drift` into the
-continuous-part identity. The proof is genuine algebra (no further
-stochastic-calculus content beyond the two sub-axioms). -/
+Derived by algebra from `itoLevyFormula_jumpResidual_canonical_axiom`
+(cited axiom #16): the canonical residual
+`u(T, X_T) − u(0, X_0) − drift − diff_mart` equals `jump_mart + comp_drift`
+almost surely, and the four-term identity is that equation rearranged. -/
 theorem itoLevyFormula
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -540,25 +423,11 @@ theorem itoLevyFormula
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
-  -- Step 1: extract the residual `R` from the continuous-semimartingale
-  -- Itô identity (Tier 1 #15).
-  obtain ⟨R, hR⟩ := itoFormula_continuousSemimartingale_axiom
-    W N coeffs x₀ X u T hT
-    h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
-  -- Step 2: apply the jump-residual decomposition (Tier 1 #16) to `R`.
-  -- The continuous-part hypothesis `hR` is exactly the witness needed.
-  have hR_decomp := itoLevyFormula_jumpResidual_axiom
-    W N coeffs x₀ X u T hT
+  have h := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u T hT
     h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
     h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
-    R hR
-  -- Step 3: combine the two a.s. equalities.
-  filter_upwards [hR, hR_decomp] with ω h_cont h_jump
-  -- `h_cont : u(T, X_T ω) - u(0, X_0 ω) = drift + diff_mart + R T ω`
-  -- `h_jump : R T ω = jump_mart + comp_drift`
-  -- Substitute and re-associate.
-  rw [h_cont, h_jump]
-  ring
+  filter_upwards [h] with ω hω
+  linarith
 
 end Formula
 

@@ -109,13 +109,12 @@ Currently-live axioms:
 10. `bsdej_path_regularity` — Bouchard-Elie 2008 SPA 118(1) pp 53-75.
 13a. `jacodYor_PRP_martingale_axiom` — Jacod 1975 / Jacod-Shiryaev Thm III.4.34 (martingale-input form).
 13b. `condExp_to_PRP_martingale_form_axiom` — Karatzas-Shreve Thm I.3.13 (Doob L² càdlàg regularization) + Thm 2.7.17 (Blumenthal 0-1) + Applebaum Thm 2.3.7.
-15. `itoFormula_continuousSemimartingale_axiom` — Karatzas-Shreve Thm 3.3.6 / Le Gall Thm 5.10.
 16. `itoLevyFormula_jumpResidual_canonical_axiom` — Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step (II) (canonical-`R` form).
 17. `itoIsometry_diff_brownian` — Karatzas-Shreve Thm 3.2.6 + §3.2.B eq. (2.20) (per-difference L²-isometry).
 18. `itoIsometry_diff_compensated` — Applebaum 2009 Thm 4.2.3 step (II) (per-difference L²-isometry).
 
-(Retired entries #7, #8, #11, #12, #13, #14 are kept in `tools/cited_axioms.md`
-for traceability.)
+(Retired entries #7, #8, #11, #12, #13, #14, #15 and resolved entries #1, #3, #4, #5,
+#6, #17, #18 are kept in `tools/cited_axioms.md` for traceability.)
 
 ## Sorry baseline
 
