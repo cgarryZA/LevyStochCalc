@@ -86,6 +86,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.ae_count_Iic_zero_eq_zero
 -- A2g-i (2026-09-06): the driver's data at finitely many positive times against `ℱ₊ 0`.
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_valueSigma
+-- A2g-ii, A2d (2026-09-06): Blumenthal's 0-1 law for the driver's joint filtration, and the
+-- conditional expectation on the germ field.
+#print axioms LevyStochCalc.Probability.trivialSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_valueTuple
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_rightCont_zero_filtration
+#print axioms LevyStochCalc.Driver.LevyDriver.isTrivialSigma_rightCont_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_rightCont_zero_sigma
+#print axioms LevyStochCalc.Driver.LevyDriver.condExp_rightCont_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.condExp_rightCont_nonpos
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero

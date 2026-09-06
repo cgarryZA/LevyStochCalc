@@ -1,0 +1,250 @@
+/-
+Copyright (c) 2026 Christian Garry. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Garry
+-/
+import LevyStochCalc.Driver.ValueSigma
+import LevyStochCalc.Poisson.ZeroIntensity
+import LevyStochCalc.Probability.TrivialSigma
+
+/-!
+# The germ field of a Lévy driver
+
+`Driver/ValueSigma.lean` gives the independence of `ℱ₊ 0` from the driver's data along a strictly
+increasing grid of positive times. An arbitrary finite family of positive times is put in that
+form by sorting it (`gridOf`), which turns the statement into one about arbitrary finite tuples.
+Independence then passes to the supremum over finite subfamilies of the generators of `ℱ T`
+(`indep_iSup_of_finset`), the two generators outside reach — Brownian values at non-positive times
+and the part of a region in negative time — being almost surely constant and so dropping out.
+
+## Main statements
+
+* `LevyDriver.indep_valueTuple` — `ℱ₊ 0` against an arbitrary finite tuple of the driver's data.
+* `LevyDriver.indep_rightCont_zero_filtration` — `ℱ₊ 0` against `ℱ T` for every `T > 0`.
+* `LevyDriver.isTrivialSigma_rightCont_zero` — Blumenthal's 0-1 law itself.
+* `LevyDriver.condExp_rightCont_nonpos` — the conditional expectation on `ℱ₊ s`, `s ≤ 0`, is the
+  mean.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+namespace LevyStochCalc.Driver
+
+universe u v w
+
+/-- A strictly increasing sequence of reals whose initial segment enumerates a nonempty finite
+set in increasing order. -/
+noncomputable def gridOf (T : Finset ℝ) (hT : T.Nonempty) : ℕ → ℝ := fun l =>
+  if h : l < T.card then T.orderEmbOfFin rfl ⟨l, h⟩
+  else T.max' hT + ((l - T.card + 1 : ℕ) : ℝ)
+
+theorem strictMono_gridOf (T : Finset ℝ) (hT : T.Nonempty) : StrictMono (gridOf T hT) := by
+  intro a b hab
+  by_cases ha : a < T.card <;> by_cases hb : b < T.card
+  · simp only [gridOf, dif_pos ha, dif_pos hb]
+    exact (T.orderEmbOfFin rfl).strictMono (by exact hab)
+  · simp only [gridOf, dif_pos ha, dif_neg hb]
+    have h1 : T.orderEmbOfFin rfl ⟨a, ha⟩ ≤ T.max' hT :=
+      T.le_max' _ (T.orderEmbOfFin_mem rfl ⟨a, ha⟩)
+    have h2 : (0 : ℝ) < ((b - T.card + 1 : ℕ) : ℝ) := by
+      exact_mod_cast Nat.succ_pos (b - T.card)
+    linarith
+  · exact absurd hab (by omega)
+  · simp only [gridOf, dif_neg ha, dif_neg hb]
+    have h : ((a - T.card + 1 : ℕ) : ℝ) < ((b - T.card + 1 : ℕ) : ℝ) := by
+      exact_mod_cast (by omega : a - T.card + 1 < b - T.card + 1)
+    linarith
+
+theorem gridOf_mem (T : Finset ℝ) (hT : T.Nonempty) {l : ℕ} (hl : l < T.card) :
+    gridOf T hT l ∈ T := by
+  simp only [gridOf, dif_pos hl]
+  exact T.orderEmbOfFin_mem rfl ⟨l, hl⟩
+
+theorem exists_gridOf_eq (T : Finset ℝ) (hT : T.Nonempty) {x : ℝ} (hx : x ∈ T) :
+    ∃ l, l < T.card ∧ gridOf T hT l = x := by
+  have : x ∈ Set.range (T.orderEmbOfFin rfl) := by
+    rw [Finset.range_orderEmbOfFin]; exact hx
+  obtain ⟨i, hi⟩ := this
+  exact ⟨i, i.2, by simp only [gridOf, dif_pos i.2]; simpa using hi⟩
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {d : ℕ}
+
+namespace LevyDriver
+
+variable (D : LevyDriver.{u, v, w} P d ν)
+
+/-- **`ℱ₊ 0` is independent of an arbitrary finite tuple of the driver's data**: the Brownian
+coordinates at finitely many times of `(0, T]` and the counts on finitely many measurable regions
+inside `(0, T] × E`. -/
+theorem indep_valueTuple {m n : ℕ} (C : Fin m → Set (ℝ × E)) (hCm : ∀ k, MeasurableSet (C k))
+    {T : ℝ} (hT : 0 < T) (hCT : ∀ k, C k ⊆ Set.Ioc 0 T ×ˢ Set.univ)
+    (s : Fin n → ℝ) (hs0 : ∀ i, 0 < s i) :
+    Indep ((⨆ q : Fin d × Fin n,
+        MeasurableSpace.comap (fun ω => (D.W.W q.1).W (s q.2) ω) inferInstance)
+      ⊔ ⨆ k, D.regionSigma (C k)) (D.filtration.rightCont 0) P := by
+  classical
+  set G : Finset ℝ := insert T (Finset.image s Finset.univ) with hG
+  have hGne : G.Nonempty := ⟨T, Finset.mem_insert_self _ _⟩
+  have hg0 : 0 < gridOf G hGne 0 := by
+    have hmem := gridOf_mem G hGne (Finset.card_pos.2 hGne)
+    rcases Finset.mem_insert.1 hmem with h | h
+    · rw [h]; exact hT
+    · obtain ⟨i, -, hi⟩ := Finset.mem_image.1 h
+      rw [← hi]; exact hs0 i
+  refine indep_of_indep_of_le_left
+    (D.indep_iSup_valueSigma C hCm (strictMono_gridOf G hGne) hg0 G.card) ?_
+  refine sup_le (iSup_le fun q => ?_) (iSup_le fun k => ?_)
+  · obtain ⟨l, hl, hgl⟩ := exists_gridOf_eq G hGne
+      (Finset.mem_insert_of_mem (Finset.mem_image.2 ⟨q.2, Finset.mem_univ _, rfl⟩))
+    refine le_iSup₂_of_le l hl ?_
+    rw [hgl]
+    exact le_sup_of_le_left (le_iSup
+      (fun j : Fin d => MeasurableSpace.comap (fun ω => (D.W.W j).W (s q.2) ω) inferInstance) q.1)
+  · obtain ⟨l, hl, hgl⟩ := exists_gridOf_eq G hGne (Finset.mem_insert_self T _)
+    refine le_iSup₂_of_le l hl ?_
+    rw [hgl]
+    refine le_sup_of_le_right (le_iSup_of_le k ?_)
+    rw [Set.inter_eq_self_of_subset_left (hCT k)]
+
+/-- The natural filtration of a Brownian motion is generated by its values up to the time. -/
+theorem brownianNaturalFiltration_apply (W : Brownian.BrownianMotion P) (s : ℝ) :
+    Brownian.Martingale.naturalFiltration W s
+      = ⨆ u ∈ Set.Iic s, MeasurableSpace.comap (W.W u) inferInstance := by
+  show (Brownian.Martingale.naturalFiltration W).seq s = _
+  unfold Brownian.Martingale.naturalFiltration MeasureTheory.Filtration.natural
+  rfl
+
+/-- The natural filtration of a Poisson random measure is generated by the counts on the regions
+lying at or before the time. -/
+theorem poissonNaturalFiltration_apply (N : Poisson.PoissonRandomMeasure.{u, v, w} P ν) (s : ℝ) :
+    Poisson.naturalFiltration N s
+      = ⨆ B ∈ {C : Set (ℝ × E) | C ⊆ Set.Iic s ×ˢ Set.univ ∧ MeasurableSet C},
+          MeasurableSpace.comap (fun ω => N.N ω B) inferInstance := rfl
+
+/-- **Blumenthal's 0-1 law, independence form**: the germ field `ℱ₊ 0` of a Lévy driver is
+independent of `ℱ T` for every positive `T`. -/
+theorem indep_rightCont_zero_filtration {T : ℝ} (hT : 0 < T) :
+    Indep (D.filtration.rightCont 0) (D.filtration T) P := by
+  classical
+  set mfam : {u : ℝ // 0 < u} ⊕ {B : Set (ℝ × E) // B ⊆ Set.Ioc 0 T ×ˢ Set.univ ∧ MeasurableSet B}
+      → MeasurableSpace Ω := Sum.elim
+    (fun u => ⨆ j : Fin d, MeasurableSpace.comap (fun ω => (D.W.W j).W (u : ℝ) ω) inferInstance)
+    (fun B => D.regionSigma (B : Set (ℝ × E))) with hmfam
+  have hmfam_le : ∀ i, mfam i ≤ ‹MeasurableSpace Ω› := by
+    rintro (u | B)
+    · exact iSup_le fun j => ((D.W.W j).measurable_eval _).comap_le
+    · exact (D.N.measurable_eval B.2.2).comap_le
+  -- the part of `ℱ T` the germ argument reaches, by finite subfamilies
+  have hM : Indep (⨆ i, mfam i) (D.filtration.rightCont 0) P := by
+    refine Probability.indep_iSup_of_finset hmfam_le (D.filtration.rightCont.le 0) fun S => ?_
+    refine indep_of_indep_of_le_left (D.indep_valueTuple
+      (fun i : Fin S.toRight.card => ((S.toRight.equivFin.symm i : _) : Set (ℝ × E)))
+      (fun i => (S.toRight.equivFin.symm i).1.2.2) hT
+      (fun i => (S.toRight.equivFin.symm i).1.2.1)
+      (fun i : Fin S.toLeft.card => ((S.toLeft.equivFin.symm i : _) : ℝ))
+      (fun i => (S.toLeft.equivFin.symm i).1.2)) ?_
+    refine iSup₂_le fun i hi => ?_
+    match i with
+    | Sum.inl a =>
+      refine le_sup_of_le_left (iSup_le fun j =>
+        le_iSup_of_le (j, S.toLeft.equivFin ⟨a, Finset.mem_toLeft.2 hi⟩) ?_)
+      simp
+    | Sum.inr b =>
+      refine le_sup_of_le_right
+        (le_iSup_of_le (S.toRight.equivFin ⟨b, Finset.mem_toRight.2 hi⟩) ?_)
+      simp [hmfam]
+  -- everything else in `ℱ T` is null or conull
+  have hbound : D.filtration T
+      ≤ (⨆ i, mfam i) ⊔ Probability.trivialSigma ‹MeasurableSpace Ω› P := by
+    rw [D.filtration_apply, D.W.naturalFiltration_apply]
+    refine sup_le (iSup_le fun j => ?_) ?_
+    · rw [brownianNaturalFiltration_apply (D.W.W j) T]
+      refine iSup₂_le fun u hu => ?_
+      rcases lt_or_ge 0 u with hu0 | hu0
+      · refine le_sup_of_le_left (le_iSup_of_le (Sum.inl ⟨u, hu0⟩) ?_)
+        exact le_iSup (fun j : Fin d =>
+          MeasurableSpace.comap (fun ω => (D.W.W j).W u ω) inferInstance) j
+      · have hz : ∀ᵐ ω ∂P, (D.W.W j).W u ω = 0 := by
+          rcases lt_or_eq_of_le hu0 with h | h
+          · exact (D.W.W j).negative_zero u h
+          · rw [h]; exact (D.W.W j).initial_zero
+        exact le_sup_of_le_right
+          (Probability.comap_le_trivialSigma ((D.W.W j).measurable_eval u) hz)
+    · rw [poissonNaturalFiltration_apply]
+      refine iSup₂_le fun B hB => ?_
+      have hIic : MeasurableSet (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ) :=
+        hB.2.inter (measurableSet_Iic.prod MeasurableSet.univ)
+      have hIoc : MeasurableSet (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) :=
+        hB.2.inter (measurableSet_Ioc.prod MeasurableSet.univ)
+      have hdisj : Disjoint (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ)
+          (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) :=
+        Set.disjoint_left.2 fun x hx hx' => absurd hx.2.1 (not_le.2 hx'.2.1.1)
+      have hsplit : B = (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ)
+          ∪ (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) := by
+        rw [← Set.inter_union_distrib_left, ← Set.union_prod,
+          Set.Iic_union_Ioc_eq_Iic hT.le]
+        exact (Set.inter_eq_self_of_subset_left hB.1).symm
+      have heq : (fun ω => D.N.N ω B)
+          = fun ω => D.N.N ω (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ)
+            + D.N.N ω (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) := by
+        funext ω
+        conv_lhs => rw [hsplit]
+        exact measure_union hdisj hIoc
+      change MeasurableSpace.comap (fun ω => D.N.N ω B) inferInstance ≤ _
+      rw [heq]
+      refine Probability.comap_add_le ?_ ?_
+      · exact le_sup_of_le_right (Probability.comap_le_trivialSigma
+          (D.N.measurable_eval hIic) (Poisson.ae_count_Iic_zero_eq_zero D.N hB.2))
+      · exact le_sup_of_le_left (le_iSup_of_le
+          (Sum.inr ⟨B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ, Set.inter_subset_right, hIoc⟩) le_rfl)
+  exact (indep_of_indep_of_le_left
+    (Probability.IsTrivialSigma.indep_sup (iSup_le hmfam_le)
+      Probability.trivialSigma_le (D.filtration.rightCont.le 0)
+      Probability.isTrivialSigma_trivialSigma hM) hbound).symm
+
+/-- **Blumenthal's 0-1 law for a Lévy driver**: every set of the germ field `ℱ₊ 0` is null or
+conull. -/
+theorem isTrivialSigma_rightCont_zero :
+    Probability.IsTrivialSigma P (D.filtration.rightCont 0) := by
+  intro A hA
+  have hle : D.filtration.rightCont 0 ≤ D.filtration 1 := by
+    rw [Filtration.rightCont_eq_of_neBot_nhdsGT D.filtration 0]
+    exact iInf₂_le (1 : ℝ) one_pos
+  have h := D.indep_rightCont_zero_filtration (T := 1) one_pos
+  rw [Indep_iff] at h
+  have hAA := h A A hA (hle A hA)
+  rw [Set.inter_self] at hAA
+  rcases eq_or_ne (P A) 0 with h0 | h0
+  · exact Or.inl h0
+  · refine Or.inr ?_
+    have hone : P A * 1 = P A * P A := by rw [mul_one]; exact hAA
+    exact ((ENNReal.mul_right_inj h0 (measure_ne_top P A)).1 hone).symm
+
+/-- The germ field is independent of everything the driver generates. -/
+theorem indep_rightCont_zero_sigma :
+    Indep (D.filtration.rightCont 0)
+      ((⨆ j, Brownian.sigmaBrownian (D.W.W j)) ⊔ sigmaPoisson D.N) P :=
+  D.isTrivialSigma_rightCont_zero.indep (D.filtration.rightCont.le 0)
+
+/-- **The conditional expectation on the germ field is the mean.** -/
+theorem condExp_rightCont_zero {ξ : Ω → ℝ} (hξ : StronglyMeasurable ξ) :
+    P[ξ | D.filtration.rightCont 0] =ᵐ[P] fun _ => ∫ ω, ξ ω ∂P :=
+  condExp_indep_eq le_rfl (D.filtration.rightCont.le 0) hξ
+    (D.isTrivialSigma_rightCont_zero.indep (D.filtration.rightCont.le 0)).symm
+
+/-- The same at every non-positive time, by the tower property. -/
+theorem condExp_rightCont_nonpos {ξ : Ω → ℝ} (hξ : StronglyMeasurable ξ) {s : ℝ} (hs : s ≤ 0) :
+    P[ξ | D.filtration.rightCont s] =ᵐ[P] fun _ => ∫ ω, ξ ω ∂P := by
+  calc P[ξ | D.filtration.rightCont s]
+      =ᵐ[P] P[P[ξ | D.filtration.rightCont 0] | D.filtration.rightCont s] :=
+        (condExp_condExp_of_le (D.filtration.rightCont.mono hs)
+          (D.filtration.rightCont.le 0)).symm
+    _ =ᵐ[P] P[(fun _ => ∫ ω, ξ ω ∂P) | D.filtration.rightCont s] :=
+        condExp_congr_ae (D.condExp_rightCont_zero hξ)
+    _ = fun _ => ∫ ω, ξ ω ∂P := condExp_const (D.filtration.rightCont.le s) _
+
+end LevyDriver
+
+end LevyStochCalc.Driver
