@@ -36,6 +36,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_weight_increment_sq
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.full_dyadicRefine
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.full_dyadicRestrict
+#print axioms LevyStochCalc.Poisson.Compensated.exists_markStep_close
+#print axioms LevyStochCalc.Poisson.Compensated.master_err
+#print axioms LevyStochCalc.Poisson.Compensated.master_adapted
+#print axioms LevyStochCalc.Poisson.Compensated.stageIntegral_sub_sq_le
 
 -- ===== Layer 0.5: martingale path regularity =====
 #print axioms LevyStochCalc.Martingale.isRealQuasimartingale

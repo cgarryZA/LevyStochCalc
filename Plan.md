@@ -216,8 +216,19 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         set-level increment isometry between grid points against an earlier-measurable
         weight (`integral_weight_increment_sq`, the input for the quadratic-variation
         conjunct); dyadic grids with refinement (`full_dyadicRefine`) and prefix
-        restriction (`full_dyadicRestrict`). Next: the master approximating sequence
-        (horizons `2ⁿ`, nested dyadic levels, truncation of `φ`) and the `L²` process.
+        restriction (`full_dyadicRestrict`).
+      - *Master approximating sequence — DONE 2026-09-06* (`Poisson/CompensatedApprox.lean`).
+        `truncate` (clip + finite-measure mark restriction, with joint/progressive
+        measurability) and `exists_truncate_close`; `exists_markStep_close`: for a
+        square-integrable progressively measurable `φ`, an adapted mark-step integrand on a
+        dyadic grid of any prescribed minimal level within `ε` of `φ` on `[0, T]`. The
+        master sequence `master n` (horizon `2ⁿ`, levels increasing by at least one per
+        stage, error `< (n+1)⁻¹`), `stageIntegral` (martingale, `L²`), and the Cauchy
+        bound `stageIntegral_sub_sq_le`: for `n ≤ n'` and `t ≤ 2ⁿ`,
+        `E|Iₙ(t) − Iₙ'(t)|² ≤ 2(n+1)⁻¹ + 2(n'+1)⁻¹` (restrict the later stage to `[0, 2ⁿ]`,
+        refine the earlier one, difference isometry, martingale monotonicity of
+        `E|M_t|²`). Next: the `L²` process (`Filter.limUnder` of the stage integrals), its
+        adaptedness, martingale property, isometry at every time, right-`L²`-continuity.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

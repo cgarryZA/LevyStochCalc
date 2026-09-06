@@ -822,9 +822,11 @@ lemma Adapted.dyadicRefine {N : PoissonRandomMeasure P ν}
     (fun i k => hG i i.isLt k) ⟨i, hi⟩ k
 
 /-- A mark-step integrand on the level-`ℓ` dyadic grid of `[0, T]`, restricted to the
-prefix `[0, T / 2 ^ d]` (`d ≤ ℓ`), which is the level-`(ℓ - d)` dyadic grid there. -/
-def dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) (_hd : d ≤ ℓ) :
-    MarkStep Ω E ν (TimeGrid.dyadic (T / 2 ^ d) (by positivity) (ℓ - d)) where
+prefix `[0, T']` where `T = T' * 2 ^ d` (`d ≤ ℓ`), which is the level-`(ℓ - d)` dyadic
+grid there. -/
+def dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) {T' : ℝ}
+    (hT' : 0 < T') (_hd : d ≤ ℓ) (_h : T = T' * 2 ^ d) :
+    MarkStep Ω E ν (TimeGrid.dyadic T' hT' (ℓ - d)) where
   K := G.K
   B := G.B
   B_measurable := G.B_measurable
@@ -833,40 +835,41 @@ def dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ
   ξ_bounded := G.ξ_bounded
   ξ_measurable := G.ξ_measurable
 
-lemma dyadic_p_restrict {ℓ d : ℕ} (hd : d ≤ ℓ) (i : ℕ) :
-    (TimeGrid.dyadic (T / 2 ^ d) (by positivity) (ℓ - d)).p i = (TimeGrid.dyadic T hT ℓ).p i := by
-  show (i : ℝ) * (T / 2 ^ d) / ((2 ^ (ℓ - d) : ℕ) : ℝ) = (i : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ)
-  have h : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
+lemma dyadic_p_restrict {ℓ d : ℕ} {T' : ℝ} (hT' : 0 < T') (hd : d ≤ ℓ) (h : T = T' * 2 ^ d)
+    (i : ℕ) : (TimeGrid.dyadic T' hT' (ℓ - d)).p i = (TimeGrid.dyadic T hT ℓ).p i := by
+  show (i : ℝ) * T' / ((2 ^ (ℓ - d) : ℕ) : ℝ) = (i : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ)
+  have h2 : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
   push_cast
-  rw [h]
+  rw [h2, h]
   field_simp
 
-lemma dyadic_p_pow {ℓ d : ℕ} (hd : d ≤ ℓ) :
-    (TimeGrid.dyadic T hT ℓ).p (2 ^ (ℓ - d)) = T / 2 ^ d := by
-  show ((2 ^ (ℓ - d) : ℕ) : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ) = T / 2 ^ d
-  have h : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
+lemma dyadic_p_pow {ℓ d : ℕ} {T' : ℝ} (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) :
+    (TimeGrid.dyadic T hT ℓ).p (2 ^ (ℓ - d)) = T' := by
+  show ((2 ^ (ℓ - d) : ℕ) : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ) = T'
+  have h2 : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
   push_cast
-  rw [h]
+  rw [h2, h]
   field_simp
 
-lemma full_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) (hd : d ≤ ℓ)
-    (ω : Ω) : (G.dyadicRestrict hd).full N ω = G.integral N (T / 2 ^ d) ω := by
-  have h : (G.dyadicRestrict hd).full N ω
+lemma full_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) {T' : ℝ}
+    (hT' : 0 < T') (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) (ω : Ω) :
+    (G.dyadicRestrict hT' hd h).full N ω = G.integral N T' ω := by
+  have h' : (G.dyadicRestrict hT' hd h).full N ω
       = G.integral N ((TimeGrid.dyadic T hT ℓ).p (2 ^ (ℓ - d))) ω := by
     rw [G.integral_p_eq N _ (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))]
     unfold full
     refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun k _ => ?_
     show G.ξ i k ω * N.compensated (Set.Ioc
-        ((TimeGrid.dyadic (T / 2 ^ d) (by positivity) (ℓ - d)).p i)
-        ((TimeGrid.dyadic (T / 2 ^ d) (by positivity) (ℓ - d)).p (i + 1)) ×ˢ G.B k) ω = _
-    rw [dyadic_p_restrict (hT := hT) hd, dyadic_p_restrict (hT := hT) hd]
-  rw [h, dyadic_p_pow (hT := hT) hd]
+        ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)
+        ((TimeGrid.dyadic T' hT' (ℓ - d)).p (i + 1)) ×ˢ G.B k) ω = _
+    rw [dyadic_p_restrict (hT := hT) hT' hd h, dyadic_p_restrict (hT := hT) hT' hd h]
+  rw [h', dyadic_p_pow (hT := hT) hd h]
 
-lemma eval_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) (hd : d ≤ ℓ)
-    {s : ℝ} (hs : s ≤ T / 2 ^ d) (e : E) (ω : Ω) :
-    (G.dyadicRestrict hd).eval s e ω = G.eval s e ω := by
+lemma eval_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)) {T' : ℝ}
+    (hT' : 0 < T') (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) {s : ℝ} (hs : s ≤ T') (e : E) (ω : Ω) :
+    (G.dyadicRestrict hT' hd h).eval s e ω = G.eval s e ω := by
   unfold eval
-  simp_rw [dyadic_p_restrict (hT := hT) hd]
+  simp_rw [dyadic_p_restrict (hT := hT) hT' hd h]
   refine Finset.sum_subset (Finset.range_subset.2 fun i hi =>
     Finset.mem_range.2 (lt_of_lt_of_le hi (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d)))) ?_
   intro i hi hni
@@ -875,18 +878,17 @@ lemma eval_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T
   intro hs'
   have : (TimeGrid.dyadic T hT ℓ).p (2 ^ (ℓ - d)) ≤ (TimeGrid.dyadic T hT ℓ).p i :=
     (TimeGrid.dyadic T hT ℓ).p_mono (not_lt.1 hni) hi.le
-  rw [dyadic_p_pow (hT := hT) hd] at this
+  rw [dyadic_p_pow (hT := hT) hd h] at this
   exact absurd (hs.trans this) (not_le.2 hs'.1)
 
 lemma Adapted.dyadicRestrict {N : PoissonRandomMeasure P ν} {ℓ d : ℕ}
-    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)} (hG : G.Adapted N) (hd : d ≤ ℓ) :
-    (G.dyadicRestrict hd).Adapted N := by
+    {G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)} (hG : G.Adapted N) {T' : ℝ} (hT' : 0 < T')
+    (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) : (G.dyadicRestrict hT' hd h).Adapted N := by
   intro i hi k
   show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq
-    ((TimeGrid.dyadic (T / 2 ^ d) (by positivity) (ℓ - d)).p i)) (G.ξ i k)
-  rw [dyadic_p_restrict (hT := hT) hd]
+    ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)) (G.ξ i k)
+  rw [dyadic_p_restrict (hT := hT) hT' hd h]
   exact hG i (lt_of_lt_of_le hi (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))) k
-
 
 end Dyadic
 
