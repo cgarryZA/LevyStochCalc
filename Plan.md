@@ -227,8 +227,21 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         bound `stageIntegral_sub_sq_le`: for `n ≤ n'` and `t ≤ 2ⁿ`,
         `E|Iₙ(t) − Iₙ'(t)|² ≤ 2(n+1)⁻¹ + 2(n'+1)⁻¹` (restrict the later stage to `[0, 2ⁿ]`,
         refine the earlier one, difference isometry, martingale monotonicity of
-        `E|M_t|²`). Next: the `L²` process (`Filter.limUnder` of the stage integrals), its
-        adaptedness, martingale property, isometry at every time, right-`L²`-continuity.
+        `E|M_t|²`).
+      - *The `L²` process — DONE 2026-09-06* (`Poisson/CompensatedProcess.lean`). `process`
+        is the `ℱ_t`-measurable representative of `processLp t := limUnder` of the stage
+        integrals in `L²(P)` (`lpMeas` closedness); `martingale_process` (natural
+        filtration), `process_ae_zero_of_nonpos`, `process_lintegral_sq'` (the isometry
+        `∫⁻‖F_t‖² = ∫⁻∫⁻_{[0,t]}∫⁻‖φ‖²` at every `t ≥ 0`, through the product measure
+        `P ⊗ ν ⊗ vol|[0,t]`), `process_eLpNorm_two_right_tendsto` (right-`L²`-continuity,
+        from the martingale Pythagoras identity and right-continuity of the horizon
+        integral `horizonInt`), and `martingale_rightCont_process` on
+        `(naturalFiltration N).rightCont`. This is conjuncts 1 and 3 of #6 for the
+        constructed process. Remaining: conjunct 2 (the quadratic-variation martingale:
+        set-level increment isometry from `integral_weight_increment_sq` at dyadic grid
+        points, limits in the stage, extension to real times by right-continuity, and a
+        generic "conditional isometry ⇒ `M² − A` martingale" lemma), then the assembly
+        with the càdlàg brick and the replacement of the axiom; then #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

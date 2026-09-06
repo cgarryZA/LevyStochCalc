@@ -40,6 +40,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.master_err
 #print axioms LevyStochCalc.Poisson.Compensated.master_adapted
 #print axioms LevyStochCalc.Poisson.Compensated.stageIntegral_sub_sq_le
+#print axioms LevyStochCalc.Poisson.Compensated.martingale_process
+#print axioms LevyStochCalc.Poisson.Compensated.martingale_rightCont_process
+#print axioms LevyStochCalc.Poisson.Compensated.process_lintegral_sq'
+#print axioms LevyStochCalc.Poisson.Compensated.process_eLpNorm_two_right_tendsto
+#print axioms LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos
 
 -- ===== Layer 0.5: martingale path regularity =====
 #print axioms LevyStochCalc.Martingale.isRealQuasimartingale
