@@ -26,6 +26,10 @@ multiplying an approximant by `stepIoc` on their common refinement.
   integrand supported in `(a, b]`.
 * `lintegral_stochasticIntegralBrownian_sub_pow_four_le` —
   `𝔼|∫_a^b H dW|⁴ ≤ (6 + c)·C⁴·(b − a)²` for an integrand bounded by `C`.
+* `lintegral_stochasticIntegralBrownian_sub_sq_le` — `𝔼|∫_a^b H dW|² ≤ C²·(b − a)`.
+* `integral_abs_sub_pow_three_le` —
+  `𝔼|∫_a^b H dW|³ ≤ ((C² + (6 + c)C⁴)/2)·(b − a)·√(b − a)`, by `2λ|y|³ ≤ λ²y² + y⁴` at
+  `λ = √(b − a)`.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -408,6 +412,45 @@ theorem lintegral_stochasticIntegralBrownian_pow_four_le_Ioc
   exact hfatou.trans (Filter.liminf_le_of_frequently_le
     (Filter.Eventually.frequently (Filter.Eventually.of_forall fun k => hQbound (ns k))))
 
+
+/-- Restricting an integrand to `(a, b]` preserves joint measurability. -/
+theorem measurable_uncurry_indicator_Ioc_mul (H : Ω → ℝ → ℝ)
+    (hm : Measurable (Function.uncurry H)) (a b : ℝ) :
+    Measurable (Function.uncurry fun ω s =>
+      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s) :=
+  (((measurable_const.indicator measurableSet_Ioc).comp measurable_snd)).mul hm
+
+/-- Restricting an integrand to `(a, b]` preserves progressive measurability. -/
+theorem progressivelyMeasurable_indicator_Ioc_mul
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (H : Ω → ℝ → ℝ)
+    (hp : Probability.ProgressivelyMeasurable ℱ H) (a b : ℝ) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s :=
+  (progressivelyMeasurable_of_time ℱ (measurable_const.indicator measurableSet_Ioc)).mul hp
+
+/-- Restricting an integrand to `(a, b]` cannot increase its `L²` mass. -/
+theorem abs_indicator_Ioc_mul_le {P : Measure Ω} [IsProbabilityMeasure P] (H : Ω → ℝ → ℝ)
+    (a b : ℝ) (ω : Ω) (s : ℝ) :
+    |(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ |H ω s| := by
+  by_cases hs : s ∈ Set.Ioc a b
+  · rw [Set.indicator_of_mem hs, one_mul]
+  · rw [Set.indicator_of_notMem hs, zero_mul, abs_zero]
+    exact abs_nonneg _
+
+/-- Restricting an integrand to `(a, b]` preserves square integrability. -/
+theorem lintegral_sq_indicator_Ioc_mul_lt_top {P : Measure Ω} [IsProbabilityMeasure P]
+    (H : Ω → ℝ → ℝ)
+    (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) (a b : ℝ) :
+    ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  intro T hT
+  refine lt_of_le_of_lt ?_ (hq T hT)
+  refine lintegral_mono fun ω => lintegral_mono fun s => ?_
+  refine pow_le_pow_left' (ENNReal.coe_le_coe.mpr ?_) 2
+  rw [← NNReal.coe_le_coe]
+  simpa [Real.norm_eq_abs] using abs_indicator_Ioc_mul_le (P := P) H a b ω s
+
 include hℱ in
 /-- **Fourth moment of an increment of the `L²` Itô integral.** For an integrand bounded by `C`,
 
@@ -426,30 +469,12 @@ theorem lintegral_stochasticIntegralBrownian_sub_pow_four_le
       ≤ ENNReal.ofReal ((6 + gaussianFourthMoment) * C ^ 4 * (b - a) ^ 2) := by
   classical
   have hb : (0 : ℝ) < b := lt_of_le_of_lt ha hab
-  have hindm : Measurable ((Set.Ioc a b).indicator (fun _ => (1 : ℝ))) :=
-    measurable_const.indicator measurableSet_Ioc
   have hFle : ∀ (ω : Ω) (s : ℝ),
-      |(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ |H ω s| := by
-    intro ω s
-    by_cases hs : s ∈ Set.Ioc a b
-    · rw [Set.indicator_of_mem hs, one_mul]
-    · rw [Set.indicator_of_notMem hs, zero_mul, abs_zero]
-      exact abs_nonneg _
-  have hmF : Measurable (Function.uncurry fun ω s =>
-      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s) :=
-    (hindm.comp measurable_snd).mul hm
-  have hpF : Probability.ProgressivelyMeasurable ℱ fun ω s =>
-      (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s :=
-    (progressivelyMeasurable_of_time ℱ hindm).mul hp
-  have hqF : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
-      < ⊤ := by
-    intro T hT
-    refine lt_of_le_of_lt ?_ (hq T hT)
-    refine lintegral_mono fun ω => lintegral_mono fun s => ?_
-    refine pow_le_pow_left' (ENNReal.coe_le_coe.mpr ?_) 2
-    rw [← NNReal.coe_le_coe]
-    simpa [Real.norm_eq_abs] using hFle ω s
+      |(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ |H ω s| :=
+    fun ω s => abs_indicator_Ioc_mul_le (P := P) H a b ω s
+  have hmF := measurable_uncurry_indicator_Ioc_mul H hm a b
+  have hpF := progressivelyMeasurable_indicator_Ioc_mul ℱ H hp a b
+  have hqF := lintegral_sq_indicator_Ioc_mul_lt_top (P := P) H hq a b
   have hCF : ∀ (ω : Ω) (s : ℝ),
       |(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ C :=
     fun ω s => (hFle ω s).trans (hCH ω s)
@@ -471,6 +496,262 @@ theorem lintegral_stochasticIntegralBrownian_sub_pow_four_le
   exact lintegral_stochasticIntegralBrownian_pow_four_le_Ioc W ℱ hℱ _ hmF hpF hqF hC0 hCF
     ha hab hsupp
 
+include hℱ in
+/-- **Second moment of an increment of the `L²` Itô integral.** For an integrand bounded by `C`,
+`𝔼|∫_a^b H dW|² ≤ C²·(b − a)`. -/
+theorem lintegral_stochasticIntegralBrownian_sub_sq_le
+    (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+    (hp : Probability.ProgressivelyMeasurable ℱ H)
+    (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ ENNReal.ofReal (C ^ 2 * (b - a)) := by
+  classical
+  have hb : (0 : ℝ) < b := lt_of_le_of_lt ha hab
+  have hFle : ∀ (ω : Ω) (s : ℝ),
+      |(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ |H ω s| :=
+    fun ω s => abs_indicator_Ioc_mul_le (P := P) H a b ω s
+  have hmF := measurable_uncurry_indicator_Ioc_mul H hm a b
+  have hpF := progressivelyMeasurable_indicator_Ioc_mul ℱ H hp a b
+  have hqF := lintegral_sq_indicator_Ioc_mul_lt_top (P := P) H hq a b
+  have hloc := stochasticIntegralBrownian_indicator_Ioc W ℱ hℱ H hm hp hq ha hab hmF hpF hqF hb
+  rw [min_self, min_eq_left hab.le] at hloc
+  have hcongr : ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+      - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      = ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ
+          (fun ω s => (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s)
+          hmF hpF hqF b ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+    refine lintegral_congr_ae ?_
+    filter_upwards [hloc] with ω hω
+    rw [hω]
+  rw [hcongr, isometry_stochasticIntegralBrownian W ℱ hℱ _ hmF hpF hqF hb]
+  -- the restricted integrand has `L²` mass at most `C²(b − a)` on every path
+  have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume
+      ≤ ENNReal.ofReal (C ^ 2 * (b - a)) := by
+    intro ω
+    have hptw : ∀ s : ℝ,
+        (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2
+          ≤ (Set.Ioc a b).indicator (fun _ => ENNReal.ofReal (C ^ 2)) s := by
+      intro s
+      by_cases hs : s ∈ Set.Ioc a b
+      · rw [Set.indicator_of_mem hs, Set.indicator_of_mem hs, one_mul]
+        have h1 : (‖H ω s‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal C := by
+          rw [ENNReal.ofReal_eq_coe_nnreal hC0]
+          refine ENNReal.coe_le_coe.mpr ?_
+          rw [← NNReal.coe_le_coe]
+          simpa [Real.norm_eq_abs] using hCH ω s
+        calc (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal C ^ 2 := pow_le_pow_left' h1 2
+          _ = ENNReal.ofReal (C ^ 2) := (ENNReal.ofReal_pow hC0 2).symm
+      · rw [Set.indicator_of_notMem hs, Set.indicator_of_notMem hs, zero_mul]
+        simp
+    calc ∫⁻ s in Set.Icc (0 : ℝ) b,
+          (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume
+        ≤ ∫⁻ s in Set.Icc (0 : ℝ) b,
+            (Set.Ioc a b).indicator (fun _ => ENNReal.ofReal (C ^ 2)) s ∂volume :=
+          lintegral_mono hptw
+      _ ≤ ∫⁻ s, (Set.Ioc a b).indicator (fun _ => ENNReal.ofReal (C ^ 2)) s ∂volume :=
+          MeasureTheory.setLIntegral_le_lintegral _ _
+      _ = ENNReal.ofReal (C ^ 2) * volume (Set.Ioc a b) := by
+          rw [lintegral_indicator measurableSet_Ioc, MeasureTheory.setLIntegral_const]
+      _ = ENNReal.ofReal (C ^ 2 * (b - a)) := by
+          rw [Real.volume_Ioc, ← ENNReal.ofReal_mul (by positivity)]
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+        (‖(Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ _ω : Ω, ENNReal.ofReal (C ^ 2 * (b - a)) ∂P := lintegral_mono hinner
+    _ = ENNReal.ofReal (C ^ 2 * (b - a)) := by simp
+
 end IncrementBound
+
+
+/-- A measurable function with finite `lintegral` of its norm is integrable. -/
+theorem integrable_of_lintegral_nnnorm_lt_top {P : Measure Ω} {f : Ω → ℝ}
+    (hf : MeasureTheory.AEStronglyMeasurable f P)
+    (h : ∫⁻ ω, (‖f ω‖₊ : ℝ≥0∞) ∂P < ⊤) : MeasureTheory.Integrable f P := by
+  refine ⟨hf, ?_⟩
+  rw [MeasureTheory.hasFiniteIntegral_iff_enorm]
+  simpa only [enorm_eq_nnnorm] using h
+
+/-- A pointwise-nonnegative integrand is bounded through its `lintegral`. -/
+theorem integral_le_of_lintegral_ofReal_le {P : Measure Ω} {f : Ω → ℝ}
+    (hint : MeasureTheory.Integrable f P) (hnn : ∀ ω, 0 ≤ f ω) {K : ℝ} (hK : 0 ≤ K)
+    (h : ∫⁻ ω, ENNReal.ofReal (f ω) ∂P ≤ ENNReal.ofReal K) : ∫ ω, f ω ∂P ≤ K := by
+  rw [← ENNReal.ofReal_le_ofReal_iff hK,
+    MeasureTheory.ofReal_integral_eq_lintegral_ofReal hint (Filter.Eventually.of_forall hnn)]
+  exact h
+
+section ThirdMoment
+
+variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
+  (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+  (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+  (hp : Probability.ProgressivelyMeasurable ℱ H)
+  (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+  {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
+
+include hℱ in
+/-- The increment of the `L²` Itô integral is measurable. -/
+theorem measurable_sub_stochasticIntegralBrownian (a b : ℝ) :
+    Measurable fun ω => stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+      - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω :=
+  (((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq b).mono
+      (ℱ.le b)).measurable).sub
+    (((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq a).mono
+      (ℱ.le a)).measurable)
+
+include hℱ hC0 hCH in
+/-- The fourth power of an increment is integrable, with the fourth-moment bound. -/
+theorem integral_sub_pow_four_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    MeasureTheory.Integrable (fun ω => (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4) P
+      ∧ ∫ ω, (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4 ∂P
+        ≤ (6 + gaussianFourthMoment) * C ^ 4 * (b - a) ^ 2 := by
+  have hmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq a b
+  have hbound := lintegral_stochasticIntegralBrownian_sub_pow_four_le W ℱ hℱ H hm hp hq
+    hC0 hCH ha hab
+  have hpt : ∀ ω : Ω, ENNReal.ofReal ((stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4)
+      = (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 4 := by
+    have key : ∀ x : ℝ, ENNReal.ofReal (x ^ 4) = (‖x‖₊ : ℝ≥0∞) ^ 4 := by
+      intro x
+      have h1 : (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal |x| := by
+        rw [ENNReal.ofReal_eq_coe_nnreal (abs_nonneg _)]
+        exact congrArg _ (NNReal.eq (by simp [Real.norm_eq_abs]))
+      rw [h1, ← ENNReal.ofReal_pow (abs_nonneg _), ← abs_pow,
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ x ^ 4)]
+    exact fun ω => key _
+  have hnn : ∀ ω : Ω, (0 : ℝ) ≤ (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+      - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4 := fun ω => by positivity
+  have hint : MeasureTheory.Integrable
+      (fun ω => (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4) P := by
+    refine integrable_of_lintegral_nnnorm_lt_top
+      (hmeas.pow_const 4).aestronglyMeasurable ?_
+    have hrw : ∀ ω : Ω, ((‖(stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4‖₊ : ℝ≥0∞))
+        = (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 4 := by
+      intro ω
+      rw [nnnorm_pow, ENNReal.coe_pow]
+    simp_rw [hrw]
+    exact lt_of_le_of_lt hbound (by simp)
+  have hKnn : (0 : ℝ) ≤ (6 + gaussianFourthMoment) * C ^ 4 * (b - a) ^ 2 :=
+    mul_nonneg (mul_nonneg (by linarith [gaussianFourthMoment_nonneg]) (by positivity))
+      (by positivity)
+  refine ⟨hint, integral_le_of_lintegral_ofReal_le hint hnn hKnn ?_⟩
+  simp_rw [hpt]
+  exact hbound
+
+include hℱ hC0 hCH in
+/-- The square of an increment is integrable, with the second-moment bound. -/
+theorem integral_sub_sq_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    MeasureTheory.Integrable (fun ω => (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2) P
+      ∧ ∫ ω, (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2 ∂P
+        ≤ C ^ 2 * (b - a) := by
+  have hmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq a b
+  have hbound := lintegral_stochasticIntegralBrownian_sub_sq_le W ℱ hℱ H hm hp hq
+    hC0 hCH ha hab
+  have hpt : ∀ ω : Ω, ENNReal.ofReal ((stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2)
+      = (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 2 := by
+    have key : ∀ x : ℝ, ENNReal.ofReal (x ^ 2) = (‖x‖₊ : ℝ≥0∞) ^ 2 := by
+      intro x
+      have h1 : (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal |x| := by
+        rw [ENNReal.ofReal_eq_coe_nnreal (abs_nonneg _)]
+        exact congrArg _ (NNReal.eq (by simp [Real.norm_eq_abs]))
+      rw [h1, ← ENNReal.ofReal_pow (abs_nonneg _), ← abs_pow,
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ x ^ 2)]
+    exact fun ω => key _
+  have hnn : ∀ ω : Ω, (0 : ℝ) ≤ (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+      - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2 := fun ω => by positivity
+  have hint : MeasureTheory.Integrable
+      (fun ω => (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2) P := by
+    refine integrable_of_lintegral_nnnorm_lt_top
+      (hmeas.pow_const 2).aestronglyMeasurable ?_
+    have hrw : ∀ ω : Ω, ((‖(stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2‖₊ : ℝ≥0∞))
+        = (‖stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω‖₊ : ℝ≥0∞) ^ 2 := by
+      intro ω
+      rw [nnnorm_pow, ENNReal.coe_pow]
+    simp_rw [hrw]
+    exact lt_of_le_of_lt hbound (by simp)
+  refine ⟨hint, integral_le_of_lintegral_ofReal_le hint hnn (by positivity) ?_⟩
+  simp_rw [hpt]
+  exact hbound
+
+include hℱ hC0 hCH in
+/-- **Third absolute moment of an increment of the `L²` Itô integral.** For an integrand
+bounded by `C`, `𝔼|∫_a^b H dW|³ ≤ ((C² + (6 + c)C⁴)/2)·(b − a)·√(b − a)`. -/
+theorem integral_abs_sub_pow_three_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3 ∂P
+      ≤ (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2 * ((b - a) * Real.sqrt (b - a)) := by
+  have hmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq a b
+  obtain ⟨h2int, h2le⟩ := integral_sub_sq_le W ℱ hℱ H hm hp hq hC0 hCH ha hab
+  obtain ⟨h4int, h4le⟩ := integral_sub_pow_four_le W ℱ hℱ H hm hp hq hC0 hCH ha hab
+  have hba : (0 : ℝ) < b - a := by linarith
+  set lam : ℝ := Real.sqrt (b - a) with hlam
+  have hlam0 : 0 < lam := Real.sqrt_pos.mpr hba
+  have hlamsq : lam ^ 2 = b - a := Real.sq_sqrt hba.le
+  -- pointwise Young inequality `2λ|y|³ ≤ λ²y² + y⁴`
+  have hyoung : ∀ y : ℝ, |y| ^ 3 ≤ (lam ^ 2 * y ^ 2 + y ^ 4) / (2 * lam) := by
+    intro y
+    rw [le_div_iff₀ (by linarith : (0 : ℝ) < 2 * lam)]
+    have hy2 : |y| ^ 2 = y ^ 2 := sq_abs y
+    have hy3 : |y| * y ^ 2 = |y| ^ 3 := by rw [← hy2]; ring
+    have hid : (lam * |y| - y ^ 2) ^ 2
+        = lam ^ 2 * |y| ^ 2 - 2 * lam * (|y| * y ^ 2) + y ^ 4 := by ring
+    rw [hy2, hy3] at hid
+    linarith [sq_nonneg (lam * |y| - y ^ 2), hid]
+  have hdomint : MeasureTheory.Integrable
+      (fun ω => (lam ^ 2 * (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2
+        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4) / (2 * lam)) P :=
+    ((h2int.const_mul (lam ^ 2)).add h4int).div_const _
+  have hint3 : MeasureTheory.Integrable
+      (fun ω => |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3) P := by
+    refine hdomint.mono ((hmeas.abs.pow_const 3).aestronglyMeasurable)
+      (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs,
+      abs_of_nonneg (by positivity : (0 : ℝ) ≤ |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3)]
+    refine (hyoung _).trans (le_abs_self _)
+  calc ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3 ∂P
+      ≤ ∫ ω, (lam ^ 2 * (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2
+          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4) / (2 * lam) ∂P :=
+        MeasureTheory.integral_mono hint3 hdomint (fun ω => hyoung _)
+    _ = (lam ^ 2 * (∫ ω, (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 2 ∂P)
+          + ∫ ω, (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω) ^ 4 ∂P) / (2 * lam) := by
+        rw [MeasureTheory.integral_div,
+          MeasureTheory.integral_add (h2int.const_mul _) h4int,
+          MeasureTheory.integral_const_mul]
+    _ ≤ (lam ^ 2 * (C ^ 2 * (b - a))
+          + (6 + gaussianFourthMoment) * C ^ 4 * (b - a) ^ 2) / (2 * lam) := by
+        gcongr
+    _ = (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2 * ((b - a) * lam) := by
+        rw [hlamsq]
+        field_simp
+        rw [hlamsq]
+        ring
+
+end ThirdMoment
 
 end LevyStochCalc.Brownian.Ito

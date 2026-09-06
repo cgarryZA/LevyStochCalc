@@ -275,6 +275,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_continuous_modification_stochasticIntegralBrownian
 -- B1a-2e (2026-09-06): the deterministic Riemann-sum error bound.
 #print axioms LevyStochCalc.abs_riemann_weighted_sub_integral_le
+-- B1a-3b (2026-09-06): second and third moments of an increment.
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_sub_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_sub_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_sub_pow_four_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_sub_pow_three_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
