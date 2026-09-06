@@ -373,10 +373,20 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
             `MarkStep.Adapted ℱ G` replaces `MarkStep.Adapted N G`. The consumers pass
             `naturalFiltration N` for the Poisson integrands and `W.naturalFiltration` for the
             Brownian ones; the common filtration of `(W, N)` is X2-3. Axiom set: the 3 standard.
-      - [ ] **X2-3 consumers**: `Ito/Setting` (`JumpDiffusion` driven by a `LevyDriver` on its
-            joint filtration), `Ito/Picard*`, `Ito/JumpFormula` (#16 restated), `BSDEJ/Definition`
-            (`IsBSDEJSolution` over the joint right-continuous filtration), #13b over the driver;
-            #9, #10, #13a return as *statements to prove*, not axioms.
+      - [x] **X2-3 consumers** (2026-09-06). Every consumer now carries ONE filtration `ℱ`
+            together with the two driver properties, so the diffusion and jump integrands are
+            progressive for the same `ℱ` and coupled `(σ, γ)` are in scope.
+            `Ito/Setting.is_solution` opens with
+            `∃ ℱ, (∀ j, IsBrownianFiltration (W.W j) ℱ) ∧ IsPoissonFiltration N ℱ ∧ …` and both
+            coefficient bundles are progressive for that `ℱ`; `Ito/JumpFormula` (#16 and its two
+            derived theorems), `Ito/Picard*` and `BSDEJ/Definition.IsBSDEJSolution` (over `ℱ₊`,
+            with `ℱ` and the two properties existentially bound) take `(ℱ, hℱW, hℱN)` the same
+            way. #13b (`BSDEJ/MartingaleRepresentation`) is stated over a `LevyDriver D` and its
+            `D.filtration.rightCont`, which also supplies the `σ(W) ⟂ σ(N)` hypothesis its
+            `M₀ = 𝔼 ξ` clause needs. A `LevyDriver` is *not* required elsewhere: an arbitrary
+            common `ℱ` is the weaker (so more general) hypothesis, and X2-4 supplies the witness
+            that the conjunction is satisfiable. #9, #10, #13a stay deleted (A5-1) and return as
+            statements to prove, not axioms. Axiom set: the 3 standard.
       - [ ] **X2-4 non-vacuity**: a `LevyDriver` exists (product of the Brownian and Poisson
             constructions).
       - [ ] **X2-5** dissertation forwarders, import contract, ledgers.

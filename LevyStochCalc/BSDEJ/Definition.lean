@@ -139,17 +139,20 @@ def IsBSDEJSolution
         Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω))
           ∧ ∃ L : ℝ,
               Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L))
-    -- Adaptedness layer. `Filt` is pinned to the right-continuous augmentation
-    -- of `σ(W, N) = (⨆ i, naturalFiltration (W.W i)) ⊔ naturalFiltration N`
-    -- (the literature filtration; `.rightCont` is needed for Doob's
-    -- L²-maximal, optional stopping, and the càdlàg modification). Pinning by
-    -- equality, not by `≤ Filt`, avoids the vacuous `Filt = ⊤`. M_W is pinned
-    -- to the canonical Brownian Itô integral of Z, so the per-component Z
-    -- hypotheses are bundled inside the existential to type that integral.
-    ∧ (∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-        Filt = ((⨆ i : Fin d,
-                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+    -- Adaptedness layer, over a filtration `ℱ` for which every coordinate of `W` is a
+    -- Brownian motion and `N` is a Poisson random measure — the literature setting.
+    -- `Filt` is pinned to `ℱ.rightCont` (`.rightCont` is needed for Doob's L²-maximal,
+    -- optional stopping and the càdlàg modification). The two driver properties are what
+    -- rules out the vacuous `ℱ = ⊤`: a Brownian increment cannot be independent of a
+    -- σ-algebra containing it. `Z` and `U` are progressively measurable for the *same*
+    -- `ℱ`, so coupled representing integrands are in scope. M_W is pinned to the canonical
+    -- Brownian Itô integral of Z, so the per-component Z hypotheses are bundled inside the
+    -- existential to type that integral.
+    ∧ (∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+        (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+        (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+        (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+        Filt = ℱ.rightCont ∧
         -- H²/H²_N legs: Z and each mark-slice `s ↦ U s ω e` are progressively
         -- measurable; Y stays `Adapted` (it is the S² càdlàg leg).
         MeasureTheory.Adapted Filt Y ∧
@@ -166,34 +169,28 @@ def IsBSDEJSolution
           (∃ (h_Z_meas : ∀ i : Fin d,
                 Measurable (Function.uncurry (fun ω s => Z s ω i)))
              (h_Z_progMeas : ∀ i : Fin d,
-                 Probability.ProgressivelyMeasurable W.naturalFiltration
-                   (fun ω s => Z s ω i))
+                 Probability.ProgressivelyMeasurable ℱ (fun ω s => Z s ω i))
              (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
                 ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
                   (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
             ∀ T' : ℝ, ∀ᵐ ω ∂P,
               M_W T' ω =
                 LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-                  W W.naturalFiltration W.isBrownianFiltration_natural
-                  Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
+                  W ℱ hℱW Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
           -- M_N pinned to the canonical compensated-Poisson L² integral of U;
           -- the U-side hypotheses are bundled here likewise (mirror of M_W).
           (∃ (h_U_meas : Measurable
                 (fun (p : Ω × ℝ × E) =>
                   (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
-             (h_U_progMeas : 
-                 Probability.MarkedProgressivelyMeasurable
-                   (LevyStochCalc.Poisson.naturalFiltration N)
-                   (fun ω' s e => U s ω' e))
+             (h_U_progMeas :
+                 Probability.MarkedProgressivelyMeasurable ℱ (fun ω' s e => U s ω' e))
              (h_U_sq : ∀ T' : ℝ, 0 < T' →
                 ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
                   (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
                     ∂ν ∂volume ∂P < ⊤),
             ∀ T' : ℝ, ∀ᵐ ω ∂P,
               M_N T' ω =
-                LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-                    (LevyStochCalc.Poisson.naturalFiltration N)
-                    (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+                LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
                   (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω) ∧
           -- M_W and M_N are martingales w.r.t. the same Filt:
           MeasureTheory.Martingale M_W Filt P ∧
@@ -241,12 +238,13 @@ equality (rather than allowing any `Filt` containing the natural one, which
 preserves the adaptedness rule-out of the `Y = W_T − W_t` non-solution. -/
 theorem filtration_eq_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      Filt = ((⨆ i : Fin d,
-                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont := by
-  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _⟩ := h
-  exact ⟨Filt, hFilt_eq⟩
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (_hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (_hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = ℱ.rightCont := by
+  obtain ⟨_, _, _, _, _, ℱ, hℱW, hℱN, Filt, hFilt_eq, _⟩ := h
+  exact ⟨ℱ, hℱW, hℱN, Filt, hFilt_eq⟩
 
 /-- **Regression test #2 (càdlàg Y)**: The `Y` component of every solution
 has a.s.-càdlàg paths (right-continuous with left limits at every point).
@@ -266,13 +264,14 @@ theorem Y_cadlag
 component is `Filt`-adapted where `Filt` is the canonical filtration. -/
 theorem Y_adapted_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      Filt = ((⨆ i : Fin d,
-                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (_hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (_hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = ℱ.rightCont ∧
       MeasureTheory.Adapted Filt Y := by
-  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, hY_adapted, _⟩ := h
-  exact ⟨Filt, hFilt_eq, hY_adapted⟩
+  obtain ⟨_, _, _, _, _, ℱ, hℱW, hℱN, Filt, hFilt_eq, hY_adapted, _⟩ := h
+  exact ⟨ℱ, hℱW, hℱN, Filt, hFilt_eq, hY_adapted⟩
 
 /-- **Regression test #4 (Z strongly progressive)**: The `Z` component is
 `IsStronglyProgressive` w.r.t. the canonical filtration (strictly stronger
@@ -281,88 +280,88 @@ solution-space requirement: H² is the L² space of progressively measurable
 processes. -/
 theorem Z_isStronglyProgressive_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      Filt = ((⨆ i : Fin d,
-                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (_hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (_hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = ℱ.rightCont ∧
       MeasureTheory.IsStronglyProgressive Filt Z := by
-  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _, hZ_prog, _⟩ := h
-  exact ⟨Filt, hFilt_eq, hZ_prog⟩
+  obtain ⟨_, _, _, _, _, ℱ, hℱW, hℱN, Filt, hFilt_eq, _, hZ_prog, _⟩ := h
+  exact ⟨ℱ, hℱW, hℱN, Filt, hFilt_eq, hZ_prog⟩
 
 /-- **Regression test #5 (U strongly progressive per mark)**: For every
 mark `e : E`, the per-mark slice `s ↦ U s · e` is `IsStronglyProgressive`
 w.r.t. the canonical filtration (H²_N solution-space requirement). -/
 theorem U_isStronglyProgressive_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
-      Filt = ((⨆ i : Fin d,
-                  LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-                  ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont ∧
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (_hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (_hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
+      Filt = ℱ.rightCont ∧
       ∀ e : E, MeasureTheory.IsStronglyProgressive Filt (fun s ω => U s ω e) := by
-  obtain ⟨_, _, _, _, _, Filt, hFilt_eq, _, _, hU_prog, _⟩ := h
-  exact ⟨Filt, hFilt_eq, hU_prog⟩
+  obtain ⟨_, _, _, _, _, ℱ, hℱW, hℱN, Filt, hFilt_eq, _, _, hU_prog, _⟩ := h
+  exact ⟨ℱ, hℱW, hℱN, Filt, hFilt_eq, hU_prog⟩
 
 /-- **Regression test #6 (M_W pinned to canonical Brownian Itô integral)**:
 The Brownian martingale leg `M_W` of every solution agrees a.s. (at every
 T') with the canonical multidim Brownian Itô integral
-`MultidimBrownianMotion.stochasticIntegral W W.naturalFiltration W.isBrownianFiltration_natural
-                                           Z ...` — not merely with some
+`MultidimBrownianMotion.stochasticIntegral W ℱ hℱW Z ...` for the solution's own
+filtration `ℱ` — not merely with some
 L²-isometric stand-in (which would leave a gap between the predicate and the
 literature claim). The per-component Z hypotheses are bundled as existential
 witnesses to make the canonical-integral expression well-typed. -/
 theorem M_W_eq_canonical_brownianIto
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ M_W : ℝ → Ω → ℝ,
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (M_W : ℝ → Ω → ℝ),
       ∃ (h_Z_meas : ∀ i : Fin d,
             Measurable (Function.uncurry (fun ω s => Z s ω i)))
          (h_Z_progMeas : ∀ i : Fin d,
-             Probability.ProgressivelyMeasurable W.naturalFiltration
-               (fun ω s => Z s ω i))
+             Probability.ProgressivelyMeasurable ℱ (fun ω s => Z s ω i))
          (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
             ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
               (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
         ∀ T' : ℝ, ∀ᵐ ω ∂P,
           M_W T' ω =
             LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-              W W.naturalFiltration W.isBrownianFiltration_natural
-              Z h_Z_meas h_Z_progMeas h_Z_sq T' ω := by
-  obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
+              W ℱ hℱW Z h_Z_meas h_Z_progMeas h_Z_sq T' ω := by
+  obtain ⟨_, _, _, _, _, ℱ, hℱW, _, _Filt, _, _, _, _,
           M_W, _, _, _, _, _,
           ⟨h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩, _, _, _, _⟩ := h
-  exact ⟨M_W, h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩
+  exact ⟨ℱ, hℱW, M_W, h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩
 
 /-- **Regression test #7 (M_N pinned to canonical compensated-Poisson
 integral)**: The Poisson martingale leg `M_N` of every solution agrees a.s.
 (at every T') with the canonical compensated-Poisson L² integral
-`Compensated.stochasticIntegral N
-    (LevyStochCalc.Poisson.naturalFiltration N)
-    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) U ...` — not merely with some
+`Compensated.stochasticIntegral N ℱ hℱN U ...` for the solution's own filtration `ℱ`
+— not merely with some
 L²-isometric stand-in. The U-side hypotheses are bundled as existential
 witnesses to make the canonical-integral expression well-typed (per-mark
 adaptedness of `U` alone would not type-check the canonical compensator). -/
 theorem M_N_eq_canonical_compensatedPoisson
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
-    ∃ M_N : ℝ → Ω → ℝ,
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (M_N : ℝ → Ω → ℝ),
       ∃ (h_U_meas : Measurable
             (fun (p : Ω × ℝ × E) =>
               (fun ω' s e => U s ω' e) p.1 p.2.1 p.2.2))
-         (h_U_progMeas : 
-             Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
-               (fun ω' s e => U s ω' e))
+         (h_U_progMeas :
+             Probability.MarkedProgressivelyMeasurable ℱ (fun ω' s e => U s ω' e))
          (h_U_sq : ∀ T' : ℝ, 0 < T' →
             ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
               (‖(fun ω' s e => U s ω' e) ω s e‖₊ : ℝ≥0∞) ^ 2
                 ∂ν ∂volume ∂P < ⊤),
         ∀ T' : ℝ, ∀ᵐ ω ∂P,
           M_N T' ω =
-            LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-                (LevyStochCalc.Poisson.naturalFiltration N)
-                (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+            LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
               (fun ω' s e => U s ω' e) h_U_meas h_U_progMeas h_U_sq T' ω := by
-  obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
+  obtain ⟨_, _, _, _, _, ℱ, _, hℱN, _Filt, _, _, _, _,
           _, M_N, _, _, _, _,
           _, ⟨h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩, _, _, _⟩ := h
-  exact ⟨M_N, h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩
+  exact ⟨ℱ, hℱN, M_N, h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩
 
 end IsBSDEJSolution
 

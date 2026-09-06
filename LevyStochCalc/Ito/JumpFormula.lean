@@ -150,9 +150,7 @@ we identify it as the sum of the *jump martingale* term and the
   `R_canonical T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
 
 where
-* `jump_mart_T(ω) = Compensated.stochasticIntegral N
-    (LevyStochCalc.Poisson.naturalFiltration N)
-    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) (u(·+γ) − u along X) T ω`,
+* `jump_mart_T(ω) = Compensated.stochasticIntegral N ℱ hℱN (u(·+γ) − u along X) T ω`,
 * `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 
 **Narrowing compared to the previous Tier 1 #16 axiom**: the previous
@@ -197,6 +195,9 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (_hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (_hT : 0 < T)
@@ -206,7 +207,7 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
     (h_sigmaGrad_progMeas : ∀ j : Fin d,
-        Probability.ProgressivelyMeasurable W.naturalFiltration
+        Probability.ProgressivelyMeasurable ℱ
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
@@ -216,8 +217,8 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : 
-        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+    (h_jumpInt_progMeas :
+        Probability.MarkedProgressivelyMeasurable ℱ
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
@@ -231,13 +232,11 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
       (u T (X.X T ω) - u 0 (X.X 0 ω)
         - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         - LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W W.naturalFiltration W.isBrownianFiltration_natural
+            W ℱ hℱW
             (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω)
         =
-        LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (LevyStochCalc.Poisson.naturalFiltration N)
-            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+        LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
@@ -254,9 +253,7 @@ identifies it as the sum of the *jump martingale* term and the
   `R T ω = jump_mart_T(ω) + comp_drift_T(ω)`  a.s.,
 
 where
-* `jump_mart_T(ω) = Compensated.stochasticIntegral N
-    (LevyStochCalc.Poisson.naturalFiltration N)
-    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) (u(·+γ) − u along X) T ω`,
+* `jump_mart_T(ω) = Compensated.stochasticIntegral N ℱ hℱN (u(·+γ) − u along X) T ω`,
 * `comp_drift_T(ω) = ∫₀^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 
 Derived by per-`ω` algebra from the narrower axiom
@@ -288,6 +285,9 @@ theorem itoLevyFormula_jumpResidual_axiom
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (hT : 0 < T)
@@ -297,7 +297,7 @@ theorem itoLevyFormula_jumpResidual_axiom
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
     (h_sigmaGrad_progMeas : ∀ j : Fin d,
-        Probability.ProgressivelyMeasurable W.naturalFiltration
+        Probability.ProgressivelyMeasurable ℱ
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
@@ -307,8 +307,8 @@ theorem itoLevyFormula_jumpResidual_axiom
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : 
-        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+    (h_jumpInt_progMeas :
+        Probability.MarkedProgressivelyMeasurable ℱ
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
@@ -325,22 +325,21 @@ theorem itoLevyFormula_jumpResidual_axiom
         u T (X.X T ω) - u 0 (X.X 0 ω) =
           (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
           + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-              W W.naturalFiltration W.isBrownianFiltration_natural
+              W ℱ hℱW
               (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
               h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
           + R T ω) :
     ∀ᵐ ω ∂P,
       R T ω =
-        LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (LevyStochCalc.Poisson.naturalFiltration N)
-            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+        LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
   -- Step 1: apply the narrower axiom to get the canonical-R identity.
-  have h_canonical := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u hu T hT h_μ_int
+  have h_canonical := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X ℱ hℱW hℱN
+    u hu T hT h_μ_int
     h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
     h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
   -- Step 2: combine the two a.s. hypotheses; per-ω algebra collapses
@@ -383,6 +382,9 @@ theorem itoLevyFormula
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (hT : 0 < T)
@@ -392,7 +394,7 @@ theorem itoLevyFormula
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
     (h_sigmaGrad_progMeas : ∀ j : Fin d,
-        Probability.ProgressivelyMeasurable W.naturalFiltration
+        Probability.ProgressivelyMeasurable ℱ
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
@@ -402,8 +404,8 @@ theorem itoLevyFormula
         (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                           - u s (X.X s ω')) p.1 p.2.1 p.2.2))
-    (h_jumpInt_progMeas : 
-        Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+    (h_jumpInt_progMeas :
+        Probability.MarkedProgressivelyMeasurable ℱ
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')))
     (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
@@ -417,18 +419,17 @@ theorem itoLevyFormula
       u T (X.X T ω) - u 0 (X.X 0 ω) =
         (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W W.naturalFiltration W.isBrownianFiltration_natural
+            W ℱ hℱW
             (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
-        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (LevyStochCalc.Poisson.naturalFiltration N)
-            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)
                             - u s (X.X s ω'))
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
-  have h := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u hu T hT h_μ_int
+  have h := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X ℱ hℱW hℱN
+    u hu T hT h_μ_int
     h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
     h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
   filter_upwards [h] with ω hω

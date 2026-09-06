@@ -11,9 +11,11 @@
 > and its marked analogue `MarkedProgressivelyMeasurable ℱ φ`) **with respect to any filtration
 > for which `W` is a Brownian motion, resp. `N` a Poisson random measure**
 > (`IsBrownianFiltration W ℱ`, `IsPoissonFiltration N ℱ`; work packages X2-1/X2-2 in `Plan.md`).
-> `JumpDiffusion`, `IsBSDEJSolution` and the corrected #16 still take their Brownian integrands
-> over `W.naturalFiltration` and their Poisson integrands over `naturalFiltration N` separately
-> — the common filtration of `(W, N)` is X2-3 in `Plan.md`. Full argument:
+> **X2-3 (2026-09-06)** puts both integrands on ONE filtration: `JumpDiffusion.is_solution`,
+> #16, `Ito/Picard*` and `IsBSDEJSolution` are stated for a single `ℱ` carrying both driver
+> properties (`∀ j, IsBrownianFiltration (W.W j) ℱ` and `IsPoissonFiltration N ℱ`), and #13b
+> over a `LevyDriver` and its `ℱ₊`. Coupled `(σ, γ)` are therefore in scope. Still open: a
+> witness that the conjunction is satisfiable (X2-4). Full argument:
 > `tools/cited_axioms.md`, "Integrand-class audit".
 
 ## Headline
@@ -78,8 +80,9 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   the `C·Δt` rate for merely measurable `g`, `X`), `jacodYor_PRP_martingale_axiom` (#13a:
   single-driver integrands for a joint-filtration martingale; `W·Ñ` is a counterexample) and the
   theorems derived from them (`jacodYor_representation(_axiom)`,
-  `bsdej_path_regularity_linear_rate`, `bsdej_U_L2_regularity_linear_rate`). Corrected statements
-  over the joint filtration of `(W, N)` are work package X2 in `Plan.md`.
+  `bsdej_path_regularity_linear_rate`, `bsdej_U_L2_regularity_linear_rate`). Since X2-3 the
+  common filtration those corrected statements need is available; restating and proving them
+  is work packages A6/A7 and B5 in `Plan.md`.
 * **Itô-Lévy formula** (1 axiom): `itoLevyFormula_jumpResidual_canonical_axiom`
   (#16). The former #15 `itoFormula_continuousSemimartingale_axiom` was retired
   2026-09-06: its statement (an unconstrained existential residual) was
@@ -87,12 +90,11 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   **Statement audit 2026-09-06**: #16 now assumes `u ∈ C²` jointly and an
   integrable drift along the path — without them its Lean statement was
   refutable (`fderiv`/`deriv` and the Bochner integral vanish where the
-  hypotheses fail). Since X2-1/X2-2 its Brownian integrands are progressively
-  measurable for the joint Brownian filtration `W.naturalFiltration` and its
-  Poisson integrands for `naturalFiltration N` — two separate filtrations, so
-  `JumpDiffusion.is_solution`, #16, #13a, #9, #10 cover coupled coefficients only
-  after the common-filtration stage X2-3 in `Plan.md`; see
-  `tools/cited_axioms.md` #16.
+  hypotheses fail). Since X2-3 both its Brownian and its Poisson integrands are
+  progressively measurable for one common filtration `ℱ` carrying both driver
+  properties, so `JumpDiffusion.is_solution`, #16 and `IsBSDEJSolution` cover
+  coupled coefficients; a witness that such an `ℱ` exists is X2-4 in `Plan.md`.
+  See `tools/cited_axioms.md` #16.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem

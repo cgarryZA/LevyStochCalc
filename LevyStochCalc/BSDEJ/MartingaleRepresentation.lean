@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.BSDEJ.Definition
+import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Brownian.MultidimIto
 
 /-!
@@ -45,17 +46,18 @@ section PRP
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- Abbreviation for the joint right-continuous (W, N) filtration appearing
-in every statement below. Locally bound to keep statements legible. -/
+/-- The right-continuous joint filtration of a Lévy driver `D = (W, N)`, i.e. `ℱ₊`
+for `ℱ = (⨆ i, ℱ^{Wⁱ}) ⊔ ℱ^N`. Every coordinate of `D.W` is a Brownian motion for
+it and `D.N` a Poisson random measure (`LevyDriver.isBrownianFiltration`,
+`.isPoissonFiltration`, lifted by `.rightCont`), and `D` carries the independence
+`σ(W) ⟂ σ(N)` that the `M₀ = 𝔼 ξ` clause below needs. -/
 noncomputable abbrev jointFiltration
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) :
+    (D : LevyStochCalc.Driver.LevyDriver P d ν) :
     MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω› :=
-  ((⨆ i : Fin d, LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i))
-    ⊔ LevyStochCalc.Poisson.naturalFiltration N).rightCont
+  D.filtration.rightCont
 
 end PRP
 
@@ -104,15 +106,14 @@ axiom condExp_to_PRP_martingale_form_axiom
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (D : LevyStochCalc.Driver.LevyDriver P d ν)
     (T : ℝ) (_hT : 0 < T)
     (ξ : Ω → ℝ)
     (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((jointFiltration W N).seq T) ξ)
+      ((jointFiltration D).seq T) ξ)
     (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     ∃ (M : ℝ → Ω → ℝ),
-      MeasureTheory.Martingale M (jointFiltration W N) P
+      MeasureTheory.Martingale M (jointFiltration D) P
       ∧ (∫⁻ ω, (‖M T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
       ∧ (∀ᵐ ω ∂P, ∀ t : ℝ,
           Filter.Tendsto (fun s => M s ω)

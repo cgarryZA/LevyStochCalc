@@ -146,15 +146,20 @@ structure JumpDiffusion
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
       ∧ ∀ i : Fin n, ∃ L : ℝ,
           Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)
-  /-- The SDE integral equation. Bundles per-row Brownian + per-row Compensated
-  integrand hypotheses inside the existential alongside the equation itself.
-  The γ-side hypotheses are bundled too (mirror of the σ-side), required by
-  the `Compensated.stochasticIntegral` signature. -/
+  /-- The SDE integral equation, relative to a filtration `ℱ` for which every coordinate of
+  `W` is a Brownian motion and `N` is a Poisson random measure. The filtration, those two
+  properties and the per-row integrand hypotheses (joint measurability, progressive
+  measurability for `ℱ`, `L²` bounds) are bundled in the existential alongside the equation,
+  because the two stochastic integrals need them to be well-typed. Both coefficients are
+  progressively measurable for the *same* filtration, so coupled `(σ, γ)` are in scope. -/
   is_solution :
-    ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+    ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+      (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+      (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+      (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
         Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
       (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
-          Probability.ProgressivelyMeasurable W.naturalFiltration
+          Probability.ProgressivelyMeasurable ℱ
             (fun ω s => coeffs.σ s (X s ω) i j))
       (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
@@ -163,7 +168,7 @@ structure JumpDiffusion
         Measurable (fun (p : Ω × ℝ × E) =>
           (fun ω' s e => coeffs.γ s (X s ω') e i) p.1 p.2.1 p.2.2))
       (h_γ_progMeas : ∀ i : Fin n,
-          Probability.MarkedProgressivelyMeasurable (LevyStochCalc.Poisson.naturalFiltration N)
+          Probability.MarkedProgressivelyMeasurable ℱ
             (fun ω' s e => coeffs.γ s (X s ω') e i))
       (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
@@ -172,14 +177,12 @@ structure JumpDiffusion
       X t ω i = x₀ i
         + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W W.naturalFiltration W.isBrownianFiltration_natural
+            W ℱ hℱW
             (fun s ω => coeffs.σ s (X s ω) i)
             (fun j => h_σ_meas i j)
             (fun j => h_σ_progMeas i j)
             (fun j => h_σ_sq i j) t ω
-        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
-            (LevyStochCalc.Poisson.naturalFiltration N)
-            (LevyStochCalc.Poisson.isPoissonFiltration_natural N)
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
             (fun ω' s e => coeffs.γ s (X s ω') e i)
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
