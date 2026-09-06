@@ -80,7 +80,7 @@ theorem tendsto_condExpL2_of_antitone (hanti : Antitone m) (hle : ∀ n, m n ≤
     refine Submodule.eq_starProjection_of_mem_orthogonal ?_ ?_
     · exact hViInf ▸ (⨅ n, V n).starProjection_apply_mem f
     · exact hViInf ▸ (⨅ n, V n).sub_starProjection_mem_orthogonal f
-  show Tendsto (fun n => (lpMeas ℝ ℝ (m n) 2 μ).starProjection f) atTop
+  change Tendsto (fun n => (lpMeas ℝ ℝ (m n) 2 μ).starProjection f) atTop
     (𝓝 ((lpMeas ℝ ℝ (⨅ n, m n) 2 μ).starProjection f))
   rw [heq]
   exact key

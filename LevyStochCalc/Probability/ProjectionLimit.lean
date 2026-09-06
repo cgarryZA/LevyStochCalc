@@ -19,12 +19,14 @@ intersection.
 
 This is the Hilbert-space half of the downward `L²` convergence of conditional expectations that
 cited result #13b needs; the measure-theoretic half is
-`LevyStochCalc/Probability/Augmentation.lean` together with the identification of `lpMeas`.
+`LevyStochCalc/Probability/AEMeasurableInf.lean`, which identifies the intersection of the
+`lpMeas` subspaces.
 
 ## Main statements
 
 * `starProjection_starProjection_of_le` — the projections compose on nested subspaces.
 * `norm_sq_starProjection_of_le` — Pythagoras for nested projections.
+* `norm_starProjection_sub_le_of_le` — `‖P_V x − P_U x‖ ≤ ‖P_W x − P_U x‖` for `U ≤ V ≤ W`.
 * `tendsto_starProjection_of_antitone` — `P_{V n} x → P_{⨅ V n} x`.
 -/
 
@@ -59,6 +61,25 @@ theorem norm_sq_starProjection_of_le {V W : Submodule ℝ E} [V.HasOrthogonalPro
     rw [Submodule.starProjection_orthogonal W]
     simp [starProjection_starProjection_of_le h x]
   rwa [horth] at key
+
+omit [CompleteSpace E] in
+/-- Equal subspaces have equal orthogonal projections. -/
+theorem starProjection_congr {V W : Submodule ℝ E} [V.HasOrthogonalProjection]
+    [W.HasOrthogonalProjection] (h : V = W) (x : E) :
+    V.starProjection x = W.starProjection x := by
+  subst h; rfl
+
+omit [CompleteSpace E] in
+/-- For nested subspaces `U ≤ V ≤ W` the projection onto the larger of the two outer subspaces is
+the further one from `P_U x`. -/
+theorem norm_starProjection_sub_le_of_le {U V W : Submodule ℝ E} [U.HasOrthogonalProjection]
+    [V.HasOrthogonalProjection] [W.HasOrthogonalProjection] (hUV : U ≤ V) (hVW : V ≤ W) (x : E) :
+    ‖V.starProjection x - U.starProjection x‖ ≤ ‖W.starProjection x - U.starProjection x‖ := by
+  have h₁ := norm_sq_starProjection_of_le hUV x
+  have h₂ := norm_sq_starProjection_of_le (hUV.trans hVW) x
+  have h₃ := norm_sq_starProjection_of_le hVW x
+  refine (sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).1 ?_
+  nlinarith [sq_nonneg ‖W.starProjection x - V.starProjection x‖]
 
 section Antitone
 

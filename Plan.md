@@ -456,6 +456,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         forwards). Axiom set: the 3 standard.
 - [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
       regularization (KS I.3.13) + Blumenthal 0-1.
+      - [x] *Right `L²`-continuity of the conditional expectation* along a right-continuous
+        filtration on `ℝ` (`Probability/CondExpRightContinuous.lean`,
+        `tendsto_condExpL2_nhdsGT`), over `Probability/ProjectionLimit.lean`,
+        `Probability/AEMeasurableInf.lean` and `Probability/CondExpInf.lean`. Axiom set:
+        the 3 standard.
+      - [ ] *Blumenthal 0-1 for the driver's joint filtration*, then the càdlàg modification
+        and the assembly. Tickets `A2`, `A3` of `../Dissertation/WORK_BREAKDOWN.md`.
 - [x] **B5-0 / #13a statement audit** — RETIRED 2026-09-06 (refutable: single-driver
       integrands for a joint-filtration martingale; `W·Ñ`); the axiom and the derived
       `jacodYor_representation(_axiom)` were deleted. **B5** becomes: after X2, state the

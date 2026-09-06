@@ -47,6 +47,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.aestronglyMeasurable_iInf_of_antitone
 #print axioms LevyStochCalc.Probability.lpMeas_iInf_of_antitone
 #print axioms LevyStochCalc.Probability.tendsto_condExpL2_of_antitone
+-- A1c (2026-09-06): right continuity in `L²` of the conditional expectation along a
+-- right-continuous filtration on `ℝ`.
+#print axioms LevyStochCalc.Probability.norm_starProjection_sub_le_of_le
+#print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div
+#print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div_of_isRightContinuous
+#print axioms LevyStochCalc.Probability.tendsto_condExpL2_nhdsGT
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive

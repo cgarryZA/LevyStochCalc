@@ -103,12 +103,18 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   a dependent `(W, N)` — no such filtration exists there, so `JumpDiffusion` is
   uninhabited and the `sorry` was undischargeable as stated. See
   `tools/cited_axioms.md`, Retired #14.
-* **Toward #13b** (0 axioms closed yet): `Probability/Augmentation.lean` proves that
-  augmenting a sub-σ-algebra by the `μ`-null sets commutes with a countable antitone infimum
-  (`aug_iInf_of_antitone`). That was the flagged risk of the #13b route — the downward `L²`
-  convergence of conditional expectations it needs — and it resolves positively, so #13b does
-  not have to be restated over an augmented filtration. Ticket `A1b-ii` of
-  `../Dissertation/WORK_BREAKDOWN.md`.
+* **Toward #13b** (0 axioms closed yet): the analytic input of the Doob regularization is in
+  place — the conditional expectation is right-continuous in `L²` along a right-continuous
+  filtration on `ℝ` (`Probability/CondExpRightContinuous.lean`,
+  `tendsto_condExpL2_nhdsGT`), over the downward convergence along a decreasing sequence of
+  σ-algebras (`Probability/CondExpInf.lean`, `tendsto_condExpL2_of_antitone`), which in turn
+  rests on the Hilbert-space limit of `Probability/ProjectionLimit.lean` and the identification
+  of `⨅ n, lpMeas (m n)` from `Probability/AEMeasurableInf.lean`. Mathlib has the upward
+  statement (`Integrable.tendsto_eLpNorm_condExp`) but not this one.
+  `Probability/Augmentation.lean` (`aug_iInf_of_antitone`, augmentation by the `μ`-null sets
+  commutes with a countable antitone infimum) was the originally planned route; the `limsup`
+  argument reaches the same place without it, so it is no longer on the path. Tickets `A1a`,
+  `A1b`, `A1c` of `../Dissertation/WORK_BREAKDOWN.md`; `A3a`–`A3d` remain.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem
