@@ -34,6 +34,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.comap
 #print axioms LevyStochCalc.Driver.LevyDriver.exists
 #print axioms LevyStochCalc.Driver.exists_isBrownianFiltration_and_isPoissonFiltration
+-- A1b-ii (2026-09-06): augmentation by the null sets commutes with a countable antitone
+-- infimum of sub-σ-algebras — the gate of the downward `L²` convergence that #13b needs.
+#print axioms LevyStochCalc.Probability.aug_eq_sup_nullSigma
+#print axioms LevyStochCalc.Probability.measurableSet_aug_of_ae_eq
+#print axioms LevyStochCalc.Probability.aug_iInf_of_antitone
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive

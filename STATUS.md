@@ -103,6 +103,12 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   a dependent `(W, N)` — no such filtration exists there, so `JumpDiffusion` is
   uninhabited and the `sorry` was undischargeable as stated. See
   `tools/cited_axioms.md`, Retired #14.
+* **Toward #13b** (0 axioms closed yet): `Probability/Augmentation.lean` proves that
+  augmenting a sub-σ-algebra by the `μ`-null sets commutes with a countable antitone infimum
+  (`aug_iInf_of_antitone`). That was the flagged risk of the #13b route — the downward `L²`
+  convergence of conditional expectations it needs — and it resolves positively, so #13b does
+  not have to be restated over an augmented filtration. Ticket `A1b-ii` of
+  `../Dissertation/WORK_BREAKDOWN.md`.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem

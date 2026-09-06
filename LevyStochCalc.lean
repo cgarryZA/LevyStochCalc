@@ -17,6 +17,7 @@ import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.Transport
+import LevyStochCalc.Probability.Augmentation
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
