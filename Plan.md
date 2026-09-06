@@ -14,6 +14,11 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   refutable statements** — deleted, not relocated). `cited_axioms.md` "2 live". The 3 standard
   axioms (`propext`/`Classical.choice`/`Quot.sound`) are the only others. **The BSDEJ layer no
   longer states existence, path regularity or the PRP**; those return, correctly stated, with X2.
+- **Integrand-class audit 2026-09-06**: every integral's `h_progMeas` hypothesis admits only
+  integrands a.s. constant in `ω` at each time (no `s ≤ t` restriction; `ℱ 0` P-trivial), so
+  the proved integral theorems are about Wiener integrals of deterministic integrands and the
+  SDE/BSDEJ layers are confined to that class — see `tools/cited_axioms.md`, "Integrand-class
+  audit". Fixed by X2.
 - **Statement audit 2026-09-06 (#16)**: the Itô–Lévy axiom lacked `u ∈ C²` and drift
   integrability and was refutable; both are now hypotheses (see `tools/cited_axioms.md` #16).
   The same audit found that the library's `L²` integrals accept only integrands adapted to
@@ -313,9 +318,15 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       theorems and the dissertation forwarder; without them the statement was refutable
       (indicator `u` along `W`; `u = t·x` with `μ = 1/s`). Recorded the single-driver
       filtration scope of the whole SDE layer (`cited_axioms.md` #16 "Scope").
-- [ ] **X2 — common filtration for the `L²` integrals** (new, 2026-09-06; blocks A5–A7 and
-      B4/B5 from being faithful for coupled coefficients). Today
-      `MultidimBrownianMotion.stochasticIntegral` needs `H_j` progressively measurable for
+- [ ] **X2 — rebuild the interface of the `L²` integrals: genuine progressive measurability
+      over a common filtration** (new, 2026-09-06; blocks A5–A7 and B4/B5). Two defects,
+      fixed together: (i) the hypothesis `h_progMeas : ∀ t, StronglyMeasurable[ℱ t ⊗ Borel]
+      (uncurry H)` has no `s ≤ t` restriction, so (`ℱ 0` being P-trivial) every admissible
+      integrand is a.s. constant in `ω` at each time — the library's integrals are Wiener
+      integrals of deterministic integrands (`tools/cited_axioms.md`, "Integrand-class
+      audit"); the fix is Mathlib's `IsStronglyProgressive` (`Set.Iic t × Ω`), and every proof
+      that silently used the over-strength must be repaired; (ii) today
+      `MultidimBrownianMotion.stochasticIntegral` needs `H_j` progressive for
       `naturalFiltration (W.W j)` and `Compensated.stochasticIntegral` for `naturalFiltration N`.
       Plan: (1) an abstract driver-with-filtration layer — a filtration `ℱ`, `W` an
       `ℱ`-Brownian motion (increments independent of `ℱ_s`), `N` an `ℱ`-Poisson random measure

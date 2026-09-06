@@ -100,6 +100,7 @@ to the Mathlib version, no other changes needed downstream.
 * **Statement**: For predictable square-integrable `H`, there is a process `F` and filtration `Filt` such that `F` is a `Filt`-martingale, `(F t)² − ∫_0^t H² ds` is a `Filt`-martingale (quadratic variation identity), and the L²-isometry `∫⁻ ‖F T‖₊² = ∫⁻ ∫⁻ ‖H‖² over [0,T]` holds at every `T > 0`.
 * **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.4** + equation **(5.8)** (Itô isometry).
 * **Status**: No longer an axiom — proved as a `theorem` in `Brownian/ItoL2Completion.lean`. The witness is `F := stochasticIntegralBrownian` (the coherent `L²`-limit of the `masterApprox` simple integrals), `Filt := (naturalFiltration W).rightCont`. Conjunct 1 = `martingale_rightCont_stochasticIntegralBrownian`; conjunct 2 = `martingale_rightCont_quadVar_stochasticIntegralBrownian` (set-level Itô isometry at simple level → `L¹`-limit of the compensated squares → `rightCont` right-`L¹`-continuity); conjunct 3 = `isometry_stochasticIntegralBrownian`. The consumers `itoIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral` (and `stochasticIntegral` itself, via `Classical.choose`) are unchanged. `#print axioms` for these now lists only `propext, Classical.choice, Quot.sound`.
+* **Integrand-class caveat (2026-09-06)**: the `h_progMeas` hypothesis of this theorem admits only integrands that are a.s. constant in `ω` for each time (see "Integrand-class audit" below); the theorem is proved, but for Wiener-type integrals of deterministic integrands.
 
 ### Resolved #6: `LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence` (proved axiom→theorem 2026-09-06)
 
@@ -117,6 +118,7 @@ to the Mathlib version, no other changes needed downstream.
   in that closure (the predictable-`L²` density the upstream calls a deferred summit), (ii) the martingale
   and compensator-martingale conjuncts, (iii) the càdlàg modification. The bridge is a `def`, not a
   relocation of the axiom's statement.
+* **Integrand-class caveat (2026-09-06)**: the `h_progMeas` hypothesis of this theorem admits only integrands that are a.s. constant in `ω` for each time (see "Integrand-class audit" below); the theorem is proved, but for Wiener-type integrals of deterministic integrands.
 
 ### Retired #7: `LevyStochCalc.Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` (DELETED 2026-05-22)
 
@@ -215,6 +217,7 @@ literature integral forms.
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.
 * **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 3.2.6** + §3.2.B.
 * **Status**: No longer an axiom — proved as a `theorem` in `Ito/Picard.lean`, forwarding to `isometry_diff_stochasticIntegralBrownian` (`Brownian/ItoL2Completion.lean`). This was unblocked by making `stochasticIntegral := stochasticIntegralBrownian` a genuine `L²`-limit construction (rather than `Classical.choose` on #5): both the integral difference and the integrand difference are realized as `L²`-limits of the same simple-integral difference sequence (`masterApprox_cross_diff_isometry`), and `tendsto_nhds_unique` equates the two limits. The consumer `picardStep_diffusion_diff_lipschitz_sq_componentwise` (`Ito/Picard.lean`) is unchanged.
+* **Integrand-class caveat (2026-09-06)**: the `h_progMeas` hypothesis of this theorem admits only integrands that are a.s. constant in `ω` for each time (see "Integrand-class audit" below); the theorem is proved, but for Wiener-type integrals of deterministic integrands.
 
 ### Resolved #18: `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (proved axiom→theorem 2026-09-06; added 2026-05-23, documented 2026-05-27)
 
@@ -223,6 +226,7 @@ literature integral forms.
 * **Status**: No longer an axiom — proved as a `theorem` in `Poisson/Compensated.lean`, statement unchanged, forwarding to `process_sub_lintegral_sq` (`Poisson/CompensatedDiff.lean`): the stage approximants of the two integrands are refined to a common dyadic grid (`MarkStep.integral_dyadicRefine`: a refined adapted integrand has a.e. the same integral at every time, by the martingale property from the common horizon), where the same-grid difference isometry `MarkStep.lintegral_integral_sub_sq_at` holds at every time; both sides pass to the limit in `L²` (`tendsto_lintegral_nnnorm_sq_of_eLpNorm`) and `tendsto_nhds_unique` equates the limits; the integrals are modifications of the processes (`stochasticIntegral_ae_eq_process`). `#print axioms` lists only the three standard axioms. The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
 * **Mathlib status (May 2026)**: blocked on Mathlib gaining a compensated-Poisson L²-integral (waits on a PRM construction; in-tree, #2 is a theorem since 2026-09-06). No current Mathlib activity in this direction.
 * **Replacement plan**: `theorem itoIsometry_diff_compensated := <linearity ∘ isometry>` when Mathlib gains a compensated-Poisson L²-integral as a continuous linear map.
+* **Integrand-class caveat (2026-09-06)**: the `h_progMeas` hypothesis of this theorem admits only integrands that are a.s. constant in `ω` for each time (see "Integrand-class audit" below); the theorem is proved, but for Wiener-type integrals of deterministic integrands.
 
 ### Retired #12: `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (DEMOTED axiom→theorem 2026-05-26)
 
@@ -554,6 +558,44 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
   outer h_meas + h_progMeas + h_sq_int_global hypotheses on
   `itoIsometry_compensated_unified_existence` mirror the Brownian-side
   signature exactly.
+
+### Integrand-class audit (2026-09-06) — the `L²` integrals admit only deterministic integrands
+
+The progressive-measurability hypothesis carried by every stochastic integral of this library
+(`h_progMeas` in `Brownian/ItoL2Completion.lean`, `Brownian/MultidimIto.lean`,
+`Poisson/Compensated*.lean`, and mirrored in `Ito/Setting.lean`, `Ito/JumpFormula.lean`,
+`BSDEJ/Definition.lean`) reads
+
+    ∀ t, StronglyMeasurable[ℱ t ⊗ Borel] (fun p : Ω × ℝ => H p.1 p.2)
+
+with **no restriction to `s ≤ t`** — unlike Mathlib's `IsStronglyProgressive`, which restricts
+to `Set.Iic t × Ω`. Taking `t = 0`: every section `ω ↦ H ω s` must be `ℱ 0`-measurable. For the
+natural filtration of a Brownian motion, `ℱ 0 = ⨆ j ≤ 0, σ(W j)` is generated by the a.s.-zero
+variables `W j` (`initial_zero`, `negative_zero`), hence P-trivial; for the natural filtration of
+a Poisson random measure, `ℱ 0` is generated by the counts `N(B)`, `B ⊆ (-∞, 0] × E`, of
+intensity `0`, hence P-trivial as well. An `ℱ 0`-measurable real function is a.s. constant. So
+**every admissible integrand is, for each time `s`, a.s. constant in `ω`** — its class in
+`L²(P ⊗ ds)` (resp. `L²(P ⊗ ds ⊗ ν)`) is that of a deterministic function of `(s)` (resp.
+`(s, e)`). Consequences, recorded here so that nothing downstream over-reads the theorems:
+
+* The proved results #5, #6, #17, #18 (isometry, martingale, quadratic variation, càdlàg
+  modification, difference isometry) are true theorems, but about **Wiener integrals of
+  deterministic integrands**, not about the Itô–Lévy integral of predictable processes. The
+  docstrings that say "predictable square-integrable integrands" over-state the class.
+* `JumpDiffusion.is_solution` admits only coefficients `σ(s, X_s)`, `γ(s, X_s, e)` that are a.s.
+  constant in `ω` for each `(s, e)`; `IsBSDEJSolution` admits only deterministic `Z`, `U`;
+  the corrected #16 applies only to integrands in this class (its hypotheses are otherwise
+  unsatisfiable, so it is not refuted by this finding).
+* The dissertation forwarder `Dissertation.Continuous.itoLevyIsometry` (I02) inherits the
+  class; the one-step discrete model of Paper C never consumed these integrals.
+
+**Remediation** is work package X2 in `Plan.md`, rescoped to rebuild the interface of the
+integrals with genuine progressive measurability (Mathlib's `IsStronglyProgressive`, i.e.
+`Set.Iic t × Ω`) over a common filtration, and to check every proof that silently used the
+over-strong hypothesis. Until then the honest description of the library is: Brownian motion
+and Poisson random measures exist; their **Wiener-type** `L²` integrals of deterministic
+integrands exist with isometry, martingale and càdlàg properties; no stochastic integral of a
+random integrand, no SDE with random coefficients, no BSDEJ and no PRP is available.
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 

@@ -1,5 +1,16 @@
 # LevyStochCalc — Status (2026-09-05)
 
+
+> **Integrand-class audit (2026-09-06).** The `h_progMeas` hypothesis of every stochastic
+> integral in this library demands `ℱ t ⊗ Borel`-measurability of the whole integrand for
+> *every* `t`, with no restriction to `s ≤ t`; since `ℱ 0` of the natural filtrations is
+> P-trivial, every admissible integrand is a.s. constant in `ω` at each time. The proved
+> integral theorems (#5, #6, #17, #18) therefore concern **Wiener integrals of deterministic
+> integrands**, and `JumpDiffusion`, `IsBSDEJSolution` and the corrected #16 are confined to
+> that class. Work package X2 (`Plan.md`) rebuilds the interface with genuine progressive
+> measurability over a common filtration. Full argument: `tools/cited_axioms.md`,
+> "Integrand-class audit".
+
 ## Headline
 
 **Library builds clean** (`lake build`: 3286 jobs, no errors; Mathlib `81a5d257` /
