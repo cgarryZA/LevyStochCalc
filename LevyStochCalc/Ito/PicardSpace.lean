@@ -29,9 +29,8 @@ Banach's fixed-point theorem to the Picard map.
 * `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` — the
   existence/uniqueness statement phrased on the quotient (the single
   remaining `sorry` in the library; see `tools/sorry_baseline.txt`). The
-  section note "Status of the fixed-point programme" records a statement
-  audit: as written the statement is refutable, so the `sorry` is not
-  dischargeable before the coefficient hypotheses are corrected.
+  section note "Status of the fixed-point programme" records the per-step
+  status and the statement audit that added the `IsRegular` hypothesis.
 
 The Banach fixed-point conclusion is in `PicardFixedPoint.lean`.
 -/
@@ -824,10 +823,11 @@ noncomputable instance instEMetricSpaceAEQuot
 
 /-! ### Status of the fixed-point programme (survey, 2026-09-06)
 
-**The statement carrying the `sorry` is refutable as it stands.**
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` asks, from
+**Statement audit — corrected 2026-09-06.** As first written,
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` asked, from
 `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` alone, for a
-`JumpDiffusion W N coeffs x₀`. But `IsLipschitz` constrains the
+`JumpDiffusion W N coeffs x₀`, and in that form it was refutable. But
+`IsLipschitz` constrains the
 coefficients only in the state variable `x`; it says nothing about their
 dependence on `s`, or, for `γ`, on `e`. The `is_solution` field of
 `JumpDiffusion` existentially bundles joint measurability, progressive
@@ -845,17 +845,18 @@ with `L = 0` and admit no `JumpDiffusion` at all:
   preimage, and the `ω`-sections of that set are `A`, so `h_σ_meas`
   fails for every `X`.
 
-So the existential in the conclusion is false for these coefficients, and
-the forwarder chain down to `JumpDiffusion.exists_unique` inherits the
-defect; the `sorry` is not dischargeable as the statement stands. The
-missing hypotheses are (i) joint measurability of `(s, x) ↦ μ s x`,
-`(s, x) ↦ σ s x` and `(s, x, e) ↦ γ s x e`, and (ii) local square
-integrability in `s` at a single state,
-`∫⁻ s in Icc 0 T', ‖σ s 0‖₊ ^ 2 < ∞` and
-`∫⁻ s in Icc 0 T', ∫⁻ e, ‖γ s 0 e‖₊ ^ 2 ∂ν < ∞`, which together with the
-Lipschitz clauses give the `L²` bounds along any `L²`-bounded path.
-Applebaum 6.2.9 assumes measurable coefficients of linear growth; the
-Lean statement dropped that.
+So for those coefficients the existential in the conclusion was false, and
+the forwarder chain down to `JumpDiffusion.exists_unique` inherited the
+defect. The theorem and its three forwarders now also take
+`JumpDiffusionCoeffs.IsRegular coeffs ν`, which supplies (i) joint
+measurability of `(s, x) ↦ μ s x`, `(s, x) ↦ σ s x` and
+`(s, x, e) ↦ γ s x e`, and (ii) square integrability in `s` at a single
+state, `∫⁻ s in Icc 0 T', ‖σ s 0‖₊ ^ 2 < ∞` and
+`∫⁻ s in Icc 0 T', ∫⁻ e, ‖γ s 0 e‖₊ ^ 2 ∂ν < ∞` (and the same for `μ`).
+Together with the Lipschitz clauses these give the `L²` bounds along any
+`L²`-bounded path, since Lipschitz continuity in the state gives
+`‖f s x‖ ≤ ‖f s 0‖ + L ‖x‖`. Applebaum 6.2.9 assumes measurable
+coefficients of linear growth; the Lean statement had dropped that.
 
 **Two spaces, not one.** `bieleckiNorm β T X` is
 `⨆ t ∈ [0, T], exp (-β * t) * ‖X t‖_{L²}`, the weighted *sup-of-`L²`*
@@ -961,7 +962,9 @@ forwarders gain genuine soundness without source-level changes.
 
 **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
 ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
-without this); produces a CONCRETE `JumpDiffusion` (all six fields
+without this) and `JumpDiffusionCoeffs.IsRegular coeffs ν` (without
+regularity in `s` no `JumpDiffusion` exists at all — see the section note
+"Status of the fixed-point programme"); produces a CONCRETE `JumpDiffusion` (all six fields
 populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
 `cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
 every `t ≥ 0`. No trivial constant-path witness satisfies this for
@@ -995,15 +998,15 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
-    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
+    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
   -- The literature chain is Applebaum 6.2.9 / Ikeda-Watanabe IV. The
   -- section note "Status of the fixed-point programme" above records what
-  -- of it exists, what is open, and why the statement is refutable as it
-  -- stands, so this `sorry` is not dischargeable before the coefficient
-  -- hypotheses are corrected.
+  -- of it exists and what is open, together with the statement audit that
+  -- added the `IsRegular` hypothesis.
   sorry
 
 end LevyStochCalc.Ito.Picard

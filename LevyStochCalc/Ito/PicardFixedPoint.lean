@@ -230,11 +230,12 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
-    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
+    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N ℱ hℱW hℱN coeffs x₀ hL
+  picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N ℱ hℱW hℱN coeffs x₀ hL hReg
 
 /-- **Banach fixed-point output for the jump-diffusion SDE — forwarding theorem.**
 
@@ -266,11 +267,12 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
-    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
+    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N ℱ hℱW hℱN coeffs x₀ hL
+  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N ℱ hℱW hℱN coeffs x₀ hL hReg
 
 end LevyStochCalc.Ito.Picard
 
@@ -343,12 +345,13 @@ theorem exists_unique
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
-    {L : ℝ} (hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
+    {L : ℝ} (hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (hReg : JumpDiffusionCoeffs.IsRegular coeffs ν) :
     ∃ (jd : JumpDiffusion W N coeffs x₀),
       ∀ (jd' : JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
-    W N ℱ hℱW hℱN coeffs x₀ hL
+    W N ℱ hℱW hℱN coeffs x₀ hL hReg
 
 /-- **Pairwise a.s. agreement at `t = 0`.** Any two jump-diffusion
 solutions for the same coefficients and initial condition agree a.s.

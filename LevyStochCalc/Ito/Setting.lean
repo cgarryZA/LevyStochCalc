@@ -25,7 +25,13 @@ Reference: Applebaum 2009 Ch 6; Ikeda-Watanabe IV.
 
 `JumpDiffusion.exists_unique` claims Applebaum 6.2.9 / Ikeda-Watanabe IV
 existence-and-uniqueness with proof body `sorry` (the literature proof
-is Picard iteration in `S²([0,T]; ℝⁿ)`).
+is Picard iteration in `S²([0,T]; ℝⁿ)`). It asks for
+`JumpDiffusionCoeffs.IsRegular` alongside `IsLipschitz`: the Lipschitz
+clauses constrain the coefficients only in the state variable, and without
+regularity in `s` (and in `e` for `γ`) no `JumpDiffusion` exists at all —
+`σ s x = 1 / s` and `σ s x = 1_A s` for non-measurable `A` are Lipschitz
+with `L = 0` and defeat the `is_solution` existential for every path map.
+See `Ito/PicardSpace.lean`, "Status of the fixed-point programme".
 
 The `is_solution` field of the `JumpDiffusion` structure is the actual SDE
 integral equation (bundled with the hypotheses on `σ(s, X_s)` needed for the
@@ -76,6 +82,28 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
   (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
     (∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal
       ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2)
+
+/-- Regularity of the jump-diffusion coefficients in the time and mark variables: joint
+measurability, and square integrability in `s` at a single state.
+
+`JumpDiffusionCoeffs.IsLipschitz` constrains `(μ, σ, γ)` only in the state variable, while the
+`is_solution` field of `JumpDiffusion` needs joint measurability, progressive measurability and
+`L²` bounds of the integrands along the path. Together with the Lipschitz clauses, the bounds
+below give those `L²` bounds along any `L²`-bounded path, since Lipschitz continuity in the
+state gives `‖f s x‖ ≤ ‖f s 0‖ + L ‖x‖`. -/
+def JumpDiffusionCoeffs.IsRegular {n d : ℕ}
+    (coeffs : JumpDiffusionCoeffs n d E) (ν : Measure E) : Prop :=
+  Measurable (Function.uncurry coeffs.μ) ∧
+  Measurable (Function.uncurry coeffs.σ) ∧
+  Measurable (fun p : ℝ × (Fin n → ℝ) × E => coeffs.γ p.1 p.2.1 p.2.2) ∧
+  (∀ T : ℝ, 0 < T →
+    ∫⁻ s in Set.Icc (0 : ℝ) T, (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤) ∧
+  (∀ T : ℝ, 0 < T →
+    ∫⁻ s in Set.Icc (0 : ℝ) T, ∑ i, ∑ j,
+      (‖coeffs.σ s 0 i j‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤) ∧
+  (∀ T : ℝ, 0 < T →
+    ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖coeffs.γ s 0 e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume < ⊤)
 
 end Coefficients
 
