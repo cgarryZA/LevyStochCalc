@@ -26,6 +26,7 @@ import LevyStochCalc.Probability.CondExpRightContinuous
 import LevyStochCalc.Probability.Quasimartingale
 import LevyStochCalc.Probability.FiltrationNNReal
 import LevyStochCalc.Probability.CondExpModification
+import LevyStochCalc.Poisson.RegionPartition
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
@@ -66,6 +67,8 @@ import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport
 import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Driver.Existence
+import LevyStochCalc.Driver.VectorIncrement
+import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Brownian.ItoSimple
 import LevyStochCalc.Brownian.ItoDensity
 import LevyStochCalc.Brownian.ItoMartingale

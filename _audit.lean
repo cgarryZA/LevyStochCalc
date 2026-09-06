@@ -59,6 +59,26 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.comap_prod_eq_sup
 #print axioms LevyStochCalc.Probability.indep_iSup_lt_of_indep
 #print axioms LevyStochCalc.Probability.indep_iSup_of_finset
+-- A2e-i (2026-09-06): the whole Brownian increment vector of a Lévy driver against the joint
+-- filtration and its right-continuous version.
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_restSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_incrementSigma_rest
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_incrementSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_incrementSigma_rightCont
+-- A2e-ii, A2e-iii (2026-09-06): the Poisson counts of a finite family of regions, and the mixed
+-- Brownian/Poisson increment tuple over one interval.
+#print axioms LevyStochCalc.Poisson.indep_iSup_comap_of_disjoint_families
+#print axioms LevyStochCalc.Poisson.indep_of_disjoint_region_families
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_of_disjoint_region_pair
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_countSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_countSigma_rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_stepSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_stepSigma_rightCont
+-- A2f (2026-09-06): the grid induction — successive increment tuples, and tuples measured from
+-- the start of the grid, against the right-continuous filtration at its left endpoint.
+#print axioms LevyStochCalc.Probability.comap_add_le
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma_start
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
