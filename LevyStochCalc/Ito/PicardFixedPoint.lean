@@ -193,9 +193,12 @@ Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
 
 This forwards through the wrap-up theorem
 `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpace.lean`,
-which carries the single baseline `sorry` collecting the entire Picard chain
-(six steps; see that file's module docstring). The analytical content is the
-Picard iteration in `S²([0, T]; ℝⁿ)` (Applebaum 6.2.9). The downstream
+which carries the single baseline `sorry` collecting the entire Picard chain;
+that file's section note "Status of the fixed-point programme" records the
+per-step status and a statement audit — as written the wrap-up statement is
+refutable, because `IsLipschitz` constrains the coefficients only in the state
+variable, so the `sorry` is not dischargeable before the hypotheses are
+corrected. The analytical content is the Picard iteration (Applebaum 6.2.9). The downstream
 forwarders `picardFixedPoint_jumpDiffusion_exists_unique` and the headline
 `JumpDiffusion.exists_unique` consume this; the `sorry` is tracked in
 `tools/sorry_baseline.txt` via the wrap-up theorem name.

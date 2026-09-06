@@ -28,7 +28,10 @@ Banach's fixed-point theorem to the Picard map.
   `EMetricSpace`.
 * `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` — the
   existence/uniqueness statement phrased on the quotient (the single
-  remaining `sorry` in the library; see `tools/sorry_baseline.txt`).
+  remaining `sorry` in the library; see `tools/sorry_baseline.txt`). The
+  section note "Status of the fixed-point programme" records a statement
+  audit: as written the statement is refutable, so the `sorry` is not
+  dischargeable before the coefficient hypotheses are corrected.
 
 The Banach fixed-point conclusion is in `PicardFixedPoint.lean`.
 -/
@@ -819,43 +822,80 @@ noncomputable instance instEMetricSpaceAEQuot
     EMetricSpace (SBoundedProcess.AEQuot (n := n) P T β) :=
   instEMetricSpaceSeparationQuotient
 
-/-! ### What this delivers + remaining axiom #14 work
+/-! ### Status of the fixed-point programme (survey, 2026-09-06)
 
-This file establishes the **literature Bielecki β-weighted pseudo-edist**
-on `SBoundedProcess` (via the `WithBielecki` type synonym) and the
-genuine `EMetricSpace` on the **AE quotient**
-`SBoundedProcess.AEQuot β T`. This replaces the placeholder discrete
-metric from `PicardSpace.lean` at the conceptual level (the discrete
-metric remains as a typeclass-default to preserve existing API stability,
-but the literature metric is now available for any consumer that
-explicitly opts in via `AEQuot`).
+**The statement carrying the `sorry` is refutable as it stands.**
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` asks, from
+`JumpDiffusionCoeffs.IsLipschitz coeffs ν L` alone, for a
+`JumpDiffusion W N coeffs x₀`. But `IsLipschitz` constrains the
+coefficients only in the state variable `x`; it says nothing about their
+dependence on `s`, or, for `γ`, on `e`. The `is_solution` field of
+`JumpDiffusion` existentially bundles joint measurability, progressive
+measurability and the `L²` bounds of `(s, ω) ↦ σ(s, X_s ω)` and
+`(ω, s, e) ↦ γ(s, X_s ω, e)`, because the two stochastic integrals need
+them to be well-typed. Two coefficient families satisfy `IsLipschitz`
+with `L = 0` and admit no `JumpDiffusion` at all:
 
-**Three pieces still required for axiom #14 elimination**:
+* `n = d = 1`, `μ = 0`, `γ = 0`, `σ s x = 1 / s`. Every Lipschitz clause
+  reads `0 ≤ 0`, but `∫⁻ s in Icc 0 T', ‖1 / s‖₊ ^ 2 = ∞` for every
+  `T' > 0`, so `h_σ_sq` fails for every path map `X`.
+* `n = d = 1`, `μ = 0`, `γ = 0`, `σ s x = 1_A s` for a non-measurable
+  `A ⊆ ℝ`. Again every Lipschitz clause reads `0 ≤ 0`, but
+  `Function.uncurry (fun ω s => σ s (X s ω))` has `Set.univ ×ˢ A` as a
+  preimage, and the `ω`-sections of that set are `A`, so `h_σ_meas`
+  fails for every `X`.
 
-1. **`CompleteSpace (SBoundedProcess.AEQuot β T)`** — the completeness
-   of the literature S² space under the Bielecki β-norm. Standard
-   construction: a Cauchy sequence in `AEQuot` lifts to Cauchy
-   representatives in `WithBielecki`; the per-`t` L² Cauchy property
-   descends to a per-`t` L² limit via Mathlib `Lp` completeness; a
-   measurable joint selection yields a representative of the limit
-   class. This requires extending the AEQuot machinery with
-   `Cauchy → CompleteSpace`.
+So the existential in the conclusion is false for these coefficients, and
+the forwarder chain down to `JumpDiffusion.exists_unique` inherits the
+defect; the `sorry` is not dischargeable as the statement stands. The
+missing hypotheses are (i) joint measurability of `(s, x) ↦ μ s x`,
+`(s, x) ↦ σ s x` and `(s, x, e) ↦ γ s x e`, and (ii) local square
+integrability in `s` at a single state,
+`∫⁻ s in Icc 0 T', ‖σ s 0‖₊ ^ 2 < ∞` and
+`∫⁻ s in Icc 0 T', ∫⁻ e, ‖γ s 0 e‖₊ ^ 2 ∂ν < ∞`, which together with the
+Lipschitz clauses give the `L²` bounds along any `L²`-bounded path.
+Applebaum 6.2.9 assumes measurable coefficients of linear growth; the
+Lean statement dropped that.
 
-2. **`picardStepOnS2` descent to `AEQuot`** — the Picard self-map
-   from `Ito/Picard.lean` respects ae-equivalence (Bochner /
-   Brownian-Itô / compensated-Poisson integrals are all ae-equivalence-
-   preserving), so it descends to a map
-   `AEQuot β T → AEQuot β T`.
+**Two spaces, not one.** `bieleckiNorm β T X` is
+`⨆ t ∈ [0, T], exp (-β * t) * ‖X t‖_{L²}`, the weighted *sup-of-`L²`*
+norm. It is not the `S²` norm `‖ ⨆ t ≤ T, ‖X t‖ ‖_{L²}`, which is what
+`JumpDiffusion.sup_L2` asks for, and the separation quotient below
+therefore identifies processes that agree a.e. *at each fixed `t`*, not
+processes with a.e. equal paths. Any wrap-up has to bridge the two.
 
-3. **`AEQuot` fixed point → `JumpDiffusion` structure** — extract a
-   representative from the fixed-point class and show it satisfies the
-   six `JumpDiffusion` fields. Most fields lift from the
-   `SBoundedProcess` structure (`measurable_path`, `cadlag_paths`,
-   `sup_L2`); the `is_solution` field is the fixed-point equation in
-   `AEQuot`.
+**Per-step status.**
 
-These three pieces are the natural follow-up sessions; the present
-file is the load-bearing foundation for all three. -/
+1. *The metric.* Present in this file: `bieleckiEDist` with
+   `bieleckiEDist_comm` and `bieleckiEDist_triangle`, the
+   `PseudoEMetricSpace` on the type synonym
+   `SBoundedProcess.WithBielecki`, the separation quotient
+   `SBoundedProcess.AEQuot` with its `EMetricSpace`, and nonemptiness of
+   both.
+2. *Completeness of the quotient.* Open. A Cauchy sequence in `AEQuot`
+   lifts to Cauchy representatives; the per-`t` `L²` Cauchy property
+   descends to a per-`t` `L²` limit by `Lp` completeness; a jointly
+   measurable selection then yields a representative of the limit class.
+3. *The Picard map as a map.* Open, and blocked by the audit above:
+   `picardStepOnS2` is not a total self-map. It takes the `σ`- and
+   `γ`-side hypotheses along `X.X`, and the joint measurability, càdlàg
+   property and finite Bielecki norm of its own output, as arguments.
+   Turning it into a function `AEQuot β T → AEQuot β T` means proving all
+   of those for every `X`, which needs the coefficient regularity the
+   audit adds, and then that the map respects the quotient.
+4. *Contraction.* The estimates exist on the underlying path map
+   (`picardStep_bielecki_contraction`,
+   `picardStep_bielecki_contraction_tight` and their `_rate_lt_one`
+   companions in `Ito/Picard.lean`); transferring them to `edist` on
+   `AEQuot` is bookkeeping once step 3 gives a genuine map.
+5. *Fixed point to `JumpDiffusion`.* Open. `measurable_path` and
+   `cadlag_paths` come from the `SBoundedProcess` fields of a
+   representative, but `sup_L2` does not: it is the `L²`-of-sup bound,
+   strictly stronger than the sup-of-`L²` bound the space carries.
+   `initial_value` and `is_solution` are the fixed-point equation read
+   componentwise.
+6. *Uniqueness.* Open: two solutions define points of `AEQuot` fixed by
+   the map, hence equal there, hence a.e. equal at each `t`. -/
 
 end LevyStochCalc.Ito.Picard
 
@@ -959,13 +999,11 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
-  -- The full literature chain (Applebaum 6.2.9 / Ikeda-Watanabe IV) —
-  -- see module docstring "What this file delivers" for the six steps.
-  -- The chain consolidates into this single sorry: every analytic
-  -- piece (Lp completeness, càdlàg modification, integrand-ae-equivalence
-  -- descent, contraction transfer, Quotient.out representative choice,
-  -- six-field verification, inverse-direction uniqueness) is documented
-  -- there with literature references.
+  -- The literature chain is Applebaum 6.2.9 / Ikeda-Watanabe IV. The
+  -- section note "Status of the fixed-point programme" above records what
+  -- of it exists, what is open, and why the statement is refutable as it
+  -- stands, so this `sorry` is not dischargeable before the coefficient
+  -- hypotheses are corrected.
   sorry
 
 end LevyStochCalc.Ito.Picard
