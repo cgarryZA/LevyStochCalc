@@ -221,6 +221,9 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
@@ -228,7 +231,7 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N coeffs x₀ hL
+  picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N ℱ hℱW hℱN coeffs x₀ hL
 
 /-- **Banach fixed-point output for the jump-diffusion SDE — forwarding theorem.**
 
@@ -254,6 +257,9 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
@@ -261,7 +267,7 @@ theorem picardFixedPoint_jumpDiffusion_exists_unique
     ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
       ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N coeffs x₀ hL
+  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N ℱ hℱW hℱN coeffs x₀ hL
 
 end LevyStochCalc.Ito.Picard
 
@@ -329,6 +335,9 @@ theorem exists_unique
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ} (hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L) :
@@ -336,7 +345,7 @@ theorem exists_unique
       ∀ (jd' : JumpDiffusion W N coeffs x₀),
         ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
-    W N coeffs x₀ hL
+    W N ℱ hℱW hℱN coeffs x₀ hL
 
 /-- **Pairwise a.s. agreement at `t = 0`.** Any two jump-diffusion
 solutions for the same coefficients and initial condition agree a.s.

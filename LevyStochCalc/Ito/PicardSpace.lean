@@ -931,13 +931,27 @@ the integrals don't vanish.
 **Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
 domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
 Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
-`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`). -/
+`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`).
+
+**Filtration hypothesis (statement audit, 2026-09-06)**: `ℱ` with
+`hℱW`/`hℱN` is required, not decorative. Since X2-3 the `is_solution`
+field asks for a filtration for which every coordinate of `W` is a
+Brownian motion and `N` a Poisson random measure, and for a dependent
+pair no such filtration exists — if `N` is a measurable functional of
+`W` on `[0, 1]`, then `N((1, 2] × A)` is `ℱ₁`-measurable and, being
+independent of `ℱ₁`, a.s. constant, contradicting its Poisson law. So
+without this hypothesis the existence claim is false for such pairs.
+Applebaum 6.2.9 assumes a Lévy driver, i.e. an independent `(W, N)`;
+`Driver/Existence.lean` constructs one. -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}

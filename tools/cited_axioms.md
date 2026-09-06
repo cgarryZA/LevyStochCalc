@@ -315,6 +315,19 @@ discharged when the corresponding Mathlib infrastructure lands or when
 the project formalizes Doob regularization + Lp Bielecki sup norm
 completeness directly.
 
+**Statement audit (2026-09-06, A6-1) — narrowed, not strengthened.** As stated before this
+audit, the four theorems of the chain (`…_via_aeQuot`, `…_axiom`, `…`,
+`JumpDiffusion.exists_unique`) asserted a solution for an *arbitrary* pair `(W, N)` on one
+probability space. Since X2-3 the `is_solution` field asks for a filtration `ℱ` for which every
+coordinate of `W` is a Brownian motion and `N` a Poisson random measure, and for a dependent
+pair no such `ℱ` exists: if `N` is a measurable functional of `W|[0,1]` (possible — both
+σ-algebras are standard Borel and non-atomic), then `N((1, 2] × A)` is `ℱ₁`-measurable and, by
+`IsPoissonFiltration`, independent of `ℱ₁`, hence a.s. constant, contradicting its Poisson law.
+The claim was therefore false for such pairs and its `sorry` was undischargeable as stated. All
+four now take `(ℱ, hℱW, hℱN)` — the hypothesis Applebaum 6.2.9 carries implicitly by assuming a
+Lévy driver, and one that `Driver/Existence.lean` shows is satisfiable. The `sorry` is
+unchanged in kind: the analytic Picard chain (A6) is still owed.
+
 **Original statement** (recoverable from git history prior to commit
 demoting #14): under Lipschitz hypothesis on `(μ, σ, γ)`, the
 jump-diffusion SDE `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E

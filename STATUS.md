@@ -96,6 +96,13 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   properties, so `JumpDiffusion.is_solution`, #16 and `IsBSDEJSolution` cover
   coupled coefficients, and X2-4 constructs a Lévy driver whose joint filtration
   is such an `ℱ`. See `tools/cited_axioms.md` #16.
+* **SDE existence/uniqueness** (0 axioms, 1 `sorry`): the Picard chain
+  (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` and its three
+  forwarders). **Statement audit 2026-09-06 (A6-1)**: all four now take a
+  filtration `ℱ` with both driver properties. Without it the claim was false for
+  a dependent `(W, N)` — no such filtration exists there, so `JumpDiffusion` is
+  uninhabited and the `sorry` was undischargeable as stated. See
+  `tools/cited_axioms.md`, Retired #14.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem

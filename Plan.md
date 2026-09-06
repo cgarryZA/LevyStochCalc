@@ -411,6 +411,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       deleted. **A6** becomes: after X2, state and prove BSDEJ existence/uniqueness over the
       joint filtration via the Picard chain (Tang–Li 1994 / AGPP 2025); retires the lone
       `sorry` (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).
+      **A6-1 statement narrowing done 2026-09-06**: the four theorems of the chain asserted a
+      solution for an arbitrary `(W, N)`; since X2-3 that is false for a dependent pair (no
+      filtration carries both driver properties — see `tools/cited_axioms.md`, Retired #14,
+      statement audit), so the `sorry` was undischargeable as stated. All four now take
+      `(ℱ, hℱW, hℱN)`. What remains for A6 is the analytic chain itself.
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were
