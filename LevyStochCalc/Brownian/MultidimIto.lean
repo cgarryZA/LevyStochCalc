@@ -3,7 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Brownian.Multidim
+import LevyStochCalc.Brownian.MultidimFiltered
 import LevyStochCalc.Brownian.ItoL2Completion
 
 /-!
@@ -14,10 +14,11 @@ defined as the sum (over components `i : Fin d`) of the 1D Brownian Itô
 integrals `LevyStochCalc.Brownian.SimplePredictableRefine.stochasticIntegral`
 against the component Brownian motions `W.W i`.
 
-For each component, the integrand `(s, ω) ↦ Z s ω i` must be:
+The integral is taken with respect to a filtration `ℱ` for which every coordinate
+`W.W i` is a Brownian motion (`hℱ`). For each component, the integrand
+`(s, ω) ↦ Z s ω i` must be:
 * jointly measurable (`h_meas`),
-* progressively measurable w.r.t. the natural filtration of `W.W i`
-  (`h_progMeas`),
+* progressively measurable with respect to `ℱ` (`h_progMeas`),
 * L²-bounded on every `[0, T']`, `T' > 0` (`h_sq_int_global`).
 
 These per-component hypotheses are exactly the ones the 1D primitive
@@ -59,21 +60,17 @@ itself extracts a process satisfying the unified-existence axiom
 `itoIsometry_brownian_unified_existence`. -/
 noncomputable def stochasticIntegral
     (W : MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : ∀ i, IsBrownianFiltration (W.W i) ℱ)
     (Z : ℝ → Ω → (Fin d → ℝ))
     (h_meas : ∀ i : Fin d, Measurable (Function.uncurry (fun ω s => Z s ω i)))
-    (h_progMeas : ∀ i : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => Z p.2 p.1 i))
+    (h_progMeas : ∀ i : Fin d, Probability.ProgressivelyMeasurable ℱ (fun ω s => Z s ω i))
     (h_sq_int_global : ∀ i : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (T : ℝ) : Ω → ℝ :=
   fun ω => ∑ i : Fin d,
     LevyStochCalc.Brownian.Ito.stochasticIntegral
-      (W.W i) (fun ω' s => Z s ω' i)
+      (W.W i) ℱ (hℱ i) (fun ω' s => Z s ω' i)
       (h_meas i) (h_progMeas i) (h_sq_int_global i) T ω
 
 end MultidimBrownianMotion

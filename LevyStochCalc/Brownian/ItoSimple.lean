@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Multidim
+import LevyStochCalc.Brownian.Filtered
 
 /-!
 # Brownian Itô integral on simple predictable integrands
@@ -286,15 +287,15 @@ by hypothesis `h_adapt`). The increment squared has expectation
 Hypotheses for the proof (added beyond what `SimplePredictable` provides):
 * `h_part_nn`: the left endpoint `t_i := partition i.castSucc ≥ 0`,
   so the increment law applies.
-* `h_adapt`: `ξ_i` is `(naturalFiltration W).seq t_i`-measurable. -/
+* `h_adapt`: `ξ_i` is `ℱ t_i`-measurable. -/
 lemma simpleIntegral_diagonal
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) (i : Fin H.N)
     (h_part_nn : 0 ≤ H.partition i.castSucc)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫⁻ ω,
       (‖H.ξ i ω * (W.W (H.partition i.succ) ω
                   - W.W (H.partition i.castSucc) ω)‖₊ : ℝ≥0∞) ^ 2 ∂P
@@ -310,32 +311,14 @@ lemma simpleIntegral_diagonal
   -- Step 1: Show IndepFun ξ ΔW.
   -- By h_adapt, σ(ξ) ⊆ F_s. By joint_increment_independent, F_s ⊥ σ(ΔW).
   -- So σ(ξ) ⊥ σ(ΔW), i.e., IndepFun ξ ΔW.
-  have h_indep_F_ΔW := W.joint_increment_independent h_part_nn hst
-  have h_ξ_comap_le :
-      MeasurableSpace.comap ξ inferInstance ≤
-        ⨆ j ∈ Set.Iic s, MeasurableSpace.comap (W.W j) inferInstance := by
-    -- ξ is F_s-measurable, where F_s = ⨆ j ≤ s, σ(W_j)
-    have h_ξ_F_meas : @Measurable Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s) _ ξ :=
-      h_adapt.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have h_naturalFilter_eq :
-        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s
-          = ⨆ j ∈ Set.Iic s, MeasurableSpace.comap (W.W j) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
-        MeasureTheory.Filtration.natural
-      rfl
-    rw [← h_naturalFilter_eq]
-    exact h_ξ_F_meas hv
+  have h_indep_F_ΔW := hℱ.indep h_part_nn hst
+  have h_ξ_comap_le : MeasurableSpace.comap ξ inferInstance ≤ ℱ s :=
+    h_adapt.measurable.comap_le
   have h_indep_ξ_ΔW : ProbabilityTheory.IndepFun ξ ΔW P := by
     -- Indep σ(ξ) σ(ΔW) P, using h_indep_F_ΔW and σ(ξ) ⊆ F_s.
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ j ∈ Set.Iic s, MeasurableSpace.comap (W.W j) inferInstance) u :=
-      h_ξ_comap_le u hu
+    have hu_F : MeasurableSet[ℱ s] u := h_ξ_comap_le u hu
     rw [ProbabilityTheory.Indep_iff] at h_indep_F_ΔW
     exact h_indep_F_ΔW u v hu_F hv
   -- Step 2: Compose with norm² to get IndepFun on ENNReal.
@@ -445,11 +428,11 @@ lemma brownian_increment_sq_integrable
 private lemma simpleIntegral_diagonal_bochner
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) (i : Fin H.N)
     (h_part_nn : 0 ≤ H.partition i.castSucc)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫ ω, (H.ξ i ω * (W.W (H.partition i.succ) ω
                     - W.W (H.partition i.castSucc) ω))^2 ∂P
       = (H.partition i.succ - H.partition i.castSucc) *
@@ -461,7 +444,7 @@ private lemma simpleIntegral_diagonal_bochner
     rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖^2 = x^2 from by rw [Real.norm_eq_abs, sq_abs]]
-  have h_lint := simpleIntegral_diagonal W H i h_part_nn h_adapt
+  have h_lint := simpleIntegral_diagonal W ℱ hℱ H i h_part_nn h_adapt
   rw [show (∫⁻ ω, (‖H.ξ i ω * (W.W (H.partition i.succ) ω
                   - W.W (H.partition i.castSucc) ω)‖₊ : ℝ≥0∞)^2 ∂P)
         = ∫⁻ ω, ENNReal.ofReal ((H.ξ i ω * (W.W (H.partition i.succ) ω
@@ -538,13 +521,12 @@ increment from past), and `E[ΔW_j] = 0` (Gaussian mean). Then
 lemma simpleIntegral_offDiagonal
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) {i j : Fin H.N} (hij : i < j)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     (h_adapt_j : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition j.castSucc)) (H.ξ j)) :
+      (ℱ (H.partition j.castSucc)) (H.ξ j)) :
     ∫ ω, (H.ξ i ω * (W.W (H.partition i.succ) ω
                     - W.W (H.partition i.castSucc) ω)) *
          (H.ξ j ω * (W.W (H.partition j.succ) ω
@@ -587,65 +569,41 @@ lemma simpleIntegral_offDiagonal
   have h_t_i_pre_le_t_j_pre : t_i_pre ≤ t_j_pre :=
     (le_of_lt h_i_pre_lt).trans h_i_le_j_pre
   have h_F_i_pre_le_j_pre :
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_i_pre
-        ≤ (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre :=
-    (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono h_t_i_pre_le_t_j_pre
+      ℱ t_i_pre
+        ≤ ℱ t_j_pre :=
+    ℱ.mono h_t_i_pre_le_t_j_pre
   -- Use the σ-algebra independence: σ(f) ⊆ F_{t_j_pre}; σ(ΔW_j) ⊥ F_{t_j_pre}.
   -- Then E[f * ΔW_j] = E[f] * E[ΔW_j] = E[f] * 0 = 0.
   -- Setup: F-measurability of pieces.
   have h_W_t_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) (W.W t_i) := by
-    have h := MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) t_i
-    -- W_t_i is F_{t_i}-meas; F_{t_i} ≤ F_{t_j_pre} (since t_i ≤ t_j_pre)
-    refine h.mono ?_
-    exact (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono h_i_le_j_pre
+      (ℱ t_j_pre) (W.W t_i) :=
+    (hℱ.measurable t_i).stronglyMeasurable.mono (ℱ.mono h_i_le_j_pre)
   have h_W_t_pre_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) (W.W t_i_pre) := by
-    have h := MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) t_i_pre
-    refine h.mono ?_
-    exact (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
-      ((le_of_lt h_i_pre_lt).trans h_i_le_j_pre)
+      (ℱ t_j_pre) (W.W t_i_pre) :=
+    (hℱ.measurable t_i_pre).stronglyMeasurable.mono
+      (ℱ.mono ((le_of_lt h_i_pre_lt).trans h_i_le_j_pre))
   have h_ΔW_i_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) ΔW_i :=
+      (ℱ t_j_pre) ΔW_i :=
     h_W_t_meas.sub h_W_t_pre_meas
   have h_ξ_i_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) ξ_i :=
+      (ℱ t_j_pre) ξ_i :=
     h_adapt_i.mono h_F_i_pre_le_j_pre
   have h_f_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) f :=
+      (ℱ t_j_pre) f :=
     (h_ξ_i_F_meas.mul h_ΔW_i_F_meas).mul h_adapt_j
   -- Step 2: IndepFun f ΔW_j
-  have h_indep_F_ΔW_j := W.joint_increment_independent h_j_pre_nn h_j_pre_lt
+  have h_indep_F_ΔW_j := hℱ.indep h_j_pre_nn h_j_pre_lt
   have h_f_meas : Measurable f :=
     ((H.ξ_measurable i).mul ((W.measurable_eval t_i).sub
       (W.measurable_eval t_i_pre))).mul (H.ξ_measurable j)
   have h_ΔW_j_meas : Measurable ΔW_j :=
     (W.measurable_eval t_j).sub (W.measurable_eval t_j_pre)
-  have h_f_comap_le :
-      MeasurableSpace.comap f inferInstance ≤
-        ⨆ jj ∈ Set.Iic t_j_pre, MeasurableSpace.comap (W.W jj) inferInstance := by
-    have h_f_F_measurable : @Measurable Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre) _ f :=
-      h_f_F_meas.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have h_naturalFilter_eq :
-        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre
-          = ⨆ jj ∈ Set.Iic t_j_pre, MeasurableSpace.comap (W.W jj) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_j_pre = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
-        MeasureTheory.Filtration.natural
-      rfl
-    rw [← h_naturalFilter_eq]
-    exact h_f_F_measurable hv
+  have h_f_comap_le : MeasurableSpace.comap f inferInstance ≤ ℱ t_j_pre :=
+    h_f_F_meas.measurable.comap_le
   have h_indep_f_ΔW_j : ProbabilityTheory.IndepFun f ΔW_j P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ jj ∈ Set.Iic t_j_pre, MeasurableSpace.comap (W.W jj) inferInstance) u :=
-      h_f_comap_le u hu
+    have hu_F : MeasurableSet[ℱ t_j_pre] u := h_f_comap_le u hu
     rw [ProbabilityTheory.Indep_iff] at h_indep_F_ΔW_j
     exact h_indep_F_ΔW_j u v hu_F hv
   -- Step 3: ∫ ΔW_j = 0 (Gaussian mean).
@@ -741,10 +699,10 @@ set_option maxHeartbeats 800000 in
 private lemma simpleIntegral_sq_bochner_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫ ω, (∑ i : Fin H.N, H.ξ i ω * (W.W (H.partition i.succ) ω
                                   - W.W (H.partition i.castSucc) ω))^2 ∂P
       = ∑ i : Fin H.N,
@@ -786,7 +744,7 @@ private lemma simpleIntegral_sq_bochner_eq
           = fun ω => (H.ξ i ω * (W.W (H.partition i.succ) ω
                                 - W.W (H.partition i.castSucc) ω))^2 from by
       funext ω; ring]
-    exact simpleIntegral_diagonal_bochner W H i h_part_nn (h_adapt i)
+    exact simpleIntegral_diagonal_bochner W ℱ hℱ H i h_part_nn (h_adapt i)
   · -- j ≠ i: offDiagonal (with symmetry)
     intro j _ hj
     rcases lt_or_gt_of_ne hj with h_lt | h_gt
@@ -799,8 +757,8 @@ private lemma simpleIntegral_sq_bochner_eq
                        (H.ξ i ω * (W.W (H.partition i.succ) ω
                                   - W.W (H.partition i.castSucc) ω)) from by
         funext ω; ring]
-      exact simpleIntegral_offDiagonal W H h_lt (h_adapt j) (h_adapt i)
-    · exact simpleIntegral_offDiagonal W H h_gt (h_adapt i) (h_adapt j)
+      exact simpleIntegral_offDiagonal W ℱ hℱ H h_lt (h_adapt j) (h_adapt i)
+    · exact simpleIntegral_offDiagonal W ℱ hℱ H h_gt (h_adapt i) (h_adapt j)
   · intro h_not; exact absurd (Finset.mem_univ _) h_not
 
 set_option maxHeartbeats 800000 in
@@ -809,10 +767,10 @@ set_option maxHeartbeats 800000 in
 lemma simpleIntegral_sq_lintegral_eq
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∑ i : Fin H.N,
         ENNReal.ofReal (H.partition i.succ - H.partition i.castSucc) *
@@ -857,7 +815,7 @@ lemma simpleIntegral_sq_lintegral_eq
                   - W.W (H.partition i.castSucc) ω))^2 := by
     filter_upwards with ω; exact sq_nonneg _
   rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal h_int_sum_sq h_nn_sum_sq]
-  rw [simpleIntegral_sq_bochner_eq W H h_adapt]
+  rw [simpleIntegral_sq_bochner_eq W ℱ hℱ H h_adapt]
   rw [show ENNReal.ofReal (∑ i : Fin H.N,
             (H.partition i.succ - H.partition i.castSucc) * ∫ ω, (H.ξ i ω)^2 ∂P)
         = ∑ i : Fin H.N,
@@ -895,14 +853,14 @@ equals the L²-norm of the integrand against `dP ⊗ ds`. -/
 lemma simpleIntegral_isometry
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (_hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
-  rw [simpleIntegral_sq_lintegral_eq W H h_adapt]
+  rw [simpleIntegral_sq_lintegral_eq W ℱ hℱ H h_adapt]
   rw [lintegral_eval_sq_outer H]
 
 /-- **L² isometry on simple integrands (Bochner sum form).**
@@ -917,10 +875,10 @@ form of the Brownian-increment martingale-difference property — see
 theorem simpleIntegral_L2_isometry_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫ ω, (simpleIntegral W H T ω) ^ 2 ∂P
       = ∑ i : Fin H.N, (H.partition i.succ - H.partition i.castSucc) *
           ∫ ω, (H.ξ i ω) ^ 2 ∂P := by
@@ -929,7 +887,7 @@ theorem simpleIntegral_L2_isometry_brownian
                                   - W.W (H.partition i.castSucc) ω)) ^ 2 := by
     intro ω; rw [simpleIntegral_eq_sum]
   simp_rw [h_eq]
-  exact simpleIntegral_sq_bochner_eq W H h_adapt
+  exact simpleIntegral_sq_bochner_eq W ℱ hℱ H h_adapt
 
 /-- **Inner Bochner integral of `(H.eval s ω)²` over `s ∈ [0, T]`** equals
 the sum of `(t_{i+1} - t_i) · (ξ_i ω)²` over partition pieces. Bochner
@@ -1054,12 +1012,12 @@ integral form). -/
 theorem simpleIntegral_L2_isometry_brownian_integral_form
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫ ω, (simpleIntegral W H T ω) ^ 2 ∂P
       = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, (H.eval s ω) ^ 2 ∂volume ∂P := by
-  rw [simpleIntegral_L2_isometry_brownian W H h_adapt]
+  rw [simpleIntegral_L2_isometry_brownian W ℱ hℱ H h_adapt]
   rw [integral_eval_sq_outer H]
 end LevyStochCalc.Brownian.Ito

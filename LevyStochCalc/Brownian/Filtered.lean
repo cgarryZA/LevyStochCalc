@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.Martingale
+import LevyStochCalc.Probability.IndepJoin
 import LevyStochCalc.Probability.IndepLimit
 
 /-!
@@ -67,5 +68,53 @@ theorem IsBrownianFiltration.rightCont {W : BrownianMotion P} {ℱ : Filtration 
         (hle n)) ?_
     filter_upwards [W.continuous_paths] with ω hω
     exact tendsto_const_nhds.sub ((hω.tendsto s).comp hr_tend)
+
+namespace IsBrownianFiltration
+
+variable {W : BrownianMotion P} {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+
+/-- `W_t` is `ℱ t`-strongly measurable. -/
+theorem stronglyMeasurable (h : IsBrownianFiltration W ℱ) (t : ℝ) :
+    StronglyMeasurable[ℱ t] (W.W t) :=
+  (h.measurable t).stronglyMeasurable
+
+/-- The conditional expectation of the increment `W_t − W_s`, `0 ≤ s < t`, given `ℱ s`
+vanishes. -/
+theorem condExp_increment_eq_zero (h : IsBrownianFiltration W ℱ) {s t : ℝ} (hs : 0 ≤ s)
+    (hst : s < t) : P[(fun ω => W.W t ω - W.W s ω) | ℱ s] =ᵐ[P] fun _ => 0 :=
+  Martingale.condExp_increment_eq_zero_of_indep W ℱ hs hst (h.indep hs hst)
+
+/-- The martingale identity `E[W_t | ℱ s] = W_s` for `0 ≤ s ≤ t`. -/
+theorem condExp_eq (h : IsBrownianFiltration W ℱ) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    P[W.W t | ℱ s] =ᵐ[P] W.W s := by
+  have h_int_s := Martingale.brownianMotion_integrable W s
+  rcases hst.eq_or_lt with rfl | hlt
+  · rw [condExp_of_stronglyMeasurable (ℱ.le s) (h.stronglyMeasurable s) h_int_s]
+  · have h_int_t := Martingale.brownianMotion_integrable W t
+    have h_decomp : (W.W t : Ω → ℝ) = W.W s + (W.W t - W.W s) := by
+      funext ω; simp
+    rw [h_decomp]
+    filter_upwards [condExp_add h_int_s (h_int_t.sub h_int_s) (ℱ s),
+      h.condExp_increment_eq_zero hs hlt] with ω h_add h_zero
+    rw [h_add, Pi.add_apply,
+      condExp_of_stronglyMeasurable (ℱ.le s) (h.stronglyMeasurable s) h_int_s]
+    change W.W s ω + P[(fun ω => W.W t ω - W.W s ω) | ℱ s] ω = W.W s ω
+    rw [h_zero, add_zero]
+
+/-- If `W` is a Brownian motion for `ℱ`, it is one for every filtration `𝒢` to which it is adapted
+and with `𝒢 s ≤ ℱ s ⊔ m s` for σ-algebras `m s` independent of `ℱ s ⊔ σ(W_t − W_s)`. -/
+theorem of_le_sup (h : IsBrownianFiltration W ℱ) {𝒢 : Filtration ℝ ‹MeasurableSpace Ω›}
+    (hadapted : ∀ t, Measurable[𝒢 t] (W.W t)) {m : ℝ → MeasurableSpace Ω}
+    (hm : ∀ s, m s ≤ ‹MeasurableSpace Ω›) (hle : ∀ s, 𝒢 s ≤ ℱ s ⊔ m s)
+    (hind : ∀ ⦃s t : ℝ⦄, 0 ≤ s → s < t → Indep (m s)
+      (ℱ s ⊔ MeasurableSpace.comap (fun ω => W.W t ω - W.W s ω) inferInstance) P) :
+    IsBrownianFiltration W 𝒢 where
+  measurable := hadapted
+  indep s t hs hst := indep_of_indep_of_le_left
+    (Probability.indep_sup_left_of_indep (ℱ.le s) (hm s)
+      ((W.measurable_eval t).sub (W.measurable_eval s)).comap_le (h.indep hs hst) (hind hs hst))
+    (hle s)
+
+end IsBrownianFiltration
 
 end LevyStochCalc.Brownian

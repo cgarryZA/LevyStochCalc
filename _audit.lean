@@ -25,6 +25,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.IsPoissonFiltration.rightCont
 #print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration
 #print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration
+-- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
+-- filtration of a multidimensional Brownian motion.
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.of_isStronglyProgressive
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.stronglyMeasurable_setIntegral
+#print axioms LevyStochCalc.Brownian.IsBrownianFiltration.condExp_eq
+#print axioms LevyStochCalc.Brownian.IsBrownianFiltration.of_le_sup
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_natural
 -- ===== Layer 0: Compensated Poisson =====
 -- Poisson splitting (toward #2): counts of a Poisson number of iid marks on
 -- disjoint sets are independent Poisson variables.

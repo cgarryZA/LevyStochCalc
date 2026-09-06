@@ -15,6 +15,7 @@ import LevyStochCalc.Basic
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
+import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
@@ -49,6 +50,7 @@ import LevyStochCalc.Brownian.Existence
 import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Filtered
+import LevyStochCalc.Brownian.MultidimFiltered
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Brownian.ItoSimple

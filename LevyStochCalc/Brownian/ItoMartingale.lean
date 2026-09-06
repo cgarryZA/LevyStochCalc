@@ -9,9 +9,10 @@ import LevyStochCalc.Brownian.ItoDensity
 /-!
 # Martingale property of the simple Brownian integral
 
-`simpleIntegral W H` is a martingale w.r.t. the natural filtration
-(`martingale_simpleIntegral_brownian`), via the conditional-expectation identity
-for `W`. Builds on `Brownian/ItoSimple.lean` and `Brownian/ItoDensity.lean`.
+`simpleIntegral W H` is a martingale w.r.t. any filtration `ℱ` for which `W` is a
+Brownian motion and `H` is adapted (`martingale_simpleIntegral_brownian`), via the
+conditional-expectation identity for `W`. Builds on `Brownian/ItoSimple.lean` and
+`Brownian/ItoDensity.lean`.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -23,44 +24,6 @@ namespace LevyStochCalc.Brownian.Ito
 universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
-
-/-- **Cond-exp identity for Brownian motion** at `0 ≤ s ≤ t`:
-`P[W_t | F_s] =ᵐ[P] W_s`. Same proof as the cond-exp clause of
-`brownian_martingale`, extracted as a non-existential lemma so the
-simple-integrand proof can use it without unpacking the existential. -/
-private lemma condExp_W_eq_W_aux
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
-    {s t : ℝ} (hs_nn : 0 ≤ s) (hst : s ≤ t) :
-    P[W.W t | (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s]
-      =ᵐ[P] W.W s := by
-  by_cases hst_eq : s = t
-  · subst hst_eq
-    have h_le := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).le' s
-    have h_meas := MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) s
-    have h_int := LevyStochCalc.Brownian.Martingale.brownianMotion_integrable W s
-    rw [MeasureTheory.condExp_of_stronglyMeasurable h_le h_meas h_int]
-  · have hst_lt : s < t := lt_of_le_of_ne hst hst_eq
-    have h_int_s := LevyStochCalc.Brownian.Martingale.brownianMotion_integrable W s
-    have h_int_t := LevyStochCalc.Brownian.Martingale.brownianMotion_integrable W t
-    have h_inc_int : MeasureTheory.Integrable (fun ω => W.W t ω - W.W s ω) P :=
-      h_int_t.sub h_int_s
-    have h_inc_zero :=
-      LevyStochCalc.Brownian.Martingale.condExp_increment_eq_zero_aux W hs_nn hst_lt
-    have h_le := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).le' s
-    have h_adapt_s := MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) s
-    have h_decomp : (W.W t : Ω → ℝ) = W.W s + (fun ω => W.W t ω - W.W s ω) := by
-      funext ω; simp [Pi.add_apply]
-    rw [h_decomp]
-    have h_add := MeasureTheory.condExp_add h_int_s h_inc_int
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s)
-    have h_self := MeasureTheory.condExp_of_stronglyMeasurable h_le h_adapt_s h_int_s
-    filter_upwards [h_add, h_inc_zero] with ω h_add_ω h_zero_ω
-    rw [h_add_ω, Pi.add_apply, h_zero_ω, h_self]
-    change W.W s ω + 0 = W.W s ω
-    ring
 
 /-- **Per-term integrability** for `simpleIntegral`: each summand
 `ξ_i · (W_{t_{i+1} ∧ t} - W_{t_i ∧ t})` is integrable, since `ξ_i` is
@@ -91,16 +54,15 @@ factor is `ℱ_t`-measurable; for `t < t_i` the term collapses to `0`. -/
 private lemma simpleIntegral_term_adapted_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) (i : Fin H.N) (t : ℝ)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+      (ℱ t)
       (fun ω => H.ξ i ω *
         (W.W (min (H.partition i.succ) t) ω
           - W.W (min (H.partition i.castSucc) t) ω)) := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W
   have hpre_lt_post : H.partition i.castSucc < H.partition i.succ :=
     H.partition_strictMono Fin.castSucc_lt_succ
   by_cases ht_pre : H.partition i.castSucc ≤ t
@@ -109,14 +71,12 @@ private lemma simpleIntegral_term_adapted_brownian
     have h_min_pre_le_t : min (H.partition i.castSucc) t ≤ t := min_le_right _ _
     have h_W_post : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t)
         (W.W (min (H.partition i.succ) t)) :=
-      (MeasureTheory.Filtration.stronglyAdapted_natural
-        (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable)
-        (min (H.partition i.succ) t)).mono (ℱ.mono h_min_post_le_t)
+      ((hℱ.measurable (min (H.partition i.succ) t)).stronglyMeasurable).mono (ℱ.mono
+        h_min_post_le_t)
     have h_W_pre : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t)
         (W.W (min (H.partition i.castSucc) t)) :=
-      (MeasureTheory.Filtration.stronglyAdapted_natural
-        (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable)
-        (min (H.partition i.castSucc) t)).mono (ℱ.mono h_min_pre_le_t)
+      ((hℱ.measurable (min (H.partition i.castSucc) t)).stronglyMeasurable).mono (ℱ.mono
+        h_min_pre_le_t)
     have h_xi : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq t) (H.ξ i) :=
       h_adapt_i.mono (ℱ.mono ht_pre)
     exact h_xi.mul (h_W_post.sub h_W_pre)
@@ -143,17 +103,16 @@ martingale property at the appropriate times (case-split on whether
 private lemma simpleIntegral_term_condExp_brownian_main
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) (i : Fin H.N)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {s t : ℝ} (hpre_le_s : H.partition i.castSucc ≤ s) (hst : s ≤ t) :
     P[fun ω => H.ξ i ω *
         (W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.castSucc) t) ω)
-        | (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s]
+        | ℱ s]
       =ᵐ[P] fun ω => H.ξ i ω *
         (W.W (min (H.partition i.succ) s) ω - W.W (min (H.partition i.castSucc) s) ω) := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W
   have hpre_lt_post : H.partition i.castSucc < H.partition i.succ :=
     H.partition_strictMono Fin.castSucc_lt_succ
   have hpre_nn : 0 ≤ H.partition i.castSucc := by
@@ -176,12 +135,9 @@ private lemma simpleIntegral_term_condExp_brownian_main
     h_adapt_i.mono (ℱ.mono hpre_le_s)
   have h_W_pre_Fs : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s)
       (W.W (H.partition i.castSucc)) :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable)
-      (H.partition i.castSucc)).mono (ℱ.mono hpre_le_s)
+    ((hℱ.measurable (H.partition i.castSucc)).stronglyMeasurable).mono (ℱ.mono hpre_le_s)
   have h_W_s'_Fs : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s) (W.W s') :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural
-      (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) s').mono
+    ((hℱ.measurable s').stronglyMeasurable).mono
       (ℱ.mono hs'_le_s)
   obtain ⟨M, hM⟩ := H.ξ_bounded i
   have h_int_xi_meas : Measurable (H.ξ i) := H.ξ_measurable i
@@ -219,8 +175,7 @@ private lemma simpleIntegral_term_condExp_brownian_main
           have h_t'_post : t' = H.partition i.succ := min_eq_left hpost_le_t
           rw [h_t'_post, h_s'_post]
       have h_W_t'_self : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq s) (W.W t') :=
-        (MeasureTheory.Filtration.stronglyAdapted_natural
-          (u := W.W) (fun u => (W.measurable_eval u).stronglyMeasurable) t').mono
+        ((hℱ.measurable t').stronglyMeasurable).mono
           (ℱ.mono ht'_s)
       have h_self := MeasureTheory.condExp_of_stronglyMeasurable h_le_F h_W_t'_self h_int_W_t'
       rw [h_self, h_t'_eq_s']
@@ -228,7 +183,7 @@ private lemma simpleIntegral_term_condExp_brownian_main
       push Not at ht'_s
       have h_post_gt_s : s < H.partition i.succ := lt_of_lt_of_le ht'_s (min_le_left _ _)
       have h_s'_eq_s : s' = s := min_eq_right h_post_gt_s.le
-      have h_W_eq := condExp_W_eq_W_aux W hs_nn (le_of_lt ht'_s)
+      have h_W_eq := hℱ.condExp_eq hs_nn (le_of_lt ht'_s)
       filter_upwards [h_W_eq] with ω hω
       rw [hω, h_s'_eq_s]
   -- `P[W_{t'} - W_{pre_t} | F_s] =ᵐ W_{s'} - W_{pre_t}`.
@@ -252,17 +207,16 @@ the `pre_t ≤ s` helper, with tower argument when `s < pre_t ≤ t` and a
 private lemma simpleIntegral_term_condExp_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T) (i : Fin H.N)
     (h_adapt_i : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {s t : ℝ} (hst : s ≤ t) :
     P[fun ω => H.ξ i ω *
         (W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.castSucc) t) ω)
-        | (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s]
+        | ℱ s]
       =ᵐ[P] fun ω => H.ξ i ω *
         (W.W (min (H.partition i.succ) s) ω - W.W (min (H.partition i.castSucc) s) ω) := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W
   have hpre_lt_post : H.partition i.castSucc < H.partition i.succ :=
     H.partition_strictMono Fin.castSucc_lt_succ
   -- The integrand at time `u ≤ pre_t` collapses to `0`.
@@ -278,13 +232,13 @@ private lemma simpleIntegral_term_condExp_brownian
     rw [h_min_pre_u, h_min_post_u]
     ring
   by_cases hs_pre : H.partition i.castSucc ≤ s
-  · exact simpleIntegral_term_condExp_brownian_main W H i h_adapt_i hs_pre hst
+  · exact simpleIntegral_term_condExp_brownian_main W ℱ hℱ H i h_adapt_i hs_pre hst
   · push Not at hs_pre
     have hs_lt_pre : s ≤ H.partition i.castSucc := hs_pre.le
     have h_g_s_zero := h_g_zero_le_pre s hs_lt_pre
     by_cases ht_pre : H.partition i.castSucc ≤ t
     · -- Case B: `s < pre_t ≤ t`. Tower through `F_{pre_t}`.
-      have h_main := simpleIntegral_term_condExp_brownian_main W H i h_adapt_i
+      have h_main := simpleIntegral_term_condExp_brownian_main W ℱ hℱ H i h_adapt_i
         (le_refl (H.partition i.castSucc)) ht_pre
       have h_g_pre_zero := h_g_zero_le_pre (H.partition i.castSucc) (le_refl _)
       rw [h_g_pre_zero] at h_main
@@ -320,13 +274,12 @@ per-term identity via `condExp_finset_sum` + `eventuallyEq_sum`. -/
 lemma martingale_simpleIntegral_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     MeasureTheory.Martingale (fun t : ℝ => simpleIntegral W H t)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W
+      ℱ P := by
   refine ⟨?_, ?_⟩
   · -- StronglyAdapted: per-term + `Finset.stronglyMeasurable_fun_sum`.
     intro t
@@ -336,7 +289,7 @@ lemma martingale_simpleIntegral_brownian
                   - W.W (min (H.partition i.castSucc) t) ω))
     apply Finset.stronglyMeasurable_fun_sum
     intro i _
-    exact simpleIntegral_term_adapted_brownian W H i t (h_adapt i)
+    exact simpleIntegral_term_adapted_brownian W ℱ hℱ H i t (h_adapt i)
   · -- Cond-exp identity: per-term + `condExp_finset_sum`.
     intro s t hst
     -- Rewrite each `simpleIntegral W H u` as a Pi-sum of per-term functions.
@@ -360,7 +313,7 @@ lemma martingale_simpleIntegral_brownian
     refine h_step1.trans ?_
     refine eventuallyEq_sum ?_
     intro i _
-    exact simpleIntegral_term_condExp_brownian W H i (h_adapt i) hst
+    exact simpleIntegral_term_condExp_brownian W ℱ hℱ H i (h_adapt i) hst
 
 /-- **C0a: Density of simple Brownian-predictable processes in `L²(Ω × [0, T])`.**
 For every `H ∈ L²(Ω × [0, T], dP ⊗ ds)`, there exists a sequence of

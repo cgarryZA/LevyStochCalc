@@ -165,19 +165,17 @@ def IsBSDEJSolution
           -- measurability / L²-bound) are bundled here to type the integral.
           (∃ (h_Z_meas : ∀ i : Fin d,
                 Measurable (Function.uncurry (fun ω s => Z s ω i)))
-             (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
-                @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-                  (@Prod.instMeasurableSpace Ω ℝ
-                    ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
-                    inferInstance)
-                  (fun p : Ω × ℝ => Z p.2 p.1 i))
+             (h_Z_progMeas : ∀ i : Fin d,
+                 Probability.ProgressivelyMeasurable W.naturalFiltration
+                   (fun ω s => Z s ω i))
              (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
                 ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
                   (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
             ∀ T' : ℝ, ∀ᵐ ω ∂P,
               M_W T' ω =
                 LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-                  W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
+                  W W.naturalFiltration W.isBrownianFiltration_natural
+                  Z h_Z_meas h_Z_progMeas h_Z_sq T' ω) ∧
           -- M_N pinned to the canonical compensated-Poisson L² integral of U;
           -- the U-side hypotheses are bundled here likewise (mirror of M_W).
           (∃ (h_U_meas : Measurable
@@ -307,7 +305,8 @@ theorem U_isStronglyProgressive_canonical
 /-- **Regression test #6 (M_W pinned to canonical Brownian Itô integral)**:
 The Brownian martingale leg `M_W` of every solution agrees a.s. (at every
 T') with the canonical multidim Brownian Itô integral
-`MultidimBrownianMotion.stochasticIntegral W Z ...` — not merely with some
+`MultidimBrownianMotion.stochasticIntegral W W.naturalFiltration W.isBrownianFiltration_natural
+                                           Z ...` — not merely with some
 L²-isometric stand-in (which would leave a gap between the predicate and the
 literature claim). The per-component Z hypotheses are bundled as existential
 witnesses to make the canonical-integral expression well-typed. -/
@@ -316,19 +315,17 @@ theorem M_W_eq_canonical_brownianIto
     ∃ M_W : ℝ → Ω → ℝ,
       ∃ (h_Z_meas : ∀ i : Fin d,
             Measurable (Function.uncurry (fun ω s => Z s ω i)))
-         (h_Z_progMeas : ∀ i : Fin d, ∀ t : ℝ,
-            @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-              (@Prod.instMeasurableSpace Ω ℝ
-                ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W i)).seq t)
-                inferInstance)
-              (fun p : Ω × ℝ => Z p.2 p.1 i))
+         (h_Z_progMeas : ∀ i : Fin d,
+             Probability.ProgressivelyMeasurable W.naturalFiltration
+               (fun ω s => Z s ω i))
          (h_Z_sq : ∀ i : Fin d, ∀ T' : ℝ, 0 < T' →
             ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
               (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
         ∀ T' : ℝ, ∀ᵐ ω ∂P,
           M_W T' ω =
             LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-              W Z h_Z_meas h_Z_progMeas h_Z_sq T' ω := by
+              W W.naturalFiltration W.isBrownianFiltration_natural
+              Z h_Z_meas h_Z_progMeas h_Z_sq T' ω := by
   obtain ⟨_, _, _, _, _, _Filt, _, _, _, _,
           M_W, _, _, _, _, _,
           ⟨h_Z_meas, h_Z_progMeas, h_Z_sq, hM_W_pin⟩, _, _, _, _⟩ := h

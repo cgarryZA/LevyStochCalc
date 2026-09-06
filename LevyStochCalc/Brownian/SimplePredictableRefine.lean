@@ -1102,25 +1102,21 @@ at `H_k.partition (idxMap_k j).castSucc`. By `Filtration.mono` and
 ≤ mergedπ j.castSucc`), this upgrades to StronglyMeas at the merged
 partition point. The difference is StronglyMeas via `StronglyMeasurable.sub`. -/
 lemma SimplePredictable.sub_on_common_adapt
-    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
     (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
     (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₁.partition i.castSucc)) (H₁.ξ i))
+      (ℱ (H₁.partition i.castSucc)) (H₁.ξ i))
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+      (ℱ (H₂.partition i.castSucc)) (H₂.ξ i)) :
     ∀ j : Fin (H₁.sub_on_common H₂ h_eq).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((H₁.sub_on_common H₂ h_eq).partition j.castSucc))
+        (ℱ ((H₁.sub_on_common H₂ h_eq).partition j.castSucc))
         ((H₁.sub_on_common H₂ h_eq).ξ j) := by
   intro j
-  have h_mono₁ := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+  have h_mono₁ := ℱ.mono
     (H₁.mergedIdxMap_left_idx_le H₂ h_eq j)
-  have h_mono₂ := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+  have h_mono₂ := ℱ.mono
     (H₁.mergedIdxMap_right_idx_le H₂ h_eq j)
   have h₁ := (h_adapt₁ (H₁.mergedIdxMap_left H₂ h_eq j)).mono h_mono₁
   have h₂ := (h_adapt₂ (H₁.mergedIdxMap_right H₂ h_eq j)).mono h_mono₂
@@ -1138,14 +1134,13 @@ follows from `sub_on_common_adapt`. -/
 theorem SimplePredictable.diff_isometry_simple
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
     (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
     (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₁.partition i.castSucc)) (H₁.ξ i))
+      (ℱ (H₁.partition i.castSucc)) (H₁.ξ i))
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+      (ℱ (H₂.partition i.castSucc)) (H₂.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω‖₊ : ℝ≥0∞) ^ 2
       ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -1168,8 +1163,8 @@ theorem SimplePredictable.diff_isometry_simple
       (fun s _ => ?_)
     rw [SimplePredictable.eval_sub_on_common H₁ H₂ h_eq s ω]
   rw [h_LHS, h_RHS]
-  exact simpleIntegral_isometry W hT (H₁.sub_on_common H₂ h_eq)
-    (SimplePredictable.sub_on_common_adapt W H₁ H₂ h_eq h_adapt₁ h_adapt₂)
+  exact simpleIntegral_isometry W ℱ hℱ hT (H₁.sub_on_common H₂ h_eq)
+    (SimplePredictable.sub_on_common_adapt ℱ H₁ H₂ h_eq h_adapt₁ h_adapt₂)
 
 /-- **C0b.9: Cauchy preservation for `simpleIntegral`.** If an
 eval-sequence of adapted simple integrands sharing a common endpoint is
@@ -1183,6 +1178,7 @@ verbatim for the integrals. -/
 theorem cauchy_of_L2_dense_simple
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -1190,8 +1186,7 @@ theorem cauchy_of_L2_dense_simple
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -1204,7 +1199,7 @@ theorem cauchy_of_L2_dense_simple
   intro ε hε
   obtain ⟨N, hN⟩ := h_cauchy_eval ε hε
   refine ⟨N, fun n m hn hm => ?_⟩
-  rw [SimplePredictable.diff_isometry_simple W hT (G n) (G m)
+  rw [SimplePredictable.diff_isometry_simple W ℱ hℱ hT (G n) (G m)
         (h_eq n m) (h_adapt n) (h_adapt m)]
   exact hN n m hn hm
 
@@ -1330,16 +1325,13 @@ lemma SimplePredictable.appendInterval_simpleIntegral
 
 /-- Adaptedness is preserved by the zero-extension. -/
 lemma SimplePredictable.appendInterval_adapt
-    {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     {T : ℝ} (H : SimplePredictable Ω T) {T' : ℝ}
     (hlt : H.partition (Fin.last H.N) < T')
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∀ i : Fin (H.appendInterval hlt).N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        ((H.appendInterval hlt).partition i.castSucc)) ((H.appendInterval hlt).ξ i) := by
+      (ℱ ((H.appendInterval hlt).partition i.castSucc)) ((H.appendInterval hlt).ξ i) := by
   intro i
   rcases Fin.eq_castSucc_or_eq_last i with ⟨i', rfl⟩ | rfl
   · rw [H.appendInterval_xi_castSucc hlt i',

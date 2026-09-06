@@ -233,20 +233,16 @@ lemma increment_indep_naturalFiltration_aux
   rw [h_eq]
   exact W.joint_increment_independent hs hst
 
-/-- **Conditional expectation of an increment is zero.** Combines:
-* `increment_indep_naturalFiltration_aux`: σ-algebra independence of the
-  increment from the natural filtration past.
-* `IsGaussian.memLp_id`: `id` is `L^1` under `gaussianReal`, giving
-  integrability of the increment via pushforward.
-* `integral_id_gaussianReal`: the mean of `gaussianReal 0 v` is `0`.
-* Mathlib `condExp_indep_eq`: if `f` is `m₁`-measurable and `m₁` is
-  independent of `m₂`, then `𝔼[f | m₂] = 𝔼[f]` a.s. -/
-lemma condExp_increment_eq_zero_aux
+/-- The conditional expectation of a Brownian increment `W_t − W_s`, `0 ≤ s < t`, given a
+σ-algebra `ℱ s` independent of it vanishes. -/
+lemma condExp_increment_eq_zero_of_indep
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
-    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) :
-    P[(fun ω => W.W t ω - W.W s ω) | (naturalFiltration W) s] =ᵐ[P]
-      fun _ => 0 := by
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t)
+    (hind : ProbabilityTheory.Indep (ℱ s)
+      (MeasurableSpace.comap (fun ω => W.W t ω - W.W s ω) inferInstance) P) :
+    P[(fun ω => W.W t ω - W.W s ω) | ℱ s] =ᵐ[P] fun _ => 0 := by
   have h_meas_diff : Measurable (fun ω => W.W t ω - W.W s ω) :=
     (W.measurable_eval t).sub (W.measurable_eval s)
   -- Integrability via Gaussian increment law.
@@ -268,25 +264,31 @@ lemma condExp_increment_eq_zero_aux
         (by fun_prop : MeasureTheory.AEStronglyMeasurable (id : ℝ → ℝ) _)).symm]
     rw [W.increment_gaussian hs hst]
     exact ProbabilityTheory.integral_id_gaussianReal
-  -- σ-algebra independence.
-  have h_indep := (increment_indep_naturalFiltration_aux W hs hst).symm
-  -- Apply condExp_indep_eq.
   have hle₁ : MeasurableSpace.comap (fun ω => W.W t ω - W.W s ω) inferInstance
       ≤ ‹MeasurableSpace Ω› := by
     intro u ⟨v, hv, hvu⟩
     rw [← hvu]
     exact h_meas_diff hv
-  have hle₂ : (naturalFiltration W).seq s ≤ ‹MeasurableSpace Ω› :=
-    (naturalFiltration W).le' s
   have hf_sm : @MeasureTheory.StronglyMeasurable Ω ℝ _
       (MeasurableSpace.comap (fun ω => W.W t ω - W.W s ω) inferInstance)
       (fun ω => W.W t ω - W.W s ω) := by
     apply Measurable.stronglyMeasurable
     exact Measurable.of_comap_le le_rfl
-  have h := MeasureTheory.condExp_indep_eq hle₁ hle₂ hf_sm h_indep
+  have h := MeasureTheory.condExp_indep_eq hle₁ (ℱ.le s) hf_sm hind.symm
   filter_upwards [h] with ω hω
   rw [hω]
   exact h_mean
+
+/-- The conditional expectation of a Brownian increment `W_t − W_s`, `0 ≤ s < t`, given the
+natural filtration at time `s` vanishes. -/
+lemma condExp_increment_eq_zero_aux
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) :
+    P[(fun ω => W.W t ω - W.W s ω) | (naturalFiltration W) s] =ᵐ[P]
+      fun _ => 0 :=
+  condExp_increment_eq_zero_of_indep W (naturalFiltration W) hs hst
+    (increment_indep_naturalFiltration_aux W hs hst)
 
 /-- **Gaussian second moment.** `∫ x² ∂(gaussianReal 0 v) = v`. -/
 lemma gaussianReal_second_moment (v : NNReal) :

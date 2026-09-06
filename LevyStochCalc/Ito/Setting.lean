@@ -153,12 +153,9 @@ structure JumpDiffusion
   is_solution :
     ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
         Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-      (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-          (@Prod.instMeasurableSpace Ω ℝ
-            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+      (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+          Probability.ProgressivelyMeasurable W.naturalFiltration
+            (fun ω s => coeffs.σ s (X s ω) i j))
       (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -179,7 +176,8 @@ structure JumpDiffusion
       X t ω i = x₀ i
         + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W (fun s ω => coeffs.σ s (X s ω) i)
+            W W.naturalFiltration W.isBrownianFiltration_natural
+            (fun s ω => coeffs.σ s (X s ω) i)
             (fun j => h_σ_meas i j)
             (fun j => h_σ_progMeas i j)
             (fun j => h_σ_sq i j) t ω

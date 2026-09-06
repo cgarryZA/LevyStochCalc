@@ -203,12 +203,9 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
-    (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-          (@Prod.instMeasurableSpace Ω ℝ
-            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
+    (h_sigmaGrad_progMeas : ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
@@ -237,7 +234,8 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
       (u T (X.X T ω) - u 0 (X.X 0 ω)
         - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         - LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+            W W.naturalFiltration W.isBrownianFiltration_natural
+            (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω)
         =
         LevyStochCalc.Poisson.Compensated.stochasticIntegral N
@@ -297,12 +295,9 @@ theorem itoLevyFormula_jumpResidual_axiom
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
-    (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-          (@Prod.instMeasurableSpace Ω ℝ
-            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
+    (h_sigmaGrad_progMeas : ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
@@ -334,7 +329,8 @@ theorem itoLevyFormula_jumpResidual_axiom
         u T (X.X T ω) - u 0 (X.X 0 ω) =
           (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
           + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-              W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+              W W.naturalFiltration W.isBrownianFiltration_natural
+              (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
               h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
           + R T ω) :
     ∀ᵐ ω ∂P,
@@ -397,12 +393,9 @@ theorem itoLevyFormula
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
-    (h_sigmaGrad_progMeas : ∀ j : Fin d, ∀ t : ℝ,
-        @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-          (@Prod.instMeasurableSpace Ω ℝ
-            ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-            inferInstance)
-          (fun p : Ω × ℝ => diffusionIntegrand u coeffs.σ p.2 (X.X p.2 p.1) j))
+    (h_sigmaGrad_progMeas : ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j))
     (h_sigmaGrad_sq : ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖diffusionIntegrand u coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
@@ -431,7 +424,8 @@ theorem itoLevyFormula
       u T (X.X T ω) - u 0 (X.X 0 ω) =
         (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-            W (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+            W W.naturalFiltration W.isBrownianFiltration_natural
+            (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
             h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T ω
         + LevyStochCalc.Poisson.Compensated.stochasticIntegral N
             (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e)

@@ -813,19 +813,17 @@ noncomputable def picardStep_diffusion
     (h_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
     -- Progressive measurability wrt W component j's natural filtration.
-    (h_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     -- Per-row, per-component L² boundedness on every finite horizon.
     (h_sq_int_global : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (t : ℝ) (ω : Ω) : Fin n → ℝ :=
   fun i => LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-    W (fun s ω' => fun j => coeffs.σ s (X s ω') i j)
+    W W.naturalFiltration W.isBrownianFiltration_natural
+    (fun s ω' => fun j => coeffs.σ s (X s ω') i j)
     (h_meas i) (h_progMeas i) (h_sq_int_global i) t ω
 
 /-- **Picard map jump component (γ row i along X compensated-Poisson integral).**
@@ -889,12 +887,9 @@ noncomputable def picardStep
     -- σ-side hypotheses for the Brownian integral.
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -986,21 +981,12 @@ integrand difference are `L²`-limits of the same simple-integral difference. -/
 theorem itoIsometry_diff_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H₁ H₂ : Ω → ℝ → ℝ)
     (h_meas₁ : Measurable (Function.uncurry H₁))
     (h_meas₂ : Measurable (Function.uncurry H₂))
-    (h_progMeas₁ : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H₁ p.1 p.2))
-    (h_progMeas₂ : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H₂ p.1 p.2))
+    (h_progMeas₁ : Probability.ProgressivelyMeasurable ℱ H₁)
+    (h_progMeas₂ : Probability.ProgressivelyMeasurable ℱ H₂)
     (h_sq_int_global₁ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1008,13 +994,13 @@ theorem itoIsometry_diff_brownian
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (T : ℝ) (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegral W H₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
-              - stochasticIntegral W H₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
+    ∫⁻ ω, (‖stochasticIntegral W ℱ hℱ H₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
+              - stochasticIntegral W ℱ hℱ H₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
             : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   unfold stochasticIntegral
-  exact isometry_diff_stochasticIntegralBrownian W H₁ H₂ h_meas₁ h_meas₂
+  exact isometry_diff_stochasticIntegralBrownian W ℱ hℱ H₁ H₂ h_meas₁ h_meas₂
     h_progMeas₁ h_progMeas₂ h_sq_int_global₁ h_sq_int_global₂ hT
 
 end LevyStochCalc.Brownian.Ito
@@ -1190,18 +1176,12 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i' j)))
     (h_σ_meas_Y : ∀ i' : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i' j)))
-    (h_σ_progMeas_X : ∀ i' : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i' j))
-    (h_σ_progMeas_Y : ∀ i' : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (Y p.2 p.1) i' j))
+    (h_σ_progMeas_X : ∀ i' : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i' j))
+    (h_σ_progMeas_Y : ∀ i' : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (Y s ω) i' j))
     (h_σ_sq_X : ∀ i' : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coeffs.σ s (X s ω) i' j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1217,11 +1197,13 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
             (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   -- Abbreviation for the per-j 1D Brownian integrals (X and Y branches).
   set Mx : Fin d → Ω → ℝ := fun j ω =>
-    LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W j)
+    LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W j) W.naturalFiltration
+      (W.isBrownianFiltration_natural j)
       (fun ω' s => coeffs.σ s (X s ω') i j)
       (h_σ_meas_X i j) (h_σ_progMeas_X i j) (h_σ_sq_X i j) T ω with hMx
   set My : Fin d → Ω → ℝ := fun j ω =>
-    LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W j)
+    LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W j) W.naturalFiltration
+      (W.isBrownianFiltration_natural j)
       (fun ω' s => coeffs.σ s (Y s ω') i j)
       (h_σ_meas_Y i j) (h_σ_progMeas_Y i j) (h_σ_sq_Y i j) T ω with hMy
   -- The 1D Brownian Itô integral returned by `stochasticIntegral` is a
@@ -1232,14 +1214,16 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
   have hMx_meas : ∀ j : Fin d, Measurable (Mx j) := by
     intro j
     obtain ⟨Filt, hMart⟩ := LevyStochCalc.Brownian.Ito.martingale_stochasticIntegral
-      (W.W j) (fun ω' s => coeffs.σ s (X s ω') i j)
+      (W.W j) W.naturalFiltration
+        (W.isBrownianFiltration_natural j) (fun ω' s => coeffs.σ s (X s ω') i j)
       (h_σ_meas_X i j) (h_σ_progMeas_X i j) (h_σ_sq_X i j)
     have h_sm := hMart.stronglyMeasurable T
     exact h_sm.measurable.mono (Filt.le T) le_rfl
   have hMy_meas : ∀ j : Fin d, Measurable (My j) := by
     intro j
     obtain ⟨Filt, hMart⟩ := LevyStochCalc.Brownian.Ito.martingale_stochasticIntegral
-      (W.W j) (fun ω' s => coeffs.σ s (Y s ω') i j)
+      (W.W j) W.naturalFiltration
+        (W.isBrownianFiltration_natural j) (fun ω' s => coeffs.σ s (Y s ω') i j)
       (h_σ_meas_Y i j) (h_σ_progMeas_Y i j) (h_σ_sq_Y i j)
     have h_sm := hMart.stronglyMeasurable T
     exact h_sm.measurable.mono (Filt.le T) le_rfl
@@ -1276,7 +1260,8 @@ lemma picardStep_diffusion_diff_lipschitz_sq_componentwise
     intro j
     simp only [Mx, My]
     exact LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian
-      (W.W j) (fun ω' s => coeffs.σ s (X s ω') i j)
+      (W.W j) W.naturalFiltration
+        (W.isBrownianFiltration_natural j) (fun ω' s => coeffs.σ s (X s ω') i j)
       (fun ω' s => coeffs.σ s (Y s ω') i j)
       (h_σ_meas_X i j) (h_σ_meas_Y i j)
       (h_σ_progMeas_X i j) (h_σ_progMeas_Y i j)
@@ -1581,12 +1566,9 @@ noncomputable def SBoundedProcess.ofPicardStep
     -- σ-side hypotheses for the Brownian integral
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1664,12 +1646,9 @@ noncomputable def picardStepOnS2
     -- σ-side hypotheses along X.X
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X.X s ω) i j)))
-    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X.X p.2 p.1) i j))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X.X s ω) i j))
     (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coeffs.σ s (X.X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1730,12 +1709,9 @@ lemma picardStepOnS2_X
     (X : SBoundedProcess (n := n) P T)
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X.X s ω) i j)))
-    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X.X p.2 p.1) i j))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X.X s ω) i j))
     (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coeffs.σ s (X.X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1846,12 +1822,9 @@ lemma picardStep_diff_sum_sq_le
     (x₀ : Fin n → ℝ)
     (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1868,12 +1841,9 @@ lemma picardStep_diff_sum_sq_le
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
-    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (Y p.2 p.1) i j))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (Y s ω) i j))
     (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1947,12 +1917,9 @@ lemma picardStep_diff_lintegral_sum_sq_le
     (x₀ : Fin n → ℝ)
     (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -1969,12 +1936,9 @@ lemma picardStep_diff_lintegral_sum_sq_le
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
-    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (Y p.2 p.1) i j))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (Y s ω) i j))
     (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -2109,12 +2073,9 @@ theorem picardStep_bielecki_contraction
     (T : ℝ) (_hT : 0 < T)
     (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -2131,12 +2092,9 @@ theorem picardStep_bielecki_contraction
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
-    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (Y p.2 p.1) i j))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (Y s ω) i j))
     (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -2476,12 +2434,9 @@ theorem picardStep_bielecki_contraction_tight
     (T : ℝ) (_hT : 0 < T)
     (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
-    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (X p.2 p.1) i j))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (X s ω) i j))
     (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -2498,12 +2453,9 @@ theorem picardStep_bielecki_contraction_tight
         (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
-    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration (W.W j)).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => coeffs.σ p.2 (Y p.2 p.1) i j))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+        Probability.ProgressivelyMeasurable W.naturalFiltration
+          (fun ω s => coeffs.σ s (Y s ω) i j))
     (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)

@@ -1,15 +1,17 @@
 # LevyStochCalc — Status (2026-09-05)
 
 
-> **Integrand-class audit (2026-09-06).** The `h_progMeas` hypothesis of every stochastic
-> integral in this library demands `ℱ t ⊗ Borel`-measurability of the whole integrand for
-> *every* `t`, with no restriction to `s ≤ t`; since `ℱ 0` of the natural filtrations is
-> P-trivial, every admissible integrand is a.s. constant in `ω` at each time. The proved
-> integral theorems (#5, #6, #17, #18) therefore concern **Wiener integrals of deterministic
-> integrands**, and `JumpDiffusion`, `IsBSDEJSolution` and the corrected #16 are confined to
-> that class. Work package X2 (`Plan.md`) rebuilds the interface with genuine progressive
-> measurability over a common filtration. Full argument: `tools/cited_axioms.md`,
-> "Integrand-class audit".
+> **Integrand-class audit (2026-09-06) — Brownian side rebuilt the same day (X2-1).** The
+> `h_progMeas` hypothesis of the stochastic integrals demanded `ℱ t ⊗ Borel`-measurability of
+> the whole integrand for *every* `t`, with no restriction to `s ≤ t`; since `ℱ 0` of the
+> natural filtrations is P-trivial, every admissible integrand was a.s. constant in `ω` at each
+> time. **The Brownian integrals (#5, #17) are now stated for genuinely progressively
+> measurable integrands** (`Probability.ProgressivelyMeasurable ℱ H`, equivalent to Mathlib's
+> `IsStronglyProgressive`) **with respect to any filtration for which `W` is a Brownian
+> motion** (`IsBrownianFiltration W ℱ`; work package X2-1 in `Plan.md`). The compensated-Poisson
+> integral (#6, #18) still carries the old hypothesis, and `JumpDiffusion`, `IsBSDEJSolution` and
+> the corrected #16 still take their Poisson integrands over `naturalFiltration N` alone —
+> X2-2/X2-3 in `Plan.md`. Full argument: `tools/cited_axioms.md`, "Integrand-class audit".
 
 ## Headline
 
@@ -82,11 +84,12 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   **Statement audit 2026-09-06**: #16 now assumes `u ∈ C²` jointly and an
   integrable drift along the path — without them its Lean statement was
   refutable (`fderiv`/`deriv` and the Bochner integral vanish where the
-  hypotheses fail). Its progressive-measurability hypotheses are relative to
-  single-driver natural filtrations (the class the library's `L²` integrals
-  accept), so `JumpDiffusion.is_solution`, #16, #13a, #9, #10 cover coupled
-  coefficients only after the common-filtration generalization (work package
-  X2 in `Plan.md`); see `tools/cited_axioms.md` #16.
+  hypotheses fail). Since X2-1 its Brownian integrands are progressively
+  measurable for the joint Brownian filtration `W.naturalFiltration`, but its
+  Poisson integrands are still taken over `naturalFiltration N` alone (the class
+  the compensated integral accepts until X2-2), so `JumpDiffusion.is_solution`,
+  #16, #13a, #9, #10 cover coupled coefficients only after the common-filtration
+  stages X2-2/X2-3 in `Plan.md`; see `tools/cited_axioms.md` #16.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem

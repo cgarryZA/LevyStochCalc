@@ -339,10 +339,26 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
             `Driver/Joint.lean` (`LevyDriver`: `W`, `N` with `σ(W) ⟂ σ(N)`; its joint natural
             filtration `(⨆ i, ℱ^{Wⁱ}) ⊔ ℱ^N` is Brownian for every coordinate and Poisson
             for `N`). Axiom set: the 3 standard.
-      - [ ] **X2-1 Brownian chain** over `(ℱ, hℱ : IsBrownianFiltration W ℱ)` with genuine
-            progressive measurability (`IsStronglyProgressive`, i.e. `Set.Iic t × Ω`):
-            `ItoSimple` → `ItoDensity` → `ItoMartingale` → `SimplePredictableRefine` →
-            `ItoL2Completion` → `MultidimIto` (one `ℱ` for all coordinates).
+      - [x] **X2-1 Brownian chain** (2026-09-06). `Probability/Progressive.lean` defines
+            `ProgressivelyMeasurable ℱ H` (`(ω, s) ↦ 1_{s ≤ t} H ω s` is `ℱ t ⊗ Borel`-measurable
+            for every `t`; equivalent to Mathlib's `IsStronglyProgressive` in both directions;
+            adaptedness, continuous images fixing `0`, and `ℱ t`-measurability of
+            `∫_S H ω s ds` for `S ⊆ (-∞, t]`). `ItoSimple` → `ItoDensity` → `ItoMartingale` →
+            `SimplePredictableRefine` → `ItoL2Completion` → `MultidimIto` now take
+            `(ℱ, hℱ : IsBrownianFiltration W ℱ)` and `h_progMeas : ProgressivelyMeasurable ℱ H`
+            (one `ℱ` for all coordinates in `MultidimIto`); the adaptedness-only lemmas (density
+            of adapted simple processes, `masterApprox`) no longer mention `W`. The
+            natural-filtration bricks are replaced by the conditional expectation of an increment
+            given a σ-algebra independent of it (`condExp_increment_eq_zero_of_indep`) and
+            `IsBrownianFiltration.condExp_eq` (`E[W_t | ℱ s] = W_s`).
+            `Brownian/MultidimFiltered.lean`: the joint natural filtration `W.naturalFiltration`
+            of a multidimensional Brownian motion is Brownian for every coordinate
+            (`isBrownianFiltration_natural`, through `IsBrownianFiltration.of_le_sup`), and
+            `LevyDriver.isBrownianFiltration` is now derived from it. The consumers
+            (`Ito/Setting`, `Ito/Picard`, `Ito/JumpFormula`, `BSDEJ/Definition`, the
+            dissertation's Cu03) pass `W.naturalFiltration`; their Poisson integrands still use
+            `naturalFiltration N` (X2-2), so the common filtration of `(W, N)` is X2-3. Axiom
+            set: the 3 standard.
       - [ ] **X2-2 Poisson chain** over `(ℱ, hℱ : IsPoissonFiltration N ℱ)`: `MarkStep`,
             `CompensatedSimple` … `Compensated`.
       - [ ] **X2-3 consumers**: `Ito/Setting` (`JumpDiffusion` driven by a `LevyDriver` on its

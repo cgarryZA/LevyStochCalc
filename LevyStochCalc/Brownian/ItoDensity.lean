@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoSimple
+import LevyStochCalc.Probability.Progressive
 
 /-!
 # Density of simple predictable processes in L²
@@ -458,19 +459,12 @@ integral of `g(·, s)` over `s ∈ (t_{i-1}, t_i]`. By
 `MeasureTheory.StronglyMeasurable.integral_prod_right'`, the integral
 inherits `ℱ_{t_i}`-measurability from the integrand's joint measurability. -/
 lemma dyadicAvg_shifted_brownian_adapted
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     (T : ℝ) (g : Ω → ℝ → ℝ)
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => g p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ g)
     (n : ℕ) (i : Fin (2 ^ n)) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (dyadicPartition_brownian T n i.castSucc))
+      (ℱ (dyadicPartition_brownian T n i.castSucc))
       (dyadicAvg_shifted_brownian T g n i) := by
   unfold dyadicAvg_shifted_brownian
   by_cases h_i_zero : i.val = 0
@@ -481,20 +475,21 @@ lemma dyadicAvg_shifted_brownian_adapted
     simp only [h_i_zero, ↓reduceDIte]
     -- The integrand: f(p) = g p.1 p.2 is StronglyMeas wrt ℱ_{t_i} × Borel.
     set t_i : ℝ := dyadicPartition_brownian T n i.castSucc with h_ti_def
-    have h_f_meas := h_progMeas t_i
-    -- Apply StronglyMeasurable.integral_prod_right' explicitly with the
-    -- ℱ_{t_i} σ-algebra on Ω.
-    have h_int_step :=
-      @MeasureTheory.StronglyMeasurable.integral_prod_right' Ω ℝ ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t_i)
-        inferInstance
-        (volume.restrict (Set.Ioc
-          (dyadicPartition_brownian T n
-            (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).castSucc)
-          (dyadicPartition_brownian T n
-            (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).succ)))
-        _ _ inferInstance
-        (fun p : Ω × ℝ => g p.1 p.2) h_f_meas
+    have h_succ_eq : dyadicPartition_brownian T n (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).succ
+        = t_i := by
+      rw [h_ti_def]
+      congr 1
+      ext
+      simp only [Fin.val_succ, Fin.coe_castSucc]
+      omega
+    -- The average over `(t_{i-1}, t_i] ⊆ (-∞, t_i]` is `ℱ t_i`-measurable.
+    have h_int_step : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ t_i)
+        (fun ω => ∫ s in Set.Ioc
+          (dyadicPartition_brownian T n (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).castSucc)
+          (dyadicPartition_brownian T n (⟨i.val - 1, by omega⟩ : Fin (2 ^ n)).succ),
+          g ω s) :=
+      h_progMeas.stronglyMeasurable_setIntegral measurableSet_Ioc
+        (Set.Ioc_subset_Iic_self.trans (Set.Iic_subset_Iic.mpr h_succ_eq.le)) volume
     -- Multiply by constant.
     have h_const_meas := h_int_step.const_mul ((2 ^ n : ℕ) / T : ℝ)
     -- This is exactly dyadicAvg_brownian g n ⟨i.val - 1, _⟩ ω.
@@ -548,29 +543,21 @@ lemma predictableDyadicSimple_brownian_eval_bounded
 /-- **Predictability of `predictableDyadicSimple_brownian`.** Each `ξ_i`
 is `ℱ_{t_i}`-StronglyMeasurable when `g` is progressively measurable. -/
 lemma predictableDyadicSimple_brownian_adapted
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))
     (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M)
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => g p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ g)
     (n : ℕ)
     (i : Fin (predictableDyadicSimple_brownian hT g h_meas M h_bound n).N) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
+      (ℱ ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).partition
           i.castSucc))
       ((predictableDyadicSimple_brownian hT g h_meas M h_bound n).ξ i) := by
   change @MeasureTheory.StronglyMeasurable Ω ℝ _
-    ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-      (dyadicPartition_brownian T n i.castSucc))
+    (ℱ (dyadicPartition_brownian T n i.castSucc))
     (dyadicAvg_shifted_brownian T g n i)
-  exact dyadicAvg_shifted_brownian_adapted W T g h_progMeas n i
+  exact dyadicAvg_shifted_brownian_adapted ℱ T g h_progMeas n i
 
 /-- **Doubling measure instance for `(volume : Measure ℝ)`.** Mathlib's
 `IsUnifLocDoublingMeasure` is not auto-inferred for `ℝ`; we provide it explicitly
@@ -1725,28 +1712,22 @@ Construction via `predictableDyadicSimple_brownian` (the left-shifted dyadic
 average), which is `ℱ_{t_i}`-StronglyMeasurable for progressively measurable `g`. -/
 private lemma adaptedSimple_dense_L2_bounded_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry g))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => g p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ g)
     (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
     ∃ Hn : ℕ → SimplePredictable Ω T,
       (∀ n : ℕ, ∀ i : Fin (Hn n).N,
         @MeasureTheory.StronglyMeasurable Ω ℝ _
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-            ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
+          (ℱ ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
       Filter.Tendsto
         (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖g ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
         Filter.atTop (nhds 0) :=
   ⟨fun n => predictableDyadicSimple_brownian hT g h_meas M h_bound n,
-   fun n i => predictableDyadicSimple_brownian_adapted W hT g h_meas M h_bound
+   fun n i => predictableDyadicSimple_brownian_adapted ℱ hT g h_meas M h_bound
      h_progMeas n i,
    predictableDyadicSimple_brownian_L2_converges hT g h_meas M h_bound⟩
 
@@ -2223,22 +2204,16 @@ left-shifted dyadic average construction) via
 `adaptedSimple_dense_L2_bounded_brownian`. -/
 lemma adaptedSimple_dense_L2_brownian
     {P : Measure Ω} [IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     {T : ℝ} (hT : 0 < T)
     (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ Hn : ℕ → SimplePredictable Ω T,
       (∀ n : ℕ, ∀ i : Fin (Hn n).N,
         @MeasureTheory.StronglyMeasurable Ω ℝ _
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-            ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
+          (ℱ ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
       Filter.Tendsto
         (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H ω s - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
@@ -2257,28 +2232,25 @@ lemma adaptedSimple_dense_L2_brownian
     have h : Measurable (fun x : ℝ => max (-(M : ℝ)) (min (M : ℝ) x)) := by fun_prop
     exact h.comp h_meas
   -- Progressive measurability preserved under continuous clip.
-  have h_clip_progMeas : ∀ M : ℕ, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => max (-(M : ℝ)) (min (M : ℝ) (H p.1 p.2))) := by
-    intro M t
+  have h_clip_progMeas : ∀ M : ℕ, Probability.ProgressivelyMeasurable ℱ
+      (fun ω s => max (-(M : ℝ)) (min (M : ℝ) (H ω s))) := by
+    intro M
     have h_clip_cont : Continuous (fun x : ℝ => max (-(M : ℝ)) (min (M : ℝ) x)) := by
       fun_prop
-    exact h_clip_cont.comp_stronglyMeasurable (h_progMeas t)
+    have h_clip_zero : max (-(M : ℝ)) (min (M : ℝ) 0) = 0 := by
+      rw [min_eq_right (Nat.cast_nonneg M), max_eq_right (neg_nonpos.mpr (Nat.cast_nonneg M))]
+    exact h_clip_cont.comp_progressivelyMeasurable h_clip_zero h_progMeas
   -- Apply bounded adapted-density.
   have h_bdd : ∀ M : ℕ, ∃ Hn : ℕ → SimplePredictable Ω T,
       (∀ n : ℕ, ∀ i : Fin (Hn n).N,
         @MeasureTheory.StronglyMeasurable Ω ℝ _
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-            ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
+          (ℱ ((Hn n).partition i.castSucc)) ((Hn n).ξ i)) ∧
       Filter.Tendsto
         (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖max (-(M : ℝ)) (min (M : ℝ) (H ω s)) - (Hn n).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P)
         Filter.atTop (nhds 0) :=
-    fun M => adaptedSimple_dense_L2_bounded_brownian W hT
+    fun M => adaptedSimple_dense_L2_bounded_brownian ℱ hT
       (fun ω s => max (-(M : ℝ)) (min (M : ℝ) (H ω s)))
       (h_clip_meas M) (h_clip_progMeas M) (M : ℝ) (h_clip_bound M)
   choose Hn_seq h_Hn_adapt h_Hn_seq using h_bdd

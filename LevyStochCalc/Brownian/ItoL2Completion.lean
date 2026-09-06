@@ -14,7 +14,9 @@ import LevyStochCalc.Martingale.RightCont
 
 Lifts the simple-integrand Brownian integral to `Lp ℝ 2 P`, takes the L²-limit
 along a dense approximating sequence, and proves the L²-isometry of the limit,
-giving the L² Brownian Itô integral. The result is packaged as the cited
+giving the L² Brownian Itô integral of a progressively measurable integrand with
+respect to any filtration `ℱ` for which `W` is a Brownian motion
+(`IsBrownianFiltration W ℱ`). The result is packaged as the cited
 existence axiom `itoIsometry_brownian_unified_existence` (#5) and the
 `stochasticIntegral` API (`itoIsometry`, `quadVar_stochasticIntegral`,
 `martingale_stochasticIntegral`). Builds on the refinement machinery in
@@ -41,12 +43,12 @@ an element of `Lp ℝ 2 P` for the `L²` extension in `C0b.10`. -/
 lemma simpleIntegral_lintegral_sq_finite_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     ∫⁻ ω, (‖simpleIntegral W H T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤ := by
-  rw [simpleIntegral_isometry W hT H h_adapt]
+  rw [simpleIntegral_isometry W ℱ hℱ hT H h_adapt]
   rw [lintegral_eval_sq_outer H]
   refine ENNReal.sum_lt_top.mpr (fun i _ => ?_)
   refine ENNReal.mul_lt_top ENNReal.ofReal_lt_top ?_
@@ -79,10 +81,10 @@ L²-Cauchy completion in C0b.10. -/
 lemma simpleIntegral_memLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     MeasureTheory.MemLp (fun ω => simpleIntegral W H T ω) 2 P := by
   refine ⟨?_, ?_⟩
   · -- AEStronglyMeasurable: simpleIntegral W H T = ∑_i ξ_i · ΔW_i
@@ -98,7 +100,7 @@ lemma simpleIntegral_memLp_brownian
         (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
     have h_two_toReal : (2 : ℝ≥0∞).toReal = 2 := by simp
     rw [h_two_toReal]
-    have h_pre := simpleIntegral_lintegral_sq_finite_brownian W hT H h_adapt
+    have h_pre := simpleIntegral_lintegral_sq_finite_brownian W ℱ hℱ hT H h_adapt
     -- Bridge ‖x‖ₑ ^ (2:ℝ) vs (‖x‖₊ : ℝ≥0∞) ^ (2:ℕ)
     have h_rewrite : ∀ ω : Ω,
         (‖simpleIntegral W H T ω‖ₑ : ℝ≥0∞) ^ (2 : ℝ)
@@ -119,24 +121,24 @@ C0b.10. -/
 noncomputable def simpleIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     MeasureTheory.Lp ℝ 2 P :=
-  (simpleIntegral_memLp_brownian W hT H h_adapt).toLp
+  (simpleIntegral_memLp_brownian W ℱ hℱ hT H h_adapt).toLp
 
 /-- **C0b.10-pre4: `simpleIntegralLp_brownian` `coeFn` matches `simpleIntegral`.**
-The coercion of `simpleIntegralLp_brownian W hT H h_adapt` back to a
+The coercion of `simpleIntegralLp_brownian W ℱ hℱ hT H h_adapt` back to a
 function `Ω → ℝ` is a.e.-equal to `fun ω => simpleIntegral W H T ω`. -/
 lemma coeFn_simpleIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
-    (simpleIntegralLp_brownian W hT H h_adapt : Ω → ℝ)
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
+    (simpleIntegralLp_brownian W ℱ hℱ hT H h_adapt : Ω → ℝ)
       =ᵐ[P] (fun ω => simpleIntegral W H T ω) :=
   MeasureTheory.MemLp.coeFn_toLp _
 
@@ -149,14 +151,13 @@ completion machinery. -/
 lemma eLpNorm_simpleIntegral_sub_rpow_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
     (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
     (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₁.partition i.castSucc)) (H₁.ξ i))
+      (ℱ (H₁.partition i.castSucc)) (H₁.ξ i))
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₂.partition i.castSucc)) (H₂.ξ i)) :
+      (ℱ (H₂.partition i.castSucc)) (H₂.ξ i)) :
     MeasureTheory.eLpNorm
         (fun ω => simpleIntegral W H₁ T ω - simpleIntegral W H₂ T ω) 2 P ^ (2 : ℝ)
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -185,7 +186,7 @@ lemma eLpNorm_simpleIntegral_sub_rpow_brownian
         ENNReal.rpow_natCast]
     rfl
   rw [h_pointwise]
-  exact SimplePredictable.diff_isometry_simple W hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
+  exact SimplePredictable.diff_isometry_simple W ℱ hℱ hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
 
 /-- **C0b.10-pre6: `simpleIntegralLp_brownian` is a `CauchySeq` in
 `Lp ℝ 2 P` whenever the eval-sequence is L²-Cauchy.**
@@ -198,6 +199,7 @@ Direct application of the eLpNorm-form diff isometry
 theorem cauchySeq_simpleIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -205,25 +207,24 @@ theorem cauchySeq_simpleIntegralLp_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P < ε) :
-    CauchySeq (fun n => simpleIntegralLp_brownian W hT (G n) (h_adapt n)) := by
+    CauchySeq (fun n => simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)) := by
   -- Step 1: establish that edist of the Lp elements equals the eLpNorm of the
   -- raw simpleIntegral function difference (via Lp.edist_toLp_toLp).
   have h_edist_eq : ∀ m n : ℕ,
-      edist (simpleIntegralLp_brownian W hT (G m) (h_adapt m))
-            (simpleIntegralLp_brownian W hT (G n) (h_adapt n))
+      edist (simpleIntegralLp_brownian W ℱ hℱ hT (G m) (h_adapt m))
+            (simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n))
         = MeasureTheory.eLpNorm
             (fun ω => simpleIntegral W (G m) T ω - simpleIntegral W (G n) T ω) 2 P := by
     intro m n
     change edist
-      ((simpleIntegral_memLp_brownian W hT (G m) (h_adapt m)).toLp)
-      ((simpleIntegral_memLp_brownian W hT (G n) (h_adapt n)).toLp) = _
+      ((simpleIntegral_memLp_brownian W ℱ hℱ hT (G m) (h_adapt m)).toLp)
+      ((simpleIntegral_memLp_brownian W ℱ hℱ hT (G n) (h_adapt n)).toLp) = _
     exact MeasureTheory.Lp.edist_toLp_toLp _ _ _ _
   rw [EMetric.cauchySeq_iff]
   intro ε hε
@@ -235,8 +236,8 @@ theorem cauchySeq_simpleIntegralLp_brownian
     -- eLpNorm of MemLp function is finite.
     have h_memLp : MeasureTheory.MemLp
         (fun ω => simpleIntegral W (G m) T ω - simpleIntegral W (G n) T ω) 2 P :=
-      (simpleIntegral_memLp_brownian W hT (G m) (h_adapt m)).sub
-        (simpleIntegral_memLp_brownian W hT (G n) (h_adapt n))
+      (simpleIntegral_memLp_brownian W ℱ hℱ hT (G m) (h_adapt m)).sub
+        (simpleIntegral_memLp_brownian W ℱ hℱ hT (G n) (h_adapt n))
     exact lt_of_le_of_ne le_top h_memLp.eLpNorm_ne_top
   · -- ε < ⊤. Pick δ = ε ^ (2:ℝ).
     set δ : ℝ≥0∞ := ε ^ (2 : ℝ) with hδ
@@ -246,7 +247,7 @@ theorem cauchySeq_simpleIntegralLp_brownian
     obtain ⟨N, hN⟩ := h_cauchy_eval δ hδ_pos
     refine ⟨N, fun m hm n hn => ?_⟩
     rw [h_edist_eq]
-    have h_iso := eLpNorm_simpleIntegral_sub_rpow_brownian W hT (G m) (G n)
+    have h_iso := eLpNorm_simpleIntegral_sub_rpow_brownian W ℱ hℱ hT (G m) (G n)
       (h_eq m n) (h_adapt m) (h_adapt n)
     have h_lt := hN m n hm hn
     rw [← h_iso] at h_lt
@@ -268,6 +269,7 @@ The convergence (and unique-limit identification) follows from
 noncomputable def itoIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (_hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (_h_eq : ∀ n m : ℕ,
@@ -275,8 +277,7 @@ noncomputable def itoIntegralLp_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (_h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -284,7 +285,7 @@ noncomputable def itoIntegralLp_brownian
           ∂volume ∂P < ε) :
     MeasureTheory.Lp ℝ 2 P :=
   Filter.limUnder Filter.atTop
-    (fun n => simpleIntegralLp_brownian W _hT (G n) (h_adapt n))
+    (fun n => simpleIntegralLp_brownian W ℱ hℱ _hT (G n) (h_adapt n))
 
 /-- **C0b.10-post1: `simpleIntegralLp_brownian` converges to `itoIntegralLp_brownian`
 in `Lp ℝ 2 P`.** Direct from `cauchySeq_simpleIntegralLp_brownian` +
@@ -292,6 +293,7 @@ in `Lp ℝ 2 P`.** Direct from `cauchySeq_simpleIntegralLp_brownian` +
 theorem itoIntegralLp_brownian_tendsto
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -299,18 +301,17 @@ theorem itoIntegralLp_brownian_tendsto
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P < ε) :
     Filter.Tendsto
-      (fun n => simpleIntegralLp_brownian W hT (G n) (h_adapt n))
+      (fun n => simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n))
       Filter.atTop
-      (nhds (itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval)) :=
-  (cauchySeq_simpleIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval).tendsto_limUnder
+      (nhds (itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval)) :=
+  (cauchySeq_simpleIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval).tendsto_limUnder
 
 /-- **C0b.10-post2: `eLpNorm` of `simpleIntegralLp` rpow-form, the
 single-function version of the diff isometry.**
@@ -323,16 +324,16 @@ the same `eLpNorm_nnreal_pow_eq_lintegral` bridge as the diff form. -/
 lemma eLpNorm_simpleIntegralLp_brownian_rpow_eq
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     MeasureTheory.eLpNorm
-        (↑↑(simpleIntegralLp_brownian W hT H h_adapt) : Ω → ℝ) 2 P ^ (2 : ℝ)
+        (↑↑(simpleIntegralLp_brownian W ℱ hℱ hT H h_adapt) : Ω → ℝ) 2 P ^ (2 : ℝ)
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   -- Step 1: replace ↑↑(toLp ...) with the original simpleIntegral function (a.e.).
-  have h_aeeq := coeFn_simpleIntegralLp_brownian W hT H h_adapt
+  have h_aeeq := coeFn_simpleIntegralLp_brownian W ℱ hℱ hT H h_adapt
   rw [MeasureTheory.eLpNorm_congr_ae h_aeeq]
   -- Goal: eLpNorm (fun ω => simpleIntegral W H T ω) 2 P ^ (2:ℝ)
   --     = ∫⁻ ω, ∫⁻ s, ‖H.eval s ω‖₊² ∂vol ∂P
@@ -359,7 +360,7 @@ lemma eLpNorm_simpleIntegralLp_brownian_rpow_eq
   -- Goal: ∫⁻ ω, ‖simpleIntegral W H T ω‖₊² ∂P
   --     = ∫⁻ ω, ∫⁻ s, ‖H.eval s ω‖₊² ∂vol ∂P
   -- Step 4: simpleIntegral_isometry.
-  exact simpleIntegral_isometry W hT H h_adapt
+  exact simpleIntegral_isometry W ℱ hℱ hT H h_adapt
 
 /-- **C0b.10-post3: ‖simpleIntegralLp_brownian (G n)‖ converges to
 ‖itoIntegralLp_brownian‖ in ℝ.** Direct from the convergence of
@@ -368,6 +369,7 @@ plus continuity of the norm. -/
 theorem norm_simpleIntegralLp_tendsto_norm_itoIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -375,18 +377,17 @@ theorem norm_simpleIntegralLp_tendsto_norm_itoIntegralLp_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖(G n).eval s ω - (G m).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P < ε) :
     Filter.Tendsto
-      (fun n => ‖simpleIntegralLp_brownian W hT (G n) (h_adapt n)‖)
+      (fun n => ‖simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)‖)
       Filter.atTop
-      (nhds ‖itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval‖) :=
-  (itoIntegralLp_brownian_tendsto W hT G h_eq h_adapt h_cauchy_eval).norm
+      (nhds ‖itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval‖) :=
+  (itoIntegralLp_brownian_tendsto W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval).norm
 
 /-- **C0b.10-post4: `eLpNorm (↑↑(simpleIntegralLp (G n))) 2 P` converges
 to `eLpNorm (↑↑(itoIntegralLp ...)) 2 P` in `ℝ≥0∞`.** ENNReal-valued
@@ -395,6 +396,7 @@ via `Filter.Tendsto.enorm` and `Lp.enorm_def`. -/
 theorem eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -402,8 +404,7 @@ theorem eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -411,12 +412,12 @@ theorem eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
           ∂volume ∂P < ε) :
     Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm
-        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P)
+        (↑↑(simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)) : Ω → ℝ) 2 P)
       Filter.atTop
       (nhds (MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P)) := by
+        (↑↑(itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P)) := by
   have h_tendsto :=
-    (itoIntegralLp_brownian_tendsto W hT G h_eq h_adapt h_cauchy_eval).enorm
+    (itoIntegralLp_brownian_tendsto W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval).enorm
   -- h_tendsto : Tendsto (fun n => ‖Lp_n‖ₑ) atTop (nhds ‖Lp_lim‖ₑ)
   -- Use Lp.enorm_def to convert ‖f‖ₑ = eLpNorm (↑↑f) p μ.
   simp only [MeasureTheory.Lp.enorm_def] at h_tendsto
@@ -428,6 +429,7 @@ of `Filter.Tendsto.ennrpow_const` to the eLpNorm convergence (post4). -/
 theorem eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -435,8 +437,7 @@ theorem eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -444,13 +445,13 @@ theorem eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
           ∂volume ∂P < ε) :
     Filter.Tendsto
       (fun n => MeasureTheory.eLpNorm
-        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
+        (↑↑(simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
       Filter.atTop
       (nhds (MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
+        (↑↑(itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
           2 P ^ (2 : ℝ))) :=
-  (eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian
-    W hT G h_eq h_adapt h_cauchy_eval).ennrpow_const 2
+  (eLpNorm_simpleIntegralLp_tendsto_eLpNorm_itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt
+    h_cauchy_eval).ennrpow_const 2
 
 /-- **C0b.10-post6: lintegral-of-squared-eval converges to `eLpNorm²` of
 `itoIntegralLp_brownian`.**
@@ -461,6 +462,7 @@ the convergence in pure-lintegral form. -/
 theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -468,8 +470,7 @@ theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -480,22 +481,22 @@ theorem lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
           (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
       Filter.atTop
       (nhds (MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
+        (↑↑(itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ)
           2 P ^ (2 : ℝ))) := by
-  have h_tendsto := eLpNorm_rpow_simpleIntegralLp_tendsto_brownian
-    W hT G h_eq h_adapt h_cauchy_eval
+  have h_tendsto := eLpNorm_rpow_simpleIntegralLp_tendsto_brownian W ℱ hℱ hT G h_eq h_adapt
+    h_cauchy_eval
   -- h_tendsto : Tendsto (fun n => eLpNorm² (simpleIntegralLp (G n))) atTop
   --              (nhds (eLpNorm² (itoIntegralLp ...)))
   -- Substitute eLpNorm² = lintegral via post2.
   have h_subst : ∀ n : ℕ,
       MeasureTheory.eLpNorm
-        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ)
+        (↑↑(simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ)
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
-    fun n => eLpNorm_simpleIntegralLp_brownian_rpow_eq W hT (G n) (h_adapt n)
+    fun n => eLpNorm_simpleIntegralLp_brownian_rpow_eq W ℱ hℱ hT (G n) (h_adapt n)
   -- Rewrite the function inside the Tendsto.
   have h_eqv : (fun n => MeasureTheory.eLpNorm
-        (↑↑(simpleIntegralLp_brownian W hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
+        (↑↑(simpleIntegralLp_brownian W ℱ hℱ hT (G n) (h_adapt n)) : Ω → ℝ) 2 P ^ (2 : ℝ))
       = (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖(G n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) :=
     funext h_subst
@@ -514,6 +515,7 @@ hypothesised convergence to `∫⁻ ‖H‖²`) forces equality of the limits. -
 theorem itoIntegralLp_brownian_L2_isometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -521,8 +523,7 @@ theorem itoIntegralLp_brownian_L2_isometry
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -536,36 +537,36 @@ theorem itoIntegralLp_brownian_L2_isometry
       (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P))) :
     MeasureTheory.eLpNorm
-        (↑↑(itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
+        (↑↑(itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval) : Ω → ℝ) 2 P
           ^ (2 : ℝ)
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   -- Both Tendsto statements have the same source filter and source function;
   -- their target nhds-points must coincide by uniqueness of limits.
-  have h_to_eLpNorm := lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian
-    W hT G h_eq h_adapt h_cauchy_eval
+  have h_to_eLpNorm := lintegral_sq_eval_tendsto_eLpNorm_itoIntegralLp_brownian W ℱ hℱ hT G h_eq
+    h_adapt h_cauchy_eval
   exact (tendsto_nhds_unique h_to_eLpNorm h_eval_norm_tendsto)
 
 /-- **C0b.10-post8: `simpleIntegral W H t` is StronglyAdapted at `t`
-to `naturalFiltration W`.**
+to `ℱ`.**
 
 For each `t : ℝ` and adapted SimplePredictable `H`, the function
-`ω ↦ simpleIntegral W H t ω` is StronglyMeasurable wrt the natural
+`ω ↦ simpleIntegral W H t ω` is StronglyMeasurable wrt the
 filtration's σ-algebra at `t`. Direct from
 `martingale_simpleIntegral_brownian` (which establishes adaptedness as
 its first conjunct). -/
 lemma simpleIntegral_stronglyAdapted_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     (t : ℝ) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+      (ℱ t)
       (fun ω => simpleIntegral W H t ω) :=
-  (martingale_simpleIntegral_brownian W H h_adapt).stronglyAdapted t
+  (martingale_simpleIntegral_brownian W ℱ hℱ H h_adapt).stronglyAdapted t
 
 /-- **C0b.10-post9: `simpleIntegral W H t` is in `Lp ℝ 1 P`** (integrable).
 
@@ -575,12 +576,12 @@ property checks where integrability (Lp¹) is required. -/
 lemma simpleIntegral_integrable_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i)) :
+      (ℱ (H.partition i.castSucc)) (H.ξ i)) :
     MeasureTheory.Integrable (fun ω => simpleIntegral W H T ω) P := by
-  have h_memLp := simpleIntegral_memLp_brownian W hT H h_adapt
+  have h_memLp := simpleIntegral_memLp_brownian W ℱ hℱ hT H h_adapt
   -- MemLp 2 P implies MemLp 1 P (= Integrable) when measure is finite.
   exact (h_memLp.mono_exponent (by norm_num : (1 : ℝ≥0∞) ≤ 2)).integrable
     (le_refl 1)
@@ -591,15 +592,15 @@ for downstream use without unpacking the Martingale structure. -/
 lemma simpleIntegral_condExp_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {s t : ℝ} (hst : s ≤ t) :
     P[fun ω => simpleIntegral W H t ω
-        | (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s]
+        | ℱ s]
       =ᵐ[P] (fun ω => simpleIntegral W H s ω) :=
-  (martingale_simpleIntegral_brownian W H h_adapt).condExp_ae_eq hst
+  (martingale_simpleIntegral_brownian W ℱ hℱ H h_adapt).condExp_ae_eq hst
 
 /-- **C0b.10-final: existence of an L²-isometric process for adapted-approximated H.**
 
@@ -619,6 +620,7 @@ arguments for the time-parametrized version. -/
 theorem exists_itoIntegralL2_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (G : ℕ → SimplePredictable Ω T)
     (h_eq : ∀ n m : ℕ,
@@ -626,8 +628,7 @@ theorem exists_itoIntegralL2_brownian
         = (G m).partition (Fin.last (G m).N))
     (h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i))
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i))
     (h_cauchy_eval : ∀ ε : ℝ≥0∞, 0 < ε → ∃ N : ℕ, ∀ n m : ℕ,
       N ≤ n → N ≤ m →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -644,8 +645,8 @@ theorem exists_itoIntegralL2_brownian
       MeasureTheory.eLpNorm (↑↑M : Ω → ℝ) 2 P ^ (2 : ℝ)
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
-  ⟨itoIntegralLp_brownian W hT G h_eq h_adapt h_cauchy_eval,
-   itoIntegralLp_brownian_L2_isometry W hT G h_eq h_adapt h_cauchy_eval H
+  ⟨itoIntegralLp_brownian W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval,
+   itoIntegralLp_brownian_L2_isometry W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval H
      h_eval_norm_tendsto⟩
 
 /-- **Bounded progressively-measurable existence.** For bounded progressively-measurable
@@ -663,15 +664,11 @@ already in `Brownian.Ito`:
 theorem exists_itoIntegralL2_brownian_progMeas_bounded
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry g))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => g p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ g)
     (M : ℝ) (h_bound : ∀ ω s, |g ω s| ≤ M) :
     ∃ Mlp : MeasureTheory.Lp ℝ 2 P,
       MeasureTheory.eLpNorm (↑↑Mlp : Ω → ℝ) 2 P ^ (2 : ℝ)
@@ -687,9 +684,8 @@ theorem exists_itoIntegralL2_brownian_progMeas_bounded
         predictableDyadicSimple_brownian_partition_last hT g h_meas M h_bound m]
   have h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i) :=
-    fun n => predictableDyadicSimple_brownian_adapted W hT g h_meas M h_bound h_progMeas n
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i) :=
+    fun n => predictableDyadicSimple_brownian_adapted ℱ hT g h_meas M h_bound h_progMeas n
   have h_norm_tendsto :=
     predictableDyadicSimple_brownian_eval_norm_tendsto_bounded
       (P := P) hT g h_meas M h_bound
@@ -707,7 +703,7 @@ theorem exists_itoIntegralL2_brownian_progMeas_bounded
           ∂volume ∂P < ε :=
     L2_cauchy_of_L2_tendsto_brownian (P := P) (T := T)
       G g h_eval_meas h_meas h_L2_diff
-  exact exists_itoIntegralL2_brownian (P := P) W hT G h_eq h_adapt h_cauchy_eval g
+  exact exists_itoIntegralL2_brownian (P := P) W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval g
     h_norm_tendsto
 
 set_option maxHeartbeats 1600000 in
@@ -727,15 +723,11 @@ on the diagonal sequence + `exists_itoIntegralL2_brownian`. -/
 theorem exists_itoIntegralL2_brownian_progMeas
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ Mlp : MeasureTheory.Lp ℝ 2 P,
@@ -755,22 +747,20 @@ theorem exists_itoIntegralL2_brownian_progMeas
     intro M
     have h : Measurable (fun x : ℝ => max (-(M : ℝ)) (min (M : ℝ) x)) := by fun_prop
     exact h.comp h_meas
-  have h_clip_progMeas : ∀ M : ℕ, ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => max (-(M : ℝ)) (min (M : ℝ) (H p.1 p.2))) := by
-    intro M t
+  have h_clip_progMeas : ∀ M : ℕ, Probability.ProgressivelyMeasurable ℱ
+      (fun ω s => max (-(M : ℝ)) (min (M : ℝ) (H ω s))) := by
+    intro M
     have h_clip_cont : Continuous (fun x : ℝ => max (-(M : ℝ)) (min (M : ℝ) x)) := by
       fun_prop
-    exact h_clip_cont.comp_stronglyMeasurable (h_progMeas t)
+    have h_clip_zero : max (-(M : ℝ)) (min (M : ℝ) 0) = 0 := by
+      rw [min_eq_right (Nat.cast_nonneg M), max_eq_right (neg_nonpos.mpr (Nat.cast_nonneg M))]
+    exact h_clip_cont.comp_progressivelyMeasurable h_clip_zero h_progMeas
   -- Bounded existence on each clipped function.
   have h_bdd : ∀ M : ℕ, ∃ Mlp_M : MeasureTheory.Lp ℝ 2 P,
       MeasureTheory.eLpNorm (↑↑Mlp_M : Ω → ℝ) 2 P ^ (2 : ℝ)
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖max (-(M : ℝ)) (min (M : ℝ) (H ω s))‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
-    fun M => exists_itoIntegralL2_brownian_progMeas_bounded W hT
+    fun M => exists_itoIntegralL2_brownian_progMeas_bounded W ℱ hℱ hT
       (fun ω s => max (-(M : ℝ)) (min (M : ℝ) (H ω s)))
       (h_clip_meas M) (h_clip_progMeas M) (M : ℝ) (h_clip_bound M)
   -- Pick N_seq for the diagonal: for each n, choose k ≥ N_seq n such that the
@@ -808,10 +798,9 @@ theorem exists_itoIntegralL2_brownian_progMeas
           (h_clip_meas m) (m : ℝ) (h_clip_bound m) (max m (N_seq m))]
   have h_adapt : ∀ n : ℕ, ∀ i : Fin (G n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((G n).partition i.castSucc)) ((G n).ξ i) := by
+        (ℱ ((G n).partition i.castSucc)) ((G n).ξ i) := by
     intro n i
-    exact predictableDyadicSimple_brownian_adapted W hT _
+    exact predictableDyadicSimple_brownian_adapted ℱ hT _
       (h_clip_meas n) (n : ℝ) (h_clip_bound n) (h_clip_progMeas n) (max n (N_seq n)) i
   have h_eval_meas : ∀ n,
       Measurable (fun (p : Ω × ℝ) => (G n).eval p.2 p.1) :=
@@ -940,7 +929,7 @@ theorem exists_itoIntegralL2_brownian_progMeas
   have h_norm_tendsto := lintegral_sq_eval_tendsto_of_diff_tendsto_zero_brownian
     (μ := P) (T := T) H h_meas (fun n => (G n).eval) h_eval_meas h_L2_diff
   -- Apply exists_itoIntegralL2_brownian.
-  exact exists_itoIntegralL2_brownian (P := P) W hT G h_eq h_adapt h_cauchy_eval H
+  exact exists_itoIntegralL2_brownian (P := P) W ℱ hℱ hT G h_eq h_adapt h_cauchy_eval H
     h_norm_tendsto
 
 /-- **L²-Itô isometry via existence (Brownian).** For progressively-measurable
@@ -959,15 +948,11 @@ task; this lemma delivers conjunct 3 (isometry) at fixed `T` axiom-cleanly. -/
 theorem itoIsometry_brownian_existence
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ stochasticInt : Ω → ℝ,
@@ -976,7 +961,7 @@ theorem itoIsometry_brownian_existence
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   obtain ⟨Mlp, h_isometry⟩ :=
-    exists_itoIntegralL2_brownian_progMeas W hT H h_meas h_progMeas h_sq_int
+    exists_itoIntegralL2_brownian_progMeas W ℱ hℱ hT H h_meas h_progMeas h_sq_int
   refine ⟨↑↑Mlp, (MeasureTheory.Lp.aestronglyMeasurable Mlp), ?_⟩
   -- ∫⁻ ‖↑↑Mlp ω‖₊² ∂P = eLpNorm² Mlp 2 P (via eLpNorm_nnreal_pow_eq_lintegral)
   -- = ∫⁻ ‖H‖² (h_isometry).
@@ -1012,14 +997,10 @@ the isometry-only existential. Pairing with future conjunct-1/2 lemmas
 theorem stochasticIntegral_isometry_only_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
@@ -1032,13 +1013,13 @@ theorem stochasticIntegral_isometry_only_brownian
   refine ⟨fun T ω =>
     if hT : 0 < T then
       Classical.choose
-        (itoIsometry_brownian_existence W hT H h_meas h_progMeas
+        (itoIsometry_brownian_existence W ℱ hℱ hT H h_meas h_progMeas
           (h_sq_int_global T hT)) ω
     else 0, ?_⟩
   intro T hT
   simp only [dif_pos hT]
   exact (Classical.choose_spec
-    (itoIsometry_brownian_existence W hT H h_meas h_progMeas
+    (itoIsometry_brownian_existence W ℱ hℱ hT H h_meas h_progMeas
       (h_sq_int_global T hT))).2
 
 /-- **General two-time diagonal (`L²` second moment of a single increment).**
@@ -1052,40 +1033,24 @@ increment, `joint_increment_independent`), then the Gaussian second moment
 lemma diagonal_increment_lint
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) (ξ : Ω → ℝ)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) ξ) :
+      (ℱ a) ξ) :
     ∫⁻ ω, (‖ξ ω * (W.W b ω - W.W a ω)‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ENNReal.ofReal (b - a) * ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
   set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW_def
   have h_ξ_meas : Measurable ξ :=
-    (h_adapt.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
+    (h_adapt.mono (ℱ.le a)).measurable
   have h_ΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
   have h_nn_meas : Measurable (fun x : ℝ => (‖x‖₊ : ℝ≥0∞) ^ 2) := by fun_prop
-  have h_indep_F_ΔW := W.joint_increment_independent ha hab
-  have h_ξ_comap_le :
-      MeasurableSpace.comap ξ inferInstance ≤
-        ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-    have h_ξ_F_meas : @Measurable Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) _ ξ :=
-      h_adapt.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have h_naturalFilter_eq :
-        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a
-          = ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
-        MeasureTheory.Filtration.natural
-      rfl
-    rw [← h_naturalFilter_eq]
-    exact h_ξ_F_meas hv
+  have h_indep_F_ΔW := hℱ.indep ha hab
+  have h_ξ_comap_le : MeasurableSpace.comap ξ inferInstance ≤ ℱ a :=
+    h_adapt.measurable.comap_le
   have h_indep_ξ_ΔW : ProbabilityTheory.IndepFun ξ ΔW P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance) u :=
-      h_ξ_comap_le u hu
+    have hu_F : MeasurableSet[ℱ a] u := h_ξ_comap_le u hu
     rw [ProbabilityTheory.Indep_iff] at h_indep_F_ΔW
     exact h_indep_F_ΔW u v hu_F hv
   have h_indep_norm_sq :
@@ -1149,69 +1114,51 @@ strictly after the first (`a₁ < b₁ ≤ a₂ < b₂`) and `Fᵢ`-measurable c
 lemma offDiagonal_increment_integral_zero
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {a₁ b₁ a₂ b₂ : ℝ} (ha₁ : 0 ≤ a₁) (h₁ : a₁ < b₁) (h₁₂ : b₁ ≤ a₂) (h₂ : a₂ < b₂)
     (ξ₁ ξ₂ : Ω → ℝ)
     (hadapt₁ : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₁) ξ₁)
+      (ℱ a₁) ξ₁)
     (hadapt₂ : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₂) :
+      (ℱ a₂) ξ₂) :
     ∫ ω, (ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * (W.W b₂ ω - W.W a₂ ω)) ∂P = 0 := by
   set ΔW₁ : Ω → ℝ := fun ω => W.W b₁ ω - W.W a₁ ω with hΔW₁_def
   set ΔW₂ : Ω → ℝ := fun ω => W.W b₂ ω - W.W a₂ ω with hΔW₂_def
   have ha₂_nn : 0 ≤ a₂ := le_trans ha₁ (le_trans (le_of_lt h₁) h₁₂)
   have ha₁a₂ : a₁ ≤ a₂ := le_trans (le_of_lt h₁) h₁₂
   have hξ₁meas : Measurable ξ₁ :=
-    (hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₁)).measurable
+    (hadapt₁.mono (ℱ.le a₁)).measurable
   have hξ₂meas : Measurable ξ₂ :=
-    (hadapt₂.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₂)).measurable
+    (hadapt₂.mono (ℱ.le a₂)).measurable
   set f : Ω → ℝ := fun ω => ξ₁ ω * ΔW₁ ω * ξ₂ ω with hf_def
   have h_factored : (fun ω => (ξ₁ ω * ΔW₁ ω) * (ξ₂ ω * ΔW₂ ω)) = fun ω => f ω * ΔW₂ ω := by
     funext ω; simp only [hf_def]; ring
   rw [show (fun ω => (ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * (W.W b₂ ω - W.W a₂ ω)))
         = fun ω => f ω * ΔW₂ ω from h_factored]
   have h_Wb₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W b₁) :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
-      (fun u => (W.measurable_eval u).stronglyMeasurable) b₁).mono
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono h₁₂)
+      (ℱ a₂) (W.W b₁) :=
+    ((hℱ.measurable b₁).stronglyMeasurable).mono
+      (ℱ.mono h₁₂)
   have h_Wa₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W a₁) :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
-      (fun u => (W.measurable_eval u).stronglyMeasurable) a₁).mono
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono (le_trans (le_of_lt h₁) h₁₂))
+      (ℱ a₂) (W.W a₁) :=
+    ((hℱ.measurable a₁).stronglyMeasurable).mono
+      (ℱ.mono (le_trans (le_of_lt h₁) h₁₂))
   have h_ξ₁_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₁ :=
-    hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono ha₁a₂)
+      (ℱ a₂) ξ₁ :=
+    hadapt₁.mono (ℱ.mono ha₁a₂)
   have h_f_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) f :=
+      (ℱ a₂) f :=
     (h_ξ₁_F_meas.mul (h_Wb₁_meas.sub h_Wa₁_meas)).mul hadapt₂
-  have h_indep_F_ΔW₂ := W.joint_increment_independent ha₂_nn h₂
+  have h_indep_F_ΔW₂ := hℱ.indep ha₂_nn h₂
   have h_f_meas : Measurable f :=
     (hξ₁meas.mul ((W.measurable_eval b₁).sub (W.measurable_eval a₁))).mul hξ₂meas
   have h_ΔW₂_meas : Measurable ΔW₂ := (W.measurable_eval b₂).sub (W.measurable_eval a₂)
-  have h_f_comap_le :
-      MeasurableSpace.comap f inferInstance ≤
-        ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
-    have h_f_F_measurable : @Measurable Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) _ f :=
-      h_f_F_meas.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have h_naturalFilter_eq :
-        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂
-          = ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂ = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
-        MeasureTheory.Filtration.natural
-      rfl
-    rw [← h_naturalFilter_eq]
-    exact h_f_F_measurable hv
+  have h_f_comap_le : MeasurableSpace.comap f inferInstance ≤ ℱ a₂ :=
+    h_f_F_meas.measurable.comap_le
   have h_indep_f_ΔW₂ : ProbabilityTheory.IndepFun f ΔW₂ P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
-    have hu_F : @MeasurableSet Ω
-        (⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance) u :=
-      h_f_comap_le u hu
+    have hu_F : MeasurableSet[ℱ a₂] u := h_f_comap_le u hu
     rw [ProbabilityTheory.Indep_iff] at h_indep_F_ΔW₂
     exact h_indep_F_ΔW₂ u v hu_F hv
   have h_ΔW₂_mean : ∫ ω, ΔW₂ ω ∂P = 0 := by
@@ -1250,18 +1197,19 @@ of `diagonal_increment_lint`, for the Bochner sum-expansion in the isometry. -/
 lemma diagonal_increment_bochner
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) (ξ : Ω → ℝ)
     (h_adapt : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) ξ)
+      (ℱ a) ξ)
     (M : ℝ) (h_bound : ∀ ω, |ξ ω| ≤ M) :
     ∫ ω, (ξ ω * (W.W b ω - W.W a ω)) ^ 2 ∂P = (b - a) * ∫ ω, (ξ ω) ^ 2 ∂P := by
   have hξ_meas : Measurable ξ :=
-    (h_adapt.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
+    (h_adapt.mono (ℱ.le a)).measurable
   have h_norm_sq_eq : ∀ x : ℝ, (‖x‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (x ^ 2) := fun x => by
     rw [show (‖x‖₊ : ℝ≥0∞) = ENNReal.ofReal ‖x‖ from ofReal_norm x |>.symm]
     rw [← ENNReal.ofReal_pow (norm_nonneg _)]
     rw [show ‖x‖ ^ 2 = x ^ 2 from by rw [Real.norm_eq_abs, sq_abs]]
-  have h_lint := diagonal_increment_lint W ha hab ξ h_adapt
+  have h_lint := diagonal_increment_lint W ℱ hℱ ha hab ξ h_adapt
   rw [show (∫⁻ ω, (‖ξ ω * (W.W b ω - W.W a ω)‖₊ : ℝ≥0∞) ^ 2 ∂P)
         = ∫⁻ ω, ENNReal.ofReal ((ξ ω * (W.W b ω - W.W a ω)) ^ 2) ∂P from
     MeasureTheory.lintegral_congr (fun ω => h_norm_sq_eq _)] at h_lint
@@ -1352,10 +1300,10 @@ of the intermediate-time isometry for the coherent L²-Itô integral (#5). -/
 lemma simpleIntegral_sq_bochner_clamped
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {t : ℝ} (ht_nn : 0 ≤ t) :
     ∫ ω, (simpleIntegral W H t ω) ^ 2 ∂P
       = ∑ i : Fin H.N,
@@ -1410,7 +1358,7 @@ lemma simpleIntegral_sq_bochner_clamped
         have hbi_le_aj : min (H.partition i.succ) t ≤ H.partition j.castSucc := by
           refine le_trans (min_le_left _ _) ?_
           exact H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
-        have h := offDiagonal_increment_integral_zero W (h_part_nn i)
+        have h := offDiagonal_increment_integral_zero W ℱ hℱ (h_part_nn i)
           (by rw [← h_acs i hi_lt]; exact hi_lt)
           hbi_le_aj
           (by rw [← h_acs j hj_lt]; exact hj_lt)
@@ -1444,7 +1392,7 @@ lemma simpleIntegral_sq_bochner_clamped
             = fun ω => (H.ξ i ω * (W.W (min (H.partition i.succ) t) ω
                 - W.W (H.partition i.castSucc) ω)) ^ 2 from by
         funext ω; simp only [hterm]; rw [h_acs i hi_lt]]
-      rw [diagonal_increment_bochner W (h_part_nn i)
+      rw [diagonal_increment_bochner W ℱ hℱ (h_part_nn i)
         (by rw [← h_acs i hi_lt]; exact hi_lt) (H.ξ i) (h_adapt i) Mi hMi]
       rw [h_acs i hi_lt]
   · intro j _ hj
@@ -1507,10 +1455,10 @@ hinge for the coherent L²-Itô integral (axiom #5). -/
 lemma simpleIntegral_intermediate_isometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {t : ℝ} (ht_nn : 0 ≤ t) :
     ∫⁻ ω, (‖simpleIntegral W H t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
@@ -1565,7 +1513,7 @@ lemma simpleIntegral_intermediate_isometry
     MeasureTheory.lintegral_congr (fun ω => h_norm_sq _)]
   rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal h_si_int
     (by filter_upwards with ω; positivity)]
-  rw [simpleIntegral_sq_bochner_clamped W H h_adapt ht_nn]
+  rw [simpleIntegral_sq_bochner_clamped W ℱ hℱ H h_adapt ht_nn]
   rw [show (fun ω => ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume)
         = fun ω => ∑ i : Fin H.N,
             ENNReal.ofReal (min (H.partition i.succ) t - min (H.partition i.castSucc) t)
@@ -1588,10 +1536,10 @@ Cauchy estimate. -/
 lemma simpleIntegral_memLp_intermediate_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {t : ℝ} (ht_nn : 0 ≤ t) (htT : t ≤ T) :
     MeasureTheory.MemLp (fun ω => simpleIntegral W H t ω) 2 P := by
   refine ⟨?_, ?_⟩
@@ -1606,12 +1554,12 @@ lemma simpleIntegral_memLp_intermediate_brownian
           = (fun ω => (‖simpleIntegral W H t ω‖₊ : ℝ≥0∞) ^ 2) := by
       funext ω
       rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
-    rw [h_rewrite, simpleIntegral_intermediate_isometry W H h_adapt ht_nn]
+    rw [h_rewrite, simpleIntegral_intermediate_isometry W ℱ hℱ H h_adapt ht_nn]
     -- bound `∫⁻∫⁻_{[0,t]} ≤ ∫⁻∫⁻_{[0,T]} < ⊤`.
     have h_fin : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
-      rw [← simpleIntegral_isometry W hT H h_adapt]
-      exact simpleIntegral_lintegral_sq_finite_brownian W hT H h_adapt
+      rw [← simpleIntegral_isometry W ℱ hℱ hT H h_adapt]
+      exact simpleIntegral_lintegral_sq_finite_brownian W ℱ hℱ hT H h_adapt
     refine lt_of_le_of_lt (MeasureTheory.lintegral_mono (fun ω => ?_)) h_fin
     exact lintegral_mono_set (Set.Icc_subset_Icc_right htT)
 
@@ -1625,14 +1573,13 @@ isometry underlying both `L²`-Cauchy-at-each-`t` and cross-horizon consistency.
 lemma simpleIntegral_intermediate_diff_isometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H₁ H₂ : SimplePredictable Ω T)
     (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
     (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₁.partition i.castSucc)) (H₁.ξ i))
+      (ℱ (H₁.partition i.castSucc)) (H₁.ξ i))
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₂.partition i.castSucc)) (H₂.ξ i))
+      (ℱ (H₂.partition i.castSucc)) (H₂.ξ i))
     {t : ℝ} (ht_nn : 0 ≤ t) :
     ∫⁻ ω, (‖simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
@@ -1641,8 +1588,8 @@ lemma simpleIntegral_intermediate_diff_isometry
       = ∫⁻ ω, (‖simpleIntegral W (H₁.sub_on_common H₂ h_eq) t ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
     refine lintegral_congr (fun ω => ?_)
     rw [SimplePredictable.simpleIntegral_sub_on_common_intermediate W H₁ H₂ h_eq t ω]
-  rw [hLHS, simpleIntegral_intermediate_isometry W (H₁.sub_on_common H₂ h_eq)
-      (SimplePredictable.sub_on_common_adapt W H₁ H₂ h_eq h_adapt₁ h_adapt₂) ht_nn]
+  rw [hLHS, simpleIntegral_intermediate_isometry W ℱ hℱ (H₁.sub_on_common H₂ h_eq)
+      (SimplePredictable.sub_on_common_adapt ℱ H₁ H₂ h_eq h_adapt₁ h_adapt₂) ht_nn]
   refine lintegral_congr (fun ω => ?_)
   refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
   rw [SimplePredictable.eval_sub_on_common H₁ H₂ h_eq s ω]
@@ -1992,14 +1939,13 @@ without a general-`t` refinement re-derivation. -/
 lemma simpleIntegral_lintegral_sq_sub_le_endpoint_brownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (H₁ H₂ : SimplePredictable Ω T)
     (h_eq : H₁.partition (Fin.last H₁.N) = H₂.partition (Fin.last H₂.N))
     (h_adapt₁ : ∀ i : Fin H₁.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₁.partition i.castSucc)) (H₁.ξ i))
+      (ℱ (H₁.partition i.castSucc)) (H₁.ξ i))
     (h_adapt₂ : ∀ i : Fin H₂.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H₂.partition i.castSucc)) (H₂.ξ i))
+      (ℱ (H₂.partition i.castSucc)) (H₂.ξ i))
     {t : ℝ} (ht_nn : 0 ≤ t) (htT : t ≤ T) :
     ∫⁻ ω, (‖simpleIntegral W H₁ t ω - simpleIntegral W H₂ t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -2007,13 +1953,13 @@ lemma simpleIntegral_lintegral_sq_sub_le_endpoint_brownian
   set M : ℝ → Ω → ℝ :=
     fun u ω => simpleIntegral W H₁ u ω - simpleIntegral W H₂ u ω with hM
   have hmart : MeasureTheory.Martingale M
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P :=
-    (martingale_simpleIntegral_brownian W H₁ h_adapt₁).sub
-      (martingale_simpleIntegral_brownian W H₂ h_adapt₂)
+      ℱ P :=
+    (martingale_simpleIntegral_brownian W ℱ hℱ H₁ h_adapt₁).sub
+      (martingale_simpleIntegral_brownian W ℱ hℱ H₂ h_adapt₂)
   have hMemLp : ∀ {u : ℝ}, 0 ≤ u → u ≤ T → MeasureTheory.MemLp (M u) 2 P :=
     fun {u} hu huT =>
-      (simpleIntegral_memLp_intermediate_brownian W hT H₁ h_adapt₁ hu huT).sub
-        (simpleIntegral_memLp_intermediate_brownian W hT H₂ h_adapt₂ hu huT)
+      (simpleIntegral_memLp_intermediate_brownian W ℱ hℱ hT H₁ h_adapt₁ hu huT).sub
+        (simpleIntegral_memLp_intermediate_brownian W ℱ hℱ hT H₂ h_adapt₂ hu huT)
   -- bridge `∫⁻‖M u‖₊² = ofReal (∫ (M u)²)` for `M u ∈ L²`.
   have h_bridge : ∀ {u : ℝ}, MeasureTheory.MemLp (M u) 2 P →
       ∫⁻ ω, (‖M u ω‖₊ : ℝ≥0∞) ^ 2 ∂P = ENNReal.ofReal (∫ ω, (M u ω) ^ 2 ∂P) := by
@@ -2032,32 +1978,26 @@ lemma simpleIntegral_lintegral_sq_sub_le_endpoint_brownian
     _ = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H₁.eval s ω - H₂.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
         simp only [hM]
-        exact SimplePredictable.diff_isometry_simple W hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
+        exact SimplePredictable.diff_isometry_simple W ℱ hℱ hT H₁ H₂ h_eq h_adapt₁ h_adapt₂
 
 /-- **A single adapted simple approximant within `ε` on `[0, T]`.** Extracted from
 the convergent dense sequence `adaptedSimple_dense_L2_brownian`. -/
 lemma exists_adaptedSimple_within
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     {T : ℝ} (hT : 0 < T)
     (h_sq_int : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {ε : ℝ≥0∞} (hε : 0 < ε) :
     ∃ G : SimplePredictable Ω T,
       (∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          (G.partition i.castSucc)) (G.ξ i)) ∧
+        (ℱ (G.partition i.castSucc)) (G.ξ i)) ∧
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s - G.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε := by
   obtain ⟨Hn, h_adapt, h_tend⟩ :=
-    adaptedSimple_dense_L2_brownian W hT H h_meas h_progMeas h_sq_int
+    adaptedSimple_dense_L2_brownian ℱ hT H h_meas h_progMeas h_sq_int
   have hev : ∀ᶠ m in Filter.atTop,
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s - (Hn m).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ε :=
@@ -2167,30 +2107,22 @@ lemma brownian_incr_sq_integral
 `ℱ_a`-measurable `g`, with second moment `b − a`. -/
 lemma integral_factor_increment_sq
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ) {a b : ℝ} (ha : 0 ≤ a)
+      (hab : a < b)
     {g : Ω → ℝ}
     (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) g)
+      (ℱ a) g)
     {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
     ∫ ω, g ω * (W.W b ω - W.W a ω) ^ 2 ∂P = (∫ ω, g ω ∂P) * (b - a) := by
   set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
   have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
   have hg_m : Measurable g :=
-    (hg_meas.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
+    (hg_meas.mono (ℱ.le a)).measurable
   -- IndepFun g ΔW
-  have h_indep_F := W.joint_increment_independent ha hab
-  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤
-      ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-    have hgF : @Measurable Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) _ g := hg_meas.measurable
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have heq : (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a
-        = ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration MeasureTheory.Filtration.natural
-      rfl
-    rw [← heq]; exact hgF hv
+  have h_indep_F := hℱ.indep ha hab
+  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤ ℱ a :=
+    hg_meas.measurable.comap_le
   have h_indep_g_ΔW : ProbabilityTheory.IndepFun g ΔW P := by
     rw [ProbabilityTheory.IndepFun_iff]; intro u v hu hv
     rw [ProbabilityTheory.Indep_iff] at h_indep_F
@@ -2220,27 +2152,21 @@ lemma brownian_incr_mean
 `∫ g · (W_b − W_a) = 0` — the increment is centred and independent of `g`. -/
 lemma integral_factor_increment_eq_zero
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b)
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ) {a b : ℝ} (ha : 0 ≤ a)
+      (hab : a < b)
     {g : Ω → ℝ}
     (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a) g)
+      (ℱ a) g)
     {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
     ∫ ω, g ω * (W.W b ω - W.W a ω) ∂P = 0 := by
   set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
   have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
   have hg_m : Measurable g :=
-    (hg_meas.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a)).measurable
-  have h_indep_F := W.joint_increment_independent ha hab
-  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤
-      ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have heq : (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a
-        = ⨆ j ∈ Set.Iic a, MeasurableSpace.comap (W.W j) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration MeasureTheory.Filtration.natural
-      rfl
-    rw [← heq]; exact hg_meas.measurable hv
+    (hg_meas.mono (ℱ.le a)).measurable
+  have h_indep_F := hℱ.indep ha hab
+  have hg_comap_le : MeasurableSpace.comap g inferInstance ≤ ℱ a :=
+    hg_meas.measurable.comap_le
   have h_indep_g_ΔW : ProbabilityTheory.IndepFun g ΔW P := by
     rw [ProbabilityTheory.IndepFun_iff]; intro u v hu hv
     rw [ProbabilityTheory.Indep_iff] at h_indep_F
@@ -2259,66 +2185,53 @@ and `ΔW₂ ⟂ F_{a₂}` is centred, so `𝔼[f·ΔW₂] = 𝔼[f]·0 = 0`. Wit
 lemma offDiagonal_increment_integral_zero_weighted
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {a₁ b₁ a₂ b₂ : ℝ} (ha₁ : 0 ≤ a₁) (h₁ : a₁ < b₁) (h₁₂ : b₁ ≤ a₂) (h₂ : a₂ < b₂)
     (ξ₁ ξ₂ g : Ω → ℝ)
     (hadapt₁ : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₁) ξ₁)
+      (ℱ a₁) ξ₁)
     (hadapt₂ : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₂)
+      (ℱ a₂) ξ₂)
     (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₁) g) :
+      (ℱ a₁) g) :
     ∫ ω, g ω * ((ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * (W.W b₂ ω - W.W a₂ ω))) ∂P
       = 0 := by
   set ΔW₂ : Ω → ℝ := fun ω => W.W b₂ ω - W.W a₂ ω with hΔW₂_def
   have ha₂_nn : 0 ≤ a₂ := le_trans ha₁ (le_trans (le_of_lt h₁) h₁₂)
   have ha₁a₂ : a₁ ≤ a₂ := le_trans (le_of_lt h₁) h₁₂
   have hξ₁meas : Measurable ξ₁ :=
-    (hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₁)).measurable
+    (hadapt₁.mono (ℱ.le a₁)).measurable
   have hξ₂meas : Measurable ξ₂ :=
-    (hadapt₂.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₂)).measurable
+    (hadapt₂.mono (ℱ.le a₂)).measurable
   have hgmeas : Measurable g :=
-    (hg.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le a₁)).measurable
+    (hg.mono (ℱ.le a₁)).measurable
   set f : Ω → ℝ := fun ω => g ω * (ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * ξ₂ ω with hf_def
   rw [show (fun ω => g ω * ((ξ₁ ω * (W.W b₁ ω - W.W a₁ ω)) * (ξ₂ ω * ΔW₂ ω)))
         = fun ω => f ω * ΔW₂ ω from by funext ω; simp only [hf_def]; ring]
   have h_Wb₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W b₁) :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
-      (fun u => (W.measurable_eval u).stronglyMeasurable) b₁).mono
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono h₁₂)
+      (ℱ a₂) (W.W b₁) :=
+    ((hℱ.measurable b₁).stronglyMeasurable).mono
+      (ℱ.mono h₁₂)
   have h_Wa₁_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) (W.W a₁) :=
-    (MeasureTheory.Filtration.stronglyAdapted_natural (u := W.W)
-      (fun u => (W.measurable_eval u).stronglyMeasurable) a₁).mono
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono
+      (ℱ a₂) (W.W a₁) :=
+    ((hℱ.measurable a₁).stronglyMeasurable).mono
+      (ℱ.mono
         (le_trans (le_of_lt h₁) h₁₂))
   have h_ξ₁_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) ξ₁ :=
-    hadapt₁.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono ha₁a₂)
+      (ℱ a₂) ξ₁ :=
+    hadapt₁.mono (ℱ.mono ha₁a₂)
   have h_g_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) g :=
-    hg.mono ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).mono ha₁a₂)
+      (ℱ a₂) g :=
+    hg.mono (ℱ.mono ha₁a₂)
   have h_f_F_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂) f :=
+      (ℱ a₂) f :=
     (h_g_F_meas.mul (h_ξ₁_F_meas.mul (h_Wb₁_meas.sub h_Wa₁_meas))).mul hadapt₂
-  have h_indep_F_ΔW₂ := W.joint_increment_independent ha₂_nn h₂
+  have h_indep_F_ΔW₂ := hℱ.indep ha₂_nn h₂
   have h_f_meas : Measurable f :=
     (hgmeas.mul (hξ₁meas.mul ((W.measurable_eval b₁).sub (W.measurable_eval a₁)))).mul hξ₂meas
   have h_ΔW₂_meas : Measurable ΔW₂ := (W.measurable_eval b₂).sub (W.measurable_eval a₂)
-  have h_f_comap_le :
-      MeasurableSpace.comap f inferInstance ≤
-        ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
-    intro u hu
-    obtain ⟨v, hv, rfl⟩ := hu
-    have h_naturalFilter_eq :
-        (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂
-          = ⨆ jj ∈ Set.Iic a₂, MeasurableSpace.comap (W.W jj) inferInstance := by
-      show (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq a₂ = _
-      unfold LevyStochCalc.Brownian.Martingale.naturalFiltration
-        MeasureTheory.Filtration.natural
-      rfl
-    rw [← h_naturalFilter_eq]
-    exact h_f_F_meas.measurable hv
+  have h_f_comap_le : MeasurableSpace.comap f inferInstance ≤ ℱ a₂ :=
+    h_f_F_meas.measurable.comap_le
   have h_indep_f_ΔW₂ : ProbabilityTheory.IndepFun f ΔW₂ P := by
     rw [ProbabilityTheory.IndepFun_iff]
     intro u v hu hv
@@ -2373,19 +2286,18 @@ clamped lengths weighted by `g` (`integral_factor_increment_sq`). -/
 lemma simpleIntegral_sub_sq_bochner_clamped_weighted
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (H : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin H.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (H.partition i.castSucc)) (H.ξ i))
+      (ℱ (H.partition i.castSucc)) (H.ξ i))
     {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq s) g)
+      (ℱ s) g)
     {Cg : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ Cg) :
     ∫ ω, g ω * (simpleIntegral W H t ω - simpleIntegral W H s ω) ^ 2 ∂P
       = ∑ i : Fin H.N,
         (max s (min (H.partition i.succ) t) - max s (min (H.partition i.castSucc) t))
           * ∫ ω, g ω * (H.ξ i ω) ^ 2 ∂P := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W with hℱ
   have hgmeas : Measurable g := (hg.mono (ℱ.le s)).measurable
   have h_cl_nn : ∀ p : ℝ, 0 ≤ max s (min p t) := fun p => le_trans hs (le_max_left _ _)
   have h_cl_mono : ∀ {a b : ℝ}, a ≤ b → max s (min a t) ≤ max s (min b t) :=
@@ -2440,7 +2352,7 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
       · have hbi_le_aj : max s (min (H.partition i.succ) t)
             ≤ max s (min (H.partition j.castSucc) t) :=
           h_cl_mono (H.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hij))
-        exact offDiagonal_increment_integral_zero_weighted W (h_cl_nn _) hi_lt hbi_le_aj hj_lt
+        exact offDiagonal_increment_integral_zero_weighted W ℱ hℱ (h_cl_nn _) hi_lt hbi_le_aj hj_lt
           (H.ξ i) (H.ξ j) g (h_ξ_cl i hi_lt) (h_ξ_cl j hj_lt)
           (hg.mono (ℱ.mono (le_max_left s (min (H.partition i.castSucc) t))))
   rw [show (fun ω => g ω * (simpleIntegral W H t ω - simpleIntegral W H s ω) ^ 2)
@@ -2474,7 +2386,8 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
               rw [abs_mul, abs_of_nonneg (sq_nonneg (H.ξ i ω))]
           _ ≤ Cg * Mi ^ 2 :=
               mul_le_mul (hg_bdd ω) h2 (sq_nonneg _) (le_trans (abs_nonneg _) (hg_bdd ω))
-      have hdiag := integral_factor_increment_sq W (h_cl_nn _) hi_lt hg2 (C := Cg * Mi ^ 2) hbdd2
+      have hdiag := integral_factor_increment_sq W ℱ hℱ (h_cl_nn _) hi_lt hg2
+        (C := Cg * Mi ^ 2) hbdd2
       rw [show (fun ω => g ω * (term i ω * term i ω))
             = fun ω => (g ω * (H.ξ i ω) ^ 2)
                 * (W.W (max s (min (H.partition i.succ) t)) ω
@@ -2536,17 +2449,16 @@ set-level Itô isometry (`simpleIntegral_sub_sq_bochner_clamped_weighted` with
 lemma martingale_simpleIntegral_sq_sub_compensator
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     {T : ℝ} (hT : 0 < T) (G : SimplePredictable Ω T)
     (h_adapt : ∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-        (G.partition i.castSucc)) (G.ξ i)) :
+      (ℱ (G.partition i.castSucc)) (G.ξ i)) :
     MeasureTheory.Martingale
       (fun t ω => (simpleIntegral W G t ω) ^ 2
         - ∫ u in Set.Icc (0 : ℝ) t, (G.eval u ω) ^ 2 ∂volume)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
-  set ℱ := LevyStochCalc.Brownian.Martingale.naturalFiltration W with hℱ
+      ℱ P := by
   have hImart : MeasureTheory.Martingale (fun u => simpleIntegral W G u) ℱ P :=
-    martingale_simpleIntegral_brownian W G h_adapt
+    martingale_simpleIntegral_brownian W ℱ hℱ G h_adapt
   -- `I_u ∈ L²(P)` at every time.
   have hIL2 : ∀ u, MeasureTheory.MemLp (fun ω => simpleIntegral W G u ω) 2 P := by
     intro u
@@ -2555,7 +2467,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
         funext (fun ω => simpleIntegral_eq_zero_of_nonpos W G hu ω)
       rw [heq]; exact MeasureTheory.memLp_const 0
     · rcases le_or_gt u T with huT | huT
-      · exact simpleIntegral_memLp_intermediate_brownian W hT G h_adapt (le_of_lt hu) huT
+      · exact simpleIntegral_memLp_intermediate_brownian W ℱ hℱ hT G h_adapt (le_of_lt hu) huT
       · have heq : (fun ω => simpleIntegral W G u ω) = (fun ω => simpleIntegral W G T ω) := by
           funext ω; unfold simpleIntegral
           refine Finset.sum_congr rfl (fun i _ => ?_)
@@ -2566,7 +2478,8 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           rw [min_eq_left (le_trans hps (le_of_lt huT)),
             min_eq_left (le_trans hpc (le_of_lt huT)), min_eq_left hps, min_eq_left hpc]
         rw [heq]
-        exact simpleIntegral_memLp_intermediate_brownian W hT G h_adapt (le_of_lt hT) (le_refl T)
+        exact simpleIntegral_memLp_intermediate_brownian W ℱ hℱ hT G h_adapt (le_of_lt hT)
+          (le_refl T)
   -- `ξᵢ²` integrable.
   have hξ2int : ∀ i : Fin G.N, MeasureTheory.Integrable (fun ω => (G.ξ i ω) ^ 2) P := fun i => by
     obtain ⟨M, hM⟩ := G.ξ_bounded i
@@ -2703,7 +2616,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     have hiso_set : ∫ ω in B, (simpleIntegral W G t ω - simpleIntegral W G s ω) ^ 2 ∂P
         = ∫ ω in B, ((∫ u in Set.Icc (0 : ℝ) t, (G.eval u ω) ^ 2 ∂volume)
             - ∫ u in Set.Icc (0 : ℝ) s, (G.eval u ω) ^ 2 ∂volume) ∂P := by
-      rw [hind, simpleIntegral_sub_sq_bochner_clamped_weighted W G h_adapt hs hst
+      rw [hind, simpleIntegral_sub_sq_bochner_clamped_weighted W ℱ hℱ G h_adapt hs hst
         (stronglyMeasurable_const.indicator hB) hg_bdd]
       have hAdiff : ∀ ω, (∫ u in Set.Icc (0 : ℝ) t, (G.eval u ω) ^ 2 ∂volume)
             - ∫ u in Set.Icc (0 : ℝ) s, (G.eval u ω) ^ 2 ∂volume
@@ -2796,13 +2709,9 @@ section MasterSequence
 variable
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
@@ -2819,40 +2728,40 @@ private lemma master_tol_pos (n : ℕ) : (0 : ℝ≥0∞) < ((n : ℝ≥0∞) + 
 on horizon `(n : ℝ) + 1` within `((n : ℝ≥0∞) + 1)⁻¹` of `H` in `L²([0, n+1] × Ω)`.
 The horizons grow to `∞`; zero-extension lets these be compared across `n`. -/
 noncomputable def masterApprox (n : ℕ) : SimplePredictable Ω ((n : ℝ) + 1) :=
-  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+  (exists_adaptedSimple_within ℱ H h_meas h_progMeas (master_horizon_pos n)
     (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose
 
 lemma masterApprox_adapt (n : ℕ) :
-    ∀ i : Fin (masterApprox W H h_meas h_progMeas h_sq_int_global n).N,
+    ∀ i : Fin (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).N,
       @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq
-          ((masterApprox W H h_meas h_progMeas h_sq_int_global n).partition i.castSucc))
-        ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ i) :=
-  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+        (ℱ ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).partition i.castSucc))
+        ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ i) :=
+  (exists_adaptedSimple_within ℱ H h_meas h_progMeas (master_horizon_pos n)
     (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose_spec.1
 
 lemma masterApprox_within (n : ℕ) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1),
-      (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+      (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P < ((n : ℝ≥0∞) + 1)⁻¹ :=
-  (exists_adaptedSimple_within W H h_meas h_progMeas (master_horizon_pos n)
+  (exists_adaptedSimple_within ℱ H h_meas h_progMeas (master_horizon_pos n)
     (h_sq_int_global _ (master_horizon_pos n)) (master_tol_pos n)).choose_spec.2
 
+include hℱ in
 /-- **Cross-horizon difference isometry for the master sequence.** Extending both
 `masterApprox n` and `masterApprox m` to the common horizon `max n m + 2` (via
 `appendInterval`, which leaves their `simpleIntegral` and `eval` unchanged), the
 difference isometry gives `∫⁻‖Iₙ(t) − Iₘ(t)‖² = ∫⁻∫⁻_{[0,t]}‖Gₙ.eval − Gₘ.eval‖²`
 for every `t ≥ 0`. -/
 lemma masterApprox_diff_isometry (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
-    ∫⁻ ω, (‖simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
-        - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω‖₊
+    ∫⁻ ω, (‖simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t ω
+        - simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m) t ω‖₊
           : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-          (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω
-            - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          (‖(masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω
+            - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P := by
-  set Gn := masterApprox W H h_meas h_progMeas h_sq_int_global n with hGn
-  set Gm := masterApprox W H h_meas h_progMeas h_sq_int_global m with hGm
+  set Gn := masterApprox ℱ H h_meas h_progMeas h_sq_int_global n with hGn
+  set Gm := masterApprox ℱ H h_meas h_progMeas h_sq_int_global m with hGm
   have hKn : Gn.partition (Fin.last Gn.N) < (max n m : ℝ) + 2 := by
     have h1 : Gn.partition (Fin.last Gn.N) ≤ (n : ℝ) + 1 := Gn.partition_le_T
     have h2 : (n : ℝ) ≤ (max n m : ℝ) := by exact_mod_cast Nat.le_max_left n m
@@ -2864,9 +2773,11 @@ lemma masterApprox_diff_isometry (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
   have h_eq : (Gn.appendInterval hKn).partition (Fin.last (Gn.appendInterval hKn).N)
       = (Gm.appendInterval hKm).partition (Fin.last (Gm.appendInterval hKm).N) :=
     (Gn.appendInterval_partition_last hKn).trans (Gm.appendInterval_partition_last hKm).symm
-  have ha_n := Gn.appendInterval_adapt W hKn (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)
-  have ha_m := Gm.appendInterval_adapt W hKm (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global m)
-  have hiso := simpleIntegral_intermediate_diff_isometry W (Gn.appendInterval hKn)
+  have ha_n := Gn.appendInterval_adapt ℱ hKn (masterApprox_adapt ℱ H h_meas h_progMeas
+    h_sq_int_global n)
+  have ha_m := Gm.appendInterval_adapt ℱ hKm (masterApprox_adapt ℱ H h_meas h_progMeas
+    h_sq_int_global m)
+  have hiso := simpleIntegral_intermediate_diff_isometry W ℱ hℱ (Gn.appendInterval hKn)
     (Gm.appendInterval hKm) h_eq ha_n ha_m ht_nn
   have hL : ∫⁻ ω, (‖simpleIntegral W Gn t ω - simpleIntegral W Gm t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, (‖simpleIntegral W (Gn.appendInterval hKn) t ω
@@ -2897,7 +2808,7 @@ private lemma tendsto_master_tol :
 by `Set.Icc` monotonicity + `masterApprox_within`, and that bound tends to `0`. -/
 lemma masterApprox_eval_tendsto {t : ℝ} (ht_nn : 0 ≤ t) :
     Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-        (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+        (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P)
       Filter.atTop (nhds 0) := by
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds tendsto_master_tol
@@ -2908,30 +2819,31 @@ lemma masterApprox_eval_tendsto {t : ℝ} (ht_nn : 0 ≤ t) :
     have h2 : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
     linarith
   calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P
       ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1),
-          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P :=
         MeasureTheory.lintegral_mono
           (fun ω => lintegral_mono_set (Set.Icc_subset_Icc_right htn))
-    _ ≤ ((n : ℝ≥0∞) + 1)⁻¹ := le_of_lt (masterApprox_within W H h_meas h_progMeas h_sq_int_global n)
+    _ ≤ ((n : ℝ≥0∞) + 1)⁻¹ := le_of_lt (masterApprox_within ℱ H h_meas h_progMeas h_sq_int_global n)
 
+include hℱ in
 /-- **Cauchy bound for the master integrals.** Via the cross-horizon difference
 isometry + the triangle `‖a − b‖² ≤ 2(‖a − H‖² + ‖H − b‖²)`. -/
 lemma masterApprox_cauchy_le (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
-    ∫⁻ ω, (‖simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
-        - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω‖₊
+    ∫⁻ ω, (‖simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t ω
+        - simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m) t ω‖₊
           : ℝ≥0∞) ^ 2 ∂P
       ≤ 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
               ∂volume ∂P)
           + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
               ∂volume ∂P) := by
-  set Gn := masterApprox W H h_meas h_progMeas h_sq_int_global n with hGn
-  set Gm := masterApprox W H h_meas h_progMeas h_sq_int_global m with hGm
-  rw [masterApprox_diff_isometry W H h_meas h_progMeas h_sq_int_global n m ht_nn]
+  set Gn := masterApprox ℱ H h_meas h_progMeas h_sq_int_global n with hGn
+  set Gm := masterApprox ℱ H h_meas h_progMeas h_sq_int_global m with hGm
+  rw [masterApprox_diff_isometry W ℱ hℱ H h_meas h_progMeas h_sq_int_global n m ht_nn]
   -- abbreviations for the two error densities
   set A : Ω → ℝ → ℝ≥0∞ := fun ω s => (‖H ω s - Gn.eval s ω‖₊ : ℝ≥0∞) ^ 2 with hA
   set B : Ω → ℝ → ℝ≥0∞ := fun ω s => (‖H ω s - Gm.eval s ω‖₊ : ℝ≥0∞) ^ 2 with hB
@@ -2975,20 +2887,23 @@ lemma masterApprox_cauchy_le (n m : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
 (for `0 ≤ t ≤ n+1`; `0` otherwise). The Itô integral process is its `L²`-limit. -/
 noncomputable def masterLp (t : ℝ) (n : ℕ) : MeasureTheory.Lp ℝ 2 P :=
   if h : 0 ≤ t ∧ t ≤ (n : ℝ) + 1 then
-    (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos n)
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) h.1 h.2).toLp
+    (simpleIntegral_memLp_intermediate_brownian W ℱ hℱ (master_horizon_pos n)
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n) h.1 h.2).toLp
   else 0
 
+include hℱ in
 lemma masterLp_coeFn {t : ℝ} (n : ℕ) (ht_nn : 0 ≤ t) (htn : t ≤ (n : ℝ) + 1) :
-    (masterLp W H h_meas h_progMeas h_sq_int_global t n : Ω → ℝ)
-      =ᵐ[P] fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω := by
+    (masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n : Ω → ℝ)
+      =ᵐ[P] fun ω => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+        h_sq_int_global n) t ω := by
   rw [masterLp, dif_pos ⟨ht_nn, htn⟩]
   exact MeasureTheory.MemLp.coeFn_toLp _
 
+include hℱ in
 /-- The Itô-integral process is `L²`-Cauchy at each time `t ≥ 0`. -/
 lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
-    CauchySeq (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) := by
+    CauchySeq (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n) := by
   rw [EMetric.cauchySeq_iff]
   intro ε hε
   by_cases hε_top : ε = ⊤
@@ -2999,10 +2914,10 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
       simp [ENNReal.rpow_eq_top_iff, hε_top]
     have hδ_pos : 0 < δ := by
       rw [hδ]; exact ENNReal.div_pos (ENNReal.rpow_pos hε hε_top).ne' (by norm_num)
-    have htend := masterApprox_eval_tendsto W H h_meas h_progMeas h_sq_int_global ht_nn
+    have htend := masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global ht_nn
     have hev : ∀ᶠ k in Filter.atTop,
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-          (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global k).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global k).eval s ω‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P < δ := htend (Iio_mem_nhds hδ_pos)
     rw [Filter.eventually_atTop] at hev
     obtain ⟨N0, hN0⟩ := hev
@@ -3016,44 +2931,47 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
     have hmN0 : N0 ≤ m := (le_max_left N0 ⌈t⌉₊).trans hm
     have hnN0 : N0 ≤ n := (le_max_left N0 ⌈t⌉₊).trans hn
     -- edist = eLpNorm of the integral difference
-    have em : masterLp W H h_meas h_progMeas h_sq_int_global t m
-        = (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos m)
-            (masterApprox W H h_meas h_progMeas h_sq_int_global m)
-            (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global m) ht_nn hmt).toLp := by
+    have em : masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t m
+        = (simpleIntegral_memLp_intermediate_brownian W ℱ hℱ (master_horizon_pos m)
+            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m)
+            (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global m) ht_nn hmt).toLp := by
       rw [masterLp]; exact dif_pos ⟨ht_nn, hmt⟩
-    have en : masterLp W H h_meas h_progMeas h_sq_int_global t n
-        = (simpleIntegral_memLp_intermediate_brownian W (master_horizon_pos n)
-            (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-            (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) ht_nn hnt).toLp := by
+    have en : masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n
+        = (simpleIntegral_memLp_intermediate_brownian W ℱ hℱ (master_horizon_pos n)
+            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+            (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n) ht_nn hnt).toLp := by
       rw [masterLp]; exact dif_pos ⟨ht_nn, hnt⟩
-    have h_edist : edist (masterLp W H h_meas h_progMeas h_sq_int_global t m)
-          (masterLp W H h_meas h_progMeas h_sq_int_global t n)
+    have h_edist : edist (masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t m)
+          (masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)
         = MeasureTheory.eLpNorm
-            (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω
-              - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) 2 P := by
+            (fun ω => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m) t ω
+              - simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+                h_sq_int_global n) t ω) 2 P := by
       rw [em, en]
       exact MeasureTheory.Lp.edist_toLp_toLp _ _ _ _
     rw [h_edist]
     -- eLpNorm² < ε²  ⇒  eLpNorm < ε
     have h_sq_lt : MeasureTheory.eLpNorm
-        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global m) t ω
-          - simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) 2 P
+        (fun ω => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m) t ω
+          - simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t ω) 2 P
           ^ (2 : ℝ) < ε ^ (2 : ℝ) := by
       rw [eLpNorm_two_rpow_eq_lintegral_sq]
       refine lt_of_le_of_lt
-        (masterApprox_cauchy_le W H h_meas h_progMeas h_sq_int_global m n ht_nn) ?_
+        (masterApprox_cauchy_le W ℱ hℱ H h_meas h_progMeas h_sq_int_global m n ht_nn) ?_
       have hsum : (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
               ∂volume ∂P)
           + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
               ∂volume ∂P < δ + δ :=
         ENNReal.add_lt_add (hN0 m hmN0) (hN0 n hnN0)
       calc 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-                (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
+                (‖H ω s - (masterApprox ℱ H h_meas h_progMeas
+                  h_sq_int_global m).eval s ω‖₊ : ℝ≥0∞) ^ 2
                   ∂volume ∂P)
               + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-                (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+                (‖H ω s - (masterApprox ℱ H h_meas h_progMeas
+                  h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
                   ∂volume ∂P)
           < 2 * (δ + δ) := by gcongr <;> first | exact hsum | simp
         _ = ε ^ (2 : ℝ) := by
@@ -3065,88 +2983,96 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
 /-- The **L² Itô integral process** as an `Lp ℝ 2 P`-valued function of time: the
 `L²`-limit of the master integral sequence. -/
 noncomputable def stochasticIntegralBrownianLp (t : ℝ) : MeasureTheory.Lp ℝ 2 P :=
-  Filter.limUnder Filter.atTop (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+  Filter.limUnder Filter.atTop (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)
 
+include hℱ in
 /-- Each master integral lies in `lpMeas` — it is `ℱ_t`-measurable. -/
 lemma masterLp_mem_lpMeas (t : ℝ) (n : ℕ) :
-    masterLp W H h_meas h_progMeas h_sq_int_global t n
+    masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n
       ∈ MeasureTheory.lpMeas ℝ ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) 2 P := by
+        (ℱ t) 2 P := by
   rw [masterLp]
   split_ifs with h
   · rw [MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable]
-    refine ((simpleIntegral_stronglyAdapted_brownian W
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)
+    refine ((simpleIntegral_stronglyAdapted_brownian W ℱ hℱ
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n)
         t).aestronglyMeasurable).congr ?_
     exact (MeasureTheory.MemLp.coeFn_toLp _).symm
   · exact Submodule.zero_mem _
 
+include hℱ in
 /-- The Itô integral process lies in `lpMeas` at each time (closedness of `lpMeas`
 + the `L²`-Cauchy limit of `ℱ_t`-measurable master integrals). -/
 lemma stochasticIntegralBrownianLp_mem_lpMeas (t : ℝ) :
-    stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t
+    stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t
       ∈ MeasureTheory.lpMeas ℝ ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) 2 P := by
+        (ℱ t) 2 P := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
-  have hcs : CauchySeq (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) := by
+  have hcs : CauchySeq (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n) := by
     rcases le_or_gt 0 t with ht | ht
-    · exact masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global ht
-    · have heq : (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+    · exact masterLp_cauchySeq W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht
+    · have heq : (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)
           = fun _ => (0 : MeasureTheory.Lp ℝ 2 P) := by
         funext n; rw [masterLp, dif_neg (fun h => absurd h.1 (not_le.mpr ht))]
       rw [heq]; exact (tendsto_const_nhds (x := (0 : MeasureTheory.Lp ℝ 2 P))).cauchySeq
   rw [MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable]
   have hclosed : IsClosed {f : MeasureTheory.Lp ℝ 2 P |
-      AEStronglyMeasurable[(LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t]
+      AEStronglyMeasurable[ℱ t]
         (↑↑f : Ω → ℝ) P} :=
     MeasureTheory.isClosed_aestronglyMeasurable
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le t)
+      (ℱ.le t)
   exact hclosed.mem_of_tendsto hcs.tendsto_limUnder
     (Filter.Eventually.of_forall
       (fun n => MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable.mp
-        (masterLp_mem_lpMeas W H h_meas h_progMeas h_sq_int_global t n)))
+        (masterLp_mem_lpMeas W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)))
 
+include hℱ in
 /-- `↑↑(Flp t)` is `ℱ_t`-a.e.-strongly-measurable. -/
 lemma stochasticIntegralBrownian_aesm (t : ℝ) :
-    AEStronglyMeasurable[(LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t]
-      (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) P :=
+    AEStronglyMeasurable[ℱ t]
+      (↑↑(stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) P :=
   MeasureTheory.mem_lpMeas_iff_aestronglyMeasurable.mp
-    (stochasticIntegralBrownianLp_mem_lpMeas W H h_meas h_progMeas h_sq_int_global t)
+    (stochasticIntegralBrownianLp_mem_lpMeas W ℱ hℱ H h_meas h_progMeas h_sq_int_global t)
 
 /-- The **L² Itô integral** `t ↦ ∫_0^t H_s dW_s` as a process `ℝ → Ω → ℝ`, taken as
 the honest `ℱ_t`-measurable representative of the `L²`-limit. -/
 noncomputable def stochasticIntegralBrownian (t : ℝ) : Ω → ℝ :=
-  (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).mk
-    (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t))
+  (stochasticIntegralBrownian_aesm W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).mk
+    (↑↑(stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t))
 
+include hℱ in
 /-- The integral process is a.e.-equal to the `L²`-limit's `coeFn`. -/
 lemma stochasticIntegralBrownian_ae_eq (t : ℝ) :
-    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t
-      =ᵐ[P] (↑↑(stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) :=
-  (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).ae_eq_mk.symm
+    stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t
+      =ᵐ[P] (↑↑(stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global t) : Ω → ℝ) :=
+  (stochasticIntegralBrownian_aesm W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).ae_eq_mk.symm
 
+include hℱ in
 /-- The integral process is strongly adapted to the natural filtration. -/
 lemma stochasticIntegralBrownian_stronglyAdapted :
-    MeasureTheory.StronglyAdapted (LevyStochCalc.Brownian.Martingale.naturalFiltration W)
-      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) :=
-  fun t => (stochasticIntegralBrownian_aesm W H h_meas h_progMeas h_sq_int_global t).stronglyMeasurable_mk
+    MeasureTheory.StronglyAdapted ℱ
+      (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global) :=
+  fun t => (stochasticIntegralBrownian_aesm W ℱ hℱ H h_meas h_progMeas
+    h_sq_int_global t).stronglyMeasurable_mk
 
+include hℱ in
 /-- **L²-convergence of the master integrals to the Itô integral process.** -/
 lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
     Filter.Tendsto (fun n => MeasureTheory.eLpNorm
-        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) 2 P)
+        (fun ω => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t ω
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t ω) 2 P)
       Filter.atTop (nhds 0) := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
-  set Flp := stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t with hFlp
-  have h1 : Filter.Tendsto (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+  set Flp := stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t with hFlp
+  have h1 : Filter.Tendsto (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)
       Filter.atTop (nhds Flp) :=
-    (masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global ht_nn).tendsto_limUnder
+    (masterLp_cauchySeq W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht_nn).tendsto_limUnder
   have hmem : MeasureTheory.MemLp (↑↑Flp : Ω → ℝ) 2 P := MeasureTheory.Lp.memLp Flp
   rw [← MeasureTheory.Lp.toLp_coeFn Flp hmem] at h1
   have h2 := (MeasureTheory.Lp.tendsto_Lp_iff_tendsto_eLpNorm
-    (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n) (↑↑Flp) hmem).mp h1
+    (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n) (↑↑Flp) hmem).mp h1
   refine h2.congr' ?_
   filter_upwards [Filter.eventually_ge_atTop ⌈t⌉₊] with n hn
   have hcn : t ≤ (n : ℝ) + 1 := by
@@ -3154,64 +3080,68 @@ lemma masterApprox_tendsto_L2 {t : ℝ} (ht_nn : 0 ≤ t) :
     have h2' : (⌈t⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
     linarith
   refine MeasureTheory.eLpNorm_congr_ae ?_
-  filter_upwards [masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n ht_nn hcn,
-    stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t] with ω hω hF
+  filter_upwards [masterLp_coeFn W ℱ hℱ H h_meas h_progMeas h_sq_int_global n ht_nn hcn,
+    stochasticIntegralBrownian_ae_eq W ℱ hℱ H h_meas h_progMeas h_sq_int_global t] with ω hω hF
   simp only [Pi.sub_apply]
   rw [hω, hF]
 
+include hℱ in
 /-- For `t < 0` the integral process is the zero `Lp` element. -/
 lemma stochasticIntegralBrownianLp_eq_zero_of_neg {t : ℝ} (ht : t < 0) :
-    stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global t = 0 := by
+    stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t = 0 := by
   rw [stochasticIntegralBrownianLp]
-  have heq : (fun n => masterLp W H h_meas h_progMeas h_sq_int_global t n)
+  have heq : (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t n)
       = fun _ => (0 : MeasureTheory.Lp ℝ 2 P) := by
     funext n; rw [masterLp, dif_neg (fun h => absurd h.1 (not_le.mpr ht))]
   rw [heq]
   exact tendsto_const_nhds.limUnder_eq
 
+include hℱ in
 /-- For `t < 0` the integral process is a.e. zero. -/
 lemma stochasticIntegralBrownian_ae_zero_of_neg {t : ℝ} (ht : t < 0) :
-    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
-  refine (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).trans ?_
-  rw [stochasticIntegralBrownianLp_eq_zero_of_neg W H h_meas h_progMeas h_sq_int_global ht]
+    stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
+  refine (stochasticIntegralBrownian_ae_eq W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).trans ?_
+  rw [stochasticIntegralBrownianLp_eq_zero_of_neg W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht]
   exact MeasureTheory.Lp.coeFn_zero ℝ 2 P
 
+include hℱ in
 /-- **Conjunct 1: the Itô integral process is a martingale** (wrt the natural
 filtration). The master integrals are martingales, converge in `L¹` (from `L²`),
 and `F` is adapted + integrable. -/
 lemma martingale_stochasticIntegralBrownian :
-    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
+    MeasureTheory.Martingale (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global)
+      ℱ P := by
   refine martingale_of_tendsto_eLpNorm_one
-    (M := fun n t => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t)
-    (fun n => martingale_simpleIntegral_brownian W
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n))
-    (fun n t => (martingale_simpleIntegral_brownian W
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)).integrable t)
-    (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global)
+    (M := fun n t => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t)
+    (fun n => martingale_simpleIntegral_brownian W ℱ hℱ
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n))
+    (fun n t => (martingale_simpleIntegral_brownian W ℱ hℱ
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n)).integrable t)
+    (stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H h_meas h_progMeas h_sq_int_global)
     (fun t => ((MeasureTheory.Lp.memLp _).integrable (by norm_num : (1 : ℝ≥0∞) ≤ 2)).congr
-      (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).symm)
+      (stochasticIntegralBrownian_ae_eq W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).symm)
     (fun t => ?_)
   rcases le_or_gt 0 t with ht | ht
   · refine tendsto_eLpNorm_one_of_eLpNorm_two (fun n => ?_)
-      (masterApprox_tendsto_L2 W H h_meas h_progMeas h_sq_int_global ht)
+      (masterApprox_tendsto_L2 W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht)
     refine (Measurable.aestronglyMeasurable ?_).sub
-      (((stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t).mono
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le t)).aestronglyMeasurable)
+      (((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global t).mono
+        (ℱ.le t)).aestronglyMeasurable)
     unfold simpleIntegral
     refine Finset.measurable_sum _ (fun i _ => ?_)
-    exact ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
+    exact ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
       ((W.measurable_eval _).sub (W.measurable_eval _))
   · have hzero : ∀ n, MeasureTheory.eLpNorm
-        ((fun t' => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t') t
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) 1 P = 0 := by
+        ((fun t' => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t') t
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t) 1 P = 0 := by
       intro n
       have hfae : ((fun t' => simpleIntegral W
-            (masterApprox W H h_meas h_progMeas h_sq_int_global n) t') t
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) =ᵐ[P] 0 := by
-        filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas
+            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t') t
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t) =ᵐ[P] 0 := by
+        filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H h_meas h_progMeas
           h_sq_int_global ht] with ω hF
         simp only [Pi.sub_apply, Pi.zero_apply,
           simpleIntegral_eq_zero_of_nonpos W _ (le_of_lt ht) ω, hF, sub_zero]
@@ -3224,7 +3154,7 @@ Lift both to `L²` of the product measure `P ⊗ vol|_{[0,T]}` (Tonelli); the `L
 difference vanishes (`masterApprox_eval_tendsto`), so the norms converge. -/
 lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
     Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+        (‖(masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P)
       Filter.atTop
       (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) := by
@@ -3232,10 +3162,10 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
   set ν : MeasureTheory.Measure ℝ := volume.restrict (Set.Icc (0 : ℝ) T) with hν
   set Hp : Ω × ℝ → ℝ := fun p => H p.1 p.2 with hHp
   set Gp : ℕ → Ω × ℝ → ℝ := fun n p =>
-    (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval p.2 p.1 with hGp
+    (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval p.2 p.1 with hGp
   have hHp_meas : Measurable Hp := h_meas
   have hGp_meas : ∀ n, Measurable (Gp n) := fun n =>
-    (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval_jointly_measurable
+    (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval_jointly_measurable
   -- Tonelli bridge: `eLpNorm f 2 (P⊗ν) ^ 2 = ∫⁻∫⁻_{[0,T]} ‖f(ω,·)‖²`.
   have hbridge : ∀ (f : Ω × ℝ → ℝ), Measurable f →
       MeasureTheory.eLpNorm f 2 (P.prod ν) ^ (2 : ℝ)
@@ -3255,13 +3185,13 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
     ⟨hHp_meas.aestronglyMeasurable, hfin Hp hHp_meas (h_sq_int_global T hT).ne⟩
   have hGmemLp : ∀ n, MeasureTheory.MemLp (Gp n) 2 (P.prod ν) := fun n =>
     ⟨(hGp_meas n).aestronglyMeasurable, hfin (Gp n) (hGp_meas n)
-      (eval_lintegral_sq_finite (masterApprox W H h_meas h_progMeas h_sq_int_global n) T).ne⟩
+      (eval_lintegral_sq_finite (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) T).ne⟩
   -- `Gp n → Hp` in `L²(P⊗ν)`.
   have hdiff : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν))
       Filter.atTop (nhds 0) := by
     have hsq : ∀ n, MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ)
         = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-            (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+            (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
               ∂volume ∂P := by
       intro n
       rw [hbridge (Gp n - Hp) ((hGp_meas n).sub hHp_meas)]
@@ -3272,7 +3202,7 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
     have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
         Filter.atTop (nhds 0) := by
       simp_rw [hsq]
-      exact masterApprox_eval_tendsto W H h_meas h_progMeas h_sq_int_global (le_of_lt hT)
+      exact masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global (le_of_lt hT)
     have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
     rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
     refine h3.congr (fun n => ?_)
@@ -3293,33 +3223,36 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
   rw [hbridge Hp hHp_meas] at this
   exact this
 
+include hℱ in
 /-- **Conjunct 3: the L²-isometry** `∫⁻‖F T‖² = ∫⁻∫⁻_{[0,T]}‖H‖²` for `T > 0`.
 The squared `L²`-norm of `Iₙ(T)` equals `∫⁻∫⁻_{[0,T]}‖Gₙ.eval‖²` (intermediate
 isometry), converges to `∫⁻‖F T‖²` (norm continuity of the `L²`-limit) and to
 `∫⁻∫⁻_{[0,T]}‖H‖²` (`masterApprox_evalNorm_tendsto`); uniqueness of limits. -/
 lemma isometry_stochasticIntegralBrownian {T : ℝ} (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
-  set Flp := stochasticIntegralBrownianLp W H h_meas h_progMeas h_sq_int_global T with hFlp
-  have htend : Filter.Tendsto (fun n => masterLp W H h_meas h_progMeas h_sq_int_global T n)
+  set Flp := stochasticIntegralBrownianLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global T with hFlp
+  have htend : Filter.Tendsto (fun n => masterLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global T n)
       Filter.atTop (nhds Flp) :=
-    (masterLp_cauchySeq W H h_meas h_progMeas h_sq_int_global (le_of_lt hT)).tendsto_limUnder
+    (masterLp_cauchySeq W ℱ hℱ H h_meas h_progMeas h_sq_int_global (le_of_lt hT)).tendsto_limUnder
   have hn := (htend.enorm).ennrpow_const 2
   simp only [MeasureTheory.Lp.enorm_def] at hn
   -- limit `eLpNorm ↑↑Flp ^ 2 = ∫⁻‖F T‖²`
   have hlim : MeasureTheory.eLpNorm (↑↑Flp : Ω → ℝ) 2 P ^ (2 : ℝ)
-      = ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
+      = ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global T ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
     rw [eLpNorm_sq_eq_lintegral_nnnorm_sq]
     refine lintegral_congr_ae ?_
-    filter_upwards [stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global T]
+    filter_upwards [stochasticIntegralBrownian_ae_eq W ℱ hℱ H h_meas h_progMeas h_sq_int_global T]
       with ω hF
     rw [hF]
   rw [hlim] at hn
   have h_a : Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖(masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        (‖(masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
       Filter.atTop
-      (nhds (∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T ω‖₊
+      (nhds (∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global T ω‖₊
         : ℝ≥0∞) ^ 2 ∂P)) := by
     refine hn.congr' ?_
     filter_upwards [Filter.eventually_ge_atTop ⌈T⌉₊] with n hn'
@@ -3328,56 +3261,61 @@ lemma isometry_stochasticIntegralBrownian {T : ℝ} (hT : 0 < T) :
       have h2' : (⌈T⌉₊ : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn'
       linarith
     rw [MeasureTheory.eLpNorm_congr_ae
-        (masterLp_coeFn W H h_meas h_progMeas h_sq_int_global n (le_of_lt hT) hcn),
+        (masterLp_coeFn W ℱ hℱ H h_meas h_progMeas h_sq_int_global n (le_of_lt hT) hcn),
       eLpNorm_sq_eq_lintegral_nnnorm_sq,
-      simpleIntegral_intermediate_isometry W
-        (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-        (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n) (le_of_lt hT)]
+      simpleIntegral_intermediate_isometry W ℱ hℱ
+        (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+        (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n) (le_of_lt hT)]
   exact tendsto_nhds_unique h_a
-    (masterApprox_evalNorm_tendsto W H h_meas h_progMeas h_sq_int_global hT)
+    (masterApprox_evalNorm_tendsto ℱ H h_meas h_progMeas h_sq_int_global hT)
 
+include hℱ in
 /-- `F t ∈ L²(P)`. -/
 lemma stochasticIntegralBrownian_memLp (t : ℝ) :
-    MeasureTheory.MemLp (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) 2 P :=
+    MeasureTheory.MemLp (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global t) 2 P :=
   (MeasureTheory.Lp.memLp _).ae_eq
-    (stochasticIntegralBrownian_ae_eq W H h_meas h_progMeas h_sq_int_global t).symm
+    (stochasticIntegralBrownian_ae_eq W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).symm
 
+include hℱ in
 /-- `F t =ᵐ 0` for `t ≤ 0`. -/
 lemma stochasticIntegralBrownian_ae_zero_of_nonpos {t : ℝ} (ht : t ≤ 0) :
-    stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
+    stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
   rcases lt_or_eq_of_le ht with ht' | ht'
-  · exact stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas h_sq_int_global ht'
+  · exact stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht'
   · subst ht'
-    have h := masterApprox_tendsto_L2 W H h_meas h_progMeas h_sq_int_global (le_refl (0 : ℝ))
+    have h := masterApprox_tendsto_L2 W ℱ hℱ H h_meas h_progMeas h_sq_int_global (le_refl (0 : ℝ))
     have hconst : ∀ n, MeasureTheory.eLpNorm
-        (fun ω => simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) 0 ω
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0 ω) 2 P
+        (fun ω => simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) 0 ω
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global 0 ω) 2 P
         = MeasureTheory.eLpNorm
-          (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0) 2 P := by
+          (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global 0) 2 P := by
       intro n
       rw [← MeasureTheory.eLpNorm_neg
-        (f := stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0)]
+        (f := stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global 0)]
       refine MeasureTheory.eLpNorm_congr_ae ?_
       filter_upwards with ω
       simp [simpleIntegral_eq_zero_of_nonpos W _ (le_refl (0 : ℝ)) ω]
     simp only [hconst] at h
     have hz : MeasureTheory.eLpNorm
-        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global 0) 2 P = 0 :=
+        (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global 0) 2 P = 0 :=
       tendsto_nhds_unique tendsto_const_nhds h
     rwa [MeasureTheory.eLpNorm_eq_zero_iff
-      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global
+      (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global
         0).aestronglyMeasurable
       (by norm_num)] at hz
 
+include hℱ in
 /-- `∫⁻‖F t‖² = ∫⁻∫⁻_{[0,t]}‖H‖²` for all `t ≥ 0` (isometry, incl. `t = 0`). -/
 lemma stochasticIntegralBrownian_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
-    ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   rcases lt_or_eq_of_le ht with ht' | ht'
-  · exact isometry_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global ht'
+  · exact isometry_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht'
   · subst ht'
     rw [lintegral_congr_ae (by
-      filter_upwards [stochasticIntegralBrownian_ae_zero_of_nonpos W H h_meas h_progMeas
+      filter_upwards [stochasticIntegralBrownian_ae_zero_of_nonpos W ℱ hℱ H h_meas h_progMeas
         h_sq_int_global (le_refl (0:ℝ))] with ω hω; rw [hω]; simp : _ =ᵐ[P] fun _ => (0:ℝ≥0∞))]
     rw [MeasureTheory.lintegral_zero]
     symm
@@ -3423,18 +3361,20 @@ lemma horizon_lintegral_right_tendsto {s : ℝ} (hs : 0 ≤ s) :
   filter_upwards [self_mem_nhdsWithin] with r hr
   exact (horizon_lintegral_add H h_meas hs (le_of_lt hr)).symm
 
+include hℱ in
 /-- **Right-`L²`-continuity of the Itô integral process.** `‖F r − F s‖_{L²} → 0` as
 `r ↓ s`. The squared increment `∫⁻‖F r − F s‖²` equals `ofReal((∫⁻∫⁻_{[0,r]}).toReal −
 (∫⁻∫⁻_{[0,s]}).toReal)` (orthogonality + isometry) and `→ 0` by horizon
 right-continuity. -/
 lemma stochasticIntegralBrownian_eLpNorm_two_right_tendsto (s : ℝ) :
     Filter.Tendsto (fun r => MeasureTheory.eLpNorm
-        (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) 2 P)
+        (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global r
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global s) 2 P)
       (nhdsWithin s (Set.Ioi s)) (nhds 0) := by
   suffices hsq : Filter.Tendsto (fun r => ∫⁻ ω,
-      (‖(stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r
-        - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      (‖(stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global r
+        - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+          h_sq_int_global s) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
       (nhdsWithin s (Set.Ioi s)) (nhds 0) by
     have h2 := hsq.ennrpow_const ((1 : ℝ) / 2)
     rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h2
@@ -3445,30 +3385,32 @@ lemma stochasticIntegralBrownian_eLpNorm_two_right_tendsto (s : ℝ) :
   rcases le_or_gt 0 s with hs | hs
   · -- s ≥ 0: orthogonality + isometry + horizon continuity
     have hFsq : ∀ {t : ℝ}, 0 ≤ t →
-        ∫ ω, (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) ^ 2 ∂P
+        ∫ ω, (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t ω) ^ 2 ∂P
           = (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) t, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal := by
       intro t ht
       have hb := lintegral_nnnorm_sq_eq_ofReal_integral
-        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t)
-      rw [stochasticIntegralBrownian_lintegral_sq W H h_meas h_progMeas h_sq_int_global ht] at hb
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t)
+      rw [stochasticIntegralBrownian_lintegral_sq W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global ht] at hb
       rw [hb, ENNReal.toReal_ofReal (integral_nonneg (fun ω => sq_nonneg _))]
     have hincr : ∀ {r : ℝ}, s ≤ r →
-        ∫⁻ ω, (‖stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r ω
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+        ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global r ω
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+            h_sq_int_global s ω‖₊ : ℝ≥0∞) ^ 2 ∂P
           = ENNReal.ofReal
             ((∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) r, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
               - (∫⁻ ω, ∫⁻ u in Set.Icc (0 : ℝ) s, (‖H ω u‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal) := by
       intro r hsr
       rw [lintegral_nnnorm_sq_eq_ofReal_integral
-        (g := fun ω => stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global r ω
-          - stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global s ω)
-        ((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r).sub
-          (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s))]
+        (g := fun ω => stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global r ω
+          - stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global s ω)
+        ((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global r).sub
+          (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global s))]
       congr 1
       rw [integral_sq_increment_eq_of_martingale
-        (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
-        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s)
-        (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r) hsr,
+        (martingale_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global)
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global s)
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global r) hsr,
         hFsq (le_trans hs hsr), hFsq hs]
     -- the toReal-difference → 0
     have hcont : Filter.Tendsto (fun r =>
@@ -3496,26 +3438,28 @@ lemma stochasticIntegralBrownian_eLpNorm_two_right_tendsto (s : ℝ) :
     symm
     rw [← MeasureTheory.lintegral_zero (μ := P)]
     refine lintegral_congr_ae ?_
-    filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas
+    filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H h_meas h_progMeas
         h_sq_int_global hr.2,
-      stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas h_sq_int_global hs]
+      stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H h_meas h_progMeas h_sq_int_global hs]
       with ω hr0 hs0
     simp [hr0, hs0]
 
-/-- **Conjunct 1 on `rightCont`: `F` is a martingale wrt `(naturalFiltration W).rightCont`.**
+include hℱ in
+/-- **Conjunct 1 on `rightCont`: `F` is a martingale wrt `ℱ.rightCont`.**
 Right-`L²`-continuity of the slices (`stochasticIntegralBrownian_eLpNorm_two_right_tendsto`)
 feeds `martingale_rightCont_of_tendsto_eLpNorm_one`. -/
 lemma martingale_rightCont_stochasticIntegralBrownian :
-    MeasureTheory.Martingale (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
+    MeasureTheory.Martingale (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global)
+      ℱ.rightCont P := by
   refine LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
-    (martingale_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global) (fun s => ?_)
+    (martingale_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global) (fun s => ?_)
   have hF_aesm : ∀ t, MeasureTheory.AEStronglyMeasurable
-      (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t) P :=
-    fun t => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas
+      (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t) P :=
+    fun t => (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
       h_sq_int_global t).aestronglyMeasurable
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
-    (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W H h_meas h_progMeas h_sq_int_global s)
+    (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global s)
     (Filter.Eventually.of_forall (fun r => bot_le))
     (Filter.Eventually.of_forall (fun r => MeasureTheory.eLpNorm_le_eLpNorm_of_exponent_le
       (by norm_num) ((hF_aesm r).sub (hF_aesm s))))
@@ -3556,16 +3500,12 @@ include h_progMeas in
 /-- The `H`-compensator `A_t = ∫₀ᵗ H² ds` is `ℱ_t`-adapted. -/
 lemma compensatorH_adapted (t : ℝ) :
     @MeasureTheory.StronglyMeasurable Ω ℝ _
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
+      (ℱ t)
       (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) := by
   rcases le_or_gt 0 t with ht | ht
-  · have hsq : @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-        (fun p : Ω × ℝ => (H p.1 p.2) ^ 2) := by
-      simpa [pow_two, Pi.mul_def] using (h_progMeas t).mul (h_progMeas t)
-    letI : MeasurableSpace Ω := (LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t
-    exact hsq.integral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) t))
+  · have hsq : Probability.ProgressivelyMeasurable ℱ fun ω s => (H ω s) ^ 2 :=
+      (continuous_pow 2).comp_progressivelyMeasurable (by simp) h_progMeas
+    exact hsq.stronglyMeasurable_setIntegral measurableSet_Icc Set.Icc_subset_Iic_self volume
   · have heq : (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) = fun _ => (0 : ℝ) := by
       funext ω; rw [Set.Icc_eq_empty (not_le.mpr ht)]; simp
     rw [heq]; exact stronglyMeasurable_const
@@ -3578,17 +3518,17 @@ The eval-squares converge to `H²` in `L¹(P ⊗ vol|_{[0,t]})`
 lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
     Filter.Tendsto (fun n => MeasureTheory.eLpNorm
       (fun ω => (∫ u in Set.Icc (0 : ℝ) t,
-          ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+          ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
         - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) 1 P)
       Filter.atTop (nhds 0) := by
   rcases lt_or_eq_of_le ht with ht' | ht'
   · set ν : MeasureTheory.Measure ℝ := volume.restrict (Set.Icc (0 : ℝ) t) with hν
     set Hp : Ω × ℝ → ℝ := fun p => H p.1 p.2 with hHp
     set Gp : ℕ → Ω × ℝ → ℝ := fun n p =>
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval p.2 p.1 with hGp
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval p.2 p.1 with hGp
     have hHp_meas : Measurable Hp := h_meas
     have hGp_meas : ∀ n, Measurable (Gp n) := fun n =>
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval_jointly_measurable
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval_jointly_measurable
     have hHmem := compensatorH_memLp_prod H h_meas h_sq_int_global ht'
     -- `Gp n → Hp` in `L²(P ⊗ ν)`.
     have hbridge : ∀ (f : Ω × ℝ → ℝ), Measurable f →
@@ -3607,20 +3547,21 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
         Filter.atTop (nhds 0) := by
       have hsq : ∀ n, MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ)
           = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-              (‖H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+              (‖H ω s - (masterApprox ℱ H h_meas h_progMeas
+                h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
                 ∂volume ∂P := by
         intro n
         rw [hbridge (Gp n - Hp) ((hGp_meas n).sub hHp_meas)]
         refine lintegral_congr (fun ω =>
           MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_))
         simp only [Pi.sub_apply, hGp, hHp]
-        rw [show (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω - H ω s
-              = -(H ω s - (masterApprox W H h_meas h_progMeas h_sq_int_global n).eval s ω)
+        rw [show (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω - H ω s
+              = -(H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω)
             from by ring, nnnorm_neg]
       have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
           Filter.atTop (nhds 0) := by
         simp_rw [hsq]
-        exact masterApprox_eval_tendsto W H h_meas h_progMeas h_sq_int_global ht
+        exact masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global ht
       have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
       rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
       refine h3.congr (fun n => ?_)
@@ -3634,7 +3575,7 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
     -- marginal `L¹(P)` ≤ joint `L¹(P ⊗ ν)`.
     have hmarg : ∀ n, MeasureTheory.eLpNorm
         (fun ω => (∫ u in Set.Icc (0 : ℝ) t,
-            ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+            ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
           - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) 1 P
         ≤ MeasureTheory.eLpNorm (fun p => (Gp n p) ^ 2 - (Hp p) ^ 2) 1 (P.prod ν) := by
       intro n
@@ -3644,7 +3585,7 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
           (show MeasureTheory.MemLp (Gp n) 2 (P.prod ν) from
             ⟨(hGp_meas n).aestronglyMeasurable, hfin2 (Gp n) (hGp_meas n)
               (eval_lintegral_sq_finite
-                (masterApprox W H h_meas h_progMeas h_sq_int_global n) t).ne⟩)
+                (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t).ne⟩)
       have hHsq_int : MeasureTheory.Integrable (fun p => (Hp p) ^ 2) (P.prod ν) :=
         hHmem.integrable_sq
       have hdsq_int : MeasureTheory.Integrable dsq (P.prod ν) := hGsq_int.sub hHsq_int
@@ -3654,7 +3595,7 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
       refine MeasureTheory.lintegral_mono_ae ?_
       filter_upwards [hGsq_int.prod_right_ae, hHsq_int.prod_right_ae] with ω hGω hHω
       have hcomb : (∫ u in Set.Icc (0 : ℝ) t,
-            ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+            ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
           - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume
           = ∫ u, dsq (ω, u) ∂ν := by
         rw [hdsq]; exact (MeasureTheory.integral_sub hGω hHω).symm
@@ -3667,26 +3608,26 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
     symm
     rw [← ht']
     have hz : (fun ω => (∫ u in Set.Icc (0 : ℝ) (0 : ℝ),
-        ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+        ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
         - ∫ u in Set.Icc (0 : ℝ) (0 : ℝ), (H ω u) ^ 2 ∂volume) = (0 : Ω → ℝ) := by
       funext ω
       rw [Set.Icc_self, MeasureTheory.setIntegral_measure_zero _ (by simp),
         MeasureTheory.setIntegral_measure_zero _ (by simp), sub_zero]; rfl
     rw [hz, MeasureTheory.eLpNorm_zero]
 
-include h_meas h_progMeas h_sq_int_global in
-/-- **Conjunct 2 (naturalFiltration): the compensated square is a martingale.**
-`t ↦ (F t)² − ∫₀ᵗ H² ds` is a `naturalFiltration W`-martingale. The simple-level
+include h_meas h_progMeas h_sq_int_global hℱ in
+/-- **Conjunct 2: the compensated square is a martingale.**
+`t ↦ (F t)² − ∫₀ᵗ H² ds` is an `ℱ`-martingale. The simple-level
 compensated squares `martingale_simpleIntegral_sq_sub_compensator` (for `masterApprox n`)
 are martingales converging in `L¹` to the `F`-process: the integrand-squares converge
 (`masterApprox_tendsto_L2` + `tendsto_eLpNorm_one_sq_sub`) and the compensators
 converge (`masterApprox_compensator_tendsto_L1`). -/
 lemma martingale_quadVar_stochasticIntegralBrownian :
     MeasureTheory.Martingale
-      (fun t ω => (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
+      (fun t ω => (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t ω) ^ 2
         - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W) P := by
-  set F := stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global with hF
+      ℱ P := by
+  set F := stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global with hF
   have hAHint : ∀ t, MeasureTheory.Integrable
       (fun ω => ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) P := by
     intro t
@@ -3697,88 +3638,99 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
       rw [heq]; exact MeasureTheory.integrable_const 0
   refine martingale_of_tendsto_eLpNorm_one
     (M := fun n t ω =>
-      (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) ^ 2
+      (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) t ω) ^ 2
         - ∫ u in Set.Icc (0 : ℝ) t,
-            ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
-    (fun n => martingale_simpleIntegral_sq_sub_compensator W (master_horizon_pos n)
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n))
-    (fun n t => (martingale_simpleIntegral_sq_sub_compensator W (master_horizon_pos n)
-      (masterApprox W H h_meas h_progMeas h_sq_int_global n)
-      (masterApprox_adapt W H h_meas h_progMeas h_sq_int_global n)).integrable t)
+            ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+    (fun n => martingale_simpleIntegral_sq_sub_compensator W ℱ hℱ (master_horizon_pos n)
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n))
+    (fun n t => (martingale_simpleIntegral_sq_sub_compensator W ℱ hℱ (master_horizon_pos n)
+      (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n)
+      (masterApprox_adapt ℱ H h_meas h_progMeas h_sq_int_global n)).integrable t)
     (fun t => ?_) (fun t => ?_) (fun t => ?_)
   · -- StronglyAdapted
     have hFsq : @MeasureTheory.StronglyMeasurable Ω ℝ _
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) (fun ω => (F t ω) ^ 2) := by
+        (ℱ t) (fun ω => (F t ω) ^ 2) := by
       simpa [pow_two, Pi.mul_def] using
-        (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t).mul
-          (stochasticIntegralBrownian_stronglyAdapted W H h_meas h_progMeas h_sq_int_global t)
-    exact hFsq.sub (compensatorH_adapted W H h_progMeas t)
+        (stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H h_meas h_progMeas
+          h_sq_int_global t).mul
+          (stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H h_meas h_progMeas h_sq_int_global t)
+    exact hFsq.sub (compensatorH_adapted ℱ H h_progMeas t)
   · -- integrability of the F-process at each `t`
-    exact ((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).integrable_sq).sub
+    exact ((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global t).integrable_sq).sub
       (hAHint t)
   · -- `L¹`-convergence of the simple compensated squares to the F-process
     rcases le_or_gt 0 t with ht | ht
     · have hX : Filter.Tendsto (fun n => MeasureTheory.eLpNorm
-          (fun ω => (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) ^ 2
+          (fun ω => (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+            h_sq_int_global n) t ω) ^ 2
             - (F t ω) ^ 2) 1 P) Filter.atTop (nhds 0) :=
         tendsto_eLpNorm_one_sq_sub
           (fun n => (Finset.measurable_sum _ (fun i _ =>
-            ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
+            ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
               ((W.measurable_eval _).sub (W.measurable_eval _)))).aemeasurable)
-          (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).1.aemeasurable
-          (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).2.ne
-          (masterApprox_tendsto_L2 W H h_meas h_progMeas h_sq_int_global ht)
-      have hY := masterApprox_compensator_tendsto_L1 W H h_meas h_progMeas h_sq_int_global ht
+          (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
+            h_sq_int_global t).1.aemeasurable
+          (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global t).2.ne
+          (masterApprox_tendsto_L2 W ℱ hℱ H h_meas h_progMeas h_sq_int_global ht)
+      have hY := masterApprox_compensator_tendsto_L1 ℱ H h_meas h_progMeas h_sq_int_global ht
       refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
         (by simpa using hX.add hY)
         (Filter.Eventually.of_forall (fun n => bot_le))
         (Filter.Eventually.of_forall (fun n => ?_))
       have hXaesm : MeasureTheory.AEStronglyMeasurable
-          (fun ω => (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) ^ 2
+          (fun ω => (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+            h_sq_int_global n) t ω) ^ 2
             - (F t ω) ^ 2) P :=
         (((Finset.measurable_sum _ (fun i _ =>
-          ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
+          ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
             ((W.measurable_eval _).sub (W.measurable_eval _)))).pow_const 2).aestronglyMeasurable).sub
-          ((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global t).1.aemeasurable.pow_const 2).aestronglyMeasurable
+          ((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
+            h_sq_int_global t).1.aemeasurable.pow_const 2).aestronglyMeasurable
       have hAn_meas : Measurable (fun ω => ∫ u in Set.Icc (0 : ℝ) t,
-          ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume) := by
+          ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume) := by
         rw [show (fun ω => ∫ u in Set.Icc (0 : ℝ) t,
-              ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
-            = fun ω => ∑ i : Fin (masterApprox W H h_meas h_progMeas h_sq_int_global n).N,
-                (min ((masterApprox W H h_meas h_progMeas h_sq_int_global n).partition i.succ) t
-                  - min ((masterApprox W H h_meas h_progMeas h_sq_int_global n).partition
+              ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+            = fun ω => ∑ i : Fin (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).N,
+                (min ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).partition i.succ) t
+                  - min ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).partition
                       i.castSucc) t)
-                  * ((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ i ω) ^ 2 from
+                  * ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ i ω) ^ 2 from
           funext (fun ω => setIntegral_eval_sq_Icc_clamped
-            (masterApprox W H h_meas h_progMeas h_sq_int_global n) ω ht)]
+            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) ω ht)]
         exact Finset.measurable_sum _ (fun i _ => measurable_const.mul
-          (((masterApprox W H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).pow_const 2))
+          (((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).pow_const 2))
       have hYaesm : MeasureTheory.AEStronglyMeasurable
           (fun ω => (∫ u in Set.Icc (0 : ℝ) t,
-              ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+              ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
             - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) P :=
         hAn_meas.aestronglyMeasurable.sub (hAHint t).aestronglyMeasurable
       calc MeasureTheory.eLpNorm
-            ((fun t' ω => (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t' ω) ^ 2
-                - ∫ u in Set.Icc (0 : ℝ) t', ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume) t
+            ((fun t' ω => (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+              h_sq_int_global n) t' ω) ^ 2
+                - ∫ u in Set.Icc (0 : ℝ) t', ((masterApprox ℱ H h_meas h_progMeas
+                  h_sq_int_global n).eval u ω) ^ 2 ∂volume) t
               - fun ω => (F t ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) 1 P
           = MeasureTheory.eLpNorm
-              ((fun ω => (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t ω) ^ 2
+              ((fun ω => (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+                h_sq_int_global n) t ω) ^ 2
                   - (F t ω) ^ 2)
                 - fun ω => (∫ u in Set.Icc (0 : ℝ) t,
-                    ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
+                    ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume)
                   - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) 1 P := by
             refine MeasureTheory.eLpNorm_congr_ae (Filter.Eventually.of_forall (fun ω => ?_))
             simp only [Pi.sub_apply]; ring
         _ ≤ _ := MeasureTheory.eLpNorm_sub_le hXaesm hYaesm le_rfl
     · have hzero : ∀ n, MeasureTheory.eLpNorm
-          ((fun t' ω => (simpleIntegral W (masterApprox W H h_meas h_progMeas h_sq_int_global n) t' ω) ^ 2
-              - ∫ u in Set.Icc (0 : ℝ) t', ((masterApprox W H h_meas h_progMeas h_sq_int_global n).eval u ω) ^ 2 ∂volume) t
+          ((fun t' ω => (simpleIntegral W (masterApprox ℱ H h_meas h_progMeas
+            h_sq_int_global n) t' ω) ^ 2
+              - ∫ u in Set.Icc (0 : ℝ) t', ((masterApprox ℱ H h_meas h_progMeas
+                h_sq_int_global n).eval u ω) ^ 2 ∂volume) t
             - fun ω => (F t ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) 1 P = 0 := by
         intro n
         refine (MeasureTheory.eLpNorm_eq_zero_of_ae_zero ?_)
-        filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W H h_meas h_progMeas
+        filter_upwards [stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H h_meas h_progMeas
           h_sq_int_global ht] with ω hF0
         simp only [Pi.sub_apply, Pi.zero_apply,
           simpleIntegral_eq_zero_of_nonpos W _ (le_of_lt ht) ω, hF, hF0,
@@ -3786,30 +3738,31 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
         simp
       simp only [hzero]; exact tendsto_const_nhds
 
-include h_meas h_progMeas h_sq_int_global in
+include h_meas h_progMeas h_sq_int_global hℱ in
 /-- **Conjunct 2 on `rightCont`: `(F)² − ∫₀ᵗH²` is a `rightCont`-martingale.**
-The naturalFiltration martingale (`martingale_quadVar_stochasticIntegralBrownian`) lifts
+The `ℱ`-martingale (`martingale_quadVar_stochasticIntegralBrownian`) lifts
 via right-`L¹`-continuity: the `F²`-part is controlled by `F`'s right-`L²`-continuity
 (`tendsto_eLpNorm_one_sq_sub`), the compensator part by the horizon slab
 `∫⁻∫⁻_{(s,r]}‖H‖² → 0` (`tendsto_setLIntegral_Ioc_prod_zero`). -/
 lemma martingale_rightCont_quadVar_stochasticIntegralBrownian :
     MeasureTheory.Martingale
-      (fun t ω => (stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
+      (fun t ω => (stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global t ω) ^ 2
         - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume)
-      (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont P := by
+      ℱ.rightCont P := by
   refine LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
-    (martingale_quadVar_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global)
+    (martingale_quadVar_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global)
     (fun s => ?_)
-  set F := stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global with hFdef
+  set F := stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global with hFdef
   -- `F²`-part: right-`L¹`-continuity of the square.
   have hF2 : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
       (fun ω => (F r ω) ^ 2 - (F s ω) ^ 2) 1 P) (nhdsWithin s (Set.Ioi s)) (nhds 0) :=
     tendsto_eLpNorm_one_sq_sub (l := nhdsWithin s (Set.Ioi s)) (a := fun r => F r) (b := F s)
-      (fun r => (stochasticIntegralBrownian_memLp W H h_meas h_progMeas
+      (fun r => (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
         h_sq_int_global r).1.aemeasurable)
-      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).1.aemeasurable
-      (stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).2.ne
-      (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W H h_meas h_progMeas h_sq_int_global s)
+      (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global s).1.aemeasurable
+      (stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas h_sq_int_global s).2.ne
+      (stochasticIntegralBrownian_eLpNorm_two_right_tendsto W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global s)
   -- compensator part: right-`L¹`-continuity of `A_t = ∫₀ᵗ H²`.
   have hA : Filter.Tendsto (fun r => MeasureTheory.eLpNorm
       (fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
@@ -3867,17 +3820,19 @@ lemma martingale_rightCont_quadVar_stochasticIntegralBrownian :
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds (by simpa using hF2.add hA)
     (Filter.Eventually.of_forall (fun r => bot_le)) (Filter.Eventually.of_forall (fun r => ?_))
   have hF2aesm : MeasureTheory.AEStronglyMeasurable (fun ω => (F r ω) ^ 2 - (F s ω) ^ 2) P :=
-    (((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global r).1.aemeasurable.pow_const
+    (((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global r).1.aemeasurable.pow_const
         2).aestronglyMeasurable).sub
-      (((stochasticIntegralBrownian_memLp W H h_meas h_progMeas h_sq_int_global s).1.aemeasurable.pow_const
+      (((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
+        h_sq_int_global s).1.aemeasurable.pow_const
         2).aestronglyMeasurable)
   have hAaesm : MeasureTheory.AEStronglyMeasurable
       (fun ω => (∫ u in Set.Icc (0 : ℝ) r, (H ω u) ^ 2 ∂volume)
         - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) P :=
-    ((compensatorH_adapted W H h_progMeas r).mono
-      ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le r)).aestronglyMeasurable.sub
-      (((compensatorH_adapted W H h_progMeas s).mono
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).le s)).aestronglyMeasurable)
+    ((compensatorH_adapted ℱ H h_progMeas r).mono
+      (ℱ.le r)).aestronglyMeasurable.sub
+      (((compensatorH_adapted ℱ H h_progMeas s).mono
+        (ℱ.le s)).aestronglyMeasurable)
   calc MeasureTheory.eLpNorm
         ((fun t ω => (F t ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) t, (H ω u) ^ 2 ∂volume) r
           - fun ω => (F s ω) ^ 2 - ∫ u in Set.Icc (0 : ℝ) s, (H ω u) ^ 2 ∂volume) 1 P
@@ -3918,23 +3873,19 @@ and Stochastic Calculus*, Springer 2016, **Theorem 5.4** + equation **(5.8)**.
 (`martingale_rightCont_quadVar_stochasticIntegralBrownian`) is the set-level Itô
 isometry at simple level lifted through the `L¹`-limit of the compensated squares and
 the `rightCont` right-`L¹`-continuity. `Filt` is pinned to
-`(naturalFiltration W).rightCont`. -/
+`ℱ.rightCont`. -/
 theorem itoIsometry_brownian_unified_existence
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ (F : ℝ → Ω → ℝ) (Filt : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›),
-      Filt = (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont ∧
+      Filt = ℱ.rightCont ∧
       MeasureTheory.Martingale F Filt P ∧
       MeasureTheory.Martingale
         (fun t ω => (F t ω) ^ 2 - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2) Filt P ∧
@@ -3942,11 +3893,12 @@ theorem itoIsometry_brownian_unified_existence
         ∫⁻ ω, (‖F T ω‖₊ : ℝ≥0∞) ^ 2 ∂P =
           ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
             (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) :=
-  ⟨stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global,
-    (LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont, rfl,
-    martingale_rightCont_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global,
-    martingale_rightCont_quadVar_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global,
-    fun T hT => isometry_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global hT⟩
+  ⟨stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global,
+    ℱ.rightCont, rfl,
+    martingale_rightCont_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global,
+    martingale_rightCont_quadVar_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global,
+    fun T hT => isometry_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global hT⟩
 
 /-- **`L²`-convergence ⇒ convergence of the squared mass.** If `gₙ → g` in `L²(μ)`
 (with `‖g‖₂ < ⊤`), then `∫⁻ ‖gₙ‖₊² → ∫⁻ ‖g‖₊²`. The `L²`-norm is continuous under
@@ -4006,29 +3958,24 @@ each to the common horizon `n+2` via `appendInterval` (which preserves `simpleIn
 and `eval`) and apply `simpleIntegral_intermediate_diff_isometry`. -/
 theorem masterApprox_cross_diff_isometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P) (H₁ H₂ : Ω → ℝ → ℝ)
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ) (H₁ H₂ : Ω → ℝ → ℝ)
     (h_meas₁ : Measurable (Function.uncurry H₁)) (h_meas₂ : Measurable (Function.uncurry H₂))
-    (h_progMeas₁ : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-      (@Prod.instMeasurableSpace Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-      (fun p : Ω × ℝ => H₁ p.1 p.2))
-    (h_progMeas₂ : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-      (@Prod.instMeasurableSpace Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-      (fun p : Ω × ℝ => H₂ p.1 p.2))
+    (h_progMeas₁ : Probability.ProgressivelyMeasurable ℱ H₁)
+    (h_progMeas₂ : Probability.ProgressivelyMeasurable ℱ H₂)
     (h_sq₁ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_sq₂ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (n : ℕ) {t : ℝ} (ht_nn : 0 ≤ t) :
-    ∫⁻ ω, (‖simpleIntegral W (masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n) t ω
-        - simpleIntegral W (masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n) t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖simpleIntegral W (masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n) t ω
+        - simpleIntegral W (masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n) t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-          (‖(masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval s ω
-            - (masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval s ω‖₊ : ℝ≥0∞) ^ 2
+          (‖(masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval s ω
+            - (masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval s ω‖₊ : ℝ≥0∞) ^ 2
             ∂volume ∂P := by
-  set Gn := masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n with hGn
-  set Gm := masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n with hGm
+  set Gn := masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n with hGn
+  set Gm := masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n with hGm
   have hKn : Gn.partition (Fin.last Gn.N) < (n : ℝ) + 2 := by
     have h1 : Gn.partition (Fin.last Gn.N) ≤ (n : ℝ) + 1 := Gn.partition_le_T
     linarith
@@ -4038,11 +3985,11 @@ theorem masterApprox_cross_diff_isometry
   have h_eq : (Gn.appendInterval hKn).partition (Fin.last (Gn.appendInterval hKn).N)
       = (Gm.appendInterval hKm).partition (Fin.last (Gm.appendInterval hKm).N) :=
     (Gn.appendInterval_partition_last hKn).trans (Gm.appendInterval_partition_last hKm).symm
-  have ha_n := Gn.appendInterval_adapt W hKn
-    (masterApprox_adapt W H₁ h_meas₁ h_progMeas₁ h_sq₁ n)
-  have ha_m := Gm.appendInterval_adapt W hKm
-    (masterApprox_adapt W H₂ h_meas₂ h_progMeas₂ h_sq₂ n)
-  have hiso := simpleIntegral_intermediate_diff_isometry W (Gn.appendInterval hKn)
+  have ha_n := Gn.appendInterval_adapt ℱ hKn
+    (masterApprox_adapt ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n)
+  have ha_m := Gm.appendInterval_adapt ℱ hKm
+    (masterApprox_adapt ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n)
+  have hiso := simpleIntegral_intermediate_diff_isometry W ℱ hℱ (Gn.appendInterval hKn)
     (Gm.appendInterval hKm) h_eq ha_n ha_m ht_nn
   have hL : ∫⁻ ω, (‖simpleIntegral W Gn t ω - simpleIntegral W Gm t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, (‖simpleIntegral W (Gn.appendInterval hKn) t ω
@@ -4066,23 +4013,18 @@ difference sequence (`masterApprox_cross_diff_isometry`); `tendsto_lintegral_nnn
 identifies each limit, and `tendsto_nhds_unique` equates them. -/
 theorem isometry_diff_stochasticIntegralBrownian
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
-    (W : LevyStochCalc.Brownian.BrownianMotion P) (H₁ H₂ : Ω → ℝ → ℝ)
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ) (H₁ H₂ : Ω → ℝ → ℝ)
     (h_meas₁ : Measurable (Function.uncurry H₁)) (h_meas₂ : Measurable (Function.uncurry H₂))
-    (h_progMeas₁ : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-      (@Prod.instMeasurableSpace Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-      (fun p : Ω × ℝ => H₁ p.1 p.2))
-    (h_progMeas₂ : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-      (@Prod.instMeasurableSpace Ω ℝ
-        ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-      (fun p : Ω × ℝ => H₂ p.1 p.2))
+    (h_progMeas₁ : Probability.ProgressivelyMeasurable ℱ H₁)
+    (h_progMeas₂ : Probability.ProgressivelyMeasurable ℱ H₂)
     (h_sq₁ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (h_sq₂ : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) :
-    ∫⁻ ω, (‖stochasticIntegralBrownian W H₁ h_meas₁ h_progMeas₁ h_sq₁ T ω
-        - stochasticIntegralBrownian W H₂ h_meas₂ h_progMeas₂ h_sq₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ T ω
+        - stochasticIntegralBrownian W ℱ hℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
@@ -4090,17 +4032,14 @@ theorem isometry_diff_stochasticIntegralBrownian
   set ν : MeasureTheory.Measure ℝ := volume.restrict (Set.Icc (0 : ℝ) T) with hν
   -- abbreviations for the two simple-integral sequences and the two limits
   have hImeas : ∀ (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
-      (hp : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+      (hp : Probability.ProgressivelyMeasurable ℱ H)
       (hs : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) (n : ℕ),
-      Measurable (fun ω => simpleIntegral W (masterApprox W H hm hp hs n) T ω) := by
+      Measurable (fun ω => simpleIntegral W (masterApprox ℱ H hm hp hs n) T ω) := by
     intro H hm hp hs n
     unfold simpleIntegral
     exact Finset.measurable_sum _ (fun i _ =>
-      ((masterApprox W H hm hp hs n).ξ_measurable i).mul
+      ((masterApprox ℱ H hm hp hs n).ξ_measurable i).mul
         ((W.measurable_eval _).sub (W.measurable_eval _)))
   -- the bridge `∫⁻_{P⊗ν} ‖f‖² = ∫⁻∫⁻_{[0,T]} ‖f(ω,s)‖²`
   have hbridge : ∀ f : Ω × ℝ → ℝ, Measurable f →
@@ -4111,28 +4050,25 @@ theorem isometry_diff_stochasticIntegralBrownian
       (((hf.nnnorm.coe_nnreal_ennreal).pow_const 2).aemeasurable)]
   -- `eval_n(H) → H` in `L²(P⊗ν)` for each integrand.
   have hevalL2 : ∀ (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
-      (hp : ∀ t : ℝ, @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t) inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+      (hp : Probability.ProgressivelyMeasurable ℱ H)
       (hs : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
       Filter.Tendsto (fun n => MeasureTheory.eLpNorm
-        (fun p : Ω × ℝ => (masterApprox W H hm hp hs n).eval p.2 p.1 - H p.1 p.2) 2 (P.prod ν))
+        (fun p : Ω × ℝ => (masterApprox ℱ H hm hp hs n).eval p.2 p.1 - H p.1 p.2) 2 (P.prod ν))
         Filter.atTop (nhds 0) := by
     intro H hm hp hs
     have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm
-        (fun p : Ω × ℝ => (masterApprox W H hm hp hs n).eval p.2 p.1 - H p.1 p.2) 2 (P.prod ν)
+        (fun p : Ω × ℝ => (masterApprox ℱ H hm hp hs n).eval p.2 p.1 - H p.1 p.2) 2 (P.prod ν)
         ^ (2 : ℝ)) Filter.atTop (nhds 0) := by
-      have he := masterApprox_eval_tendsto W H hm hp hs ht_nn
+      have he := masterApprox_eval_tendsto ℱ H hm hp hs ht_nn
       refine he.congr (fun n => ?_)
       rw [eLpNorm_sq_eq_lintegral_nnnorm_sq,
-        hbridge (fun p : Ω × ℝ => (masterApprox W H hm hp hs n).eval p.2 p.1 - H p.1 p.2)
-          (((masterApprox W H hm hp hs n).eval_jointly_measurable).sub hm)]
+        hbridge (fun p : Ω × ℝ => (masterApprox ℱ H hm hp hs n).eval p.2 p.1 - H p.1 p.2)
+          (((masterApprox ℱ H hm hp hs n).eval_jointly_measurable).sub hm)]
       refine lintegral_congr (fun ω => ?_)
       refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
-      rw [show (‖H ω s - (masterApprox W H hm hp hs n).eval s ω‖₊ : ℝ≥0∞)
-          = ‖(masterApprox W H hm hp hs n).eval s ω - H ω s‖₊ from by
+      rw [show (‖H ω s - (masterApprox ℱ H hm hp hs n).eval s ω‖₊ : ℝ≥0∞)
+          = ‖(masterApprox ℱ H hm hp hs n).eval s ω - H ω s‖₊ from by
         rw [← nnnorm_neg]; congr 1; ring]
     have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
     rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
@@ -4140,34 +4076,41 @@ theorem isometry_diff_stochasticIntegralBrownian
     rw [← ENNReal.rpow_mul, show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
   -- LHS: `∫⁻‖Iₙ(H₁)−Iₙ(H₂)‖² → ∫⁻‖F₁−F₂‖²`
   have hLHS : Filter.Tendsto (fun n => ∫⁻ ω,
-      (‖simpleIntegral W (masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n) T ω
-        - simpleIntegral W (masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n) T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      (‖simpleIntegral W (masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n) T ω
+        - simpleIntegral W (masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n) T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
       Filter.atTop (nhds (∫⁻ ω,
-        (‖stochasticIntegralBrownian W H₁ h_meas₁ h_progMeas₁ h_sq₁ T ω
-          - stochasticIntegralBrownian W H₂ h_meas₂ h_progMeas₂ h_sq₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)) := by
+        (‖stochasticIntegralBrownian W ℱ hℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ T ω
+          - stochasticIntegralBrownian W ℱ hℱ H₂ h_meas₂ h_progMeas₂
+            h_sq₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)) := by
     refine tendsto_lintegral_nnnorm_sq_of_eLpNorm
       (fun n => ((hImeas H₁ h_meas₁ h_progMeas₁ h_sq₁ n).sub
         (hImeas H₂ h_meas₂ h_progMeas₂ h_sq₂ n)).aestronglyMeasurable)
-      ((stochasticIntegralBrownian_memLp W H₁ h_meas₁ h_progMeas₁ h_sq₁ T).aestronglyMeasurable.sub
-        (stochasticIntegralBrownian_memLp W H₂ h_meas₂ h_progMeas₂ h_sq₂ T).aestronglyMeasurable)
+      ((stochasticIntegralBrownian_memLp W ℱ hℱ H₁ h_meas₁ h_progMeas₁
+        h_sq₁ T).aestronglyMeasurable.sub
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H₂ h_meas₂ h_progMeas₂
+          h_sq₂ T).aestronglyMeasurable)
       (by
         refine (lt_of_le_of_lt (MeasureTheory.eLpNorm_sub_le
-          (stochasticIntegralBrownian_memLp W H₁ h_meas₁ h_progMeas₁ h_sq₁ T).aestronglyMeasurable
-          (stochasticIntegralBrownian_memLp W H₂ h_meas₂ h_progMeas₂ h_sq₂ T).aestronglyMeasurable
+          (stochasticIntegralBrownian_memLp W ℱ hℱ H₁ h_meas₁ h_progMeas₁
+            h_sq₁ T).aestronglyMeasurable
+          (stochasticIntegralBrownian_memLp W ℱ hℱ H₂ h_meas₂ h_progMeas₂
+            h_sq₂ T).aestronglyMeasurable
           (by norm_num)) (ENNReal.add_lt_top.mpr
-            ⟨(stochasticIntegralBrownian_memLp W H₁ h_meas₁ h_progMeas₁ h_sq₁ T).2,
-              (stochasticIntegralBrownian_memLp W H₂ h_meas₂ h_progMeas₂ h_sq₂ T).2⟩)).ne)
+            ⟨(stochasticIntegralBrownian_memLp W ℱ hℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ T).2,
+              (stochasticIntegralBrownian_memLp W ℱ hℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ T).2⟩)).ne)
       ?_
-    have hsum := (masterApprox_tendsto_L2 W H₁ h_meas₁ h_progMeas₁ h_sq₁ ht_nn).add
-      (masterApprox_tendsto_L2 W H₂ h_meas₂ h_progMeas₂ h_sq₂ ht_nn)
+    have hsum := (masterApprox_tendsto_L2 W ℱ hℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ ht_nn).add
+      (masterApprox_tendsto_L2 W ℱ hℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ ht_nn)
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds (by simpa using hsum)
       (Filter.Eventually.of_forall (fun n => bot_le))
       (Filter.Eventually.of_forall (fun n => ?_))
     refine le_trans ?_ (MeasureTheory.eLpNorm_sub_le
       ((hImeas H₁ h_meas₁ h_progMeas₁ h_sq₁ n).aestronglyMeasurable.sub
-        (stochasticIntegralBrownian_memLp W H₁ h_meas₁ h_progMeas₁ h_sq₁ T).aestronglyMeasurable)
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H₁ h_meas₁ h_progMeas₁
+          h_sq₁ T).aestronglyMeasurable)
       ((hImeas H₂ h_meas₂ h_progMeas₂ h_sq₂ n).aestronglyMeasurable.sub
-        (stochasticIntegralBrownian_memLp W H₂ h_meas₂ h_progMeas₂ h_sq₂ T).aestronglyMeasurable)
+        (stochasticIntegralBrownian_memLp W ℱ hℱ H₂ h_meas₂ h_progMeas₂
+          h_sq₂ T).aestronglyMeasurable)
       (by norm_num))
     exact le_of_eq (MeasureTheory.eLpNorm_congr_ae
       (Filter.Eventually.of_forall (fun ω => by simp only [Pi.sub_apply]; ring)))
@@ -4181,11 +4124,12 @@ theorem isometry_diff_stochasticIntegralBrownian
         (compensatorH_memLp_prod H₂ h_meas₂ h_sq₂ hT).2⟩)).ne
   have hRHS' := tendsto_lintegral_nnnorm_sq_of_eLpNorm
     (μ := P.prod ν)
-    (gₙ := fun n p => (masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval p.2 p.1
-      - (masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval p.2 p.1)
+    (gₙ := fun n p => (masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval p.2 p.1
+      - (masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval p.2 p.1)
     (g := fun p => H₁ p.1 p.2 - H₂ p.1 p.2)
-    (fun n => (((masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval_jointly_measurable).sub
-      ((masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval_jointly_measurable)).aestronglyMeasurable)
+    (fun n => (((masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval_jointly_measurable).sub
+      ((masterApprox ℱ H₂ h_meas₂ h_progMeas₂
+        h_sq₂ n).eval_jointly_measurable)).aestronglyMeasurable)
     (h_meas₁.aestronglyMeasurable.sub h_meas₂.aestronglyMeasurable) hHdfin
     (by
       have hsum := (hevalL2 H₁ h_meas₁ h_progMeas₁ h_sq₁).add
@@ -4194,24 +4138,26 @@ theorem isometry_diff_stochasticIntegralBrownian
         (Filter.Eventually.of_forall (fun n => bot_le))
         (Filter.Eventually.of_forall (fun n => ?_))
       refine le_trans ?_ (MeasureTheory.eLpNorm_sub_le
-        (((masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval_jointly_measurable).aestronglyMeasurable.sub
+        (((masterApprox ℱ H₁ h_meas₁ h_progMeas₁
+          h_sq₁ n).eval_jointly_measurable).aestronglyMeasurable.sub
           h_meas₁.aestronglyMeasurable)
-        (((masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval_jointly_measurable).aestronglyMeasurable.sub
+        (((masterApprox ℱ H₂ h_meas₂ h_progMeas₂
+          h_sq₂ n).eval_jointly_measurable).aestronglyMeasurable.sub
           h_meas₂.aestronglyMeasurable) (by norm_num))
       exact le_of_eq (MeasureTheory.eLpNorm_congr_ae
         (Filter.Eventually.of_forall (fun p => by simp only [Pi.sub_apply]; ring))))
   rw [hbridge (fun p : Ω × ℝ => H₁ p.1 p.2 - H₂ p.1 p.2) (h_meas₁.sub h_meas₂)] at hRHS'
   have hRHS : Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖(masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval s ω
-        - (masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      (‖(masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval s ω
+        - (masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
       Filter.atTop (nhds (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) := by
     refine hRHS'.congr' (Filter.Eventually.of_forall (fun n => ?_))
-    exact (hbridge _ (((masterApprox W H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval_jointly_measurable).sub
-      ((masterApprox W H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval_jointly_measurable)))
+    exact (hbridge _ (((masterApprox ℱ H₁ h_meas₁ h_progMeas₁ h_sq₁ n).eval_jointly_measurable).sub
+      ((masterApprox ℱ H₂ h_meas₂ h_progMeas₂ h_sq₂ n).eval_jointly_measurable)))
   -- the two sequences agree (cross diff isometry); equate the limits.
   refine tendsto_nhds_unique (hLHS.congr' (Filter.Eventually.of_forall (fun n => ?_))) hRHS
-  exact masterApprox_cross_diff_isometry W H₁ H₂ h_meas₁ h_meas₂ h_progMeas₁ h_progMeas₂
+  exact masterApprox_cross_diff_isometry W ℱ hℱ H₁ H₂ h_meas₁ h_meas₂ h_progMeas₁ h_progMeas₂
     h_sq₁ h_sq₂ n ht_nn
 
 /-- The *L² Itô integral* `M_t = ∫_0^t H_s dW_s` against a Brownian motion `W`.
@@ -4222,19 +4168,15 @@ witness — so it is genuinely linear-friendly (used by `itoIsometry_diff_browni
 noncomputable def stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (T : ℝ) : Ω → ℝ :=
-  stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global T
+  stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global T
 
 /-- **Itô L² isometry.**
 
@@ -4246,24 +4188,20 @@ Forwards to the L²-isometry conjunct of the unified-existence axiom #5. -/
 theorem itoIsometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (T : ℝ) (hT : 0 < T)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
-    ∫⁻ ω, (‖stochasticIntegral W H h_meas h_progMeas h_sq_int_global T ω‖₊
+    ∫⁻ ω, (‖stochasticIntegral W ℱ hℱ H h_meas h_progMeas h_sq_int_global T ω‖₊
       : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         ((‖H ω s‖₊ : ℝ≥0∞))^2 ∂volume ∂P := by
   unfold stochasticIntegral
-  exact isometry_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global hT
+  exact isometry_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global hT
 
 /-- **Quadratic variation of the L² Itô integral.**
 
@@ -4274,26 +4212,23 @@ Extracts conjunct 2 (quadratic variation) of the unified-existence axiom #5. -/
 theorem quadVar_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
         (fun t : ℝ => fun ω : Ω =>
-          (stochasticIntegral W H h_meas h_progMeas h_sq_int_global t ω) ^ 2
+          (stochasticIntegral W ℱ hℱ H h_meas h_progMeas h_sq_int_global t ω) ^ 2
             - ∫ s in Set.Icc (0 : ℝ) t, (H ω s) ^ 2)
         F P := by
   unfold stochasticIntegral
-  exact ⟨(LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont,
-    martingale_rightCont_quadVar_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global⟩
+  exact ⟨ℱ.rightCont,
+    martingale_rightCont_quadVar_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
+      h_sq_int_global⟩
 
 /-- **The L² Itô integral is a martingale.**
 
@@ -4304,22 +4239,18 @@ Extracts conjunct 1 (martingale property) of the unified-existence axiom #5. -/
 theorem martingale_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
     (H : Ω → ℝ → ℝ)
     (h_meas : Measurable (Function.uncurry H))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ) ℝ _
-        (@Prod.instMeasurableSpace Ω ℝ
-          ((LevyStochCalc.Brownian.Martingale.naturalFiltration W).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ => H p.1 p.2))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
     (h_sq_int_global : ∀ T, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
-        (fun t : ℝ => stochasticIntegral W H h_meas h_progMeas h_sq_int_global t) F P := by
+        (fun t : ℝ => stochasticIntegral W ℱ hℱ H h_meas h_progMeas h_sq_int_global t) F P := by
   unfold stochasticIntegral
-  exact ⟨(LevyStochCalc.Brownian.Martingale.naturalFiltration W).rightCont,
-    martingale_rightCont_stochasticIntegralBrownian W H h_meas h_progMeas h_sq_int_global⟩
+  exact ⟨ℱ.rightCont,
+    martingale_rightCont_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global⟩
 
 end LevyStochCalc.Brownian.Ito
