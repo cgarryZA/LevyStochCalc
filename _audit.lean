@@ -222,6 +222,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.itoIsometry
 #print axioms LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral
 #print axioms LevyStochCalc.Brownian.Ito.martingale_stochasticIntegral
+-- B1a-1 (2026-09-06): the algebra of the `L²` Brownian integral — a simple integrand inside
+-- the integral, and associativity against a simple integrand.
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.progressivelyMeasurable_eval
+#print axioms LevyStochCalc.Brownian.Ito.simpleIntegral_diff_isometry_of_adapted
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_eval_simple
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.eval_mul_on_common
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.sum_xi_mul_simpleIntegral_sub
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.exists_mul_simple
+#print axioms LevyStochCalc.Brownian.Ito.isometry_simple_sub_stochasticIntegralBrownian
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_integralAgainst
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

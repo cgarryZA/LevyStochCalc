@@ -97,6 +97,28 @@ end ProgressivelyMeasurable
 
 end General
 
+section Mul
+
+variable [TopologicalSpace E] [MulZeroClass E] [ContinuousMul E] {ℱ : Filtration ℝ mΩ}
+
+/-- The pointwise product of two progressively measurable processes is progressively
+measurable. -/
+theorem ProgressivelyMeasurable.mul {A B : Ω → ℝ → E} (hA : ProgressivelyMeasurable ℱ A)
+    (hB : ProgressivelyMeasurable ℱ B) :
+    ProgressivelyMeasurable ℱ fun ω s => A ω s * B ω s := by
+  intro t
+  have key : (fun p : Ω × ℝ => (Set.Iic t).indicator (fun s => A p.1 s * B p.1 s) p.2)
+      = fun p : Ω × ℝ =>
+        (Set.Iic t).indicator (A p.1) p.2 * (Set.Iic t).indicator (B p.1) p.2 := by
+    funext p
+    by_cases hp : p.2 ∈ Set.Iic t
+    · rw [Set.indicator_of_mem hp, Set.indicator_of_mem hp, Set.indicator_of_mem hp]
+    · simp only [Set.indicator_of_notMem hp, zero_mul]
+  rw [key]
+  exact (hA t).mul (hB t)
+
+end Mul
+
 section Integral
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] {ℱ : Filtration ℝ mΩ} {H : Ω → ℝ → E}
