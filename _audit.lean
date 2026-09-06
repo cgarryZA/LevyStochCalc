@@ -273,6 +273,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_weighted_quadVarSum_le
 -- B1a-2f (2026-09-06): continuous modification of the Ito integral by Kolmogorov-Chentsov.
 #print axioms LevyStochCalc.Brownian.Ito.exists_continuous_modification_stochasticIntegralBrownian
+-- B1a-2e (2026-09-06): the deterministic Riemann-sum error bound.
+#print axioms LevyStochCalc.abs_riemann_weighted_sub_integral_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
