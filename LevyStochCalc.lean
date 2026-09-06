@@ -16,6 +16,7 @@ import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
 import LevyStochCalc.Probability.ComapTuple
+import LevyStochCalc.Probability.TrivialSigma
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
@@ -27,6 +28,7 @@ import LevyStochCalc.Probability.Quasimartingale
 import LevyStochCalc.Probability.FiltrationNNReal
 import LevyStochCalc.Probability.CondExpModification
 import LevyStochCalc.Poisson.RegionPartition
+import LevyStochCalc.Poisson.ZeroIntensity
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence

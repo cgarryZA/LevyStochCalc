@@ -78,6 +78,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.comap_add_le
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_stepSigma_start
+-- A2g-ii support (2026-09-06): trivial σ-algebras, and regions of zero intensity.
+#print axioms LevyStochCalc.Probability.IsTrivialSigma.indep
+#print axioms LevyStochCalc.Probability.isTrivialSigma_comap_of_ae_const
+#print axioms LevyStochCalc.Probability.IsTrivialSigma.indep_sup
+#print axioms LevyStochCalc.Poisson.ae_count_eq_zero_of_intensity_eq_zero
+#print axioms LevyStochCalc.Poisson.ae_count_Iic_zero_eq_zero
 -- A2g-i (2026-09-06): the driver's data at finitely many positive times against `ℱ₊ 0`.
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_valueSigma
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
