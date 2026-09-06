@@ -90,9 +90,20 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       (`masterApprox_compensator_tendsto_L1`) → conjunct 2 on naturalFiltration
       (`martingale_quadVar_stochasticIntegralBrownian`) then `rightCont`
       (`martingale_rightCont_quadVar_stochasticIntegralBrownian`).
-- [ ] **A2 / #6** `itoIsometry_compensated_unified_existence` — compensated-Poisson
-      analogue (Applebaum 4.2.3/4.2.4). Mirror A1 using the proved
-      `Poisson/Compensated*` machinery (`CompensatedSimple`, `CompensatedIsometry`).
+- [x] **A2 / #6** `itoIsometry_compensated_unified_existence` — **DONE 2026-09-06**
+      (axiom→theorem; cited_axioms.md 10→9). Compensated-Poisson analogue of A1
+      (Applebaum 4.2.3/4.2.4), built in stages below; the assembly is in
+      `Poisson/Compensated.lean`: `stochasticIntegral` is now the càdlàg adapted
+      modification (`exists_cadlag_modification`, from the Layer-0.5 brick applied to
+      `martingale_rightCont_process`, `process_eLpNorm_two_right_tendsto`,
+      `process_ae_zero_of_nonpos`) of the `L²` integral process `process`; the four
+      conjuncts transfer along `stochasticIntegral_ae_eq_process`
+      (`martingale_stochasticIntegral_rightCont`,
+      `martingale_quadVar_stochasticIntegral_rightCont`, `isometry_stochasticIntegral`,
+      `stochasticIntegral_cadlag`). The statement, the name and the signature of
+      `stochasticIntegral` are unchanged; the consumers `itoLevyIsometry`,
+      `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`,
+      `cadlag_modification_exists` now forward to the construction.
       - *Density layer (`Poisson/CompensatedDensity.lean`) — DONE 2026-06-17.* The
         analogue of Brownian `ItoDensity`. Time-discretisation (`dyadicEvalShifted`,
         adapted, → φ in L²) **plus** the genuinely new mark-space piece kept fully
@@ -262,9 +273,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         (`stage_compensator_tendsto_L1`). `martingale_quadVar_process` (natural filtration,
         via `martingale_of_tendsto_eLpNorm_one`) and `martingale_rightCont_quadVar_process`
         (right-`L¹`-continuity of `F²` and of the compensator, the latter from the slab
-        integral `∫⁻∫⁻_{(s,r]} markSq → 0`). Remaining: the assembly with the càdlàg brick
-        (`exists_adapted_ae_cadlag_of_eLpNorm` on `process`), transfer of the four
-        conjuncts to the modification, and the replacement of the axiom; then #18.
+        integral `∫⁻∫⁻_{(s,r]} markSq → 0`).
+      - *Assembly — DONE 2026-09-06* (see the head of this item). Next: #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

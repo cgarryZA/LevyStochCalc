@@ -26,6 +26,18 @@ open scoped ENNReal NNReal
 
 namespace LevyStochCalc.Martingale
 
+section Modification
+
+variable {ι Ω : Type*} [Preorder ι] {mΩ : MeasurableSpace Ω} {ℱ : Filtration ι mΩ}
+  {μ : Measure Ω} {X Y : ι → Ω → ℝ}
+
+/-- A strongly adapted modification of a martingale is a martingale. -/
+lemma martingale_of_ae_eq (hX : Martingale X ℱ μ) (hY : StronglyAdapted ℱ Y)
+    (h : ∀ t, Y t =ᵐ[μ] X t) : Martingale Y ℱ μ :=
+  ⟨hY, fun s t hst => (condExp_congr_ae (h t)).trans ((hX.condExp_ae_eq hst).trans (h s).symm)⟩
+
+end Modification
+
 section Quasimartingale
 
 variable {ι Ω : Type*} [LinearOrder ι] {mΩ : MeasurableSpace Ω}

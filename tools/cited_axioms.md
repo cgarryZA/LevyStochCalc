@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (10 currently live)
+## Tier 1: Honest cited axioms (9 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
@@ -52,11 +52,11 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
-entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17) are kept as
-`### Retired #N` / `### Resolved #N` headings below for traceability; they are
-NOT counted in the headline "11 currently live" figure. Only `### N.`
-(digit-leading) headings correspond to live axioms, so
-`grep -c "^### [0-9]" tools/cited_axioms.md == 11`.
+entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
+2026-09-05; #6, proved 2026-09-06) are kept as `### Retired #N` / `### Resolved #N`
+headings below for traceability; they are NOT counted in the headline "9 currently
+live" figure. Only `### N.` (digit-leading) headings correspond to live axioms, so
+`grep -c "^### [0-9]" tools/cited_axioms.md == 9`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -101,12 +101,11 @@ to the Mathlib version, no other changes needed downstream.
 * **Reference**: Karatzas–Shreve **Theorem 3.2.6** (unified martingale + quadratic variation + L²-isometry); Le Gall **Theorem 5.4** + equation **(5.8)** (Itô isometry).
 * **Status**: No longer an axiom — proved as a `theorem` in `Brownian/ItoL2Completion.lean`. The witness is `F := stochasticIntegralBrownian` (the coherent `L²`-limit of the `masterApprox` simple integrals), `Filt := (naturalFiltration W).rightCont`. Conjunct 1 = `martingale_rightCont_stochasticIntegralBrownian`; conjunct 2 = `martingale_rightCont_quadVar_stochasticIntegralBrownian` (set-level Itô isometry at simple level → `L¹`-limit of the compensated squares → `rightCont` right-`L¹`-continuity); conjunct 3 = `isometry_stochasticIntegralBrownian`. The consumers `itoIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral` (and `stochasticIntegral` itself, via `Classical.choose`) are unchanged. `#print axioms` for these now lists only `propext, Classical.choice, Quot.sound`.
 
-### 6. `LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence`
+### Resolved #6: `LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence` (proved axiom→theorem 2026-09-06)
 
 * **Statement**: For predictable square-integrable `φ`, there is a process `F` and filtration `Filt` such that `F` is a `Filt`-martingale, `(F t)² − ∫_0^t ∫_E φ² ν(de) ds` is a `Filt`-martingale, the L²-isometry holds at every `T > 0`, and `F` has càdlàg paths.
 * **Reference**: Applebaum 2009 **Theorem 4.2.3** (martingale + quadVar + L²-isometry) + **Theorem 4.2.4** (càdlàg modification); Ikeda–Watanabe **Section II.3**.
-* **Mathlib status (May 2026)**: No compensated-Poisson L² integral in Mathlib (waits on Poisson random measure construction). No current activity.
-* **Replacement plan**: `theorem itoIsometry_compensated_unified_existence := <Mathlib forwarder>` when Mathlib gains compensated-Poisson L² integration.
+* **Status**: No longer an axiom — proved as a `theorem` in `Poisson/Compensated.lean`, statement unchanged. The witness is `F := stochasticIntegral`, now *defined* as the càdlàg adapted modification (`exists_cadlag_modification`) of the `L²` integral process `process` (`Poisson/CompensatedProcess.lean`: the `L²`-limit at every time of the integrals of the mark-step approximants of `φ`, `Poisson/MarkStep.lean` + `Poisson/CompensatedApprox.lean`), `Filt := (naturalFiltration N).rightCont`. Conjunct 1 = `martingale_stochasticIntegral_rightCont` (from `martingale_rightCont_process`); conjunct 2 = `martingale_quadVar_stochasticIntegral_rightCont` (from `martingale_rightCont_quadVar_process`: set-level increment isometries of the mark-step integrals ⇒ the stage compensated squares are martingales, `L¹`-limit, right-`L¹`-continuity); conjunct 3 = `isometry_stochasticIntegral` (from `process_lintegral_sq'`); conjunct 4 = `stochasticIntegral_cadlag` (the Layer-0.5 brick `Martingale/CadlagModification.lean`: a martingale is a quasimartingale, and the quasimartingale regularisation of `RemyDegenne/brownian-motion` gives the adapted càdlàg modification). The consumers `itoLevyIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`, `cadlag_modification_exists` are unchanged in statement and now forward to the construction. `#print axioms` for all of these lists only `propext, Classical.choice, Quot.sound`. The upstream `formal-mathfin` isometry (below) was not used in the end: the isometry is proved in-house through the mark-step calculus, so the general-`E` density question it left open does not arise.
 * **Partial upstream discharge (2026-09-05)**: `raphaelrrcoelho/formal-mathfin` (@ `784a8311`, a `lake require`)
   proves the compensated-Poisson `L²` isometry for the continuous linear extension of the elementary
   integral to the `L²`-closure of *marked simple* integrands (`MathFin.itoLevyIntegralL2_norm`), over its
@@ -214,7 +213,7 @@ literature integral forms.
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `φ₁, φ₂ : Ω → ℝ → E → ℝ`, the L² norm of the difference of their compensated-Poisson Itô-Lévy integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T ∫_E φ₁ Ñ − ∫_0^T ∫_E φ₂ Ñ|² = 𝔼 ∫_0^T ∫_E |φ₁(s, e) − φ₂(s, e)|² ν(de) ds`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.2.3** step (II) (the L²-Itô-Lévy integral is a linear isometry from the predictable `H²` space `L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)` to `L²(Ω, ℱ_T, P)`; the per-difference identity is the linear-isometry property applied to `(φ₁ − φ₂)`); Ikeda–Watanabe **Section II.3** for the same construction.
-* **Why a separate axiom**: same rationale as #17 — in the present axiomatization `Compensated.stochasticIntegral N φ` is constructed via `Classical.choose` on `itoIsometry_compensated_unified_existence` (Tier 1 #6), and the choose-witness depends on the integrand. The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
+* **Why a separate axiom**: same rationale as #17 before its discharge — `Compensated.stochasticIntegral N φ` is the càdlàg modification (chosen per integrand) of the `L²` integral process of `φ`, and the difference isometry has to be derived from the cross-difference isometry of the mark-step approximants of the two integrands (`MarkStep.lintegral_integral_sub_sq_at` on a common dyadic refinement) and the `L²`-limits of both sides; that derivation is the next step now that #6 is a theorem (2026-09-06). The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
 * **Mathlib status (May 2026)**: blocked on Mathlib gaining a compensated-Poisson L²-integral (waits on PRM construction — Tier 1 #2). No current Mathlib activity in this direction.
 * **Replacement plan**: `theorem itoIsometry_diff_compensated := <linearity ∘ isometry>` when Mathlib gains a compensated-Poisson L²-integral as a continuous linear map.
 
@@ -336,10 +335,10 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Brownian.Ito.quadVar_stochasticIntegral` | `itoIsometry_brownian_unified_existence` (extracts conjunct 2 = quadVar) |
 | `LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite` | (Tier 1 cited axiom #2 — itself) |
 | `LevyStochCalc.Poisson.poissonRandomMeasure_finite_exists` | `PoissonRandomMeasure.exists_of_sigmaFinite` (finite-intensity restriction) |
-| `LevyStochCalc.Poisson.Compensated.itoLevyIsometry` | `itoIsometry_compensated_unified_existence` (extracts conjunct 3 = isometry) |
-| `LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 1 = martingale) |
-| `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `itoIsometry_compensated_unified_existence` (extracts conjunct 2 = quadVar) |
-| `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `itoIsometry_compensated_unified_existence` (extracts conjunct 4 = càdlàg) |
+| `LevyStochCalc.Poisson.Compensated.itoLevyIsometry` | `isometry_stochasticIntegral` (a theorem since 2026-09-06; this row is now fully proven) |
+| `LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral` | `martingale_stochasticIntegral_rightCont` (a theorem since 2026-09-06; fully proven) |
+| `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `martingale_quadVar_stochasticIntegral_rightCont` (a theorem since 2026-09-06; fully proven) |
+| `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `stochasticIntegral_cadlag` (a theorem since 2026-09-06; fully proven) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` | derived theorem combining Tier 1 sub-axioms #13a (PRP for càdlàg L² (W, N)-martingales) + #13b (condExp→PRP-martingale bridge); was Tier 1 axiom #13 prior to 2026-05-26 decomposition |
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (now a derived theorem transitively over Tier 1 #13a + #13b) |
@@ -548,9 +547,9 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **13 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
-  2026-06-16): #1, #2, #4, #5, #6 (Brownian + Poisson foundations; #3
-  Kolmogorov–Chentsov now a theorem), #9 + #10
+* **9 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #6 2026-09-06): #2, #4
+  (Brownian + Poisson foundations; #1, #3, #5, #6 now theorems), #9 + #10
   (BSDEJ existence + path regularity), #13a + #13b (the two strictly
   narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
   `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26
@@ -558,10 +557,10 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
   now demoted to a derived theorem), #15 + #16 (the two pieces of the
   decomposed Itô-Lévy formula: `itoFormula_continuousSemimartingale_axiom`
   + `itoLevyFormula_jumpResidual_canonical_axiom`, with the previously-
-  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem), and #17
-  + #18 (`itoIsometry_diff_brownian` + `itoIsometry_diff_compensated`,
-  the per-difference L²-isometries that have lived in source since
-  2026-05-23 but were first formally numbered in this file on 2026-05-27).
+  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem), and #18
+  (`itoIsometry_diff_compensated`, the per-difference L²-isometry that has
+  lived in source since 2026-05-23 and was first formally numbered in this
+  file on 2026-05-27; its Brownian twin #17 is a theorem since 2026-06-17).
   Each axiom has paper reference + Mathlib status + replacement plan.
   History markers: M4 deleted #7 + #8 (2026-05-22); #11 retired (2026-05-24);
   #12, #13, #14 demoted axiom→theorem (2026-05-26); #17, #18 added
