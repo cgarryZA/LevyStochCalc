@@ -82,6 +82,7 @@ import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoIncrementMoment
+import LevyStochCalc.Brownian.ItoQuadVarSum
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 
