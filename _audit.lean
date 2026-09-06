@@ -57,6 +57,14 @@ import LevyStochCalc
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
 #print axioms LevyStochCalc.Probability.isRealQuasimartingale_of_martingale
+-- A3f, A3b, A3c (2026-09-06): the `ℝ≥0` reindexing, convergence in measure from the right, and
+-- the right-continuous modification of the conditional-expectation martingale.
+#print axioms LevyStochCalc.Probability.restrictNNReal.instIsRightContinuous
+#print axioms LevyStochCalc.Probability.tendstoInMeasure_condExp_nhdsGT
+#print axioms LevyStochCalc.Probability.condExpModif_ae_eq
+#print axioms LevyStochCalc.Probability.martingale_condExpModif
+#print axioms LevyStochCalc.Probability.continuousWithinAt_condExpModif
+#print axioms LevyStochCalc.Probability.ae_exists_tendsto_condExpModif_nhdsLT
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive
