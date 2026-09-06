@@ -121,14 +121,15 @@ metric. -/
 theorem picardFixedPoint
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
     {n d : ℕ}
     (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (_coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (_x₀ : Fin n → ℝ) (T : ℝ) (_hT : 0 < T)
-    {K : NNReal} {Φ : SBoundedProcess (n := n) P T → SBoundedProcess (n := n) P T}
+    {K : NNReal} {Φ : SBoundedProcess (n := n) P ℱ T → SBoundedProcess (n := n) P ℱ T}
     (hΦ : ContractingWith K Φ) :
-    ∃! X : SBoundedProcess (n := n) P T, Φ X = X :=
+    ∃! X : SBoundedProcess (n := n) P ℱ T, Φ X = X :=
   picardFixedPoint_generic hΦ
 
 /-- **Convenience corollary — Picard fixed point in the user's
@@ -146,17 +147,18 @@ delivers its unique fixed point. -/
 theorem picardFixedPoint_of_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
     {n d : ℕ}
     (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (_coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (_x₀ : Fin n → ℝ) (T : ℝ) (_hT : 0 < T)
     (h_contraction :
-      ∃ (Φ : SBoundedProcess (n := n) P T → SBoundedProcess (n := n) P T)
+      ∃ (Φ : SBoundedProcess (n := n) P ℱ T → SBoundedProcess (n := n) P ℱ T)
         (K : NNReal) (_hK : K < 1),
-          ∀ X Y : SBoundedProcess (n := n) P T, edist (Φ X) (Φ Y) ≤ K * edist X Y) :
-    ∃ (Φ : SBoundedProcess (n := n) P T → SBoundedProcess (n := n) P T),
-      ∃! X : SBoundedProcess (n := n) P T, Φ X = X := by
+          ∀ X Y : SBoundedProcess (n := n) P ℱ T, edist (Φ X) (Φ Y) ≤ K * edist X Y) :
+    ∃ (Φ : SBoundedProcess (n := n) P ℱ T → SBoundedProcess (n := n) P ℱ T),
+      ∃! X : SBoundedProcess (n := n) P ℱ T, Φ X = X := by
   -- Unpack the contraction existential.
   obtain ⟨Φ, K, hK_lt_one, hΦ_lip⟩ := h_contraction
   -- Build a `ContractingWith K Φ`: the contraction is the conjunction of

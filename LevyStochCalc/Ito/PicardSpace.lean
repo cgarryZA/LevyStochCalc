@@ -60,8 +60,9 @@ vector in `Fin n → ℝ`) is the canonical witness of `Nonempty
   multiplying by `ENNReal.ofReal (exp (-β·t))` and taking the supremum
   over `t ∈ [0, T]` still gives zero, which is `< ⊤`. -/
 noncomputable def constantZeroProcess
-    {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P] (T : ℝ) :
-    SBoundedProcess (n := n) P T where
+    {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P]
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) :
+    SBoundedProcess (n := n) P ℱ T where
   X := fun _ _ => 0
   measurable_path := by
     have : Function.uncurry (fun (_ : ℝ) (_ : Ω) => (0 : Fin n → ℝ)) =
@@ -70,6 +71,12 @@ noncomputable def constantZeroProcess
       simp [Function.uncurry]
     rw [this]
     exact measurable_const
+  adapted := by
+    intro i t
+    simpa using
+      (stronglyMeasurable_const :
+        StronglyMeasurable[@Prod.instMeasurableSpace Ω ℝ (ℱ t) inferInstance]
+          fun _ : Ω × ℝ => (0 : ℝ))
   cadlag_paths := by
     refine Filter.Eventually.of_forall (fun ω => ?_)
     intro t
@@ -92,9 +99,10 @@ noncomputable def constantZeroProcess
 
 /-- `Nonempty` instance: constant zero process. -/
 noncomputable instance instNonemptySBoundedProcess
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T : ℝ} :
-    Nonempty (SBoundedProcess (n := n) P T) :=
-  ⟨constantZeroProcess P T⟩
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ} :
+    Nonempty (SBoundedProcess (n := n) P ℱ T) :=
+  ⟨constantZeroProcess P ℱ T⟩
 
 /-! ### MetricSpace: discrete metric for typeclass satisfaction.
 
@@ -141,21 +149,22 @@ section DiscreteMetric
 set_option linter.style.openClassical false
 open Classical
 
-variable {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T : ℝ}
+variable {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
 
 /-- The discrete distance on `SBoundedProcess`: zero on the diagonal,
 one elsewhere. Uses classical decidability of equality (via the
 section-local `open Classical`) to make `if X = Y then 0 else 1`
 well-typed without needing a `[DecidableEq]` instance. -/
 noncomputable def discreteDist
-    (X Y : SBoundedProcess (n := n) P T) : ℝ :=
+    (X Y : SBoundedProcess (n := n) P ℱ T) : ℝ :=
   if X = Y then 0 else 1
 
-lemma discreteDist_self (X : SBoundedProcess (n := n) P T) :
+lemma discreteDist_self (X : SBoundedProcess (n := n) P ℱ T) :
     discreteDist X X = 0 := by
   simp [discreteDist]
 
-lemma discreteDist_comm (X Y : SBoundedProcess (n := n) P T) :
+lemma discreteDist_comm (X Y : SBoundedProcess (n := n) P ℱ T) :
     discreteDist X Y = discreteDist Y X := by
   unfold discreteDist
   by_cases h : X = Y
@@ -163,7 +172,7 @@ lemma discreteDist_comm (X Y : SBoundedProcess (n := n) P T) :
   · have h' : ¬ Y = X := fun heq => h heq.symm
     rw [if_neg h, if_neg h']
 
-lemma discreteDist_triangle (X Y Z : SBoundedProcess (n := n) P T) :
+lemma discreteDist_triangle (X Y Z : SBoundedProcess (n := n) P ℱ T) :
     discreteDist X Z ≤ discreteDist X Y + discreteDist Y Z := by
   unfold discreteDist
   by_cases hXZ : X = Z
@@ -186,7 +195,7 @@ lemma discreteDist_triangle (X Y Z : SBoundedProcess (n := n) P T) :
       linarith
 
 lemma discreteDist_eq_zero_iff
-    (X Y : SBoundedProcess (n := n) P T) :
+    (X Y : SBoundedProcess (n := n) P ℱ T) :
     discreteDist X Y = 0 ↔ X = Y := by
   unfold discreteDist
   by_cases h : X = Y
@@ -194,14 +203,14 @@ lemma discreteDist_eq_zero_iff
   · rw [if_neg h]
     exact ⟨fun h₀ => by linarith, fun heq => absurd heq h⟩
 
-lemma discreteDist_nonneg (X Y : SBoundedProcess (n := n) P T) :
+lemma discreteDist_nonneg (X Y : SBoundedProcess (n := n) P ℱ T) :
     0 ≤ discreteDist X Y := by
   unfold discreteDist
   split_ifs <;> norm_num
 
 /-- **`PseudoMetricSpace` instance via the discrete distance.** -/
 noncomputable instance instPseudoMetricSpaceSBoundedProcess :
-    PseudoMetricSpace (SBoundedProcess (n := n) P T) where
+    PseudoMetricSpace (SBoundedProcess (n := n) P ℱ T) where
   dist := discreteDist
   dist_self := discreteDist_self
   dist_comm := discreteDist_comm
@@ -212,7 +221,7 @@ pseudo-metric to a genuine metric by adding the separation axiom
 `dist X Y = 0 → X = Y`, which holds for the discrete distance by
 construction. -/
 noncomputable instance instMetricSpaceSBoundedProcess :
-    MetricSpace (SBoundedProcess (n := n) P T) where
+    MetricSpace (SBoundedProcess (n := n) P ℱ T) where
   __ := instPseudoMetricSpaceSBoundedProcess
   eq_of_dist_eq_zero {X Y} h := (discreteDist_eq_zero_iff X Y).mp h
 
@@ -227,7 +236,7 @@ the Cauchy property at scale `ε = 1/2`: any two terms `u m`, `u n` with
 `m, n ≥ N` have `dist (u m) (u n) < 1`, hence by the discrete distance
 must satisfy `u m = u n`. -/
 lemma cauchySeq_eventually_constant
-    (u : ℕ → SBoundedProcess (n := n) P T) (hu : CauchySeq u) :
+    (u : ℕ → SBoundedProcess (n := n) P ℱ T) (hu : CauchySeq u) :
     ∃ N : ℕ, ∀ n ≥ N, u n = u N := by
   rw [Metric.cauchySeq_iff] at hu
   obtain ⟨N, hN⟩ := hu (1/2) (by norm_num)
@@ -252,7 +261,7 @@ every Cauchy *sequence* converges. The discrete metric makes every Cauchy
 sequence eventually constant (by `cauchySeq_eventually_constant`), and an
 eventually-constant sequence converges to its eventual value. -/
 noncomputable instance instCompleteSpaceSBoundedProcess :
-    CompleteSpace (SBoundedProcess (n := n) P T) := by
+    CompleteSpace (SBoundedProcess (n := n) P ℱ T) := by
   apply UniformSpace.complete_of_cauchySeq_tendsto
   intro u hu
   obtain ⟨N, hN⟩ := cauchySeq_eventually_constant u hu
@@ -306,8 +315,9 @@ just pointwise subtraction. -/
 `SBoundedProcess`'s underlying path maps is pointwise subtraction in
 `Fin n → ℝ` at each `(t, ω)`. -/
 @[simp] noncomputable def SBoundedProcess.pathDiff
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T : ℝ}
-    (X Y : SBoundedProcess (n := n) P T) : ℝ → Ω → (Fin n → ℝ) :=
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (X Y : SBoundedProcess (n := n) P ℱ T) : ℝ → Ω → (Fin n → ℝ) :=
   fun t ω => X.X t ω - Y.X t ω
 
 /-- **The Bielecki β-weighted edist between two `SBoundedProcess`es.**
@@ -323,14 +333,16 @@ on the AE-quotient (`SBoundedProcess.AEQuot`); this pseudo-edist
 descends to a genuine edist on the quotient. -/
 noncomputable def bieleckiEDist
     {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
-    (β T : ℝ) (X Y : SBoundedProcess (n := n) P T) : ℝ≥0∞ :=
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+    (β T : ℝ) (X Y : SBoundedProcess (n := n) P ℱ T) : ℝ≥0∞ :=
   bieleckiNorm (P := P) β T (SBoundedProcess.pathDiff X Y)
 
 /-! ### Pseudo-edist axioms for `bieleckiEDist` -/
 
 @[simp] lemma bieleckiEDist_self
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {β T : ℝ}
-    (X : SBoundedProcess (n := n) P T) : bieleckiEDist β T X X = 0 := by
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {β T : ℝ}
+    (X : SBoundedProcess (n := n) P ℱ T) : bieleckiEDist β T X X = 0 := by
   unfold bieleckiEDist bieleckiNorm SBoundedProcess.pathDiff
   -- The path-difference is identically zero, so the L² norm is zero.
   refine le_antisymm ?_ bot_le
@@ -347,8 +359,9 @@ noncomputable def bieleckiEDist
   simp
 
 lemma bieleckiEDist_comm
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {β T : ℝ}
-    (X Y : SBoundedProcess (n := n) P T) :
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {β T : ℝ}
+    (X Y : SBoundedProcess (n := n) P ℱ T) :
     bieleckiEDist β T X Y = bieleckiEDist β T Y X := by
   -- It suffices to show, per-`(t, ω, i)`, that the inner summands agree.
   -- ‖X t ω i - Y t ω i‖₊ = ‖-(Y t ω i - X t ω i)‖₊ = ‖Y t ω i - X t ω i‖₊
@@ -606,27 +619,29 @@ typeclass instances on the same underlying type. The `β` parameter is
 intentionally unused in the type definition (it only affects the
 distinct `EDist` instance that downstream registers on it). -/
 def SBoundedProcess.WithBielecki (n : ℕ) (P : Measure Ω)
-    [IsProbabilityMeasure P] (T β : ℝ) : Type _ :=
+    [IsProbabilityMeasure P] (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (T β : ℝ) : Type _ :=
   let _ := β  -- silence "unused variable β" — phantom parameter
-  SBoundedProcess (n := n) P T
+  SBoundedProcess (n := n) P ℱ T
 
 namespace SBoundedProcess.WithBielecki
 
-variable {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ}
+variable {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ}
 
 /-- **Constructor.** Wrap a `SBoundedProcess` as the Bielecki-flavored type. -/
-def of (X : SBoundedProcess (n := n) P T) :
-    SBoundedProcess.WithBielecki (n := n) P T β := X
+def of (X : SBoundedProcess (n := n) P ℱ T) :
+    SBoundedProcess.WithBielecki (n := n) P ℱ T β := X
 
 /-- **Underlying `SBoundedProcess` extractor.** -/
-def get (X : SBoundedProcess.WithBielecki (n := n) P T β) :
-    SBoundedProcess (n := n) P T := X
+def get (X : SBoundedProcess.WithBielecki (n := n) P ℱ T β) :
+    SBoundedProcess (n := n) P ℱ T := X
 
-@[simp] lemma get_of (X : SBoundedProcess (n := n) P T) :
+@[simp] lemma get_of (X : SBoundedProcess (n := n) P ℱ T) :
     SBoundedProcess.WithBielecki.get (SBoundedProcess.WithBielecki.of (n := n) (β := β) X) = X
     := rfl
 
-@[simp] lemma of_get (X : SBoundedProcess.WithBielecki (n := n) P T β) :
+@[simp] lemma of_get (X : SBoundedProcess.WithBielecki (n := n) P ℱ T β) :
     SBoundedProcess.WithBielecki.of (n := n) (β := β)
       (SBoundedProcess.WithBielecki.get X) = X := rfl
 
@@ -639,15 +654,17 @@ so the existing discrete-metric instance in `PicardSpace.lean` is
 preserved. -/
 
 noncomputable instance instEDistWithBielecki
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ} :
-    EDist (SBoundedProcess.WithBielecki (n := n) P T β) where
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ} :
+    EDist (SBoundedProcess.WithBielecki (n := n) P ℱ T β) where
   edist X Y := bieleckiEDist β T
     (SBoundedProcess.WithBielecki.get X)
     (SBoundedProcess.WithBielecki.get Y)
 
 @[simp] lemma edist_WithBielecki_def
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ}
-    (X Y : SBoundedProcess.WithBielecki (n := n) P T β) :
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ}
+    (X Y : SBoundedProcess.WithBielecki (n := n) P ℱ T β) :
     edist X Y = bieleckiEDist β T
       (SBoundedProcess.WithBielecki.get X) (SBoundedProcess.WithBielecki.get Y) := rfl
 
@@ -720,8 +737,9 @@ difference of two `SBoundedProcess`es.** Follows from
 `bieleckiNorm_inner_aemeasurable` applied to `X.X - Y.X` after showing
 the difference is jointly measurable. -/
 lemma SBoundedProcess.pathDiff_aemeasurable
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T : ℝ}
-    (X Y : SBoundedProcess (n := n) P T) (t : ℝ) :
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (X Y : SBoundedProcess (n := n) P ℱ T) (t : ℝ) :
     AEMeasurable (fun ω => (∑ i, (‖(X.X t ω - Y.X t ω) i‖₊ : ℝ≥0∞) ^ 2)
         ^ ((1 : ℝ) / 2)) P := by
   -- The pointwise difference `fun t ω => X.X t ω - Y.X t ω` is jointly
@@ -741,8 +759,9 @@ lemma SBoundedProcess.pathDiff_aemeasurable
 For `SBoundedProcess`es X, Y, Z, applying `bieleckiNorm_add_le` to
 `Y₁ = X.X - Y.X`, `Y₂ = Y.X - Z.X` gives the triangle inequality. -/
 lemma bieleckiEDist_triangle
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {β T : ℝ}
-    (X Y Z : SBoundedProcess (n := n) P T) :
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {β T : ℝ}
+    (X Y Z : SBoundedProcess (n := n) P ℱ T) :
     bieleckiEDist β T X Z
       ≤ bieleckiEDist β T X Y + bieleckiEDist β T Y Z := by
   -- (X.X - Z.X) = (X.X - Y.X) + (Y.X - Z.X) pointwise.
@@ -774,8 +793,9 @@ constructor takes the three edist axioms plus a default
 `UniformSpace` (we use the canonical one generated from the edist). -/
 
 noncomputable instance instPseudoEMetricSpaceWithBielecki
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ} :
-    PseudoEMetricSpace (SBoundedProcess.WithBielecki (n := n) P T β) where
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ} :
+    PseudoEMetricSpace (SBoundedProcess.WithBielecki (n := n) P ℱ T β) where
   edist_self X := by
     change bieleckiEDist β T (SBoundedProcess.WithBielecki.get X)
       (SBoundedProcess.WithBielecki.get X) = 0
@@ -811,14 +831,16 @@ a genuine `EMetricSpace` (separated) — and hence a `MetricSpace` once we
 project the edist down to a real-valued distance. This is the literature
 Banach space `S²([0, T]; ℝⁿ)` modulo P-null-set equivalence. -/
 def SBoundedProcess.AEQuot
-    (n : ℕ) (P : Measure Ω) [IsProbabilityMeasure P] (T β : ℝ) : Type _ :=
-  SeparationQuotient (SBoundedProcess.WithBielecki (n := n) P T β)
+    (n : ℕ) (P : Measure Ω) [IsProbabilityMeasure P]
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (T β : ℝ) : Type _ :=
+  SeparationQuotient (SBoundedProcess.WithBielecki (n := n) P ℱ T β)
 
 /-- Mathlib auto-derives `EMetricSpace` on the `SeparationQuotient`.
 Re-export under the project's namespace. -/
 noncomputable instance instEMetricSpaceAEQuot
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ} :
-    EMetricSpace (SBoundedProcess.AEQuot (n := n) P T β) :=
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ} :
+    EMetricSpace (SBoundedProcess.AEQuot (n := n) P ℱ T β) :=
   instEMetricSpaceSeparationQuotient
 
 /-! ### Status of the fixed-point programme (survey, 2026-09-06)
@@ -877,19 +899,16 @@ processes with a.e. equal paths. Any wrap-up has to bridge the two.
    lifts to Cauchy representatives; the per-`t` `L²` Cauchy property
    descends to a per-`t` `L²` limit by `Lp` completeness; a jointly
    measurable selection then yields a representative of the limit class.
-3. *The Picard map as a map.* Open, and blocked twice over.
-   `picardStepOnS2` is not a total self-map: it takes the `σ`- and
-   `γ`-side hypotheses along `X.X`, and the joint measurability, càdlàg
-   property and finite Bielecki norm of its own output, as arguments.
-   Coefficient regularity (`JumpDiffusionCoeffs.IsRegular`) is one of the
-   two things needed to discharge them. The other is missing from the
-   space itself: `SBoundedProcess` has no adaptedness field, only joint
-   measurability, so `(s, ω) ↦ σ(s, X_s ω)` is not progressively
-   measurable for any filtration and the Brownian integral in the Picard
-   step is not well-typed for a general member. The space has to be
-   parameterised by the filtration `ℱ` and carry
-   `ProgressivelyMeasurable ℱ (fun ω s => X s ω i)` before step 3 can be
-   attempted.
+3. *The Picard map as a map.* Open. `SBoundedProcess` is parameterised
+   by a filtration `ℱ` and carries
+   `ProgressivelyMeasurable ℱ (fun ω s => X s ω i)` for each coordinate,
+   so `(s, ω) ↦ σ(s, X_s ω)` has a filtration to be progressively
+   measurable for. What remains is that `picardStepOnS2` is still not a
+   total self-map: it takes the `σ`- and `γ`-side integrand hypotheses
+   along `X.X`, and the joint measurability, adaptedness, càdlàg property
+   and finite Bielecki norm of its own output, as arguments. Deriving
+   them from `JumpDiffusionCoeffs.IsRegular` together with the Lipschitz
+   bounds is what makes the step total.
 4. *Contraction.* The estimates exist on the underlying path map
    (`picardStep_bielecki_contraction`,
    `picardStep_bielecki_contraction_tight` and their `_rate_lt_one`
@@ -926,17 +945,19 @@ AE-quotient. -/
 `SBoundedProcess` (from `PicardSpace.lean`) witnesses inhabitedness
 of the underlying type, which inhabits the type synonym. -/
 noncomputable instance instNonemptyWithBielecki
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ} :
-    Nonempty (SBoundedProcess.WithBielecki (n := n) P T β) :=
-  ⟨SBoundedProcess.WithBielecki.of (β := β) (constantZeroProcess (n := n) P T)⟩
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ} :
+    Nonempty (SBoundedProcess.WithBielecki (n := n) P ℱ T β) :=
+  ⟨SBoundedProcess.WithBielecki.of (β := β) (constantZeroProcess (n := n) P ℱ T)⟩
 
 /-- **Nonemptiness of `AEQuot β T`.** Lifts from the constant-zero process
 via `SeparationQuotient.mk`. -/
 noncomputable instance instNonemptyAEQuot
-    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] {T β : ℝ} :
-    Nonempty (SBoundedProcess.AEQuot (n := n) P T β) :=
+    {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T β : ℝ} :
+    Nonempty (SBoundedProcess.AEQuot (n := n) P ℱ T β) :=
   ⟨SeparationQuotient.mk (SBoundedProcess.WithBielecki.of (β := β)
-    (constantZeroProcess (n := n) P T))⟩
+    (constantZeroProcess (n := n) P ℱ T))⟩
 
 /-! ### The wrap-up theorem (Tier 1 axiom #14 replacement)
 

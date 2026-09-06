@@ -64,20 +64,21 @@ noncomputable def bieleckiNorm
     ENNReal.ofReal (Real.exp (-β * t)) *
       (∫⁻ ω, (∑ i, (‖X t ω i‖₊ : ℝ≥0∞) ^ 2) ∂P) ^ (1/2 : ℝ)
 
-/-- The space of jointly measurable, almost-surely càdlàg processes on `[0, T]` with values in
-`Fin n → ℝ` and finite Bielecki norm at weight `0`.
+/-- The space of jointly measurable, `ℱ`-progressively measurable, almost-surely càdlàg
+processes on `[0, T]` with values in `Fin n → ℝ` and finite Bielecki norm at weight `0`.
 
-Two differences from the literature's `S²([0, T]; ℝⁿ)`, both recorded in the section note
-"Status of the fixed-point programme" of `Ito/PicardSpace.lean`: the norm here is
-`bieleckiNorm`, the weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of
-the supremum; and there is no adaptedness field, so a member need not be progressively
-measurable for any filtration. -/
+One difference from the literature's `S²([0, T]; ℝⁿ)`, recorded in the section note "Status of
+the fixed-point programme" of `Ito/PicardSpace.lean`: the norm here is `bieleckiNorm`, the
+weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of the supremum. -/
 structure SBoundedProcess
-    {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P] (T : ℝ) where
+    {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P]
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) where
   /-- The path map. -/
   X : ℝ → Ω → (Fin n → ℝ)
   /-- Joint measurability in `(t, ω)`. -/
   measurable_path : Measurable (Function.uncurry X)
+  /-- Each coordinate is progressively measurable for `ℱ`. -/
+  adapted : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ (fun ω s => X s ω i)
   /-- Almost-sure càdlàg paths. -/
   cadlag_paths : ∀ᵐ ω ∂P, ∀ t : ℝ,
     Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
@@ -1547,7 +1548,7 @@ same shape of hypotheses for the next iterate, with σ/γ replaced by
 σ/γ along the new candidate).
 
 The three output-field hypotheses
-(`h_out_meas`, `h_out_cadlag`, `h_out_sup_L2`) encode the
+(`h_out_meas`, `h_out_adapted`, `h_out_cadlag`, `h_out_sup_L2`) encode the
 "missing-Mathlib-infrastructure" content that a BDG-based analytic
 argument would otherwise discharge — see the module docstring. -/
 noncomputable def SBoundedProcess.ofPicardStep
@@ -1597,13 +1598,17 @@ noncomputable def SBoundedProcess.ofPicardStep
               (fun s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X x₀
                 h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq s ω i)
               (nhdsWithin t (Set.Iio t)) (nhds L))
+    (h_out_adapted : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ
+      (fun ω s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X x₀
+        h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq s ω i))
     (h_out_sup_L2 : bieleckiNorm (P := P) 0 T
       (fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X x₀
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω) < ⊤) :
-    SBoundedProcess (n := n) P T where
+    SBoundedProcess (n := n) P ℱ T where
   X := fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X x₀
     h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω
   measurable_path := h_out_meas
+  adapted := h_out_adapted
   cadlag_paths := h_out_cadlag
   sup_L2 := h_out_sup_L2
 
@@ -1620,7 +1625,7 @@ Given:
   shared coeffs measurability with the SBoundedProcess's joint
   measurability via `sigma_along_X_measurable` and
   `gamma_along_X_measurable`),
-* the **three output-field hypothesis bundles** for the lifted iterate.
+* the **four output-field hypothesis bundles** for the lifted iterate.
 
 …produces a new `SBoundedProcess` whose underlying path map is
 exactly `picardStep` applied to `X.X`.
@@ -1641,7 +1646,7 @@ noncomputable def picardStepOnS2
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ) (T : ℝ)
-    (X : SBoundedProcess (n := n) P T)
+    (X : SBoundedProcess (n := n) P ℱ T)
     -- σ-side hypotheses along X.X
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X.X s ω) i j)))
@@ -1660,10 +1665,13 @@ noncomputable def picardStepOnS2
     (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
         (‖coeffs.γ s (X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    -- Three output-field hypothesis bundles (see module docstring).
+    -- Four output-field hypothesis bundles (see module docstring).
     (h_out_meas : Measurable (Function.uncurry
       (fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω)))
+    (h_out_adapted : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ
+      (fun ω s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
+        h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq s ω i))
     (h_out_cadlag : ∀ᵐ ω ∂P, ∀ t : ℝ,
       Filter.Tendsto
         (fun s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
@@ -1679,10 +1687,10 @@ noncomputable def picardStepOnS2
     (h_out_sup_L2 : bieleckiNorm (P := P) 0 T
       (fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω) < ⊤) :
-    SBoundedProcess (n := n) P T :=
+    SBoundedProcess (n := n) P ℱ T :=
   SBoundedProcess.ofPicardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
     h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq T
-    h_out_meas h_out_cadlag h_out_sup_L2
+    h_out_meas h_out_cadlag h_out_adapted h_out_sup_L2
 
 -- `picardStep`, its two integral components and `bieleckiNorm` unfold to `Finset` sums
 -- over `Fin d` / `Fin n` and to the `L²`-limit integrals; the statement below repeats
@@ -1698,6 +1706,8 @@ set_option maxHeartbeats 400000 in
 -- The three output hypotheses restate the whole Picard term, so checking them against
 -- `picardStepOnS2`'s binders compares the filtration argument of every progressive-
 -- measurability side condition; that alone exceeds the default budget.
+-- maxHeartbeats: the `rfl` below unifies the full argument bundle of `ofPicardStep`.
+set_option maxHeartbeats 1600000 in
 /-- The path map of `picardStepOnS2 W N ℱ … X` is `picardStep` applied to `X.X`, so a
 bound on `picardStep` is a bound on the lifted iterate's path map. -/
 @[simp]
@@ -1712,7 +1722,7 @@ lemma picardStepOnS2_X
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ) (T : ℝ)
-    (X : SBoundedProcess (n := n) P T)
+    (X : SBoundedProcess (n := n) P ℱ T)
     (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry (fun ω s => coeffs.σ s (X.X s ω) i j)))
     (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
@@ -1732,6 +1742,9 @@ lemma picardStepOnS2_X
     (h_out_meas : Measurable (Function.uncurry
       (fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω)))
+    (h_out_adapted : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ
+      (fun ω s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
+        h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq s ω i))
     (h_out_cadlag : ∀ᵐ ω ∂P, ∀ t : ℝ,
       Filter.Tendsto
         (fun s => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
@@ -1749,7 +1762,7 @@ lemma picardStepOnS2_X
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω) < ⊤) :
     (picardStepOnS2 (E := E) W N ℱ hℱW hℱN coeffs x₀ T X
         h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq
-        h_out_meas h_out_cadlag h_out_sup_L2).X
+        h_out_meas h_out_adapted h_out_cadlag h_out_sup_L2).X
       = fun t ω => picardStep (E := E) W N ℱ hℱW hℱN coeffs X.X x₀
           h_σ_meas h_σ_progMeas h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq t ω := by
   rfl
