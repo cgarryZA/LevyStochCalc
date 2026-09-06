@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (5 currently live)
+## Tier 1: Honest cited axioms (2 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
@@ -52,12 +52,13 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   Picard contraction estimates and the Itô-Lévy formula (#16).
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14, and #15, retired 2026-09-06
-because its Lean statement was trivially satisfiable) and resolved-by-proof
-entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
+because its Lean statement was trivially satisfiable; #9, #10 and #13a retired
+2026-09-06 because their Lean statements were refutable — see their entries) and
+resolved-by-proof entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
 2026-09-05; #6, #18, #4 and #2, proved 2026-09-06) are kept as `### Retired #N` /
 `### Resolved #N` headings below for traceability; they are NOT counted in the
-headline "5 currently live" figure. Only `### N.` (digit-leading) headings correspond
-to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 5`.
+headline "2 currently live" figure. Only `### N.` (digit-leading) headings correspond
+to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 2`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -149,7 +150,9 @@ exists a sequence of adapted simple predictables `G n` with `(G n).eval`
 converging to `φ` in `L²(P × ds × dν)` plus the shared endpoint + joint
 measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 
-### 9. `LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique`
+### Retired #9: `LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique` (RETIRED 2026-09-06 — statement refutable; DELETED)
+
+* **Statement audit (2026-09-06)**: the axiom quantified over an arbitrary *measurable* forward process `X` (no adaptedness) and asked for a solution in `IsBSDEJSolution`, which pins `Y` adapted to the joint filtration and `Z`, `U` progressively measurable for the natural filtration of a *single* driver (`naturalFiltration (W.W i)` per coordinate, `naturalFiltration N` alone). Two refutations: (i) on a product space `Ω_W × Ω_N × [0,1]` take `g(x) = x₁` and `X_T := ` the third coordinate — `ξ = g(X_T)` is independent of `(W, N)`, yet the solution equation at `t = T` forces `Y_T = ξ` a.s. with `Y_T` `Filt_T`-measurable, impossible for a non-degenerate independent variable; (ii) `n = 2`, `X_T = (W_T, Ñ_T)`, `g(x) = x₁ x₂`, `f = 0`: the unique solution has `Z_s = Ñ_{s-}`, which is not adapted to `ℱ^W`, so no solution exists in the pinned class. The axiom and its dissertation forwarder `Dissertation.Continuous.continuousBSDEJ_exists_unique` (Cu01) were deleted; `picardMap` and `Lipschitz` remain. The corrected statement — `X` adapted (a jump diffusion), integrands over the joint filtration of `(W, N)` — returns with work package X2 (`Plan.md`).
 
 * **Statement**: Under Lipschitz hypotheses on `(f, g)` and L² integrability of terminal data, the continuous BSDEJ has a unique adapted solution triple `(Y, Z, U) ∈ S² × H² × H²_N` satisfying the strengthened `IsBSDEJSolution` predicate.
 * **Reference**: Tang & Li, *Necessary conditions for optimal control of stochastic systems with random jumps*, SIAM J. Control Optim. 32(5), 1994, DOI 10.1137/S0363012992233858 (historical first BSDEJ existence reference per Papapantoleon-Possamaï-Saplaouras 2018; specific theorem number paywalled and unverified per red-team P11 2nd audit 2026-05-23 — primary numbered citation is AGPP 2025 below); Andersson, Gnoatto, Patacca & Picarelli, *A deep solver for BSDEs with jumps*, SIAM J. Financial Math. / arXiv:2211.04349, 2025, **Theorem 2.4** (correcting the previous fabricated citation "Gnoatto 2025 *Quantitative Finance* primer" flagged by red-team P11 — no such paper exists per DBLP); Delong, *BSDEs with Jumps and their Actuarial and Financial Applications*, Springer EAA 2013 (first edition, DOI 10.1007/978-1-4471-5331-3), **Theorem 4.1.3** (jumps case, directly applicable). For continuous-only background see also Pardoux & Răşcanu, *Stochastic Differential Equations, Backward SDEs, Partial Differential Equations*, Springer 2014, **Theorem 4.79** — but note Pardoux-Răşcanu does NOT cover the BSDEJ (jump) case per red-team P11 2nd audit 2026-05-23; the jump-case authority is Tang-Li + Delong + AGPP.
@@ -157,7 +160,9 @@ measurability properties needed downstream (Applebaum 2009 Lemma 4.2.2).
 * **Mathlib status (May 2026)**: No BSDEJ in Mathlib. `Mathlib.Analysis.SpecificLimits.Basic` has Picard / contraction-mapping infrastructure (`ContractingWith.fixedPoint`) usable for the proof body once the L² Itô-Lévy + martingale representation pieces land.
 * **Replacement plan**: `theorem continuousBSDEJ_exists_unique := <Picard contraction proof>` when the L² Itô-Lévy chain is fully formalized (after items 5 + 6 above). Further predicate-tightening (pinning `M_W` to the actual multidim Brownian stochastic integral, not just an isometric martingale) is a separate downstream item — needs `h_progMeas` threaded through `IsBSDEJSolution`.
 
-### 10. `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity`
+### Retired #10: `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity` (RETIRED 2026-09-06 — statement refutable; DELETED)
+
+* **Statement audit (2026-09-06)**: the axiom asserted the Bouchard–Elie rate `C · Δt`, with `C` independent of the partition, for *every* measurable `g` and *every* measurable `X` with `𝔼|g(X_T)|² < ∞`. Bouchard & Elie assume a Lipschitz `g` and a forward jump diffusion with Lipschitz coefficients; for `d = 1`, `ν = 0`, `X = W`, `g = 1_{x > 0}` the solution exists in the pinned class (`Z` is `ℱ^W`-adapted) and `𝔼 ∫_0^T |Z_s − Z̄_s|² ds` decays like `Δt^{1/2}` only (fractional smoothness `1/2`, Geiss–Geiss–Gobet 2012), so the claimed bound fails as `Δt → 0`. The axiom, its corollaries `bsdej_path_regularity_linear_rate` and `bsdej_U_L2_regularity_linear_rate`, the dissertation forwarder `Dissertation.Continuous.bsdej_path_regularity` (Cu05) and the dissertation's `LevyStochCalcBridge` section (which used only the positivity of the constant) were deleted; `conditionalTimeAverage_Z/U` remain. The corrected statement returns with work package X2, with the regularity hypotheses of the cited theorem.
 
 * **Statement**: For the unique BSDEJ solution (satisfying the strengthened `IsBSDEJSolution` predicate from item 9), the L²-time modulus + projection errors of `(Z, U)` over a partition with mesh `Δt` are bounded by `C · Δt`.
 * **Reference**: Bouchard & Elie, *Discrete-time approximation of decoupled Forward-Backward SDE with jumps*, Stochastic Processes Appl. **118(1)**, **2008**, pp. 53–75, **Theorem 2.1** (correcting the previous misattribution to "Bouchard, Elie & Touzi 2009 SPA 119(11)" — Touzi is not an author and no such 2009 paper exists; flagged by red-team P06/P07/P10/P11, verified via Bouchard's slides + HAL hal-00015486 + Kharroubi–Lim 2018 citing "Bouchard and Elie [4]"). For continuous-only background see also Pardoux & Răşcanu, Springer 2014, **Theorem 5.42** (continuous case, NOT BSDEJ) — Pardoux-Răşcanu does NOT cover the jump case per red-team P11 2nd audit 2026-05-23.
@@ -261,7 +266,9 @@ martingales", Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235-253;
 Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
 Springer 2003, **Theorem III.4.34**.
 
-### 13a. `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom`
+### Retired #13a: `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom` (RETIRED 2026-09-06 — statement refutable; DELETED)
+
+* **Statement audit (2026-09-06)**: the martingale `M` was one of the joint filtration `((⨆ i, ℱ^{W^i}) ⊔ ℱ^N).rightCont`, but the representing integrands were required to be progressively measurable for the natural filtration of a *single* driver (`Z i` for `ℱ^{W^i}`, `U` for `ℱ^N`) — the only class the library's `L²` integrals accept. Refutation (`d = 1`, `0 < ν(A) < ∞`, `W ⟂ N` as in the product construction): `M_t = W_t · Ñ_t([0, t] × A)` is a càdlàg `L²` martingale of the joint filtration; if `M_T = I_W(Z)_T + I_N(U)_T` with `Z` `ℱ^W`-adapted and `U` `ℱ^N`-adapted, then `I_W(Z)_T` is `σ(W)`-measurable and `I_N(U)_T` is `σ(N)`-measurable, so `𝔼[M_T I_W(Z)_T] = 𝔼[W_T I_W(Z)_T] 𝔼[Ñ_T] = 0` and likewise `𝔼[M_T I_N(U)_T] = 0`, whence `𝔼[M_T²] = 0`, contradicting `𝔼[M_T²] = T · Tν(A) > 0`. (For `d ≥ 2` and no jumps, `M = W¹ W²` refutes it likewise.) The axiom and the derived `jacodYor_representation_axiom` / `jacodYor_representation` were deleted. The cited theorem (Jacod–Shiryaev III.4.34) is for integrands adapted to the joint filtration of an independent pair `(W, N)`; it returns with work package X2. Note also that no statement of this file assumed `W ⟂ N`; the corrected statements will take the pair as a Lévy driver bundle.
 
 * **Statement**: For every L²-bounded càdlàg martingale `M` on the joint right-continuous filtration `ℱ = ((⨆ i, σ(W_i)) ⊔ σ(N)).rightCont`, there exist progressively-measurable square-integrable integrands `Z, U` such that `M_t = M_0 + ∫_0^t Z_s · dW_s + ∫_0^t ∫_E U_s(e) Ñ(ds, de)` a.s. at every `t ∈ [0, T]`. Both stochastic integrals are pinned to `MultidimBrownianMotion.stochasticIntegral` and `Compensated.stochasticIntegral` (canonical forms).
 * **Reference**: Jacod, J. (1975/76) Z. Wahrsch. Verw. Gebiete 31(3); Jacod-Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed., Springer 2003, **Theorem III.4.34** (stated in EXACTLY the martingale-input form of this sub-axiom — the conditional-expectation construction for a generic L² random variable is handled separately by #13b below).
@@ -276,6 +283,7 @@ Springer 2003, **Theorem III.4.34**.
 * **Narrowness**: this is a STANDARD CLASSICAL BUNDLE of three independent results: (1) Doob L² càdlàg modification on a right-continuous filtration, (2) Blumenthal 0-1 for the joint (W, N) filtration, (3) conditional-expectation reproducibility. Each has independent Mathlib activity / formalization roadmap. The bundle is strictly narrower than the original #13 because it does NOT require any chaos decomposition / predictable projection machinery — only classical martingale + filtration analysis.
 * **Mathlib status (May 2026)**: Doob L² càdlàg regularization is NOT yet in Mathlib but is on the roadmap (independent of BM construction; requires only `MeasureTheory.Martingale` + `Filtration.IsRightContinuous`). Blumenthal-for-BM waits on the BM construction (Tier 1 #1). `MeasureTheory.condExp_of_stronglyMeasurable` is already in Mathlib.
 * **Replacement plan**: `theorem condExp_to_PRP_martingale_form_axiom := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>` when the three Mathlib pieces above land.
+* **Statement audit (2026-09-06)**: not refuted. The càdlàg modification along rational right limits is measurable for the right-continuous joint filtration without completion, so adaptedness holds as stated; the `M_0 = 𝔼 ξ` clause is the 0-1 law of `ℱ_{0+}` for the *joint* filtration, which is the cited fact only when `W` and `N` are independent — a hypothesis this file never states (`W` and `N` are separate structures on one probability space). X2 restates it over a Lévy driver bundle carrying `W ⟂ N`.
 
 ### Retired #14: `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
 
@@ -342,8 +350,8 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.Compensated.quadVar_stochasticIntegral` | `martingale_quadVar_stochasticIntegral_rightCont` (a theorem since 2026-09-06; fully proven) |
 | `LevyStochCalc.Poisson.Compensated.cadlag_modification_exists` | `stochasticIntegral_cadlag` (a theorem since 2026-09-06; fully proven) |
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
-| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` | derived theorem combining Tier 1 sub-axioms #13a (PRP for càdlàg L² (W, N)-martingales) + #13b (condExp→PRP-martingale bridge); was Tier 1 axiom #13 prior to 2026-05-26 decomposition |
-| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | 1-line forwarder over `jacodYor_representation_axiom` (now a derived theorem transitively over Tier 1 #13a + #13b) |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` | deleted 2026-09-06 (built on the retired #13a) |
+| `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | deleted 2026-09-06 (built on the retired #13a) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | wrap-up theorem in `PicardSpace.lean` (single explicit baseline `sorry` for the entire Picard chain; ex-Tier-1-axiom #14 was demoted 2026-05-26 to a forwarder over this wrap-up) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (ex-Tier-1-axiom #14, demoted 2026-05-26 — name retained for downstream stability) |
 | `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem; transitively over `_via_aeQuot`) |
@@ -549,15 +557,14 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **5 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+* **2 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
   2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #2, #4, #6 and #18 2026-09-06;
-  #15 retired 2026-09-06 as a vacuous statement; the Brownian foundations #1, #3, #4, #5,
-  the Poisson random measure #2 and the Poisson integral #6 are theorems): #9 + #10
-  (BSDEJ existence + path regularity), #13a + #13b (the two strictly
-  narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
-  `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26
-  decomposition of the previously-monolithic `jacodYor_representation_axiom`,
-  now demoted to a derived theorem), and #16 (the Itô-Lévy formula's content,
+  #15 retired 2026-09-06 as a vacuous statement; #9, #10 and #13a retired 2026-09-06 as
+  refutable statements — see their entries; the Brownian foundations #1, #3, #4, #5,
+  the Poisson random measure #2 and the Poisson integral #6 are theorems): #13b
+  (`condExp_to_PRP_martingale_form_axiom`, the conditional-expectation bridge of the
+  2026-05-26 decomposition of `jacodYor_representation_axiom`, whose other half #13a and
+  the derived representation theorems were deleted), and #16 (the Itô-Lévy formula's content,
   `itoLevyFormula_jumpResidual_canonical_axiom`; the previously-monolithic
   Tier 1 #11 `itoLevyFormula` is a derived theorem over it alone since the
   vacuous #15 was retired on 2026-09-06). The two

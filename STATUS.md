@@ -30,7 +30,7 @@ Previously, `BSDEJ.MartingaleRepresentation.jacodYor_representation` and
 theorems forwarding through honest Tier 1 cited axioms (the
 #13a + #13b decomposition for jacodYor; #15 + #16 for itoLevyFormula).
 
-## Tier 1 cited axioms (5 currently live)
+## Tier 1 cited axioms (2 currently live)
 
 See `tools/cited_axioms.md` for the full inventory. Numbering history:
 #7 + #8 deleted 2026-05-22 (dead post-refactor per M4); #11 retired
@@ -56,9 +56,14 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   `Poisson/RandomMeasure.lean`) and `itoIsometry_compensated_unified_existence` (#6,
   2026-09-06 — the càdlàg modification of the `L²`-limit of mark-step integrals, see
   `Poisson/Compensated.lean`).
-* **BSDEJ** (4 axioms): `continuousBSDEJ_exists_unique` (#9),
-  `bsdej_path_regularity` (#10), `jacodYor_PRP_martingale_axiom` (#13a),
-  `condExp_to_PRP_martingale_form_axiom` (#13b).
+* **BSDEJ** (1 axiom): `condExp_to_PRP_martingale_form_axiom` (#13b). **Retired
+  2026-09-06 as refutable statements** (`tools/cited_axioms.md`): `continuousBSDEJ_exists_unique`
+  (#9: arbitrary non-adapted `X`; single-driver integrand class), `bsdej_path_regularity` (#10:
+  the `C·Δt` rate for merely measurable `g`, `X`), `jacodYor_PRP_martingale_axiom` (#13a:
+  single-driver integrands for a joint-filtration martingale; `W·Ñ` is a counterexample) and the
+  theorems derived from them (`jacodYor_representation(_axiom)`,
+  `bsdej_path_regularity_linear_rate`, `bsdej_U_L2_regularity_linear_rate`). Corrected statements
+  over the joint filtration of `(W, N)` are work package X2 in `Plan.md`.
 * **Itô-Lévy formula** (1 axiom): `itoLevyFormula_jumpResidual_canonical_axiom`
   (#16). The former #15 `itoFormula_continuousSemimartingale_axiom` was retired
   2026-09-06: its statement (an unconstrained existential residual) was

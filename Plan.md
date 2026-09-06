@@ -8,10 +8,12 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **5 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**, **#1 closed
-  2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18 and #2 closed 2026-09-06**,
-  **#15 retired 2026-09-06** as a vacuous statement). `cited_axioms.md` "5 live". The 3 standard
-  axioms (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
+- **2 custom axioms** remain — #13b and #16 (was 13; **#5 and #17 closed 2026-06-17**, **#1
+  closed 2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18 and #2 closed 2026-09-06**,
+  **#15 retired 2026-09-06** as a vacuous statement, **#9, #10, #13a retired 2026-09-06 as
+  refutable statements** — deleted, not relocated). `cited_axioms.md` "2 live". The 3 standard
+  axioms (`propext`/`Classical.choice`/`Quot.sound`) are the only others. **The BSDEJ layer no
+  longer states existence, path regularity or the PRP**; those return, correctly stated, with X2.
 - **Statement audit 2026-09-06 (#16)**: the Itô–Lévy axiom lacked `u ∈ C²` and drift
   integrability and was refutable; both are now hypotheses (see `tools/cited_axioms.md` #16).
   The same audit found that the library's `L²` integrals accept only integrands adapted to
@@ -327,11 +329,16 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       (4) keep the pinned dissertation symbols resolving; update `Continuous.lean`.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
       residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2.
-- [ ] **A6 / #9** `continuousBSDEJ_exists_unique` — BSDEJ existence/uniqueness via
-      the Picard chain (Tang–Li 1994 / AGPP 2025). **Retires the lone `sorry`**
-      (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).
-- [ ] **A7 / #10** `bsdej_path_regularity` — BSDEJ path regularity (Bouchard–Elie
-      2008), on A6.
+- [x] **A6-0 / #9 statement audit** — RETIRED 2026-09-06 (refutable: arbitrary non-adapted
+      `X`; single-driver integrand class); the axiom and the dissertation forwarder Cu01 were
+      deleted. **A6** becomes: after X2, state and prove BSDEJ existence/uniqueness over the
+      joint filtration via the Picard chain (Tang–Li 1994 / AGPP 2025); retires the lone
+      `sorry` (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).
+- [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
+      merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
+      corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were
+      deleted. **A7** becomes: after A6, state and prove Bouchard–Elie path regularity with its
+      regularity hypotheses (Lipschitz `g`, Lipschitz jump diffusion `X`).
 
 ## Phase B — Close the 7 off-critical-path axioms (breadth)
 
@@ -367,8 +374,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         forwards). Axiom set: the 3 standard.
 - [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
       regularization (KS I.3.13) + Blumenthal 0-1.
-- [ ] **B5 / #13a** `jacodYor_PRP_martingale_axiom` — predictable representation
-      property (Jacod 1975 / Jacod–Shiryaev III.4.34).
+- [x] **B5-0 / #13a statement audit** — RETIRED 2026-09-06 (refutable: single-driver
+      integrands for a joint-filtration martingale; `W·Ñ`); the axiom and the derived
+      `jacodYor_representation(_axiom)` were deleted. **B5** becomes: after X2, state the
+      predictable representation property over the joint filtration of an independent pair
+      `(W, N)` (Jacod 1975 / Jacod–Shiryaev III.4.34) and prove it.
 
 ## Phase C — Non-vacuity artifact (`GOAL.md` §B)
 

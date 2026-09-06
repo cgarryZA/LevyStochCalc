@@ -73,10 +73,8 @@ remain reachable under the listed namespace prefix.
 | `Definition.BSDEJData`                                      | `BSDEJ/Definition.lean`                   |
 | `Definition.IsBSDEJSolution`                                | `BSDEJ/Definition.lean`                   |
 | `Existence.Lipschitz`                                       | `BSDEJ/Existence.lean`                    |
-| `Existence.continuousBSDEJ_exists_unique`                   | `BSDEJ/Existence.lean` (cited axiom)      |
 | `PathRegularity.conditionalTimeAverage_Z`                   | `BSDEJ/PathRegularity.lean`               |
 | `PathRegularity.conditionalTimeAverage_U`                   | `BSDEJ/PathRegularity.lean`               |
-| `PathRegularity.bsdej_path_regularity`                      | `BSDEJ/PathRegularity.lean` (cited axiom) |
 
 ## 3. Refactor protocol
 

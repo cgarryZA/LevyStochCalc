@@ -102,8 +102,8 @@ coincides with mathematical foundation order:
 | 1 | #6 `itoIsometry_compensated_unified_existence` | `Plan.md` A2, in progress; #15/#16/#9/#10 all carry it transitively |
 | 2 | #15 — retired 2026-09-06 (its Lean statement was trivially satisfiable; the content is #16) | — |
 | 3 | #16 `itoLevyFormula_jumpResidual_canonical_axiom` | Itô–Lévy layer |
-| 4 | #13a/#13b Jacod–Yor PRP pair | **the Dissertation's `BackwardStepStochasticInputs` bottleneck** |
-| 5 | #9 `continuousBSDEJ_exists_unique`, #10 `bsdej_path_regularity` | BSDEJ layer |
+| 4 | #13b (conditional-expectation bridge); #13a retired 2026-09-06 as refutable — the PRP returns after X2 | **the Dissertation's `BackwardStepStochasticInputs` bottleneck** |
+| 5 | #9, #10 — retired 2026-09-06 as refutable statements; restated after X2 | BSDEJ layer |
 | 6 | #2, #4, #18 — all theorems since 2026-09-06 | were cited but off the pinned surface |
 
 Then the `sorry`: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`

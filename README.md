@@ -66,10 +66,10 @@ LevyStochCalc/
     ├── Definition.lean                        — IsBSDEJSolution predicate + regression-test
     │                                            extractors (Y-cadlag, Z/U progressive, M_W
     │                                            and M_N canonical-integral pins)
-    ├── Existence.lean                         — Tier 1 #9 axiom (Y-only uniqueness)
-    ├── PathRegularity.lean                    — Tier 1 #10 axiom + linear-rate corollary
-    └── MartingaleRepresentation.lean          — Tier 1 #13a + #13b sub-axioms; #13 is now
-                                                  a derived theorem forwarder
+    ├── Existence.lean                         — Picard map + Lipschitz (#9 retired 2026-09-06)
+    ├── PathRegularity.lean                    — interval time-averages (#10 retired 2026-09-06)
+    └── MartingaleRepresentation.lean          — Tier 1 #13b (conditional-expectation bridge);
+                                                  #13a and the PRP retired 2026-09-06
 ```
 
 ## Tier 1 cited axioms
@@ -106,9 +106,12 @@ Currently-live axioms:
 4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.
 5. `itoIsometry_brownian_unified_existence` — Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4.
 6. `itoIsometry_compensated_unified_existence` — Applebaum 2009 Thm 4.2.3+4.2.4.
-9. `continuousBSDEJ_exists_unique` — Tang-Li 1994 / Andersson-Gnoatto-Patacca-Picarelli 2025.
-10. `bsdej_path_regularity` — Bouchard-Elie 2008 SPA 118(1) pp 53-75.
-13a. `jacodYor_PRP_martingale_axiom` — Jacod 1975 / Jacod-Shiryaev Thm III.4.34 (martingale-input form).
+9. ~~`continuousBSDEJ_exists_unique`~~ — retired 2026-09-06: the Lean statement was refutable
+   (arbitrary non-adapted `X`; single-driver integrand class); deleted, to be restated after X2.
+10. ~~`bsdej_path_regularity`~~ — retired 2026-09-06: the Lean statement was refutable (the
+    `C·Δt` rate for merely measurable `g`, `X`); deleted, to be restated after X2.
+13a. ~~`jacodYor_PRP_martingale_axiom`~~ — retired 2026-09-06: the Lean statement was refutable
+     (single-driver integrands for a joint-filtration martingale); deleted, to be restated after X2.
 13b. `condExp_to_PRP_martingale_form_axiom` — Karatzas-Shreve Thm I.3.13 (Doob L² càdlàg regularization) + Thm 2.7.17 (Blumenthal 0-1) + Applebaum Thm 2.3.7.
 16. `itoLevyFormula_jumpResidual_canonical_axiom` — Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step (II) (canonical-`R` form).
 17. `itoIsometry_diff_brownian` — Karatzas-Shreve Thm 3.2.6 + §3.2.B eq. (2.20) (per-difference L²-isometry).

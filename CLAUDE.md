@@ -39,7 +39,7 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 # and: D:/Dissertation `lake build`
 ```
 
-- **Import contract** (`tools/import_contract.md`): 12 modules + 21 symbols under
+- **Import contract** (`tools/import_contract.md`): 12 modules + 19 symbols under
   `LevyStochCalc.*` must keep resolving from their pinned path. On in-tree
   splits, keep pinned symbols in the module of record (no forwarding stubs); a
   deliberate relocation updates the dissertation's import. Don't rename public

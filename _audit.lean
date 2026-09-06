@@ -162,22 +162,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
 
--- ===== Layer 3 (+ 3a): BSDEJ existence (→ deaxiomatises Cu01) =====
--- 2026-05-26: axiom #13 decomposed into two narrower Tier 1 sub-axioms
--- (#13a = PRP for càdlàg L² (W, N)-martingales; #13b = condExp-to-PRP bridge).
--- The previously-monolithic `jacodYor_representation_axiom` is now a derived
--- THEOREM forwarding through the pair; the public `jacodYor_representation`
--- thin-forwarder is unchanged.
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom
+-- ===== Layer 3 (+ 3a): BSDEJ =====
+-- 2026-09-06: the cited results #9 (`continuousBSDEJ_exists_unique`), #10
+-- (`bsdej_path_regularity`) and #13a (`jacodYor_PRP_martingale_axiom`) were retired as
+-- refutable statements (see `tools/cited_axioms.md`); only #13b remains.
 #print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form_axiom
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation
-#print axioms LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique
+#print axioms LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution
+#print axioms LevyStochCalc.BSDEJ.Existence.picardMap
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z
 
--- ===== Layer 4: BSDEJ path regularity (→ deaxiomatises Cu05) =====
-#print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity
--- Public-API specialization (linear-in-Δt rate; added 2026-05-24) — extracts
--- the BET 2008 bound in the user-facing form `∃ C : ℝ, 0 < C ∧ bound ≤ C · Δt`.
--- Used by downstream chapters that need `ψ(h) := C · h`, notably the parked
--- `Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`.
-#print axioms LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate

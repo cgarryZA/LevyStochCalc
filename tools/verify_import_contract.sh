@@ -80,10 +80,8 @@ SYMBOLS=(
   "LevyStochCalc.BSDEJ.Definition.BSDEJData"
   "LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution"
   "LevyStochCalc.BSDEJ.Existence.Lipschitz"
-  "LevyStochCalc.BSDEJ.Existence.continuousBSDEJ_exists_unique"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_U"
-  "LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity"
 )
 
 # Step A: file-existence check (fast).
