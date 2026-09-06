@@ -44,6 +44,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.starProjection_starProjection_of_le
 #print axioms LevyStochCalc.Probability.norm_sq_starProjection_of_le
 #print axioms LevyStochCalc.Probability.tendsto_starProjection_of_antitone
+#print axioms LevyStochCalc.Probability.aestronglyMeasurable_iInf_of_antitone
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive

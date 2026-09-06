@@ -19,6 +19,7 @@ import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
 import LevyStochCalc.Probability.ProjectionLimit
+import LevyStochCalc.Probability.AEMeasurableInf
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
