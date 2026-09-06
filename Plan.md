@@ -288,6 +288,17 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       modifications of the processes.
 - [ ] **A4 / #15** `itoFormula_continuousSemimartingale_axiom` — Itô formula for
       continuous semimartingales (KS 3.3.6), now resting on a real A1.
+      **Statement audit 2026-09-06**: the Lean statement is an unconstrained existential
+      `∃ R, …` and is satisfied by the trivial residual, so it carries none of KS 3.3.6's
+      content (see `tools/cited_axioms.md` #15). Not discharged by that witness on
+      purpose. Plan: retire #15 by deriving `itoLevyFormula` from #16 alone, and put
+      the continuous Itô formula inside the proof of #16 (A5). Candidate route for the
+      continuous part: `formal-mathfin`'s `ito_formula_td_L2_bddDeriv` /
+      `ito_formula_td_process` (time-dependent, one-dimensional, over
+      `IsPreBrownianReal` and its `L²` Itô integral; sorry-free) through a Brownian
+      bridge `BrownianMotion → IsPreBrownianReal` and an integral bridge to
+      `stochasticIntegralBrownian`, extended to `d` coordinates; the jump part
+      (Applebaum 4.4.10 + 4.4.7 (II)) in-house on `Compensated.stochasticIntegral`.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
       residual (Applebaum 4.4.10 + 4.4.7), on A2/A4.
 - [ ] **A6 / #9** `continuousBSDEJ_exists_unique` — BSDEJ existence/uniqueness via
