@@ -25,6 +25,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.IsPoissonFiltration.rightCont
 #print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration
 #print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration
+-- X2-4 (2026-09-06): a Lévy driver exists, so the common-filtration hypothesis carried by
+-- `JumpDiffusion.is_solution`, #16, the Picard iteration and `IsBSDEJSolution` is satisfiable.
+#print axioms LevyStochCalc.Probability.indep_comap_of_measurePreserving
+#print axioms LevyStochCalc.Probability.iIndepFun_comp_of_measurePreserving
+#print axioms LevyStochCalc.Brownian.BrownianMotion.comap
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.comap
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.comap
+#print axioms LevyStochCalc.Driver.LevyDriver.exists
+#print axioms LevyStochCalc.Driver.exists_isBrownianFiltration_and_isPoissonFiltration
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive

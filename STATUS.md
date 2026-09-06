@@ -14,9 +14,10 @@
 > **X2-3 (2026-09-06)** puts both integrands on ONE filtration: `JumpDiffusion.is_solution`,
 > #16, `Ito/Picard*` and `IsBSDEJSolution` are stated for a single `ℱ` carrying both driver
 > properties (`∀ j, IsBrownianFiltration (W.W j) ℱ` and `IsPoissonFiltration N ℱ`), and #13b
-> over a `LevyDriver` and its `ℱ₊`. Coupled `(σ, γ)` are therefore in scope. Still open: a
-> witness that the conjunction is satisfiable (X2-4). Full argument:
-> `tools/cited_axioms.md`, "Integrand-class audit".
+> over a `LevyDriver` and its `ℱ₊`. Coupled `(σ, γ)` are therefore in scope. **X2-4** builds a
+> `LevyDriver` on a product space (`Driver/Existence.lean`), so that filtration hypothesis is
+> satisfiable — it is satisfiability of the hypothesis, not existence of SDE/BSDEJ solutions.
+> Full argument: `tools/cited_axioms.md`, "Integrand-class audit".
 
 ## Headline
 
@@ -93,8 +94,8 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   hypotheses fail). Since X2-3 both its Brownian and its Poisson integrands are
   progressively measurable for one common filtration `ℱ` carrying both driver
   properties, so `JumpDiffusion.is_solution`, #16 and `IsBSDEJSolution` cover
-  coupled coefficients; a witness that such an `ℱ` exists is X2-4 in `Plan.md`.
-  See `tools/cited_axioms.md` #16.
+  coupled coefficients, and X2-4 constructs a Lévy driver whose joint filtration
+  is such an `ℱ`. See `tools/cited_axioms.md` #16.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem

@@ -318,7 +318,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       theorems and the dissertation forwarder; without them the statement was refutable
       (indicator `u` along `W`; `u = t·x` with `μ = 1/s`). Recorded the single-driver
       filtration scope of the whole SDE layer (`cited_axioms.md` #16 "Scope").
-- [ ] **X2 — rebuild the interface of the `L²` integrals: genuine progressive measurability
+- [x] **X2 — rebuild the interface of the `L²` integrals: genuine progressive measurability
       over a common filtration** (new, 2026-09-06; blocks A5–A7 and B4/B5). Two defects,
       fixed together: (i) the hypothesis `h_progMeas : ∀ t, StronglyMeasurable[ℱ t ⊗ Borel]
       (uncurry H)` has no `s ≤ t` restriction, so (`ℱ 0` being P-trivial) every admissible
@@ -387,9 +387,23 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
             common `ℱ` is the weaker (so more general) hypothesis, and X2-4 supplies the witness
             that the conjunction is satisfiable. #9, #10, #13a stay deleted (A5-1) and return as
             statements to prove, not axioms. Axiom set: the 3 standard.
-      - [ ] **X2-4 non-vacuity**: a `LevyDriver` exists (product of the Brownian and Poisson
-            constructions).
-      - [ ] **X2-5** dissertation forwarders, import contract, ledgers.
+      - [x] **X2-4 non-vacuity** (2026-09-06). `Probability/Transport.lean`: independence of
+            σ-algebras, of a pair and of a family of random variables transports backwards
+            along a measure-preserving map (the two `private` copies in `Brownian/Multidim.lean`
+            were deleted in favour of it). `Brownian/Transport.lean` and
+            `Poisson/Transport.lean`: `W` and `N` pulled back along such a map are again a
+            Brownian motion, a `d`-dimensional Brownian motion and a Poisson random measure.
+            `Driver/Existence.lean`: on `Ω₁ × Ω₂` with `P₁.prod P₂` both projections are
+            measure preserving, `σ(W)` factors through the first coordinate and `σ(N)` through
+            the second, and the coordinates are independent (`indepFun_prod`), so
+            `LevyDriver.exists` holds for every `d` and every σ-finite `ν` on a standard Borel
+            space. `exists_isBrownianFiltration_and_isPoissonFiltration` states the consequence
+            the SDE/BSDEJ layer needs: a filtration carrying both driver properties exists.
+            This is *satisfiability of the filtration hypothesis*, not existence of solutions —
+            SDE/BSDEJ existence is A6/A7. Axiom set: the 3 standard.
+      - [x] **X2-5** (2026-09-06) dissertation forwarders (Cu03 takes `(ℱ, hℱW, hℱN)`; I02 keeps
+            `naturalFiltration N`, the right filtration for the Poisson-only isometry), import
+            contract re-verified (12 modules + 19 symbols), ledgers updated in both repos.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
       residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2.
 - [x] **A6-0 / #9 statement audit** — RETIRED 2026-09-06 (refutable: arbitrary non-adapted

@@ -628,9 +628,18 @@ progressive and `γ(s, X_s, ·) i` marked-progressive for that one `ℱ`; `Ito/J
 #13b over a `LevyDriver` and its `D.filtration.rightCont`. Coupled coefficients — `σ` depending
 on the jump history and `γ` on the Brownian history — are therefore in scope: the integrands
 share one filtration, and nothing forces `ℱ` to be a single driver's natural filtration. What
-this does *not* settle is that the conjunction is satisfiable by a non-degenerate `ℱ`
-(`ℱ = ⊤` is excluded by the two driver properties, but a witness is still needed); the
-`LevyDriver` construction is X2-4.
+this does *not* settle is that the conjunction is satisfiable; the witness is X2-4.
+
+**Non-vacuity (X2-4, 2026-09-06).** `Driver/Existence.lean` constructs a `LevyDriver` on the
+product of a space carrying a `d`-dimensional Brownian motion and one carrying a Poisson
+random measure with the given σ-finite intensity on a standard Borel mark space: both
+projections are measure preserving, so each driver transports (`Brownian/Transport.lean`,
+`Poisson/Transport.lean`, over the independence transport in `Probability/Transport.lean`),
+and on the product `σ(W)` factors through the first coordinate and `σ(N)` through the second,
+which a product measure makes independent. `LevyDriver.filtration` then carries both driver
+properties, so `exists_isBrownianFiltration_and_isPoissonFiltration` witnesses the hypothesis
+above. This is satisfiability of the *filtration* hypothesis only: whether the SDE, the
+Itô–Lévy formula's hypotheses or a BSDEJ have solutions is separate and still open.
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 

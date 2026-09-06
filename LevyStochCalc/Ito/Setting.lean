@@ -31,6 +31,12 @@ The `is_solution` field of the `JumpDiffusion` structure is the actual SDE
 integral equation (bundled with the hypotheses on `σ(s, X_s)` needed for the
 multidim Brownian integral to be defined), so a constant path `X = x₀` does
 not satisfy the structure for generic non-zero coefficients.
+
+`is_solution` quantifies over a filtration `ℱ` for which every coordinate of `W`
+is a Brownian motion and `N` a Poisson random measure, and asks both coefficient
+bundles to be progressive for that one `ℱ`; coupled `(σ, γ)` are therefore in
+scope. Such a filtration exists — `LevyStochCalc/Driver/Existence.lean`,
+`exists_isBrownianFiltration_and_isPoissonFiltration`.
 -/
 
 open MeasureTheory ProbabilityTheory
