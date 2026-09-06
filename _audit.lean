@@ -39,6 +39,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.aug_eq_sup_nullSigma
 #print axioms LevyStochCalc.Probability.measurableSet_aug_of_ae_eq
 #print axioms LevyStochCalc.Probability.aug_iInf_of_antitone
+-- A1a (2026-09-06): the Hilbert-space half — projections along a decreasing sequence of closed
+-- subspaces converge to the projection onto the intersection.
+#print axioms LevyStochCalc.Probability.starProjection_starProjection_of_le
+#print axioms LevyStochCalc.Probability.norm_sq_starProjection_of_le
+#print axioms LevyStochCalc.Probability.tendsto_starProjection_of_antitone
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive
