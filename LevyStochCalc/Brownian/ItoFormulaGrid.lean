@@ -15,6 +15,8 @@ Itô's formula.
 ## Main statements
 
 * `LevyStochCalc.Brownian.Ito.unifGrid` — the uniform grid on `[0, T]`.
+* `LevyStochCalc.Brownian.Ito.SimplePredictable.ofUnifGrid` — the simple integrand carried by
+  the uniform grid.
 * `LevyStochCalc.Brownian.Ito.sum_integral_abs_sub_pow_three_le` — the sum of third absolute
   moments of the Itô-integral increments across the grid, of order `m^{-1/2}`.
 -/
@@ -67,6 +69,51 @@ theorem unifGrid_le {T : ℝ} (hT : 0 ≤ T) {m i : ℕ} (hi : i ≤ m) (hm : m 
   rw [unifGrid, div_le_iff₀ hm']
   have : (i : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hi
   nlinarith
+
+
+/-- The simple integrand on the uniform grid of `[0, T]` with the given cell coefficients. -/
+noncomputable def SimplePredictable.ofUnifGrid {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i)) : SimplePredictable Ω T where
+  N := m
+  partition := fun i => unifGrid T m (i : ℕ)
+  partition_zero := by simp
+  partition_le_T := le_of_eq (by simpa using unifGrid_self (T := T) hm)
+  partition_strictMono := by
+    refine Fin.strictMono_iff_lt_succ.mpr fun i => ?_
+    simpa using unifGrid_lt_succ hT hm (i : ℕ)
+  ξ := ξ
+  ξ_bounded := hbdd
+  ξ_measurable := hmeas
+
+@[simp] theorem SimplePredictable.ofUnifGrid_partition {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i)) (i : Fin (m + 1)) :
+    (SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).partition i = unifGrid T m (i : ℕ) := rfl
+
+@[simp] theorem SimplePredictable.ofUnifGrid_xi {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i)) (i : Fin m) :
+    (SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).ξ i = ξ i := rfl
+
+theorem SimplePredictable.ofUnifGrid_adapt (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i))
+    (hadapt : ∀ i : Fin m, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (ℱ (unifGrid T m (i : ℕ))) (ξ i)) :
+    ∀ i : Fin (SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).N,
+      @MeasureTheory.StronglyMeasurable Ω ℝ _
+        (ℱ ((SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).partition i.castSucc))
+        ((SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).ξ i) := hadapt
+
+/-- The grid integrand evaluates to the cell coefficient on each cell. -/
+theorem SimplePredictable.ofUnifGrid_eval {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i)) (i : Fin m) {s : ℝ}
+    (hs : unifGrid T m (i : ℕ) < s ∧ s ≤ unifGrid T m ((i : ℕ) + 1)) (ω : Ω) :
+    (SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).eval s ω = ξ i ω :=
+  (SimplePredictable.ofUnifGrid hT hm ξ hbdd hmeas).eval_of_mem_Ioc i hs ω
 
 section ThirdMomentSum
 

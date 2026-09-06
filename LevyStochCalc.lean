@@ -83,6 +83,7 @@ import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoIncrementMoment
 import LevyStochCalc.Brownian.ItoQuadVarSum
+import LevyStochCalc.Brownian.ItoFormula
 import LevyStochCalc.Brownian.ItoFormulaGrid
 import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum

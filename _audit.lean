@@ -291,6 +291,8 @@ import LevyStochCalc
 -- B1a-3d (2026-09-06): the uniform grid and the third-moment remainder sum.
 #print axioms LevyStochCalc.Brownian.Ito.unifGrid_succ_sub
 #print axioms LevyStochCalc.Brownian.Ito.sum_integral_abs_sub_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.ofUnifGrid_eval
+#print axioms LevyStochCalc.Brownian.Ito.sum_unifGrid_mul_sub_ae
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
