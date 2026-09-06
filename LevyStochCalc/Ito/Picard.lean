@@ -64,13 +64,14 @@ noncomputable def bieleckiNorm
     ENNReal.ofReal (Real.exp (-β * t)) *
       (∫⁻ ω, (∑ i, (‖X t ω i‖₊ : ℝ≥0∞) ^ 2) ∂P) ^ (1/2 : ℝ)
 
-/-- The space of L²-bounded jointly-measurable processes on `[0, T]`
-with values in `Fin n → ℝ`. A subset of `ℝ → Ω → Fin n → ℝ` carrying:
-* joint measurability,
-* almost-sure càdlàg paths,
-* finite Bielecki-norm for some (equivalently, every) `β ≥ 0`.
+/-- The space of jointly measurable, almost-surely càdlàg processes on `[0, T]` with values in
+`Fin n → ℝ` and finite Bielecki norm at weight `0`.
 
-This is the literature's `S²([0, T]; ℝⁿ)` Banach space. -/
+Two differences from the literature's `S²([0, T]; ℝⁿ)`, both recorded in the section note
+"Status of the fixed-point programme" of `Ito/PicardSpace.lean`: the norm here is
+`bieleckiNorm`, the weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of
+the supremum; and there is no adaptedness field, so a member need not be progressively
+measurable for any filtration. -/
 structure SBoundedProcess
     {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P] (T : ℝ) where
   /-- The path map. -/

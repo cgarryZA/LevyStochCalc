@@ -858,7 +858,7 @@ Together with the Lipschitz clauses these give the `L²` bounds along any
 `‖f s x‖ ≤ ‖f s 0‖ + L ‖x‖`. Applebaum 6.2.9 assumes measurable
 coefficients of linear growth; the Lean statement had dropped that.
 
-**Two spaces, not one.** `bieleckiNorm β T X` is
+**Not the `S²` space.** `bieleckiNorm β T X` is
 `⨆ t ∈ [0, T], exp (-β * t) * ‖X t‖_{L²}`, the weighted *sup-of-`L²`*
 norm. It is not the `S²` norm `‖ ⨆ t ≤ T, ‖X t‖ ‖_{L²}`, which is what
 `JumpDiffusion.sup_L2` asks for, and the separation quotient below
@@ -877,13 +877,19 @@ processes with a.e. equal paths. Any wrap-up has to bridge the two.
    lifts to Cauchy representatives; the per-`t` `L²` Cauchy property
    descends to a per-`t` `L²` limit by `Lp` completeness; a jointly
    measurable selection then yields a representative of the limit class.
-3. *The Picard map as a map.* Open, and blocked by the audit above:
-   `picardStepOnS2` is not a total self-map. It takes the `σ`- and
+3. *The Picard map as a map.* Open, and blocked twice over.
+   `picardStepOnS2` is not a total self-map: it takes the `σ`- and
    `γ`-side hypotheses along `X.X`, and the joint measurability, càdlàg
    property and finite Bielecki norm of its own output, as arguments.
-   Turning it into a function `AEQuot β T → AEQuot β T` means proving all
-   of those for every `X`, which needs the coefficient regularity the
-   audit adds, and then that the map respects the quotient.
+   Coefficient regularity (`JumpDiffusionCoeffs.IsRegular`) is one of the
+   two things needed to discharge them. The other is missing from the
+   space itself: `SBoundedProcess` has no adaptedness field, only joint
+   measurability, so `(s, ω) ↦ σ(s, X_s ω)` is not progressively
+   measurable for any filtration and the Brownian integral in the Picard
+   step is not well-typed for a general member. The space has to be
+   parameterised by the filtration `ℱ` and carry
+   `ProgressivelyMeasurable ℱ (fun ω s => X s ω i)` before step 3 can be
+   attempted.
 4. *Contraction.* The estimates exist on the underlying path map
    (`picardStep_bielecki_contraction`,
    `picardStep_bielecki_contraction_tight` and their `_rate_lt_one`
