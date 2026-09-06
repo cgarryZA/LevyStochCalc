@@ -15,6 +15,7 @@ import LevyStochCalc.Basic
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
+import LevyStochCalc.Probability.ComapTuple
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation

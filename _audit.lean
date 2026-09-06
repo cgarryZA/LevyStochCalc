@@ -53,6 +53,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div
 #print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div_of_isRightContinuous
 #print axioms LevyStochCalc.Probability.tendsto_condExpL2_nhdsGT
+-- A2c (2026-09-06): the σ-algebra of a tuple, and the grid induction that upgrades pairwise
+-- independence of increments to joint independence.
+#print axioms LevyStochCalc.Probability.comap_pi_eq_iSup
+#print axioms LevyStochCalc.Probability.comap_prod_eq_sup
+#print axioms LevyStochCalc.Probability.indep_iSup_lt_of_indep
+#print axioms LevyStochCalc.Probability.indep_iSup_of_finset
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
