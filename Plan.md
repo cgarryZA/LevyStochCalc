@@ -328,16 +328,30 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       that silently used the over-strength must be repaired; (ii) today
       `MultidimBrownianMotion.stochasticIntegral` needs `H_j` progressive for
       `naturalFiltration (W.W j)` and `Compensated.stochasticIntegral` for `naturalFiltration N`.
-      Plan: (1) an abstract driver-with-filtration layer — a filtration `ℱ`, `W` an
-      `ℱ`-Brownian motion (increments independent of `ℱ_s`), `N` an `ℱ`-Poisson random measure
-      (future counts independent of `ℱ_s`), with the joint natural filtration of `(W, N)` as the
-      canonical instance and independence of `W` and `N` bundled; (2) re-parametrize the
-      simple-integrand, isometry, martingale, `L²`-completion and càdlàg-modification files by
-      `ℱ` (the proofs use only `ℱ`-adaptedness of simple integrands, independence of increments
-      from `ℱ_s` and `ℱ`-martingale arguments; ≈500 `naturalFiltration` sites across
-      `Brownian/*`, `Poisson/Compensated*`, `Ito/Picard`, `BSDEJ/Definition`); (3) restate
-      `JumpDiffusion`, the Picard chain, #16, #13a/#13b, #9/#10 over the joint filtration;
-      (4) keep the pinned dissertation symbols resolving; update `Continuous.lean`.
+      Stages:
+      - [x] **X2-0 foundation** (2026-09-06): `Probability/IndepLimit.lean` (a σ-algebra
+            independent of each term of an a.e.-convergent sequence is independent of the
+            limit, via bounded continuous test functions), `Probability/IndepJoin.lean`
+            (`m₁ ⟂ m₃` and `m₂ ⟂ m₁ ⊔ m₃` give `m₁ ⊔ m₂ ⟂ m₃`), `Brownian/Filtered.lean`
+            (`IsBrownianFiltration W ℱ`: adapted + increments after `s` independent of `ℱ s`;
+            instances: the natural filtration, any smaller adapted filtration, `ℱ₊`),
+            `Poisson/Filtered.lean` (`IsPoissonFiltration N ℱ`, same three instances),
+            `Driver/Joint.lean` (`LevyDriver`: `W`, `N` with `σ(W) ⟂ σ(N)`; its joint natural
+            filtration `(⨆ i, ℱ^{Wⁱ}) ⊔ ℱ^N` is Brownian for every coordinate and Poisson
+            for `N`). Axiom set: the 3 standard.
+      - [ ] **X2-1 Brownian chain** over `(ℱ, hℱ : IsBrownianFiltration W ℱ)` with genuine
+            progressive measurability (`IsStronglyProgressive`, i.e. `Set.Iic t × Ω`):
+            `ItoSimple` → `ItoDensity` → `ItoMartingale` → `SimplePredictableRefine` →
+            `ItoL2Completion` → `MultidimIto` (one `ℱ` for all coordinates).
+      - [ ] **X2-2 Poisson chain** over `(ℱ, hℱ : IsPoissonFiltration N ℱ)`: `MarkStep`,
+            `CompensatedSimple` … `Compensated`.
+      - [ ] **X2-3 consumers**: `Ito/Setting` (`JumpDiffusion` driven by a `LevyDriver` on its
+            joint filtration), `Ito/Picard*`, `Ito/JumpFormula` (#16 restated), `BSDEJ/Definition`
+            (`IsBSDEJSolution` over the joint right-continuous filtration), #13b over the driver;
+            #9, #10, #13a return as *statements to prove*, not axioms.
+      - [ ] **X2-4 non-vacuity**: a `LevyDriver` exists (product of the Brownian and Poisson
+            constructions).
+      - [ ] **X2-5** dissertation forwarders, import contract, ledgers.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
       residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2.
 - [x] **A6-0 / #9 statement audit** — RETIRED 2026-09-06 (refutable: arbitrary non-adapted

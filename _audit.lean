@@ -16,6 +16,15 @@ Mirrors `D:/Dissertation/_audit.lean`.
 
 import LevyStochCalc
 
+-- ===== Layer -1: drivers with respect to a filtration (X2-0, 2026-09-06) =====
+#print axioms LevyStochCalc.Probability.indep_comap_of_tendsto_ae
+#print axioms LevyStochCalc.Probability.indep_sup_left_of_indep
+#print axioms LevyStochCalc.Brownian.isBrownianFiltration_natural
+#print axioms LevyStochCalc.Brownian.IsBrownianFiltration.rightCont
+#print axioms LevyStochCalc.Poisson.isPoissonFiltration_natural
+#print axioms LevyStochCalc.Poisson.IsPoissonFiltration.rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration
+#print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration
 -- ===== Layer 0: Compensated Poisson =====
 -- Poisson splitting (toward #2): counts of a Poisson number of iid marks on
 -- disjoint sets are independent Poisson variables.
