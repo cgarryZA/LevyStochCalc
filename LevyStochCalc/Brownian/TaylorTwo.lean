@@ -15,6 +15,7 @@ second-order Taylor polynomial approximates the function to within `K|y − x|³
 
 * `LevyStochCalc.abs_sub_taylor_one_le` — the first-order Taylor remainder bound.
 * `LevyStochCalc.abs_sub_taylor_two_le` — the second-order Taylor remainder bound.
+* `LevyStochCalc.abs_sub_sum_taylor_two_le` — the telescoped form along a sequence.
 -/
 
 namespace LevyStochCalc
@@ -100,5 +101,25 @@ theorem abs_sub_taylor_two_le {f f' f'' : ℝ → ℝ} {K : ℝ} (hK0 : 0 ≤ K)
   calc |f y - f x - f' x * (y - x) - f'' x * (y - x) ^ 2 / 2|
       ≤ K * |y - x| * |y - x| * |y - x| := hmain
     _ = K * |y - x| ^ 3 := by ring
+
+
+/-- **Telescoped second-order Taylor expansion along a sequence.** -/
+theorem abs_sub_sum_taylor_two_le {f f' f'' : ℝ → ℝ} {K : ℝ} (hK0 : 0 ≤ K)
+    (hf : ∀ x, HasDerivAt f (f' x) x) (hf' : ∀ x, HasDerivAt f' (f'' x) x)
+    (hf'' : ∀ u v : ℝ, |f'' u - f'' v| ≤ K * |u - v|) (x : ℕ → ℝ) (m : ℕ) :
+    |f (x m) - f (x 0)
+        - ((∑ i ∈ Finset.range m, f' (x i) * (x (i + 1) - x i))
+          + ∑ i ∈ Finset.range m, f'' (x i) * (x (i + 1) - x i) ^ 2 / 2)|
+      ≤ K * ∑ i ∈ Finset.range m, |x (i + 1) - x i| ^ 3 := by
+  have htel : f (x m) - f (x 0) = ∑ i ∈ Finset.range m, (f (x (i + 1)) - f (x i)) :=
+    (Finset.sum_range_sub (fun i => f (x i)) m).symm
+  rw [htel, ← Finset.sum_add_distrib, ← Finset.sum_sub_distrib, Finset.mul_sum]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+  have heq : f (x (i + 1)) - f (x i)
+      - (f' (x i) * (x (i + 1) - x i) + f'' (x i) * (x (i + 1) - x i) ^ 2 / 2)
+      = f (x (i + 1)) - f (x i) - f' (x i) * (x (i + 1) - x i)
+        - f'' (x i) * (x (i + 1) - x i) ^ 2 / 2 := by ring
+  rw [heq]
+  exact abs_sub_taylor_two_le hK0 hf hf' hf'' (x i) (x (i + 1))
 
 end LevyStochCalc

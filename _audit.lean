@@ -287,6 +287,10 @@ import LevyStochCalc
 -- B1a-3c (2026-09-06): the second-order Taylor remainder bound.
 #print axioms LevyStochCalc.abs_sub_taylor_one_le
 #print axioms LevyStochCalc.abs_sub_taylor_two_le
+#print axioms LevyStochCalc.abs_sub_sum_taylor_two_le
+-- B1a-3d (2026-09-06): the uniform grid and the third-moment remainder sum.
+#print axioms LevyStochCalc.Brownian.Ito.unifGrid_succ_sub
+#print axioms LevyStochCalc.Brownian.Ito.sum_integral_abs_sub_pow_three_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
