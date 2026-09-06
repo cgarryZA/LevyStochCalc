@@ -87,7 +87,8 @@ This packages THREE standard classical results:
    `MeasureTheory.condExp_of_stronglyMeasurable`): `𝔼[ξ | ℱ_T] = ξ`
    a.s. when ξ is ℱ_T-measurable and integrable.
 
-The bundle is strictly narrower than the former `jacodYor_representation_axiom` (retired 2026-09-06):
+The bundle is strictly narrower than the former `jacodYor_representation_axiom` (retired
+2026-09-06):
 no chaos decomposition / predictable projection is required, only
 classical martingale + filtration machinery. Each of items 1, 2, 3
 above has independent Mathlib activity (Doob regularization is on the
