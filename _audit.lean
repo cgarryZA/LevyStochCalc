@@ -271,6 +271,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_quadVarIncrement_le
 #print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_quadVarIncrement
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_weighted_quadVarSum_le
+-- B1a-2f (2026-09-06): continuous modification of the Ito integral by Kolmogorov-Chentsov.
+#print axioms LevyStochCalc.Brownian.Ito.exists_continuous_modification_stochasticIntegralBrownian
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
