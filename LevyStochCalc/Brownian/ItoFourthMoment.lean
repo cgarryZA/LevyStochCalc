@@ -32,6 +32,11 @@ the partial sums, itself bounded by the same recursion.
 * `SimplePredictable.integral_simpleIntegral_pow_four_le_horizon` —
   `𝔼|∫_0^T H dW|⁴ ≤ (6 + c)·C⁴·T²` for a simple integrand bounded by `C`, where `c` is the
   fourth moment of the standard Gaussian.
+* `SimplePredictable.varClock` — the variance budget `∑_{j<k} c_j² (τ_{j+1} − τ_j)` of a
+  per-tile coefficient bound `c`, with
+  `SimplePredictable.integral_simpleIntegral_pow_four_le_varClock`:
+  `𝔼|∫_0^T H dW|⁴ ≤ (6 + c)·(∑_j c_j² Δ_j)²`, which for a coefficient vanishing off a
+  subinterval sees only that subinterval's length.
 * `SimplePredictable.truncate` — the coefficients of a simple integrand clamped to `[-C, C]`,
   with `abs_clamp_sub_le`: clamping moves a value no further from a target already in `[-C, C]`,
   so a truncated approximant is still an approximant.
@@ -268,6 +273,45 @@ theorem stronglyMeasurable_partialSum (ℱ : Filtration ℝ ‹MeasurableSpace �
     (((hℱ.measurable _).stronglyMeasurable.mono (ℱ.mono hle2)).sub
       ((hℱ.measurable _).stronglyMeasurable.mono (ℱ.mono hle1)))
 
+/-- The variance budget of the first `k` tiles for a per-tile coefficient bound `c`:
+`∑_{j < k} c_j² (τ_{j+1} − τ_j)`. -/
+noncomputable def varClock (c : Fin G.N → ℝ) (k : ℕ) : ℝ :=
+  ∑ j ∈ Finset.range k, if h : j < G.N then
+    c ⟨j, h⟩ ^ 2 * (G.partition (⟨j, h⟩ : Fin G.N).succ
+      - G.partition (⟨j, h⟩ : Fin G.N).castSucc) else 0
+
+theorem varClock_zero (c : Fin G.N → ℝ) : G.varClock c 0 = 0 := by simp [varClock]
+
+theorem varClock_succ (c : Fin G.N → ℝ) {k : ℕ} (hk : k < G.N) :
+    G.varClock c (k + 1) = G.varClock c k
+      + c ⟨k, hk⟩ ^ 2 * (G.partition (⟨k, hk⟩ : Fin G.N).succ
+        - G.partition (⟨k, hk⟩ : Fin G.N).castSucc) := by
+  unfold varClock
+  rw [Finset.sum_range_succ, dif_pos hk]
+
+theorem varClock_nonneg (c : Fin G.N → ℝ) (k : ℕ) : 0 ≤ G.varClock c k := by
+  unfold varClock
+  refine Finset.sum_nonneg fun j _ => ?_
+  by_cases h : j < G.N
+  · rw [dif_pos h]
+    exact mul_nonneg (sq_nonneg _)
+      (sub_nonneg.mpr (G.partition_strictMono Fin.castSucc_lt_succ).le)
+  · rw [dif_neg h]
+
+theorem varClock_mono (c : Fin G.N → ℝ) {k l : ℕ} (h : k ≤ l) :
+    G.varClock c k ≤ G.varClock c l := by
+  unfold varClock
+  have hsub : Finset.range k ⊆ Finset.range l := by
+    intro j hj
+    simp only [Finset.mem_range] at hj ⊢
+    omega
+  refine Finset.sum_le_sum_of_subset_of_nonneg hsub fun j _ _ => ?_
+  by_cases hj : j < G.N
+  · rw [dif_pos hj]
+    exact mul_nonneg (sq_nonneg _)
+      (sub_nonneg.mpr (G.partition_strictMono Fin.castSucc_lt_succ).le)
+  · rw [dif_neg hj]
+
 section Moments
 
 /-- One step of a second-moment recursion. -/
@@ -501,37 +545,36 @@ theorem integral_partialSum_pow_four_succ {k : ℕ} (hk : k < G.N) :
     (G.stronglyMeasurable_partialSum W ℱ hℱ h_adapt hk.le)
     (G.ξ_measurable _) (h_adapt ⟨k, hk⟩) hC0 (hC ⟨k, hk⟩)
 
+/-- A coefficient bounded by `c` has even moments at most the matching power of `c`. -/
+private theorem integral_xi_even_le {c : ℝ} (i : Fin G.N)
+    (hci : ∀ ω, |G.ξ i ω| ≤ c) (m : ℕ) :
+    ∫ ω, (G.ξ i ω) ^ (2 * m) ∂P ≤ c ^ (2 * m) := by
+  have hnn : ∀ ω, (0 : ℝ) ≤ (G.ξ i ω) ^ (2 * m) := fun ω => by
+    rw [pow_mul]; positivity
+  have hcnn : (0 : ℝ) ≤ c ^ (2 * m) := by rw [pow_mul]; positivity
+  have hpow : ∀ ω, (G.ξ i ω) ^ (2 * m) ≤ c ^ (2 * m) := fun ω => by
+    have h : |G.ξ i ω| ^ (2 * m) ≤ c ^ (2 * m) :=
+      pow_le_pow_left₀ (abs_nonneg _) (hci ω) _
+    rwa [← abs_pow, abs_of_nonneg (hnn ω)] at h
+  have hint : Integrable (fun ω => (G.ξ i ω) ^ (2 * m)) P := by
+    refine (integrable_const (c ^ (2 * m))).mono
+      ((G.ξ_measurable _).pow_const _).aestronglyMeasurable
+      (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (hnn ω), abs_of_nonneg hcnn]
+    exact hpow ω
+  calc ∫ ω, (G.ξ i ω) ^ (2 * m) ∂P ≤ ∫ _ω : Ω, c ^ (2 * m) ∂P :=
+        integral_mono hint (integrable_const _) hpow
+    _ = c ^ (2 * m) := by simp
+
 include hC0 hC in
 /-- A bounded coefficient has second moment at most `C²`. -/
 private theorem integral_xi_sq_le (i : Fin G.N) : ∫ ω, (G.ξ i ω) ^ 2 ∂P ≤ C ^ 2 := by
-  have hint : Integrable (fun ω => (G.ξ i ω) ^ 2) P := by
-    refine (integrable_const (C ^ 2)).mono
-      ((G.ξ_measurable _).pow_const 2).aestronglyMeasurable
-      (Filter.Eventually.of_forall fun ω => ?_)
-    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_pow,
-      abs_of_nonneg (by positivity : (0 : ℝ) ≤ C ^ 2)]
-    exact pow_le_pow_left₀ (abs_nonneg _) (hC i ω) 2
-  calc ∫ ω, (G.ξ i ω) ^ 2 ∂P ≤ ∫ _ω : Ω, C ^ 2 ∂P :=
-        integral_mono hint (integrable_const _) fun ω => by
-          have h := hC i ω
-          nlinarith [abs_nonneg (G.ξ i ω), sq_abs (G.ξ i ω)]
-    _ = C ^ 2 := by simp
+  simpa using G.integral_xi_even_le (P := P) i (hC i) 1
 
 include hC in
 /-- A bounded coefficient has fourth moment at most `C⁴`. -/
 private theorem integral_xi_pow_four_le (i : Fin G.N) : ∫ ω, (G.ξ i ω) ^ 4 ∂P ≤ C ^ 4 := by
-  have hint : Integrable (fun ω => (G.ξ i ω) ^ 4) P := by
-    refine (integrable_const (C ^ 4)).mono
-      ((G.ξ_measurable _).pow_const 4).aestronglyMeasurable
-      (Filter.Eventually.of_forall fun ω => ?_)
-    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_pow,
-      abs_of_nonneg (by positivity : (0 : ℝ) ≤ C ^ 4)]
-    exact pow_le_pow_left₀ (abs_nonneg _) (hC i ω) 4
-  calc ∫ ω, (G.ξ i ω) ^ 4 ∂P ≤ ∫ _ω : Ω, C ^ 4 ∂P :=
-        integral_mono hint (integrable_const _) fun ω => by
-          have h : |G.ξ i ω| ^ 4 ≤ C ^ 4 := pow_le_pow_left₀ (abs_nonneg _) (hC i ω) 4
-          rwa [← abs_pow, abs_of_nonneg (by positivity : (0 : ℝ) ≤ (G.ξ i ω) ^ 4)] at h
-    _ = C ^ 4 := by simp
+  simpa using G.integral_xi_even_le (P := P) i (hC i) 2
 
 include hℱ h_adapt hC0 hC in
 /-- The second moment of a partial sum is at most `C²` times the elapsed time. -/
@@ -661,6 +704,110 @@ theorem integral_simpleIntegral_pow_four_le_horizon :
     linarith [gaussianFourthMoment_nonneg]
   have h4 : G.partition (Fin.last G.N) ^ 2 ≤ T ^ 2 := by nlinarith
   nlinarith [pow_nonneg hC0 4, mul_nonneg h3 (pow_nonneg hC0 4)]
+
+
+include hℱ h_adapt hC0 hC in
+/-- Second moment of a partial sum against a per-tile coefficient bound. -/
+theorem integral_partialSum_sq_le_varClock {c : Fin G.N → ℝ}
+    (hc : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ c i) :
+    ∀ (k : ℕ) (_hk : k ≤ G.N),
+      ∫ ω, (G.partialSum W k ω) ^ 2 ∂P ≤ G.varClock c k := by
+  intro k
+  induction k with
+  | zero =>
+    intro _
+    have h0 : ∀ ω, G.partialSum W 0 ω = 0 := G.partialSum_zero W
+    simp_rw [h0]
+    simp [G.varClock_zero]
+  | succ n ih =>
+    intro hk
+    have hn : n < G.N := hk
+    have hΔ0 : (0 : ℝ) ≤ G.partition (⟨n, hn⟩ : Fin G.N).succ
+        - G.partition (⟨n, hn⟩ : Fin G.N).castSucc :=
+      sub_nonneg.mpr (G.partition_strictMono Fin.castSucc_lt_succ).le
+    rw [G.integral_partialSum_sq_succ W ℱ hℱ h_adapt hC0 hC hn, G.varClock_succ c hn]
+    have h1 := ih hn.le
+    have h2 : ∫ ω, (G.ξ ⟨n, hn⟩ ω) ^ 2 ∂P ≤ c ⟨n, hn⟩ ^ 2 := by
+      simpa using G.integral_xi_even_le (P := P) ⟨n, hn⟩ (hc ⟨n, hn⟩) 1
+    linarith [mul_le_mul_of_nonneg_right h2 hΔ0]
+
+include hℱ h_adapt hC0 hC in
+/-- Fourth moment of a partial sum against a per-tile coefficient bound: the elapsed
+variance budget `∑_{j<k} c_j² (τ_{j+1} − τ_j)` replaces `C²τ_k`. -/
+theorem integral_partialSum_pow_four_le_varClock {c : Fin G.N → ℝ}
+    (hc : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ c i) :
+    ∀ (k : ℕ) (_hk : k ≤ G.N),
+      ∫ ω, (G.partialSum W k ω) ^ 4 ∂P
+        ≤ 6 * (G.varClock c G.N * G.varClock c k)
+          + gaussianFourthMoment * G.varClock c k ^ 2 := by
+  intro k
+  induction k with
+  | zero =>
+    intro _
+    have h0 : ∀ ω, G.partialSum W 0 ω = 0 := G.partialSum_zero W
+    simp_rw [h0]
+    simp [G.varClock_zero]
+  | succ n ih =>
+    intro hk
+    have hn : n < G.N := hk
+    have hΔ0 : (0 : ℝ) ≤ G.partition (⟨n, hn⟩ : Fin G.N).succ
+        - G.partition (⟨n, hn⟩ : Fin G.N).castSucc :=
+      sub_nonneg.mpr (G.partition_strictMono Fin.castSucc_lt_succ).le
+    have hcn2 : (0 : ℝ) ≤ c ⟨n, hn⟩ ^ 2 := sq_nonneg _
+    have hxi2 : ∀ ω, (G.ξ ⟨n, hn⟩ ω) ^ 2 ≤ c ⟨n, hn⟩ ^ 2 := fun ω => by
+      have h := pow_le_pow_left₀ (abs_nonneg (G.ξ ⟨n, hn⟩ ω)) (hc ⟨n, hn⟩ ω) 2
+      rwa [← abs_pow, abs_of_nonneg (sq_nonneg (G.ξ ⟨n, hn⟩ ω))] at h
+    have hSint : Integrable (fun ω => (G.partialSum W n ω) ^ 2) P :=
+      integrable_pow_of_memLp (m := 2) (by norm_num) (by simp)
+        (G.memLp_partialSum W hC 2 (by simp) n)
+    have hmix : Integrable
+        (fun ω => (G.partialSum W n ω) ^ 2 * (G.ξ ⟨n, hn⟩ ω) ^ 2) P := by
+      refine (hSint.const_mul (c ⟨n, hn⟩ ^ 2)).mono
+        (((G.measurable_partialSum W n).pow_const 2).mul
+          ((G.ξ_measurable _).pow_const 2)).aestronglyMeasurable
+        (Filter.Eventually.of_forall fun ω => ?_)
+      rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul, abs_pow, abs_pow,
+        abs_of_nonneg hcn2]
+      have h4 : |G.ξ ⟨n, hn⟩ ω| ^ 2 ≤ c ⟨n, hn⟩ ^ 2 :=
+        pow_le_pow_left₀ (abs_nonneg _) (hc ⟨n, hn⟩ ω) 2
+      nlinarith [pow_nonneg (abs_nonneg (G.partialSum W n ω)) 2]
+    have hmix_le : ∫ ω, (G.partialSum W n ω) ^ 2 * (G.ξ ⟨n, hn⟩ ω) ^ 2 ∂P
+        ≤ c ⟨n, hn⟩ ^ 2 * ∫ ω, (G.partialSum W n ω) ^ 2 ∂P := by
+      have hstep : ∫ ω, (G.partialSum W n ω) ^ 2 * (G.ξ ⟨n, hn⟩ ω) ^ 2 ∂P
+          ≤ ∫ ω, c ⟨n, hn⟩ ^ 2 * (G.partialSum W n ω) ^ 2 ∂P :=
+        integral_mono hmix (hSint.const_mul _) fun ω => by
+          nlinarith [sq_nonneg (G.partialSum W n ω), hxi2 ω]
+      rwa [integral_const_mul] at hstep
+    have hS2 := G.integral_partialSum_sq_le_varClock W ℱ hℱ h_adapt hC0 hC hc n hn.le
+    have hVN : G.varClock c n ≤ G.varClock c G.N := G.varClock_mono c hn.le
+    have hV0 : (0 : ℝ) ≤ G.varClock c n := G.varClock_nonneg c n
+    have hcg : (0 : ℝ) ≤ gaussianFourthMoment := gaussianFourthMoment_nonneg
+    have hA : (∫ ω, (G.partialSum W n ω) ^ 2 * (G.ξ ⟨n, hn⟩ ω) ^ 2 ∂P)
+        ≤ c ⟨n, hn⟩ ^ 2 * G.varClock c G.N :=
+      hmix_le.trans (mul_le_mul_of_nonneg_left (hS2.trans hVN) hcn2)
+    have hB : (∫ ω, (G.ξ ⟨n, hn⟩ ω) ^ 4 ∂P) ≤ c ⟨n, hn⟩ ^ 4 := by
+      simpa using G.integral_xi_even_le (P := P) ⟨n, hn⟩ (hc ⟨n, hn⟩) 2
+    rw [G.integral_partialSum_pow_four_succ W ℱ hℱ h_adapt hC0 hC hn, G.varClock_succ c hn]
+    have h1 := ih hn.le
+    nlinarith [mul_le_mul_of_nonneg_right hA hΔ0,
+      mul_le_mul_of_nonneg_right hB
+        (mul_nonneg (mul_nonneg hΔ0 hΔ0) hcg),
+      mul_nonneg (mul_nonneg (mul_nonneg hcg hV0) hcn2) hΔ0]
+
+include hℱ h_adapt hC0 hC in
+/-- **Fourth-moment bound for the elementary integral against a per-tile coefficient
+bound.** -/
+theorem integral_simpleIntegral_pow_four_le_varClock {c : Fin G.N → ℝ}
+    (hc : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ c i) :
+    ∫ ω, (simpleIntegral W G T ω) ^ 4 ∂P
+      ≤ (6 + gaussianFourthMoment) * G.varClock c G.N ^ 2 := by
+  have hcard := G.integral_partialSum_pow_four_le_varClock W ℱ hℱ h_adapt hC0 hC hc G.N le_rfl
+  have hfun : ∀ ω, G.partialSum W G.N ω = simpleIntegral W G T ω := G.partialSum_card W
+  simp_rw [hfun] at hcard
+  calc ∫ ω, (simpleIntegral W G T ω) ^ 4 ∂P
+      ≤ 6 * (G.varClock c G.N * G.varClock c G.N)
+        + gaussianFourthMoment * G.varClock c G.N ^ 2 := hcard
+    _ = (6 + gaussianFourthMoment) * G.varClock c G.N ^ 2 := by ring
 
 end Moments
 
