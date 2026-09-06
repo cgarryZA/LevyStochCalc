@@ -245,6 +245,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_partialSum_sq_le
 #print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_partialSum_pow_four_le
 #print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_simpleIntegral_pow_four_le_horizon
+#print axioms LevyStochCalc.Brownian.Ito.abs_clamp_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.truncate_eval
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_pow_four_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
