@@ -21,8 +21,8 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   **#16** `itoLevyFormula_jumpResidual_canonical_axiom`,
   **#9** `continuousBSDEJ_exists_unique`,
   **#10** `bsdej_path_regularity`.
-  The other 6 (#2, #4, #13a, #13b, #17, #18) are cited results but **not**
-  reached by the pinned surface.
+  The other 6 (#2, #4, #13a, #13b, #17, #18) were cited results but **not**
+  reached by the pinned surface (#2, #4, #17, #18 are theorems now).
 - **#5/#6 are foundational**: the audit shows #15, #16, #9, #10 *already carry*
   #5/#6 transitively, so the Itô-formula and BSDE layers cannot go axiom-free
   until the L² integrals are built. Hence #5 → #6 first.
@@ -319,24 +319,26 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       forwards to `isBrownianReal_brownian` (`RemyDegenne/brownian-motion` @ `4d52fa77`, a
       `lake require` since D1); real-time extension + weak Markov property for the
       σ-algebra field; `ULift` transport to `Type u`. Axiom set: the 3 standard.
-- [ ] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — the Poisson recipe
-      (Applebaum 2.3.1 / Kallenberg 3.6), staged (started 2026-09-06):
+- [x] **B3 / #2** `PoissonRandomMeasure.exists_of_sigmaFinite` — closed 2026-09-06 by the
+      Poisson recipe (Applebaum 2.3.1 / Kallenberg 3.6), statement unchanged:
       - *S1 `Poisson/PoissonSplitting.lean`*: a Poisson(r) number `K` of iid marks with law
         `ρ`, independent of `K`, scattered over disjoint measurable `B₁, …, Bₙ`: the counts
-        `∑_{j<K} 1_{Bᵢ}(Xⱼ)` are independent, `Poisson(r ρ(Bᵢ))`. Characteristic functions:
-        `E exp(i ∑ tᵢ Nᵢ) = ∑ₙ P(K=n) cⁿ` with `c = ∑ pᵢ e^{itᵢ} + (1 − ∑ pᵢ)`, the exponential
-        series, `charFun_pi`, `Measure.ext_of_charFun` on `EuclideanSpace ℝ (Fin n)`.
-      - *S2 piece*: for a finite-intensity measurable piece `A` of `[0,∞) × E`, the random
-        measure `∑_{j<K} δ_{Xⱼ}` with `K ~ Poisson(Λ(A))` and marks `Λ|_A / Λ(A)`, on the
-        product space of `exists_hasLaw_indepFun`; evaluations measurable; S1 on `B ∩ A`.
-      - *S3 superposition*: countably many independent pieces (index `ℕ ⊕ ℕ × ℕ` on one
-        product space), `N := Measure.sum`; Poisson law of `N(B)` for `Λ(B) < ∞` (monotone
-        limit of Poisson partial sums, `IndepFun.hasLaw_add_poissonMeasure`), countable
-        independence on disjoint sets (`iIndepFun_uncurry` + limits), integer values,
-        `N(B) = ∞` when `Λ(B) = ∞` (Borel–Cantelli II, `measure_limsup_eq_one`),
-        the σ-algebra past/future field from a raw-`N` version of
-        `indep_of_disjoint_region`.
-      - *S4 assembly* in `Poisson/RandomMeasure.lean`, statement unchanged.
+        `∑_{j<K} 1_{Bᵢ}(Xⱼ)` are independent, `Poisson(r ρ(Bᵢ))` (characteristic functions:
+        `E exp(i ∑ tᵢ Nᵢ) = ∑ₙ P(K=n) cⁿ`, the exponential series, `charFun_pi`,
+        `Measure.ext_of_charFun`).
+      - *S2/S3 `Poisson/PoissonSuperposition.lean`* (+ `Probability/IndepGrouping.lean`):
+        pieces `(r p, ρ p)` on the product space `ι → ULift ℕ × (ℕ → 𝓧)` with
+        `Measure.infinitePi`; `N := Measure.sum` of the atomic piece measures; mean
+        `𝔼 N(B) = Λ(B)` (so a.s. finite on finite-intensity sets); Poisson law via the
+        characteristic-function limit of the Poisson partial sums along a finset exhaustion
+        of `ι`; a.s. `∞` on infinite-intensity sets since `Po(λ)([0,k]) → 0` as `λ → ∞`;
+        independence on disjoint sets by `iIndepFun_uncurry'` + fibre grouping.
+      - *S4 `Poisson/RandomMeasure.lean`*: cells `[n, n+1) × sₘ` of a σ-finite
+        decomposition, index = cells of positive intensity (so no probability measure on
+        `ℝ × E` is needed when `E` is empty), `ρ p := Λ|_{A p} / Λ(A p)`; the past/future
+        σ-algebra field from `Poisson/RegionIndependence.lean` (the former
+        `IndependentScattering.lean` argument over a raw random measure; that file now
+        forwards). Axiom set: the 3 standard.
 - [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
       regularization (KS I.3.13) + Blumenthal 0-1.
 - [ ] **B5 / #13a** `jacodYor_PRP_martingale_axiom` — predictable representation

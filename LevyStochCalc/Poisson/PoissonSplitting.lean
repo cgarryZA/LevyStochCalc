@@ -40,7 +40,7 @@ lemma markCount_measurable (mK : Measurable K) (mX : ∀ j, Measurable (X j)) {B
   have h : Measurable
       (fun p : Ω × ℕ => ∑ j ∈ Finset.range p.2, B.indicator (1 : 𝓧 → ℕ) (X j p.1)) := by
     refine measurable_from_prod_countable_left fun m => ?_
-    show Measurable fun ω : Ω => ∑ j ∈ Finset.range m, B.indicator (1 : 𝓧 → ℕ) (X j ω)
+    change Measurable fun ω : Ω => ∑ j ∈ Finset.range m, B.indicator (1 : 𝓧 → ℕ) (X j ω)
     exact Finset.measurable_sum _ fun j _ => (measurable_one.indicator hB).comp (mX j)
   exact h.comp (measurable_id.prodMk mK)
 
@@ -405,6 +405,22 @@ theorem iIndepFun_markCount_ennreal (hK : HasLaw K Po(r) P) (mK : Measurable K)
     simp [ENNReal.ofReal_natCast]
   rw [e]
   exact h
+
+/-- The counts on a pairwise disjoint family of sets indexed by an arbitrary type are
+independent, as `ℝ≥0∞`-valued random variables. -/
+theorem iIndepFun_markCount_ennreal' {ι : Type*} {B : ι → Set 𝓧} (hK : HasLaw K Po(r) P)
+    (mK : Measurable K) (hX : ∀ j, HasLaw (X j) ρ P) (mX : ∀ j, Measurable (X j))
+    (hXi : iIndepFun X P) (hKX : IndepFun K (fun ω j => X j ω) P)
+    (hB : ∀ i, MeasurableSet (B i)) (hdisj : Pairwise (Disjoint on B)) :
+    iIndepFun (fun i ω => (markCount K X (B i) ω : ℝ≥0∞)) P := by
+  rw [iIndepFun_iff_finset]
+  intro s
+  have h := iIndepFun_markCount_ennreal hK mK hX mX hXi hKX
+    (B := fun k : Fin s.card => B (s.equivFin.symm k)) (fun k => hB _)
+    (fun k l hkl => hdisj fun h => hkl (s.equivFin.symm.injective (Subtype.ext h)))
+  have h' := h.precomp s.equivFin.injective
+  simp only [Equiv.symm_apply_apply] at h'
+  exact h'
 
 end Law
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Basic
+import LevyStochCalc.Poisson.PoissonSuperposition
+import LevyStochCalc.Poisson.RegionIndependence
 import Mathlib.Probability.Distributions.Poisson.Basic
 import Mathlib.Probability.Independence.Basic
 
@@ -34,14 +36,14 @@ This is the time-aware structure required for the *compensated* integral
 * Sato, *Lévy Processes and Infinitely Divisible Distributions*,
   Cambridge 1999, §19.
 
-## Status
+## Construction
 
-Phase 2 spec: structure fields wired to real Mathlib types on the `ℝ × E`
-time-space. The intensity is `volume.restrict (Set.Ici 0) ⊗ ν` (Lebesgue
-restricted to `[0, ∞)` tensor `ν` on the mark space).
-
-Existence theorem `PoissonRandomMeasure.exists_of_sigmaFinite` carries the
-substantive `sorry` (Ionescu-Tulcea construction).
+The intensity is `volume.restrict (Set.Ici 0) ⊗ ν` (Lebesgue restricted to `[0, ∞)` tensor `ν`
+on the mark space). `PoissonRandomMeasure.exists_of_sigmaFinite` builds a Poisson random
+measure by the Poisson recipe: the time-space is cut into the cells `[n, n+1) × sₘ` of a
+σ-finite decomposition, each cell of positive intensity carries a Poisson number of
+independent marks distributed according to the normalised intensity, and the cells are
+superposed (`LevyStochCalc.Poisson.superposition`).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -168,44 +170,110 @@ lemma sigmaFinite_decomposition
   · rw [iUnion_disjointed]
     exact MeasureTheory.iUnion_spanningSets ν
 
-/-- **CITED AXIOM: Poisson random measure construction.**
-
-For every σ-finite intensity `ν` on a standard Borel space `E`, there exists a
-probability space carrying a Poisson random measure with intensity
-`volume.restrict [0,∞) ⊗ ν`.
-
-**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed.,
-Cambridge University Press 2009, Theorem 2.3.1; Kallenberg, O. *Random Measures,
-Theory and Applications*, Springer 2017, Proposition 3.6.
-
-**Standard proof outline**: Decompose ν as a sum of finite measures (σ-finiteness);
-on each finite piece, construct a finite Poisson random measure via the
-"Poisson recipe": (a) sample N ~ Poisson(ν(B) · vol[0,T]), (b) sample N i.i.d.
-points uniformly from B according to ν/ν(B); take their sum. Use the standard
-property that this gives a Poisson random measure. Combine independently across
-the σ-finite decomposition (Mathlib: `MeasureTheory.Measure.pi` + `iIndepFun_pi`).
-
-**Replacement plan**: when Mathlib gains `PoissonRandomMeasure` / `Levy process`
-construction, replace this `axiom` with a forwarder. Tracked in
-`tools/cited_axioms.md`. -/
-axiom PoissonRandomMeasure.exists_of_sigmaFinite
+/-- For every σ-finite intensity `ν` on a standard Borel space `E`, some probability space
+carries a Poisson random measure with intensity `volume.restrict [0,∞) ⊗ ν`
+(Applebaum, *Lévy Processes and Stochastic Calculus*, Theorem 2.3.1; Kallenberg, *Random
+Measures, Theory and Applications*, Proposition 3.6). -/
+theorem PoissonRandomMeasure.exists_of_sigmaFinite
     (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
     (ν : Measure E) [SigmaFinite ν] :
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
-      (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν)
+      (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) := by
+  classical
+  obtain ⟨s, hs_meas, hs_disj, hs_fin, hs_univ⟩ := sigmaFinite_decomposition E ν
+  set Λ := referenceIntensity ν with hΛ
+  -- the time-space cells `[n, n+1) × sₘ`
+  let A : ℕ × ℕ → Set (ℝ × E) := fun q => Set.Ico (q.1 : ℝ) (q.1 + 1) ×ˢ s q.2
+  have hA_meas : ∀ q, MeasurableSet (A q) := fun q => measurableSet_Ico.prod (hs_meas q.2)
+  have hA_disj : Pairwise fun q q' => Disjoint (A q) (A q') := by
+    rintro ⟨n, m⟩ ⟨n', m'⟩ hne
+    change Disjoint (Set.Ico (n : ℝ) (n + 1) ×ˢ s m) (Set.Ico (n' : ℝ) (n' + 1) ×ˢ s m')
+    rw [Set.disjoint_prod]
+    by_cases hn : n = n'
+    · subst hn
+      exact Or.inr (hs_disj fun h => hne (by rw [h]))
+    · refine Or.inl (Set.Ico_disjoint_Ico.2 ?_)
+      rcases lt_or_gt_of_ne hn with h | h
+      · have : (n : ℝ) + 1 ≤ n' := by exact_mod_cast h
+        exact (min_le_left _ _).trans (this.trans (le_max_right _ _))
+      · have : (n' : ℝ) + 1 ≤ n := by exact_mod_cast h
+        exact (min_le_right _ _).trans (this.trans (le_max_left _ _))
+  have hA_fin : ∀ q, Λ (A q) ≠ ⊤ := by
+    intro q
+    rw [hΛ, referenceIntensity, Measure.prod_prod]
+    refine ENNReal.mul_ne_top ?_ (hs_fin q.2).ne
+    refine ne_top_of_le_ne_top (b := volume (Set.Ico (q.1 : ℝ) (q.1 + 1))) ?_
+      (Measure.restrict_le_self _)
+    rw [Real.volume_Ico]
+    exact ENNReal.ofReal_ne_top
+  -- the cells of positive intensity, with their normalised intensities
+  let ι := {q : ℕ × ℕ // Λ (A q) ≠ 0}
+  let r : ι → ℝ≥0 := fun p => (Λ (A p.1)).toNNReal
+  let ρ : ι → Measure (ℝ × E) := fun p => (Λ (A p.1))⁻¹ • Λ.restrict (A p.1)
+  haveI : ∀ p, IsProbabilityMeasure (ρ p) := fun p => ⟨by
+    change ((Λ (A p.1))⁻¹ • Λ.restrict (A p.1)) Set.univ = 1
+    rw [Measure.smul_apply, Measure.restrict_apply MeasurableSet.univ, Set.univ_inter,
+      smul_eq_mul, ENNReal.inv_mul_cancel p.2 (hA_fin p.1)]⟩
+  -- the superposition has intensity `Λ`
+  have hcell : ∀ p : ι, (r p : ℝ≥0∞) • ρ p = Λ.restrict (A p.1) := by
+    intro p
+    change ((Λ (A p.1)).toNNReal : ℝ≥0∞) • ((Λ (A p.1))⁻¹ • Λ.restrict (A p.1)) = _
+    rw [ENNReal.coe_toNNReal (hA_fin p.1), smul_smul, ENNReal.mul_inv_cancel p.2 (hA_fin p.1),
+      one_smul]
+  have hnull : Λ (⋃ p : ι, A p.1)ᶜ = 0 := by
+    have hsub : (⋃ p : ι, A p.1)ᶜ
+        ⊆ (Set.Ici (0 : ℝ) ×ˢ Set.univ)ᶜ ∪ ⋃ q : {q : ℕ × ℕ // Λ (A q) = 0}, A q.1 := by
+      intro x hx
+      by_cases hx0 : x ∈ Set.Ici (0 : ℝ) ×ˢ Set.univ
+      · right
+        obtain ⟨m, hm⟩ : ∃ m, x.2 ∈ s m := by
+          have := hs_univ ▸ Set.mem_univ x.2
+          exact Set.mem_iUnion.1 this
+        have hx1 : x.1 ∈ Set.Ici (0 : ℝ) := (Set.mem_prod.1 hx0).1
+        have hxA : x ∈ A (⌊x.1⌋₊, m) :=
+          Set.mem_prod.2 ⟨⟨Nat.floor_le hx1, Nat.lt_floor_add_one x.1⟩, hm⟩
+        by_cases h0 : Λ (A (⌊x.1⌋₊, m)) = 0
+        · exact Set.mem_iUnion.2 ⟨⟨_, h0⟩, hxA⟩
+        · exact absurd (Set.mem_iUnion.2 ⟨⟨_, h0⟩, hxA⟩) hx
+      · exact Or.inl hx0
+    refine measure_mono_null hsub (measure_union_null ?_ (measure_iUnion_null fun q => q.2))
+    rw [hΛ, referenceIntensity, Measure.restrict_prod_eq_prod_univ,
+      Measure.restrict_apply (measurableSet_Ici.prod MeasurableSet.univ).compl,
+      Set.compl_inter_self, measure_empty]
+  have hint : superIntensity r ρ = Λ := by
+    unfold superIntensity
+    simp_rw [hcell]
+    rw [← Measure.restrict_iUnion (fun p q hpq => hA_disj (Subtype.val_injective.ne hpq))
+      fun p => hA_meas p.1]
+    exact Measure.restrict_eq_self_of_ae_mem (ae_iff.2 hnull)
+  -- assembly
+  refine ⟨ι → PieceSpace (ℝ × E), inferInstance, superLaw r ρ, inferInstance, ⟨?_⟩⟩
+  have hN_meas : ∀ {B : Set (ℝ × E)}, MeasurableSet B →
+      Measurable fun ω : ι → PieceSpace (ℝ × E) => superposition ω B :=
+    fun hB => measurable_superposition hB
+  have hN_indep : ∀ {κ : Type} [Countable κ] (B : κ → Set (ℝ × E)), (∀ i, MeasurableSet (B i)) →
+      Pairwise (fun i j => Disjoint (B i) (B j)) →
+      iIndepFun (fun i ω => superposition ω (B i)) (superLaw r ρ) :=
+    fun B hB hd => iIndepFun_superposition r ρ hB hd
+  exact
+    { N := superposition
+      measurable_eval := hN_meas
+      integer_valued := fun hB hfin => ae_exists_nat_superposition r ρ hB (by rwa [hint])
+      infinite_at_infinite_intensity := fun hB hinf =>
+        ae_eq_top_superposition r ρ hB (by rwa [hint])
+      poisson_law := fun hB hfin => by
+        rw [map_superposition r ρ hB (by rwa [hint]), hint]
+        rfl
+      independent_disjoint := fun B hB hd => iIndepFun_superposition r ρ hB hd
+      joint_past_future_independent := fun {t₁ t₂} _ h12 {S} hS _ => by
+        have h := indep_of_disjoint_region_of_indep hN_meas hN_indep
+          (measurableSet_Ioc.prod hS : MeasurableSet (Set.Ioc t₁ t₂ ×ˢ S))
+        refine indep_of_indep_of_le_left h (iSup₂_le fun C hC => le_iSup₂_of_le C ?_ le_rfl)
+        exact ⟨(Set.disjoint_prod.2 (Or.inl (Set.Iic_disjoint_Ioc le_rfl))).mono_left hC.1,
+          hC.2⟩ }
 
-/-- **Step 2: Poisson random measure with finite intensity exists.**
-
-Forwarded to the σ-finite case (`PoissonRandomMeasure.exists_of_sigmaFinite`,
-Tier 1 cited axiom #2): any finite measure is automatically σ-finite (witnessed
-by the `[SigmaFinite ν]` instance already in the signature), so the σ-finite
-axiom gives the conclusion directly. The `_h_finite : ν Set.univ ≠ ⊤` argument
-is retained in the signature for documentation of the original staging plan
-(`sigmaFinite_decomposition` → finite-piece construction → combine), but the
-present proof discharges by direct forward — the explicit Poisson-recipe
-construction outlined in the axiom's docstring is what *would* discharge this
-lemma without invoking the σ-finite axiom; that route is multi-week downstream
-work tracked in `tools/cited_axioms.md` #2. -/
+/-- A Poisson random measure with finite intensity exists; the finite-intensity case of
+`PoissonRandomMeasure.exists_of_sigmaFinite`. -/
 lemma poissonRandomMeasure_finite_exists
     (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
     (ν : Measure E) [SigmaFinite ν] (_h_finite : ν Set.univ ≠ ⊤) :

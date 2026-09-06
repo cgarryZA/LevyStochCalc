@@ -12,7 +12,10 @@ import LevyStochCalc.Basic
 -- in the future, recreate the file with the specific notation declarations.
 
 -- Layer 0: Compensated Poisson
+import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Poisson.PoissonSplitting
+import LevyStochCalc.Poisson.PoissonSuperposition
+import LevyStochCalc.Poisson.RegionIndependence
 import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge

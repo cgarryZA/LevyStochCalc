@@ -104,7 +104,7 @@ coincides with mathematical foundation order:
 | 3 | #16 `itoLevyFormula_jumpResidual_canonical_axiom` | Itô–Lévy layer |
 | 4 | #13a/#13b Jacod–Yor PRP pair | **the Dissertation's `BackwardStepStochasticInputs` bottleneck** |
 | 5 | #9 `continuousBSDEJ_exists_unique`, #10 `bsdej_path_regularity` | BSDEJ layer |
-| 6 | #2, #4, #18 | cited but off the pinned surface |
+| 6 | #2, #4, #18 — all theorems since 2026-09-06 | were cited but off the pinned surface |
 
 Then the `sorry`: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
 (`PicardSpace.lean:955`) is a single Bielecki-norm contraction argument that four baseline

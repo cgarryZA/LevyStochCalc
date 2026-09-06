@@ -23,6 +23,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.hasLaw_markCount_real
 #print axioms LevyStochCalc.Poisson.map_markCount_ennreal
 #print axioms LevyStochCalc.Poisson.iIndepFun_markCount_ennreal
+-- Superposition of independent Poisson pieces (the Poisson recipe behind #2).
+#print axioms LevyStochCalc.Probability.iIndepFun_fiber
+#print axioms LevyStochCalc.Poisson.map_superposition
+#print axioms LevyStochCalc.Poisson.ae_exists_nat_superposition
+#print axioms LevyStochCalc.Poisson.ae_eq_top_superposition
+#print axioms LevyStochCalc.Poisson.iIndepFun_superposition
+#print axioms LevyStochCalc.Poisson.lintegral_superposition
+#print axioms LevyStochCalc.Poisson.indep_of_disjoint_region_of_indep
+-- Cited result #2 (Applebaum 2.3.1 / Kallenberg 3.6): a theorem since 2026-09-06.
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_iSup_comap_of_disjoint
 #print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.indep_of_disjoint_region

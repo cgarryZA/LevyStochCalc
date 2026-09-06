@@ -41,7 +41,7 @@ LevyStochCalc/
 │   ├── Multidim.lean                          — multidim BM structure
 │   └── MultidimIto.lean                       — multidim L² Itô integral
 ├── Poisson/
-│   ├── RandomMeasure.lean                     — Tier 1 #2 axiom + structure
+│   ├── RandomMeasure.lean                     — PRM structure + existence (#2, a theorem)
 │   ├── NaturalFiltration.lean                 — filtration definition
 │   ├── Compensated.lean                       — L² Itô-Lévy integral (2400+ lines)
 │   │                                            + Tier 1 auxiliary axiom
@@ -100,7 +100,8 @@ Currently-live axioms:
 
 1. ~~`BrownianMotion.exists`~~ — resolved 2026-09-05: a theorem in `Brownian/Existence.lean`,
    forwarding to `RemyDegenne/brownian-motion` (`isBrownianReal_brownian`).
-2. `PoissonRandomMeasure.exists_of_sigmaFinite` — Applebaum 2009 Thm 2.3.1.
+2. ~~`PoissonRandomMeasure.exists_of_sigmaFinite`~~ — resolved 2026-09-06: a theorem in
+   `Poisson/RandomMeasure.lean` (the Poisson recipe over `Poisson/PoissonSuperposition.lean`).
 3. `kolmogorovChentsov_modification` — Karatzas-Shreve Thm 2.2.8 / Le Gall Thm 2.9.
 4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.
 5. `itoIsometry_brownian_unified_existence` — Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4.
