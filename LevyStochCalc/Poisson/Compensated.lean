@@ -6,6 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.NaturalFiltration
 import LevyStochCalc.Poisson.CompensatedProcessQuadVar
+import LevyStochCalc.Poisson.CompensatedDiff
 import LevyStochCalc.Martingale.CadlagModification
 import Mathlib.Probability.Martingale.Basic
 
@@ -25,12 +26,12 @@ càdlàg paths of `stochasticIntegral` in one 4-conjunct existential;
 `itoLevyIsometry`, `quadVar_stochasticIntegral`, `martingale_stochasticIntegral`,
 `cadlag_modification_exists`, and `L2Isometry.itoLevyIsometry` are its conjuncts.
 
-`itoIsometry_diff_compensated` (cited axiom #18) is the per-difference L²-isometry
-for this integral — a consequence of L²-linearity and isometry (Applebaum
-Thm 4.2.3 step II). It is stated separately for now: `stochasticIntegral` is a
-modification chosen per integrand, and the difference isometry is to be derived from
-the cross-difference isometry of the mark-step approximants of the two integrands. It
-is consumed by `Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise` and mirrors
+`itoIsometry_diff_compensated` is the per-difference L²-isometry for this integral
+(Applebaum Thm 4.2.3 step II): the integrals are modifications of the `L²` integral
+processes, whose difference isometry `process_sub_lintegral_sq`
+(`Poisson/CompensatedDiff.lean`) comes from the mark-step approximants of the two
+integrands on a common dyadic refinement. It is consumed by
+`Ito.Picard.picardStep_jump_diff_lipschitz_sq_componentwise` and mirrors
 `Brownian.Ito.itoIsometry_diff_brownian`.
 
 ## References
@@ -276,8 +277,7 @@ theorem cadlag_modification_exists :
 
 end Integral
 
-/-- **CITED AXIOM (Tier 1 #18): L²-isometry for the *difference* of two
-compensated-Poisson Itô-Lévy integrals.**
+/-- **L²-isometry for the *difference* of two compensated-Poisson Itô-Lévy integrals.**
 
 For two jointly-measurable, progressively-measurable, L²-bounded
 integrands `φ₁, φ₂ : Ω → ℝ → E → ℝ`, the difference
@@ -286,30 +286,14 @@ L²-isometry against the *integrand difference*:
 
   `𝔼 |M¹_T - M²_T|² = 𝔼 ∫_0^T ∫_E |φ₁(s, e) - φ₂(s, e)|² ν(de) ds`.
 
-This is a standard consequence of L²-linearity + isometry of the L²
-Itô-Lévy integral as a continuous linear isometry from
-`L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)` to `L²(Ω, dP)`. `stochasticIntegral N φ`
-is the càdlàg modification of the `L²` integral process of `φ`, and the
-difference isometry is to be derived from the cross-difference isometry of
-the mark-step approximants of the two integrands (the route that discharged
-the Brownian-side `itoIsometry_diff_brownian`, formerly cited axiom #17);
-until then it is stated as a separate axiom.
-
-**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
-2nd ed., CUP 2009, **Theorem 4.2.3** — the L²-Itô-Lévy integral is
-constructed as the unique continuous linear extension from simple
-predictable processes (Applebaum 4.2.3 step (II): the map
-`φ ↦ I(φ)` is a linear isometry from `H²([0,T], E)` to `L²(Ω, ℱ_T, P)`,
-where `H²` is the predictable L² space `L²(Ω × [0,T] × E, dP ⊗ ds ⊗ dν)`).
-The difference identity is the per-`(φ₁, φ₂)` instance of that linearity
-+ isometry: `‖I(φ₁) - I(φ₂)‖_{L²(Ω)}² = ‖I(φ₁ - φ₂)‖_{L²(Ω)}² =
-‖φ₁ - φ₂‖_{H²}²`. See also Ikeda-Watanabe **Section II.3** for the same
-construction.
-
-**Replacement plan**: the cross-difference isometry of the stage approximants
-(`MarkStep.lintegral_integral_sub_sq_at` on a common dyadic refinement) and the
-`L²`-limits of both sides. Tracked in `tools/cited_axioms.md` Tier 1 #18. -/
-axiom itoIsometry_diff_compensated
+This is the per-`(φ₁, φ₂)` instance of the L²-linearity + isometry of the
+Itô-Lévy integral as a linear isometry from `L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)`
+to `L²(Ω, dP)` (Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed.,
+CUP 2009, **Theorem 4.2.3** step (II); Ikeda-Watanabe **Section II.3**). Both
+integrals are modifications of the `L²` integral processes of their integrands,
+whose difference isometry `process_sub_lintegral_sq` comes from the mark-step
+approximants of the two integrands on a common dyadic refinement. -/
+theorem itoIsometry_diff_compensated
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
@@ -334,12 +318,17 @@ axiom itoIsometry_diff_compensated
     (h_sq_int_global₂ : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    (T : ℝ) (_hT : 0 < T) :
+    (T : ℝ) (hT : 0 < T) :
     ∫⁻ ω, (‖stochasticIntegral N φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T ω
               - stochasticIntegral N φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T ω‖₊
             : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        (‖φ₁ ω s e - φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
-
+        (‖φ₁ ω s e - φ₂ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
+  rw [← process_sub_lintegral_sq N φ₁ φ₂ h_meas₁ h_meas₂ h_progMeas₁ h_progMeas₂
+    h_sq_int_global₁ h_sq_int_global₂ hT]
+  refine lintegral_congr_ae ?_
+  filter_upwards [stochasticIntegral_ae_eq_process N φ₁ h_meas₁ h_progMeas₁ h_sq_int_global₁ T,
+    stochasticIntegral_ae_eq_process N φ₂ h_meas₂ h_progMeas₂ h_sq_int_global₂ T] with ω h₁ h₂
+  rw [h₁, h₂]
 
 end LevyStochCalc.Poisson.Compensated

@@ -30,7 +30,7 @@ Previously, `BSDEJ.MartingaleRepresentation.jacodYor_representation` and
 theorems forwarding through honest Tier 1 cited axioms (the
 #13a + #13b decomposition for jacodYor; #15 + #16 for itoLevyFormula).
 
-## Tier 1 cited axioms (9 currently live)
+## Tier 1 cited axioms (8 currently live)
 
 See `tools/cited_axioms.md` for the full inventory. Numbering history:
 #7 + #8 deleted 2026-05-22 (dead post-refactor per M4); #11 retired
@@ -57,9 +57,10 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
 * **Itô-Lévy formula** (2 axioms):
   `itoFormula_continuousSemimartingale_axiom` (#15),
   `itoLevyFormula_jumpResidual_canonical_axiom` (#16).
-* **Per-difference L²-isometries** (2 axioms — used by Picard contraction
-  estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian`
-  (#17), `itoIsometry_diff_compensated` (#18).
+* **Per-difference L²-isometries** (0 axioms — used by Picard contraction
+  estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
+  a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem
+  since 2026-09-06 via `process_sub_lintegral_sq`).
 
 ## Recent activity (2026-05-22)
 

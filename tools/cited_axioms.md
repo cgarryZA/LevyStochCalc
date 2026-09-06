@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (9 currently live)
+## Tier 1: Honest cited axioms (8 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
@@ -53,10 +53,10 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
 entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
-2026-09-05; #6, proved 2026-09-06) are kept as `### Retired #N` / `### Resolved #N`
-headings below for traceability; they are NOT counted in the headline "9 currently
-live" figure. Only `### N.` (digit-leading) headings correspond to live axioms, so
-`grep -c "^### [0-9]" tools/cited_axioms.md == 9`.
+2026-09-05; #6 and #18, proved 2026-09-06) are kept as `### Retired #N` /
+`### Resolved #N` headings below for traceability; they are NOT counted in the
+headline "8 currently live" figure. Only `### N.` (digit-leading) headings correspond
+to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 8`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -209,11 +209,11 @@ literature integral forms.
 * **Reference**: Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem 3.2.6** + §3.2.B.
 * **Status**: No longer an axiom — proved as a `theorem` in `Ito/Picard.lean`, forwarding to `isometry_diff_stochasticIntegralBrownian` (`Brownian/ItoL2Completion.lean`). This was unblocked by making `stochasticIntegral := stochasticIntegralBrownian` a genuine `L²`-limit construction (rather than `Classical.choose` on #5): both the integral difference and the integrand difference are realized as `L²`-limits of the same simple-integral difference sequence (`masterApprox_cross_diff_isometry`), and `tendsto_nhds_unique` equates the two limits. The consumer `picardStep_diffusion_diff_lipschitz_sq_componentwise` (`Ito/Picard.lean`) is unchanged.
 
-### 18. `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (added 2026-05-23; documented 2026-05-27 per 3rd-audit reconciliation)
+### Resolved #18: `LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (proved axiom→theorem 2026-09-06; added 2026-05-23, documented 2026-05-27)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `φ₁, φ₂ : Ω → ℝ → E → ℝ`, the L² norm of the difference of their compensated-Poisson Itô-Lévy integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T ∫_E φ₁ Ñ − ∫_0^T ∫_E φ₂ Ñ|² = 𝔼 ∫_0^T ∫_E |φ₁(s, e) − φ₂(s, e)|² ν(de) ds`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.2.3** step (II) (the L²-Itô-Lévy integral is a linear isometry from the predictable `H²` space `L²(Ω × [0, T] × E, dP ⊗ ds ⊗ dν)` to `L²(Ω, ℱ_T, P)`; the per-difference identity is the linear-isometry property applied to `(φ₁ − φ₂)`); Ikeda–Watanabe **Section II.3** for the same construction.
-* **Why a separate axiom**: same rationale as #17 before its discharge — `Compensated.stochasticIntegral N φ` is the càdlàg modification (chosen per integrand) of the `L²` integral process of `φ`, and the difference isometry has to be derived from the cross-difference isometry of the mark-step approximants of the two integrands (`MarkStep.lintegral_integral_sub_sq_at` on a common dyadic refinement) and the `L²`-limits of both sides; that derivation is the next step now that #6 is a theorem (2026-09-06). The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
+* **Status**: No longer an axiom — proved as a `theorem` in `Poisson/Compensated.lean`, statement unchanged, forwarding to `process_sub_lintegral_sq` (`Poisson/CompensatedDiff.lean`): the stage approximants of the two integrands are refined to a common dyadic grid (`MarkStep.integral_dyadicRefine`: a refined adapted integrand has a.e. the same integral at every time, by the martingale property from the common horizon), where the same-grid difference isometry `MarkStep.lintegral_integral_sub_sq_at` holds at every time; both sides pass to the limit in `L²` (`tendsto_lintegral_nnnorm_sq_of_eLpNorm`) and `tendsto_nhds_unique` equates the limits; the integrals are modifications of the processes (`stochasticIntegral_ae_eq_process`). `#print axioms` lists only the three standard axioms. The per-difference isometry is used downstream by the γ-side Picard contraction estimate (`picardStep_jump_diff_lipschitz_sq_componentwise` in `Ito/Picard.lean`) and by the `ε → 0` limit in the Itô-Lévy formula jump residual axiom (Tier 1 #16).
 * **Mathlib status (May 2026)**: blocked on Mathlib gaining a compensated-Poisson L²-integral (waits on PRM construction — Tier 1 #2). No current Mathlib activity in this direction.
 * **Replacement plan**: `theorem itoIsometry_diff_compensated := <linearity ∘ isometry>` when Mathlib gains a compensated-Poisson L²-integral as a continuous linear map.
 
@@ -547,8 +547,8 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **9 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
-  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #6 2026-09-06): #2, #4
+* **8 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #6 and #18 2026-09-06): #2, #4
   (Brownian + Poisson foundations; #1, #3, #5, #6 now theorems), #9 + #10
   (BSDEJ existence + path regularity), #13a + #13b (the two strictly
   narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
@@ -557,10 +557,9 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
   now demoted to a derived theorem), #15 + #16 (the two pieces of the
   decomposed Itô-Lévy formula: `itoFormula_continuousSemimartingale_axiom`
   + `itoLevyFormula_jumpResidual_canonical_axiom`, with the previously-
-  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem), and #18
-  (`itoIsometry_diff_compensated`, the per-difference L²-isometry that has
-  lived in source since 2026-05-23 and was first formally numbered in this
-  file on 2026-05-27; its Brownian twin #17 is a theorem since 2026-06-17).
+  monolithic Tier 1 #11 `itoLevyFormula` now a derived theorem). The two
+  per-difference L²-isometries #17 (`itoIsometry_diff_brownian`, 2026-06-17)
+  and #18 (`itoIsometry_diff_compensated`, 2026-09-06) are theorems.
   Each axiom has paper reference + Mathlib status + replacement plan.
   History markers: M4 deleted #7 + #8 (2026-05-22); #11 retired (2026-05-24);
   #12, #13, #14 demoted axiom→theorem (2026-05-26); #17, #18 added

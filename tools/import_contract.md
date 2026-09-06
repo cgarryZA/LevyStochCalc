@@ -44,7 +44,7 @@ remain reachable under the listed namespace prefix.
 | `PoissonRandomMeasure`                                      | `Poisson/RandomMeasure.lean`              |
 | `naturalFiltration`                                         | `Poisson/NaturalFiltration.lean`          |
 | `Compensated.stochasticIntegral`                            | `Poisson/Compensated.lean`                |
-| `Compensated.itoIsometry_compensated_unified_existence`     | `Poisson/Compensated.lean` (cited axiom #6) |
+| `Compensated.itoIsometry_compensated_unified_existence`     | `Poisson/Compensated.lean` (a theorem since 2026-09-06; formerly cited axiom #6) |
 | `L2Isometry.itoLevyIsometry`                                | `Poisson/L2Isometry.lean`                 |
 
 ### `LevyStochCalc.Brownian`

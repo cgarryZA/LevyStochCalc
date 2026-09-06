@@ -964,6 +964,33 @@ lemma Adapted.dyadicRefine {N : PoissonRandomMeasure P ν}
   exact dyadic_refine_adapted N hT hnm (Ki := fun _ => G.K) (fun i k => G.ξ i k)
     (fun i k => hG i i.isLt k) ⟨i, hi⟩ k
 
+/-- The integral of a refined adapted mark-step integrand agrees almost surely with the
+integral of the integrand at every time. -/
+lemma integral_dyadicRefine (hG : G.Adapted N) (t : ℝ) :
+    (fun ω => (G.dyadicRefine hnm).integral N t ω) =ᵐ[P] fun ω => G.integral N t ω := by
+  have hfull : (fun ω => (G.dyadicRefine hnm).integral N T ω)
+      =ᵐ[P] fun ω => G.integral N T ω := by
+    have h1 : ∀ ω, (G.dyadicRefine hnm).integral N T ω = (G.dyadicRefine hnm).full N ω :=
+      fun ω => (G.dyadicRefine hnm).integral_eq_full_of_horizon_le N
+        (TimeGrid.dyadic_horizon T hT m).le ω
+    have h2 : ∀ ω, G.integral N T ω = G.full N ω :=
+      fun ω => G.integral_eq_full_of_horizon_le N (TimeGrid.dyadic_horizon T hT n).le ω
+    simp only [h1, h2]
+    exact G.full_dyadicRefine N hnm
+  rcases le_or_gt t T with htT | htT
+  · have hM₁ := (G.dyadicRefine hnm).martingale_integral N (hG.dyadicRefine hnm)
+    have hM₂ := G.martingale_integral N hG
+    exact (hM₁.condExp_ae_eq htT).symm.trans
+      ((condExp_congr_ae hfull).trans (hM₂.condExp_ae_eq htT))
+  · have h1 : ∀ ω, (G.dyadicRefine hnm).integral N t ω = (G.dyadicRefine hnm).full N ω :=
+      fun ω => (G.dyadicRefine hnm).integral_eq_full_of_horizon_le N
+        ((TimeGrid.dyadic_horizon T hT m).le.trans htT.le) ω
+    have h2 : ∀ ω, G.integral N t ω = G.full N ω :=
+      fun ω => G.integral_eq_full_of_horizon_le N
+        ((TimeGrid.dyadic_horizon T hT n).le.trans htT.le) ω
+    simp only [h1, h2]
+    exact G.full_dyadicRefine N hnm
+
 /-- A mark-step integrand on the level-`ℓ` dyadic grid of `[0, T]`, restricted to the
 prefix `[0, T']` where `T = T' * 2 ^ d` (`d ≤ ℓ`), which is the level-`(ℓ - d)` dyadic
 grid there. -/

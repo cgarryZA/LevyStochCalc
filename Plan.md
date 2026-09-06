@@ -274,14 +274,18 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         via `martingale_of_tendsto_eLpNorm_one`) and `martingale_rightCont_quadVar_process`
         (right-`L¹`-continuity of `F²` and of the compensator, the latter from the slab
         integral `∫⁻∫⁻_{(s,r]} markSq → 0`).
-      - *Assembly — DONE 2026-09-06* (see the head of this item). Next: #18.
+      - *Assembly — DONE 2026-09-06* (see the head of this item).
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),
       then `isometry_diff_stochasticIntegralBrownian` (cross-integrand simple diff
-      isometry + L²-limit). **#18** `itoIsometry_diff_compensated` still blocked on A2/#6
-      (the compensated integral is `Classical.choose` on axiom #6 until #6 is built);
-      close it right after #6.
+      isometry + L²-limit). **#18** `itoIsometry_diff_compensated` — **DONE 2026-09-06**
+      (axiom→theorem; cited_axioms.md 9→8): `process_sub_lintegral_sq`
+      (`Poisson/CompensatedDiff.lean`) refines the stage approximants of the two
+      integrands to a common dyadic grid (`MarkStep.integral_dyadicRefine`, from the
+      martingale property at the common horizon), applies the same-grid difference
+      isometry at every time, and passes both sides to the `L²`-limit; the integrals are
+      modifications of the processes.
 - [ ] **A4 / #15** `itoFormula_continuousSemimartingale_axiom` — Itô formula for
       continuous semimartingales (KS 3.3.6), now resting on a real A1.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump

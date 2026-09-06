@@ -33,6 +33,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.isometry_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_cadlag
 #print axioms LevyStochCalc.Poisson.Compensated.itoIsometry_compensated_unified_existence
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_dyadicRefine
+#print axioms LevyStochCalc.Poisson.Compensated.process_sub_lintegral_sq
+#print axioms LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated
 
 -- ===== Layer 0.25: mark-step integrands (toward #6) =====
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.martingale_integral
