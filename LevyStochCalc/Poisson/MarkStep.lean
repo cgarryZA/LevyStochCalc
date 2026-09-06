@@ -260,6 +260,96 @@ lemma clamp_p_of_lt {t : ℝ} (ht : 0 ≤ t) {i : ℕ} (hi : i < (g.clamp t ht).
 lemma clamp_horizon_le (t : ℝ) (ht : 0 ≤ t) : (g.clamp t ht).horizon ≤ t :=
   min_le_right _ _
 
+open Classical in
+/-- The index of the piece containing `s`: the first `i` with `s < p (i + 1)`, capped at
+`N₀`. -/
+noncomputable def startIndex (s : ℝ) : ℕ :=
+  Nat.find (⟨g.N₀, Or.inl le_rfl⟩ : ∃ i, g.N₀ ≤ i ∨ s < g.p (i + 1))
+
+open Classical in
+lemma startIndex_le (s : ℝ) : g.startIndex s ≤ g.N₀ := Nat.find_le (Or.inl le_rfl)
+
+open Classical in
+lemma p_succ_le_of_lt_startIndex {s : ℝ} {i : ℕ} (hi : i < g.startIndex s) :
+    i < g.N₀ ∧ g.p (i + 1) ≤ s := by
+  have := Nat.find_min (⟨g.N₀, Or.inl le_rfl⟩ : ∃ i, g.N₀ ≤ i ∨ s < g.p (i + 1)) hi
+  exact ⟨not_le.1 fun h => this (Or.inl h), not_lt.1 fun h => this (Or.inr h)⟩
+
+open Classical in
+lemma lt_p_succ_startIndex {s : ℝ} (h : g.startIndex s < g.N₀) :
+    s < g.p (g.startIndex s + 1) := by
+  have hspec := Nat.find_spec (⟨g.N₀, Or.inl le_rfl⟩ : ∃ i, g.N₀ ≤ i ∨ s < g.p (i + 1))
+  rcases hspec with h' | h'
+  · exact absurd h (not_lt.2 h')
+  · exact h'
+
+lemma p_startIndex_le {s : ℝ} (hs : 0 ≤ s) : g.p (g.startIndex s) ≤ s := by
+  rcases Nat.eq_zero_or_pos (g.startIndex s) with h | h
+  · rw [h, g.p_zero]
+    exact hs
+  · have := g.p_succ_le_of_lt_startIndex (Nat.sub_lt h one_pos)
+    have h1 : g.startIndex s - 1 + 1 = g.startIndex s := by omega
+    rw [h1] at this
+    exact this.2
+
+lemma startIndex_lt_clampIndex {s t : ℝ} (hs : 0 ≤ s) (hst : s < t)
+    (h : g.startIndex s < g.N₀) : g.startIndex s < g.clampIndex t := by
+  refine not_le.1 fun hle => ?_
+  have := g.le_p_of_clampIndex_le hle h
+  exact absurd (this.trans (g.p_startIndex_le hs)) (not_le.2 hst)
+
+lemma startIndex_le_clampIndex {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) :
+    g.startIndex s ≤ g.clampIndex t := by
+  rcases Nat.lt_or_ge (g.startIndex s) g.N₀ with h | h
+  · exact (g.startIndex_lt_clampIndex hs hst h).le
+  · refine not_lt.1 fun hlt => ?_
+    have hbN : g.clampIndex t < g.N₀ := lt_of_lt_of_le hlt (g.startIndex_le s)
+    have h1 := g.le_p_of_clampIndex_le le_rfl hbN
+    have h2 := (g.p_succ_le_of_lt_startIndex hlt).2
+    exact absurd ((h1.trans (g.p_mono (Nat.le_succ _) hbN)).trans h2) (not_le.2 hst)
+
+/-- The grid of the increment over `(s, t]`: a first piece `(0, s]`, then the pieces of `g`
+meeting `(s, t]`, cut at `s` and `t`. -/
+noncomputable def incr (s t : ℝ) (hs : 0 < s) (hst : s < t) : TimeGrid where
+  N₀ := g.clampIndex t - g.startIndex s + 1
+  p := fun i => if i = 0 then 0 else min (max (g.p (g.startIndex s + (i - 1))) s) t
+  p_zero := by simp
+  p_lt := by
+    intro i hi
+    have hpa : g.p (g.startIndex s) ≤ s := g.p_startIndex_le hs.le
+    rcases Nat.eq_zero_or_pos i with h0 | hpos
+    · subst h0
+      show (0 : ℝ) < min (max (g.p (g.startIndex s + (0 + 1 - 1))) s) t
+      rw [show 0 + 1 - 1 = 0 by rfl, add_zero, max_eq_right hpa, min_eq_left hst.le]
+      exact hs
+    · have hi' : g.startIndex s + (i - 1) < g.clampIndex t := by omega
+      have hlt := g.lt_of_lt_clampIndex hi'
+      have haN : g.startIndex s < g.N₀ := lt_of_le_of_lt (Nat.le_add_right _ _) hlt.1
+      have hsa1 : s < g.p (g.startIndex s + 1) := g.lt_p_succ_startIndex haN
+      rw [if_neg hpos.ne', if_neg (Nat.succ_ne_zero i)]
+      rw [show i + 1 - 1 = i - 1 + 1 by omega, ← add_assoc]
+      have hmono : g.p (g.startIndex s + (i - 1)) < g.p (g.startIndex s + (i - 1) + 1) :=
+        g.p_lt _ hlt.1
+      rcases Nat.eq_zero_or_pos (i - 1) with hz | hz
+      · rw [hz, add_zero, max_eq_right hpa, min_eq_left hst.le]
+        rw [hz, add_zero] at hmono
+        exact lt_min (lt_of_lt_of_le hsa1 (le_max_left _ _)) hst
+      · have hgt : s < g.p (g.startIndex s + (i - 1)) :=
+          hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
+        rw [max_eq_left hgt.le, min_eq_left hlt.2.le]
+        exact lt_min (lt_of_lt_of_le hmono (le_max_left _ _)) hlt.2
+
+lemma incr_p_succ (s t : ℝ) (hs : 0 < s) (hst : s < t) (j : ℕ) :
+    (g.incr s t hs hst).p (j + 1) = min (max (g.p (g.startIndex s + j)) s) t := by
+  show (if j + 1 = 0 then (0 : ℝ) else min (max (g.p (g.startIndex s + (j + 1 - 1))) s) t) = _
+  rw [if_neg (Nat.succ_ne_zero j), Nat.add_sub_cancel]
+
+lemma incr_horizon_le (s t : ℝ) (hs : 0 < s) (hst : s < t) :
+    (g.incr s t hs hst).horizon ≤ t := by
+  show (g.incr s t hs hst).p (g.clampIndex t - g.startIndex s + 1) ≤ t
+  rw [incr_p_succ]
+  exact min_le_right _ _
+
 lemma clampIndex_p {b : ℕ} (hb : b ≤ g.N₀) : g.clampIndex (g.p b) = b := by
   refine le_antisymm (not_lt.1 fun h => ?_) (not_lt.1 fun h => ?_)
   · exact lt_irrefl _ (g.lt_of_lt_clampIndex h).2
@@ -752,6 +842,59 @@ theorem integral_weight_increment_sq (hG : G.Adapted N) {w : Ω → ℝ}
   · rw [Set.indicator_of_notMem hs, if_neg (fun h => hs (Set.mem_Ioc.2 h))]
     ring
 
+/-- The weighted integrand from index `0`: every coefficient is multiplied by `w`. -/
+lemma full_weight_zero (ω : Ω) : (G.weight w hw hwm 0).full N ω = w ω * G.full N ω := by
+  unfold full
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  show (if 0 ≤ i then w ω * G.ξ i k ω else 0) * _ = _
+  rw [if_pos (Nat.zero_le i), mul_assoc]
+  rfl
+
+/-- The integrand of the integrand weighted from index `0`. -/
+lemma eval_weight_zero (s : ℝ) (e : E) (ω : Ω) :
+    (G.weight w hw hwm 0).eval s e ω = w ω * G.eval s e ω := by
+  unfold eval
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  show (Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) s
+      * ∑ k : Fin G.K, (if 0 ≤ i then w ω * G.ξ i k ω else 0)
+        * (G.B k).indicator (fun _ => (1 : ℝ)) e
+    = w ω * ((Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) s
+      * ∑ k : Fin G.K, G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e)
+  simp only [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [if_pos (Nat.zero_le i)]
+  ring
+
+include hw hwm in
+/-- The set-level `L²` isometry of the integral up to time `t ≥ 0` against a bounded weight
+measurable at time `0`. -/
+theorem integral_weight_zero_sq (hG : G.Adapted N) {t : ℝ} (ht : 0 ≤ t)
+    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq 0) w) :
+    ∫ ω, (w ω * G.integral N t ω) ^ 2 ∂P
+      = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ s in Set.Icc (0 : ℝ) t,
+          (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
+  have hwa' : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.clamp t ht).p 0)) w := by
+    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq (min (g.p 0) t)) w
+    rwa [g.p_zero, min_eq_left ht]
+  have key := ((G.clamp t ht).weight w hw hwm 0).integral_full_sq N
+    ((hG.clamp t ht).weight hw hwm hwa') (g.clamp_horizon_le t ht)
+  simp_rw [(G.clamp t ht).full_weight_zero N hw hwm, (G.clamp t ht).eval_weight_zero hw hwm,
+    ← G.integral_eq_full_clamp N t ht, G.eval_clamp t ht] at key
+  rw [key]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
+  beta_reduce
+  rw [← integral_const_mul]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun e => ?_)
+  beta_reduce
+  rw [← integral_const_mul]
+  refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
+  rw [if_pos hs.2]
+  ring
+
 end Weight
 
 section Dyadic
@@ -891,6 +1034,278 @@ lemma Adapted.dyadicRestrict {N : PoissonRandomMeasure P ν} {ℓ d : ℕ}
   exact hG i (lt_of_lt_of_le hi (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))) k
 
 end Dyadic
+
+section Increment
+
+variable {ν : Measure E} [SigmaFinite ν] {P : Measure Ω} [IsProbabilityMeasure P]
+  {g : TimeGrid}
+
+/-- The increment of a mark-step integrand over `(s, t]`, weighted by `w`, as a mark-step
+integrand on the increment grid. -/
+noncomputable def incr (G : MarkStep Ω E ν g) (w : Ω → ℝ) (hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C)
+    (hwm : Measurable w) (s t : ℝ) (hs : 0 < s) (hst : s < t) :
+    MarkStep Ω E ν (g.incr s t hs hst) where
+  K := G.K
+  B := G.B
+  B_measurable := G.B_measurable
+  B_finite := G.B_finite
+  ξ := fun i k ω => if i = 0 then 0 else w ω * G.ξ (g.startIndex s + (i - 1)) k ω
+  ξ_bounded := fun i k => by
+    obtain ⟨C, hC⟩ := hw
+    obtain ⟨M, hM⟩ := G.ξ_bounded (g.startIndex s + (i - 1)) k
+    refine ⟨|C| * |M|, fun ω => ?_⟩
+    split_ifs
+    · rw [abs_zero]
+      positivity
+    · rw [abs_mul]
+      exact mul_le_mul ((hC ω).trans (le_abs_self C)) ((hM ω).trans (le_abs_self M))
+        (abs_nonneg _) (abs_nonneg _)
+  ξ_measurable := fun i k => by
+    by_cases h : i = 0
+    · simp only [h, if_true]
+      exact measurable_const
+    · simp only [h, if_false]
+      exact hwm.mul (G.ξ_measurable _ k)
+
+variable (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) {w : Ω → ℝ}
+  (hw : ∃ C : ℝ, ∀ ω, |w ω| ≤ C) (hwm : Measurable w) {s t : ℝ} (hs : 0 < s) (hst : s < t)
+
+include hw hwm in
+lemma Adapted.incr {N : PoissonRandomMeasure P ν} {G : MarkStep Ω E ν g} (hG : G.Adapted N)
+    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq s) w) :
+    (G.incr w hw hwm s t hs hst).Adapted N := by
+  intro i hi k
+  rcases Nat.eq_zero_or_pos i with h0 | hpos
+  · subst h0
+    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.incr s t hs hst).p 0))
+      (fun ω => if (0 : ℕ) = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (0 - 1)) k ω)
+    simp only [if_true]
+    exact stronglyMeasurable_const
+  · obtain ⟨j, rfl⟩ : ∃ j, i = j + 1 := ⟨i - 1, by omega⟩
+    have hi' : j + 1 < g.clampIndex t - g.startIndex s + 1 := hi
+    have hj : g.startIndex s + j < g.clampIndex t := by omega
+    have hlt := g.lt_of_lt_clampIndex hj
+    show @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq ((g.incr s t hs hst).p (j + 1)))
+      (fun ω => if j + 1 = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (j + 1 - 1)) k ω)
+    simp only [Nat.succ_ne_zero, if_false, Nat.add_sub_cancel]
+    rw [g.incr_p_succ]
+    have hξ := hG (g.startIndex s + j) hlt.1 k
+    rcases Nat.eq_zero_or_pos j with hz | hz
+    · subst hz
+      rw [add_zero, max_eq_right (g.p_startIndex_le hs.le), min_eq_left hst.le]
+      rw [add_zero] at hξ
+      exact hwa.mul (hξ.mono ((naturalFiltration N).mono (g.p_startIndex_le hs.le)))
+    · have haN : g.startIndex s < g.N₀ := lt_of_le_of_lt (Nat.le_add_right _ _) hlt.1
+      have hgt : s < g.p (g.startIndex s + j) :=
+        (g.lt_p_succ_startIndex haN).trans_le (g.p_mono (by omega) hlt.1.le)
+      rw [max_eq_left hgt.le, min_eq_left hlt.2.le]
+      exact (hwa.mono ((naturalFiltration N).mono hgt.le)).mul hξ
+
+/-- The integrand of the weighted increment, as a sum over the pieces meeting `(s, t]`. -/
+lemma eval_incr_eq (σ : ℝ) (e : E) (ω : Ω) :
+    (G.incr w hw hwm s t hs hst).eval σ e ω
+      = ∑ j ∈ Finset.range (g.clampIndex t - g.startIndex s),
+        (Set.Ioc (min (max (g.p (g.startIndex s + j)) s) t)
+          (min (max (g.p (g.startIndex s + (j + 1))) s) t)).indicator (fun _ => (1 : ℝ)) σ
+        * ∑ k, (w ω * G.ξ (g.startIndex s + j) k ω) * (G.B k).indicator (fun _ => (1 : ℝ)) e := by
+  unfold eval
+  show ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
+      (Set.Ioc ((g.incr s t hs hst).p i) ((g.incr s t hs hst).p (i + 1))).indicator
+        (fun _ => (1 : ℝ)) σ
+      * ∑ k, (if i = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (i - 1)) k ω)
+        * (G.B k).indicator (fun _ => (1 : ℝ)) e = _
+  rw [Finset.sum_range_succ']
+  simp only [if_true, zero_mul, Finset.sum_const_zero, mul_zero, add_zero]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  rw [g.incr_p_succ, g.incr_p_succ]
+  simp only [Nat.succ_ne_zero, if_false, Nat.add_sub_cancel]
+
+/-- The integrand of the weighted increment. -/
+lemma eval_incr (σ : ℝ) (e : E) (ω : Ω) :
+    (G.incr w hw hwm s t hs hst).eval σ e ω
+      = if s < σ ∧ σ ≤ t then w ω * G.eval σ e ω else 0 := by
+  rw [eval_incr_eq]
+  have hab : g.startIndex s ≤ g.clampIndex t := g.startIndex_le_clampIndex hs.le hst
+  have hbN : g.clampIndex t ≤ g.N₀ := g.clampIndex_le t
+  split_ifs with hσ
+  · -- restrict `G.eval` to the pieces `a ≤ i < b`
+    have hG : G.eval σ e ω = ∑ i ∈ Finset.Ico (g.startIndex s) (g.clampIndex t),
+        (Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) σ
+          * ∑ k, G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e := by
+      unfold eval
+      rw [Finset.range_eq_Ico]
+      symm
+      refine Finset.sum_subset (Finset.Ico_subset_Ico (Nat.zero_le _) hbN) ?_
+      intro i hi hni
+      rw [Finset.mem_Ico] at hi hni
+      rw [Set.indicator_of_notMem, zero_mul]
+      intro hmem
+      rcases Nat.lt_or_ge i (g.startIndex s) with h | h
+      · have := (g.p_succ_le_of_lt_startIndex h).2
+        exact absurd (hmem.2.trans this) (not_le.2 hσ.1)
+      · have hbi : g.clampIndex t ≤ i := by omega
+        have := g.le_p_of_clampIndex_le hbi hi.2
+        exact absurd (hσ.2.trans this) (not_le.2 hmem.1)
+    rw [hG, Finset.sum_Ico_eq_sum_range, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun j hj => ?_
+    rw [Finset.mem_range] at hj
+    have hlt := g.lt_of_lt_clampIndex (show g.startIndex s + j < g.clampIndex t by omega)
+    have hind : (Set.Ioc (min (max (g.p (g.startIndex s + j)) s) t)
+          (min (max (g.p (g.startIndex s + (j + 1))) s) t)).indicator (fun _ => (1 : ℝ)) σ
+        = (Set.Ioc (g.p (g.startIndex s + j)) (g.p (g.startIndex s + j + 1))).indicator
+          (fun _ => (1 : ℝ)) σ := by
+      rw [← add_assoc]
+      by_cases hmem : σ ∈ Set.Ioc (g.p (g.startIndex s + j)) (g.p (g.startIndex s + j + 1))
+      · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem]
+        exact ⟨min_lt_iff.2 (Or.inl (max_lt hmem.1 hσ.1)),
+          le_min (le_max_of_le_left hmem.2) hσ.2⟩
+      · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem]
+        intro hmem'
+        refine hmem ⟨?_, ?_⟩
+        · rcases min_lt_iff.1 hmem'.1 with h | h
+          · exact (max_lt_iff.1 h).1
+          · exact absurd hσ.2 (not_le.2 h)
+        · rcases le_max_iff.1 (le_min_iff.1 hmem'.2).1 with h | h
+          · exact h
+          · exact absurd h (not_le.2 hσ.1)
+    have : ∑ k, (w ω * G.ξ (g.startIndex s + j) k ω) * (G.B k).indicator (fun _ => (1 : ℝ)) e
+        = w ω * ∑ k, G.ξ (g.startIndex s + j) k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun k _ => by ring
+    rw [hind, this]
+    ring
+  · refine Finset.sum_eq_zero fun j _ => ?_
+    rw [Set.indicator_of_notMem, zero_mul]
+    intro hmem
+    rcases not_and_or.1 hσ with h | h
+    · exact h ((le_min (le_max_right _ _) hst.le).trans_lt hmem.1)
+    · exact h (hmem.2.trans (min_le_right _ _))
+
+/-- The integral of the weighted increment over its horizon, as a sum over the pieces
+meeting `(s, t]`. -/
+lemma full_incr_eq (ω : Ω) :
+    (G.incr w hw hwm s t hs hst).full N ω
+      = ∑ j ∈ Finset.range (g.clampIndex t - g.startIndex s),
+        ∑ k, (w ω * G.ξ (g.startIndex s + j) k ω)
+          * N.compensated (Set.Ioc (min (max (g.p (g.startIndex s + j)) s) t)
+            (min (max (g.p (g.startIndex s + (j + 1))) s) t) ×ˢ G.B k) ω := by
+  unfold full
+  show ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
+      ∑ k, (if i = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (i - 1)) k ω)
+        * N.compensated (Set.Ioc ((g.incr s t hs hst).p i) ((g.incr s t hs hst).p (i + 1))
+          ×ˢ G.B k) ω = _
+  rw [Finset.sum_range_succ']
+  simp only [if_true, zero_mul, Finset.sum_const_zero, add_zero]
+  refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
+  rw [g.incr_p_succ, g.incr_p_succ]
+  simp only [Nat.succ_ne_zero, if_false, Nat.add_sub_cancel]
+
+/-- The integral of the weighted increment over its horizon is the weighted increment of the
+integral (almost surely: the piece containing `s` is split at `s`). -/
+lemma full_incr :
+    (fun ω => (G.incr w hw hwm s t hs hst).full N ω)
+      =ᵐ[P] fun ω => w ω * (G.integral N t ω - G.integral N s ω) := by
+  have hab : g.startIndex s ≤ g.clampIndex t := g.startIndex_le_clampIndex hs.le hst
+  have hbN : g.clampIndex t ≤ g.N₀ := g.clampIndex_le t
+  have hpa : g.p (g.startIndex s) ≤ s := g.p_startIndex_le hs.le
+  have hinc : ∀ ω, G.integral N t ω - G.integral N s ω
+      = ∑ i ∈ Finset.Ico (g.startIndex s) (g.clampIndex t), ∑ k, G.ξ i k ω
+        * (N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω
+          - N.compensated (Set.Ioc (min (g.p i) s) (min (g.p (i + 1)) s) ×ˢ G.B k) ω) := by
+    intro ω
+    unfold integral
+    rw [← Finset.sum_sub_distrib]
+    simp_rw [← Finset.sum_sub_distrib, ← mul_sub]
+    rw [Finset.range_eq_Ico]
+    symm
+    refine Finset.sum_subset (Finset.Ico_subset_Ico (Nat.zero_le _) hbN) ?_
+    intro i hi hni
+    rw [Finset.mem_Ico] at hi hni
+    refine Finset.sum_eq_zero fun k _ => ?_
+    rcases Nat.lt_or_ge i (g.startIndex s) with h | h
+    · have h2 := (g.p_succ_le_of_lt_startIndex h).2
+      have h1 : g.p i ≤ s := (g.p_mono (Nat.le_succ i) hi.2).trans h2
+      rw [min_eq_left (h1.trans hst.le), min_eq_left (h2.trans hst.le), min_eq_left h1,
+        min_eq_left h2, sub_self, mul_zero]
+    · have hbi : g.clampIndex t ≤ i := by omega
+      have hti := g.le_p_of_clampIndex_le hbi hi.2
+      have hti' := hti.trans (g.p_mono (Nat.le_succ i) hi.2)
+      rw [min_eq_right hti, min_eq_right hti', min_eq_right (hst.le.trans hti),
+        min_eq_right (hst.le.trans hti'), compensated_Ioc_self, compensated_Ioc_self, sub_self,
+        mul_zero]
+  rcases Nat.lt_or_ge (g.startIndex s) g.N₀ with haN | haN
+  · have hsa1 : s < g.p (g.startIndex s + 1) := g.lt_p_succ_startIndex haN
+    have hsplit : ∀ᵐ ω ∂P, ∀ k : Fin G.K,
+        N.compensated (Set.Ioc (g.p (g.startIndex s)) (min (g.p (g.startIndex s + 1)) t)
+          ×ˢ G.B k) ω
+          = N.compensated (Set.Ioc (g.p (g.startIndex s)) s ×ˢ G.B k) ω
+            + N.compensated (Set.Ioc s (min (g.p (g.startIndex s + 1)) t) ×ˢ G.B k) ω := by
+      rw [ae_all_iff]
+      intro k
+      exact compensated_Ioc_split N hpa (le_min hsa1.le hst.le) (G.B_measurable k)
+        (G.B_finite k)
+    filter_upwards [hsplit] with ω hω
+    rw [full_incr_eq, hinc, Finset.sum_Ico_eq_sum_range, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun j hj => ?_
+    rw [Finset.mem_range] at hj
+    have hlt := g.lt_of_lt_clampIndex (show g.startIndex s + j < g.clampIndex t by omega)
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun k _ => ?_
+    rw [← add_assoc]
+    rcases Nat.eq_zero_or_pos j with hz | hz
+    · subst hz
+      simp only [add_zero]
+      rw [max_eq_right hpa, min_eq_left hst.le, max_eq_left hsa1.le,
+        min_eq_left (hpa.trans hst.le), min_eq_left hpa, min_eq_right hsa1.le, hω k]
+      ring
+    · have hgt : s < g.p (g.startIndex s + j) :=
+        hsa1.trans_le (g.p_mono (by omega) hlt.1.le)
+      have hgt' : s < g.p (g.startIndex s + j + 1) :=
+        hgt.trans (g.p_lt _ hlt.1)
+      rw [max_eq_left hgt.le, min_eq_left hlt.2.le, max_eq_left hgt'.le, min_eq_right hgt.le,
+        min_eq_right hgt'.le, compensated_Ioc_self]
+      ring
+  · refine Filter.Eventually.of_forall fun ω => ?_
+    beta_reduce
+    rw [full_incr_eq, hinc]
+    have h1 : g.clampIndex t - g.startIndex s = 0 := by omega
+    have h2 : Finset.Ico (g.startIndex s) (g.clampIndex t) = ∅ :=
+      Finset.Ico_eq_empty (not_lt.2 (by omega))
+    rw [h1, h2]
+    simp
+
+include hw hwm hs hst in
+/-- The set-level `L²` isometry of the increment of the integral over `(s, t]` against a
+bounded weight measurable at time `s`. -/
+theorem integral_weight_incr_sq (hG : G.Adapted N)
+    (hwa : @StronglyMeasurable Ω ℝ _ ((naturalFiltration N).seq s) w) :
+    ∫ ω, (w ω * (G.integral N t ω - G.integral N s ω)) ^ 2 ∂P
+      = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ σ in Set.Ioc s t, (G.eval σ e ω) ^ 2 ∂volume ∂ν) ∂P := by
+  have key := (G.incr w hw hwm s t hs hst).integral_full_sq N (hG.incr hw hwm hs hst hwa)
+    (g.incr_horizon_le s t hs hst)
+  have hL : ∫ ω, ((G.incr w hw hwm s t hs hst).full N ω) ^ 2 ∂P
+      = ∫ ω, (w ω * (G.integral N t ω - G.integral N s ω)) ^ 2 ∂P := by
+    refine integral_congr_ae ?_
+    filter_upwards [full_incr N G hw hwm hs hst] with ω hω
+    rw [hω]
+  rw [← hL, key]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
+  beta_reduce
+  simp_rw [eval_incr]
+  rw [← integral_const_mul]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun e => ?_)
+  beta_reduce
+  rw [← integral_const_mul]
+  have hsub : Set.Ioc s t ⊆ Set.Icc 0 t := fun σ hσ => ⟨hs.le.trans hσ.1.le, hσ.2⟩
+  rw [← Set.inter_eq_self_of_subset_right hsub, ← setIntegral_indicator measurableSet_Ioc]
+  refine setIntegral_congr_fun measurableSet_Icc fun σ _ => ?_
+  by_cases hσ : σ ∈ Set.Ioc s t
+  · rw [Set.indicator_of_mem hσ, if_pos (Set.mem_Ioc.1 hσ)]
+    ring
+  · rw [Set.indicator_of_notMem hσ, if_neg (fun h => hσ (Set.mem_Ioc.2 h))]
+    ring
+
+end Increment
 
 end MarkStep
 

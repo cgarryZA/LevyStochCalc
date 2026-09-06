@@ -237,11 +237,25 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         from the martingale Pythagoras identity and right-continuity of the horizon
         integral `horizonInt`), and `martingale_rightCont_process` on
         `(naturalFiltration N).rightCont`. This is conjuncts 1 and 3 of #6 for the
-        constructed process. Remaining: conjunct 2 (the quadratic-variation martingale:
-        set-level increment isometry from `integral_weight_increment_sq` at dyadic grid
-        points, limits in the stage, extension to real times by right-continuity, and a
-        generic "conditional isometry ⇒ `M² − A` martingale" lemma), then the assembly
-        with the càdlàg brick and the replacement of the axiom; then #18.
+        constructed process.
+      - *Conjunct 2 at stage level — DONE 2026-09-06* (`Martingale/SquareCompensator.lean`,
+        `Poisson/CompensatedQuadVar.lean`, increment section of `Poisson/MarkStep.lean`).
+        `martingale_sq_sub_of_setIntegral` is the generic brick: for a square-integrable
+        martingale `M` and adapted integrable `A`, `M² − A` is a martingale as soon as
+        `∫_B (M_t − M_s)² = ∫_B (A_t − A_s)` for `B ∈ ℱ_s`. For a mark-step integrand `G`,
+        `compensator t := ∫_{[0,t]} ∫_E G(u,e)² ν(de) du` is bounded, integrable and
+        `ℱ_t`-measurable (`compensator_stronglyMeasurable`, via the clamped integrand
+        viewed as a `MarkStep` over `ℱ_t`); the set-level identity
+        `setIntegral_increment_sq_eq` comes from the weighted increment isometries
+        `integral_weight_incr_sq` (`0 < s < t`, increment grid `TimeGrid.incr`) and
+        `integral_weight_zero_sq` (`s ≤ 0 < t`) with the indicator of `B` as weight, plus
+        Fubini in `(u, e)`. `martingale_sq_sub_compensator`: `I_G(t)² − A_G(t)` is a
+        natural-filtration martingale. Remaining: conjunct 2 for the process (the
+        process compensator `∫_{[0,t]}∫_E φ²` is adapted and integrable, the stage
+        compensators converge to it in `L¹` through `L²`-convergence of the evals on
+        `P ⊗ vol|[0,t] ⊗ ν`, then `martingale_of_tendsto_eLpNorm_one` and the
+        `rightCont` lift as in the Brownian mirror), then the assembly with the càdlàg
+        brick and the replacement of the axiom; then #18.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

@@ -45,12 +45,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.process_lintegral_sq'
 #print axioms LevyStochCalc.Poisson.Compensated.process_eLpNorm_two_right_tendsto
 #print axioms LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_weight_zero_sq
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_weight_incr_sq
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.setIntegral_increment_sq_eq
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.martingale_sq_sub_compensator
 
 -- ===== Layer 0.5: martingale path regularity =====
 #print axioms LevyStochCalc.Martingale.isRealQuasimartingale
 #print axioms LevyStochCalc.Martingale.exists_adapted_ae_isCadlag_nnreal
 #print axioms LevyStochCalc.Martingale.exists_adapted_ae_cadlag
 #print axioms LevyStochCalc.Martingale.exists_adapted_ae_cadlag_of_eLpNorm
+#print axioms LevyStochCalc.Martingale.martingale_sq_sub_of_setIntegral
 
 -- ===== Layer 1: Itô-Lévy isometry (→ deaxiomatises I02) =====
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
