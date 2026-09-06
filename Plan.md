@@ -193,6 +193,19 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         continuous-time Doob `L²` regularization — *not in Mathlib*, only the discrete bricks
         `martingale_norm_submartingale`/`_tail_maximal` exist. **#6 stays an axiom until the Doob
         càdlàg build lands** (a separate sizeable project).
+      - *Càdlàg brick — DONE 2026-09-06* (`Martingale/CadlagModification.lean`). Instead of a
+        Doob build, the `brownian-motion` dependency's right-limit regularisation of real
+        quasimartingales (`rightContModif`, `cadlagModif`; sorry-free at the pinned rev) is
+        used: `isRealQuasimartingale` (a martingale is a quasimartingale — fills the
+        upstream `sorry` of the same statement), `exists_adapted_ae_isCadlag_nnreal`
+        (`ℝ≥0` index), and `exists_adapted_ae_cadlag(_of_eLpNorm)` (`ℝ` index, via
+        `restrictNNReal` and zero-extension to negative times): a martingale on a
+        right-continuous filtration, right-`L²`-continuous in time and null at negative
+        times, has an adapted modification with a.s. càdlàg paths, in exactly the form of
+        #6's fourth conjunct. Remaining for #6: the process construction (mirror of #5:
+        master approximants across horizons from `exists_markEval_L2_tendsto` +
+        truncation, `Filter.limUnder`, martingale/quadVar/isometry conjuncts), then feed
+        `martingale_rightCont_of_tendsto_eLpNorm_one` and this brick.
 - [x] **A3 / #17** `itoIsometry_diff_brownian` — **DONE 2026-06-17** (axiom→theorem;
       cited_axioms.md 12→11). Required redefining `stochasticIntegral :=
       stochasticIntegralBrownian` (genuine construction, not `Classical.choose`),

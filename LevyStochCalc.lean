@@ -22,6 +22,9 @@ import LevyStochCalc.Poisson.CompensatedMartingale
 import LevyStochCalc.Poisson.CompensatedDensity
 import LevyStochCalc.Poisson.Compensated
 
+-- Layer 0.5: martingale path regularity (càdlàg modifications)
+import LevyStochCalc.Martingale.CadlagModification
+
 -- Layer 1: Itô-Lévy isometry  → I02
 import LevyStochCalc.Poisson.L2Isometry
 

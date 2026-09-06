@@ -28,6 +28,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.martingale_stochasticIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.cadlag_modification_exists
 
+-- ===== Layer 0.5: martingale path regularity =====
+#print axioms LevyStochCalc.Martingale.isRealQuasimartingale
+#print axioms LevyStochCalc.Martingale.exists_adapted_ae_isCadlag_nnreal
+#print axioms LevyStochCalc.Martingale.exists_adapted_ae_cadlag
+#print axioms LevyStochCalc.Martingale.exists_adapted_ae_cadlag_of_eLpNorm
+
 -- ===== Layer 1: Itô-Lévy isometry (→ deaxiomatises I02) =====
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
 
