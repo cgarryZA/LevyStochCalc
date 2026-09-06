@@ -280,6 +280,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_sub_sq_le
 #print axioms LevyStochCalc.Brownian.Ito.integral_sub_pow_four_le
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_sub_pow_three_le
+-- B1a-3a (2026-09-06): Riemann sums of the Ito integral against a step weight.
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integralAgainst_eq_sum
+#print axioms LevyStochCalc.Brownian.Ito.sum_xi_mul_stochasticIntegral_sub_ae
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_stochasticIntegral_mul_sub_le
+-- B1a-3c (2026-09-06): the second-order Taylor remainder bound.
+#print axioms LevyStochCalc.abs_sub_taylor_one_le
+#print axioms LevyStochCalc.abs_sub_taylor_two_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
