@@ -8,9 +8,16 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **10 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**, **#1 closed
-  2026-09-05** via `RemyDegenne/brownian-motion`). `cited_axioms.md` "10 live". The 3 standard axioms
-  (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
+- **5 custom axioms** remain (was 13; **#5 and #17 closed 2026-06-17**, **#1 closed
+  2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18 and #2 closed 2026-09-06**,
+  **#15 retired 2026-09-06** as a vacuous statement). `cited_axioms.md` "5 live". The 3 standard
+  axioms (`propext`/`Classical.choice`/`Quot.sound`) are the only others.
+- **Statement audit 2026-09-06 (#16)**: the Itô–Lévy axiom lacked `u ∈ C²` and drift
+  integrability and was refutable; both are now hypotheses (see `tools/cited_axioms.md` #16).
+  The same audit found that the library's `L²` integrals accept only integrands adapted to
+  the natural filtration of a *single* driver, so `JumpDiffusion.is_solution` and the PRP/BSDEJ
+  statements (#13a, #13b, #9, #10) are faithful only for uncoupled coefficients — the
+  common-filtration generalization **X2** below now precedes A5–A7.
 - **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
   `tools/sorry_baseline.txt`) — disappears with the #9 chain.
 - **6 of the 13 axioms gate the pinned dissertation surface** (the 21
@@ -299,8 +306,27 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       bridge to `stochasticIntegralBrownian`, extended to `d` coordinates and to Itô
       processes; the jump part (Applebaum 4.4.10 + 4.4.7 (II)) in-house on
       `Compensated.stochasticIntegral`.
+- [x] **A5-0 / #16 statement audit** — DONE 2026-09-06: added `hu : ContDiff ℝ 2 (uncurry u)`
+      and `h_μ_int` (drift integrable on `[0, T]` along the path) to the axiom, its two derived
+      theorems and the dissertation forwarder; without them the statement was refutable
+      (indicator `u` along `W`; `u = t·x` with `μ = 1/s`). Recorded the single-driver
+      filtration scope of the whole SDE layer (`cited_axioms.md` #16 "Scope").
+- [ ] **X2 — common filtration for the `L²` integrals** (new, 2026-09-06; blocks A5–A7 and
+      B4/B5 from being faithful for coupled coefficients). Today
+      `MultidimBrownianMotion.stochasticIntegral` needs `H_j` progressively measurable for
+      `naturalFiltration (W.W j)` and `Compensated.stochasticIntegral` for `naturalFiltration N`.
+      Plan: (1) an abstract driver-with-filtration layer — a filtration `ℱ`, `W` an
+      `ℱ`-Brownian motion (increments independent of `ℱ_s`), `N` an `ℱ`-Poisson random measure
+      (future counts independent of `ℱ_s`), with the joint natural filtration of `(W, N)` as the
+      canonical instance and independence of `W` and `N` bundled; (2) re-parametrize the
+      simple-integrand, isometry, martingale, `L²`-completion and càdlàg-modification files by
+      `ℱ` (the proofs use only `ℱ`-adaptedness of simple integrands, independence of increments
+      from `ℱ_s` and `ℱ`-martingale arguments; ≈500 `naturalFiltration` sites across
+      `Brownian/*`, `Poisson/Compensated*`, `Ito/Picard`, `BSDEJ/Definition`); (3) restate
+      `JumpDiffusion`, the Picard chain, #16, #13a/#13b, #9/#10 over the joint filtration;
+      (4) keep the pinned dissertation symbols resolving; update `Continuous.lean`.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
-      residual (Applebaum 4.4.10 + 4.4.7), on A2/A4.
+      residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2.
 - [ ] **A6 / #9** `continuousBSDEJ_exists_unique` — BSDEJ existence/uniqueness via
       the Picard chain (Tang–Li 1994 / AGPP 2025). **Retires the lone `sorry`**
       (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.Setting
+import Mathlib.Analysis.Calculus.ContDiff.Basic
 
 /-!
 # Itô-Lévy formula for jump diffusions
@@ -27,7 +28,14 @@ where `𝓛u = μᵀ ∇u + ½ Tr(σ σᵀ ∇²u)` is the diffusion generator.
 
 `itoLevyFormula` is a `theorem` derived by algebra from the cited sub-primitive
 `itoLevyFormula_jumpResidual_canonical_axiom` (cited axiom #16, Applebaum
-4.4.10 + 4.4.7 step II): the canonical residual
+4.4.10 + 4.4.7 step II), stated for `u` twice continuously differentiable in `(t, x)`
+jointly (`ContDiff ℝ 2 (Function.uncurry u)`) and for a drift `μ(s, X_s)` integrable on
+`[0, T]` along the path — the two hypotheses under which the derivative-based integrands
+(`fderiv`, `deriv`, which vanish off the differentiability set) and the Bochner drift
+integral (which vanishes on non-integrable integrands) carry the formula's content. The
+progressive-measurability hypotheses on the integrands are relative to the natural
+filtration of each single driver (one Brownian coordinate, the Poisson random measure),
+the class the `L²` integrals of this library are built on: the canonical residual
 `R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` equals the sum
 of the jump-martingale and compensator-drift terms. This is the whole content
 of the Itô–Lévy formula; its continuous part is the Itô formula for the
@@ -188,7 +196,10 @@ axiom itoLevyFormula_jumpResidual_canonical_axiom
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
+    (_hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (_hT : 0 < T)
+    (_h_μ_int : ∀ᵐ ω ∂P, ∀ i : Fin n,
+        IntegrableOn (fun s => coeffs.μ s (X.X s ω) i) (Set.Icc (0 : ℝ) T))
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
@@ -279,7 +290,10 @@ theorem itoLevyFormula_jumpResidual_axiom
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
+    (hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (hT : 0 < T)
+    (h_μ_int : ∀ᵐ ω ∂P, ∀ i : Fin n,
+        IntegrableOn (fun s => coeffs.μ s (X.X s ω) i) (Set.Icc (0 : ℝ) T))
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
@@ -332,8 +346,7 @@ theorem itoLevyFormula_jumpResidual_axiom
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
   -- Step 1: apply the narrower axiom to get the canonical-R identity.
-  have h_canonical := itoLevyFormula_jumpResidual_canonical_axiom
-    W N coeffs x₀ X u T hT
+  have h_canonical := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u hu T hT h_μ_int
     h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
     h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
   -- Step 2: combine the two a.s. hypotheses; per-ω algebra collapses
@@ -377,7 +390,10 @@ theorem itoLevyFormula
     (x₀ : Fin n → ℝ)
     (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀)
     (u : ℝ → (Fin n → ℝ) → ℝ)
+    (hu : ContDiff ℝ 2 (Function.uncurry u))
     (T : ℝ) (hT : 0 < T)
+    (h_μ_int : ∀ᵐ ω ∂P, ∀ i : Fin n,
+        IntegrableOn (fun s => coeffs.μ s (X.X s ω) i) (Set.Icc (0 : ℝ) T))
     (h_sigmaGrad_meas : ∀ j : Fin d,
         Measurable (Function.uncurry
           (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)))
@@ -423,7 +439,7 @@ theorem itoLevyFormula
             h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
-  have h := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u T hT
+  have h := itoLevyFormula_jumpResidual_canonical_axiom W N coeffs x₀ X u hu T hT h_μ_int
     h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq
     h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq h_compDrift_int
   filter_upwards [h] with ω hω

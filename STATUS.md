@@ -63,6 +63,14 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   (#16). The former #15 `itoFormula_continuousSemimartingale_axiom` was retired
   2026-09-06: its statement (an unconstrained existential residual) was
   trivially satisfiable; `itoLevyFormula` now forwards over #16 alone.
+  **Statement audit 2026-09-06**: #16 now assumes `u ∈ C²` jointly and an
+  integrable drift along the path — without them its Lean statement was
+  refutable (`fderiv`/`deriv` and the Bochner integral vanish where the
+  hypotheses fail). Its progressive-measurability hypotheses are relative to
+  single-driver natural filtrations (the class the library's `L²` integrals
+  accept), so `JumpDiffusion.is_solution`, #16, #13a, #9, #10 cover coupled
+  coefficients only after the common-filtration generalization (work package
+  X2 in `Plan.md`); see `tools/cited_axioms.md` #16.
 * **Per-difference L²-isometries** (0 axioms — used by Picard contraction
   estimates and the #16 `ε → 0` limit): `itoIsometry_diff_brownian` (#17,
   a theorem since 2026-06-17), `itoIsometry_diff_compensated` (#18, a theorem
