@@ -30,7 +30,7 @@ Previously, `BSDEJ.MartingaleRepresentation.jacodYor_representation` and
 theorems forwarding through honest Tier 1 cited axioms (the
 #13a + #13b decomposition for jacodYor; #15 + #16 for itoLevyFormula).
 
-## Tier 1 cited axioms (8 currently live)
+## Tier 1 cited axioms (7 currently live)
 
 See `tools/cited_axioms.md` for the full inventory. Numbering history:
 #7 + #8 deleted 2026-05-22 (dead post-refactor per M4); #11 retired
@@ -44,9 +44,11 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
 1 entry**: `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
 (carries the entire literature Picard chain for Applebaum 6.2.9).
 
-* **Brownian foundations** (3 axioms; #1 `BrownianMotion.exists` became a theorem
-  2026-09-05 via RemyDegenne/brownian-motion): `kolmogorovChentsov_modification` (#3), `brownian_martingale_rightCont`
-  (#4), `itoIsometry_brownian_unified_existence` (#5).
+* **Brownian foundations** (0 axioms): `BrownianMotion.exists` (#1, a theorem since
+  2026-09-05 via RemyDegenne/brownian-motion), `kolmogorovChentsov_modification` (#3,
+  2026-06-16), `brownian_martingale_rightCont` (#4, 2026-09-06, by the right-`L¹`-continuity
+  lift `Martingale/RightCont.lean`), `itoIsometry_brownian_unified_existence` (#5,
+  2026-06-17).
 * **Compensated-Poisson foundations** (1 axiom; #6
   `itoIsometry_compensated_unified_existence` became a theorem 2026-09-06 — the
   càdlàg modification of the `L²`-limit of mark-step integrals, see

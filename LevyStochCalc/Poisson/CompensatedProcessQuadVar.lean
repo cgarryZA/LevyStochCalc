@@ -349,7 +349,7 @@ filtration. -/
 theorem martingale_rightCont_quadVar_process :
     Martingale (fun t ω => (process N φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
       - compensator ν φ t ω) (naturalFiltration N).rightCont P := by
-  refine LevyStochCalc.Brownian.Ito.martingale_rightCont_of_tendsto_eLpNorm_one
+  refine LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
     (martingale_quadVar_process N φ h_meas h_progMeas h_sq_int_global) fun s => ?_
   have hF2 : Tendsto (fun r => eLpNorm (fun ω =>
       (process N φ h_meas h_progMeas h_sq_int_global r ω) ^ 2

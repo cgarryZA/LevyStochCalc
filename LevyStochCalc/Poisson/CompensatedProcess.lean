@@ -440,7 +440,7 @@ theorem process_eLpNorm_two_right_tendsto (s : ℝ) :
 theorem martingale_rightCont_process :
     Martingale (process N φ h_meas h_progMeas h_sq_int_global)
       (naturalFiltration N).rightCont P := by
-  refine LevyStochCalc.Brownian.Ito.martingale_rightCont_of_tendsto_eLpNorm_one
+  refine LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
     (martingale_process N φ h_meas h_progMeas h_sq_int_global) fun s => ?_
   have hF_aesm : ∀ t, AEStronglyMeasurable (process N φ h_meas h_progMeas h_sq_int_global t) P :=
     fun t => (process_memLp N φ h_meas h_progMeas h_sq_int_global t).aestronglyMeasurable

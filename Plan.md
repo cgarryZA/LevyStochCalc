@@ -298,9 +298,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 
 ## Phase B — Close the 7 off-critical-path axioms (breadth)
 
-- [ ] **B1 / #4** `brownian_martingale_rightCont` — BM is a martingale wrt the
-      right-continuous augmentation (KS 2.7.7/2.7.9 + Blumenthal 0-1). Now more
-      tractable since the continuity/KC machinery exists.
+- [x] **B1 / #4** `brownian_martingale_rightCont` — **DONE 2026-09-06** (axiom→theorem;
+      cited_axioms.md 8→7), without Blumenthal 0-1: the natural-filtration martingale
+      (`brownian_martingale_natural`) lifts to `ℱ₊` by the generic right-`L¹`-continuity
+      brick `martingale_rightCont_of_tendsto_eLpNorm_one` (moved from
+      `Brownian/ItoL2Completion.lean` to `Martingale/RightCont.lean` so the Brownian
+      layer can use it), the continuity coming from `𝔼|W_r − W_s|² = r − s`.
 - [x] **B2 / #1** `BrownianMotion.exists` — closed 2026-09-05: `Brownian/Existence.lean`
       forwards to `isBrownianReal_brownian` (`RemyDegenne/brownian-motion` @ `4d52fa77`, a
       `lake require` since D1); real-time extension + weak Markov property for the

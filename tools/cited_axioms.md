@@ -7,7 +7,7 @@ introduced as `axiom <name> : <statement>` with a docstring giving the citation.
 The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
 are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
-## Tier 1: Honest cited axioms (8 currently live)
+## Tier 1: Honest cited axioms (7 currently live)
 
 **History** (3rd audit reconciliation 2026-05-27):
 * #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
@@ -53,10 +53,10 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
 
 Retired/deleted entries (#7, #8, #11, #12, #13, #14) and resolved-by-proof
 entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
-2026-09-05; #6 and #18, proved 2026-09-06) are kept as `### Retired #N` /
+2026-09-05; #6, #18 and #4, proved 2026-09-06) are kept as `### Retired #N` /
 `### Resolved #N` headings below for traceability; they are NOT counted in the
-headline "8 currently live" figure. Only `### N.` (digit-leading) headings correspond
-to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 8`.
+headline "7 currently live" figure. Only `### N.` (digit-leading) headings correspond
+to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 7`.
 
 These axioms state real published theorems. The LevyStochCalc-side `axiom`
 declaration faithfully matches the cited statement. When Mathlib formalises
@@ -88,12 +88,11 @@ to the Mathlib version, no other changes needed downstream.
 * **Reference**: Karatzas–Shreve **Theorem 2.2.8**; Le Gall **Theorem 2.9**; Revuz–Yor, *Continuous Martingales and Brownian Motion*, Springer 1999, **Theorem I.2.1**.
 * **Status**: No longer an axiom — proved from scratch as a `theorem` (mathlib has only `IsKolmogorovProcess`, the condition; the continuity conclusion is supplied here). Proof: `kc_level_bad_measure` (per-level Markov/union bound) → `kc_ae_increment_bound` (Borel–Cantelli) → `dyadic_holder_chaining` + `kc_ae_nbhd_holder` (a.s. local Hölder) → `exists_tendsto_of_local_holder` + `continuous_extendFrom` (continuous modification) → `kolmogorov_modification_ae_eq` (modification property). `#print axioms` → `propext, Classical.choice, Quot.sound` only.
 
-### 4. `LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont`
+### Resolved #4: `LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont` (proved axiom→theorem 2026-09-06)
 
-* **Statement**: Brownian motion is a martingale w.r.t. the right-continuous augmentation of its natural filtration (consequence of Blumenthal 0-1 law).
+* **Statement**: Brownian motion is a martingale w.r.t. the right-continuous augmentation of its natural filtration.
 * **Reference**: Karatzas–Shreve **Theorem 2.7.7** (Blumenthal 0-1) + **Theorem 2.7.9** (right-continuity of augmented filtration); Le Gall **Theorem 2.13** (Blumenthal 0-1 for Brownian motion; correcting the previous "Proposition 2.10" citation flagged by red-team P11 — Le Gall 2016 p. 25 "Lemma 2.10" is a deterministic real-analysis Hölder lemma; Blumenthal is Le Gall p. 30 Theorem 2.13).
-* **Mathlib status (May 2026)**: `MeasureTheory.Filtration.rightCont` is defined; `MeasureTheory.Filtration.IsRightContinuous` predicate available. Blumenthal 0-1 law is NOT in Mathlib for Brownian motion (waits on BM construction). No current activity.
-* **Replacement plan**: `theorem brownian_martingale_rightCont := <Blumenthal 0-1 corollary>` when Blumenthal 0-1 for BM lands.
+* **Status**: No longer an axiom — proved as a `theorem` in `Brownian/Martingale.lean`, statement unchanged, without Blumenthal's 0-1 law: the natural-filtration martingale property (`brownian_martingale_natural`, the former body of `brownian_martingale`) lifts to `ℱ₊` by `Martingale/RightCont.lean`'s `martingale_rightCont_of_tendsto_eLpNorm_one` (an `ℱ₊ s`-measurable set lies in every `ℱ r`, `r > s`, and right-`L¹`-continuity carries the martingale identity down to `s`), the right-`L¹`-continuity coming from `𝔼|W_r − W_s|² = r − s` (the Gaussian increment law, `gaussianReal_second_moment`) and `W = 0` at negative times. `#print axioms` lists only the three standard axioms; the consumer `brownian_filtration_rightContinuous` is unchanged.
 
 ### Resolved #5: `LevyStochCalc.Brownian.Ito.itoIsometry_brownian_unified_existence` (proved axiom→theorem 2026-06-17)
 
@@ -547,9 +546,10 @@ The 12-persona red-team audit ran on commit db582f9. Per-finding fix status:
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **8 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
-  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #6 and #18 2026-09-06): #2, #4
-  (Brownian + Poisson foundations; #1, #3, #5, #6 now theorems), #9 + #10
+* **7 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
+  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #4, #6 and #18 2026-09-06): #2
+  (Poisson random measure existence; the Brownian foundations #1, #3, #4, #5 and the
+  Poisson integral #6 are theorems), #9 + #10
   (BSDEJ existence + path regularity), #13a + #13b (the two strictly
   narrower sub-axioms `jacodYor_PRP_martingale_axiom` +
   `condExp_to_PRP_martingale_form_axiom` from the 2026-05-26

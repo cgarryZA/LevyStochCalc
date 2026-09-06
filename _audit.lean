@@ -83,7 +83,10 @@ import LevyStochCalc
 -- 1.5c: martingale property + quadratic variation
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_martingale
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_quadVar
+#print axioms LevyStochCalc.Brownian.Martingale.brownian_martingale_natural
+#print axioms LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont
 #print axioms LevyStochCalc.Brownian.Martingale.brownian_filtration_rightContinuous
+#print axioms LevyStochCalc.Martingale.martingale_rightCont_of_tendsto_eLpNorm_one
 -- 1.5d: multi-dimensional Brownian motion
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.joint_increment_gaussian_diagonal
