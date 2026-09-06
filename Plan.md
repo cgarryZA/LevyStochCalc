@@ -8,10 +8,11 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **2 custom axioms** remain — #13b and #16 (was 13; **#5 and #17 closed 2026-06-17**, **#1
-  closed 2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18 and #2 closed 2026-09-06**,
+- **1 custom axiom** remains — #16 (was 13; **#5 and #17 closed 2026-06-17**, **#1
+  closed 2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18, #2 and #13b closed
+  2026-09-06**,
   **#15 retired 2026-09-06** as a vacuous statement, **#9, #10, #13a retired 2026-09-06 as
-  refutable statements** — deleted, not relocated). `cited_axioms.md` "2 live". The 3 standard
+  refutable statements** — deleted, not relocated). `cited_axioms.md` "1 live". The 3 standard
   axioms (`propext`/`Classical.choice`/`Quot.sound`) are the only others. **The BSDEJ layer no
   longer states existence, path regularity or the PRP**; those return, correctly stated, with X2.
 - **Integrand-class audit 2026-09-06**: every integral's `h_progMeas` hypothesis admits only
@@ -454,15 +455,18 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         σ-algebra field from `Poisson/RegionIndependence.lean` (the former
         `IndependentScattering.lean` argument over a raw random measure; that file now
         forwards). Axiom set: the 3 standard.
-- [ ] **B4 / #13b** `condExp_to_PRP_martingale_form_axiom` — Doob L² càdlàg
-      regularization (KS I.3.13) + Blumenthal 0-1.
+- [x] **B4 / #13b** `condExp_to_PRP_martingale_form` — **CLOSED 2026-09-06.** Doob L² càdlàg
+      regularization (KS I.3.13) + Blumenthal 0-1, both built in-house.
       - [x] *Right `L²`-continuity of the conditional expectation* along a right-continuous
         filtration on `ℝ` (`Probability/CondExpRightContinuous.lean`,
         `tendsto_condExpL2_nhdsGT`), over `Probability/ProjectionLimit.lean`,
         `Probability/AEMeasurableInf.lean` and `Probability/CondExpInf.lean`. Axiom set:
         the 3 standard.
-      - [ ] *Blumenthal 0-1 for the driver's joint filtration*, then the càdlàg modification
-        and the assembly. Tickets `A2`, `A3` of `../Dissertation/WORK_BREAKDOWN.md`.
+      - [x] *Blumenthal 0-1 for the driver's joint filtration* (`Driver/GermIndep.lean`,
+        `isTrivialSigma_rightCont_zero`), the càdlàg modification
+        (`Probability/CondExpModification.lean`, `Driver/CadlagMartingale.lean`) and the
+        assembly. Tickets `A2`, `A3` of `../Dissertation/WORK_BREAKDOWN.md`. Axiom set: the 3
+        standard.
 - [x] **B5-0 / #13a statement audit** — RETIRED 2026-09-06 (refutable: single-driver
       integrands for a joint-filtration martingale; `W·Ñ`); the axiom and the derived
       `jacodYor_representation(_axiom)` were deleted. **B5** becomes: after X2, state the

@@ -75,7 +75,12 @@ on 2026-05-27 (3rd-audit CRITICAL #1 closure). **Sorry baseline now has
   `Poisson/RandomMeasure.lean`) and `itoIsometry_compensated_unified_existence` (#6,
   2026-09-06 — the càdlàg modification of the `L²`-limit of mark-step integrals, see
   `Poisson/Compensated.lean`).
-* **BSDEJ** (1 axiom): `condExp_to_PRP_martingale_form_axiom` (#13b). **Retired
+* **BSDEJ** (0 axioms): `condExp_to_PRP_martingale_form` (#13b) is a theorem since
+  2026-09-06 — the càdlàg conditional-expectation martingale `LevyDriver.cadlagCondExp`
+  (`Driver/CadlagMartingale.lean`), over the downward `L²` convergence of conditional
+  expectations (`Probability/CondExpRightContinuous.lean`), the `rightContModif` regularisation
+  with the quasimartingale hypothesis supplied in-house (`Probability/Quasimartingale.lean`), and
+  Blumenthal's 0-1 law for the driver's joint filtration (`Driver/GermIndep.lean`). **Retired
   2026-09-06 as refutable statements** (`tools/cited_axioms.md`): `continuousBSDEJ_exists_unique`
   (#9: arbitrary non-adapted `X`; single-driver integrand class), `bsdej_path_regularity` (#10:
   the `C·Δt` rate for merely measurable `g`, `X`), `jacodYor_PRP_martingale_axiom` (#13a:

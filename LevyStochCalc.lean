@@ -73,6 +73,7 @@ import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.ValueSigma
 import LevyStochCalc.Driver.GermIndep
+import LevyStochCalc.Driver.CadlagMartingale
 import LevyStochCalc.Brownian.ItoSimple
 import LevyStochCalc.Brownian.ItoDensity
 import LevyStochCalc.Brownian.ItoMartingale

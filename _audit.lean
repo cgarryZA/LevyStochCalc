@@ -95,6 +95,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_rightCont_zero_sigma
 #print axioms LevyStochCalc.Driver.LevyDriver.condExp_rightCont_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.condExp_rightCont_nonpos
+-- A3g, A3d (2026-09-06): the càdlàg conditional-expectation martingale indexed by `ℝ`, and
+-- cited result #13b as a theorem.
+#print axioms LevyStochCalc.Driver.LevyDriver.martingale_cadlagCondExp
+#print axioms LevyStochCalc.Driver.LevyDriver.tendsto_cadlagCondExp_nhdsGT
+#print axioms LevyStochCalc.Driver.LevyDriver.ae_exists_tendsto_cadlagCondExp_nhdsLT
+#print axioms LevyStochCalc.Driver.LevyDriver.cadlagCondExp_zero_ae_eq
+#print axioms LevyStochCalc.Driver.LevyDriver.cadlagCondExp_terminal_ae_eq
 -- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
 -- of the upstream càdlàg-modification API takes.
 #print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
@@ -272,7 +279,7 @@ import LevyStochCalc
 -- 2026-09-06: the cited results #9 (`continuousBSDEJ_exists_unique`), #10
 -- (`bsdej_path_regularity`) and #13a (`jacodYor_PRP_martingale_axiom`) were retired as
 -- refutable statements (see `tools/cited_axioms.md`); only #13b remains.
-#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form_axiom
+#print axioms LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form
 #print axioms LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution
 #print axioms LevyStochCalc.BSDEJ.Existence.picardMap
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z

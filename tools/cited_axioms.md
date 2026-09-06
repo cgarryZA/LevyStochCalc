@@ -280,13 +280,17 @@ Springer 2003, **Theorem III.4.34**.
 * **Mathlib status (May 2026)**: No predictable projection / chaos decomposition in Mathlib for general (W, N) filtrations. Continuous-Brownian-only chaos decomposition is partially in `Mathlib.Probability.Process.WienerChaos` (early-stage at time of writing).
 * **Replacement plan**: `theorem jacodYor_PRP_martingale_axiom := <predictable projection + chaos decomposition>` when (a) Tier 1 #5 + #6 are theorems, (b) the projection / decomposition apparatus is built.
 
-### 13b. `LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form_axiom`
+### Resolved #13b: `LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form` (proved axiom→theorem 2026-09-06)
 
 * **Statement**: For every L² random variable `ξ : Ω → ℝ` that is `ℱ_T`-measurable on the joint right-continuous (W, N) filtration, there exists a càdlàg L²-bounded `ℱ`-martingale `M` with `M_0 = ∫ ξ ∂P` a.s. (the deterministic expectation) and `M_T = ξ` a.s.
 * **Reference**: Karatzas-Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, **Theorem I.3.13** (Doob L² càdlàg regularization for right-continuous filtrations); Karatzas-Shreve **Theorem 2.7.17** (Blumenthal 0-1 for the Brownian factor, giving `𝔼[ξ | ℱ_0] = ∫ ξ ∂P` a.s.); Applebaum **Theorem 2.3.7** (analog Blumenthal-style 0-1 for Poisson random measures); Mathlib's `MeasureTheory.condExp_of_stronglyMeasurable` (condExp reproducibility, `𝔼[ξ | ℱ_T] = ξ` a.s.).
 * **Narrowness**: this is a STANDARD CLASSICAL BUNDLE of three independent results: (1) Doob L² càdlàg modification on a right-continuous filtration, (2) Blumenthal 0-1 for the joint (W, N) filtration, (3) conditional-expectation reproducibility. Each has independent Mathlib activity / formalization roadmap. The bundle is strictly narrower than the original #13 because it does NOT require any chaos decomposition / predictable projection machinery — only classical martingale + filtration analysis.
 * **Mathlib status (May 2026)**: Doob L² càdlàg regularization is NOT yet in Mathlib but is on the roadmap (independent of BM construction; requires only `MeasureTheory.Martingale` + `Filtration.IsRightContinuous`). Blumenthal-for-BM waits on the BM construction (Tier 1 #1). `MeasureTheory.condExp_of_stronglyMeasurable` is already in Mathlib.
-* **Replacement plan**: `theorem condExp_to_PRP_martingale_form_axiom := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>` when the three Mathlib pieces above land.
+* **Replacement plan (executed)**: `theorem condExp_to_PRP_martingale_form := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>`; the three pieces were built in-house rather than waited for.
+* **Status**: No longer an axiom — proved as a `theorem` in `BSDEJ/MartingaleRepresentation.lean`, statement unchanged (the `_axiom` suffix is dropped). `#print axioms` lists only `propext, Classical.choice, Quot.sound`. The witness is `LevyDriver.cadlagCondExp` (`Driver/CadlagMartingale.lean`): the `ℝ≥0`-indexed right-continuous modification of `t ↦ 𝔼[ξ | ℱ₊ t]`, extended by the constant `𝔼 ξ` before time `0`. The three pieces:
+  1. **Doob `L²` càdlàg regularisation.** `Probability/CondExpModification.lean` builds the modification through `ProbabilityTheory.rightContModif` of the `BrownianMotion` dependency. Its hypothesis `IsRealQuasimartingale` is supplied by `Probability/Quasimartingale.lean` (`isRealQuasimartingale_of_martingale`, variation bound `0`) because the dependency's own `Martingale.isRealQuasimartingale` is a `sorry`; its other hypothesis, convergence in measure from the right, comes from the downward `L²` convergence of conditional expectations along a decreasing chain of σ-algebras (`Probability/ProjectionLimit.lean`, `Probability/AEMeasurableInf.lean`, `Probability/CondExpInf.lean`, `Probability/CondExpRightContinuous.lean`) — a statement Mathlib has only in the upward direction. `rightContModif`, not `cadlagModif`, is used: the latter needs a complete filtration, which `jointFiltration D` is not.
+  2. **Blumenthal 0-1 for the joint filtration.** `Driver/GermIndep.lean`, `isTrivialSigma_rightCont_zero`. The chain is `Driver/VectorIncrement.lean` (the whole mixed increment tuple of one interval against `ℱ_s`, which does *not* follow from the per-coordinate `IsBrownianFiltration`), `Driver/GridIncrement.lean` (the grid induction), `Driver/ValueSigma.lean` (the limit `s ↓ 0`), and the finite-subfamily assembly. The Poisson half needed the two-sided region independence of `Poisson/RegionIndependence.lean` and `Poisson/RegionPartition.lean`. Not the cited Karatzas–Shreve/Applebaum statements, which are for a single driver: the joint version is proved here.
+  3. **Conditional-expectation reproducibility.** Mathlib's `condExp_of_stronglyMeasurable`, as planned.
 * **Statement audit (2026-09-06)**: not refuted. The càdlàg modification along rational right limits is measurable for the right-continuous joint filtration without completion, so adaptedness holds as stated; the `M_0 = 𝔼 ξ` clause is the 0-1 law of `ℱ_{0+}` for the *joint* filtration, which is the cited fact only when `W` and `N` are independent — a hypothesis this file never states (`W` and `N` are separate structures on one probability space). **X2-3 (2026-09-06) — fixed**: the axiom now takes a `LevyDriver D` (`Driver/Joint.lean`), whose `indep` field is exactly `σ(W) ⟂ σ(N)`, and is stated over `jointFiltration D = D.filtration.rightCont`; the coordinates of `D.W` are Brownian and `D.N` Poisson for that filtration (`LevyDriver.isBrownianFiltration`, `.isPoissonFiltration`, lifted by `.rightCont`).
 
 ### Retired #14: `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
@@ -656,14 +660,12 @@ Itô–Lévy formula's hypotheses or a BSDEJ have solutions is separate and stil
 
 ### Net audit (verifiable via `tools/lint.sh` + `_audit.lean`)
 
-* **2 Tier 1 cited axioms currently live** (#3 proved axiom→theorem
-  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #2, #4, #6 and #18 2026-09-06;
+* **1 Tier 1 cited axiom currently lives** (#3 proved axiom→theorem
+  2026-06-16; #5 and #17 2026-06-17; #1 2026-09-05; #2, #4, #6, #18 and #13b 2026-09-06;
   #15 retired 2026-09-06 as a vacuous statement; #9, #10 and #13a retired 2026-09-06 as
   refutable statements — see their entries; the Brownian foundations #1, #3, #4, #5,
-  the Poisson random measure #2 and the Poisson integral #6 are theorems): #13b
-  (`condExp_to_PRP_martingale_form_axiom`, the conditional-expectation bridge of the
-  2026-05-26 decomposition of `jacodYor_representation_axiom`, whose other half #13a and
-  the derived representation theorems were deleted), and #16 (the Itô-Lévy formula's content,
+  the Poisson random measure #2, the Poisson integral #6 and the conditional-expectation
+  bridge #13b are theorems): #16 (the Itô-Lévy formula's content,
   `itoLevyFormula_jumpResidual_canonical_axiom`; the previously-monolithic
   Tier 1 #11 `itoLevyFormula` is a derived theorem over it alone since the
   vacuous #15 was retired on 2026-09-06). The two

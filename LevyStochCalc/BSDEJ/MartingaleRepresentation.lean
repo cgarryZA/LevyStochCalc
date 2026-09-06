@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.BSDEJ.Definition
-import LevyStochCalc.Driver.Joint
+import LevyStochCalc.Driver.CadlagMartingale
 import LevyStochCalc.Brownian.MultidimIto
 
 /-!
@@ -13,8 +13,9 @@ import LevyStochCalc.Brownian.MultidimIto
 Every square-integrable random variable `ξ` measurable for the joint right-continuous
 filtration of a Brownian motion `W` and a Poisson random measure `N` is the terminal value of a
 càdlàg square-integrable martingale on that filtration starting from `𝔼 ξ`
-(`condExp_to_PRP_martingale_form_axiom`, cited result #13b: Doob's càdlàg regularisation,
-Karatzas–Shreve I.3.13, and the 0-1 law for the joint filtration).
+(`condExp_to_PRP_martingale_form`, formerly cited result #13b: Doob's càdlàg regularisation,
+Karatzas–Shreve I.3.13, and Blumenthal's 0-1 law for the joint filtration). The martingale is
+`LevyDriver.cadlagCondExp`, built in `Driver/CadlagMartingale.lean`.
 
 The predictable representation property itself (Jacod 1975; Jacod–Shiryaev III.4.34) is not
 stated here. Its previous formulation `jacodYor_PRP_martingale_axiom` (#13a) asked for
@@ -65,53 +66,19 @@ section Representation
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- **Conditional-expectation martingale càdlàg modification + endpoint
-identification — Tier 1 cited axiom #13b.**
-
-For every L² random variable `ξ : Ω → ℝ` that is `ℱ_T`-measurable on the
-joint right-continuous (W, N) filtration, there exists a càdlàg
-L²-bounded `ℱ`-martingale `M` with `M_0 = ∫ ξ ∂P` a.s. (i.e. `M_0` is
-the deterministic expectation, NOT just `E[ξ | ℱ_0]`) and `M_T = ξ`
-a.s.
-
-This packages THREE standard classical results:
-
-1. **Doob L² càdlàg regularization** (Karatzas-Shreve, *Brownian Motion
-   and Stochastic Calculus*, Springer 1991, **Theorem I.3.13**): for a
-   right-continuous filtration, every L¹ martingale admits a càdlàg
-   modification.
-2. **Blumenthal 0-1 law for the joint (W, N) filtration** (Karatzas-
-   Shreve **Theorem 2.7.17** for the Brownian factor; analog for
-   Poisson random measures via Itô-Nisio / Applebaum 2.3.7): the right-
-   continuous augmentation `ℱ_0+` is P-trivial, hence
-   `𝔼[ξ | ℱ_0] = ∫ ξ ∂P` a.s.
-3. **Conditional-expectation reproducibility** (Mathlib's
-   `MeasureTheory.condExp_of_stronglyMeasurable`): `𝔼[ξ | ℱ_T] = ξ`
-   a.s. when ξ is ℱ_T-measurable and integrable.
-
-The bundle is strictly narrower than the former `jacodYor_representation_axiom` (retired
-2026-09-06):
-no chaos decomposition / predictable projection is required, only
-classical martingale + filtration machinery. Each of items 1, 2, 3
-above has independent Mathlib activity (Doob regularization is on the
-roadmap, Blumenthal-for-BM gets axiom-replaced when BM lands, condExp
-is already there). When all three are usable in Mathlib, this axiom
-collapses to a 3-line composite.
-
-**Reference**: Karatzas-Shreve **Theorem I.3.13** (Doob L² càdlàg
-regularization); Karatzas-Shreve **Theorem 2.7.17** (Blumenthal 0-1
-for Brownian); Mathlib's `MeasureTheory.condExp_of_stronglyMeasurable`
-(condExp reproducibility — not citable, library lemma). -/
-axiom condExp_to_PRP_martingale_form_axiom
+/-- Every square-integrable random variable measurable for the joint right-continuous filtration
+of a Lévy driver at time `T` is the terminal value of a càdlàg square-integrable martingale for
+that filtration whose value at time `0` is its mean. -/
+theorem condExp_to_PRP_martingale_form
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
     (D : LevyStochCalc.Driver.LevyDriver P d ν)
     (T : ℝ) (_hT : 0 < T)
     (ξ : Ω → ℝ)
-    (_h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
+    (h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
       ((jointFiltration D).seq T) ξ)
-    (_h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
+    (h_sq_int : ∫⁻ ω, (‖ξ ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
     ∃ (M : ℝ → Ω → ℝ),
       MeasureTheory.Martingale M (jointFiltration D) P
       ∧ (∫⁻ ω, (‖M T ω‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤)
@@ -122,7 +89,29 @@ axiom condExp_to_PRP_martingale_form_axiom
                 Filter.Tendsto (fun s => M s ω)
                   (nhdsWithin t (Set.Iio t)) (nhds L))
       ∧ (∀ᵐ ω ∂P, M 0 ω = (∫ ω', ξ ω' ∂P))
-      ∧ (∀ᵐ ω ∂P, M T ω = ξ ω)
+      ∧ (∀ᵐ ω ∂P, M T ω = ξ ω) := by
+  have hSM : MeasureTheory.StronglyMeasurable ξ :=
+    h_meas.mono ((jointFiltration D).le T)
+  have hξ : MeasureTheory.MemLp ξ 2 P := by
+    refine ⟨hSM.aestronglyMeasurable, ?_⟩
+    have heq : ∀ ω, ‖ξ ω‖ₑ ^ ENNReal.toReal 2 = (‖ξ ω‖₊ : ℝ≥0∞) ^ (2 : ℕ) := fun ω => by
+      rw [show ENNReal.toReal 2 = ((2 : ℕ) : ℝ) by norm_num, ENNReal.rpow_natCast]
+      rfl
+    rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num)]
+    simp_rw [heq]
+    exact ENNReal.rpow_lt_top_of_nonneg (by norm_num) (ne_of_lt h_sq_int)
+  have hterm := LevyStochCalc.Driver.LevyDriver.cadlagCondExp_terminal_ae_eq
+    (D := D) (ξ := ξ) hξ hSM h_meas
+  refine ⟨D.cadlagCondExp ξ,
+    LevyStochCalc.Driver.LevyDriver.martingale_cadlagCondExp (D := D) (ξ := ξ) hξ hSM,
+    ?_, ?_, LevyStochCalc.Driver.LevyDriver.cadlagCondExp_zero_ae_eq (D := D) (ξ := ξ) hξ hSM,
+    hterm⟩
+  · rw [MeasureTheory.lintegral_congr_ae (hterm.mono fun ω h => by rw [h])]
+    exact h_sq_int
+  · filter_upwards [LevyStochCalc.Driver.LevyDriver.ae_exists_tendsto_cadlagCondExp_nhdsLT
+      (D := D) (ξ := ξ)] with ω hω t
+    exact ⟨LevyStochCalc.Driver.LevyDriver.tendsto_cadlagCondExp_nhdsGT
+      (D := D) (ξ := ξ) t ω, hω t⟩
 
 end Representation
 
