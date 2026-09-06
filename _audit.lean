@@ -53,6 +53,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div
 #print axioms LevyStochCalc.Probability.iInf_filtration_add_one_div_of_isRightContinuous
 #print axioms LevyStochCalc.Probability.tendsto_condExpL2_nhdsGT
+-- A3e (2026-09-06): a martingale is a real quasimartingale, the hypothesis every clean lemma
+-- of the upstream càdlàg-modification API takes.
+#print axioms LevyStochCalc.Probability.integral_indicator_martingale_eq_zero
+#print axioms LevyStochCalc.Probability.isRealQuasimartingale_of_martingale
 -- X2-1 (2026-09-06): progressive measurability, Brownian filtrations, the joint natural
 -- filtration of a multidimensional Brownian motion.
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.isStronglyProgressive

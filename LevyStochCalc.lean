@@ -22,6 +22,7 @@ import LevyStochCalc.Probability.ProjectionLimit
 import LevyStochCalc.Probability.AEMeasurableInf
 import LevyStochCalc.Probability.CondExpInf
 import LevyStochCalc.Probability.CondExpRightContinuous
+import LevyStochCalc.Probability.Quasimartingale
 import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
