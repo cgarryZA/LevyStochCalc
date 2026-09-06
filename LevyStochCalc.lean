@@ -81,6 +81,8 @@ import LevyStochCalc.Brownian.SimplePredictableRefine
 import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoFourthMoment
+import LevyStochCalc.Brownian.ItoIncrementMoment
+import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 
 -- Layer 2: Itô-Lévy formula  → Cu03

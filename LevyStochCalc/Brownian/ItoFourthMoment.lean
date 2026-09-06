@@ -903,15 +903,11 @@ section LintegralForm
 variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
   (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
 
-include hℱ in
-/-- The fourth-moment bound for a simple integrand, in `lintegral` form. -/
-theorem SimplePredictable.lintegral_simpleIntegral_pow_four_le {T : ℝ}
-    (G : SimplePredictable Ω T)
-    (h_adapt : ∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (ℱ (G.partition i.castSucc)) (G.ξ i))
-    {C : ℝ} (hC0 : 0 ≤ C) (hC : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ C) :
+/-- The fourth `lintegral` of an elementary integral as the `ofReal` of its fourth moment. -/
+theorem SimplePredictable.lintegral_pow_four_eq {T : ℝ} (G : SimplePredictable Ω T)
+    {C : ℝ} (hC : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ C) :
     ∫⁻ ω, (‖simpleIntegral W G T ω‖₊ : ℝ≥0∞) ^ 4 ∂P
-      ≤ ENNReal.ofReal ((6 + gaussianFourthMoment) * C ^ 4 * T ^ 2) := by
+      = ENNReal.ofReal (∫ ω, (simpleIntegral W G T ω) ^ 4 ∂P) := by
   have hmem : MemLp (fun ω => simpleIntegral W G T ω) 4 P := by
     have h := G.memLp_partialSum W hC 4 (by simp) G.N
     have hfun : G.partialSum W G.N = fun ω => simpleIntegral W G T ω := by
@@ -932,14 +928,36 @@ theorem SimplePredictable.lintegral_simpleIntegral_pow_four_le {T : ℝ}
       exact congrArg _ (NNReal.eq (by simp [Real.norm_eq_abs]))
     rw [h1, ← ENNReal.ofReal_pow (abs_nonneg _), ← abs_pow,
       abs_of_nonneg (by positivity : (0 : ℝ) ≤ simpleIntegral W G T ω ^ 4)]
-  have heq : ∫⁻ ω, (‖simpleIntegral W G T ω‖₊ : ℝ≥0∞) ^ 4 ∂P
-      = ENNReal.ofReal (∫ ω, (simpleIntegral W G T ω) ^ 4 ∂P) := by
-    rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hint
-      (Filter.Eventually.of_forall fun ω => by positivity)]
-    exact lintegral_congr hpt
-  rw [heq]
+  rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal hint
+    (Filter.Eventually.of_forall fun ω => by positivity)]
+  exact lintegral_congr hpt
+
+include hℱ in
+/-- The fourth-moment bound for a simple integrand, in `lintegral` form. -/
+theorem SimplePredictable.lintegral_simpleIntegral_pow_four_le {T : ℝ}
+    (G : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (ℱ (G.partition i.castSucc)) (G.ξ i))
+    {C : ℝ} (hC0 : 0 ≤ C) (hC : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ C) :
+    ∫⁻ ω, (‖simpleIntegral W G T ω‖₊ : ℝ≥0∞) ^ 4 ∂P
+      ≤ ENNReal.ofReal ((6 + gaussianFourthMoment) * C ^ 4 * T ^ 2) := by
+  rw [G.lintegral_pow_four_eq W hC]
   exact ENNReal.ofReal_le_ofReal
     (G.integral_simpleIntegral_pow_four_le_horizon W ℱ hℱ h_adapt hC0 hC)
+
+include hℱ in
+/-- The fourth-moment bound against a per-tile coefficient bound, in `lintegral` form. -/
+theorem SimplePredictable.lintegral_simpleIntegral_pow_four_le_varClock {T : ℝ}
+    (G : SimplePredictable Ω T)
+    (h_adapt : ∀ i : Fin G.N, @MeasureTheory.StronglyMeasurable Ω ℝ _
+      (ℱ (G.partition i.castSucc)) (G.ξ i))
+    {C : ℝ} (hC0 : 0 ≤ C) (hC : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ C)
+    {c : Fin G.N → ℝ} (hc : ∀ (i : Fin G.N) (ω : Ω), |G.ξ i ω| ≤ c i) :
+    ∫⁻ ω, (‖simpleIntegral W G T ω‖₊ : ℝ≥0∞) ^ 4 ∂P
+      ≤ ENNReal.ofReal ((6 + gaussianFourthMoment) * G.varClock c G.N ^ 2) := by
+  rw [G.lintegral_pow_four_eq W hC]
+  exact ENNReal.ofReal_le_ofReal
+    (G.integral_simpleIntegral_pow_four_le_varClock W ℱ hℱ h_adapt hC0 hC hc)
 
 include hℱ in
 /-- **Fourth-moment bound for the `L²` Itô integral of a uniformly bounded integrand.** -/

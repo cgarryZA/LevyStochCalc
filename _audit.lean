@@ -248,6 +248,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.abs_clamp_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.truncate_eval
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_pow_four_le
+-- B1a-2b/2c (2026-09-06): the per-tile variance budget and the increment bound.
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.varClock_mono
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_partialSum_sq_le_varClock
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_partialSum_pow_four_le_varClock
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.integral_simpleIntegral_pow_four_le_varClock
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.eval_of_mem_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.abs_eval_le
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.varClock_le_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.stepIocGen_eval
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.simpleIntegral_eq_of_support
+#print axioms LevyStochCalc.Brownian.Ito.SimplePredictable.exists_restrict_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_of_time
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_pow_four_le_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_stochasticIntegralBrownian_sub_pow_four_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
