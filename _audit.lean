@@ -234,6 +234,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_integralAgainst
 #print axioms LevyStochCalc.Brownian.Ito.stepIoc_eval
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indicator_Ioc
+-- B1a-2a (2026-09-06): moments of a Brownian increment, toward the fourth-moment bound.
+#print axioms LevyStochCalc.Brownian.Ito.integral_pow_gaussianReal_zero
+#print axioms LevyStochCalc.Brownian.Ito.integral_pow_gaussianReal_odd
+#print axioms LevyStochCalc.Brownian.Ito.integral_increment_sq
+#print axioms LevyStochCalc.Brownian.Ito.integral_increment_pow_four
+#print axioms LevyStochCalc.Brownian.Ito.integral_mul_increment_pow
+#print axioms LevyStochCalc.Brownian.Ito.memLp_mul_increment
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
