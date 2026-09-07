@@ -699,3 +699,8 @@ import LevyStochCalc
 -- ===== Cylinder characters of a Brownian motion (A4b-i, 2026-09-07) =====
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.naturalFiltration_eq_iSup_comap
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.ae_eq_zero_of_integral_char_cylinder
+-- ===== Gronwall in integral form (A4b-ii-1, 2026-09-07) =====
+#print axioms LevyStochCalc.Analysis.le_mul_pow_div_factorial_of_le_mul_setIntegral
+#print axioms LevyStochCalc.Analysis.eq_zero_of_le_mul_setIntegral
+-- ===== Fubini for a pairing against a time integral (A4b-ii-4, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.integral_mul_setIntegral_Ioc
