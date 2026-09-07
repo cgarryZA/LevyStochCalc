@@ -1052,6 +1052,26 @@ theorem lintegral_lintegral_sq_le_bieleckiNorm_sq {β : ℝ} (hβ : 0 < β) (T :
       _ ≤ ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β))
             * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := mul_le_mul' hexp le_rfl
 
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- A Bochner integral of a nonnegative function is below the corresponding lower integral, with
+no integrability hypothesis: when the integrand is not integrable the Bochner integral is `0`. -/
+theorem ofReal_setIntegral_le_lintegral {f : ℝ → ℝ} (hf : ∀ x, 0 ≤ f x) (s : Set ℝ) :
+    ENNReal.ofReal (∫ x in s, f x ∂volume) ≤ ∫⁻ x in s, ENNReal.ofReal (f x) ∂volume := by
+  have h1 : ENNReal.ofReal (∫ x in s, f x ∂volume) ≤ ‖∫ x in s, f x ∂volume‖ₑ := by
+    rw [Real.enorm_eq_ofReal_abs]
+    exact ENNReal.ofReal_le_ofReal (le_abs_self _)
+  refine h1.trans ((MeasureTheory.enorm_integral_le_lintegral_enorm _).trans (le_of_eq ?_))
+  refine lintegral_congr fun x => ?_
+  rw [Real.enorm_eq_ofReal_abs, abs_of_nonneg (hf x)]
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- The window energy in the supremum norm is below the window energy in coordinates. -/
+theorem lintegral_window_norm_le_sum {Z : ℝ → Ω → (Fin n → ℝ)} (t : ℝ) (ω : Ω) :
+    ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume)
+      ≤ ∫⁻ s in Set.Icc (0 : ℝ) t, (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume := by
+  refine (ofReal_setIntegral_le_lintegral (fun x => by positivity) _).trans ?_
+  exact lintegral_mono fun s => ofReal_sq_norm_le_sum (Z s ω)
+
 end Weighting
 
 end LevyStochCalc.Ito.Picard

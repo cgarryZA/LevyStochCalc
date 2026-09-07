@@ -437,6 +437,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardSelfMap_ae_eq
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_le_bieleckiNorm_sq_weighted
 #print axioms LevyStochCalc.Ito.Picard.lintegral_lintegral_sq_le_bieleckiNorm_sq
+#print axioms LevyStochCalc.Ito.Picard.ofReal_setIntegral_le_lintegral
+#print axioms LevyStochCalc.Ito.Picard.lintegral_window_norm_le_sum
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
