@@ -677,3 +677,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.charLp
 #print axioms LevyStochCalc.Probability.topologicalClosure_span_charLp
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_comp_eq_zero
+-- ===== Set integrals over the sigma-algebra a random vector generates (A4b-i-3, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.integrable_charComp_smul
+#print axioms LevyStochCalc.Probability.charFun_map_withDensity_ofReal
+#print axioms LevyStochCalc.Probability.map_withDensity_eq_of_integral_char_comp_smul_eq_zero
+#print axioms LevyStochCalc.Probability.integral_smul_re_im_eq_zero
+#print axioms LevyStochCalc.Probability.setIntegral_eq_zero_of_integral_char_comp_smul_eq_zero
+#print axioms LevyStochCalc.Probability.setIntegral_eq_zero_of_integral_char_comp_mul_eq_zero
