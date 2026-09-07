@@ -965,4 +965,93 @@ theorem picardSelfMap_ae_eq
 
 end SelfMap
 
+section Weighting
+
+omit [MeasurableSpace E] in
+/-- The second moment at a single time of `[0, T]`, weighted back up from the Bielecki norm. -/
+theorem lintegral_sq_le_bieleckiNorm_sq_weighted (β T : ℝ) (Z : ℝ → Ω → (Fin n → ℝ))
+    {s : ℝ} (hs : s ∈ Set.Icc (0 : ℝ) T) :
+    ∫⁻ ω, ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ ENNReal.ofReal (Real.exp (2 * β * s)) * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
+  set A : ℝ≥0∞ := ∫⁻ ω, ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P with hA
+  have hle : ENNReal.ofReal (Real.exp (-β * s)) * A ^ ((1 : ℝ) / 2)
+      ≤ bieleckiNorm (P := P) β T Z := by
+    unfold bieleckiNorm
+    exact le_iSup₂ (f := fun u (_ : u ∈ Set.Icc (0 : ℝ) T) =>
+      ENNReal.ofReal (Real.exp (-β * u))
+        * (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) s hs
+  have hmul : A ^ ((1 : ℝ) / 2)
+      ≤ ENNReal.ofReal (Real.exp (β * s)) * bieleckiNorm (P := P) β T Z := by
+    refine le_trans (le_of_eq ?_) (mul_le_mul' le_rfl hle)
+    rw [← mul_assoc, ← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
+    simp
+  calc A = (A ^ ((1 : ℝ) / 2)) ^ (2 : ℕ) := by
+        rw [← ENNReal.rpow_natCast _ 2, ← ENNReal.rpow_mul]
+        norm_num
+    _ ≤ (ENNReal.ofReal (Real.exp (β * s)) * bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) :=
+        pow_le_pow_left' hmul 2
+    _ = ENNReal.ofReal (Real.exp (2 * β * s)) * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
+        rw [mul_pow, ← ENNReal.ofReal_pow (Real.exp_nonneg _), ← Real.exp_nat_mul]
+        ring_nf
+
+omit [MeasurableSpace E] in
+/-- **The Bielecki weighting step.** The doubly-integrated energy over `[0, t]` is bounded by
+`e^{2βt}/(2β)` times the squared Bielecki norm; the factor `1/(2β)` is what makes the Picard
+rate small for large `β`. -/
+theorem lintegral_lintegral_sq_le_bieleckiNorm_sq {β : ℝ} (hβ : 0 < β) (T : ℝ)
+    (Z : ℝ → Ω → (Fin n → ℝ))
+    (hZ : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => Z s ω))
+    {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) T) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P
+      ≤ ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β))
+          * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
+  have hβ2 : (0 : ℝ) < 2 * β := by linarith
+  -- the exponential window integral
+  have hexp : ∫⁻ s in Set.Icc (0 : ℝ) t, ENNReal.ofReal (Real.exp (2 * β * s)) ∂volume
+      ≤ ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β)) := by
+    have hcont : Continuous fun s : ℝ => Real.exp (2 * β * s) :=
+      Real.continuous_exp.comp (continuous_const.mul continuous_id)
+    have hint : MeasureTheory.IntegrableOn (fun s : ℝ => Real.exp (2 * β * s))
+        (Set.Icc (0 : ℝ) t) volume :=
+      (hcont.continuousOn).integrableOn_compact isCompact_Icc
+    rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal hint
+      (Filter.Eventually.of_forall fun s => Real.exp_nonneg _)]
+    refine ENNReal.ofReal_le_ofReal ?_
+    have hIcc : (∫ s in Set.Icc (0 : ℝ) t, Real.exp (2 * β * s) ∂volume)
+        = ∫ s in (0 : ℝ)..t, Real.exp (2 * β * s) := by
+      rw [intervalIntegral.integral_of_le ht.1,
+        MeasureTheory.Measure.restrict_congr_set MeasureTheory.Ioc_ae_eq_Icc]
+    rw [hIcc, intervalIntegral.integral_comp_mul_left Real.exp (ne_of_gt hβ2),
+      integral_exp, mul_zero, Real.exp_zero, smul_eq_mul]
+    rw [div_eq_inv_mul]
+    have hexp_pos : (0 : ℝ) < Real.exp (2 * β * t) := Real.exp_pos _
+    have hinv : (0 : ℝ) < (2 * β)⁻¹ := by positivity
+    nlinarith [hinv, hexp_pos]
+  by_cases hB : bieleckiNorm (P := P) β T Z = ⊤
+  · rw [hB]
+    have hpos : ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β)) ≠ 0 := by
+      simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le]
+      positivity
+    rw [ENNReal.top_pow (by norm_num), ENNReal.mul_top hpos]
+    exact le_top
+  · have hjoint : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+        ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) :=
+      Finset.measurable_sum _ fun i _ =>
+        ((((measurable_pi_apply i).comp hZ)).nnnorm.coe_nnreal_ennreal).pow_const 2
+    rw [MeasureTheory.lintegral_lintegral_swap (μ := P)
+      (ν := volume.restrict (Set.Icc (0 : ℝ) t))
+      (f := fun (ω : Ω) (s : ℝ) => ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) hjoint.aemeasurable]
+    calc ∫⁻ s in Set.Icc (0 : ℝ) t, (∫⁻ ω, ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
+        ≤ ∫⁻ s in Set.Icc (0 : ℝ) t, ENNReal.ofReal (Real.exp (2 * β * s))
+            * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) ∂volume :=
+          MeasureTheory.setLIntegral_mono' measurableSet_Icc fun s hs =>
+            lintegral_sq_le_bieleckiNorm_sq_weighted β T Z ⟨hs.1, hs.2.trans ht.2⟩
+      _ = (∫⁻ s in Set.Icc (0 : ℝ) t, ENNReal.ofReal (Real.exp (2 * β * s)) ∂volume)
+            * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) :=
+          MeasureTheory.lintegral_mul_const' _ _ (by simp [hB, ENNReal.pow_eq_top_iff])
+      _ ≤ ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β))
+            * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := mul_le_mul' hexp le_rfl
+
+end Weighting
+
 end LevyStochCalc.Ito.Picard
