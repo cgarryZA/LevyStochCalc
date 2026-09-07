@@ -117,6 +117,7 @@ import LevyStochCalc.Ito.PicardSupL2
 import LevyStochCalc.Ito.PicardLocality
 import LevyStochCalc.Ito.PicardWindow
 import LevyStochCalc.Ito.PicardGlobal
+import LevyStochCalc.Ito.PicardWellPosed
 import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 

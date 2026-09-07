@@ -477,8 +477,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
 -- Ex-Tier-1-axiom #14 chain (axiom→theorem 2026-05-26; wrap-up carries the
 -- single explicit baseline `sorry` for the entire Picard chain):
-#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
-#print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
 -- σ-side L² Lipschitz bound (Ito/Picard.lean; depends on
 -- Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
@@ -654,3 +652,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.solvesOn_globalPatch
 #print axioms LevyStochCalc.Ito.Picard.ae_eq_initial_of_solvesOn
 #print axioms LevyStochCalc.Ito.Picard.exists_globalSolution
+-- ===== Well-posedness of the jump-diffusion SDE (C5, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.eqn_sum_form
+#print axioms LevyStochCalc.Ito.Picard.jumpDiffusionOfSolvesOn
+#print axioms LevyStochCalc.Ito.Picard.solvesOn_of_eqn
+#print axioms LevyStochCalc.Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn

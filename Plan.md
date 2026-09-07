@@ -26,8 +26,12 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   the natural filtration of a *single* driver, so `JumpDiffusion.is_solution` and the PRP/BSDEJ
   statements (#13a, #13b, #9, #10) are faithful only for uncoupled coefficients — the
   common-filtration generalization **X2** below now precedes A5–A7.
-- **1 documented `sorry`** (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`,
-  `tools/sorry_baseline.txt`) — disappears with the #9 chain.
+- **Zero `sorry` (2026-09-07)**: `tools/sorry_baseline.txt` is empty. The Picard chain is
+  complete — `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
+  window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two
+  statement audits landed with it (uniqueness is relative to the filtration; the drift integral
+  in `is_solution` needed parenthesising) — see `tools/cited_axioms.md` #12.
+- **One live cited axiom left**: `itoLevyFormula_jumpResidual_canonical_axiom` (#16).
 - **6 of the 13 axioms gate the pinned dissertation surface** (the 21
   `import_contract.md` symbols), traced via `#print axioms`:
   **#5** `itoIsometry_brownian_unified_existence`,

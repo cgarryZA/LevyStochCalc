@@ -209,7 +209,7 @@ structure JumpDiffusion
           (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
     ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
       X t ω i = x₀ i
-        + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i
+        + (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i)
         + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
             W ℱ hℱW
             (fun s ω => coeffs.σ s (X s ω) i)

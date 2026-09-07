@@ -40,6 +40,13 @@ are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
   carrying a single explicit `sorry` baseline entry.
 * #12 (`JumpDiffusion.exists_unique`) was similarly demoted axiom→theorem on
   2026-05-26 (forwards through the same Bielecki wrap-up).
+* #12/#14 were CLOSED 2026-09-07: the Picard chain is complete and the wrap-up
+  theorem's `sorry` is gone, so `tools/sorry_baseline.txt` is empty and every
+  entry in `_audit.lean` reports only the three standard axioms. The redundant
+  intermediates `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` and
+  `..._axiom` were deleted; `picardFixedPoint_jumpDiffusion_exists_unique`
+  forwards to `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`. See the
+  statement audit on that theorem.
 * #16 was NARROWED 2026-05-26 from the previous universal-`R` form
   `itoLevyFormula_jumpResidual_axiom` to the canonical-`R` form
   `itoLevyFormula_jumpResidual_canonical_axiom`; the universal-`R` form is
@@ -242,7 +249,10 @@ literature integral forms.
 * **2026-05-23 refactor + axiomatization (COMPLETED)**: the theorem moved out of `Ito/Setting.lean` and into `Ito/PicardFixedPoint.lean`, where it forwards through a SINGLE intermediate `picardFixedPoint_jumpDiffusion_exists_unique` (the SDE-specialised Banach fixed-point output). That intermediate was previously a `theorem` with a `sorry` body; it was converted on 2026-05-23 to a thin forwarder over the (then-)Tier-1 axiom `picardFixedPoint_jumpDiffusion_exists_unique_axiom`. On 2026-05-26 the axiom was further demoted to a theorem (forwarding through the wrap-up `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpace.lean`, which carries a single explicit baseline `sorry`). Consequently `JumpDiffusion.exists_unique` is sorryAx-baselined (via the wrap-up) — its transitive axiom dependency now surfaces `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`'s sorry rather than a standalone axiom. The qualified name `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` is preserved by re-opening the namespace in `PicardFixedPoint.lean`.
 * **Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness without this).
 * **Mathlib status (May 2026)**: No SDE-with-jumps strong existence/uniqueness in Mathlib. Continuous-SDE strong existence is partially formalized but the jump-SDE case waits on the multidim Brownian + compensated-Poisson integral infrastructure.
-* **Replacement plan**: When the wrap-up theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is fully proven (Bielecki packaging + structure bridge + the descended Picard contraction chain), `JumpDiffusion.exists_unique` inherits soundness automatically with no source-level changes.
+* **CLOSED 2026-09-07**: the chain is proved end to end. Picard iteration on the Bielecki-weighted process space gives a fixed point on each window (`exists_solvesOn`); the contraction gives uniqueness on a window (`ae_eq_of_solvesOn`); right-continuity upgrades per-time agreement to whole-path agreement, so the window solutions glue along `⌈t⌉₊` into a solution on `[0, ∞)` (`exists_globalSolution`); that solution populates every field of `JumpDiffusion` (`jumpDiffusionOfSolvesOn`). `#print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` = `[propext, Classical.choice, Quot.sound]`.
+* **Statement audit (2026-09-07), two items.**
+  1. *Filtration scope.* Uniqueness is now asserted against competitors satisfying the equation relative to the SAME filtration (`Ito.Picard.SolvesOn`), and the usual conditions on `ℱ` (right-continuity, `ℱ 0 ≤ ℱ t` for `t ≤ 0`, null sets in `ℱ 0`) are hypotheses. `JumpDiffusion.is_solution` quantifies the filtration existentially, so two `JumpDiffusion`s can carry incomparable Brownian filtrations; the `L²` Itô isometry that powers the Gronwall step exists only within one filtration, and a join of two Brownian filtrations need not be Brownian (take `U` a fair coin independent of `W` and `V = U · sign(W_1)`: each of `σ(U)`, `σ(V)` is independent of `W`, but `σ(U, V)` determines `sign(W_1)`). Applebaum 6.2.9 and Ikeda–Watanabe IV fix the filtered space; the existential form of uniqueness is outside both the literature scope and the method.
+  2. *Parse bug in `is_solution`, fixed.* The drift term was written `+ ∫ s in Set.Icc 0 t, coeffs.μ s (X s ω) i` with the two stochastic integrals on the following lines. Mathlib's `∫ x in s, ·` notation parses its body at level 60 and `+` sits at 65, so the body swallowed both stochastic integrals: the field asserted `X t = x₀ + ∫₀ᵗ (μ(s, X_s) + ∫σ dW + ∫γ dÑ) ds`, i.e. `x₀ + ∫μ + t·(∫σ dW + ∫γ dÑ)`, not the SDE. The drift integral is now parenthesised. Nothing depended on the old form (the only producer of a `JumpDiffusion` was the sorry-bodied theorem), so no downstream result changes. A repo-wide scan found no other occurrence.
 
 ### Retired #13: `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` (DEMOTED axiom→theorem 2026-05-26)
 

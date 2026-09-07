@@ -26,11 +26,9 @@ Banach's fixed-point theorem to the Picard map.
   extended pseudometric and its carrier type, and the almost-everywhere
   quotient `SBoundedProcess.AEQuot` on which it becomes a genuine
   `EMetricSpace`.
-* `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` — the
-  existence/uniqueness statement phrased on the quotient (the single
-  remaining `sorry` in the library; see `tools/sorry_baseline.txt`). The
-  section note "Status of the fixed-point programme" records the per-step
-  status and the statement audit that added the `IsRegular` hypothesis.
+The existence/uniqueness statement itself is `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`
+in `Ito/PicardWellPosed.lean`. The section note "Status of the fixed-point programme" records
+the statement audit that added the `IsRegular` hypothesis.
 
 The Banach fixed-point conclusion is in `PicardFixedPoint.lean`.
 -/
@@ -959,81 +957,10 @@ noncomputable instance instNonemptyAEQuot
   ⟨SeparationQuotient.mk (SBoundedProcess.WithBielecki.of (β := β)
     (constantZeroProcess (n := n) P ℱ T))⟩
 
-/-! ### The wrap-up theorem (Tier 1 axiom #14 replacement)
+/-! ### The well-posedness theorem
 
-The single explicit `sorry` collects the entire Picard chain — see
-module docstring for the breakdown. -/
-
-/-- **Wrap-up: existence + a.s. uniqueness of the JumpDiffusion solution
-via the descended Picard fixed point on the Bielecki AE quotient.**
-
-This is the theorem that replaces the previous Tier 1 cited axiom
-`picardFixedPoint_jumpDiffusion_exists_unique_axiom`. The proof
-encapsulates the entire literature Picard chain (Applebaum 6.2.9 /
-Ikeda-Watanabe IV) — see module docstring "What this file delivers"
-for the six-step breakdown. The single explicit `sorry` collects every
-analytic + Mathlib-glue obligation, hence:
-
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (this thm)
-  ↓ forwarder
-`picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem
-  in `PicardFixedPoint.lean`, ex-Tier-1-axiom #14)
-  ↓ forwarder
-`picardFixedPoint_jumpDiffusion_exists_unique`
-  ↓ forwarder
-`JumpDiffusion.exists_unique` (the headline)
-
-When the chain is fully proven (a multi-session Mathlib-glue program),
-this sorry is replaced by the standard proof body and ALL downstream
-forwarders gain genuine soundness without source-level changes.
-
-**Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
-ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
-without this) and `JumpDiffusionCoeffs.IsRegular coeffs ν` (without
-regularity in `s` no `JumpDiffusion` exists at all — see the section note
-"Status of the fixed-point programme"); produces a CONCRETE `JumpDiffusion` (all six fields
-populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
-`cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
-every `t ≥ 0`. No trivial constant-path witness satisfies this for
-generic non-zero coefficients: `X t ω = x₀` fails `is_solution` because
-the integrals don't vanish.
-
-**Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
-domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
-Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
-`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`).
-
-**Filtration hypothesis (statement audit, 2026-09-06)**: `ℱ` with
-`hℱW`/`hℱN` is required, not decorative. Since X2-3 the `is_solution`
-field asks for a filtration for which every coordinate of `W` is a
-Brownian motion and `N` a Poisson random measure, and for a dependent
-pair no such filtration exists — if `N` is a measurable functional of
-`W` on `[0, 1]`, then `N((1, 2] × A)` is `ℱ₁`-measurable and, being
-independent of `ℱ₁`, a.s. constant, contradicting its Poisson law. So
-without this hypothesis the existence claim is false for such pairs.
-Applebaum 6.2.9 assumes a Lévy driver, i.e. an independent `(W, N)`;
-`Driver/Existence.lean` constructs one. -/
-theorem picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
-    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
-    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
-    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-    (x₀ : Fin n → ℝ)
-    {L : ℝ}
-    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
-    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
-    ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-      ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω := by
-  -- The literature chain is Applebaum 6.2.9 / Ikeda-Watanabe IV. The
-  -- section note "Status of the fixed-point programme" above records what
-  -- of it exists and what is open, together with the statement audit that
-  -- added the `IsRegular` hypothesis.
-  sorry
+The existence and uniqueness statement for the jump-diffusion SDE is
+`Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` in `Ito/PicardWellPosed.lean`, at the end
+of the Picard chain that starts here with the Bielecki metric on the process space. -/
 
 end LevyStochCalc.Ito.Picard

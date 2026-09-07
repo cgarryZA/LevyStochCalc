@@ -3,7 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Ito.PicardSpace
+import LevyStochCalc.Ito.PicardWellPosed
 import Mathlib.Topology.MetricSpace.Contracting
 
 /-!
@@ -168,113 +168,46 @@ theorem picardFixedPoint_of_exists
   have hΦ : ContractingWith K Φ := ⟨hK_lt_one, hΦ_lip⟩
   exact ⟨Φ, picardFixedPoint_generic hΦ⟩
 
-/-- **SDE-specialised Banach fixed-point output for the jump-diffusion
-equation (Applebaum 6.2.9 / Ikeda-Watanabe IV) — ex-Tier-1-axiom #14,
-now a theorem.**
+/-- **Well-posedness of the jump-diffusion SDE, relative to a filtration satisfying the usual
+conditions.**
 
-Under Lipschitz hypotheses on `(μ, σ, γ)`, the Picard iteration in the
-Banach space `S²([0, T]; ℝⁿ)` with the Bielecki β-norm
-`‖X‖_β,T = sup_{t ≤ T} e^{-βt} √(𝔼[‖X_t‖²])` for `β > 3 n L² (T + 2) / 2`
-delivers a unique fixed point of the Picard map `Φ` (`picardStep`). This
-fixed point is a càdlàg-adapted L²-sup-bounded process satisfying the
-SDE integral equation, and bundles into a `JumpDiffusion W N coeffs x₀`.
+Thin forwarder over `exists_jumpDiffusion_unique_of_solvesOn` in `Ito/PicardWellPosed.lean`,
+which builds the solution by Picard iteration on the Bielecki-weighted process space over each
+window and glues the windows.
 
-The "exists + a.s. unique" form is the direct output of the
-Banach fixed-point step (`ContractingWith.fixedPoint` +
-`ContractingWith.fixedPoint_unique` — see `picardFixedPoint_generic`
-in this file): the fixed point is the limit of Picard iterates `Φⁿ X₀`
-for any starting `X₀`, and every other fixed point coincides with it
-(so any two `JumpDiffusion` solutions, both being fixed points of Φ,
-must agree a.s. at every `t ≥ 0` — the SDE time domain).
+**Statement audit (2026-09-07)**: the filtration is a parameter, and both the produced solution
+and the competitor are asked to satisfy the integral equation relative to it. The `is_solution`
+field of `JumpDiffusion` quantifies the filtration existentially, so two `JumpDiffusion`s can
+carry incomparable Brownian filtrations; the `L²` Itô isometry — which is what the Gronwall step
+uses — is available only within a single filtration, and a join of two Brownian filtrations need
+not be Brownian, so uniqueness across filtrations is outside both the literature scope
+(Applebaum 6.2.9 and Ikeda–Watanabe IV fix the filtered space) and the method. The usual
+conditions `[ℱ.IsRightContinuous]`, `hℱ0` and `hnull` are the standing hypotheses of that
+literature and are used by the construction.
 
-**Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd
-ed., CUP 2009, **Theorem 6.2.9** (Picard iteration in `S²` for jump-
-diffusion SDEs with Lipschitz coefficients); Ikeda-Watanabe, *Stochastic
-Differential Equations and Diffusion Processes*, North-Holland 1989,
-Chapter IV (jump SDE strong existence + uniqueness via Picard iteration).
-
-This forwards through the wrap-up theorem
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in `PicardSpace.lean`,
-which carries the single baseline `sorry` collecting the entire Picard chain;
-that file's section note "Status of the fixed-point programme" records the
-per-step status and a statement audit — as written the wrap-up statement is
-refutable, because `IsLipschitz` constrains the coefficients only in the state
-variable, so the `sorry` is not dischargeable before the hypotheses are
-corrected. The analytical content is the Picard iteration (Applebaum 6.2.9). The downstream
-forwarders `picardFixedPoint_jumpDiffusion_exists_unique` and the headline
-`JumpDiffusion.exists_unique` consume this; the `sorry` is tracked in
-`tools/sorry_baseline.txt` via the wrap-up theorem name.
-
-**Signature strength**: requires `JumpDiffusionCoeffs.IsLipschitz coeffs
-ν L` (Tanaka's `|X|^α` counterexample for α < 1/2 rules out uniqueness
-without this); produces a CONCRETE `JumpDiffusion` (all six fields
-populated — `X`, `measurable_path`, `initial_value`, `sup_L2`,
-`cadlag_paths`, `is_solution`) plus the a.s. pairwise agreement at
-every `t ≥ 0` (the literature uniqueness conclusion). No trivial
-constant-path witness satisfies this for generic non-zero coefficients:
-`X t ω = x₀` fails `is_solution` because the integrals don't vanish.
-
-**Quantifier scope**: pairwise a.s. agreement is asserted on the SDE time
-domain `t ≥ 0` only, matching the literature scope (Applebaum 6.2.9 /
-Ikeda-Watanabe IV work on `[0, ∞)`; the SDE integral equation in
-`JumpDiffusion.is_solution` is itself quantified over `t ≥ 0`). -/
-theorem picardFixedPoint_jumpDiffusion_exists_unique_axiom
-    {Ω : Type u} [MeasurableSpace Ω]
-    {E : Type v} [MeasurableSpace E]
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
-    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
-    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
-    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-    (x₀ : Fin n → ℝ)
-    {L : ℝ}
-    (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
-    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
-    ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-      ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot W N ℱ hℱW hℱN coeffs x₀ hL hReg
-
-/-- **Banach fixed-point output for the jump-diffusion SDE — forwarding theorem.**
-
-Thin forwarder over the (now-)theorem
-`picardFixedPoint_jumpDiffusion_exists_unique_axiom` (above), which in
-turn forwards through `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-in `PicardSpace.lean`. The single explicit `sorry` for
-the entire Picard chain lives in that wrap-up theorem; this forwarder
-is sorry-free in source but transitively depends on the chain.
-
-The Picard contraction analysis (drift / diffusion / jump
-L²-Lipschitz bounds + Bielecki β-norm contraction at rate `3 n L² (T+2) / (2β)`
-for `β > 3 n L² (T+2) / 2`) is fully proven downstream in `Ito/Picard.lean`,
-`Ito/Picard.lean`, `Ito/Picard.lean`, and
-`Ito/Picard.lean`; the remaining sorry covers the Bielecki
-`S²` Banach-space packaging (`Lp` completeness + Doob càdlàg modification)
-+ the structure bridge into `JumpDiffusion`.
-
-**Reference**: Applebaum 2009 Theorem 6.2.9; Ikeda-Watanabe IV. -/
+**Reference**: Applebaum 2009 Theorem 6.2.9; Ikeda–Watanabe Chapter IV. -/
 theorem picardFixedPoint_jumpDiffusion_exists_unique
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
     (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ}
     (hL : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
     (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν) :
-    ∃ (jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-      ∀ (jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
-  picardFixedPoint_jumpDiffusion_exists_unique_axiom W N ℱ hℱW hℱN coeffs x₀ hL hReg
+    ∃ jd : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀,
+      (∀ T : ℝ, SolvesOn W N ℱ hℱW hℱN coeffs x₀ jd.X T)
+        ∧ ∀ jd' : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀,
+            (∀ T : ℝ, SolvesOn W N ℱ hℱW hℱN coeffs x₀ jd'.X T) →
+              ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+  exists_jumpDiffusion_unique_of_solvesOn W N ℱ hℱW hℱN coeffs x₀ hℱ0 hnull hReg hL
 
 end LevyStochCalc.Ito.Picard
 
@@ -297,43 +230,30 @@ Forwarding through the Banach intermediate is the canonical pattern
 (mirrors the `itoIsometry_brownian_unified_existence` → `itoIsometry`
 derived-theorem forwarding used in `Brownian/Ito.lean`, and the
 `itoIsometry_compensated_unified_existence` → `Compensated.itoLevyIsometry`
-forwarding in `Poisson/Compensated.lean`).
-
-The intermediate `picardFixedPoint_jumpDiffusion_exists_unique` is the
-SINGLE remaining baseline-sorry on this chain — when the Picard
-contraction proof + Banach fixed-point invocation is completed, the
-intermediate gets a real proof body and `JumpDiffusion.exists_unique`
-inherits soundness automatically without source-level changes here. -/
+forwarding in `Poisson/Compensated.lean`). -/
 
 namespace LevyStochCalc.Ito.Setting
 namespace JumpDiffusion
 
 /-- **Existence and uniqueness of the jump-diffusion SDE
-(Applebaum 6.2.9 / Ikeda-Watanabe IV).**
+(Applebaum 6.2.9 / Ikeda–Watanabe IV).**
 
-Under Lipschitz hypotheses on `(μ, σ, γ)`, the jump-diffusion SDE
+Under Lipschitz and regularity hypotheses on `(μ, σ, γ)`, and relative to a filtration `ℱ`
+satisfying the usual conditions for which every coordinate of `W` is a Brownian motion and `N`
+a Poisson random measure, the jump-diffusion SDE
 
-  `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)`,
-  `X_0 = x_0`
+  `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)`,  `X_0 = x_0`
 
-admits a strong solution that is càdlàg, adapted, L²-bounded in the
-supremum norm on every bounded interval, and **a.s. unique** (any two
-solutions agree a.s. at every time `t ≥ 0`; the SDE time domain
-`[0, ∞)` is the literature scope — Applebaum 6.2.9 / Ikeda-Watanabe IV).
+has a strong solution that is càdlàg, adapted and `S²`-bounded on every bounded interval, and
+any solution of the equation relative to the same `ℱ` agrees with it a.s. at every `t ≥ 0`.
 
-**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*,
-2nd ed., Cambridge University Press, 2009, **Theorem 6.2.9**;
-Ikeda, N. & Watanabe, S. *Stochastic Differential Equations and
-Diffusion Processes*, North-Holland, 1989, Chapter IV.
+**Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., Cambridge
+University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S. *Stochastic Differential
+Equations and Diffusion Processes*, North-Holland, 1989, Chapter IV.
 
-**Proof**: Forwarder over
-`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`,
-the SDE-specialised Banach fixed-point output. The statement is
-unchanged from the previous sorry-bodied version in `Ito/Setting.lean`;
-the move here reflects the canonical refactor pattern where the
-literature theorem's proof forwards through the underlying analytical
-machinery (which lives in a separate module to break the import cycle
-between the structure definition and the framework). -/
+**Statement audit (2026-09-07)**: uniqueness is relative to the filtration, and the usual
+conditions on `ℱ` are hypotheses — see the note on
+`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`. -/
 theorem exists_unique
     {Ω : Type*} [MeasurableSpace Ω]
     {E : Type*} [MeasurableSpace E]
@@ -342,18 +262,22 @@ theorem exists_unique
     {n d : ℕ}
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
     (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
     (coeffs : JumpDiffusionCoeffs n d E)
     (x₀ : Fin n → ℝ)
     {L : ℝ} (hL : JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
     (hReg : JumpDiffusionCoeffs.IsRegular coeffs ν) :
-    ∃ (jd : JumpDiffusion W N coeffs x₀),
-      ∀ (jd' : JumpDiffusion W N coeffs x₀),
-        ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
+    ∃ jd : JumpDiffusion W N coeffs x₀,
+      (∀ T : ℝ, LevyStochCalc.Ito.Picard.SolvesOn W N ℱ hℱW hℱN coeffs x₀ jd.X T)
+        ∧ ∀ jd' : JumpDiffusion W N coeffs x₀,
+            (∀ T : ℝ, LevyStochCalc.Ito.Picard.SolvesOn W N ℱ hℱW hℱN coeffs x₀ jd'.X T) →
+              ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, jd.X t ω = jd'.X t ω :=
   LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
-    W N ℱ hℱW hℱN coeffs x₀ hL hReg
+    W N ℱ hℱW hℱN hℱ0 hnull coeffs x₀ hL hReg
 
 /-- **Pairwise a.s. agreement at `t = 0`.** Any two jump-diffusion
 solutions for the same coefficients and initial condition agree a.s.
