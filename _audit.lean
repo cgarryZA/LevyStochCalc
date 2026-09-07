@@ -392,6 +392,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_setIntegral_le
 #print axioms LevyStochCalc.Ito.Picard.sq_nnnorm_add_le
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_drift_le
+#print axioms LevyStochCalc.Ito.Picard.itoIsometry_of_nonneg
+#print axioms LevyStochCalc.Ito.Picard.compensatedIsometry_of_nonneg
+#print axioms LevyStochCalc.Ito.Picard.measurable_setIntegral_slice
+#print axioms LevyStochCalc.Ito.Picard.sq_nnnorm_add3_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_lintegral_Icc_mono
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_drift
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_diffusion
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_jump
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStep_lt_top
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
