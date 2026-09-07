@@ -642,3 +642,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_rawStop_congr_ae
 #print axioms LevyStochCalc.Ito.Picard.solvesOn_of_isFixedPoint
 #print axioms LevyStochCalc.Ito.Picard.exists_solvesOn
+-- ===== Gluing window solutions into a solution on [0, ∞) (C3-global, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.ae_all_eq_of_rightCont
+#print axioms LevyStochCalc.Ito.Picard.globalPatch
+#print axioms LevyStochCalc.Ito.Picard.measurable_globalPatch
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_globalPatch
+#print axioms LevyStochCalc.Ito.Picard.ae_all_windows_agree
+#print axioms LevyStochCalc.Ito.Picard.ae_globalPatch_eq
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_globalPatch_lt_top
+#print axioms LevyStochCalc.Ito.Picard.cadlag_globalPatch
+#print axioms LevyStochCalc.Ito.Picard.solvesOn_globalPatch
+#print axioms LevyStochCalc.Ito.Picard.ae_eq_initial_of_solvesOn
+#print axioms LevyStochCalc.Ito.Picard.exists_globalSolution

@@ -155,24 +155,31 @@ variable (x₀ : Fin n → ℝ)
 /-- `X` satisfies the jump-diffusion integral equation, relative to `ℱ`, at every time of
 `[0, T]`. The integrand hypotheses that make the two stochastic integrals well-typed are
 bundled existentially, as in `JumpDiffusion.is_solution`. -/
-def SolvesOn (X : ℝ → Ω → (Fin n → ℝ)) (T : ℝ) : Prop :=
-  ∃ (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
-      Measurable (Function.uncurry fun ω s => coeffs.σ s (X s ω) i j))
-    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
-      Probability.ProgressivelyMeasurable ℱ fun ω s => coeffs.σ s (X s ω) i j)
-    (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    (h_γ_meas : ∀ i : Fin n,
-      Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i)
-    (h_γ_progMeas : ∀ i : Fin n,
-      Probability.MarkedProgressivelyMeasurable ℱ fun ω s e => coeffs.γ s (X s ω) e i)
-    (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
-        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤),
-    ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P, ∀ i : Fin n,
-      X t ω i = picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
-        h_γ_meas h_γ_progMeas h_γ_sq t ω i
+structure SolvesOn (X : ℝ → Ω → (Fin n → ℝ)) (T : ℝ) : Prop where
+  /-- Joint measurability of the diffusion integrand along `X`. -/
+  h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+    Measurable (Function.uncurry fun ω s => coeffs.σ s (X s ω) i j)
+  /-- Progressive measurability of the diffusion integrand along `X`. -/
+  h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+    Probability.ProgressivelyMeasurable ℱ fun ω s => coeffs.σ s (X s ω) i j
+  /-- `L²` boundedness of the diffusion integrand on every finite horizon. -/
+  h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤
+  /-- Joint measurability of the jump integrand along `X`. -/
+  h_γ_meas : ∀ i : Fin n,
+    Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i
+  /-- Marked progressive measurability of the jump integrand along `X`. -/
+  h_γ_progMeas : ∀ i : Fin n,
+    Probability.MarkedProgressivelyMeasurable ℱ fun ω s e => coeffs.γ s (X s ω) e i
+  /-- `L²` boundedness of the jump integrand on every finite horizon. -/
+  h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+      (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤
+  /-- The integral equation at every time of the window. -/
+  eqn : ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P, ∀ i : Fin n,
+    X t ω i = picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+      h_γ_meas h_γ_progMeas h_γ_sq t ω i
 
 /-- A solution on a window is a solution on every shorter window. -/
 theorem SolvesOn.mono {X : ℝ → Ω → (Fin n → ℝ)} {T T' : ℝ} (hTT : T' ≤ T)
