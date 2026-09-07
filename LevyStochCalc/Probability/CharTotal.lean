@@ -8,6 +8,7 @@ import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 import Mathlib.MeasureTheory.Function.L2Space
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
+import Mathlib.MeasureTheory.Function.FactorsThrough
 
 /-!
 # Characters separate `L¹` densities
@@ -241,5 +242,42 @@ theorem topologicalClosure_span_charLp (μ : Measure V) [IsFiniteMeasure μ] :
      simp [mul_comm]
    exact (Lp.eq_zero_iff_ae_eq_zero).mpr (ae_eq_zero_of_integral_char_mul_eq_zero hgint hzero)
   exact Submodule.topologicalClosure_eq_top_iff.mpr horth
+
+/-! ### Transfer along a random vector -/
+
+/-- **Characters of a random vector separate the variables it generates.** An integrable
+`σ(X)`-measurable function integrating to zero against every character of `X` vanishes a.e.
+Doob–Dynkin factors it through `X`, and the law of `X` is a finite measure on `V`. -/
+theorem ae_eq_zero_of_integral_char_comp_eq_zero {Ω : Type*} [MeasurableSpace Ω]
+    {P : Measure Ω} [IsFiniteMeasure P] {X : Ω → V} (hX : Measurable X) {Z : Ω → ℂ}
+    (hZ : Integrable Z P)
+    (hZmeas : StronglyMeasurable[MeasurableSpace.comap X inferInstance] Z)
+    (h : ∀ w : V, ∫ ω, Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I) * Z ω ∂P = 0) :
+    Z =ᵐ[P] 0 := by
+  obtain ⟨g, hgm, hgeq⟩ := StronglyMeasurable.exists_eq_measurable_comp hZmeas
+  haveI : IsFiniteMeasure (P.map X) := Measure.isFiniteMeasure_map P X
+  have hZg : Z = fun ω => g (X ω) := hgeq
+  have hgint : Integrable g (P.map X) := by
+    rw [integrable_map_measure hgm.aestronglyMeasurable hX.aemeasurable]
+    simpa [Function.comp_def, ← hZg] using hZ
+  have hcont : ∀ w : V, Continuous fun v : V => Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I) :=
+    fun w => Complex.continuous_exp.comp
+      ((Complex.continuous_ofReal.comp
+        (continuous_inner.comp (continuous_id.prodMk continuous_const))).mul continuous_const)
+  have hzero : ∀ w : V,
+      ∫ v, Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I) * g v ∂(P.map X) = 0 := by
+    intro w
+    have hphi : AEStronglyMeasurable
+        (fun v : V => Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I) * g v) (P.map X) :=
+      AEStronglyMeasurable.mul ((hcont w).aestronglyMeasurable) hgm.aestronglyMeasurable
+    rw [integral_map hX.aemeasurable hphi]
+    refine Eq.trans (integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)) (h w)
+    simp [hZg]
+  have hg0 := ae_eq_zero_of_integral_char_mul_eq_zero hgint hzero
+  have hset : MeasurableSet {v : V | g v = 0} :=
+    hgm.measurable (measurableSet_singleton (0 : ℂ))
+  have := (ae_map_iff hX.aemeasurable hset).mp hg0
+  rw [hZg]
+  exact this
 
 end LevyStochCalc.Probability
