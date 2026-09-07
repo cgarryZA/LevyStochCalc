@@ -1413,6 +1413,50 @@ theorem jump_diff_lintegral_sq_bound {ν : MeasureTheory.Measure E}
         congr 2
         simp
 
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- **Combining three per-time bounds with a common right-hand side.** For a process that splits
+as a sum of three, `‖a + b + c‖² ≤ 3(‖a‖² + ‖b‖² + ‖c‖²)` turns three separate second-moment
+bounds into one, with the constants added and tripled. -/
+theorem lintegral_sq_sum3_le {U₁ U₂ U₃ : Ω → (Fin n → ℝ)} {c₁ c₂ c₃ R : ℝ≥0∞}
+    (hm₁ : ∀ i : Fin n, Measurable fun ω => (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2)
+    (hm₂ : ∀ i : Fin n, Measurable fun ω => (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2)
+    (hm₃ : ∀ i : Fin n, Measurable fun ω => (‖U₃ ω i‖₊ : ℝ≥0∞) ^ 2)
+    (h₁ : ∫⁻ ω, ∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ c₁ * R)
+    (h₂ : ∫⁻ ω, ∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ c₂ * R)
+    (h₃ : ∫⁻ ω, ∑ i, (‖U₃ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ c₃ * R) :
+    ∫⁻ ω, ∑ i, (‖U₁ ω i + U₂ ω i + U₃ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ 3 * (c₁ + c₂ + c₃) * R := by
+  have hM₁ : Measurable fun ω => ∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2 :=
+    Finset.measurable_sum _ fun i _ => hm₁ i
+  have hM₂ : Measurable fun ω => ∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2 :=
+    Finset.measurable_sum _ fun i _ => hm₂ i
+  have hM₃ : Measurable fun ω => ∑ i, (‖U₃ ω i‖₊ : ℝ≥0∞) ^ 2 :=
+    Finset.measurable_sum _ fun i _ => hm₃ i
+  have hsum : ∀ ω : Ω, ∑ i, (‖U₁ ω i + U₂ ω i + U₃ ω i‖₊ : ℝ≥0∞) ^ 2
+      ≤ 3 * (∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2) + 3 * (∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2)
+        + 3 * (∑ i, (‖U₃ ω i‖₊ : ℝ≥0∞) ^ 2) := by
+    intro ω
+    refine le_trans (Finset.sum_le_sum fun i _ => sq_nnnorm_add3_le _ _ _) (le_of_eq ?_)
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib, Finset.mul_sum, Finset.mul_sum,
+      Finset.mul_sum]
+  have hM1' : Measurable fun ω : Ω => 3 * (∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2) := hM₁.const_mul 3
+  have hM2' : Measurable fun ω : Ω => 3 * (∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2) := hM₂.const_mul 3
+  have hM12 : Measurable fun ω : Ω =>
+      3 * (∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2) + 3 * (∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2) := hM1'.add hM2'
+  refine (lintegral_mono hsum).trans ?_
+  rw [MeasureTheory.lintegral_add_left hM12,
+    MeasureTheory.lintegral_add_left hM1',
+    MeasureTheory.lintegral_const_mul' _ _ (by simp : (3 : ℝ≥0∞) ≠ ⊤),
+    MeasureTheory.lintegral_const_mul' _ _ (by simp : (3 : ℝ≥0∞) ≠ ⊤),
+    MeasureTheory.lintegral_const_mul' _ _ (by simp : (3 : ℝ≥0∞) ≠ ⊤)]
+  calc 3 * (∫⁻ ω, ∑ i, (‖U₁ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+        + 3 * (∫⁻ ω, ∑ i, (‖U₂ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+        + 3 * (∫⁻ ω, ∑ i, (‖U₃ ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      ≤ 3 * (c₁ * R) + 3 * (c₂ * R) + 3 * (c₃ * R) :=
+        add_le_add (add_le_add (mul_le_mul' le_rfl h₁) (mul_le_mul' le_rfl h₂))
+          (mul_le_mul' le_rfl h₃)
+    _ = 3 * (c₁ + c₂ + c₃) * R := by ring
+
 end Weighting
 
 end LevyStochCalc.Ito.Picard
