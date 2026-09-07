@@ -13,6 +13,7 @@ import LevyStochCalc.Basic
 
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Analysis.GronwallIntegral
+import LevyStochCalc.Analysis.ScaledTrig
 import LevyStochCalc.Probability.AbsMoment
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
@@ -90,6 +91,8 @@ import LevyStochCalc.Brownian.ItoMartingale
 import LevyStochCalc.Brownian.SimplePredictableRefine
 import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.ItoAlgebra
+import LevyStochCalc.Brownian.ItoIncrement
+import LevyStochCalc.Brownian.ItoTrigIncrement
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoIncrementMoment
 import LevyStochCalc.Brownian.ItoQuadVarSum

@@ -704,3 +704,25 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Analysis.eq_zero_of_le_mul_setIntegral
 -- ===== Fubini for a pairing against a time integral (A4b-ii-4, 2026-09-07) =====
 #print axioms LevyStochCalc.Probability.integral_mul_setIntegral_Ioc
+-- ===== Ito integral of an indicator is a Brownian increment (A4b-ii-2, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.indIoc
+#print axioms LevyStochCalc.Brownian.Ito.indIoc_le_one
+#print axioms LevyStochCalc.Brownian.Ito.measurable_uncurry_indIoc
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_indIoc
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_indIoc₀
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_indIoc_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indIoc
+-- ===== The scaled cosine and sine (A4b-ii-5, 2026-09-07) =====
+#print axioms LevyStochCalc.Analysis.hasDerivAt_cos_scaled
+#print axioms LevyStochCalc.Analysis.hasDerivAt_sin_scaled
+#print axioms LevyStochCalc.Analysis.hasDerivAt_neg_sin_scaled
+#print axioms LevyStochCalc.Analysis.hasDerivAt_cos_scaled_mul
+#print axioms LevyStochCalc.Analysis.lipschitz_neg_sq_mul_cos_scaled
+#print axioms LevyStochCalc.Analysis.lipschitz_neg_sq_mul_sin_scaled
+-- ===== Ito's formula for the scaled trig functions (A4b-ii-5, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_lt_top_of_bounded
+#print axioms LevyStochCalc.Brownian.Ito.measurable_trig_integrand
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_trig_integrand
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_trig_integrand_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_cos_scaled
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_sin_scaled
