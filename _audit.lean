@@ -403,6 +403,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_le
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStep_lt_top
 #print axioms LevyStochCalc.Ito.Picard.exists_cadlag_modification_itoIntegral
+#print axioms LevyStochCalc.Probability.tendsto_nhdsGE_of_nhdsGT
+#print axioms LevyStochCalc.Probability.dyadicCeil
+#print axioms LevyStochCalc.Probability.dyadicCeil_le
+#print axioms LevyStochCalc.Probability.le_dyadicCeil
+#print axioms LevyStochCalc.Probability.measurable_dyadicCeil
+#print axioms LevyStochCalc.Probability.tendsto_dyadicCeil
+#print axioms LevyStochCalc.Probability.progressivelyMeasurable_of_rightContinuous
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.measurable_uncurry
+#print axioms LevyStochCalc.Probability.measurable_uncurry_of_rightContinuous
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
