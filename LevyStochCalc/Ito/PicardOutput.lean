@@ -819,6 +819,78 @@ theorem picardStepMod_cadlag
   exact ((((hdr.continuousAt (x := t)).continuousWithinAt (s := Set.Iio t)).tendsto.add
     (tendsto_finsetSum _ fun j _ => hL j)).add hLγ)
 
+/-- **The Picard step lands in the process space.**
+
+Under the usual conditions — a right-continuous filtration whose `ℱ 0` contains the `P`-null
+sets — the Picard step has a modification that is a member of the Bielecki process space, which
+is what makes `picardStepOnS2` a self-map. -/
+theorem exists_sBoundedProcess_picardStep [ℱ.IsRightContinuous]
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (h_μ_meas : ∀ i : Fin n,
+      Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (h_μ_progMeas : ∀ i : Fin n,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.μ s (X s ω) i))
+    (h_μ_sq : ∀ i : Fin n, ∀ b : ℝ, 0 < b →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+        (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ}
+    (hμT : ∀ i : Fin n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hσT : ∀ i : Fin n, ∀ j : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hγT : ∀ i : Fin n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    ∃ Y : SBoundedProcess (n := n) P ℱ T, ∀ t : ℝ,
+      Y.X t =ᵐ[P] picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+        h_γ_meas h_γ_progMeas h_γ_sq t := by
+  classical
+  have hrc : ℱ.rightCont = ℱ := MeasureTheory.Filtration.IsRightContinuous.eq
+  have hadapt : ∀ (i : Fin n) (t : ℝ), Measurable[ℱ t] fun ω =>
+      picardStepMod W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+        h_γ_meas h_γ_progMeas h_γ_sq t ω i := by
+    intro i t
+    have h := picardStepMod_adapted W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+      h_γ_meas h_γ_progMeas h_γ_sq h_μ_progMeas i t
+    rwa [hrc] at h
+  have hex : ∀ i : Fin n, ∃ Z : ℝ → Ω → ℝ, (∀ t : ℝ, Measurable[ℱ t] (Z t)) ∧
+      (∀ t : ℝ, Z t =ᵐ[P] fun ω =>
+        picardStepMod W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+          h_γ_meas h_γ_progMeas h_γ_sq t ω i) ∧
+      (∀ (ω : Ω) (t : ℝ),
+        Filter.Tendsto (fun s => Z s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Z t ω))) ∧
+      ∀ (ω : Ω) (t : ℝ), ∃ L : ℝ,
+        Filter.Tendsto (fun s => Z s ω) (nhdsWithin t (Set.Iio t)) (nhds L) := fun i =>
+    LevyStochCalc.Probability.exists_everywhere_cadlag_modification hℱ0 hnull (hadapt i)
+      (picardStepMod_cadlag W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+        h_γ_meas h_γ_progMeas h_γ_sq h_μ_meas h_μ_sq i)
+  choose Z hZmeas hZae hZright hZleft using hex
+  have hstepae : ∀ t : ℝ, (fun ω i => Z i t ω) =ᵐ[P]
+      picardStepMod W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+        h_γ_meas h_γ_progMeas h_γ_sq t := by
+    intro t
+    filter_upwards [MeasureTheory.ae_all_iff.mpr fun i : Fin n => hZae i t] with ω hω
+    exact funext fun i => hω i
+  refine ⟨{
+    X := fun t ω i => Z i t ω
+    measurable_path := measurable_pi_lambda _ fun i =>
+      LevyStochCalc.Probability.measurable_uncurry_of_rightContinuous (hZmeas i)
+        (hZright i)
+    adapted := fun i =>
+      LevyStochCalc.Probability.progressivelyMeasurable_of_rightContinuous (hZmeas i)
+        (hZright i)
+    cadlag_paths := Filter.Eventually.of_forall fun ω t =>
+      ⟨tendsto_pi_nhds.mpr fun i => hZright i ω t, fun i => hZleft i ω t⟩
+    sup_L2 := ?_ }, ?_⟩
+  · rw [bieleckiNorm_congr_ae 0 T hstepae,
+      bieleckiNorm_picardStepMod W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq N hℱN x₀
+        h_γ_meas h_γ_progMeas h_γ_sq 0 T]
+    exact bieleckiNorm_picardStep_lt_top W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas
+      h_σ_sq h_γ_meas h_γ_progMeas h_γ_sq h_μ_meas hμT hσT hγT
+  · intro t
+    exact (hstepae t).trans (picardStepMod_ae_eq W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas
+      h_σ_sq N hℱN x₀ h_γ_meas h_γ_progMeas h_γ_sq t)
+
 end Modification
 
 end LevyStochCalc.Ito.Picard

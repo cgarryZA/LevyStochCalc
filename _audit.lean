@@ -429,6 +429,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepMod
 #print axioms LevyStochCalc.Ito.Picard.picardStepMod_adapted
 #print axioms LevyStochCalc.Ito.Picard.picardStepMod_cadlag
+#print axioms LevyStochCalc.Ito.Picard.exists_sBoundedProcess_picardStep
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
