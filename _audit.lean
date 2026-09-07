@@ -548,3 +548,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sigma_lt_top_of_energy
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_gamma_lt_top_of_energy
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_mu_lt_top_of_energy
+-- ===== The Picard step along a raw state process (C3 prep, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_le_bieleckiNorm_sq_raw
+#print axioms LevyStochCalc.Ito.Picard.lintegral_lintegral_sq_stopOf_le
+#print axioms LevyStochCalc.Ito.Picard.measurable_sigma_rawStop
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_sigma_rawStop
+#print axioms LevyStochCalc.Ito.Picard.measurable_gamma_rawStop
+#print axioms LevyStochCalc.Ito.Picard.markedProgressivelyMeasurable_gamma_rawStop
+#print axioms LevyStochCalc.Ito.Picard.measurable_mu_rawStop
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_mu_rawStop
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_rawStop_lt_top
+#print axioms LevyStochCalc.Ito.Picard.picardStepOnRawStop
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_slice

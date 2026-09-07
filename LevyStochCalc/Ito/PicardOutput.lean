@@ -1508,6 +1508,50 @@ theorem picardStep_apply_eq
         + picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq t ω i
         + picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq t ω i := rfl
 
+/-- **Slice measurability of the Picard step.** At each fixed time the step is measurable in the
+sample point; joint measurability in `(t, ω)` is a property of the modification, not of the step
+itself. -/
+theorem measurable_picardStep_slice
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ)
+    (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (X s ω) i j))
+    (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h_γ_meas : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (X s ω) e i))
+    (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (h_μ_meas : ∀ i : Fin n,
+      Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (t : ℝ) (i : Fin n) :
+    Measurable fun ω => picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+      h_γ_meas h_γ_progMeas h_γ_sq t ω i := by
+  have heq : (fun ω => picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+        h_γ_meas h_γ_progMeas h_γ_sq t ω i)
+      = fun ω => picardStep_drift coeffs X x₀ t ω i
+        + picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq t ω i
+        + picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq t ω i := by
+    funext ω
+    exact picardStep_apply_eq W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+      h_γ_meas h_γ_progMeas h_γ_sq t ω i
+  rw [heq]
+  exact ((measurable_picardStep_drift coeffs X x₀ i (h_μ_meas i) t).add
+    (measurable_picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq i t)).add
+    (measurable_picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq i t)
+
 /-- The Picard step starts at `x₀`: at time `0` both stochastic components vanish almost surely
 and the drift window is a null set. -/
 theorem ae_picardStep_zero

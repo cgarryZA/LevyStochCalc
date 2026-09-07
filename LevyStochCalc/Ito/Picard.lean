@@ -98,6 +98,54 @@ theorem bieleckiNorm_min {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] (β
   refine iSup_congr fun t => iSup_congr fun ht => ?_
   simp only [min_eq_left ht.2]
 
+/-- The Bielecki norm at weight `0` bounds the `L²` slice energy at every time of the window,
+for any path map. -/
+theorem lintegral_sq_le_bieleckiNorm_sq_raw {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {T : ℝ} (Z : ℝ → Ω → (Fin n → ℝ)) {u : ℝ} (hu : u ∈ Set.Icc (0 : ℝ) T) :
+    (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      ≤ (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) := by
+  have hle : (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)
+      ≤ bieleckiNorm (P := P) 0 T Z := by
+    unfold bieleckiNorm
+    refine le_trans (le_of_eq ?_)
+      (le_iSup₂ (f := fun t (_ : t ∈ Set.Icc (0 : ℝ) T) =>
+        ENNReal.ofReal (Real.exp (-0 * t))
+          * (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)) u hu)
+    simp
+  calc (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      = ((∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)) ^ (2 : ℕ) := by
+        rw [← ENNReal.rpow_natCast _ 2, ← ENNReal.rpow_mul]
+        norm_num
+    _ ≤ (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) := pow_le_pow_left' hle 2
+
+/-- The doubly-integrated energy of a path map frozen at the horizon, over any window. -/
+theorem lintegral_lintegral_sq_stopOf_le {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    (T : ℝ) (Z : ℝ → Ω → (Fin n → ℝ)) (hZm : Measurable (Function.uncurry Z)) (hT : 0 ≤ T)
+    (T' : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        ∑ i, (‖Z (min s T) ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ENNReal.ofReal T' * (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) := by
+  have hZi : ∀ i : Fin n, Measurable fun p : Ω × ℝ => Z (min p.2 T) p.1 i := fun i =>
+    (measurable_pi_apply i).comp
+      (hZm.comp ((measurable_snd.min measurable_const).prodMk measurable_fst))
+  have hjoint : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+      ∑ i, (‖Z (min s T) ω i‖₊ : ℝ≥0∞) ^ 2) :=
+    Finset.measurable_sum _ fun i _ =>
+      (ENNReal.continuous_coe.measurable.comp (hZi i).nnnorm).pow_const 2
+  rw [MeasureTheory.lintegral_lintegral_swap (μ := P)
+    (ν := volume.restrict (Set.Icc (0 : ℝ) T'))
+    (f := fun (ω : Ω) (s : ℝ) => ∑ i, (‖Z (min s T) ω i‖₊ : ℝ≥0∞) ^ 2) hjoint.aemeasurable]
+  calc ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (∫⁻ ω, ∑ i, (‖Z (min s T) ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
+      ≤ ∫⁻ _s in Set.Icc (0 : ℝ) T',
+          (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) ∂volume :=
+        MeasureTheory.setLIntegral_mono' measurableSet_Icc
+          (fun s hs => lintegral_sq_le_bieleckiNorm_sq_raw Z ⟨le_min hs.1 hT, min_le_right s T⟩)
+    _ = (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) * volume (Set.Icc (0 : ℝ) T') :=
+        MeasureTheory.setLIntegral_const _ _
+    _ = ENNReal.ofReal T' * (bieleckiNorm (P := P) 0 T Z) ^ (2 : ℕ) := by
+        rw [Real.volume_Icc, sub_zero, mul_comm]
+
 namespace SBoundedProcess
 
 /-- **The deterministic-time freeze.** `X.stop` is `X` on `[0, T]` and constant at `X T`

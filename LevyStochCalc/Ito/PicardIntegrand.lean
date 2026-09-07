@@ -614,6 +614,116 @@ theorem progressivelyMeasurable_mu_stop
     (measurable_pi_apply i).comp hReg.1
   exact progressivelyMeasurable_comp_state Y.stop.adapted h
 
+/-! ### The Picard step along a raw state process -/
+
+/-- Joint measurability of the diffusion integrand along a raw process frozen at the horizon. -/
+theorem measurable_sigma_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z)) (T : ℝ)
+    (i : Fin n) (j : Fin d) :
+    Measurable (Function.uncurry fun ω s => coeffs.σ s (Z (min s T) ω) i j) :=
+  measurable_sigma_comp_state coeffs hReg (X := fun s ω => Z (min s T) ω)
+    (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)) i j
+
+/-- Progressive measurability of the diffusion integrand along a raw process frozen at the
+horizon. -/
+theorem progressivelyMeasurable_sigma_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i) (T : ℝ)
+    (i : Fin n) (j : Fin d) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s => coeffs.σ s (Z (min s T) ω) i j := by
+  have h : Measurable (Function.uncurry fun (s : ℝ) (x : Fin n → ℝ) => coeffs.σ s x i j) :=
+    (measurable_pi_apply j).comp ((measurable_pi_apply i).comp hReg.2.1)
+  exact progressivelyMeasurable_comp_state (X := fun s ω => Z (min s T) ω)
+    (fun i' => (hZa i').minTime T) h
+
+/-- Joint measurability of the jump integrand along a raw process frozen at the horizon. -/
+theorem measurable_gamma_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z)) (T : ℝ) (i : Fin n) :
+    Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Z (min p.2.1 T) p.1) p.2.2 i :=
+  measurable_gamma_comp_state coeffs hReg (X := fun s ω => Z (min s T) ω)
+    (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)) i
+
+/-- Marked progressive measurability of the jump integrand along a raw process frozen at the
+horizon. -/
+theorem markedProgressivelyMeasurable_gamma_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i) (T : ℝ)
+    (i : Fin n) :
+    Probability.MarkedProgressivelyMeasurable ℱ
+      fun ω s e => coeffs.γ s (Z (min s T) ω) e i := by
+  have h : Measurable fun p : ℝ × (Fin n → ℝ) × E => coeffs.γ p.1 p.2.1 p.2.2 i :=
+    (measurable_pi_apply i).comp hReg.2.2.1
+  exact markedProgressivelyMeasurable_comp_state (X := fun s ω => Z (min s T) ω)
+    (g := fun s x e => coeffs.γ s x e i) (fun i' => (hZa i').minTime T) h
+
+/-- Joint measurability of the drift integrand along a raw process frozen at the horizon. -/
+theorem measurable_mu_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z)) (T : ℝ) (i : Fin n) :
+    Measurable (Function.uncurry fun ω s => coeffs.μ s (Z (min s T) ω) i) :=
+  measurable_mu_comp_state coeffs hReg (X := fun s ω => Z (min s T) ω)
+    (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)) i
+
+/-- Progressive measurability of the drift integrand along a raw process frozen at the
+horizon. -/
+theorem progressivelyMeasurable_mu_rawStop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i) (T : ℝ)
+    (i : Fin n) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s => coeffs.μ s (Z (min s T) ω) i := by
+  have h : Measurable (Function.uncurry fun (s : ℝ) (x : Fin n → ℝ) => coeffs.μ s x i) :=
+    (measurable_pi_apply i).comp hReg.1
+  exact progressivelyMeasurable_comp_state (X := fun s ω => Z (min s T) ω)
+    (fun i' => (hZa i').minTime T) h
+
+/-- The horizon energy bounds of a raw process frozen at the horizon, from a finite Bielecki
+norm at weight `0`. -/
+theorem lintegral_sq_rawStop_lt_top {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZm : Measurable (Function.uncurry Z)) (hZb : bieleckiNorm (P := P) 0 T Z < ⊤)
+    (hT : 0 ≤ T) (b : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      ∑ i', (‖Z (min s T) ω i'‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
+  lt_of_le_of_lt (lintegral_lintegral_sq_stopOf_le T Z hZm hT b)
+    (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top hZb))
+
+/-- **The Picard step along a raw state process frozen at the horizon.** -/
+noncomputable def picardStepOnRawStop [MeasureTheory.SigmaFinite ν]
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i)
+    (hZb : bieleckiNorm (P := P) 0 T Z < ⊤) (hT : 0 ≤ T) (x₀ : Fin n → ℝ) :
+    ℝ → Ω → (Fin n → ℝ) :=
+  picardStep W N ℱ hℱW hℱN coeffs (fun s ω => Z (min s T) ω) x₀
+    (measurable_sigma_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg hZa T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT) i j hT')
+    (measurable_gamma_rawStop coeffs hReg hZm T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg hZa T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT) i hT')
+
 /-- **The Picard map applied to a frozen member of the process space.**
 
 Freezing at the horizon is what makes the step total: `picardStep` asks for its integrands to be
