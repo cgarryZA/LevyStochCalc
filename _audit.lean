@@ -590,3 +590,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw
 #print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw_ae_eq
 #print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw_picardLimit_ae_eq
+-- ===== The step respects a.e. equality of its input (C1c, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnRawStop_diff_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_eq_zero_of_ae
+#print axioms LevyStochCalc.Ito.Picard.picardStepOnRawStop_congr_ae

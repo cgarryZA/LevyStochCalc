@@ -733,4 +733,111 @@ theorem picardSelfMapRaw_picardLimit_ae_eq {β : ℝ} (hβ : 0 < β) (hT : 0 < T
   rw [congrFun hmod i, ← sub_eq_zero]
   exact hz i
 
+/-! ### The step respects almost sure equality of its input -/
+
+/-- **The Picard step contracts between two raw state processes.** -/
+theorem bieleckiNorm_picardStepOnRawStop_diff_le
+    {Z₁ : ℝ → Ω → (Fin n → ℝ)} (h₁m : Measurable (Function.uncurry Z₁))
+    (h₁a : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z₁ s ω i)
+    (h₁b : bieleckiNorm (P := P) 0 T Z₁ < ⊤)
+    {Z₂ : ℝ → Ω → (Fin n → ℝ)} (h₂m : Measurable (Function.uncurry Z₂))
+    (h₂a : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z₂ s ω i)
+    (h₂b : bieleckiNorm (P := P) 0 T Z₂ < ⊤)
+    {β : ℝ} (hβ : 0 < β) (hT : 0 < T) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₁m h₁a h₁b hT.le x₀ t ω i
+          - picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₂m h₂a h₂b hT.le x₀ t ω i)
+      ≤ (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2)
+        * bieleckiNorm (P := P) β T (fun t ω i => Z₁ t ω i - Z₂ t ω i) := by
+  have h₁sm : Measurable (Function.uncurry fun (s : ℝ) (ω : Ω) => Z₁ (min s T) ω) :=
+    h₁m.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)
+  have h₂sm : Measurable (Function.uncurry fun (s : ℝ) (ω : Ω) => Z₂ (min s T) ω) :=
+    h₂m.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)
+  have h₁e := lintegral_sq_rawStop_lt_top h₁m h₁b hT.le
+  have h₂e := lintegral_sq_rawStop_lt_top h₂m h₂b hT.le
+  have hdiffm : Measurable
+      (Function.uncurry fun (ω : Ω) (s : ℝ) => Z₁ (min s T) ω - Z₂ (min s T) ω) :=
+    (h₁sm.comp (measurable_snd.prodMk measurable_fst)).sub
+      (h₂sm.comp (measurable_snd.prodMk measurable_fst))
+  have hrhs : bieleckiNorm (P := P) β T
+      (fun t ω i => Z₁ (min t T) ω i - Z₂ (min t T) ω i)
+      = bieleckiNorm (P := P) β T (fun t ω i => Z₁ t ω i - Z₂ t ω i) :=
+    bieleckiNorm_min (P := P) β T fun t ω i => Z₁ t ω i - Z₂ t ω i
+  rw [← hrhs]
+  exact bieleckiNorm_picardStep_diff_le W N ℱ' hℱW hℱN coeffs hLip
+    (fun s ω => Z₁ (min s T) ω) (fun s ω => Z₂ (min s T) ω) x₀
+    (measurable_sigma_rawStop coeffs hReg h₁m T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg h₁a T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₁ (min s T) ω) h₁sm h₁e i j hT')
+    (measurable_gamma_rawStop coeffs hReg h₁m T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg h₁a T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₁ (min s T) ω) h₁sm h₁e i hT')
+    (measurable_sigma_rawStop coeffs hReg h₂m T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg h₂a T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₂ (min s T) ω) h₂sm h₂e i j hT')
+    (measurable_gamma_rawStop coeffs hReg h₂m T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg h₂a T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₂ (min s T) ω) h₂sm h₂e i hT')
+    (measurable_mu_rawStop coeffs hReg h₁m T)
+    (measurable_mu_rawStop coeffs hReg h₂m T)
+    hdiffm.norm
+    (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₁ (min s T) ω) h₁sm h₁e i hb)
+    (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z₂ (min s T) ω) h₂sm h₂e i hb)
+    (fun b _ => lintegral_sq_sub_lt_top_of_energy h₁sm h₂sm h₁e h₂e b)
+    hdiffm hβ hT
+
+omit [ℱ'.IsRightContinuous] hℱW hℱN hℱ0 hnull hReg hLip in
+/-- A path map vanishing almost surely at every time of the window has zero Bielecki norm. -/
+theorem bieleckiNorm_eq_zero_of_ae (β T : ℝ) {Z : ℝ → Ω → (Fin n → ℝ)}
+    (h : ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P, ∀ i, Z t ω i = 0) :
+    bieleckiNorm (P := P) β T Z = 0 := by
+  refine le_antisymm (iSup₂_le fun t ht => ?_) zero_le
+  have hz : (fun ω => ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2) =ᵐ[P] 0 := by
+    filter_upwards [h t ht] with ω hω
+    simp [hω]
+  rw [lintegral_congr_ae hz]
+  simp [ENNReal.zero_rpow_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+
+/-- **The Picard step respects almost sure equality of its input.** -/
+theorem picardStepOnRawStop_congr_ae
+    {Z₁ : ℝ → Ω → (Fin n → ℝ)} (h₁m : Measurable (Function.uncurry Z₁))
+    (h₁a : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z₁ s ω i)
+    (h₁b : bieleckiNorm (P := P) 0 T Z₁ < ⊤)
+    {Z₂ : ℝ → Ω → (Fin n → ℝ)} (h₂m : Measurable (Function.uncurry Z₂))
+    (h₂a : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z₂ s ω i)
+    (h₂b : bieleckiNorm (P := P) 0 T Z₂ < ⊤)
+    (heq : ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P, ∀ i, Z₁ t ω i = Z₂ t ω i)
+    {β : ℝ} (hβ : 0 < β) (hT : 0 < T) {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) T) :
+    ∀ᵐ ω ∂P, ∀ i,
+      picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₁m h₁a h₁b hT.le x₀ t ω i
+        = picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₂m h₂a h₂b hT.le x₀ t ω i := by
+  have hin : bieleckiNorm (P := P) β T (fun u ω i => Z₁ u ω i - Z₂ u ω i) = 0 := by
+    refine bieleckiNorm_eq_zero_of_ae (P := P) β T fun u hu => ?_
+    filter_upwards [heq u hu] with ω hω i
+    rw [hω i, sub_self]
+  have hout : bieleckiNorm (P := P) β T (fun u ω i =>
+      picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₁m h₁a h₁b hT.le x₀ u ω i
+        - picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₂m h₂a h₂b hT.le x₀ u ω i) = 0 := by
+    refine le_antisymm ?_ zero_le
+    refine le_trans (bieleckiNorm_picardStepOnRawStop_diff_le W N ℱ' hℱW hℱN coeffs hReg hLip
+      x₀ h₁m h₁a h₁b h₂m h₂a h₂b hβ hT) ?_
+    rw [hin, mul_zero]
+  have hslice : ∀ (u : ℝ) (i : Fin n), Measurable fun ω =>
+      picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₁m h₁a h₁b hT.le x₀ u ω i
+        - picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip h₂m h₂a h₂b hT.le x₀ u ω i :=
+    fun u i => (measurable_picardStepOnRawStop_slice W N ℱ' hℱW hℱN coeffs hReg hLip x₀
+      h₁m h₁a h₁b hT.le u i).sub
+      (measurable_picardStepOnRawStop_slice W N ℱ' hℱW hℱN coeffs hReg hLip x₀
+        h₂m h₂a h₂b hT.le u i)
+  filter_upwards [ae_eq_zero_of_bieleckiNorm_eq_zero (P := P) hslice hout ht] with ω hω i
+  exact sub_eq_zero.mp (hω i)
+
 end LevyStochCalc.Ito.Picard
