@@ -626,3 +626,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_congr_ae
 #print axioms LevyStochCalc.Ito.Picard.picardStep_jump_congr_ae
 #print axioms LevyStochCalc.Ito.Picard.picardStep_congr_ae
+-- ===== Solutions on a window: existence and uniqueness (C3a/C4, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.lintegral_lintegral_sq_lt_top_of_supL2
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_congr_ae_on
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_lt_top_of_supL2
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_lt_top_of_lt_top
+#print axioms LevyStochCalc.Ito.Picard.eq_zero_of_le_mul_self
+#print axioms LevyStochCalc.Ito.Picard.SolvesOn
+#print axioms LevyStochCalc.Ito.Picard.SolvesOn.mono
+#print axioms LevyStochCalc.Ito.Picard.ae_eq_of_solvesOn
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_sigma_comp_state
+#print axioms LevyStochCalc.Ito.Picard.markedProgressivelyMeasurable_gamma_comp_state
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sigma_lt_top_of_supL2
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_gamma_lt_top_of_supL2
+#print axioms LevyStochCalc.Ito.Picard.picardStep_rawStop_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.solvesOn_of_isFixedPoint
+#print axioms LevyStochCalc.Ito.Picard.exists_solvesOn
