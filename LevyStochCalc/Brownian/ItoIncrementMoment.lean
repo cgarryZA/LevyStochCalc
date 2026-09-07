@@ -694,9 +694,12 @@ include hℱ hC0 hCH in
 /-- **Third absolute moment of an increment of the `L²` Itô integral.** For an integrand
 bounded by `C`, `𝔼|∫_a^b H dW|³ ≤ ((C² + (6 + c)C⁴)/2)·(b − a)·√(b − a)`. -/
 theorem integral_abs_sub_pow_three_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
-    ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
-        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3 ∂P
-      ≤ (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2 * ((b - a) * Real.sqrt (b - a)) := by
+    MeasureTheory.Integrable (fun ω => |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3) P
+      ∧ ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3 ∂P
+        ≤ (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * ((b - a) * Real.sqrt (b - a)) := by
   have hmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq a b
   obtain ⟨h2int, h2le⟩ := integral_sub_sq_le W ℱ hℱ H hm hp hq hC0 hCH ha hab
   obtain ⟨h4int, h4le⟩ := integral_sub_pow_four_le W ℱ hℱ H hm hp hq hC0 hCH ha hab
@@ -729,6 +732,7 @@ theorem integral_abs_sub_pow_three_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
       abs_of_nonneg (by positivity : (0 : ℝ) ≤ |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
         - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3)]
     refine (hyoung _).trans (le_abs_self _)
+  refine ⟨hint3, ?_⟩
   calc ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω
         - stochasticIntegralBrownian W ℱ hℱ H hm hp hq a ω| ^ 3 ∂P
       ≤ ∫ ω, (lam ^ 2 * (stochasticIntegralBrownian W ℱ hℱ H hm hp hq b ω

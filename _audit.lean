@@ -296,6 +296,9 @@ import LevyStochCalc
 -- B1a-3d (2026-09-06): drift-side increments of an Ito process.
 #print axioms LevyStochCalc.setIntegral_Icc_sub_Icc
 #print axioms LevyStochCalc.abs_setIntegral_Ioc_le
+#print axioms LevyStochCalc.measurable_setIntegral_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_add_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

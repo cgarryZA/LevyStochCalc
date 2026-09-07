@@ -3,6 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
+import LevyStochCalc.Brownian.DriftIncrement
 import LevyStochCalc.Brownian.ItoIncrementMoment
 
 /-!
@@ -19,6 +20,8 @@ Itô's formula.
   the uniform grid.
 * `LevyStochCalc.Brownian.Ito.sum_integral_abs_sub_pow_three_le` — the sum of third absolute
   moments of the Itô-integral increments across the grid, of order `m^{-1/2}`.
+* `LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le` — the same for the
+  increments of a full Itô process, drift included.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -148,8 +151,8 @@ theorem sum_integral_abs_sub_pow_three_le {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 
         ≤ (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
           * (T / (m : ℝ) * Real.sqrt (T / (m : ℝ))) := by
     intro i _
-    have h := integral_abs_sub_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH
-      (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)
+    have h := (integral_abs_sub_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH
+      (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)).2
     rwa [hstep i] at h
   refine (Finset.sum_le_sum hterm).trans ?_
   rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
@@ -164,5 +167,138 @@ theorem sum_integral_abs_sub_pow_three_le {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 
         le_rfl
 
 end ThirdMomentSum
+
+
+/-- `∫|u + v|³ ≤ 4(∫|u|³ + ∫|v|³)`. -/
+theorem integral_abs_add_pow_three_le {P : Measure Ω} {u v : Ω → ℝ}
+    (hu : MeasureTheory.Integrable (fun ω => |u ω| ^ 3) P)
+    (hv : MeasureTheory.Integrable (fun ω => |v ω| ^ 3) P)
+    (huv : MeasureTheory.Integrable (fun ω => |u ω + v ω| ^ 3) P) :
+    ∫ ω, |u ω + v ω| ^ 3 ∂P ≤ 4 * ((∫ ω, |u ω| ^ 3 ∂P) + ∫ ω, |v ω| ^ 3 ∂P) := by
+  have hpt : ∀ ω : Ω, |u ω + v ω| ^ 3 ≤ 4 * (|u ω| ^ 3 + |v ω| ^ 3) := by
+    intro ω
+    have h3 : |u ω + v ω| ^ 3 ≤ (|u ω| + |v ω|) ^ 3 :=
+      pow_le_pow_left₀ (abs_nonneg _) (abs_add_le _ _) 3
+    have h2 : (|u ω| + |v ω|) ^ 3 ≤ 4 * (|u ω| ^ 3 + |v ω| ^ 3) :=
+      add_pow_three_le_four (abs_nonneg _) (abs_nonneg _)
+    linarith
+  calc ∫ ω, |u ω + v ω| ^ 3 ∂P ≤ ∫ ω, 4 * (|u ω| ^ 3 + |v ω| ^ 3) ∂P :=
+        MeasureTheory.integral_mono huv ((hu.add hv).const_mul 4) hpt
+    _ = 4 * ((∫ ω, |u ω| ^ 3 ∂P) + ∫ ω, |v ω| ^ 3 ∂P) := by
+        rw [MeasureTheory.integral_const_mul, MeasureTheory.integral_add hu hv]
+
+section ItoIncrement
+
+variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
+  (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+  (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+  (hp : Probability.ProgressivelyMeasurable ℱ H)
+  (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+  {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
+
+include hℱ hC0 hCH in
+/-- **The third absolute moments of an Itô process's increments across a uniform grid sum to
+`O(m^{-1/2})`.** The drift contributes `O(m^{-2})` and the martingale part `O(m^{-1/2})`. -/
+theorem sum_integral_abs_itoIncrement_pow_three_le
+    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B)
+    {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
+    ∑ i ∈ Finset.range m, ∫ ω,
+        |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
+          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3 ∂P
+      ≤ 4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T * Real.sqrt (T / (m : ℝ)))) := by
+  have hm' : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm0)
+  have hstep : ∀ i : ℕ, unifGrid T m (i + 1) - unifGrid T m i = T / (m : ℝ) :=
+    unifGrid_succ_sub hm0
+  have hTm0 : (0 : ℝ) ≤ T / (m : ℝ) := le_of_lt (div_pos hT hm')
+  have hK0 : (0 : ℝ) ≤ (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2 := by
+    have h1 : (0 : ℝ) ≤ (6 + gaussianFourthMoment) * C ^ 4 :=
+      mul_nonneg (by linarith [gaussianFourthMoment_nonneg]) (by positivity)
+    linarith [sq_nonneg C]
+  have hterm : ∀ i ∈ Finset.range m, ∫ ω,
+      |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
+        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3 ∂P
+      ≤ 4 * ((B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T / (m : ℝ) * Real.sqrt (T / (m : ℝ)))) := by
+    intro i _
+    have hle : unifGrid T m i ≤ unifGrid T m (i + 1) := (unifGrid_lt_succ hT hm0 i).le
+    -- the drift increment
+    have hDbd : ∀ ω : Ω,
+        |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume|
+          ≤ B * (T / (m : ℝ)) := by
+      intro ω
+      have h := abs_setIntegral_Ioc_le (Measurable.of_uncurry_left hbm) (hB ω) hle
+      rwa [hstep i] at h
+    have hDmeas : Measurable fun ω : Ω =>
+        ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume :=
+      measurable_setIntegral_Ioc hbm _ _
+    have hDint : MeasureTheory.Integrable (fun ω : Ω =>
+        |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume| ^ 3) P := by
+      refine (MeasureTheory.integrable_const ((B * (T / (m : ℝ))) ^ 3)).mono
+        ((hDmeas.abs.pow_const 3).aestronglyMeasurable)
+        (Filter.Eventually.of_forall fun ω => ?_)
+      rw [Real.norm_eq_abs, Real.norm_eq_abs,
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ |∫ s in Set.Ioc (unifGrid T m i)
+          (unifGrid T m (i + 1)), bdrift ω s ∂volume| ^ 3),
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ (B * (T / (m : ℝ))) ^ 3)]
+      exact pow_le_pow_left₀ (abs_nonneg _) (hDbd ω) 3
+    have hDle : ∫ ω, |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+        bdrift ω s ∂volume| ^ 3 ∂P ≤ (B * (T / (m : ℝ))) ^ 3 := by
+      calc ∫ ω, |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+            bdrift ω s ∂volume| ^ 3 ∂P
+          ≤ ∫ _ω : Ω, (B * (T / (m : ℝ))) ^ 3 ∂P :=
+            MeasureTheory.integral_mono hDint (MeasureTheory.integrable_const _)
+              (fun ω => pow_le_pow_left₀ (abs_nonneg _) (hDbd ω) 3)
+        _ = (B * (T / (m : ℝ))) ^ 3 := by simp
+    -- the martingale increment
+    obtain ⟨hMint, hMle⟩ := integral_abs_sub_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH
+      (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)
+    rw [hstep i] at hMle
+    -- the sum
+    have hMmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq
+      (unifGrid T m i) (unifGrid T m (i + 1))
+    have hsumint : MeasureTheory.Integrable (fun ω : Ω =>
+        |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
+          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3) P := by
+      refine ((hDint.add hMint).const_mul 4).mono
+        (((hDmeas.add hMmeas).abs.pow_const 3).aestronglyMeasurable)
+        (Filter.Eventually.of_forall fun ω => ?_)
+      rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (by positivity : (0 : ℝ) ≤ |_| ^ 3)]
+      refine le_trans ?_ (le_abs_self _)
+      have h3 : |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
+          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3
+          ≤ (|∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume|
+            + |stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+              - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω|) ^ 3 :=
+        pow_le_pow_left₀ (abs_nonneg _) (abs_add_le _ _) 3
+      exact h3.trans (add_pow_three_le_four (abs_nonneg _) (abs_nonneg _))
+    refine (integral_abs_add_pow_three_le hDint hMint hsumint).trans ?_
+    have h4 : (0 : ℝ) ≤ 4 := by norm_num
+    exact mul_le_mul_of_nonneg_left (add_le_add hDle hMle) h4
+  refine (Finset.sum_le_sum hterm).trans ?_
+  rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  have hTm : (m : ℝ) * (T / (m : ℝ)) = T := by field_simp
+  calc (m : ℝ) * (4 * ((B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T / (m : ℝ) * Real.sqrt (T / (m : ℝ)))))
+      = 4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (((m : ℝ) * (T / (m : ℝ))) * Real.sqrt (T / (m : ℝ)))) := by ring
+    _ = 4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T * Real.sqrt (T / (m : ℝ)))) := by rw [hTm]
+    _ ≤ 4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T * Real.sqrt (T / (m : ℝ)))) := le_rfl
+
+end ItoIncrement
 
 end LevyStochCalc.Brownian.Ito
