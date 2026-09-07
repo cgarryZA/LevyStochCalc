@@ -684,3 +684,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.integral_smul_re_im_eq_zero
 #print axioms LevyStochCalc.Probability.setIntegral_eq_zero_of_integral_char_comp_smul_eq_zero
 #print axioms LevyStochCalc.Probability.setIntegral_eq_zero_of_integral_char_comp_mul_eq_zero
+-- ===== Vanishing set integrals over a pi-system / directed family (A4b-i-3, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.setIntegral_eq_zero_of_isPiSystem
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_forall_setIntegral_eq_zero_isPiSystem
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_forall_setIntegral_eq_zero_directed
+-- ===== Cylinder characters determine a.e. vanishing (A4b-i-3, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_comp_directed
+#print axioms LevyStochCalc.Probability.finDimVector
+#print axioms LevyStochCalc.Probability.measurable_finDimVector
+#print axioms LevyStochCalc.Probability.comap_finDimVector
+#print axioms LevyStochCalc.Probability.directed_comap_finDimVector
+#print axioms LevyStochCalc.Probability.iSup_comap_finDimVector
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_cylinder_eq_zero

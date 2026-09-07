@@ -412,4 +412,59 @@ theorem integral_smul_re_im_eq_zero {α : Type*} [MeasurableSpace α] {μ : Meas
     rw [integral_const_mul, integral_sub (hint w hZ) (hint w (integrable_conj hZ)),
       h w, hconj w, sub_zero, mul_zero]
 
+/-! ### Vanishing set integrals over what a random vector generates -/
+
+section SetIntegral
+
+variable {Ω : Type*} [mΩ : MeasurableSpace Ω]
+
+/-- **Vanishing set integrals, real weight.** A real integrable weight whose character integrals
+against `X` all vanish integrates to zero over every set of the σ-algebra `X` generates. -/
+theorem setIntegral_eq_zero_of_integral_char_comp_smul_eq_zero {P : Measure Ω}
+    [IsFiniteMeasure P] {X : Ω → V} (hX : Measurable X) {u : Ω → ℝ} (hu : Integrable u P)
+    (h : ∀ w : V, ∫ ω, u ω • Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I) ∂P = 0)
+    {s : Set Ω} (hs : MeasurableSet[MeasurableSpace.comap X inferInstance] s) :
+    ∫ ω in s, u ω ∂P = 0 := by
+  obtain ⟨B, hB, rfl⟩ := MeasurableSpace.measurableSet_comap.mp hs
+  have hmeas : MeasurableSet (X ⁻¹' B) := hX hB
+  have hmap := map_withDensity_eq_of_integral_char_comp_smul_eq_zero hX hu h
+  have hsplit : (P.withDensity fun ω => ENNReal.ofReal (u ω)) (X ⁻¹' B)
+      = (P.withDensity fun ω => ENNReal.ofReal (-(u ω))) (X ⁻¹' B) := by
+    rw [← Measure.map_apply hX hB, ← Measure.map_apply hX hB, hmap]
+  rw [integral_eq_lintegral_pos_part_sub_lintegral_neg_part hu.restrict,
+    ← withDensity_apply _ hmeas, ← withDensity_apply _ hmeas, hsplit, sub_self]
+
+/-- **Vanishing set integrals, complex weight.** An integrable complex weight whose character
+integrals against `X` all vanish integrates to zero over every set of the σ-algebra `X`
+generates — no measurability of the weight for that σ-algebra is required. -/
+theorem setIntegral_eq_zero_of_integral_char_comp_mul_eq_zero {P : Measure Ω}
+    [IsFiniteMeasure P] {X : Ω → V} (hX : Measurable X) {Z : Ω → ℂ} (hZ : Integrable Z P)
+    (h : ∀ w : V, ∫ ω, Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I) * Z ω ∂P = 0)
+    {s : Set Ω} (hs : MeasurableSet[MeasurableSpace.comap X inferInstance] s) :
+    ∫ ω in s, Z ω ∂P = 0 := by
+  have hcont : ∀ w : V, Continuous fun v : V => Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I) :=
+    fun w => Complex.continuous_exp.comp
+      ((Complex.continuous_ofReal.comp
+        (continuous_inner.comp (continuous_id.prodMk continuous_const))).mul continuous_const)
+  have hEmeas : ∀ w : V,
+      AEStronglyMeasurable (fun ω => Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I)) P :=
+    fun w => ((hcont w).measurable.comp hX).aestronglyMeasurable
+  have hEnorm : ∀ (w : V) (ω : Ω), ‖Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I)‖ = 1 :=
+    fun w ω => Complex.norm_exp_ofReal_mul_I _
+  have hEconj : ∀ (w : V) (ω : Ω), Complex.exp ((⟪X ω, -w⟫ : ℝ) * Complex.I)
+      = (starRingEnd ℂ) (Complex.exp ((⟪X ω, w⟫ : ℝ) * Complex.I)) :=
+    fun w ω => char_neg (X ω) w
+  obtain ⟨hre, him⟩ := integral_smul_re_im_eq_zero hEmeas hEnorm hEconj hZ h
+  have hre0 := setIntegral_eq_zero_of_integral_char_comp_smul_eq_zero hX hZ.re hre hs
+  have him0 := setIntegral_eq_zero_of_integral_char_comp_smul_eq_zero hX hZ.im him hs
+  have hkre : RCLike.re (∫ ω in s, Z ω ∂P) = 0 := by
+    rw [← integral_re hZ.restrict]; exact hre0
+  have hkim : RCLike.im (∫ ω in s, Z ω ∂P) = 0 := by
+    rw [← integral_im hZ.restrict]; exact him0
+  refine Complex.ext ?_ ?_
+  · simpa using hkre
+  · simpa using hkim
+
+end SetIntegral
+
 end LevyStochCalc.Probability
