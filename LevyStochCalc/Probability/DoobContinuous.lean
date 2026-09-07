@@ -364,4 +364,48 @@ theorem iSup_sum_sq_le {n' : ℕ} (A : ℝ → Ω → (Fin n' → ℝ)) (T : ℝ
   exact pow_le_pow_left' (le_iSup (fun u : Set.Icc (0 : ℝ) T =>
     (‖A (u : ℝ) ω i‖₊ : ℝ≥0∞)) t) 2
 
+/-! ### Finite sums -/
+
+/-- A square of a finite sum is bounded by the sum of squares, up to the squared cardinality. -/
+theorem sq_sum_le_card_sq_mul {ι : Type*} (s : Finset ι) (f : ι → ℝ≥0∞) :
+    (∑ i ∈ s, f i) ^ 2 ≤ (s.card : ℝ≥0∞) ^ 2 * ∑ i ∈ s, f i ^ 2 := by
+  have h1 : ∑ i ∈ s, f i ≤ (s.card : ℝ≥0∞) * s.sup f := by
+    calc ∑ i ∈ s, f i ≤ ∑ _i ∈ s, s.sup f :=
+          Finset.sum_le_sum fun i hi => Finset.le_sup hi
+      _ = (s.card : ℝ≥0∞) * s.sup f := by rw [Finset.sum_const, nsmul_eq_mul]
+  have h2 : s.sup f ^ 2 ≤ ∑ i ∈ s, f i ^ 2 := by
+    rcases s.eq_empty_or_nonempty with rfl | hne
+    · simp
+    · obtain ⟨i, hi, hieq⟩ := Finset.exists_mem_eq_sup s hne f
+      rw [hieq]
+      exact Finset.single_le_sum (f := fun j => f j ^ 2) (fun _ _ => zero_le) hi
+  calc (∑ i ∈ s, f i) ^ 2 ≤ ((s.card : ℝ≥0∞) * s.sup f) ^ 2 := pow_le_pow_left' h1 2
+    _ = (s.card : ℝ≥0∞) ^ 2 * s.sup f ^ 2 := by rw [mul_pow]
+    _ ≤ (s.card : ℝ≥0∞) ^ 2 * ∑ i ∈ s, f i ^ 2 := mul_le_mul' le_rfl h2
+
+/-- The sampled running maximum of a finite sum is bounded by the sum of the running maxima. -/
+theorem enorm_dyadicRunMax_sum_le {ι : Type*} (s : Finset ι) (A : ι → ℝ → Ω → ℝ) (T : ℝ)
+    (n : ℕ) (ω : Ω) :
+    (‖dyadicRunMax (fun t ω => ∑ j ∈ s, A j t ω) T n ω‖₊ : ℝ≥0∞)
+      ≤ ∑ j ∈ s, (‖dyadicRunMax (A j) T n ω‖₊ : ℝ≥0∞) := by
+  rw [enorm_dyadicRunMax]
+  refine iSup_le fun k => ?_
+  have hpt : (‖∑ j ∈ s, A j (dyadicTime T n (k : ℕ)) ω‖₊ : ℝ≥0∞)
+      ≤ ∑ j ∈ s, (‖A j (dyadicTime T n (k : ℕ)) ω‖₊ : ℝ≥0∞) := by
+    rw [← ENNReal.coe_finset_sum]
+    exact ENNReal.coe_le_coe.mpr (nnnorm_sum_le _ _)
+  refine le_trans hpt (Finset.sum_le_sum fun j _ => ?_)
+  rw [enorm_dyadicRunMax]
+  exact le_iSup (fun m : Fin (2 ^ n + 1) =>
+    (‖A j (dyadicTime T n (m : ℕ)) ω‖₊ : ℝ≥0∞)) k
+
+/-- The supremum of the sampled running maxima of a finite sum is bounded by the sum of the
+suprema. -/
+theorem iSup_dyadicRunMax_sum_le {ι : Type*} (s : Finset ι) (A : ι → ℝ → Ω → ℝ) (T : ℝ)
+    (ω : Ω) :
+    (⨆ n, (‖dyadicRunMax (fun t ω => ∑ j ∈ s, A j t ω) T n ω‖₊ : ℝ≥0∞))
+      ≤ ∑ j ∈ s, ⨆ n, (‖dyadicRunMax (A j) T n ω‖₊ : ℝ≥0∞) :=
+  iSup_le fun n => le_trans (enorm_dyadicRunMax_sum_le s A T n ω)
+    (Finset.sum_le_sum fun j _ => le_iSup (fun m => (‖dyadicRunMax (A j) T m ω‖₊ : ℝ≥0∞)) n)
+
 end LevyStochCalc.Probability

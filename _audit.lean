@@ -599,3 +599,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.iSup_dyadicRunMax_add_le
 #print axioms LevyStochCalc.Probability.iSup_dyadicRunMax_le_of_bound
 #print axioms LevyStochCalc.Probability.iSup_sum_sq_le
+#print axioms LevyStochCalc.Probability.sq_sum_le_card_sq_mul
+#print axioms LevyStochCalc.Probability.enorm_dyadicRunMax_sum_le
+#print axioms LevyStochCalc.Probability.iSup_dyadicRunMax_sum_le
