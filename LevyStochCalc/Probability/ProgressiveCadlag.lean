@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Probability.Progressive
 import Mathlib.MeasureTheory.Function.Floor
+import Mathlib.MeasureTheory.Integral.Prod
 
 /-!
 # Right-continuous adapted processes are progressively measurable
@@ -22,6 +23,8 @@ takes countably many values, all at times bounded by `i`.
   measurable process is jointly measurable.
 * `LevyStochCalc.Probability.exists_everywhere_cadlag_modification` — under the usual
   conditions, an almost-surely càdlàg adapted process has an everywhere-càdlàg modification.
+* `LevyStochCalc.Probability.ProgressivelyMeasurable.measurable_setIntegral_Icc` — the integral
+  of a progressively measurable process over `[0, t]` is measurable for `ℱ t`.
 -/
 
 open MeasureTheory Filter Topology
@@ -188,5 +191,26 @@ theorem exists_everywhere_cadlag_modification
       exact tendsto_const_nhds
     · obtain ⟨L, hL⟩ := (hNout ω hω t).2
       exact ⟨L, by simpa [hω] using hL⟩
+
+/-- The integral of a progressively measurable process over `[0, t]` is `ℱ t`-measurable. -/
+theorem ProgressivelyMeasurable.measurable_setIntegral_Icc
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {H : Ω → ℝ → ℝ}
+    (h : ProgressivelyMeasurable ℱ H) (t : ℝ) :
+    Measurable[ℱ t] fun ω => ∫ s in Set.Icc (0 : ℝ) t, H ω s ∂volume := by
+  letI : MeasurableSpace Ω := ℱ t
+  haveI : MeasureTheory.IsFiniteMeasure (volume.restrict (Set.Icc (0 : ℝ) t)) :=
+    ⟨by rw [MeasureTheory.Measure.restrict_apply_univ, Real.volume_Icc]
+        exact ENNReal.ofReal_lt_top⟩
+  have hind : Measurable fun ω : Ω =>
+      ∫ s in Set.Icc (0 : ℝ) t, (Set.Iic t).indicator (H ω) s ∂volume :=
+    ((h t).integral_prod_right'
+      (ν := volume.restrict (Set.Icc (0 : ℝ) t))).measurable
+  have heq : (fun ω : Ω => ∫ s in Set.Icc (0 : ℝ) t, H ω s ∂volume)
+      = fun ω : Ω => ∫ s in Set.Icc (0 : ℝ) t, (Set.Iic t).indicator (H ω) s ∂volume := by
+    funext ω
+    refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
+    exact (Set.indicator_of_mem (Set.mem_Iic.mpr hs.2) (H ω)).symm
+  rw [heq]
+  exact hind
 
 end LevyStochCalc.Probability
