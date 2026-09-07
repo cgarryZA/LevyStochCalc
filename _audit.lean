@@ -329,6 +329,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_bounded_mul_lt_top
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.lintegral_sq_frozen_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.lintegral_sq_martingaleRiemann_sub_le
+#print axioms LevyStochCalc.integral_abs_le_of_bounded
+#print axioms LevyStochCalc.integral_abs_add_four_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sum_drift_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sum_cross_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sum_quadVar_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.sq_sub_ae
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_quadVarRiemann_sub_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

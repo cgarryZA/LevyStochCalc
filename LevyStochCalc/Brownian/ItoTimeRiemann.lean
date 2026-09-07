@@ -80,10 +80,14 @@ theorem IsItoVersion.integral_abs_frozenRiemann_sub_le
     {φ : ℝ → ℝ} (hφc : Continuous φ) {Kφ : ℝ} (hφbd : ∀ x, |φ x| ≤ Kφ)
     {L : ℝ} (hL0 : 0 ≤ L) (hφlip : ∀ x y : ℝ, |φ x - φ y| ≤ L * |x - y|)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
-    ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+    MeasureTheory.Integrable (fun ω : Ω =>
+        (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+            * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
+          - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume) P
+      ∧ ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
           - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume| ∂P
-      ≤ L * A * (T * (B * (T / (m : ℝ)) + C * Real.sqrt (T / (m : ℝ)))) := by
+        ≤ L * A * (T * (B * (T / (m : ℝ)) + C * Real.sqrt (T / (m : ℝ)))) := by
   classical
   have hm' : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm0)
   have hTm0 : (0 : ℝ) ≤ T / (m : ℝ) := (div_pos hT hm').le
@@ -176,10 +180,10 @@ theorem IsItoVersion.integral_abs_frozenRiemann_sub_le
   have hjointg : Measurable (Function.uncurry fun ω s => φ (X s ω) * wgt ω s) :=
     (h.measurable_uncurry_comp hφc.measurable).mul hwm
   have hZmeas : Measurable fun ω : Ω =>
-      |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+      (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
-          - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume| := by
-    refine Measurable.abs (Measurable.sub ?_ (measurable_setIntegral hjointg _))
+          - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume := by
+    refine Measurable.sub ?_ (measurable_setIntegral hjointg _)
     exact Finset.measurable_sum _ fun i _ =>
       (hφc.measurable.comp (h.measurable (unifGrid T m i))).mul
         (measurable_setIntegral_Ioc hwm _ _)
@@ -221,19 +225,20 @@ theorem IsItoVersion.integral_abs_frozenRiemann_sub_le
           abs_sub_le_abs_add_abs _ _
       _ ≤ 2 * (Kφ * A * T) := by linarith
   have hZint : MeasureTheory.Integrable (fun ω : Ω =>
-      |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+      (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
-          - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume|) P := by
+          - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume) P := by
     refine (MeasureTheory.integrable_const (2 * (Kφ * A * T))).mono
       hZmeas.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
-    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_abs,
+    rw [Real.norm_eq_abs, Real.norm_eq_abs,
       abs_of_nonneg (le_trans (abs_nonneg _) (hZbd ω))]
     exact hZbd ω
   have hRHS0 : (0 : ℝ) ≤ L * A * (T * (B * (T / (m : ℝ)) + C * Real.sqrt (T / (m : ℝ)))) := by
     have : (0 : ℝ) ≤ B * (T / (m : ℝ)) + C * Real.sqrt (T / (m : ℝ)) := by positivity
     have hT0 : (0 : ℝ) ≤ T := hT.le
     positivity
-  refine integral_le_of_lintegral_ofReal_le hZint (fun ω => abs_nonneg _) hRHS0 ?_
+  refine ⟨hZint, integral_le_of_lintegral_ofReal_le hZint.abs (fun ω => abs_nonneg _)
+    hRHS0 ?_⟩
   -- the window bound, cell by cell
   have hjointd : ∀ i : ℕ, Measurable (Function.uncurry fun ω s =>
       ENNReal.ofReal |X (unifGrid T m i) ω - X s ω|) := fun i =>

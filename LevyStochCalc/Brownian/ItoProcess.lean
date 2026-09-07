@@ -21,6 +21,7 @@ the Itô integral.
 * `LevyStochCalc.Brownian.Ito.itoProcess_sub` — the increment splits into drift and martingale
   parts.
 * `LevyStochCalc.Brownian.Ito.integral_sq_itoProcess_sub_le` — `𝔼|ΔX|² ≤ 2B²(Δt)² + 2C²Δt`.
+* `LevyStochCalc.Brownian.Ito.integral_abs_sub_stochasticIntegral_le` — `𝔼|ΔM| ≤ C√(Δt)`.
 * `LevyStochCalc.Brownian.Ito.integral_abs_itoProcess_sub_le` — `𝔼|ΔX| ≤ BΔt + C√(Δt)`.
 * `LevyStochCalc.Brownian.Ito.integrable_abs_itoIncrement_pow_three` — the cube of the absolute
   increment is integrable.
@@ -258,6 +259,33 @@ theorem integral_sq_itoProcess_sub_le
         linarith
 
 include hℱ hC0 hCH in
+/-- **First absolute moment of an increment of the Itô integral.** `𝔼|M_v − M_u| ≤ C√(v−u)`. -/
+theorem integral_abs_sub_stochasticIntegral_le {u v : ℝ} (hu : 0 ≤ u) (huv : u < v) :
+    MeasureTheory.Integrable (fun ω : Ω =>
+        |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω|) P
+      ∧ ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω| ∂P
+          ≤ C * Real.sqrt (v - u) := by
+  obtain ⟨hMsq, hMle⟩ := integral_sub_sq_le W ℱ hℱ H hm hp hq hC0 hCH hu huv
+  have hMmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq u v
+  have hyoung : ∀ x : ℝ, |x| ≤ (x ^ 2 + 1) / 2 := by
+    intro x
+    nlinarith [sq_nonneg (|x| - 1), sq_abs x]
+  have hMabs : MeasureTheory.Integrable (fun ω : Ω =>
+      |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω|) P := by
+    refine ((hMsq.add (MeasureTheory.integrable_const 1)).div_const 2).mono
+      hMmeas.abs.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_abs]
+    exact (hyoung _).trans (le_abs_self _)
+  refine ⟨hMabs, ?_⟩
+  have hsqrt : Real.sqrt (C ^ 2 * (v - u)) = C * Real.sqrt (v - u) := by
+    rw [Real.sqrt_mul (sq_nonneg C), Real.sqrt_sq hC0]
+  rw [← hsqrt]
+  exact integral_abs_le_sqrt_of_integral_sq_le hMabs hMsq hMle
+
+include hℱ hC0 hCH in
 /-- **First absolute moment of an Itô process's increment.** `𝔼|X_v − X_u| ≤ B(v−u) + C√(v−u)`. -/
 theorem integral_abs_itoProcess_sub_le
     (X₀ : Ω → ℝ) (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
@@ -276,29 +304,13 @@ theorem integral_abs_itoProcess_sub_le
           - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω) := fun ω =>
     itoProcess_sub W ℱ hℱ H hm hp hq X₀ bdrift hbm hB hu huv.le ω
   simp_rw [key]
-  obtain ⟨hMsq, hMle⟩ := integral_sub_sq_le W ℱ hℱ H hm hp hq hC0 hCH hu huv
+  obtain ⟨hMabs, hMabsle⟩ :=
+    integral_abs_sub_stochasticIntegral_le W ℱ hℱ H hm hp hq hC0 hCH hu huv
   have hMmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq u v
   have hDmeas : Measurable fun ω : Ω => ∫ s in Set.Ioc u v, bdrift ω s ∂volume :=
     measurable_setIntegral_Ioc hbm _ _
   have hDabs := integrable_abs_drift (P := P) bdrift hbm hB0 hB huv.le
   have hDle := integral_abs_drift_le (P := P) bdrift hbm hB0 hB huv.le
-  -- the martingale part is integrable in `L¹` because it is in `L²`
-  have hyoung : ∀ x : ℝ, |x| ≤ (x ^ 2 + 1) / 2 := by
-    intro x
-    nlinarith [sq_nonneg (|x| - 1), sq_abs x]
-  have hMabs : MeasureTheory.Integrable (fun ω : Ω =>
-      |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
-        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω|) P := by
-    refine ((hMsq.add (MeasureTheory.integrable_const 1)).div_const 2).mono
-      hMmeas.abs.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
-    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_abs]
-    exact (hyoung _).trans (le_abs_self _)
-  have hMabsle : ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
-        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω| ∂P
-      ≤ Real.sqrt (C ^ 2 * (v - u)) :=
-    integral_abs_le_sqrt_of_integral_sq_le hMabs hMsq hMle
-  have hsqrt : Real.sqrt (C ^ 2 * (v - u)) = C * Real.sqrt (v - u) := by
-    rw [Real.sqrt_mul (sq_nonneg C), Real.sqrt_sq hC0]
   have hpt : ∀ ω : Ω, |(∫ s in Set.Ioc u v, bdrift ω s ∂volume)
         + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
           - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω)|
@@ -325,9 +337,7 @@ theorem integral_abs_itoProcess_sub_le
         + ∫ ω, |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
           - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω| ∂P :=
         MeasureTheory.integral_add hDabs hMabs
-    _ ≤ B * (v - u) + C * Real.sqrt (v - u) := by
-        rw [← hsqrt]
-        exact add_le_add hDle hMabsle
+    _ ≤ B * (v - u) + C * Real.sqrt (v - u) := add_le_add hDle hMabsle
 
 end Process
 
