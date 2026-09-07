@@ -106,6 +106,7 @@ import LevyStochCalc.Brownian.MultidimIto
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.Picard
+import LevyStochCalc.Ito.PicardIntegrand
 import LevyStochCalc.Ito.PicardSpace
 import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula

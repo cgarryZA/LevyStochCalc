@@ -142,6 +142,35 @@ noncomputable def stop {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
     rw [bieleckiNorm_min]
     exact X.sup_L2
 
+/-- The second moment at a single time of `[0, T]` is bounded by the squared Bielecki norm. -/
+theorem lintegral_sq_le_bieleckiNorm_sq {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (Y : SBoundedProcess (n := n) P ℱ T) {u : ℝ} (hu : u ∈ Set.Icc (0 : ℝ) T) :
+    (∫⁻ ω, ∑ i, (‖Y.X u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      ≤ (bieleckiNorm (P := P) 0 T Y.X) ^ (2 : ℕ) := by
+  have hle : (∫⁻ ω, ∑ i, (‖Y.X u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)
+      ≤ bieleckiNorm (P := P) 0 T Y.X := by
+    unfold bieleckiNorm
+    refine le_trans (le_of_eq ?_)
+      (le_iSup₂ (f := fun t (_ : t ∈ Set.Icc (0 : ℝ) T) =>
+        ENNReal.ofReal (Real.exp (-0 * t))
+          * (∫⁻ ω, ∑ i, (‖Y.X t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)) u hu)
+    simp
+  calc (∫⁻ ω, ∑ i, (‖Y.X u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      = ((∫⁻ ω, ∑ i, (‖Y.X u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ (1 / 2 : ℝ)) ^ (2 : ℕ) := by
+        rw [← ENNReal.rpow_natCast _ 2, ← ENNReal.rpow_mul]
+        norm_num
+    _ ≤ (bieleckiNorm (P := P) 0 T Y.X) ^ (2 : ℕ) := pow_le_pow_left' hle 2
+
+/-- **The frozen process is `L²`-bounded at every nonnegative time**, not only on `[0, T]` —
+this is what the Picard step's integrand hypotheses need at horizons beyond `T`. -/
+theorem lintegral_sq_stop_le {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (Y : SBoundedProcess (n := n) P ℱ T) (hT : 0 ≤ T) {s : ℝ} (hs : 0 ≤ s) :
+    (∫⁻ ω, ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      ≤ (bieleckiNorm (P := P) 0 T Y.X) ^ (2 : ℕ) :=
+  Y.lintegral_sq_le_bieleckiNorm_sq ⟨le_min hs hT, min_le_right s T⟩
+
 @[simp] theorem stop_apply {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
     {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
     (X : SBoundedProcess (n := n) P ℱ T) (s : ℝ) (ω : Ω) :

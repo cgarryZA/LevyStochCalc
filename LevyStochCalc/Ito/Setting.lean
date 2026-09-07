@@ -80,8 +80,8 @@ def JumpDiffusionCoeffs.IsLipschitz {n d : ℕ}
       ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2) ∧
   -- γ uniformly Lipschitz in x (L²-in-e sense):
   (∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
-    (∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal
-      ≤ L ^ 2 * ‖x₁ - x₂‖ ^ 2)
+    ∫⁻ e, (‖coeffs.γ s x₁ e - coeffs.γ s x₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν
+      ≤ ENNReal.ofReal (L ^ 2 * ‖x₁ - x₂‖ ^ 2))
 
 /-- Regularity of the jump-diffusion coefficients in the time and mark variables: joint
 measurability, and square integrability in `s` at a single state.
