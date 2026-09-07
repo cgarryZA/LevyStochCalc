@@ -528,4 +528,30 @@ theorem bieleckiNorm_picardStep_lt_top
 
 end Step
 
+omit [MeasurableSpace E] in
+/-- **A càdlàg adapted modification of the Brownian Itô integral.** The `L²` integral is defined
+separately at each time, so this is what supplies a path-regular representative. -/
+theorem exists_cadlag_modification_itoIntegral
+    (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱ : LevyStochCalc.Brownian.IsBrownianFiltration W ℱ)
+    (H : Ω → ℝ → ℝ)
+    (h_meas : Measurable (Function.uncurry H))
+    (h_progMeas : Probability.ProgressivelyMeasurable ℱ H)
+    (h_sq : ∀ T : ℝ, 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∃ Y : ℝ → Ω → ℝ, MeasureTheory.Adapted ℱ.rightCont Y ∧
+      (∀ t, Y t =ᵐ[P]
+        LevyStochCalc.Brownian.Ito.stochasticIntegral W ℱ hℱ H h_meas h_progMeas h_sq t) ∧
+      ∀ᵐ ω ∂P, ∀ t : ℝ,
+        Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω)) ∧
+          ∃ L : ℝ, Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L) :=
+  LevyStochCalc.Martingale.exists_adapted_ae_cadlag_of_eLpNorm
+    (LevyStochCalc.Brownian.Ito.martingale_rightCont_stochasticIntegralBrownian W ℱ hℱ H
+      h_meas h_progMeas h_sq)
+    (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_eLpNorm_two_right_tendsto W ℱ hℱ H
+      h_meas h_progMeas h_sq)
+    (fun _ ht => LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H
+      h_meas h_progMeas h_sq ht)
+
 end LevyStochCalc.Ito.Picard

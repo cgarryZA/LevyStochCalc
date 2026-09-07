@@ -402,6 +402,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_jump
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_le
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStep_lt_top
+#print axioms LevyStochCalc.Ito.Picard.exists_cadlag_modification_itoIntegral
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
