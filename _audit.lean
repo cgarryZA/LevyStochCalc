@@ -536,3 +536,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_stop_sub
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnStop_diff_le
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardSelfMap_diff_le
+#print axioms LevyStochCalc.Ito.Picard.tsum_geometric_shift
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_bieleckiLimit_geometric
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_le_bieleckiNorm_zero
+#print axioms LevyStochCalc.Ito.Picard.picardIter
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardIter_step_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_lt_top
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardIter_sub_bieleckiLimit_le
+#print axioms LevyStochCalc.Ito.Picard.exists_bieleckiWeight_rate_lt_one

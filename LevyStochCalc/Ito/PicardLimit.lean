@@ -317,4 +317,31 @@ theorem bieleckiNorm_sub_bieleckiLimit_le (β T : ℝ) {X : ℕ → ℝ → Ω �
   bieleckiNorm_le_of_perTime_rpow (P := P) β T _ _ fun _t ht =>
     lintegral_sq_sub_bieleckiLimit_rpow_le (P := P) β T hmeas hstep hc k ht
 
+/-! ### The geometric case -/
+
+/-- The tail of a geometric series of `ℝ≥0∞` step bounds. -/
+theorem tsum_geometric_shift {q C : ℝ≥0∞} (k : ℕ) :
+    ∑' j, q ^ (k + j) * C = q ^ k * ((1 - q)⁻¹ * C) := by
+  calc ∑' j, q ^ (k + j) * C = ∑' j, q ^ k * (q ^ j * C) := by
+        refine tsum_congr fun j => ?_
+        rw [pow_add, mul_assoc]
+    _ = q ^ k * ∑' j, q ^ j * C := ENNReal.tsum_mul_left
+    _ = q ^ k * ((1 - q)⁻¹ * C) := by rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric]
+
+/-- **The Bielecki limit of a geometrically Cauchy sequence.** If the consecutive Bielecki
+differences decay geometrically at a rate `< 1`, the sequence converges to `bieleckiLimit` at that
+rate. -/
+theorem bieleckiNorm_sub_bieleckiLimit_geometric (β T : ℝ) {X : ℕ → ℝ → Ω → (Fin n → ℝ)}
+    (hmeas : ∀ k, Measurable (Function.uncurry (X k))) {q C : ℝ≥0∞}
+    (hstep : ∀ k, bieleckiNorm (P := P) β T (fun t ω i => X (k + 1) t ω i - X k t ω i)
+      ≤ q ^ k * C) (hq : q < 1) (hC : C ≠ ⊤) (k : ℕ) :
+    bieleckiNorm (P := P) β T (fun t ω i => X k t ω i - bieleckiLimit X t ω i)
+      ≤ q ^ k * ((1 - q)⁻¹ * C) := by
+  have hsub : (1 : ℝ≥0∞) - q ≠ 0 := (tsub_pos_of_lt hq).ne'
+  have hc : ∑' k, q ^ k * C ≠ ⊤ := by
+    rw [ENNReal.tsum_mul_right, ENNReal.tsum_geometric]
+    exact ENNReal.mul_ne_top (ENNReal.inv_ne_top.mpr hsub) hC
+  refine le_trans (bieleckiNorm_sub_bieleckiLimit_le (P := P) β T hmeas hstep hc k)
+    (le_of_eq (tsum_geometric_shift k))
+
 end LevyStochCalc.Ito.Picard

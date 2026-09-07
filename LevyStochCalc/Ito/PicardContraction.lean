@@ -214,4 +214,140 @@ theorem bieleckiNorm_picardSelfMap_diff_le
   rw [hcongr]
   exact bieleckiNorm_picardStepOnStop_diff_le W N hℱW hℱN coeffs hReg hLip x₀ hβ hT X Y
 
+/-! ### The Picard iterates and their limit -/
+
+/-- A positive Bielecki weight only shrinks the norm on `[0, T]`. -/
+theorem bieleckiNorm_le_bieleckiNorm_zero {β : ℝ} (hβ : 0 ≤ β) (T : ℝ)
+    (Z : ℝ → Ω → (Fin n → ℝ)) :
+    bieleckiNorm (P := P) β T Z ≤ bieleckiNorm (P := P) 0 T Z := by
+  refine iSup₂_le fun t ht => ?_
+  have hw : ENNReal.ofReal (Real.exp (-β * t)) ≤ ENNReal.ofReal (Real.exp (-0 * t)) := by
+    refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.mpr ?_)
+    have : 0 ≤ β * t := mul_nonneg hβ ht.1
+    nlinarith
+  exact le_trans (mul_le_mul' hw le_rfl)
+    (le_iSup₂ (f := fun u (_ : u ∈ Set.Icc (0 : ℝ) T) =>
+      ENNReal.ofReal (Real.exp (-0 * u))
+        * (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) t ht)
+
+variable (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+  (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+  (ℱ' : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ'.IsRightContinuous]
+  (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ')
+  (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ')
+  (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
+  (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
+  (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+  (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+
+/-- **The Picard iterates** of a starting process under the self-map. -/
+noncomputable def picardIter {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) (hT : 0 < T) (X₀ : SBoundedProcess (n := n) P ℱ' T) :
+    ℕ → SBoundedProcess (n := n) P ℱ' T
+  | 0 => X₀
+  | k + 1 => picardSelfMap W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+      (picardIter hLip x₀ hT X₀ k)
+
+/-- The Picard iterates are geometrically Bielecki-Cauchy at the contraction rate. -/
+theorem bieleckiNorm_picardIter_step_le {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T) (k : ℕ) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i
+          - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ k).X t ω i)
+      ≤ ((ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2)) ^ k
+        * bieleckiNorm (P := P) β T (fun t ω i =>
+            (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 1).X t ω i
+              - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 0).X t ω i) := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    refine le_trans (bieleckiNorm_picardSelfMap_diff_le W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg
+      hLip x₀ hβ hT _ _) ?_
+    refine le_trans (mul_le_mul' le_rfl ih) (le_of_eq ?_)
+    rw [← mul_assoc, ← pow_succ']
+
+/-! ### The limit of the iterates -/
+
+omit [ℱ'.IsRightContinuous] in
+/-- The Bielecki norm of a difference of two processes of the space is finite. -/
+theorem bieleckiNorm_sub_lt_top {β : ℝ} (hβ : 0 ≤ β)
+    (X Y : SBoundedProcess (n := n) P ℱ' T) :
+    bieleckiNorm (P := P) β T (fun t ω i => X.X t ω i - Y.X t ω i) < ⊤ := by
+  have hneg : bieleckiNorm (P := P) 0 T (fun t ω => -(Y.X t ω))
+      = bieleckiNorm (P := P) 0 T Y.X := by
+    unfold bieleckiNorm
+    refine iSup_congr fun t => iSup_congr fun _ => ?_
+    congr 2
+    exact lintegral_congr fun ω => Finset.sum_congr rfl fun i _ => by simp
+  have hEq : (fun t ω i => X.X t ω i - Y.X t ω i)
+      = fun t (ω : Ω) => X.X t ω + (fun i => -(Y.X t ω i)) := by
+    funext t ω i
+    simp [Pi.add_apply, sub_eq_add_neg]
+  have hnegm : Measurable (Function.uncurry fun t (ω : Ω) => -(Y.X t ω)) :=
+    measurable_neg.comp Y.measurable_path
+  have hadd := bieleckiNorm_add_le (P := P) 0 T X.X (fun t ω => -(Y.X t ω))
+    (fun t => bieleckiNorm_inner_aemeasurable _ X.measurable_path t)
+    (fun t => bieleckiNorm_inner_aemeasurable (fun t ω => -(Y.X t ω)) hnegm t)
+  refine lt_of_le_of_lt (bieleckiNorm_le_bieleckiNorm_zero hβ T _) ?_
+  rw [hEq]
+  refine lt_of_le_of_lt hadd ?_
+  rw [hneg]
+  exact ENNReal.add_lt_top.mpr ⟨X.sup_L2, Y.sup_L2⟩
+
+/-- **The Picard iterates converge in Bielecki norm.** At a weight making the contraction rate
+`< 1`, the iterates converge to `bieleckiLimit` at that rate. -/
+theorem bieleckiNorm_picardIter_sub_bieleckiLimit_le {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T)
+    (hq : (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2) < 1) (k : ℕ) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ k).X t ω i
+          - bieleckiLimit
+              (fun m => (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ m).X)
+              t ω i)
+      ≤ ((ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2)) ^ k
+        * ((1 - (ENNReal.ofReal
+              ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+                / (2 * β))) ^ ((1 : ℝ) / 2))⁻¹
+            * bieleckiNorm (P := P) β T (fun t ω i =>
+                (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 1).X t ω i
+                  - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 0).X
+                      t ω i)) :=
+  bieleckiNorm_sub_bieleckiLimit_geometric (P := P) β T
+    (fun m => (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ m).measurable_path)
+    (bieleckiNorm_picardIter_step_le W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hβ hT X₀)
+    hq (bieleckiNorm_sub_lt_top ℱ' hβ.le _ _).ne k
+
+omit [ℱ'.IsRightContinuous] hℱW hℱN hℱ0 hnull hReg in
+/-- Some Bielecki weight makes the contraction rate strictly less than one. -/
+theorem exists_bieleckiWeight_rate_lt_one (L : ℝ) (hT : 0 < T) :
+    ∃ β : ℝ, 0 < β ∧
+      (ENNReal.ofReal
+        ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+          / (2 * β))) ^ ((1 : ℝ) / 2) < 1 := by
+  set A : ℝ := 3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2) with hA
+  have hAnn : 0 ≤ A := by
+    have h1 : (0 : ℝ) ≤ (n : ℝ) * L ^ 2 * T := by positivity
+    have h2 : (0 : ℝ) ≤ (n : ℝ) * ((d : ℝ) * L ^ 2) := by positivity
+    have h3 : (0 : ℝ) ≤ (n : ℝ) * L ^ 2 := by positivity
+    rw [hA]; linarith
+  refine ⟨A / 2 + 1, by linarith, ?_⟩
+  have hden : 0 < 2 * (A / 2 + 1) := by linarith
+  have hlt : A / (2 * (A / 2 + 1)) < 1 := by
+    rw [div_lt_one hden]; linarith
+  refine ENNReal.rpow_lt_one ?_ (by norm_num)
+  calc ENNReal.ofReal (A / (2 * (A / 2 + 1))) < ENNReal.ofReal 1 :=
+        (ENNReal.ofReal_lt_ofReal_iff (by norm_num)).mpr hlt
+    _ = 1 := ENNReal.ofReal_one
+
 end LevyStochCalc.Ito.Picard
