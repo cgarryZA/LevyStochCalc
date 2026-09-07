@@ -273,4 +273,31 @@ theorem MarkedProgressivelyMeasurable.stronglyMeasurable_setIntegral_integral
 
 end MarkedIntegral
 
+/-! ### Countable suprema of real progressively measurable processes -/
+
+section RealLimsup
+
+variable {ℱ : Filtration ℝ mΩ}
+
+/-- A pointwise `limsup` along `atTop` of countably many progressively measurable real processes
+is progressively measurable. -/
+theorem ProgressivelyMeasurable.limsup {H : ℕ → Ω → ℝ → ℝ}
+    (h : ∀ k, ProgressivelyMeasurable ℱ (H k)) :
+    ProgressivelyMeasurable ℱ fun ω s => Filter.limsup (fun k => H k ω s) Filter.atTop := by
+  intro t
+  letI : MeasurableSpace Ω := ℱ t
+  have hind : (fun p : Ω × ℝ =>
+        (Set.Iic t).indicator (fun s => Filter.limsup (fun k => H k p.1 s) Filter.atTop) p.2)
+      = fun p : Ω × ℝ =>
+        Filter.limsup (fun k => (Set.Iic t).indicator (H k p.1) p.2) Filter.atTop := by
+    funext p
+    by_cases hp : p.2 ∈ Set.Iic t
+    · simp only [Set.indicator_of_mem hp]
+    · simp only [Set.indicator_of_notMem hp, Filter.limsup_const]
+  rw [hind]
+  refine stronglyMeasurable_iff_measurable.mpr (Measurable.limsup fun k => ?_)
+  exact (h k t).measurable
+
+end RealLimsup
+
 end LevyStochCalc.Probability

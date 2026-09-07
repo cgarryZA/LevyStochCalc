@@ -514,3 +514,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.Existence.picardMap
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z
 
+-- ===== Bielecki limits (C1b, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.limsup
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_le_of_perTime_rpow
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_rpow_le_of_bieleckiNorm
+#print axioms LevyStochCalc.Ito.Picard.bieleckiLimit
+#print axioms LevyStochCalc.Ito.Picard.measurable_bieleckiLimit
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_bieleckiLimit
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_le_sum_Ico
+#print axioms LevyStochCalc.Ito.Picard.lintegral_rpow_half_le
+#print axioms LevyStochCalc.Ito.Picard.ae_tsum_ne_top
+#print axioms LevyStochCalc.Ito.Picard.ae_summable_steps
+#print axioms LevyStochCalc.Ito.Picard.ae_tendsto_bieleckiLimit
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sub_bieleckiLimit_rpow_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_bieleckiLimit_le
