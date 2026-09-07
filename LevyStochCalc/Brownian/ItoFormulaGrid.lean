@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.DriftIncrement
+import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.ItoIncrementMoment
 
 /-!
@@ -22,6 +23,8 @@ Itô's formula.
   moments of the Itô-integral increments across the grid, of order `m^{-1/2}`.
 * `LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le` — the same for the
   increments of a full Itô process, drift included.
+* `LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid` — the Riemann sums of a
+  continuous weight against a bounded density converge as the grid refines.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -186,6 +189,63 @@ theorem integral_abs_add_pow_three_le {P : Measure Ω} {u v : Ω → ℝ}
         MeasureTheory.integral_mono huv ((hu.add hv).const_mul 4) hpt
     _ = 4 * ((∫ ω, |u ω| ^ 3 ∂P) + ∫ ω, |v ω| ^ 3 ∂P) := by
         rw [MeasureTheory.integral_const_mul, MeasureTheory.integral_add hu hv]
+
+
+section RiemannLimit
+
+/-- **The Riemann sums of a continuous weight against a bounded density converge.** On the
+uniform grid of `[0, T]`, freezing `g` at each cell's left endpoint converges to the integral
+of `g·h`. -/
+theorem tendsto_riemann_weighted_unifGrid {g h : ℝ → ℝ} (hgc : Continuous g)
+    (hh : Measurable h) {M : ℝ} (hM0 : 0 ≤ M) (hhM : ∀ s, |h s| ≤ M) {T : ℝ} (hT : 0 < T) :
+    Filter.Tendsto (fun m : ℕ => ∑ i ∈ Finset.range m,
+        g (unifGrid T m i) * ∫ s in unifGrid T m i..unifGrid T m (i + 1), h s)
+      Filter.atTop (nhds (∫ s in (0 : ℝ)..T, g s * h s)) := by
+  obtain ⟨Kg, hKg⟩ :=
+    (isCompact_Icc (a := (0 : ℝ)) (b := T)).exists_bound_of_continuousOn hgc.continuousOn
+  have hgb : ∀ s ∈ Set.Icc (0 : ℝ) T, |g s| ≤ Kg := fun s hs => by
+    simpa [Real.norm_eq_abs] using hKg s hs
+  rw [Metric.tendsto_atTop]
+  intro ε' hε'
+  have hMT1 : (0 : ℝ) < M * T + 1 := by positivity
+  set ε : ℝ := ε' / (2 * (M * T + 1)) with hεdef
+  have hε0 : 0 < ε := by positivity
+  obtain ⟨δ, hδ0, hδ⟩ := Metric.uniformContinuousOn_iff.mp
+    ((isCompact_Icc (a := (0 : ℝ)) (b := T)).uniformContinuousOn_of_continuous
+      hgc.continuousOn) ε hε0
+  obtain ⟨N, hN⟩ := exists_nat_gt (T / δ)
+  refine ⟨max N 1, fun m hm => ?_⟩
+  have hm1 : 1 ≤ m := le_trans (le_max_right N 1) hm
+  have hm0 : m ≠ 0 := Nat.one_le_iff_ne_zero.mp hm1
+  have hmR : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm0)
+  have hmesh : T / (m : ℝ) < δ := by
+    have hNm : (N : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr (le_trans (le_max_left N 1) hm)
+    have h1 : T / δ < (m : ℝ) := lt_of_lt_of_le hN hNm
+    rw [div_lt_iff₀ hmR]
+    rw [div_lt_iff₀ hδ0] at h1
+    linarith
+  -- the modulus of continuity at the mesh
+  have hgmod : ∀ x ∈ Set.Icc (0 : ℝ) T, ∀ y ∈ Set.Icc (0 : ℝ) T,
+      |x - y| ≤ T / (m : ℝ) → |g x - g y| ≤ ε := by
+    intro x hx y hy hxy
+    have hdist : dist x y < δ := lt_of_le_of_lt (by simpa [Real.dist_eq] using hxy) hmesh
+    exact le_of_lt (by simpa [Real.dist_eq] using hδ x hx y hy hdist)
+  have hbound := abs_riemann_weighted_sub_integral_le (T := T) (ε := ε) (δ := T / (m : ℝ))
+    (M := M) (Kg := Kg) hM0 hε0.le hgc hh hhM hgb hgmod (unifGrid T m)
+    (unifGrid_zero T m) (unifGrid_self hm0)
+    (fun i _ => (unifGrid_lt_succ hT hm0 i).le)
+    (fun i _ => le_of_eq (unifGrid_succ_sub hm0 i))
+    (fun i _ => ⟨unifGrid_nonneg hT.le m i, unifGrid_le hT.le (by omega) hm0⟩)
+  rw [Real.dist_eq]
+  refine lt_of_le_of_lt hbound ?_
+  have hlt : ε * (M * T) < ε' := by
+    rw [hεdef]
+    rw [div_mul_eq_mul_div, div_lt_iff₀ (by linarith : (0 : ℝ) < 2 * (M * T + 1))]
+    nlinarith [mul_nonneg hM0 hT.le]
+  calc ε * M * T = ε * (M * T) := by ring
+    _ < ε' := hlt
+
+end RiemannLimit
 
 section ItoIncrement
 

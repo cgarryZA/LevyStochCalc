@@ -299,6 +299,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.measurable_setIntegral_Ioc
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_add_pow_three_le
 #print axioms LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
