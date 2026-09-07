@@ -383,6 +383,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.measurable_gamma_stop
 #print axioms LevyStochCalc.Ito.Picard.markedProgressivelyMeasurable_gamma_stop
 #print axioms LevyStochCalc.Ito.Picard.picardStepOnStop
+#print axioms LevyStochCalc.Ito.Picard.sq_mu_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_mu_stop_lt_top
+#print axioms LevyStochCalc.Ito.Picard.sq_nnnorm_sum_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_diffusion_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_jump_eq
+#print axioms LevyStochCalc.Ito.Picard.enorm_sq_eq
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_setIntegral_le
+#print axioms LevyStochCalc.Ito.Picard.sq_nnnorm_add_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_drift_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound

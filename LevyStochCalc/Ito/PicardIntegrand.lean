@@ -402,6 +402,97 @@ theorem measurable_gamma_comp_state {n d : ℕ} {ν : MeasureTheory.Measure E}
       ((hX.comp ((measurable_fst.comp measurable_snd).prodMk measurable_fst)).prodMk
         (measurable_snd.comp measurable_snd)))
 
+/-- **Linear growth of the drift coefficient in the state**, read off the Lipschitz hypothesis
+by comparing with the state `0`. -/
+theorem sq_mu_le {n d : ℕ} {ν : MeasureTheory.Measure E}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E) {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (s : ℝ) (x : Fin n → ℝ) (i : Fin n) :
+    (coeffs.μ s x i) ^ 2
+      ≤ 2 * ‖coeffs.μ s 0‖ ^ 2 + 2 * (L ^ 2 * ∑ i', (x i') ^ 2) := by
+  have hL := hLip.2.1 s x 0
+  have hcoord : |coeffs.μ s x i - coeffs.μ s 0 i| ≤ ‖coeffs.μ s x - coeffs.μ s 0‖ := by
+    simpa [Real.norm_eq_abs, Pi.sub_apply] using norm_le_pi_norm (coeffs.μ s x - coeffs.μ s 0) i
+  have h0 : |coeffs.μ s 0 i| ≤ ‖coeffs.μ s 0‖ := by
+    simpa [Real.norm_eq_abs] using norm_le_pi_norm (coeffs.μ s 0) i
+  have hx : ‖x - 0‖ ^ 2 ≤ ∑ i', (x i') ^ 2 := by
+    rw [sub_zero]; exact sq_norm_le_sum_sq x
+  have hnormsq : ‖coeffs.μ s x - coeffs.μ s 0‖ ^ 2 ≤ L ^ 2 * ∑ i', (x i') ^ 2 := by
+    have h1 : ‖coeffs.μ s x - coeffs.μ s 0‖ ^ 2 ≤ L ^ 2 * ‖x - 0‖ ^ 2 := by
+      nlinarith [norm_nonneg (coeffs.μ s x - coeffs.μ s 0), norm_nonneg (x - 0), hLip.1]
+    exact h1.trans (mul_le_mul_of_nonneg_left hx (sq_nonneg L))
+  have hdiff : (coeffs.μ s x i - coeffs.μ s 0 i) ^ 2 ≤ L ^ 2 * ∑ i', (x i') ^ 2 := by
+    nlinarith [hcoord, abs_nonneg (coeffs.μ s x i - coeffs.μ s 0 i),
+      sq_abs (coeffs.μ s x i - coeffs.μ s 0 i), norm_nonneg (coeffs.μ s x - coeffs.μ s 0)]
+  have hzero : (coeffs.μ s 0 i) ^ 2 ≤ ‖coeffs.μ s 0‖ ^ 2 := by
+    nlinarith [h0, abs_nonneg (coeffs.μ s 0 i), sq_abs (coeffs.μ s 0 i),
+      norm_nonneg (coeffs.μ s 0)]
+  nlinarith [sq_nonneg (coeffs.μ s x i - 2 * coeffs.μ s 0 i)]
+
+/-- **The drift integrand along the frozen process is square integrable at every horizon.** -/
+theorem lintegral_sq_mu_stop_lt_top {n d : ℕ} {P : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure P] {ν : MeasureTheory.Measure E}
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (Y : SBoundedProcess (n := n) P ℱ T) (hT : 0 ≤ T)
+    (i : Fin n) {T' : ℝ} (hT' : 0 < T') :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.μ s (Y.stop.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  have hpt : ∀ (ω : Ω) (s : ℝ),
+      (‖coeffs.μ s (Y.stop.X s ω) i‖₊ : ℝ≥0∞) ^ 2
+        ≤ 2 * (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2
+          + ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 := by
+    intro ω s
+    have h1 : ENNReal.ofReal (2 * ‖coeffs.μ s 0‖ ^ 2)
+        = 2 * (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2 := by
+      rw [ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2), sq_coe_nnnorm,
+        ENNReal.ofReal_ofNat]
+    have h2 : ENNReal.ofReal (2 * (L ^ 2 * ∑ i', (Y.stop.X s ω i') ^ 2))
+        = ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 := by
+      rw [show 2 * (L ^ 2 * ∑ i', (Y.stop.X s ω i') ^ 2)
+          = (2 * L ^ 2) * ∑ i', (Y.stop.X s ω i') ^ 2 by ring,
+        ENNReal.ofReal_mul (by positivity : (0 : ℝ) ≤ 2 * L ^ 2),
+        ENNReal.ofReal_sum_of_nonneg (fun _ _ => sq_nonneg _)]
+      exact congrArg _ (Finset.sum_congr rfl fun i' _ => (sq_coe_nnnorm_real _).symm)
+    calc (‖coeffs.μ s (Y.stop.X s ω) i‖₊ : ℝ≥0∞) ^ 2
+        = ENNReal.ofReal ((coeffs.μ s (Y.stop.X s ω) i) ^ 2) := sq_coe_nnnorm_real _
+      _ ≤ ENNReal.ofReal (2 * ‖coeffs.μ s 0‖ ^ 2
+            + 2 * (L ^ 2 * ∑ i', (Y.stop.X s ω i') ^ 2)) :=
+          ENNReal.ofReal_le_ofReal (sq_mu_le coeffs hLip s _ i)
+      _ = 2 * (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2
+            + ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 := by
+          rw [ENNReal.ofReal_add (by positivity) (by positivity), h1, h2]
+  refine lt_of_le_of_lt (lintegral_mono fun ω => lintegral_mono fun s => hpt ω s) ?_
+  have hμ0 : Measurable fun s : ℝ => (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2 := by
+    have : Measurable fun s : ℝ => coeffs.μ s 0 :=
+      hReg.1.comp (measurable_id.prodMk measurable_const)
+    exact (this.nnnorm.coe_nnreal_ennreal).pow_const 2
+  have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (2 * (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2
+          + ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2) ∂volume
+      = (∫⁻ s in Set.Icc (0 : ℝ) T', 2 * (‖coeffs.μ s 0‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+        + ∫⁻ s in Set.Icc (0 : ℝ) T',
+            ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
+    fun ω => MeasureTheory.lintegral_add_left (hμ0.const_mul 2) _
+  rw [lintegral_congr hinner, MeasureTheory.lintegral_add_left measurable_const _]
+  refine ENNReal.add_lt_top.mpr ⟨?_, ?_⟩
+  · rw [MeasureTheory.lintegral_const, measure_univ, mul_one,
+      MeasureTheory.lintegral_const_mul' _ _ (by simp : (2 : ℝ≥0∞) ≠ ⊤)]
+    exact ENNReal.mul_lt_top (by simp) (hReg.2.2.2.1 T' hT')
+  · have hconst : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          ENNReal.ofReal (2 * L ^ 2) * ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 ∂volume
+        = ENNReal.ofReal (2 * L ^ 2) * ∫⁻ s in Set.Icc (0 : ℝ) T',
+            ∑ i', (‖Y.stop.X s ω i'‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
+      fun ω => MeasureTheory.lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
+    rw [lintegral_congr hconst,
+      MeasureTheory.lintegral_const_mul' _ _
+        (ENNReal.ofReal_ne_top : ENNReal.ofReal (2 * L ^ 2) ≠ ⊤)]
+    refine ENNReal.mul_lt_top ENNReal.ofReal_lt_top ?_
+    refine lt_of_le_of_lt (lintegral_lintegral_sq_stop_le Y hT T') ?_
+    exact ENNReal.mul_lt_top (by simp) (ENNReal.pow_lt_top Y.sup_L2)
+
 section Frozen
 
 variable {n d : ℕ} {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
