@@ -424,6 +424,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.gamma_lip_componentwise
 #print axioms LevyStochCalc.Ito.Picard.jump_diff_lintegral_sq_bound
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sum3_le
+#print axioms LevyStochCalc.Ito.Picard.mu_lip_componentwise
+#print axioms LevyStochCalc.Ito.Picard.lintegral_ofReal_sum_sq_eq
+#print axioms LevyStochCalc.Ito.Picard.picardStep_apply_eq
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_picardStep_diff_le
 #print axioms LevyStochCalc.Ito.Picard.ae_continuous_picardStep_drift
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.measurable_setIntegral_Icc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_congr_ae
