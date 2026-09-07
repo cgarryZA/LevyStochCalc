@@ -493,6 +493,15 @@ theorem lintegral_sq_mu_stop_lt_top {n d : ℕ} {P : MeasureTheory.Measure Ω}
     refine lt_of_le_of_lt (lintegral_lintegral_sq_stop_le Y hT T') ?_
     exact ENNReal.mul_lt_top (by simp) (ENNReal.pow_lt_top Y.sup_L2)
 
+/-- Joint measurability of the drift integrand along a jointly measurable state process. -/
+theorem measurable_mu_comp_state {n d : ℕ} {ν : MeasureTheory.Measure E}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {X : ℝ → Ω → (Fin n → ℝ)} (hX : Measurable (Function.uncurry X)) (i : Fin n) :
+    Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i) :=
+  ((measurable_pi_apply i).comp hReg.1).comp
+    (measurable_snd.prodMk (hX.comp (measurable_snd.prodMk measurable_fst)))
+
 section Frozen
 
 variable {n d : ℕ} {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
@@ -536,6 +545,25 @@ theorem markedProgressivelyMeasurable_gamma_stop
     (measurable_pi_apply i).comp hReg.2.2.1
   exact markedProgressivelyMeasurable_comp_state
     (g := fun (s : ℝ) (x : Fin n → ℝ) (e : E) => coeffs.γ s x e i) Y.stop.adapted h
+
+
+/-- Joint measurability of the drift integrand along the frozen process. -/
+theorem measurable_mu_stop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    (Y : SBoundedProcess (n := n) P ℱ T) (i : Fin n) :
+    Measurable (Function.uncurry fun ω s => coeffs.μ s (Y.stop.X s ω) i) :=
+  measurable_mu_comp_state coeffs hReg Y.stop.measurable_path i
+
+/-- Progressive measurability of the drift integrand along the frozen process. -/
+theorem progressivelyMeasurable_mu_stop
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    (Y : SBoundedProcess (n := n) P ℱ T) (i : Fin n) :
+    Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.μ s (Y.stop.X s ω) i) := by
+  have h : Measurable (Function.uncurry fun (s : ℝ) (x : Fin n → ℝ) => coeffs.μ s x i) :=
+    (measurable_pi_apply i).comp hReg.1
+  exact progressivelyMeasurable_comp_state Y.stop.adapted h
 
 /-- **The Picard map applied to a frozen member of the process space.**
 

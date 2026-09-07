@@ -893,4 +893,76 @@ theorem exists_sBoundedProcess_picardStep [ℱ.IsRightContinuous]
 
 end Modification
 
+section SelfMap
+
+variable {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+
+/-- **The Picard self-map on the process space.**
+
+Every hypothesis `picardStep` and `SBoundedProcess` ask for is supplied from `IsRegular` and
+`IsLipschitz` along the frozen process, so this is a genuine map from the space to itself under
+the usual conditions. -/
+noncomputable def picardSelfMap
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {T : ℝ} (hT : 0 < T)
+    (Y : SBoundedProcess (n := n) P ℱ T) : SBoundedProcess (n := n) P ℱ T :=
+  Classical.choose (exists_sBoundedProcess_picardStep W ℱ hℱW coeffs Y.stop.X
+    (fun i j => measurable_sigma_stop coeffs hReg Y i j)
+    (fun i j => progressivelyMeasurable_sigma_stop coeffs hReg Y i j)
+    (fun i j _ hT' => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip Y hT.le i j hT')
+    N hℱN x₀
+    (fun i => measurable_gamma_stop coeffs hReg Y i)
+    (fun i => markedProgressivelyMeasurable_gamma_stop coeffs hReg Y i)
+    (fun i _ hT' => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip Y hT.le i hT')
+    hℱ0 hnull
+    (fun i => measurable_mu_stop coeffs hReg Y i)
+    (fun i => progressivelyMeasurable_mu_stop coeffs hReg Y i)
+    (fun i _ hb => lintegral_sq_mu_stop_lt_top coeffs hReg hLip Y hT.le i hb)
+    (fun i => lintegral_sq_mu_stop_lt_top coeffs hReg hLip Y hT.le i hT)
+    (fun i j => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip Y hT.le i j hT)
+    (fun i => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip Y hT.le i hT))
+
+/-- The self-map's path is a modification of the Picard step along the frozen process. -/
+theorem picardSelfMap_ae_eq
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {T : ℝ} (hT : 0 < T)
+    (Y : SBoundedProcess (n := n) P ℱ T) (t : ℝ) :
+    (picardSelfMap W N ℱ hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT Y).X t
+      =ᵐ[P] picardStepOnStop W N hℱW hℱN coeffs hReg hLip Y hT.le x₀ t :=
+  Classical.choose_spec (exists_sBoundedProcess_picardStep W ℱ hℱW coeffs Y.stop.X
+    (fun i j => measurable_sigma_stop coeffs hReg Y i j)
+    (fun i j => progressivelyMeasurable_sigma_stop coeffs hReg Y i j)
+    (fun i j _ hT' => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip Y hT.le i j hT')
+    N hℱN x₀
+    (fun i => measurable_gamma_stop coeffs hReg Y i)
+    (fun i => markedProgressivelyMeasurable_gamma_stop coeffs hReg Y i)
+    (fun i _ hT' => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip Y hT.le i hT')
+    hℱ0 hnull
+    (fun i => measurable_mu_stop coeffs hReg Y i)
+    (fun i => progressivelyMeasurable_mu_stop coeffs hReg Y i)
+    (fun i _ hb => lintegral_sq_mu_stop_lt_top coeffs hReg hLip Y hT.le i hb)
+    (fun i => lintegral_sq_mu_stop_lt_top coeffs hReg hLip Y hT.le i hT)
+    (fun i j => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip Y hT.le i j hT)
+    (fun i => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip Y hT.le i hT)) t
+
+end SelfMap
+
 end LevyStochCalc.Ito.Picard

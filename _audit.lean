@@ -430,6 +430,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStepMod_adapted
 #print axioms LevyStochCalc.Ito.Picard.picardStepMod_cadlag
 #print axioms LevyStochCalc.Ito.Picard.exists_sBoundedProcess_picardStep
+#print axioms LevyStochCalc.Ito.Picard.measurable_mu_comp_state
+#print axioms LevyStochCalc.Ito.Picard.measurable_mu_stop
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_mu_stop
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMap
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMap_ae_eq
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
