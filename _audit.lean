@@ -615,3 +615,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_diffusion_lt_top
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_picardStep_lt_top
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_picardSelfMapRaw_lt_top
+-- ===== Locality of the Picard step (C3-global scaffolding, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.measurable_itoIntegral_slice
+#print axioms LevyStochCalc.Ito.Picard.measurable_compensatedIntegral_slice
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sub_eq_zero_of_ae
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sub_mark_eq_zero_of_ae
+#print axioms LevyStochCalc.Ito.Picard.itoIntegral_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.compensatedIntegral_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.picardStep_drift_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.picardStep_diffusion_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.picardStep_jump_congr_ae
+#print axioms LevyStochCalc.Ito.Picard.picardStep_congr_ae

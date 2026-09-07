@@ -114,6 +114,7 @@ import LevyStochCalc.Ito.PicardOutput
 import LevyStochCalc.Ito.PicardLimit
 import LevyStochCalc.Ito.PicardContraction
 import LevyStochCalc.Ito.PicardSupL2
+import LevyStochCalc.Ito.PicardLocality
 import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 
