@@ -87,7 +87,11 @@ import LevyStochCalc.Brownian.ItoQuadVarSum
 import LevyStochCalc.Brownian.DriftIncrement
 import LevyStochCalc.Brownian.ItoFormula
 import LevyStochCalc.Brownian.ItoFormulaGrid
+import LevyStochCalc.Brownian.ItoGridPartition
 import LevyStochCalc.Brownian.ItoProcess
+import LevyStochCalc.Brownian.ItoProcessVersion
+import LevyStochCalc.Brownian.ItoProcessWindow
+import LevyStochCalc.Brownian.ItoTimeRiemann
 import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo

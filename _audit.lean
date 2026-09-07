@@ -315,6 +315,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.measurable_itoProcess
 #print axioms LevyStochCalc.Brownian.Ito.itoProcess_sub
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_taylorRemainder_le
+-- B1a-3g (2026-09-07): continuous versions and their window moments.
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.measurable_uncurry
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.progressivelyMeasurable_comp
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_sq_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.lintegral_window_abs_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.lintegral_window_sq_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.sum_setIntegral_unifGrid
+#print axioms LevyStochCalc.Brownian.Ito.unifGrid_iUnion_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_Icc_eq_sum_unifGrid
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_frozenRiemann_sub_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
