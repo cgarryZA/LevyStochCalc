@@ -1236,6 +1236,37 @@ theorem ae_drift_diff_sq_bound
         rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
         ring
 
+omit [MeasurableSpace E] in
+/-- **The drift half of the per-time contraction estimate, in lower-integral form.**
+`picardStep_drift_diff_lintegral_sq_bound` with both of its almost-everywhere hypotheses
+discharged. -/
+theorem drift_diff_lintegral_sq_bound
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_μ : ℝ} (hL_μ_nn : 0 ≤ L_μ)
+    (h_μ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ∀ i : Fin n,
+      |coeffs.μ s x₁ i - coeffs.μ s x₂ i| ≤ L_μ * ‖x₁ - x₂‖)
+    (X Y : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ)
+    (hμX : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (hμY : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (Y s ω) i))
+    (hXYm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ‖X s ω - Y s ω‖))
+    (hμXsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hμYsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (Y s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hXYsq : ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ∫⁻ ω, ENNReal.ofReal (∑ i : Fin n,
+        ((picardStep_drift (E := E) coeffs X x₀ t ω
+            - picardStep_drift coeffs Y x₀ t ω) i) ^ 2) ∂P
+      ≤ ENNReal.ofReal ((n : ℝ) * L_μ ^ 2 * t)
+          * ∫⁻ ω, ENNReal.ofReal
+              (∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2) ∂P :=
+  picardStep_drift_diff_lintegral_sq_bound P coeffs hL_μ_nn h_μ_lip X Y x₀ t ht
+    (ae_drift_diff_sq_bound coeffs hL_μ_nn h_μ_lip X Y x₀ hμX hμY hXYm hμXsq hμYsq hXYsq ht)
+    (Filter.Eventually.of_forall fun _ =>
+      MeasureTheory.integral_nonneg_of_ae (Filter.Eventually.of_forall fun _ => by positivity))
+
 end Weighting
 
 end LevyStochCalc.Ito.Picard
