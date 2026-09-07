@@ -1072,6 +1072,74 @@ theorem lintegral_window_norm_le_sum {Z : ℝ → Ω → (Fin n → ℝ)} (t : �
   refine (ofReal_setIntegral_le_lintegral (fun x => by positivity) _).trans ?_
   exact lintegral_mono fun s => ofReal_sq_norm_le_sum (Z s ω)
 
+omit [MeasurableSpace E] in
+/-- **From a per-time Grönwall estimate to a Bielecki bound.** If the second moment of `U` at
+each time of `[0, T]` is at most `C` times the window energy of `Z`, then the Bielecki norm of
+`U` is at most `√(C / 2β)` times that of `Z`. The weight cancels exactly, which is why the
+constant carries the `1/(2β)` that makes the Picard map a contraction for large `β`. -/
+theorem bieleckiNorm_le_of_perTime {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0 ≤ C)
+    (U Z : ℝ → Ω → (Fin n → ℝ))
+    (hZ : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => Z s ω))
+    (hbd : ∀ t ∈ Set.Icc (0 : ℝ) T,
+      ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P
+        ≤ ENNReal.ofReal C
+            * ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P) :
+    bieleckiNorm (P := P) β T U
+      ≤ (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2) * bieleckiNorm (P := P) β T Z := by
+  have hβ2 : (0 : ℝ) < 2 * β := by linarith
+  refine iSup₂_le fun t ht => ?_
+  have hcongr : (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      = ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P := by
+    refine lintegral_congr fun ω => ?_
+    rw [ENNReal.ofReal_sum_of_nonneg (fun _ _ => sq_nonneg _)]
+    exact Finset.sum_congr rfl fun i _ => sq_coe_nnnorm_real (U t ω i)
+  have hA : (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      ≤ ENNReal.ofReal (C / (2 * β)) * ENNReal.ofReal (Real.exp (2 * β * t))
+          * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
+    have h2 : (∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P)
+        ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
+      lintegral_mono fun ω => lintegral_window_norm_le_sum t ω
+    calc (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
+        = ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P := hcongr
+      _ ≤ ENNReal.ofReal C
+            * ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P :=
+          hbd t ht
+      _ ≤ ENNReal.ofReal C * (ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β))
+            * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ)) :=
+          mul_le_mul' le_rfl
+            (h2.trans (lintegral_lintegral_sq_le_bieleckiNorm_sq hβ T Z hZ ht))
+      _ = ENNReal.ofReal (C / (2 * β)) * ENNReal.ofReal (Real.exp (2 * β * t))
+            * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
+          rw [← mul_assoc, ← ENNReal.ofReal_mul hC,
+            ← ENNReal.ofReal_mul (by positivity : (0 : ℝ) ≤ C / (2 * β))]
+          congr 2
+          field_simp
+  have hsqrt : (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+      ≤ (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2) * ENNReal.ofReal (Real.exp (β * t))
+          * bieleckiNorm (P := P) β T Z := by
+    refine le_trans (ENNReal.rpow_le_rpow hA (by norm_num)) (le_of_eq ?_)
+    rw [ENNReal.mul_rpow_of_nonneg _ _ (by norm_num : (0 : ℝ) ≤ 1 / 2),
+      ENNReal.mul_rpow_of_nonneg _ _ (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+    congr 1
+    · congr 1
+      rw [ENNReal.ofReal_rpow_of_pos (Real.exp_pos _), ← Real.exp_mul,
+        show 2 * β * t * ((1 : ℝ) / 2) = β * t by ring]
+    · rw [← ENNReal.rpow_natCast _ 2, ← ENNReal.rpow_mul]
+      norm_num
+  calc ENNReal.ofReal (Real.exp (-β * t))
+        * (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+      ≤ ENNReal.ofReal (Real.exp (-β * t))
+          * ((ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2)
+            * ENNReal.ofReal (Real.exp (β * t)) * bieleckiNorm (P := P) β T Z) :=
+        mul_le_mul' le_rfl hsqrt
+    _ = (ENNReal.ofReal (Real.exp (-β * t)) * ENNReal.ofReal (Real.exp (β * t)))
+          * ((ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2)
+            * bieleckiNorm (P := P) β T Z) := by ring
+    _ = (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2)
+          * bieleckiNorm (P := P) β T Z := by
+        rw [← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
+        simp
+
 end Weighting
 
 end LevyStochCalc.Ito.Picard
