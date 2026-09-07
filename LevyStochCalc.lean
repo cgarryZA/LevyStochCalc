@@ -71,6 +71,7 @@ import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Filtered
 import LevyStochCalc.Brownian.MultidimFiltered
+import LevyStochCalc.Brownian.CylinderCharacters
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport

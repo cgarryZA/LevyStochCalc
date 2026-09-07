@@ -696,3 +696,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.directed_comap_finDimVector
 #print axioms LevyStochCalc.Probability.iSup_comap_finDimVector
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_cylinder_eq_zero
+-- ===== Cylinder characters of a Brownian motion (A4b-i, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.naturalFiltration_eq_iSup_comap
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.ae_eq_zero_of_integral_char_cylinder
