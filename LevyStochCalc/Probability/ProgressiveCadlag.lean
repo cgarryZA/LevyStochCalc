@@ -20,6 +20,8 @@ takes countably many values, all at times bounded by `i`.
   adapted process is progressively measurable.
 * `LevyStochCalc.Probability.ProgressivelyMeasurable.measurable_uncurry` — a progressively
   measurable process is jointly measurable.
+* `LevyStochCalc.Probability.exists_everywhere_cadlag_modification` — under the usual
+  conditions, an almost-surely càdlàg adapted process has an everywhere-càdlàg modification.
 -/
 
 open MeasureTheory Filter Topology
@@ -143,5 +145,48 @@ theorem measurable_uncurry_of_rightContinuous
     Measurable (Function.uncurry X) :=
   ((progressivelyMeasurable_of_rightContinuous hadapt hright).measurable_uncurry).comp
     measurable_swap
+
+/-- **An almost-surely càdlàg adapted process has an everywhere-càdlàg adapted modification**,
+when `ℱ 0` contains the `P`-null sets and lies below `ℱ t` for `t ≤ 0`. -/
+theorem exists_everywhere_cadlag_modification
+    {P : MeasureTheory.Measure Ω} {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    {X : ℝ → Ω → ℝ}
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (hadapt : ∀ t : ℝ, Measurable[ℱ t] (X t))
+    (hcad : ∀ᵐ ω ∂P, ∀ t : ℝ,
+      Tendsto (fun s => X s ω) (𝓝[>] t) (𝓝 (X t ω)) ∧
+        ∃ L : ℝ, Tendsto (fun s => X s ω) (𝓝[<] t) (𝓝 L)) :
+    ∃ Y : ℝ → Ω → ℝ, (∀ t : ℝ, Measurable[ℱ t] (Y t)) ∧ (∀ t : ℝ, Y t =ᵐ[P] X t) ∧
+      (∀ (ω : Ω) (t : ℝ), Tendsto (fun s => Y s ω) (𝓝[>] t) (𝓝 (Y t ω))) ∧
+      ∀ (ω : Ω) (t : ℝ), ∃ L : ℝ, Tendsto (fun s => Y s ω) (𝓝[<] t) (𝓝 L) := by
+  classical
+  obtain ⟨N, hsub, hNmeas, hNzero⟩ :=
+    MeasureTheory.exists_measurable_superset_of_null (MeasureTheory.ae_iff.mp hcad)
+  have hNout : ∀ ω : Ω, ω ∉ N → ∀ t : ℝ,
+      Tendsto (fun s => X s ω) (𝓝[>] t) (𝓝 (X t ω)) ∧
+        ∃ L : ℝ, Tendsto (fun s => X s ω) (𝓝[<] t) (𝓝 L) :=
+    fun ω hω => not_not.mp fun h => hω (hsub h)
+  have hNF : ∀ t : ℝ, MeasurableSet[ℱ t] N := by
+    intro t
+    rcases le_or_gt 0 t with h | h
+    · exact ℱ.mono h _ (hnull N hNmeas hNzero)
+    · exact hℱ0 t h.le _ (hnull N hNmeas hNzero)
+  refine ⟨fun t ω => if ω ∈ N then 0 else X t ω, fun t => ?_, fun t => ?_, ?_, ?_⟩
+  · exact Measurable.piecewise (hNF t) measurable_const (hadapt t)
+  · filter_upwards [MeasureTheory.compl_mem_ae_iff.mpr hNzero] with ω hω
+    simp [Set.notMem_of_mem_compl hω]
+  · intro ω t
+    by_cases hω : ω ∈ N
+    · simp only [hω, if_pos]
+      exact tendsto_const_nhds
+    · simpa [hω] using (hNout ω hω t).1
+  · intro ω t
+    by_cases hω : ω ∈ N
+    · refine ⟨0, ?_⟩
+      simp only [hω, if_pos]
+      exact tendsto_const_nhds
+    · obtain ⟨L, hL⟩ := (hNout ω hω t).2
+      exact ⟨L, by simpa [hω] using hL⟩
 
 end LevyStochCalc.Probability
