@@ -752,3 +752,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_mul_indIoc
 #print axioms LevyStochCalc.Brownian.Ito.memLp_ofReal
 #print axioms LevyStochCalc.Brownian.Ito.pairing_ito_eq_zero
+-- ===== One window of the Brownian PRP (A4b-iii, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_zero
+#print axioms LevyStochCalc.Brownian.Ito.pairing_cell_eq_zero
