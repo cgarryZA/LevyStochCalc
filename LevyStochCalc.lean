@@ -88,6 +88,7 @@ import LevyStochCalc.Brownian.DriftIncrement
 import LevyStochCalc.Brownian.ItoFormula
 import LevyStochCalc.Brownian.ItoFormulaGrid
 import LevyStochCalc.Brownian.ItoGridPartition
+import LevyStochCalc.Brownian.ItoMartingaleRiemann
 import LevyStochCalc.Brownian.ItoProcess
 import LevyStochCalc.Brownian.ItoProcessVersion
 import LevyStochCalc.Brownian.ItoProcessWindow
