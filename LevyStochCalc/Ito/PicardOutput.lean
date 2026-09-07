@@ -603,12 +603,13 @@ theorem continuous_setIntegral_Icc_of_integrableOn {f : ℝ → ℝ}
     (continuous_id.max continuous_const)
 
 omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
-/-- Almost every path of a process with locally finite energy is locally integrable. -/
-theorem ae_integrableOn_of_lintegral_sq {f : Ω → ℝ → ℝ}
+/-- Almost every path of a process with locally finite energy is locally `L²`. -/
+theorem ae_memLp_two_of_lintegral_sq {f : Ω → ℝ → ℝ}
     (hf : Measurable (Function.uncurry f))
     (hfin : ∀ b : ℝ, 0 < b →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b, (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
-    ∀ᵐ ω ∂P, ∀ b : ℝ, MeasureTheory.IntegrableOn (f ω) (Set.Icc (0 : ℝ) b) volume := by
+    ∀ᵐ ω ∂P, ∀ b : ℝ,
+      MeasureTheory.MemLp (f ω) 2 (volume.restrict (Set.Icc (0 : ℝ) b)) := by
   have hstep : ∀ n : ℕ, ∀ᵐ ω ∂P,
       ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1), (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤ := by
     intro n
@@ -619,7 +620,21 @@ theorem ae_integrableOn_of_lintegral_sq {f : Ω → ℝ → ℝ}
   have hsub : Set.Icc (0 : ℝ) b ⊆ Set.Icc (0 : ℝ) ((n : ℝ) + 1) :=
     Set.Icc_subset_Icc le_rfl (by linarith)
   have hslice : Measurable (f ω) := hf.comp (measurable_const.prodMk measurable_id)
-  exact (integrableOn_of_lintegral_sq_lt_top hslice (hω n)).mono_set hsub
+  exact (memLp_two_of_lintegral_sq_lt_top hslice (hω n)).mono_measure
+    (MeasureTheory.Measure.restrict_mono hsub le_rfl)
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- Almost every path of a process with locally finite energy is locally integrable. -/
+theorem ae_integrableOn_of_lintegral_sq {f : Ω → ℝ → ℝ}
+    (hf : Measurable (Function.uncurry f))
+    (hfin : ∀ b : ℝ, 0 < b →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b, (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ∀ b : ℝ, MeasureTheory.IntegrableOn (f ω) (Set.Icc (0 : ℝ) b) volume := by
+  filter_upwards [ae_memLp_two_of_lintegral_sq hf hfin] with ω hω b
+  haveI : MeasureTheory.IsFiniteMeasure (volume.restrict (Set.Icc (0 : ℝ) b)) :=
+    ⟨by rw [MeasureTheory.Measure.restrict_apply_univ, Real.volume_Icc]
+        exact ENNReal.ofReal_lt_top⟩
+  exact (hω b).integrable (by norm_num)
 
 omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
 /-- **Almost every drift path of the Picard step is continuous.** -/
@@ -1174,6 +1189,52 @@ theorem bieleckiNorm_le_of_perTime_bochner {β : ℝ} (hβ : 0 < β) {T C : ℝ}
   bieleckiNorm_le_of_perTime hβ hC U Z hZ fun t ht =>
     (hbd t ht).trans (mul_le_mul' le_rfl
       (lintegral_mono fun ω => lintegral_window_norm_le_sum t ω))
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- **The drift half of the per-time contraction estimate.** The per-component bound of
+`picardStep_drift_diff_lipschitz_sq_componentwise` needs four integrability facts about the
+path; local finiteness of the energies supplies all of them off one null set. -/
+theorem ae_drift_diff_sq_bound
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_μ : ℝ} (hL_μ_nn : 0 ≤ L_μ)
+    (h_μ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ, ∀ i : Fin n,
+      |coeffs.μ s x₁ i - coeffs.μ s x₂ i| ≤ L_μ * ‖x₁ - x₂‖)
+    (X Y : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ)
+    (hμX : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (hμY : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (Y s ω) i))
+    (hXYm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ‖X s ω - Y s ω‖))
+    (hμXsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hμYsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (Y s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hXYsq : ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ∀ᵐ ω ∂P, ∑ i : Fin n,
+        ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2
+      ≤ (n : ℝ) * L_μ ^ 2 * t * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 ∂volume := by
+  have hXYsq' : ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖(‖X s ω - Y s ω‖ : ℝ)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    intro b hb
+    refine lt_of_le_of_lt (le_of_eq ?_) (hXYsq b hb)
+    exact lintegral_congr fun ω => lintegral_congr fun s => by rw [nnnorm_norm]
+  filter_upwards [MeasureTheory.ae_all_iff.mpr fun i : Fin n =>
+      ae_integrableOn_of_lintegral_sq (hμX i) (hμXsq i),
+    MeasureTheory.ae_all_iff.mpr fun i : Fin n =>
+      ae_integrableOn_of_lintegral_sq (hμY i) (hμYsq i),
+    ae_integrableOn_of_lintegral_sq hXYm hXYsq',
+    ae_memLp_two_of_lintegral_sq hXYm hXYsq'] with ω hX hY hXY hXYL2
+  calc ∑ i : Fin n,
+        ((picardStep_drift coeffs X x₀ t ω - picardStep_drift coeffs Y x₀ t ω) i) ^ 2
+      ≤ ∑ _i : Fin n, L_μ ^ 2 * t
+          * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 ∂volume :=
+        Finset.sum_le_sum fun i _ =>
+          picardStep_drift_diff_lipschitz_sq_componentwise coeffs hL_μ_nn h_μ_lip X Y x₀ t ht
+            ω i (hX i t) (hY i t) (hXY t) (hXYL2 t)
+    _ = (n : ℝ) * L_μ ^ 2 * t
+          * ∫ s in Set.Icc (0 : ℝ) t, ‖X s ω - Y s ω‖ ^ 2 ∂volume := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+        ring
 
 end Weighting
 
