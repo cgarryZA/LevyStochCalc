@@ -144,6 +144,26 @@ theorem stepIocMul₀_integralAgainst {b : ℝ} (hb : 0 < b) {V : Ω → ℝ}
   rw [hrw, Fin.sum_univ_one]
   simp
 
+/-- A bounded weight measurable before a window, times the window's indicator, is progressively
+measurable. -/
+theorem progressivelyMeasurable_mul_indIoc (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {a b : ℝ}
+    (ha : 0 ≤ a) (hab : a < b) {V : Ω → ℝ} (hVb : ∃ M : ℝ, ∀ ω, |V ω| ≤ M)
+    (hVm : Measurable V) (hVa : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ a) V) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s => V ω * indIoc Ω a b ω s := by
+  rcases eq_or_lt_of_le ha with rfl | ha'
+  · have hfun : (fun ω s => V ω * indIoc Ω 0 b ω s)
+        = fun ω s => (stepIocMul₀ Ω hab V hVb hVm).eval s ω := by
+      funext ω s; rw [stepIocMul₀_eval]
+    rw [hfun]
+    exact (stepIocMul₀ Ω hab V hVb hVm).progressivelyMeasurable_eval ℱ
+      (stepIocMul₀_adapt ℱ hab hVb hVm hVa)
+  · have hfun : (fun ω s => V ω * indIoc Ω a b ω s)
+        = fun ω s => (stepIocMul Ω ha' hab V hVb hVm).eval s ω := by
+      funext ω s; rw [stepIocMul_eval]
+    rw [hfun]
+    exact (stepIocMul Ω ha' hab V hVb hVm).progressivelyMeasurable_eval ℱ
+      (stepIocMul_adapt ℱ ha' hab hVb hVm hVa)
+
 section PullOut
 
 variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)

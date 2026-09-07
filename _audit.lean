@@ -748,3 +748,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.norm_pairing_le_setIntegral_norm
 #print axioms LevyStochCalc.Brownian.Ito.pairing_zero_time
 #print axioms LevyStochCalc.Brownian.Ito.pairing_eq_zero_of_norm_le
+-- ===== The dW term pairs to zero (A4b-iii, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_mul_indIoc
+#print axioms LevyStochCalc.Brownian.Ito.memLp_ofReal
+#print axioms LevyStochCalc.Brownian.Ito.pairing_ito_eq_zero
