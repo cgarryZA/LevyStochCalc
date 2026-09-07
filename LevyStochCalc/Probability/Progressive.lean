@@ -64,6 +64,32 @@ theorem mono {𝒢 : Filtration ℝ mΩ} (h : ProgressivelyMeasurable ℱ H)
     (hle : ∀ t, ℱ t ≤ 𝒢 t) : ProgressivelyMeasurable 𝒢 H := fun t =>
   (h t).mono (sup_le_sup (MeasurableSpace.comap_mono (hle t)) le_rfl)
 
+/-- Freezing a progressively measurable process at a deterministic time keeps it progressively
+measurable. -/
+theorem minTime (h : ProgressivelyMeasurable ℱ H) (T : ℝ) :
+    ProgressivelyMeasurable ℱ fun ω s => H ω (min s T) := by
+  intro t
+  letI : MeasurableSpace Ω := ℱ t
+  have hmono : ℱ (min t T) ≤ ℱ t := ℱ.mono (min_le_left t T)
+  have hG : StronglyMeasurable fun q : Ω × ℝ => (Set.Iic (min t T)).indicator (H q.1) q.2 :=
+    (h (min t T)).mono (sup_le_sup (MeasurableSpace.comap_mono hmono) le_rfl)
+  have he : Measurable fun q : Ω × ℝ => ((q.1 : Ω), min q.2 T) :=
+    measurable_fst.prodMk (measurable_snd.min measurable_const)
+  have hcomp := hG.comp_measurable he
+  have hind := hcomp.indicator (s := Set.univ ×ˢ Set.Iic t)
+    (MeasurableSet.univ.prod measurableSet_Iic)
+  have heq : (fun p : Ω × ℝ => (Set.Iic t).indicator (fun s => H p.1 (min s T)) p.2)
+      = (Set.univ ×ˢ Set.Iic t).indicator
+        ((fun q : Ω × ℝ => (Set.Iic (min t T)).indicator (H q.1) q.2)
+          ∘ fun q : Ω × ℝ => ((q.1 : Ω), min q.2 T)) := by
+    funext p
+    by_cases hp : p.2 ≤ t
+    · have hmin : min p.2 T ≤ min t T := min_le_min hp le_rfl
+      simp [hp, hmin, Function.comp_def]
+    · simp [hp, Function.comp_def]
+  rw [heq]
+  exact hind
+
 /-- A progressively measurable process is strongly progressive in the sense of Mathlib. -/
 theorem isStronglyProgressive (h : ProgressivelyMeasurable ℱ H) :
     IsStronglyProgressive ℱ fun s ω => H ω s := by

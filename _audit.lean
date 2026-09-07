@@ -357,6 +357,11 @@ import LevyStochCalc
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
 -- Picard framework lemmas (active construction toward JumpDiffusion proof):
+-- C0c-i (2026-09-07): the deterministic-time freeze.
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.minTime
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_min
+#print axioms LevyStochCalc.Ito.Picard.SBoundedProcess.stop
+#print axioms LevyStochCalc.Ito.Picard.SBoundedProcess.stop_eq_of_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound

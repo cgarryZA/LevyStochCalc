@@ -23,6 +23,8 @@ with the contraction provided by a Bielecki-weighted norm
 
 * `SBoundedProcess`, `bieleckiNorm` — the space of processes and its
   Bielecki-weighted L² norm.
+* `SBoundedProcess.stop` — the deterministic-time freeze at the horizon, which has the same
+  Bielecki norm and is bounded at every later horizon.
 * `picardStep` — the Picard map `Φ`, built from the multidim Brownian and
   compensated-Poisson Itô integrals, with measurability and the
   drift/diffusion/jump a-priori L² estimates of a single step.
@@ -86,6 +88,73 @@ structure SBoundedProcess
           Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L)
   /-- Finite Bielecki-norm at the standard weight `β = 0`. -/
   sup_L2 : bieleckiNorm (P := P) 0 T X < ⊤
+
+/-- Freezing a process at the horizon does not change its Bielecki norm on `[0, T]`, since the
+supremum runs over times at which the two processes agree. -/
+theorem bieleckiNorm_min {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P] (β T : ℝ)
+    (X : ℝ → Ω → (Fin n → ℝ)) :
+    bieleckiNorm (P := P) β T (fun s ω => X (min s T) ω) = bieleckiNorm (P := P) β T X := by
+  unfold bieleckiNorm
+  refine iSup_congr fun t => iSup_congr fun ht => ?_
+  simp only [min_eq_left ht.2]
+
+namespace SBoundedProcess
+
+/-- **The deterministic-time freeze.** `X.stop` is `X` on `[0, T]` and constant at `X T`
+afterwards. It has the same Bielecki norm on `[0, T]`, and its `L²` bounds hold at every
+horizon, which is what the Picard step's integrand hypotheses need. -/
+noncomputable def stop {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (X : SBoundedProcess (n := n) P ℱ T) : SBoundedProcess (n := n) P ℱ T where
+  X s ω := X.X (min s T) ω
+  measurable_path :=
+    X.measurable_path.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)
+  adapted i := (X.adapted i).minTime T
+  cadlag_paths := by
+    filter_upwards [X.cadlag_paths] with ω hω
+    intro t
+    refine ⟨?_, ?_⟩
+    · rcases lt_or_ge t T with ht | ht
+      · have hXt : X.X (min t T) ω = X.X t ω := by rw [min_eq_left ht.le]
+        have hev : (fun s => X.X s ω) =ᶠ[nhdsWithin t (Set.Ioi t)]
+            fun s => X.X (min s T) ω := by
+          filter_upwards [nhdsWithin_le_nhds (IsOpen.mem_nhds isOpen_Iio ht)] with s hs
+          rw [min_eq_left (le_of_lt hs)]
+        rw [hXt]
+        exact ((hω t).1).congr' hev
+      · have hXt : X.X (min t T) ω = X.X T ω := by rw [min_eq_right ht]
+        have hev : (fun _ : ℝ => X.X T ω) =ᶠ[nhdsWithin t (Set.Ioi t)]
+            fun s => X.X (min s T) ω := by
+          filter_upwards [self_mem_nhdsWithin] with s hs
+          rw [min_eq_right (le_of_lt (lt_of_le_of_lt ht hs))]
+        rw [hXt]
+        exact tendsto_const_nhds.congr' hev
+    · intro i
+      rcases le_or_gt t T with ht | ht
+      · obtain ⟨L, hL⟩ := (hω t).2 i
+        refine ⟨L, hL.congr' ?_⟩
+        filter_upwards [self_mem_nhdsWithin] with s hs
+        rw [min_eq_left (le_of_lt (lt_of_lt_of_le hs ht))]
+      · refine ⟨X.X T ω i, tendsto_const_nhds.congr' ?_⟩
+        filter_upwards [nhdsWithin_le_nhds (IsOpen.mem_nhds isOpen_Ioi ht)] with s hs
+        rw [min_eq_right (le_of_lt hs)]
+  sup_L2 := by
+    rw [bieleckiNorm_min]
+    exact X.sup_L2
+
+@[simp] theorem stop_apply {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (X : SBoundedProcess (n := n) P ℱ T) (s : ℝ) (ω : Ω) :
+    X.stop.X s ω = X.X (min s T) ω := rfl
+
+/-- On `[0, T]` the frozen process agrees with the original. -/
+theorem stop_eq_of_le {n : ℕ} {P : Measure Ω} [IsProbabilityMeasure P]
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
+    (X : SBoundedProcess (n := n) P ℱ T) {s : ℝ} (hs : s ≤ T) (ω : Ω) :
+    X.stop.X s ω = X.X s ω := by
+  rw [stop_apply, min_eq_left hs]
+
+end SBoundedProcess
 
 /-- **The Picard map step.** Given a candidate process `X` and the
 coefficients `(μ, σ, γ)`, the next iterate is
