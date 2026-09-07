@@ -12,6 +12,7 @@ import LevyStochCalc.Basic
 -- in the future, recreate the file with the specific notation declarations.
 
 -- Layer 0: Compensated Poisson
+import LevyStochCalc.Probability.AbsMoment
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
@@ -86,6 +87,7 @@ import LevyStochCalc.Brownian.ItoQuadVarSum
 import LevyStochCalc.Brownian.DriftIncrement
 import LevyStochCalc.Brownian.ItoFormula
 import LevyStochCalc.Brownian.ItoFormulaGrid
+import LevyStochCalc.Brownian.ItoProcess
 import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo

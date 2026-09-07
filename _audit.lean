@@ -309,6 +309,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.abs_taylorRemainder_le
 #print axioms LevyStochCalc.Brownian.Ito.integrable_abs_drift_pow_three
 #print axioms LevyStochCalc.Brownian.Ito.integrable_abs_itoIncrement_pow_three
+#print axioms LevyStochCalc.integral_abs_le_sqrt_of_integral_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_sq_itoProcess_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_itoProcess_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.measurable_itoProcess
 #print axioms LevyStochCalc.Brownian.Ito.itoProcess_sub
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_taylorRemainder_le

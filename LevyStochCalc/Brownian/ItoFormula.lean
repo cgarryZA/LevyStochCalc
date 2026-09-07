@@ -20,9 +20,6 @@ by a general one costs the `L²` distance between them times the bound on the in
   an Itô integral.
 * `LevyStochCalc.Brownian.Ito.lintegral_sq_sum_unifGrid_sub_le` — that sum is `L²`-close to the
   Itô integral of the weight, with the weight's modulus of continuity as the rate.
-* `LevyStochCalc.Brownian.Ito.itoProcess` — the process `X₀ + ∫ b ds + ∫ H dW`.
-* `LevyStochCalc.Brownian.Ito.itoProcess_sub` — its increment splits into drift and martingale
-  parts.
 * `LevyStochCalc.Brownian.Ito.integral_abs_taylorRemainder_le` — the second-order Taylor
   remainder along a uniform grid is `O(m^{-1/2})` in `L¹`.
 -/
@@ -134,7 +131,7 @@ theorem lintegral_sq_sum_unifGrid_sub_le
 
 end GridSum
 
-section ItoProcess
+section TaylorRemainder
 
 variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
   (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
@@ -142,34 +139,6 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.B
   (hp : Probability.ProgressivelyMeasurable ℱ H)
   (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
     (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-
-/-- The Itô process `X_t = X₀ + ∫_{[0,t]} b_s ds + ∫_0^t H_s dW_s`. -/
-noncomputable def itoProcess (X₀ : Ω → ℝ) (bdrift : Ω → ℝ → ℝ) (t : ℝ) (ω : Ω) : ℝ :=
-  X₀ ω + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume)
-    + stochasticIntegralBrownian W ℱ hℱ H hm hp hq t ω
-
-include hℱ in
-/-- An Itô process is measurable in the sample point at each time. -/
-theorem measurable_itoProcess {X₀ : Ω → ℝ} (hX₀ : Measurable X₀) {bdrift : Ω → ℝ → ℝ}
-    (hbm : Measurable (Function.uncurry bdrift)) (t : ℝ) :
-    Measurable (itoProcess W ℱ hℱ H hm hp hq X₀ bdrift t) := by
-  unfold itoProcess
-  exact (hX₀.add (measurable_setIntegral hbm _)).add
-    ((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq t).mono (ℱ.le t)).measurable
-
-include hℱ in
-/-- The increment of an Itô process is the drift's increment plus the Itô integral's. -/
-theorem itoProcess_sub (X₀ : Ω → ℝ) (bdrift : Ω → ℝ → ℝ)
-    (hbm : Measurable (Function.uncurry bdrift)) {B : ℝ}
-    (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) {u v : ℝ} (hu : 0 ≤ u) (huv : u ≤ v) (ω : Ω) :
-    itoProcess W ℱ hℱ H hm hp hq X₀ bdrift v ω
-        - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift u ω
-      = (∫ s in Set.Ioc u v, bdrift ω s ∂volume)
-        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
-          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω) := by
-  unfold itoProcess
-  rw [← setIntegral_Icc_sub_Icc (Measurable.of_uncurry_left hbm) (hB ω) hu huv]
-  ring
 
 variable {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
 
@@ -260,6 +229,6 @@ theorem integral_abs_taylorRemainder_le
         exact sum_integral_abs_itoIncrement_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH bdrift hbm
           hB0 hB hT hm0
 
-end ItoProcess
+end TaylorRemainder
 
 end LevyStochCalc.Brownian.Ito
