@@ -46,7 +46,7 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 ## Cross-repo roadmap and an upstream discharge of #6 (2026-09-05)
 
 The end-to-end program for the three papers now lives in
-`../Dissertation/FORMALIZATION_ROADMAP.md`; this file remains the route for the foundations
+`../Dissertation/WORK_BREAKDOWN.md`; this file remains the route for the foundations
 (its WP5–WP9 are Phase A/B here). Two facts it records that bear on this plan directly:
 
 - **A2/#6 has a partial upstream discharge.** `raphaelrrcoelho/formal-mathfin`

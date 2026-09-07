@@ -55,7 +55,6 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 - `Plan.md` — the roadmap (start here).
 - `tools/cited_axioms.md` — the 14 axioms with paper references.
 - `tools/sorry_baseline.txt` — currently-deferred theorems.
-- `STATUS.md` — point-in-time build/axiom status.
 - `_audit.lean` — `#print axioms` budget check (input to `tools/lint.sh`).
 
 ## Prove2Me (planned; nothing uploaded yet)

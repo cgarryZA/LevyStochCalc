@@ -131,7 +131,7 @@ demoted to a theorem on 2026-05-26 with the literature dependency moved
 into this single explicit sorry, making the unresolved analytical content
 visible to the lint pipeline rather than hidden behind an axiom.
 
-See `STATUS.md` and `tools/sorry_baseline.txt` for the full chain.
+See `tools/sorry_baseline.txt` for the full chain.
 
 ## Scope (deliberate omissions)
 
@@ -189,7 +189,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-See [STATUS.md](STATUS.md) for current state and recent activity.
+Current state is whatever `lake build` and `bash tools/lint.sh` report.
 
 ## Authors
 
