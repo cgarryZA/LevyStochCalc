@@ -528,3 +528,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.ae_tendsto_bieleckiLimit
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sub_bieleckiLimit_rpow_le
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_bieleckiLimit_le
+
+-- ===== The Picard self-map is a Bielecki contraction (C2 bridge, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.sq_nnnorm_sub_le
+#print axioms LevyStochCalc.Ito.Picard.measurable_uncurry_stop_sub
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_stop_sub_lt_top
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_stop_sub
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnStop_diff_le
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardSelfMap_diff_le
