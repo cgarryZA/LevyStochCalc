@@ -544,3 +544,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_lt_top
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardIter_sub_bieleckiLimit_le
 #print axioms LevyStochCalc.Ito.Picard.exists_bieleckiWeight_rate_lt_one
+-- ===== Integrand bounds along a raw state process of finite energy (C3 prep, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sigma_lt_top_of_energy
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_gamma_lt_top_of_energy
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_mu_lt_top_of_energy
