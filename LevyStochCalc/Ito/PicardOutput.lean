@@ -172,6 +172,26 @@ theorem enorm_sq_eq (x : ℝ) : ‖x ^ 2‖ₑ = (‖x‖₊ : ℝ≥0∞) ^ 2 :
   rfl
 
 omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- A function with finite energy on a bounded window is `L²` there. -/
+theorem memLp_two_of_lintegral_sq_lt_top {f : ℝ → ℝ} (hf : Measurable f) {b : ℝ}
+    (hfin : ∫⁻ s in Set.Icc (0 : ℝ) b, (‖f s‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤) :
+    MeasureTheory.MemLp f 2 (volume.restrict (Set.Icc (0 : ℝ) b)) := by
+  refine (MeasureTheory.memLp_two_iff_integrable_sq hf.aestronglyMeasurable).mpr ?_
+  refine ⟨(hf.pow_const 2).aestronglyMeasurable, ?_⟩
+  rw [MeasureTheory.hasFiniteIntegral_iff_enorm]
+  exact lt_of_le_of_lt (le_of_eq (lintegral_congr fun s => enorm_sq_eq (f s))) hfin
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- A function with finite energy on a bounded window is integrable there. -/
+theorem integrableOn_of_lintegral_sq_lt_top {f : ℝ → ℝ} (hf : Measurable f) {b : ℝ}
+    (hfin : ∫⁻ s in Set.Icc (0 : ℝ) b, (‖f s‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤) :
+    MeasureTheory.IntegrableOn f (Set.Icc (0 : ℝ) b) volume := by
+  haveI : MeasureTheory.IsFiniteMeasure (volume.restrict (Set.Icc (0 : ℝ) b)) :=
+    ⟨by rw [MeasureTheory.Measure.restrict_apply_univ, Real.volume_Icc]
+        exact ENNReal.ofReal_lt_top⟩
+  exact (memLp_two_of_lintegral_sq_lt_top hf hfin).integrable (by norm_num)
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
 /-- **Second moment of a time-integral**, by Cauchy–Schwarz on `[0, t]`. -/
 theorem lintegral_sq_setIntegral_le {f : Ω → ℝ → ℝ}
     (hf : Measurable (Function.uncurry f)) {t : ℝ} (ht : 0 ≤ t)
@@ -193,12 +213,8 @@ theorem lintegral_sq_setIntegral_le {f : Ω → ℝ → ℝ}
     filter_upwards [hae] with ω hω
     have hslice : Measurable (f ω) := hf.comp (measurable_const.prodMk measurable_id)
     -- `f ω` is `L²` on `[0, t]`
-    have hL2 : MeasureTheory.MemLp (f ω) 2 (volume.restrict (Set.Icc (0 : ℝ) t)) := by
-      refine (MeasureTheory.memLp_two_iff_integrable_sq hslice.aestronglyMeasurable).mpr ?_
-      refine ⟨(hslice.pow_const 2).aestronglyMeasurable, ?_⟩
-      rw [MeasureTheory.hasFiniteIntegral_iff_enorm]
-      refine lt_of_le_of_lt (le_of_eq (lintegral_congr fun s => ?_)) hω
-      exact enorm_sq_eq (f ω s)
+    have hL2 : MeasureTheory.MemLp (f ω) 2 (volume.restrict (Set.Icc (0 : ℝ) t)) :=
+      memLp_two_of_lintegral_sq_lt_top hslice hω
     have hint : MeasureTheory.Integrable (f ω) (volume.restrict (Set.Icc (0 : ℝ) t)) :=
       hL2.integrable (by norm_num)
     -- Cauchy–Schwarz against the constant `1`
@@ -584,5 +600,39 @@ theorem continuous_setIntegral_Icc_of_integrableOn {f : ℝ → ℝ}
   rw [heq]
   exact (intervalIntegral.continuous_primitive hgint 0).comp
     (continuous_id.max continuous_const)
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- Almost every path of a process with locally finite energy is locally integrable. -/
+theorem ae_integrableOn_of_lintegral_sq {f : Ω → ℝ → ℝ}
+    (hf : Measurable (Function.uncurry f))
+    (hfin : ∀ b : ℝ, 0 < b →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b, (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ∀ b : ℝ, MeasureTheory.IntegrableOn (f ω) (Set.Icc (0 : ℝ) b) volume := by
+  have hstep : ∀ n : ℕ, ∀ᵐ ω ∂P,
+      ∫⁻ s in Set.Icc (0 : ℝ) ((n : ℝ) + 1), (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume < ⊤ := by
+    intro n
+    refine MeasureTheory.ae_lt_top ?_ (hfin ((n : ℝ) + 1) (by positivity)).ne
+    exact (hf.nnnorm.coe_nnreal_ennreal.pow_const 2).lintegral_prod_right'
+  filter_upwards [MeasureTheory.ae_all_iff.mpr hstep] with ω hω b
+  obtain ⟨n, hn⟩ := exists_nat_ge b
+  have hsub : Set.Icc (0 : ℝ) b ⊆ Set.Icc (0 : ℝ) ((n : ℝ) + 1) :=
+    Set.Icc_subset_Icc le_rfl (by linarith)
+  have hslice : Measurable (f ω) := hf.comp (measurable_const.prodMk measurable_id)
+  exact (integrableOn_of_lintegral_sq_lt_top hslice (hω n)).mono_set hsub
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- **Almost every drift path of the Picard step is continuous.** -/
+theorem ae_continuous_picardStep_drift
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ) (i : Fin n)
+    (h_μ_meas : Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (h_μ_sq : ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, Continuous fun t => picardStep_drift coeffs X x₀ t ω i := by
+  filter_upwards [ae_integrableOn_of_lintegral_sq h_μ_meas h_μ_sq] with ω hω
+  have : (fun t => picardStep_drift coeffs X x₀ t ω i)
+      = fun t => x₀ i + ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X s ω) i := rfl
+  rw [this]
+  exact continuous_const.add (continuous_setIntegral_Icc_of_integrableOn hω)
 
 end LevyStochCalc.Ito.Picard
