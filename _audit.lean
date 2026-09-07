@@ -342,6 +342,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_itoGridError
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_itoFormula_le
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.itoFormula
+-- B1a-4 (2026-09-07): existence of a continuous adapted version.
+#print axioms LevyStochCalc.abs_setIntegral_Icc_sub_le
+#print axioms LevyStochCalc.continuous_setIntegral_Icc
+#print axioms LevyStochCalc.Brownian.Ito.measurable_of_ae_eq_of_null_mem
+#print axioms LevyStochCalc.Brownian.Ito.exists_measurable_null_of_ae
+#print axioms LevyStochCalc.Brownian.Ito.exists_isItoVersion
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

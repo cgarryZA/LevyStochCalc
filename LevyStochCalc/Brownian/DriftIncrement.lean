@@ -19,6 +19,8 @@ integral over that cell, and is bounded by the bound on `b` times the cell lengt
   integrable on any set of finite measure.
 * `LevyStochCalc.setIntegral_Icc_sub_Icc` — `∫_{[0,b]} − ∫_{[0,a]} = ∫_{(a,b]}`.
 * `LevyStochCalc.abs_setIntegral_Ioc_le` — `|∫_{(a,b]} f| ≤ B·(b − a)`.
+* `LevyStochCalc.abs_setIntegral_Icc_sub_le` — `t ↦ ∫_{[0,t]} f` is `B`-Lipschitz.
+* `LevyStochCalc.continuous_setIntegral_Icc` — hence continuous.
 * `LevyStochCalc.measurable_setIntegral` — the integral over a fixed set is measurable in
   the parameter.
 * `LevyStochCalc.measurable_setIntegral_Ioc` — the window integral is measurable in the
@@ -86,5 +88,50 @@ theorem measurable_setIntegral_Ioc {Ω : Type*} [MeasurableSpace Ω] {f : Ω →
     (hf : Measurable (Function.uncurry f)) (a b : ℝ) :
     Measurable fun ω => ∫ s in Set.Ioc a b, f ω s ∂volume :=
   measurable_setIntegral hf (Set.Ioc a b)
+
+/-- The integral of a bounded function over `[0, t]` is `B`-Lipschitz in `t`. -/
+theorem abs_setIntegral_Icc_sub_le {f : ℝ → ℝ} (hf : Measurable f) {B : ℝ} (hB0 : 0 ≤ B)
+    (hB : ∀ s, |f s| ≤ B) (t t' : ℝ) :
+    |(∫ s in Set.Icc (0 : ℝ) t', f s ∂volume) - ∫ s in Set.Icc (0 : ℝ) t, f s ∂volume|
+      ≤ B * |t' - t| := by
+  have hIcc : ∀ u : ℝ, 0 ≤ u →
+      (∫ s in Set.Icc (0 : ℝ) u, f s ∂volume) = ∫ s in Set.Ioc (0 : ℝ) u, f s ∂volume := by
+    intro u _
+    rw [MeasureTheory.Measure.restrict_congr_set MeasureTheory.Ioc_ae_eq_Icc]
+  have hempty : ∀ u : ℝ, u < 0 → (∫ s in Set.Icc (0 : ℝ) u, f s ∂volume) = 0 := by
+    intro u hu
+    rw [Set.Icc_eq_empty (not_le.mpr hu), MeasureTheory.setIntegral_empty]
+  have key : ∀ a b : ℝ, a ≤ b →
+      |(∫ s in Set.Icc (0 : ℝ) b, f s ∂volume) - ∫ s in Set.Icc (0 : ℝ) a, f s ∂volume|
+        ≤ B * (b - a) := by
+    intro a b hab
+    rcases lt_or_ge b 0 with hb | hb
+    · rw [hempty b hb, hempty a (lt_of_le_of_lt hab hb)]
+      simpa using mul_nonneg hB0 (by linarith)
+    · rcases lt_or_ge a 0 with ha | ha
+      · rw [hempty a ha, sub_zero, hIcc b hb]
+        refine le_trans (abs_setIntegral_Ioc_le hf hB hb) ?_
+        have : (0 : ℝ) ≤ -a := by linarith
+        nlinarith
+      · rw [setIntegral_Icc_sub_Icc hf hB ha hab]
+        exact abs_setIntegral_Ioc_le hf hB hab
+  rcases le_total t t' with h | h
+  · rw [abs_of_nonneg (by linarith : (0 : ℝ) ≤ t' - t)]
+    exact key t t' h
+  · rw [abs_sub_comm ((∫ s in Set.Icc (0 : ℝ) t', f s ∂volume)),
+      abs_sub_comm t' t, abs_of_nonneg (by linarith : (0 : ℝ) ≤ t - t')]
+    exact key t' t h
+
+/-- The integral of a bounded measurable function over `[0, t]` is continuous in `t`. -/
+theorem continuous_setIntegral_Icc {f : ℝ → ℝ} (hf : Measurable f) {B : ℝ} (hB0 : 0 ≤ B)
+    (hB : ∀ s, |f s| ≤ B) :
+    Continuous fun t => ∫ s in Set.Icc (0 : ℝ) t, f s ∂volume := by
+  have hlip : LipschitzWith (Real.toNNReal B)
+      fun t => ∫ s in Set.Icc (0 : ℝ) t, f s ∂volume := by
+    refine LipschitzWith.of_dist_le_mul fun t t' => ?_
+    rw [Real.dist_eq, Real.dist_eq, Real.coe_toNNReal B hB0]
+    exact abs_setIntegral_Icc_sub_le hf hB0 hB t' t
+  exact hlip.continuous
+
 
 end LevyStochCalc
