@@ -1083,7 +1083,8 @@ theorem bieleckiNorm_le_of_perTime {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0
     (hbd : ∀ t ∈ Set.Icc (0 : ℝ) T,
       ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P
         ≤ ENNReal.ofReal C
-            * ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P) :
+            * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+                (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P) :
     bieleckiNorm (P := P) β T U
       ≤ (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2) * bieleckiNorm (P := P) β T Z := by
   have hβ2 : (0 : ℝ) < 2 * β := by linarith
@@ -1096,18 +1097,14 @@ theorem bieleckiNorm_le_of_perTime {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0
   have hA : (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
       ≤ ENNReal.ofReal (C / (2 * β)) * ENNReal.ofReal (Real.exp (2 * β * t))
           * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
-    have h2 : (∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P)
-        ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
-      lintegral_mono fun ω => lintegral_window_norm_le_sum t ω
     calc (∫⁻ ω, ∑ i, (‖U t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P)
         = ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P := hcongr
       _ ≤ ENNReal.ofReal C
-            * ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P :=
-          hbd t ht
+            * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+                (∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P := hbd t ht
       _ ≤ ENNReal.ofReal C * (ENNReal.ofReal (Real.exp (2 * β * t) / (2 * β))
             * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ)) :=
-          mul_le_mul' le_rfl
-            (h2.trans (lintegral_lintegral_sq_le_bieleckiNorm_sq hβ T Z hZ ht))
+          mul_le_mul' le_rfl (lintegral_lintegral_sq_le_bieleckiNorm_sq hβ T Z hZ ht)
       _ = ENNReal.ofReal (C / (2 * β)) * ENNReal.ofReal (Real.exp (2 * β * t))
             * (bieleckiNorm (P := P) β T Z) ^ (2 : ℕ) := by
           rw [← mul_assoc, ← ENNReal.ofReal_mul hC,
@@ -1139,6 +1136,44 @@ theorem bieleckiNorm_le_of_perTime {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0
           * bieleckiNorm (P := P) β T Z := by
         rw [← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
         simp
+
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- The supremum norm is dominated by the coordinate sum, in `ℝ≥0∞`. -/
+theorem sq_coe_nnnorm_le_sum (v : Fin n → ℝ) :
+    (‖v‖₊ : ℝ≥0∞) ^ 2 ≤ ∑ i, (‖v i‖₊ : ℝ≥0∞) ^ 2 :=
+  (sq_coe_nnnorm v).le.trans (ofReal_sq_norm_le_sum v)
+
+omit [MeasurableSpace E] in
+/-- `bieleckiNorm_le_of_perTime` with the window energy measured in the supremum norm, which is
+the form the per-component difference estimates of `Ito/Picard.lean` produce. -/
+theorem bieleckiNorm_le_of_perTime_sup {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0 ≤ C)
+    (U Z : ℝ → Ω → (Fin n → ℝ))
+    (hZ : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => Z s ω))
+    (hbd : ∀ t ∈ Set.Icc (0 : ℝ) T,
+      ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P
+        ≤ ENNReal.ofReal C
+            * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+                (‖Z s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) :
+    bieleckiNorm (P := P) β T U
+      ≤ (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2) * bieleckiNorm (P := P) β T Z :=
+  bieleckiNorm_le_of_perTime hβ hC U Z hZ fun t ht =>
+    (hbd t ht).trans (mul_le_mul' le_rfl
+      (lintegral_mono fun ω => lintegral_mono fun s => sq_coe_nnnorm_le_sum (Z s ω)))
+
+omit [MeasurableSpace E] in
+/-- `bieleckiNorm_le_of_perTime` with the window energy as a Bochner integral. -/
+theorem bieleckiNorm_le_of_perTime_bochner {β : ℝ} (hβ : 0 < β) {T C : ℝ} (hC : 0 ≤ C)
+    (U Z : ℝ → Ω → (Fin n → ℝ))
+    (hZ : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => Z s ω))
+    (hbd : ∀ t ∈ Set.Icc (0 : ℝ) T,
+      ∫⁻ ω, ENNReal.ofReal (∑ i, (U t ω i) ^ 2) ∂P
+        ≤ ENNReal.ofReal C
+            * ∫⁻ ω, ENNReal.ofReal (∫ s in Set.Icc (0 : ℝ) t, ‖Z s ω‖ ^ 2 ∂volume) ∂P) :
+    bieleckiNorm (P := P) β T U
+      ≤ (ENNReal.ofReal (C / (2 * β))) ^ ((1 : ℝ) / 2) * bieleckiNorm (P := P) β T Z :=
+  bieleckiNorm_le_of_perTime hβ hC U Z hZ fun t ht =>
+    (hbd t ht).trans (mul_le_mul' le_rfl
+      (lintegral_mono fun ω => lintegral_window_norm_le_sum t ω))
 
 end Weighting
 

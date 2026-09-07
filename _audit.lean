@@ -440,6 +440,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.ofReal_setIntegral_le_lintegral
 #print axioms LevyStochCalc.Ito.Picard.lintegral_window_norm_le_sum
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_le_of_perTime
+#print axioms LevyStochCalc.Ito.Picard.sq_coe_nnnorm_le_sum
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_le_of_perTime_sup
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_le_of_perTime_bochner
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_vec
 #print axioms LevyStochCalc.Ito.Picard.picardStep_drift_diff_componentwise_norm_bound
