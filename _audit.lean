@@ -587,3 +587,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.eLpNorm_two_eq
 #print axioms LevyStochCalc.Probability.lintegral_sq_dyadicRunMax_le
 #print axioms LevyStochCalc.Probability.lintegral_iSup_sq_le_of_martingale
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw_ae_eq
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw_picardLimit_ae_eq

@@ -946,6 +946,111 @@ noncomputable def picardSelfMap
     (fun i j => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip Y hT.le i j hT)
     (fun i => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip Y hT.le i hT))
 
+/-- **The Picard self-map along a raw state process.** A process of the space whose path is a
+modification of `picardStepOnRawStop`. -/
+noncomputable def picardSelfMapRaw
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {T : ℝ} (hT : 0 < T)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i)
+    (hZb : bieleckiNorm (P := P) 0 T Z < ⊤) : SBoundedProcess (n := n) P ℱ T :=
+  Classical.choose (exists_sBoundedProcess_picardStep W ℱ hℱW coeffs
+    (fun s ω => Z (min s T) ω)
+    (measurable_sigma_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg hZa T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i j hT')
+    N hℱN x₀
+    (measurable_gamma_rawStop coeffs hReg hZm T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg hZa T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT')
+    hℱ0 hnull
+    (measurable_mu_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_mu_rawStop coeffs hReg hZa T)
+    (fun i _ hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hb)
+    (fun i => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT)
+    (fun i j => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i j hT)
+    (fun i => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT))
+
+/-- The raw self-map's path is a modification of the Picard step along the raw process. -/
+theorem picardSelfMapRaw_ae_eq
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (x₀ : Fin n → ℝ) {T : ℝ} (hT : 0 < T)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => Z s ω i)
+    (hZb : bieleckiNorm (P := P) 0 T Z < ⊤) (t : ℝ) :
+    (picardSelfMapRaw W N ℱ hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT hZm hZa hZb).X t
+      =ᵐ[P] picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip hZm hZa hZb hT.le x₀ t :=
+  Classical.choose_spec (exists_sBoundedProcess_picardStep W ℱ hℱW coeffs
+    (fun s ω => Z (min s T) ω)
+    (measurable_sigma_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg hZa T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i j hT')
+    N hℱN x₀
+    (measurable_gamma_rawStop coeffs hReg hZm T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg hZa T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT')
+    hℱ0 hnull
+    (measurable_mu_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_mu_rawStop coeffs hReg hZa T)
+    (fun i _ hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hb)
+    (fun i => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT)
+    (fun i j => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i j hT)
+    (fun i => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT)) t
+
 /-- The self-map's path is a modification of the Picard step along the frozen process. -/
 theorem picardSelfMap_ae_eq
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)

@@ -698,4 +698,39 @@ theorem ae_eq_zero_of_bieleckiNorm_eq_zero {β T : ℝ} {Z : ℝ → Ω → (Fin
       zero_le
   simpa using hle
 
+/-- **The fixed point is realised by a process of the space.** The raw self-map applied to the
+Picard limit is a jointly measurable, adapted, almost surely càdlàg process which agrees with the
+limit almost surely at every time of the window. -/
+theorem picardSelfMapRaw_picardLimit_ae_eq {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T)
+    (hq : (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2) < 1)
+    {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) T) :
+    ∀ᵐ ω ∂P, ∀ i,
+      (picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+          (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+          (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+            x₀ hT X₀)
+          (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+            hβ hT X₀ hq)).X t ω i
+        = picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ t ω i := by
+  have hYm := measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+  have hYa := progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+    x₀ hT X₀
+  have hYb := bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+    hβ hT X₀ hq
+  have hslice : ∀ (u : ℝ) (i : Fin n), Measurable fun ω =>
+      picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip hYm hYa hYb hT.le x₀ u ω i
+        - picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ u ω i :=
+    fun u i => (measurable_picardStepOnRawStop_slice W N ℱ' hℱW hℱN coeffs hReg hLip x₀
+      hYm hYa hYb hT.le u i).sub (measurable_slice_of_uncurry hYm u i)
+  have hzero := ae_eq_zero_of_bieleckiNorm_eq_zero (P := P) hslice
+    (bieleckiNorm_picardStepOnRawStop_picardLimit_eq_zero W N ℱ' hℱW hℱN hℱ0 hnull coeffs
+      hReg hLip x₀ hβ hT X₀ hq) ht
+  filter_upwards [picardSelfMapRaw_ae_eq W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+    hYm hYa hYb t, hzero] with ω hmod hz i
+  rw [congrFun hmod i, ← sub_eq_zero]
+  exact hz i
+
 end LevyStochCalc.Ito.Picard
