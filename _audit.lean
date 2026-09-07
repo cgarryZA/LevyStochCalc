@@ -602,3 +602,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.sq_sum_le_card_sq_mul
 #print axioms LevyStochCalc.Probability.enorm_dyadicRunMax_sum_le
 #print axioms LevyStochCalc.Probability.iSup_dyadicRunMax_sum_le
+-- ===== The S2 bound for the Picard step (C3a, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.sq_add_le_four_mul
+#print axioms LevyStochCalc.Ito.Picard.sq_add3_le_sixteen_mul
+#print axioms LevyStochCalc.Ito.Picard.iSup_dyadicRunMax_drift_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_drift_bound_lt_top
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_jump_le
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_brownian_coord_le
+#print axioms LevyStochCalc.Ito.Picard.measurable_brownianIntegral_slice
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_diffusion_lt_top
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_picardStep_lt_top
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_iSup_picardSelfMapRaw_lt_top
