@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoProcessVersion
 import LevyStochCalc.Brownian.ItoQuadVarSum
+import LevyStochCalc.Brownian.AugmentedFiltration
 
 /-!
 # Existence of a continuous adapted version of an Itô process
@@ -18,7 +19,11 @@ value and the drift's (Lipschitz, hence continuous) window integral gives an `Is
 
 * `LevyStochCalc.Brownian.Ito.measurable_of_ae_eq_of_null_mem` — a σ-algebra of the filtration
   containing the null sets does not distinguish a.e.-equal functions.
+* `LevyStochCalc.Brownian.Ito.dyadicApprox` — the dyadic approximation from below, whose values
+  lie in a countable set.
 * `LevyStochCalc.Brownian.Ito.exists_isItoVersion` — a continuous adapted version exists.
+* `LevyStochCalc.Brownian.Ito.exists_isItoVersion_aug` — the same over the augmented
+  filtration, with no side conditions.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -59,6 +64,43 @@ theorem exists_measurable_null_of_ae {μ : Measure Ω} {p : Ω → Prop} (h : �
     MeasureTheory.exists_measurable_superset_of_null (MeasureTheory.ae_iff.mp h)
   exact ⟨N, hmeas, hzero, fun ω hω => by_contra fun hp => hω (hsub hp)⟩
 
+/-- The `n`-th dyadic approximation from below of a nonnegative real. -/
+noncomputable def dyadicApprox (n : ℕ) (u : ℝ) : ℝ := (⌊u * 2 ^ n⌋₊ : ℝ) / 2 ^ n
+
+theorem dyadicApprox_nonneg (n : ℕ) (u : ℝ) : 0 ≤ dyadicApprox n u := by
+  unfold dyadicApprox
+  positivity
+
+theorem dyadicApprox_le {u : ℝ} (hu : 0 ≤ u) (n : ℕ) : dyadicApprox n u ≤ u := by
+  have h2 : (0 : ℝ) < 2 ^ n := by positivity
+  rw [dyadicApprox, div_le_iff₀ h2]
+  exact Nat.floor_le (by positivity)
+
+theorem sub_dyadicApprox_lt (u : ℝ) (n : ℕ) : u - dyadicApprox n u < 1 / 2 ^ n := by
+  have h2 : (0 : ℝ) < 2 ^ n := by positivity
+  have hfl := Nat.lt_floor_add_one (u * 2 ^ n)
+  rw [dyadicApprox, sub_lt_iff_lt_add,
+    show (1 : ℝ) / 2 ^ n + (⌊u * 2 ^ n⌋₊ : ℝ) / 2 ^ n
+      = ((⌊u * 2 ^ n⌋₊ : ℝ) + 1) / 2 ^ n by ring, lt_div_iff₀ h2]
+  linarith
+
+theorem tendsto_dyadicApprox {u : ℝ} (hu : 0 ≤ u) :
+    Filter.Tendsto (fun n : ℕ => dyadicApprox n u) Filter.atTop (nhds u) := by
+  have hlo : ∀ n : ℕ, u - 1 / 2 ^ n ≤ dyadicApprox n u := fun n => by
+    have := sub_dyadicApprox_lt u n
+    linarith
+  have hhi : ∀ n : ℕ, dyadicApprox n u ≤ u := dyadicApprox_le hu
+  have hpow : Filter.Tendsto (fun n : ℕ => (1 : ℝ) / 2 ^ n) Filter.atTop (nhds 0) := by
+    simpa using tendsto_pow_atTop_nhds_zero_of_lt_one
+      (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num : (1 : ℝ) / 2 < 1)
+  have hsub : Filter.Tendsto (fun n : ℕ => u - 1 / 2 ^ n) Filter.atTop (nhds u) := by
+    simpa using (tendsto_const_nhds (x := u) (f := Filter.atTop (α := ℕ))).sub hpow
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le hsub tendsto_const_nhds hlo hhi
+
+theorem dyadicApprox_eq (n : ℕ) (u : ℝ) :
+    dyadicApprox n u = ((⌊u * 2 ^ n⌋₊ : ℕ) : ℝ) / 2 ^ n := rfl
+
+
 section Exists
 
 variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -71,10 +113,10 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.B
 
 include hℱ hC0 hCH in
 /-- **A continuous adapted version of an Itô process exists** when the filtration is constant
-before time `0` and contains the null sets. -/
+before time `0` and contains the measurable null sets. -/
 theorem exists_isItoVersion
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
-    (hnull : ∀ s : Set Ω, (∃ N, MeasurableSet N ∧ P N = 0 ∧ s ⊆ N) → MeasurableSet[ℱ 0] s)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
     {X₀ : Ω → ℝ} (hX₀ : Measurable[ℱ 0] X₀)
     (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
     (hbp : Probability.ProgressivelyMeasurable ℱ bdrift)
@@ -83,30 +125,62 @@ theorem exists_isItoVersion
   classical
   obtain ⟨Y, hYcont, hYmod⟩ :=
     exists_continuous_modification_stochasticIntegralBrownian W ℱ hℱ H hm hp hq hC0 hCH
-  obtain ⟨N, hNmeas, hNzero, hNcont⟩ := exists_measurable_null_of_ae hYcont
-  -- `ℱ t` contains `ℱ 0` at every time
+  obtain ⟨N₁, hN₁meas, hN₁zero, hN₁cont⟩ := exists_measurable_null_of_ae hYcont
+  -- the modification agrees with the integral at every nonnegative dyadic time
+  have hdnn : ∀ p : ℕ × ℕ, (0 : ℝ) ≤ ((p.1 : ℝ) / 2 ^ p.2) := fun p => by positivity
+  choose Nd hNdmeas hNdzero hNdout using fun p : ℕ × ℕ =>
+    exists_measurable_null_of_ae (hYmod ((p.1 : ℝ) / 2 ^ p.2) (hdnn p))
+  set N : Set Ω := N₁ ∪ ⋃ p : ℕ × ℕ, Nd p with hNdef
+  have hNmeas : MeasurableSet N :=
+    hN₁meas.union (MeasurableSet.iUnion fun p => hNdmeas p)
+  have hNzero : P N = 0 :=
+    MeasureTheory.measure_union_null hN₁zero
+      (MeasureTheory.measure_iUnion_null fun p => hNdzero p)
+  have hNcont : ∀ ω : Ω, ω ∉ N → Continuous fun t => Y t ω := fun ω hω =>
+    hN₁cont ω fun h => hω (Or.inl h)
+  have hNdyad : ∀ (p : ℕ × ℕ) (ω : Ω), ω ∉ N →
+      Y ((p.1 : ℝ) / 2 ^ p.2) ω
+        = stochasticIntegralBrownian W ℱ hℱ H hm hp hq ((p.1 : ℝ) / 2 ^ p.2) ω :=
+    fun p ω hω => hNdout p ω fun h => hω (Or.inr (Set.mem_iUnion.mpr ⟨p, h⟩))
+  -- `ℱ t` contains `ℱ 0` at every time, hence contains `N`
   have hle0 : ∀ t : ℝ, ℱ 0 ≤ ℱ t := by
     intro t
     rcases le_or_gt 0 t with ht | ht
     · exact ℱ.mono ht
     · exact hℱ0 t ht.le
   have hNm : ∀ t : ℝ, MeasurableSet[ℱ t] N := fun t =>
-    hle0 t N (hnull N ⟨N, hNmeas, hNzero, Set.Subset.rfl⟩)
-  -- the Kolmogorov modification is adapted once the null sets are in the filtration
-  have hYadapt : ∀ u : ℝ, 0 ≤ u → Measurable[ℱ u] (Y u) := by
+    hle0 t N (hnull N hNmeas hNzero)
+  -- the truncated modification is adapted, as a pointwise limit along dyadic times
+  have hYind : ∀ u : ℝ, 0 ≤ u →
+      Measurable[ℱ u] fun ω => if ω ∈ N then (0 : ℝ) else Y u ω := by
     intro u hu
-    have hnullu : ∀ s : Set Ω, (∃ N, MeasurableSet N ∧ P N = 0 ∧ s ⊆ N) →
-        MeasurableSet[ℱ u] s := fun s hs => ℱ.mono hu _ (hnull s hs)
-    have hSI : Measurable[ℱ u] (stochasticIntegralBrownian W ℱ hℱ H hm hp hq u) :=
-      (stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq u).measurable
-    exact measurable_of_ae_eq_of_null_mem ℱ u hnullu hSI (hYmod u hu)
-  have hYt : ∀ t : ℝ, Measurable[ℱ t] fun ω => Y (max t 0) ω := by
-    intro t
-    rcases le_or_gt 0 t with ht | ht
-    · rw [max_eq_left ht]
-      exact hYadapt t ht
-    · rw [max_eq_right ht.le]
-      exact fun A hA => hle0 t _ (hYadapt 0 le_rfl hA)
+    have hstep : ∀ n : ℕ, Measurable[ℱ u] fun ω => if ω ∈ N then (0 : ℝ)
+        else stochasticIntegralBrownian W ℱ hℱ H hm hp hq (dyadicApprox n u) ω := by
+      intro n
+      have hSI : Measurable[ℱ u]
+          (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (dyadicApprox n u)) := by
+        have h1 := (stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq
+          (dyadicApprox n u)).measurable
+        exact fun A hA => ℱ.mono (dyadicApprox_le hu n) _ (h1 hA)
+      exact Measurable.ite (hNm u) measurable_const hSI
+    have hlim : Filter.Tendsto (fun (n : ℕ) (ω : Ω) => if ω ∈ N then (0 : ℝ)
+          else stochasticIntegralBrownian W ℱ hℱ H hm hp hq (dyadicApprox n u) ω)
+        Filter.atTop (nhds fun ω => if ω ∈ N then (0 : ℝ) else Y u ω) := by
+      rw [tendsto_pi_nhds]
+      intro ω
+      by_cases hω : ω ∈ N
+      · simp only [hω, if_true]
+        exact tendsto_const_nhds
+      · simp only [hω, if_false]
+        have heq : (fun n : ℕ => stochasticIntegralBrownian W ℱ hℱ H hm hp hq
+            (dyadicApprox n u) ω) = fun n => Y (dyadicApprox n u) ω := by
+          funext n
+          exact (hNdyad (⌊u * 2 ^ n⌋₊, n) ω hω).symm
+        rw [heq]
+        exact Filter.Tendsto.comp ((hNcont ω hω).continuousAt (x := u))
+          (tendsto_dyadicApprox hu)
+    letI : MeasurableSpace Ω := ℱ u
+    exact measurable_of_tendsto_metrizable hstep hlim
   refine ⟨fun t ω => if ω ∈ N then 0 else X₀ ω
       + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume) + Y (max t 0) ω, ?_, ?_, ?_⟩
   · intro ω
@@ -118,16 +192,48 @@ theorem exists_isItoVersion
       exact (hNcont ω hω).comp (continuous_id.max continuous_const)
   · intro t
     refine Measurable.stronglyMeasurable ?_
-    refine Measurable.ite (hNm t) measurable_const ?_
-    refine Measurable.add (Measurable.add ?_ ?_) (hYt t)
-    · exact fun A hA => hle0 t _ (hX₀ hA)
-    · exact ((hbp.stronglyMeasurable_setIntegral measurableSet_Icc
+    have hsplit : (fun ω : Ω => if ω ∈ N then (0 : ℝ) else X₀ ω
+          + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume) + Y (max t 0) ω)
+        = fun ω => (if ω ∈ N then (0 : ℝ) else X₀ ω
+            + ∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume)
+          + (if ω ∈ N then (0 : ℝ) else Y (max t 0) ω) := by
+      funext ω
+      by_cases hω : ω ∈ N <;> simp [hω]
+    rw [hsplit]
+    refine Measurable.add (Measurable.ite (hNm t) measurable_const ?_) ?_
+    · refine Measurable.add (fun A hA => hle0 t _ (hX₀ hA)) ?_
+      exact ((hbp.stronglyMeasurable_setIntegral measurableSet_Icc
         Set.Icc_subset_Iic_self volume).mono le_rfl).measurable
+    · rcases le_or_gt 0 t with ht | ht
+      · rw [max_eq_left ht]
+        exact hYind t ht
+      · rw [max_eq_right ht.le]
+        exact fun A hA => hle0 t _ (hYind 0 le_rfl hA)
   · intro t ht
     filter_upwards [hYmod t ht,
       MeasureTheory.compl_mem_ae_iff.mpr hNzero] with ω hω hωN
     rw [if_neg hωN, max_eq_left ht, hω]
     rfl
+
+include hC0 hCH in
+/-- **A continuous adapted version exists over the augmented filtration**, with no side
+conditions on the filtration: freezing `ℱ` before time `0` and augmenting by the null sets
+gives a Brownian filtration satisfying the usual conditions. -/
+theorem exists_isItoVersion_aug
+    (Hp : Probability.ProgressivelyMeasurable (augFiltration ℱ P) H)
+    (Hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X₀ : Ω → ℝ} (hX₀ : Measurable[ℱ 0] X₀)
+    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
+    (hbp : Probability.ProgressivelyMeasurable (augFiltration ℱ P) bdrift)
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) :
+    ∃ X : ℝ → Ω → ℝ, IsItoVersion W (augFiltration ℱ P)
+      (isBrownianFiltration_augFiltration hℱ) H hm Hp Hq X₀ bdrift X :=
+  exists_isItoVersion W (augFiltration ℱ P) (isBrownianFiltration_augFiltration hℱ) H hm Hp Hq
+    hC0 hCH (fun _ ht => le_of_eq (augFiltration_of_nonpos ℱ P ht).symm)
+    (fun _ hs h0 => measurableSet_augFiltration_of_null ℱ P hs h0)
+    (fun _ hA => le_augFiltration ℱ P 0 _ (hX₀ hA)) bdrift hbm hbp hB0 hB
+
 
 end Exists
 

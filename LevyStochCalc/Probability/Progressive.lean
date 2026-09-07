@@ -59,6 +59,11 @@ theorem _root_.Continuous.comp_progressivelyMeasurable {φ : E → F} (hφ : Con
   rw [this]
   exact hφ.comp_stronglyMeasurable (h t)
 
+/-- Progressive measurability is monotone in the filtration. -/
+theorem mono {𝒢 : Filtration ℝ mΩ} (h : ProgressivelyMeasurable ℱ H)
+    (hle : ∀ t, ℱ t ≤ 𝒢 t) : ProgressivelyMeasurable 𝒢 H := fun t =>
+  (h t).mono (sup_le_sup (MeasurableSpace.comap_mono (hle t)) le_rfl)
+
 /-- A progressively measurable process is strongly progressive in the sense of Mathlib. -/
 theorem isStronglyProgressive (h : ProgressivelyMeasurable ℱ H) :
     IsStronglyProgressive ℱ fun s ω => H ω s := by

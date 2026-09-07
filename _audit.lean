@@ -348,6 +348,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.measurable_of_ae_eq_of_null_mem
 #print axioms LevyStochCalc.Brownian.Ito.exists_measurable_null_of_ae
 #print axioms LevyStochCalc.Brownian.Ito.exists_isItoVersion
+-- B1a-5 (2026-09-07): the augmented filtration satisfies the usual conditions.
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_dyadicApprox
+#print axioms LevyStochCalc.Probability.indep_aug
+#print axioms LevyStochCalc.Brownian.isBrownianFiltration_augFiltration
+#print axioms LevyStochCalc.Brownian.Ito.exists_isItoVersion_aug
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
