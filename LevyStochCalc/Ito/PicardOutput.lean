@@ -1508,6 +1508,70 @@ theorem picardStep_apply_eq
         + picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq t ω i
         + picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq t ω i := rfl
 
+/-- The Picard step starts at `x₀`: at time `0` both stochastic components vanish almost surely
+and the drift window is a null set. -/
+theorem ae_picardStep_zero
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (X : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ)
+    (h_σ_meas : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    (h_σ_progMeas : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (X s ω) i j))
+    (h_σ_sq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h_γ_meas : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (X s ω) e i))
+    (h_γ_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ∀ i : Fin n,
+      picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+        h_γ_meas h_γ_progMeas h_γ_sq 0 ω i = x₀ i := by
+  have hdrift : ∀ (ω : Ω) (i : Fin n), picardStep_drift coeffs X x₀ 0 ω i = x₀ i := by
+    intro ω i
+    have hzero : (∫ s in Set.Icc (0 : ℝ) 0, coeffs.μ s (X s ω) i ∂volume) = 0 :=
+      MeasureTheory.setIntegral_measure_zero _ (by simp)
+    change x₀ i + (∫ s in Set.Icc (0 : ℝ) 0, coeffs.μ s (X s ω) i ∂volume) = x₀ i
+    rw [hzero, add_zero]
+  have hσ : ∀ᵐ ω ∂P, ∀ p : Fin n × Fin d,
+      LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W p.2) ℱ (hℱW p.2)
+        (fun ω' s => coeffs.σ s (X s ω') p.1 p.2)
+        (h_σ_meas p.1 p.2) (h_σ_progMeas p.1 p.2) (h_σ_sq p.1 p.2) 0 ω = 0 :=
+    MeasureTheory.ae_all_iff.mpr fun p =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero_of_nonpos (W.W p.2) ℱ
+        (hℱW p.2) (fun ω' s => coeffs.σ s (X s ω') p.1 p.2)
+        (h_σ_meas p.1 p.2) (h_σ_progMeas p.1 p.2) (h_σ_sq p.1 p.2) le_rfl
+  have hγ : ∀ᵐ ω ∂P, ∀ i : Fin n,
+      picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq 0 ω i = 0 := by
+    refine MeasureTheory.ae_all_iff.mpr fun i => ?_
+    filter_upwards [LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_process N ℱ hℱN
+        (fun ω s e => coeffs.γ s (X s ω) e i) (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) 0,
+      LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos N ℱ hℱN
+        (fun ω s e => coeffs.γ s (X s ω) e i) (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i)
+        le_rfl] with ω h1 h2
+    change LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
+      (fun ω' s e => coeffs.γ s (X s ω') e i) (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) 0 ω = 0
+    rw [h1, h2]
+    rfl
+  filter_upwards [hσ, hγ] with ω hσω hγω i
+  rw [picardStep_apply_eq W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas h_σ_progMeas h_σ_sq
+    h_γ_meas h_γ_progMeas h_γ_sq 0 ω i, hdrift ω i, hγω i, add_zero]
+  have hdiff : picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq 0 ω i = 0 := by
+    change (∑ j : Fin d, LevyStochCalc.Brownian.Ito.stochasticIntegral (W.W j) ℱ (hℱW j)
+      (fun ω' s => coeffs.σ s (X s ω') i j)
+      (h_σ_meas i j) (h_σ_progMeas i j) (h_σ_sq i j) 0 ω) = 0
+    exact Finset.sum_eq_zero fun j _ => hσω (i, j)
+  rw [hdiff, add_zero]
+
 -- `picardStep` and the two stochastic-integral components unfold to `Finset` sums over `Fin d`
 -- and to the `L²`-limit integrals; the statement below repeats those terms verbatim on both
 -- sides, so unfolding them during unification only costs time. Sealed as in `Ito/Picard.lean`.
@@ -1641,6 +1705,113 @@ theorem lintegral_sq_picardStep_diff_le
       (mul_le_mul' le_rfl hbridgeR)
   · exact (jump_diff_lintegral_sq_bound N ℱ hℱN coeffs hLip X Y h_γ_meas_X h_γ_progMeas_X
       h_γ_sq_X h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y ht).trans (mul_le_mul' le_rfl hbridgeR)
+
+set_option maxHeartbeats 4000000 in
+-- Same reason as `lintegral_sq_picardStep_diff_le`: the statement names the full Picard term
+-- twice, once along each path.
+/-- **The Bielecki contraction estimate for the Picard step.** The rate is
+`√(3n(L²T + dL² + L²) / 2β)`, which `picardStep_bielecki_contraction_tight_rate_lt_one` puts
+below one once `β` passes its threshold. -/
+theorem bieleckiNorm_picardStep_diff_le
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    {ν : MeasureTheory.Measure E} [MeasureTheory.SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (X Y : ℝ → Ω → (Fin n → ℝ)) (x₀ : Fin n → ℝ)
+    (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (X s ω) i j))
+    (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h_γ_meas_X : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_X : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (X s ω) e i))
+    (h_γ_sq_X : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (Y s ω) i j))
+    (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h_γ_meas_Y : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (h_γ_progMeas_Y : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (Y s ω) e i))
+    (h_γ_sq_Y : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (hμX : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X s ω) i))
+    (hμY : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (Y s ω) i))
+    (hXYm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ‖X s ω - Y s ω‖))
+    (hμXsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hμYsq : ∀ i : Fin n, ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖coeffs.μ s (Y s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hXYsq : ∀ b : ℝ, 0 < b → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hZm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω - Y s ω))
+    {β : ℝ} (hβ : 0 < β) {T : ℝ} (hT : 0 < T) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas_X h_σ_progMeas_X h_σ_sq_X
+            h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω i
+          - picardStep W N ℱ hℱW hℱN coeffs Y x₀ h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+              h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω i)
+      ≤ (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2)
+        * bieleckiNorm (P := P) β T (fun t ω i => X t ω i - Y t ω i) := by
+  have hnn : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+  have hdn : (0 : ℝ) ≤ (d : ℝ) := Nat.cast_nonneg d
+  have hCnn : (0 : ℝ)
+      ≤ 3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2) := by
+    have h1 : (0 : ℝ) ≤ (n : ℝ) * L ^ 2 * T := by positivity
+    have h2 : (0 : ℝ) ≤ (n : ℝ) * ((d : ℝ) * L ^ 2) := by positivity
+    have h3 : (0 : ℝ) ≤ (n : ℝ) * L ^ 2 := by positivity
+    linarith
+  refine bieleckiNorm_le_of_perTime hβ hCnn _ _ hZm fun t ht => ?_
+  rw [lintegral_ofReal_sum_sq_eq]
+  rcases ht.1.lt_or_eq with ht0 | ht0
+  · refine (lintegral_sq_picardStep_diff_le W N ℱ hℱW hℱN coeffs hLip X Y x₀
+      h_σ_meas_X h_σ_progMeas_X h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X
+      h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y
+      hμX hμY hXYm hμXsq hμYsq hXYsq ht0).trans (mul_le_mul' ?_ le_rfl)
+    have hstep : ENNReal.ofReal ((n : ℝ) * L ^ 2 * t)
+        ≤ ENNReal.ofReal ((n : ℝ) * L ^ 2 * T) := by
+      refine ENNReal.ofReal_le_ofReal ?_
+      have : (0 : ℝ) ≤ (n : ℝ) * L ^ 2 := by positivity
+      nlinarith [ht.2, this]
+    calc 3 * (ENNReal.ofReal ((n : ℝ) * L ^ 2 * t)
+            + ENNReal.ofReal ((n : ℝ) * ((d : ℝ) * L ^ 2)) + ENNReal.ofReal ((n : ℝ) * L ^ 2))
+        ≤ 3 * (ENNReal.ofReal ((n : ℝ) * L ^ 2 * T)
+            + ENNReal.ofReal ((n : ℝ) * ((d : ℝ) * L ^ 2)) + ENNReal.ofReal ((n : ℝ) * L ^ 2)) :=
+          mul_le_mul' le_rfl (add_le_add (add_le_add hstep le_rfl) le_rfl)
+      _ = ENNReal.ofReal
+            (3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2)) := by
+          rw [ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 3),
+            ENNReal.ofReal_add (by positivity) (by positivity),
+            ENNReal.ofReal_add (by positivity) (by positivity), ENNReal.ofReal_ofNat]
+  · have hzero : ∀ᵐ ω ∂P, ∑ i : Fin n,
+        (‖picardStep W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas_X h_σ_progMeas_X h_σ_sq_X
+              h_γ_meas_X h_γ_progMeas_X h_γ_sq_X t ω i
+            - picardStep W N ℱ hℱW hℱN coeffs Y x₀ h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y
+                h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y t ω i‖₊ : ℝ≥0∞) ^ 2 = 0 := by
+      filter_upwards [ae_picardStep_zero W N ℱ hℱW hℱN coeffs X x₀ h_σ_meas_X h_σ_progMeas_X
+          h_σ_sq_X h_γ_meas_X h_γ_progMeas_X h_γ_sq_X,
+        ae_picardStep_zero W N ℱ hℱW hℱN coeffs Y x₀ h_σ_meas_Y h_σ_progMeas_Y
+          h_σ_sq_Y h_γ_meas_Y h_γ_progMeas_Y h_γ_sq_Y] with ω hX hY
+      simp [← ht0, hX, hY]
+    rw [lintegral_congr_ae hzero, MeasureTheory.lintegral_zero]
+    exact zero_le
 
 end Weighting
 
