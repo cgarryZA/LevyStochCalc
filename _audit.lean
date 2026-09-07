@@ -573,3 +573,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.measurable_picardStepOnRawStop_slice
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnRawStop_picardLimit_eq_zero
 #print axioms LevyStochCalc.Ito.Picard.ae_eq_zero_of_bieleckiNorm_eq_zero
+-- ===== Doob's L2 maximal inequality in continuous time (E1b, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.Filtration.compMono
+#print axioms LevyStochCalc.Probability.martingale_compMono
+#print axioms LevyStochCalc.Probability.dyadicTime
+#print axioms LevyStochCalc.Probability.dyadicTime_succ_two_mul
+#print axioms LevyStochCalc.Probability.dyadicRunMax
+#print axioms LevyStochCalc.Probability.enorm_dyadicRunMax
+#print axioms LevyStochCalc.Probability.enorm_dyadicRunMax_mono
+#print axioms LevyStochCalc.Probability.tendsto_dyadicTime_dyadicIndex
+#print axioms LevyStochCalc.Probability.iSup_enorm_eq_iSup_dyadicRunMax
+#print axioms LevyStochCalc.Probability.iSup_sq_of_monotone
+#print axioms LevyStochCalc.Probability.eLpNorm_two_eq
+#print axioms LevyStochCalc.Probability.lintegral_sq_dyadicRunMax_le
+#print axioms LevyStochCalc.Probability.lintegral_iSup_sq_le_of_martingale
