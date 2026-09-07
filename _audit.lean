@@ -420,6 +420,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.ae_memLp_two_of_lintegral_sq
 #print axioms LevyStochCalc.Ito.Picard.ae_drift_diff_sq_bound
 #print axioms LevyStochCalc.Ito.Picard.drift_diff_lintegral_sq_bound
+#print axioms LevyStochCalc.Ito.Picard.diffusion_diff_lintegral_sq_bound
+#print axioms LevyStochCalc.Ito.Picard.gamma_lip_componentwise
+#print axioms LevyStochCalc.Ito.Picard.jump_diff_lintegral_sq_bound
 #print axioms LevyStochCalc.Ito.Picard.ae_continuous_picardStep_drift
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.measurable_setIntegral_Icc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_congr_ae

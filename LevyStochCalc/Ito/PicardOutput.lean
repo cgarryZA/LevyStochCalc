@@ -1267,6 +1267,152 @@ theorem drift_diff_lintegral_sq_bound
     (Filter.Eventually.of_forall fun _ =>
       MeasureTheory.integral_nonneg_of_ae (Filter.Eventually.of_forall fun _ => by positivity))
 
+omit [MeasurableSpace E] in
+/-- **The diffusion third of the per-time contraction estimate.** The per-component bound of
+`picardStep_diffusion_diff_lipschitz_sq_componentwise`, summed over the `n` coordinates. -/
+theorem diffusion_diff_lintegral_sq_bound
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L_σ : ℝ} (hL_σ_nn : 0 ≤ L_σ)
+    (h_σ_lip : ∀ s : ℝ, ∀ x₁ x₂ : Fin n → ℝ,
+      (∑ i : Fin n, ∑ j : Fin d, (coeffs.σ s x₁ i j - coeffs.σ s x₂ i j) ^ 2)
+        ≤ L_σ ^ 2 * ‖x₁ - x₂‖ ^ 2)
+    (X Y : ℝ → Ω → (Fin n → ℝ))
+    (h_σ_meas_X : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (X s ω) i j)))
+    (h_σ_meas_Y : ∀ i : Fin n, ∀ j : Fin d,
+      Measurable (Function.uncurry (fun ω s => coeffs.σ s (Y s ω) i j)))
+    (h_σ_progMeas_X : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (X s ω) i j))
+    (h_σ_progMeas_Y : ∀ i : Fin n, ∀ j : Fin d,
+      Probability.ProgressivelyMeasurable ℱ (fun ω s => coeffs.σ s (Y s ω) i j))
+    (h_σ_sq_X : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h_σ_sq_Y : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.σ s (Y s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 < t) :
+    ∫⁻ ω, ∑ i : Fin n,
+        (‖picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω i
+          - picardStep_diffusion W ℱ hℱW coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω i‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      ≤ ENNReal.ofReal ((n : ℝ) * ((d : ℝ) * L_σ ^ 2))
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have hmeas : ∀ i : Fin n, Measurable fun ω =>
+      (‖picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω i
+        - picardStep_diffusion W ℱ hℱW coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω i‖₊
+        : ℝ≥0∞) ^ 2 := fun i =>
+    ((((measurable_picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X i
+      t).sub (measurable_picardStep_diffusion W ℱ hℱW coeffs Y h_σ_meas_Y h_σ_progMeas_Y
+        h_σ_sq_Y i t)).nnnorm).coe_nnreal_ennreal).pow_const 2
+  rw [MeasureTheory.lintegral_finsetSum _ fun i _ => hmeas i]
+  calc ∑ i : Fin n, ∫⁻ ω,
+        (‖picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas_X h_σ_progMeas_X h_σ_sq_X t ω i
+          - picardStep_diffusion W ℱ hℱW coeffs Y h_σ_meas_Y h_σ_progMeas_Y h_σ_sq_Y t ω i‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      ≤ ∑ _i : Fin n, ENNReal.ofReal ((d : ℝ) * L_σ ^ 2)
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+        Finset.sum_le_sum fun i _ =>
+          picardStep_diffusion_diff_lipschitz_sq_componentwise W ℱ hℱW coeffs hL_σ_nn h_σ_lip
+            X Y i h_σ_meas_X h_σ_meas_Y h_σ_progMeas_X h_σ_progMeas_Y h_σ_sq_X h_σ_sq_Y t ht
+    _ = ENNReal.ofReal ((n : ℝ) * ((d : ℝ) * L_σ ^ 2))
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul,
+          ENNReal.ofReal_mul (Nat.cast_nonneg n), ← mul_assoc]
+        congr 2
+        simp
+
+omit [MeasurableSpace Ω] [MeasureTheory.IsProbabilityMeasure P] in
+/-- The `γ` clause of `IsLipschitz`, read on a single coordinate along two processes. This is
+where the `ℝ≥0∞` form of the clause is used: the `.toReal` form it replaced would give nothing
+when the jump energy is infinite. -/
+theorem gamma_lip_componentwise {ν : MeasureTheory.Measure E}
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E) {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (X Y : ℝ → Ω → (Fin n → ℝ)) (i : Fin n) (s : ℝ) (ω : Ω) :
+    ∫⁻ e, (‖coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν
+      ≤ ENNReal.ofReal (L ^ 2) * (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 := by
+  calc ∫⁻ e, (‖coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν
+      ≤ ∫⁻ e, (‖coeffs.γ s (X s ω) e - coeffs.γ s (Y s ω) e‖₊ : ℝ≥0∞) ^ 2 ∂ν := by
+        refine lintegral_mono fun e => ?_
+        have hco : |coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i|
+            ≤ ‖coeffs.γ s (X s ω) e - coeffs.γ s (Y s ω) e‖ := by
+          simpa [Real.norm_eq_abs, Pi.sub_apply] using
+            norm_le_pi_norm (coeffs.γ s (X s ω) e - coeffs.γ s (Y s ω) e) i
+        rw [sq_coe_nnnorm_real, sq_coe_nnnorm]
+        refine ENNReal.ofReal_le_ofReal ?_
+        nlinarith [hco, abs_nonneg (coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i),
+          sq_abs (coeffs.γ s (X s ω) e i - coeffs.γ s (Y s ω) e i),
+          norm_nonneg (coeffs.γ s (X s ω) e - coeffs.γ s (Y s ω) e)]
+    _ ≤ ENNReal.ofReal (L ^ 2 * ‖X s ω - Y s ω‖ ^ 2) := hLip.2.2.2 s (X s ω) (Y s ω)
+    _ = ENNReal.ofReal (L ^ 2) * (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 := by
+        rw [ENNReal.ofReal_mul (sq_nonneg L), sq_coe_nnnorm]
+
+/-- **The jump third of the per-time contraction estimate.** The per-component bound of
+`picardStep_jump_diff_lipschitz_sq_componentwise`, summed over the `n` coordinates. -/
+theorem jump_diff_lintegral_sq_bound {ν : MeasureTheory.Measure E}
+    [MeasureTheory.SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    (X Y : ℝ → Ω → (Fin n → ℝ))
+    (hX_meas : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X p.2.1 p.1) p.2.2 i))
+    (hX_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (X s ω) e i))
+    (hX_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (hY_meas : ∀ i : Fin n,
+      Measurable (fun p : Ω × ℝ × E => coeffs.γ p.2.1 (Y p.2.1 p.1) p.2.2 i))
+    (hY_progMeas : ∀ i : Fin n,
+      Probability.MarkedProgressivelyMeasurable ℱ (fun ω s e => coeffs.γ s (Y s ω) e i))
+    (hY_sq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖coeffs.γ s (Y s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 < t) :
+    ∫⁻ ω, ∑ i : Fin n,
+        (‖picardStep_jump N ℱ hℱN coeffs X hX_meas hX_progMeas hX_sq t ω i
+          - picardStep_jump N ℱ hℱN coeffs Y hY_meas hY_progMeas hY_sq t ω i‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      ≤ ENNReal.ofReal ((n : ℝ) * L ^ 2)
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  have hmeas : ∀ i : Fin n, Measurable fun ω =>
+      (‖picardStep_jump N ℱ hℱN coeffs X hX_meas hX_progMeas hX_sq t ω i
+        - picardStep_jump N ℱ hℱN coeffs Y hY_meas hY_progMeas hY_sq t ω i‖₊ : ℝ≥0∞) ^ 2 :=
+    fun i =>
+      ((((measurable_picardStep_jump N ℱ hℱN coeffs X hX_meas hX_progMeas hX_sq i t).sub
+        (measurable_picardStep_jump N ℱ hℱN coeffs Y hY_meas hY_progMeas hY_sq i
+          t)).nnnorm).coe_nnreal_ennreal).pow_const 2
+  rw [MeasureTheory.lintegral_finsetSum _ fun i _ => hmeas i]
+  calc ∑ i : Fin n, ∫⁻ ω,
+        (‖picardStep_jump N ℱ hℱN coeffs X hX_meas hX_progMeas hX_sq t ω i
+          - picardStep_jump N ℱ hℱN coeffs Y hY_meas hY_progMeas hY_sq t ω i‖₊
+          : ℝ≥0∞) ^ 2 ∂P
+      ≤ ∑ _i : Fin n, ENNReal.ofReal (L ^ 2)
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+        Finset.sum_le_sum fun i _ =>
+          picardStep_jump_diff_lipschitz_sq_componentwise N ℱ hℱN coeffs hLip.1 X Y i
+            (gamma_lip_componentwise coeffs hLip X Y i)
+            hX_meas hX_progMeas hX_sq hY_meas hY_progMeas hY_sq t ht
+    _ = ENNReal.ofReal ((n : ℝ) * L ^ 2)
+          * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+              (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul,
+          ENNReal.ofReal_mul (Nat.cast_nonneg n), ← mul_assoc]
+        congr 2
+        simp
+
 end Weighting
 
 end LevyStochCalc.Ito.Picard
