@@ -664,3 +664,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.measurable_inclusion_predictableSigma
 #print axioms LevyStochCalc.Probability.Predictable
 #print axioms LevyStochCalc.Probability.Predictable.progressivelyMeasurable
+-- ===== Characters are total in L2 of a finite measure (A4b-i-1, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.charFun_withDensity_ofReal
+#print axioms LevyStochCalc.Probability.integrable_char_smul
+#print axioms LevyStochCalc.Probability.integrable_char_mul
+#print axioms LevyStochCalc.Probability.integrable_conj
+#print axioms LevyStochCalc.Probability.integrable_toNNReal_coe
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_smul_eq_zero
+#print axioms LevyStochCalc.Probability.char_neg
+#print axioms LevyStochCalc.Probability.ae_eq_zero_of_integral_char_mul_eq_zero
+#print axioms LevyStochCalc.Probability.memLp_char
+#print axioms LevyStochCalc.Probability.charLp
+#print axioms LevyStochCalc.Probability.topologicalClosure_span_charLp
