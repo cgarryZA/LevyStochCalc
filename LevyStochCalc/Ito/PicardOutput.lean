@@ -554,4 +554,35 @@ theorem exists_cadlag_modification_itoIntegral
     (fun _ ht => LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero_of_neg W ℱ hℱ H
       h_meas h_progMeas h_sq ht)
 
+omit [MeasurableSpace E] [MeasureTheory.IsProbabilityMeasure P] in
+/-- **The primitive of a locally integrable function is continuous.** The window `[0, t]` is
+empty for `t < 0`, so the primitive is the constant `0` there and continuity at `0` glues. -/
+theorem continuous_setIntegral_Icc_of_integrableOn {f : ℝ → ℝ}
+    (h_int : ∀ b : ℝ, MeasureTheory.IntegrableOn f (Set.Icc (0 : ℝ) b) volume) :
+    Continuous fun t => ∫ s in Set.Icc (0 : ℝ) t, f s ∂volume := by
+  classical
+  set g : ℝ → ℝ := Set.indicator (Set.Ici (0 : ℝ)) f with hgdef
+  have hgint : ∀ a b : ℝ, IntervalIntegrable g volume a b := by
+    intro a b
+    have hsub : Set.Ici (0 : ℝ) ∩ Set.uIoc a b ⊆ Set.Icc (0 : ℝ) (max a b) := by
+      rintro x ⟨hx0, hx⟩
+      exact ⟨hx0, hx.2⟩
+    rw [intervalIntegrable_iff, MeasureTheory.IntegrableOn,
+      MeasureTheory.integrable_indicator_iff measurableSet_Ici,
+      MeasureTheory.IntegrableOn, MeasureTheory.Measure.restrict_restrict measurableSet_Ici]
+    exact (h_int (max a b)).mono_set hsub
+  have heq : (fun t => ∫ s in Set.Icc (0 : ℝ) t, f s ∂volume)
+      = fun t => ∫ s in (0 : ℝ)..(max t 0), g s ∂volume := by
+    funext t
+    rcases le_or_gt 0 t with ht | ht
+    · rw [max_eq_left ht, intervalIntegral.integral_of_le ht,
+        MeasureTheory.Measure.restrict_congr_set MeasureTheory.Ioc_ae_eq_Icc]
+      refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc fun x hx => ?_
+      exact (Set.indicator_of_mem (Set.mem_Ici.mpr hx.1) f).symm
+    · rw [max_eq_right ht.le, intervalIntegral.integral_same,
+        Set.Icc_eq_empty (not_le.mpr ht), MeasureTheory.setIntegral_empty]
+  rw [heq]
+  exact (intervalIntegral.continuous_primitive hgint 0).comp
+    (continuous_id.max continuous_const)
+
 end LevyStochCalc.Ito.Picard
