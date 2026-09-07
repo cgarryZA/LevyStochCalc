@@ -594,6 +594,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnRawStop_diff_le
 #print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_eq_zero_of_ae
 #print axioms LevyStochCalc.Ito.Picard.picardStepOnRawStop_congr_ae
+-- ===== The fixed point solves its own Picard equation (C3a, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.picardSelfMapRaw_isFixedPoint
 #print axioms LevyStochCalc.Probability.lintegral_iSup_dyadicRunMax_sq_le
 #print axioms LevyStochCalc.Probability.enorm_dyadicRunMax_add_le
 #print axioms LevyStochCalc.Probability.iSup_dyadicRunMax_add_le

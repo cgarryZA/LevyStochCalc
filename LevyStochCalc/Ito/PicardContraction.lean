@@ -840,4 +840,64 @@ theorem picardStepOnRawStop_congr_ae
   filter_upwards [ae_eq_zero_of_bieleckiNorm_eq_zero (P := P) hslice hout ht] with ω hω i
   exact sub_eq_zero.mp (hω i)
 
+/-! ### The fixed point solves its own Picard equation -/
+
+/-- **The fixed point is a solution of the Picard equation along its own path.** On the window,
+the process agrees almost surely with the Picard step taken along itself, frozen at the horizon.
+-/
+theorem picardSelfMapRaw_isFixedPoint {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T)
+    (hq : (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2) < 1)
+    {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) T) :
+    ∀ᵐ ω ∂P, ∀ i,
+      (picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+          (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+          (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+            x₀ hT X₀)
+          (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+            hβ hT X₀ hq)).X t ω i
+        = picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip
+            (picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+              (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+              (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+                x₀ hT X₀)
+              (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+                hβ hT X₀ hq)).measurable_path
+            (fun i' =>
+              (picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+                (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+                (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg
+                  hLip x₀ hT X₀)
+                (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+                  x₀ hβ hT X₀ hq)).adapted i')
+            (picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+              (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+              (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+                x₀ hT X₀)
+              (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+                hβ hT X₀ hq)).sup_L2
+            hT.le x₀ t ω i := by
+  have hYm := measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+  have hYa := progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+    x₀ hT X₀
+  have hYb := bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+    hβ hT X₀ hq
+  set Xhat := picardSelfMapRaw W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT hYm hYa hYb
+    with hXhat
+  have heq : ∀ u ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P, ∀ i,
+      picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ u ω i
+        = Xhat.X u ω i := by
+    intro u hu
+    filter_upwards [picardSelfMapRaw_picardLimit_ae_eq W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg
+      hLip x₀ hβ hT X₀ hq hu] with ω hω i
+    exact (hω i).symm
+  have hcongr := picardStepOnRawStop_congr_ae W N ℱ' hℱW hℱN coeffs hReg hLip x₀
+    hYm hYa hYb Xhat.measurable_path (fun i' => Xhat.adapted i') Xhat.sup_L2 heq hβ hT ht
+  filter_upwards [picardSelfMapRaw_ae_eq W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+    hYm hYa hYb t, hcongr] with ω hmod hc i
+  rw [congrFun hmod i]
+  exact hc i
+
 end LevyStochCalc.Ito.Picard
