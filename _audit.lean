@@ -302,6 +302,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid
 #print axioms LevyStochCalc.Brownian.Ito.exists_unifGrid_cell
 #print axioms LevyStochCalc.Brownian.Ito.abs_ofUnifGrid_eval_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_sub_le_of_bound
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
