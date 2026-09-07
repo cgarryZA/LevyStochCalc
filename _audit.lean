@@ -726,3 +726,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_trig_integrand_lt_top
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_cos_scaled
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_sin_scaled
+-- ===== A past weight passes inside an Ito integral over a window (A4b-ii-3, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul₀
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul_eval
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul₀_eval
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul_adapt
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul₀_adapt
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.stepIocMul₀_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.mul_stochasticIntegralBrownian_indIoc
