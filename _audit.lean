@@ -560,3 +560,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.lintegral_sq_rawStop_lt_top
 #print axioms LevyStochCalc.Ito.Picard.picardStepOnRawStop
 #print axioms LevyStochCalc.Ito.Picard.measurable_picardStep_slice
+-- ===== The Picard fixed point (C2/C3a, 2026-09-07) =====
+#print axioms LevyStochCalc.Ito.Picard.lintegral_sq_sub_lt_top_of_energy
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_sub_comm
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_zero_le_mul
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_lt_top_of_approx
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnStop_sub_rawStop_le
+#print axioms LevyStochCalc.Ito.Picard.picardLimit
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardLimit
+#print axioms LevyStochCalc.Ito.Picard.progressivelyMeasurable_picardLimit
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardLimit_lt_top
+#print axioms LevyStochCalc.Ito.Picard.measurable_picardStepOnRawStop_slice
+#print axioms LevyStochCalc.Ito.Picard.bieleckiNorm_picardStepOnRawStop_picardLimit_eq_zero
+#print axioms LevyStochCalc.Ito.Picard.ae_eq_zero_of_bieleckiNorm_eq_zero

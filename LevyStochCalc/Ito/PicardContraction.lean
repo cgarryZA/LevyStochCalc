@@ -56,78 +56,83 @@ theorem measurable_uncurry_stop_sub_norm (X Y : SBoundedProcess (n := n) P ℱ T
     Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ‖X.stop.X s ω - Y.stop.X s ω‖) :=
   (measurable_uncurry_stop_sub X Y).norm
 
-/-- The `ω`-slice of the squared norms of a frozen process is measurable in time. -/
-theorem measurable_sq_stop_slice (X : SBoundedProcess (n := n) P ℱ T) (ω : Ω) :
-    Measurable fun s : ℝ => ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 :=
+/-- The `ω`-slice of the squared norms of a path map is measurable in time. -/
+theorem measurable_sq_slice_time {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZm : Measurable (Function.uncurry Z)) (ω : Ω) :
+    Measurable fun s : ℝ => ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 :=
   Finset.measurable_sum _ fun i _ =>
     (ENNReal.continuous_coe.measurable.comp
       (((measurable_pi_apply i).comp
-        (X.stop.measurable_path.comp (measurable_id.prodMk measurable_const))).nnnorm)).pow_const 2
+        (hZm.comp (measurable_id.prodMk measurable_const))).nnnorm)).pow_const 2
 
-/-- The squared norms of a frozen process are jointly measurable. -/
-theorem measurable_uncurry_sq_stop (X : SBoundedProcess (n := n) P ℱ T) :
-    Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2) :=
+/-- The squared norms of a path map are jointly measurable. -/
+theorem measurable_uncurry_sq {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZm : Measurable (Function.uncurry Z)) :
+    Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2) :=
   Finset.measurable_sum _ fun i _ =>
     (ENNReal.continuous_coe.measurable.comp
       (((measurable_pi_apply i).comp
-        (X.stop.measurable_path.comp
-          (measurable_snd.prodMk measurable_fst))).nnnorm)).pow_const 2
+        (hZm.comp (measurable_snd.prodMk measurable_fst))).nnnorm)).pow_const 2
 
-/-- The energy of a frozen process over a window is measurable in the sample point. -/
-theorem measurable_lintegral_sq_stop (X : SBoundedProcess (n := n) P ℱ T) (b : ℝ) :
+/-- The energy of a path map over a window is measurable in the sample point. -/
+theorem measurable_lintegral_sq {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZm : Measurable (Function.uncurry Z)) (b : ℝ) :
     Measurable fun ω : Ω =>
-      ∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
-  (measurable_uncurry_sq_stop X).lintegral_prod_right'
+      ∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
+  (measurable_uncurry_sq hZm).lintegral_prod_right'
     (ν := volume.restrict (Set.Icc (0 : ℝ) b))
 
-/-- The energy of the difference of two frozen processes is finite on every window. -/
-theorem lintegral_sq_stop_sub_lt_top (X Y : SBoundedProcess (n := n) P ℱ T) (hT : 0 ≤ T)
-    (b : ℝ) :
+/-- The energy of the difference of two path maps of finite energy is finite. -/
+theorem lintegral_sq_sub_lt_top_of_energy {Z₁ Z₂ : ℝ → Ω → (Fin n → ℝ)}
+    (hm₁ : Measurable (Function.uncurry Z₁)) (hm₂ : Measurable (Function.uncurry Z₂))
+    (h₁ : ∀ b : ℝ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (h₂ : ∀ b : ℝ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+      ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) (b : ℝ) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-        (‖X.stop.X s ω - Y.stop.X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
-  have hpt : ∀ ω : Ω, ∀ s : ℝ, (‖X.stop.X s ω - Y.stop.X s ω‖₊ : ℝ≥0∞) ^ 2
-      ≤ 2 * ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2
-        + 2 * ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 := by
+        (‖Z₁ s ω - Z₂ s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  have hpt : ∀ ω : Ω, ∀ s : ℝ, (‖Z₁ s ω - Z₂ s ω‖₊ : ℝ≥0∞) ^ 2
+      ≤ 2 * ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 + 2 * ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2 := by
     intro ω s
     refine (sq_nnnorm_sub_le _ _).trans (add_le_add ?_ ?_)
     · exact mul_le_mul' le_rfl (by rw [sq_coe_nnnorm]; exact ofReal_sq_norm_le_sum _)
     · exact mul_le_mul' le_rfl (by rw [sq_coe_nnnorm]; exact ofReal_sq_norm_le_sum _)
   have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-        (2 * ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2
-          + 2 * ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume
-      = 2 * (∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume)
-        + 2 * ∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume := by
+        (2 * ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 + 2 * ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume
+      = 2 * (∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+        + 2 * ∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume := by
     intro ω
-    have hA : Measurable fun s : ℝ => 2 * ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 :=
-      (measurable_sq_stop_slice X ω).const_mul 2
-    rw [lintegral_add_left hA, lintegral_const_mul _ (measurable_sq_stop_slice X ω),
-      lintegral_const_mul _ (measurable_sq_stop_slice Y ω)]
-  have houter : Measurable fun ω : Ω =>
-      2 * ∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
-    (measurable_lintegral_sq_stop X b).const_mul 2
-  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-        (‖X.stop.X s ω - Y.stop.X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+    rw [lintegral_add_left ((measurable_sq_slice_time hm₁ ω).const_mul 2),
+      lintegral_const_mul _ (measurable_sq_slice_time hm₁ ω),
+      lintegral_const_mul _ (measurable_sq_slice_time hm₂ ω)]
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b, (‖Z₁ s ω - Z₂ s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
       ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-          (2 * ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2
-            + 2 * ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
+          (2 * ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2
+            + 2 * ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
         lintegral_mono fun ω => lintegral_mono fun s => hpt ω s
-    _ = ∫⁻ ω, (2 * (∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+    _ = ∫⁻ ω, (2 * (∫⁻ s in Set.Icc (0 : ℝ) b, ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume)
           + 2 * ∫⁻ s in Set.Icc (0 : ℝ) b,
-              ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume) ∂P := by
-        exact lintegral_congr fun ω => hinner ω
+              ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume) ∂P := lintegral_congr fun ω => hinner ω
     _ = 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-              ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+              ∑ i, (‖Z₁ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
           + 2 * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
-              ∑ i, (‖Y.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
-        rw [lintegral_add_left houter, lintegral_const_mul _ (measurable_lintegral_sq_stop X b),
-          lintegral_const_mul _ (measurable_lintegral_sq_stop Y b)]
-    _ < ⊤ := by
-        refine ENNReal.add_lt_top.mpr ⟨ENNReal.mul_lt_top (by norm_num) ?_,
-          ENNReal.mul_lt_top (by norm_num) ?_⟩
-        · exact lt_of_le_of_lt (lintegral_lintegral_sq_stop_le X hT b)
-            (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top X.sup_L2))
-        · exact lt_of_le_of_lt (lintegral_lintegral_sq_stop_le Y hT b)
-            (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top Y.sup_L2))
+              ∑ i, (‖Z₂ s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+        rw [lintegral_add_left ((measurable_lintegral_sq hm₁ b).const_mul 2),
+          lintegral_const_mul _ (measurable_lintegral_sq hm₁ b),
+          lintegral_const_mul _ (measurable_lintegral_sq hm₂ b)]
+    _ < ⊤ := ENNReal.add_lt_top.mpr ⟨ENNReal.mul_lt_top (by norm_num) (h₁ b),
+        ENNReal.mul_lt_top (by norm_num) (h₂ b)⟩
+
+/-- The energy of the difference of two frozen processes is finite on every window. -/
+theorem lintegral_sq_stop_sub_lt_top (X Y : SBoundedProcess (n := n) P ℱ T) (hT : 0 ≤ T)
+    (b : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
+        (‖X.stop.X s ω - Y.stop.X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
+  lintegral_sq_sub_lt_top_of_energy X.stop.measurable_path Y.stop.measurable_path
+    (fun c => lt_of_le_of_lt (lintegral_lintegral_sq_stop_le X hT c)
+      (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top X.sup_L2)))
+    (fun c => lt_of_le_of_lt (lintegral_lintegral_sq_stop_le Y hT c)
+      (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top Y.sup_L2))) b
 
 /-- Freezing at the horizon does not change the Bielecki norm of a difference. -/
 theorem bieleckiNorm_stop_sub (β : ℝ) (X Y : SBoundedProcess (n := n) P ℱ T) :
@@ -349,5 +354,348 @@ theorem exists_bieleckiWeight_rate_lt_one (L : ℝ) (hT : 0 < T) :
   calc ENNReal.ofReal (A / (2 * (A / 2 + 1))) < ENNReal.ofReal 1 :=
         (ENNReal.ofReal_lt_ofReal_iff (by norm_num)).mpr hlt
     _ = 1 := ENNReal.ofReal_one
+
+/-! ### Bielecki bookkeeping for the fixed point -/
+
+omit [ℱ'.IsRightContinuous] in
+/-- Slice measurability suffices for the Bielecki subadditivity hypothesis. -/
+theorem bieleckiNorm_inner_aemeasurable_of_slice {Y : ℝ → Ω → (Fin n → ℝ)}
+    (h : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => Y t ω i) (t : ℝ) :
+    AEMeasurable (fun ω => (∑ i, (‖Y t ω i‖₊ : ℝ≥0∞) ^ 2) ^ ((1 : ℝ) / 2)) P :=
+  ((Finset.measurable_sum _ fun i _ =>
+    (ENNReal.continuous_coe.measurable.comp (h t i).nnnorm).pow_const 2).pow_const
+      ((1 : ℝ) / 2)).aemeasurable
+
+omit [ℱ'.IsRightContinuous] in
+/-- The Bielecki norm of a difference is symmetric. -/
+theorem bieleckiNorm_sub_comm (β T : ℝ) (A B : ℝ → Ω → (Fin n → ℝ)) :
+    bieleckiNorm (P := P) β T (fun t ω i => A t ω i - B t ω i)
+      = bieleckiNorm (P := P) β T (fun t ω i => B t ω i - A t ω i) := by
+  unfold bieleckiNorm
+  refine iSup_congr fun t => iSup_congr fun _ => ?_
+  congr 2
+  refine lintegral_congr fun ω => Finset.sum_congr rfl fun i _ => ?_
+  simp only [show A t ω i - B t ω i = -(B t ω i - A t ω i) from by ring, nnnorm_neg]
+
+omit [ℱ'.IsRightContinuous] in
+/-- The unweighted Bielecki norm is bounded by the weighted one, at the cost of `e^{βT}`. -/
+theorem bieleckiNorm_zero_le_mul {β : ℝ} (hβ : 0 ≤ β) {T : ℝ} (Z : ℝ → Ω → (Fin n → ℝ)) :
+    bieleckiNorm (P := P) 0 T Z
+      ≤ ENNReal.ofReal (Real.exp (β * T)) * bieleckiNorm (P := P) β T Z := by
+  refine iSup₂_le fun t ht => ?_
+  have hle : ENNReal.ofReal (Real.exp (-β * t))
+      * (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+      ≤ bieleckiNorm (P := P) β T Z :=
+    le_iSup₂ (f := fun u (_ : u ∈ Set.Icc (0 : ℝ) T) =>
+      ENNReal.ofReal (Real.exp (-β * u))
+        * (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) t ht
+  have hexp : ENNReal.ofReal (Real.exp (β * t)) ≤ ENNReal.ofReal (Real.exp (β * T)) :=
+    ENNReal.ofReal_le_ofReal (Real.exp_le_exp.mpr (by nlinarith [ht.2, ht.1]))
+  calc ENNReal.ofReal (Real.exp (-0 * t))
+        * (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)
+      = ENNReal.ofReal (Real.exp (β * t)) * (ENNReal.ofReal (Real.exp (-β * t))
+          * (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) := by
+        rw [← mul_assoc, ← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
+        simp
+    _ ≤ ENNReal.ofReal (Real.exp (β * T)) * bieleckiNorm (P := P) β T Z :=
+        mul_le_mul' hexp hle
+
+omit [ℱ'.IsRightContinuous] in
+/-- A path map at finite Bielecki distance from one of finite Bielecki norm has finite Bielecki
+norm. -/
+theorem bieleckiNorm_lt_top_of_approx (β T : ℝ) {A Z : ℝ → Ω → (Fin n → ℝ)}
+    (hAm : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => A t ω i)
+    (hZm : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => Z t ω i)
+    (hA : bieleckiNorm (P := P) β T A < ⊤)
+    (hd : bieleckiNorm (P := P) β T (fun t ω i => A t ω i - Z t ω i) < ⊤) :
+    bieleckiNorm (P := P) β T Z < ⊤ := by
+  have hEq : Z = fun t (ω : Ω) => A t ω + fun i => Z t ω i - A t ω i := by
+    funext t ω i
+    simp [Pi.add_apply]
+  have hadd := bieleckiNorm_add_le (P := P) β T A (fun t ω => fun i => Z t ω i - A t ω i)
+    (bieleckiNorm_inner_aemeasurable_of_slice hAm)
+    (bieleckiNorm_inner_aemeasurable_of_slice fun t i => (hZm t i).sub (hAm t i))
+  rw [hEq]
+  refine lt_of_le_of_lt hadd (ENNReal.add_lt_top.mpr ⟨hA, ?_⟩)
+  rwa [bieleckiNorm_sub_comm (P := P) β T Z A]
+
+/-! ### The step against a raw state process -/
+
+/-- **The Picard step contracts between a process of the space and a raw state process.** -/
+theorem bieleckiNorm_picardStepOnStop_sub_rawStop_le {L : ℝ}
+    (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z s ω i)
+    (hZb : bieleckiNorm (P := P) 0 T Z < ⊤)
+    (x₀ : Fin n → ℝ) {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X : SBoundedProcess (n := n) P ℱ' T) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        picardStepOnStop W N hℱW hℱN coeffs hReg hLip X hT.le x₀ t ω i
+          - picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip hZm hZa hZb hT.le x₀ t ω i)
+      ≤ (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2)
+        * bieleckiNorm (P := P) β T (fun t ω i => X.X t ω i - Z t ω i) := by
+  have hZsm : Measurable (Function.uncurry fun (s : ℝ) (ω : Ω) => Z (min s T) ω) :=
+    hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd)
+  have hXe : ∀ c : ℝ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) c,
+      ∑ i, (‖X.stop.X s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := fun c =>
+    lt_of_le_of_lt (lintegral_lintegral_sq_stop_le X hT.le c)
+      (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top X.sup_L2))
+  have hZe : ∀ c : ℝ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) c,
+      ∑ i, (‖Z (min s T) ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
+    lintegral_sq_rawStop_lt_top hZm hZb hT.le
+  have hdiffm : Measurable
+      (Function.uncurry fun (ω : Ω) (s : ℝ) => X.stop.X s ω - Z (min s T) ω) :=
+    (X.stop.measurable_path.comp (measurable_snd.prodMk measurable_fst)).sub
+      (hZsm.comp (measurable_snd.prodMk measurable_fst))
+  have hrhs : bieleckiNorm (P := P) β T
+      (fun t ω i => X.stop.X t ω i - Z (min t T) ω i)
+      = bieleckiNorm (P := P) β T (fun t ω i => X.X t ω i - Z t ω i) :=
+    bieleckiNorm_min (P := P) β T fun t ω i => X.X t ω i - Z t ω i
+  rw [← hrhs]
+  exact bieleckiNorm_picardStep_diff_le W N ℱ' hℱW hℱN coeffs hLip X.stop.X
+    (fun s ω => Z (min s T) ω) x₀
+    (fun i j => measurable_sigma_stop coeffs hReg X i j)
+    (fun i j => progressivelyMeasurable_sigma_stop coeffs hReg X i j)
+    (fun i j _ hT' => lintegral_sq_sigma_stop_lt_top coeffs hReg hLip X hT.le i j hT')
+    (fun i => measurable_gamma_stop coeffs hReg X i)
+    (fun i => markedProgressivelyMeasurable_gamma_stop coeffs hReg X i)
+    (fun i _ hT' => lintegral_sq_gamma_stop_lt_top coeffs hReg hLip X hT.le i hT')
+    (measurable_sigma_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg hZa T)
+    (fun i j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω) hZsm hZe i j hT')
+    (measurable_gamma_rawStop coeffs hReg hZm T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg hZa T)
+    (fun i _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω) hZsm hZe i hT')
+    (fun i => measurable_mu_stop coeffs hReg X i)
+    (measurable_mu_rawStop coeffs hReg hZm T)
+    hdiffm.norm
+    (fun i b hb => lintegral_sq_mu_stop_lt_top coeffs hReg hLip X hT.le i hb)
+    (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω) hZsm hZe i hb)
+    (fun b _ => lintegral_sq_sub_lt_top_of_energy X.stop.measurable_path hZsm hXe hZe b)
+    hdiffm hβ hT
+
+/-! ### The fixed point -/
+
+variable {L : ℝ}
+  (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
+  (x₀ : Fin n → ℝ)
+
+/-- **The limit of the Picard iterates.** -/
+noncomputable def picardLimit (hT : 0 < T) (X₀ : SBoundedProcess (n := n) P ℱ' T) :
+    ℝ → Ω → (Fin n → ℝ) :=
+  bieleckiLimit fun m =>
+    (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ m).X
+
+theorem measurable_picardLimit (hT : 0 < T) (X₀ : SBoundedProcess (n := n) P ℱ' T) :
+    Measurable (Function.uncurry
+      (picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)) :=
+  measurable_bieleckiLimit fun m =>
+    (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ m).measurable_path
+
+theorem progressivelyMeasurable_picardLimit (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T) (i : Fin n) :
+    Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ s ω i :=
+  progressivelyMeasurable_bieleckiLimit
+    (fun m i' => (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ m).adapted i') i
+
+omit [ℱ'.IsRightContinuous] hℱW hℱN hℱ0 hnull hReg in
+/-- Slice measurability of a jointly measurable path map. -/
+theorem measurable_slice_of_uncurry {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZm : Measurable (Function.uncurry Z)) (t : ℝ) (i : Fin n) :
+    Measurable fun ω => Z t ω i :=
+  (measurable_pi_apply i).comp (Measurable.of_uncurry_left hZm)
+
+/-- The limit of the Picard iterates has finite Bielecki norm at weight `0`. -/
+theorem bieleckiNorm_picardLimit_lt_top {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T)
+    (hq : (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2) < 1) :
+    bieleckiNorm (P := P) 0 T
+      (picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀) < ⊤ := by
+  have hYm := measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+  have hbase : bieleckiNorm (P := P) β T X₀.X < ⊤ :=
+    lt_of_le_of_lt (bieleckiNorm_le_bieleckiNorm_zero hβ.le T X₀.X) X₀.sup_L2
+  have hsub := bieleckiNorm_picardIter_sub_bieleckiLimit_le W N ℱ' hℱW hℱN hℱ0 hnull coeffs
+    hReg hLip x₀ hβ hT X₀ hq 0
+  have hfin : ((1 - (ENNReal.ofReal
+        ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+          / (2 * β))) ^ ((1 : ℝ) / 2))⁻¹
+      * bieleckiNorm (P := P) β T (fun t ω i =>
+          (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 1).X t ω i
+            - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 0).X t ω i))
+      ≠ ⊤ :=
+    ENNReal.mul_ne_top (ENNReal.inv_ne_top.mpr (tsub_pos_of_lt hq).ne')
+      (bieleckiNorm_sub_lt_top ℱ' hβ.le _ _).ne
+  have hd : bieleckiNorm (P := P) β T (fun t ω i => X₀.X t ω i
+      - picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ t ω i) < ⊤ := by
+    refine lt_of_le_of_lt hsub ?_
+    rw [pow_zero, one_mul]
+    exact lt_top_iff_ne_top.mpr hfin
+  refine lt_of_le_of_lt (bieleckiNorm_zero_le_mul (P := P) hβ.le _)
+    (ENNReal.mul_lt_top ENNReal.ofReal_lt_top ?_)
+  exact bieleckiNorm_lt_top_of_approx β T
+    (fun t i => measurable_slice_of_uncurry X₀.measurable_path t i)
+    (fun t i => measurable_slice_of_uncurry hYm t i) hbase hd
+
+/-- Slice measurability of the Picard step along a raw state process. -/
+theorem measurable_picardStepOnRawStop_slice
+    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    (hZa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ' fun ω s => Z s ω i)
+    (hZb : bieleckiNorm (P := P) 0 T Z < ⊤) (hT : 0 ≤ T) (t : ℝ) (i : Fin n) :
+    Measurable fun ω =>
+      picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip hZm hZa hZb hT x₀ t ω i :=
+  measurable_picardStep_slice W N ℱ' hℱW hℱN coeffs (fun s ω => Z (min s T) ω) x₀
+    (measurable_sigma_rawStop coeffs hReg hZm T)
+    (progressivelyMeasurable_sigma_rawStop coeffs hReg hZa T)
+    (fun i' j _ hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT) i' j hT')
+    (measurable_gamma_rawStop coeffs hReg hZm T)
+    (markedProgressivelyMeasurable_gamma_rawStop coeffs hReg hZa T)
+    (fun i' _ hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip
+      (Z := fun s ω => Z (min s T) ω)
+      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
+      (lintegral_sq_rawStop_lt_top hZm hZb hT) i' hT')
+    (measurable_mu_rawStop coeffs hReg hZm T) t i
+
+/-- **The limit of the Picard iterates is a fixed point of the Picard step**: the Bielecki
+distance between the step along the limit and the limit itself is zero. -/
+theorem bieleckiNorm_picardStepOnRawStop_picardLimit_eq_zero {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
+    (X₀ : SBoundedProcess (n := n) P ℱ' T)
+    (hq : (ENNReal.ofReal
+            ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+              / (2 * β))) ^ ((1 : ℝ) / 2) < 1) :
+    bieleckiNorm (P := P) β T (fun t ω i =>
+        picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip
+            (measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀)
+            (progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+              x₀ hT X₀)
+            (bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+              hβ hT X₀ hq)
+            hT.le x₀ t ω i
+          - picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ t ω i) = 0 := by
+  set q := (ENNReal.ofReal
+      ((3 * ((n : ℝ) * L ^ 2 * T + (n : ℝ) * ((d : ℝ) * L ^ 2) + (n : ℝ) * L ^ 2))
+        / (2 * β))) ^ ((1 : ℝ) / 2) with hqdef
+  set Y := picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ with hYdef
+  have hYm := measurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+  have hYa := progressivelyMeasurable_picardLimit W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip
+    x₀ hT X₀
+  have hYb := bieleckiNorm_picardLimit_lt_top W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀
+    hβ hT X₀ hq
+  set Φ := picardStepOnRawStop W N hℱW hℱN coeffs hReg hLip hYm hYa hYb hT.le x₀ with hΦdef
+  set D := (1 - q)⁻¹ * bieleckiNorm (P := P) β T (fun t ω i =>
+      (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 1).X t ω i
+        - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ 0).X t ω i)
+    with hDdef
+  have hDfin : D ≠ ⊤ :=
+    ENNReal.mul_ne_top (ENNReal.inv_ne_top.mpr (tsub_pos_of_lt hq).ne')
+      (bieleckiNorm_sub_lt_top ℱ' hβ.le _ _).ne
+  have hiter := fun k => bieleckiNorm_picardIter_sub_bieleckiLimit_le W N ℱ' hℱW hℱN hℱ0 hnull
+    coeffs hReg hLip x₀ hβ hT X₀ hq k
+  have hbound : ∀ k : ℕ, bieleckiNorm (P := P) β T (fun t ω i => Φ t ω i - Y t ω i)
+      ≤ q ^ (k + 1) * D + q ^ (k + 1) * D := by
+    intro k
+    have hXm : ∀ (t : ℝ) (i : Fin n), Measurable fun ω =>
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i :=
+      fun t i => measurable_slice_of_uncurry
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+          (k + 1)).measurable_path t i
+    have hΦm : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => Φ t ω i := fun t i =>
+      measurable_picardStepOnRawStop_slice W N ℱ' hℱW hℱN coeffs hReg hLip x₀
+        hYm hYa hYb hT.le t i
+    have hYsl : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => Y t ω i :=
+      fun t i => measurable_slice_of_uncurry hYm t i
+    have hEq : (fun t ω i => Φ t ω i - Y t ω i)
+        = fun t (ω : Ω) =>
+          (fun i => Φ t ω i
+            - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i)
+          + fun i =>
+            (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i
+              - Y t ω i := by
+      funext t ω i
+      simp [Pi.add_apply, sub_add_sub_cancel]
+    have hadd := bieleckiNorm_add_le (P := P) β T
+      (fun t ω => fun i => Φ t ω i
+        - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i)
+      (fun t ω => fun i =>
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i
+          - Y t ω i)
+      (bieleckiNorm_inner_aemeasurable_of_slice fun t i => (hΦm t i).sub (hXm t i))
+      (bieleckiNorm_inner_aemeasurable_of_slice fun t i => (hXm t i).sub (hYsl t i))
+    have hcongr : bieleckiNorm (P := P) β T (fun t ω i => Φ t ω i
+          - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i)
+        = bieleckiNorm (P := P) β T (fun t ω i =>
+            picardStepOnStop W N hℱW hℱN coeffs hReg hLip
+              (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ k) hT.le x₀ t ω i
+              - Φ t ω i) := by
+      rw [bieleckiNorm_sub_comm (P := P) β T]
+      refine bieleckiNorm_congr_ae (P := P) β T fun t => ?_
+      filter_upwards [picardSelfMap_ae_eq W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+        (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ k) t] with ω hω
+      funext i
+      have hunfold : (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀
+            (k + 1)).X t ω
+          = (picardSelfMap W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT
+              (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ k)).X t ω := rfl
+      rw [hunfold, hω]
+    have hfirst : bieleckiNorm (P := P) β T (fun t ω i => Φ t ω i
+          - (picardIter W N ℱ' hℱW hℱN hℱ0 hnull coeffs hReg hLip x₀ hT X₀ (k + 1)).X t ω i)
+        ≤ q ^ (k + 1) * D := by
+      rw [hcongr]
+      refine le_trans (bieleckiNorm_picardStepOnStop_sub_rawStop_le W N ℱ' hℱW hℱN
+        coeffs hReg hLip hYm hYa hYb x₀ hβ hT _) ?_
+      refine le_trans (mul_le_mul' le_rfl (hiter k)) (le_of_eq ?_)
+      rw [← mul_assoc, ← pow_succ']
+    rw [hEq]
+    exact hadd.trans (add_le_add hfirst (hiter (k + 1)))
+  have htend : Filter.Tendsto (fun k : ℕ => q ^ (k + 1) * D + q ^ (k + 1) * D)
+      Filter.atTop (nhds 0) := by
+    have hp : Filter.Tendsto (fun k : ℕ => q ^ (k + 1)) Filter.atTop (nhds 0) :=
+      (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hq).comp (Filter.tendsto_add_atTop_nat 1)
+    have hm : Filter.Tendsto (fun k : ℕ => q ^ (k + 1) * D) Filter.atTop (nhds 0) := by
+      simpa using ENNReal.Tendsto.mul_const hp (Or.inr hDfin)
+    simpa using hm.add hm
+  exact le_antisymm (ge_of_tendsto' htend hbound) zero_le
+
+omit [ℱ'.IsRightContinuous] hℱW hℱN hℱ0 hnull hReg hLip in
+/-- A vanishing Bielecki norm means the path map vanishes almost surely at every time of the
+window. -/
+theorem ae_eq_zero_of_bieleckiNorm_eq_zero {β T : ℝ} {Z : ℝ → Ω → (Fin n → ℝ)}
+    (hZs : ∀ (u : ℝ) (i : Fin n), Measurable fun ω => Z u ω i)
+    (h : bieleckiNorm (P := P) β T Z = 0) {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) T) :
+    ∀ᵐ ω ∂P, ∀ i, Z t ω i = 0 := by
+  have hterm : ENNReal.ofReal (Real.exp (-β * t))
+      * (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2) = 0 := by
+    refine le_antisymm ?_ zero_le
+    rw [← h]
+    exact le_iSup₂ (f := fun u (_ : u ∈ Set.Icc (0 : ℝ) T) =>
+      ENNReal.ofReal (Real.exp (-β * u))
+        * (∫⁻ ω, ∑ i, (‖Z u ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2)) t ht
+  have hexp : ENNReal.ofReal (Real.exp (-β * t)) ≠ 0 := by
+    simp [ENNReal.ofReal_eq_zero, Real.exp_pos]
+  have hrpow : (∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P) ^ ((1 : ℝ) / 2) = 0 :=
+    (mul_eq_zero.mp hterm).resolve_left hexp
+  have hint : ∫⁻ ω, ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 ∂P = 0 := by
+    rcases ENNReal.rpow_eq_zero_iff.mp hrpow with ⟨h0, _⟩ | ⟨_, hneg⟩
+    · exact h0
+    · exact absurd hneg (by norm_num)
+  have hmeas : AEMeasurable (fun ω => ∑ i, (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2) P :=
+    (Finset.measurable_sum _ fun i _ =>
+      (ENNReal.continuous_coe.measurable.comp (hZs t i).nnnorm).pow_const 2).aemeasurable
+  filter_upwards [(lintegral_eq_zero_iff' hmeas).mp hint] with ω hω i
+  have hle : (‖Z t ω i‖₊ : ℝ≥0∞) ^ 2 = 0 :=
+    le_antisymm (le_of_le_of_eq (Finset.single_le_sum
+      (f := fun j => (‖Z t ω j‖₊ : ℝ≥0∞) ^ 2) (fun _ _ => zero_le) (Finset.mem_univ i)) hω)
+      zero_le
+  simpa using hle
 
 end LevyStochCalc.Ito.Picard
