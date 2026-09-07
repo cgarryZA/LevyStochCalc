@@ -657,3 +657,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.jumpDiffusionOfSolvesOn
 #print axioms LevyStochCalc.Ito.Picard.solvesOn_of_eqn
 #print axioms LevyStochCalc.Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn
+-- ===== The predictable sigma-algebra over an R-indexed filtration (A5a, 2026-09-07) =====
+#print axioms LevyStochCalc.Probability.predictableSigma
+#print axioms LevyStochCalc.Probability.measurableSet_predictableSigma_Iic_prod
+#print axioms LevyStochCalc.Probability.measurableSet_predictableSigma_Ioi_prod
+#print axioms LevyStochCalc.Probability.measurable_inclusion_predictableSigma
+#print axioms LevyStochCalc.Probability.Predictable
+#print axioms LevyStochCalc.Probability.Predictable.progressivelyMeasurable
