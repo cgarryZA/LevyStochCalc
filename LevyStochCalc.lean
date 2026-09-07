@@ -94,6 +94,7 @@ import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoIncrement
 import LevyStochCalc.Brownian.ItoTrigIncrement
 import LevyStochCalc.Brownian.ItoPullOut
+import LevyStochCalc.Brownian.PRPPairing
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoIncrementMoment
 import LevyStochCalc.Brownian.ItoQuadVarSum

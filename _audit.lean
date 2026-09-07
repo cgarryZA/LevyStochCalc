@@ -736,3 +736,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stepIocMul_integralAgainst
 #print axioms LevyStochCalc.Brownian.Ito.stepIocMul₀_integralAgainst
 #print axioms LevyStochCalc.Brownian.Ito.mul_stochasticIntegralBrownian_indIoc
+-- ===== Pairing against a trigonometric increment (A4b-iii, 2026-09-07) =====
+#print axioms LevyStochCalc.Brownian.Ito.indIoc_sq
+#print axioms LevyStochCalc.Brownian.Ito.integrable_mul_of_bounded
+#print axioms LevyStochCalc.Brownian.Ito.PerpItoIntegrals
+#print axioms LevyStochCalc.Brownian.Ito.measurable_pairing
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_zero_of_isItoVersion_indIoc
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_increment_of_isItoVersion_indIoc
+#print axioms LevyStochCalc.Brownian.Ito.trigDrift
+#print axioms LevyStochCalc.Brownian.Ito.trigDrift_eq
+#print axioms LevyStochCalc.Brownian.Ito.norm_pairing_le_setIntegral_norm
+#print axioms LevyStochCalc.Brownian.Ito.pairing_zero_time
+#print axioms LevyStochCalc.Brownian.Ito.pairing_eq_zero_of_norm_le
