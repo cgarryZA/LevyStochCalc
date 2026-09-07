@@ -25,6 +25,9 @@ Itô's formula.
   increments of a full Itô process, drift included.
 * `LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid` — the Riemann sums of a
   continuous weight against a bounded density converge as the grid refines.
+* `LevyStochCalc.Brownian.Ito.exists_unifGrid_cell` — every time in `(0, T]` lies in a cell.
+* `LevyStochCalc.Brownian.Ito.abs_ofUnifGrid_eval_sub_le` — the grid step weight is within the
+  weight's modulus of continuity at the mesh.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -76,6 +79,39 @@ theorem unifGrid_le {T : ℝ} (hT : 0 ≤ T) {m i : ℕ} (hi : i ≤ m) (hm : m 
   have : (i : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hi
   nlinarith
 
+
+/-- Every time in `(0, T]` lies in exactly one cell of the uniform grid. -/
+theorem exists_unifGrid_cell {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) {s : ℝ}
+    (hs : 0 < s) (hsT : s ≤ T) :
+    ∃ i : ℕ, i < m ∧ unifGrid T m i < s ∧ s ≤ unifGrid T m (i + 1) := by
+  have hmR : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm0)
+  set x : ℝ := s * (m : ℝ) / T with hxdef
+  have hx0 : 0 < x := by rw [hxdef]; positivity
+  have hxm : x ≤ (m : ℝ) := by
+    rw [hxdef, div_le_iff₀ hT]
+    nlinarith [hmR.le]
+  set k : ℕ := ⌈x⌉₊ with hkdef
+  have hk1 : 1 ≤ k := Nat.ceil_pos.mpr hx0
+  have hkm : k ≤ m := Nat.ceil_le.mpr (by exact_mod_cast hxm)
+  refine ⟨k - 1, by omega, ?_, ?_⟩
+  · have hcast : ((k - 1 : ℕ) : ℝ) = (k : ℝ) - 1 := by
+      have : (1 : ℕ) ≤ k := hk1
+      push_cast [Nat.cast_sub this]
+      ring
+    rw [unifGrid, hcast, div_lt_iff₀ hmR]
+    have hlt : (k : ℝ) < x + 1 := Nat.ceil_lt_add_one hx0.le
+    have hxs : x * T = s * (m : ℝ) := by
+      rw [hxdef]; field_simp
+    nlinarith [hT, hmR]
+  · have hcast : (((k - 1 : ℕ) + 1 : ℕ) : ℝ) = (k : ℝ) := by
+      have : (1 : ℕ) ≤ k := hk1
+      push_cast [Nat.cast_sub this]
+      ring
+    rw [unifGrid, hcast, le_div_iff₀ hmR]
+    have hle : x ≤ (k : ℝ) := Nat.le_ceil x
+    have hxs : x * T = s * (m : ℝ) := by
+      rw [hxdef]; field_simp
+    nlinarith [hT, hmR]
 
 /-- The simple integrand on the uniform grid of `[0, T]` with the given cell coefficients. -/
 noncomputable def SimplePredictable.ofUnifGrid {T : ℝ} (hT : 0 < T) {m : ℕ} (hm : m ≠ 0)
@@ -190,6 +226,27 @@ theorem integral_abs_add_pow_three_le {P : Measure Ω} {u v : Ω → ℝ}
     _ = 4 * ((∫ ω, |u ω| ^ 3 ∂P) + ∫ ω, |v ω| ^ 3 ∂P) := by
         rw [MeasureTheory.integral_const_mul, MeasureTheory.integral_add hu hv]
 
+
+/-- **The grid step weight is uniformly close to a uniformly continuous weight.** If the cell
+coefficients are the weight frozen at the left endpoints, the step process differs from the
+weight by at most the weight's modulus of continuity at the mesh. -/
+theorem abs_ofUnifGrid_eval_sub_le {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0)
+    (ξ : Fin m → Ω → ℝ) (hbdd : ∀ i : Fin m, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M)
+    (hmeas : ∀ i : Fin m, Measurable (ξ i)) (g : Ω → ℝ → ℝ) {ε : ℝ}
+    (hξg : ∀ (i : Fin m) (ω : Ω), ξ i ω = g ω (unifGrid T m (i : ℕ)))
+    (hmod : ∀ ω : Ω, ∀ x ∈ Set.Icc (0 : ℝ) T, ∀ y ∈ Set.Icc (0 : ℝ) T,
+      |x - y| ≤ T / (m : ℝ) → |g ω x - g ω y| ≤ ε)
+    (ω : Ω) {s : ℝ} (hs : s ∈ Set.Ioc (0 : ℝ) T) :
+    |(SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω - g ω s| ≤ ε := by
+  obtain ⟨i, hi, hlt, hle⟩ := exists_unifGrid_cell hT hm0 hs.1 hs.2
+  have heval : (SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω = ξ ⟨i, hi⟩ ω :=
+    SimplePredictable.ofUnifGrid_eval hT hm0 ξ hbdd hmeas ⟨i, hi⟩ ⟨hlt, hle⟩ ω
+  rw [heval, hξg ⟨i, hi⟩ ω]
+  refine hmod ω _ ⟨unifGrid_nonneg hT.le m i, unifGrid_le hT.le hi.le hm0⟩ s
+    ⟨hs.1.le, hs.2⟩ ?_
+  have hstep : unifGrid T m (i + 1) - unifGrid T m i = T / (m : ℝ) := unifGrid_succ_sub hm0 i
+  rw [abs_of_nonpos (by linarith : unifGrid T m i - s ≤ 0)]
+  linarith
 
 section RiemannLimit
 

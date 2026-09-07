@@ -300,6 +300,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_add_pow_three_le
 #print axioms LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid
+#print axioms LevyStochCalc.Brownian.Ito.exists_unifGrid_cell
+#print axioms LevyStochCalc.Brownian.Ito.abs_ofUnifGrid_eval_sub_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
