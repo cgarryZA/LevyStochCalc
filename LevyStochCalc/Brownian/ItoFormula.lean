@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoFormulaGrid
 import LevyStochCalc.Brownian.ItoRiemannIntegrand
+import LevyStochCalc.Brownian.TaylorTwo
 
 /-!
 # Grid Riemann sums of the Itô integral
@@ -19,6 +20,11 @@ by a general one costs the `L²` distance between them times the bound on the in
   an Itô integral.
 * `LevyStochCalc.Brownian.Ito.lintegral_sq_sum_unifGrid_sub_le` — that sum is `L²`-close to the
   Itô integral of the weight, with the weight's modulus of continuity as the rate.
+* `LevyStochCalc.Brownian.Ito.itoProcess` — the process `X₀ + ∫ b ds + ∫ H dW`.
+* `LevyStochCalc.Brownian.Ito.itoProcess_sub` — its increment splits into drift and martingale
+  parts.
+* `LevyStochCalc.Brownian.Ito.integral_abs_taylorRemainder_le` — the second-order Taylor
+  remainder along a uniform grid is `O(m^{-1/2})` in `L¹`.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -127,5 +133,133 @@ theorem lintegral_sq_sum_unifGrid_sub_le
   exact abs_ofUnifGrid_eval_sub_le hT hm0 ξ hbdd hmeas g hξg hmod ω hs
 
 end GridSum
+
+section ItoProcess
+
+variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.BrownianMotion P)
+  (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+  (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+  (hp : Probability.ProgressivelyMeasurable ℱ H)
+  (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+    (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+
+/-- The Itô process `X_t = X₀ + ∫_{[0,t]} b_s ds + ∫_0^t H_s dW_s`. -/
+noncomputable def itoProcess (X₀ : Ω → ℝ) (bdrift : Ω → ℝ → ℝ) (t : ℝ) (ω : Ω) : ℝ :=
+  X₀ ω + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume)
+    + stochasticIntegralBrownian W ℱ hℱ H hm hp hq t ω
+
+include hℱ in
+/-- An Itô process is measurable in the sample point at each time. -/
+theorem measurable_itoProcess {X₀ : Ω → ℝ} (hX₀ : Measurable X₀) {bdrift : Ω → ℝ → ℝ}
+    (hbm : Measurable (Function.uncurry bdrift)) (t : ℝ) :
+    Measurable (itoProcess W ℱ hℱ H hm hp hq X₀ bdrift t) := by
+  unfold itoProcess
+  exact (hX₀.add (measurable_setIntegral hbm _)).add
+    ((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H hm hp hq t).mono (ℱ.le t)).measurable
+
+include hℱ in
+/-- The increment of an Itô process is the drift's increment plus the Itô integral's. -/
+theorem itoProcess_sub (X₀ : Ω → ℝ) (bdrift : Ω → ℝ → ℝ)
+    (hbm : Measurable (Function.uncurry bdrift)) {B : ℝ}
+    (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) {u v : ℝ} (hu : 0 ≤ u) (huv : u ≤ v) (ω : Ω) :
+    itoProcess W ℱ hℱ H hm hp hq X₀ bdrift v ω
+        - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift u ω
+      = (∫ s in Set.Ioc u v, bdrift ω s ∂volume)
+        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω) := by
+  unfold itoProcess
+  rw [← setIntegral_Icc_sub_Icc (Measurable.of_uncurry_left hbm) (hB ω) hu huv]
+  ring
+
+variable {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
+
+include hℱ hC0 hCH in
+/-- **The second-order Taylor remainder of an Itô process along a uniform grid is `O(m^{-1/2})`
+in `L¹`.** -/
+theorem integral_abs_taylorRemainder_le
+    {X₀ : Ω → ℝ} (hX₀ : Measurable X₀) (bdrift : Ω → ℝ → ℝ)
+    (hbm : Measurable (Function.uncurry bdrift))
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B)
+    {f f' f'' : ℝ → ℝ} {K : ℝ} (hK0 : 0 ≤ K)
+    (hf : ∀ x, HasDerivAt f (f' x) x) (hf' : ∀ x, HasDerivAt f' (f'' x) x)
+    (hf'' : ∀ u v : ℝ, |f'' u - f'' v| ≤ K * |u - v|)
+    {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
+    ∫ ω, |taylorRemainder f f' f''
+        (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m| ∂P
+      ≤ K * (4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T * Real.sqrt (T / (m : ℝ))))) := by
+  have hX : ∀ i : ℕ, Measurable (itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i)) :=
+    fun i => measurable_itoProcess W ℱ hℱ H hm hp hq hX₀ hbm _
+  have hfd : Differentiable ℝ f := fun x => (hf x).differentiableAt
+  have hf'd : Differentiable ℝ f' := fun x => (hf' x).differentiableAt
+  have hfc : Continuous f := hfd.continuous
+  have hf'c : Continuous f' := hf'd.continuous
+  have hf''c : Continuous f'' := by
+    have hlip : LipschitzWith (Real.toNNReal K) f'' := by
+      refine LipschitzWith.of_dist_le_mul fun u v => ?_
+      rw [Real.dist_eq, Real.dist_eq, Real.coe_toNNReal K hK0]
+      exact hf'' u v
+    exact hlip.continuous
+  -- the remainder is measurable
+  have hR : Measurable fun ω => taylorRemainder f f' f''
+      (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m := by
+    unfold taylorRemainder
+    refine ((hfc.measurable.comp (hX m)).sub (hfc.measurable.comp (hX 0))).sub
+      ((Finset.measurable_sum _ fun i _ => (hf'c.measurable.comp (hX i)).mul
+          ((hX (i + 1)).sub (hX i))).add
+        (Finset.measurable_sum _ fun i _ =>
+          ((hf''c.measurable.comp (hX i)).mul (((hX (i + 1)).sub (hX i)).pow_const 2)).div_const 2))
+  -- the pathwise Taylor bound
+  have hptw : ∀ ω : Ω, |taylorRemainder f f' f''
+      (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m|
+      ≤ K * ∑ i ∈ Finset.range m,
+        |itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+          - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω| ^ 3 :=
+    fun ω => abs_taylorRemainder_le hK0 hf hf' hf'' _ m
+  -- the increment splits into drift and martingale parts
+  have hsplit : ∀ (i : ℕ) (ω : Ω),
+      itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+          - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω
+        = (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
+          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
+            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω) := fun i ω =>
+    itoProcess_sub W ℱ hℱ H hm hp hq X₀ bdrift hbm hB (unifGrid_nonneg hT.le m i)
+      (unifGrid_lt_succ hT hm0 i).le ω
+  have hterm : ∀ i ∈ Finset.range m, MeasureTheory.Integrable (fun ω : Ω =>
+      |itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+        - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω| ^ 3) P := by
+    intro i _
+    simp_rw [hsplit i]
+    exact integrable_abs_itoIncrement_pow_three W ℱ hℱ H hm hp hq hC0 hCH bdrift hbm hB0 hB
+      (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)
+  have hsumint : MeasureTheory.Integrable (fun ω : Ω => K * ∑ i ∈ Finset.range m,
+      |itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+        - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω| ^ 3) P :=
+    (MeasureTheory.integrable_finsetSum _ hterm).const_mul K
+  have hRint : MeasureTheory.Integrable (fun ω : Ω => |taylorRemainder f f' f''
+      (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m|) P := by
+    refine hsumint.mono hR.abs.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_abs]
+    exact (hptw ω).trans (le_abs_self _)
+  calc ∫ ω, |taylorRemainder f f' f''
+        (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m| ∂P
+      ≤ ∫ ω, K * ∑ i ∈ Finset.range m,
+          |itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+            - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω| ^ 3 ∂P :=
+        MeasureTheory.integral_mono hRint hsumint hptw
+    _ = K * ∑ i ∈ Finset.range m, ∫ ω,
+          |itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m (i + 1)) ω
+            - itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω| ^ 3 ∂P := by
+        rw [MeasureTheory.integral_const_mul, MeasureTheory.integral_finsetSum _ hterm]
+    _ ≤ K * (4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+          * (T * Real.sqrt (T / (m : ℝ))))) := by
+        refine mul_le_mul_of_nonneg_left ?_ hK0
+        simp_rw [hsplit]
+        exact sum_integral_abs_itoIncrement_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH bdrift hbm
+          hB0 hB hT hm0
+
+end ItoProcess
 
 end LevyStochCalc.Brownian.Ito

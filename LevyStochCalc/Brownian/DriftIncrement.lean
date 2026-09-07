@@ -19,6 +19,8 @@ integral over that cell, and is bounded by the bound on `b` times the cell lengt
   integrable on any set of finite measure.
 * `LevyStochCalc.setIntegral_Icc_sub_Icc` — `∫_{[0,b]} − ∫_{[0,a]} = ∫_{(a,b]}`.
 * `LevyStochCalc.abs_setIntegral_Ioc_le` — `|∫_{(a,b]} f| ≤ B·(b − a)`.
+* `LevyStochCalc.measurable_setIntegral` — the integral over a fixed set is measurable in
+  the parameter.
 * `LevyStochCalc.measurable_setIntegral_Ioc` — the window integral is measurable in the
   parameter.
 -/
@@ -70,12 +72,19 @@ theorem abs_setIntegral_Ioc_le {f : ℝ → ℝ} (hf : Measurable f) {B : ℝ}
   exact le_of_eq (mul_comm _ _)
 
 
+/-- The integral of a jointly measurable function over a fixed set is measurable in the
+parameter. -/
+theorem measurable_setIntegral {Ω : Type*} [MeasurableSpace Ω] {f : Ω → ℝ → ℝ}
+    (hf : Measurable (Function.uncurry f)) (s : Set ℝ) :
+    Measurable fun ω => ∫ t in s, f ω t ∂volume :=
+  (MeasureTheory.StronglyMeasurable.integral_prod_right
+    (ν := volume.restrict s) hf.stronglyMeasurable).measurable
+
 /-- The integral of a jointly measurable function over a fixed window is measurable in the
 parameter. -/
 theorem measurable_setIntegral_Ioc {Ω : Type*} [MeasurableSpace Ω] {f : Ω → ℝ → ℝ}
     (hf : Measurable (Function.uncurry f)) (a b : ℝ) :
-    Measurable fun ω => ∫ s in Set.Ioc a b, f ω s ∂volume := by
-  exact (MeasureTheory.StronglyMeasurable.integral_prod_right
-    (ν := volume.restrict (Set.Ioc a b)) hf.stronglyMeasurable).measurable
+    Measurable fun ω => ∫ s in Set.Ioc a b, f ω s ∂volume :=
+  measurable_setIntegral hf (Set.Ioc a b)
 
 end LevyStochCalc

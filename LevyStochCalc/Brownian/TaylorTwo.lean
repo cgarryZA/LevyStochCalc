@@ -16,6 +16,8 @@ second-order Taylor polynomial approximates the function to within `K|y − x|³
 * `LevyStochCalc.abs_sub_taylor_one_le` — the first-order Taylor remainder bound.
 * `LevyStochCalc.abs_sub_taylor_two_le` — the second-order Taylor remainder bound.
 * `LevyStochCalc.abs_sub_sum_taylor_two_le` — the telescoped form along a sequence.
+* `LevyStochCalc.taylorRemainder` — the telescoped remainder as a function of the sequence.
+* `LevyStochCalc.abs_taylorRemainder_le` — its bound.
 -/
 
 namespace LevyStochCalc
@@ -121,5 +123,19 @@ theorem abs_sub_sum_taylor_two_le {f f' f'' : ℝ → ℝ} {K : ℝ} (hK0 : 0 �
         - f'' (x i) * (x (i + 1) - x i) ^ 2 / 2 := by ring
   rw [heq]
   exact abs_sub_taylor_two_le hK0 hf hf' hf'' (x i) (x (i + 1))
+
+/-- The second-order Taylor remainder of `f` along the first `m` steps of the sequence `x`. -/
+noncomputable def taylorRemainder (f f' f'' : ℝ → ℝ) (x : ℕ → ℝ) (m : ℕ) : ℝ :=
+  f (x m) - f (x 0)
+    - ((∑ i ∈ Finset.range m, f' (x i) * (x (i + 1) - x i))
+      + ∑ i ∈ Finset.range m, f'' (x i) * (x (i + 1) - x i) ^ 2 / 2)
+
+/-- The second-order Taylor remainder along a sequence is bounded by the Lipschitz constant of
+`f''` times the sum of the cubed increments. -/
+theorem abs_taylorRemainder_le {f f' f'' : ℝ → ℝ} {K : ℝ} (hK0 : 0 ≤ K)
+    (hf : ∀ x, HasDerivAt f (f' x) x) (hf' : ∀ x, HasDerivAt f' (f'' x) x)
+    (hf'' : ∀ u v : ℝ, |f'' u - f'' v| ≤ K * |u - v|) (x : ℕ → ℝ) (m : ℕ) :
+    |taylorRemainder f f' f'' x m| ≤ K * ∑ i ∈ Finset.range m, |x (i + 1) - x i| ^ 3 :=
+  abs_sub_sum_taylor_two_le hK0 hf hf' hf'' x m
 
 end LevyStochCalc

@@ -304,6 +304,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_unifGrid_cell
 #print axioms LevyStochCalc.Brownian.Ito.abs_ofUnifGrid_eval_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_sub_le_of_bound
+-- B1a-3e (2026-09-07): the Ito process and its L^1 Taylor remainder.
+#print axioms LevyStochCalc.measurable_setIntegral
+#print axioms LevyStochCalc.abs_taylorRemainder_le
+#print axioms LevyStochCalc.Brownian.Ito.integrable_abs_drift_pow_three
+#print axioms LevyStochCalc.Brownian.Ito.integrable_abs_itoIncrement_pow_three
+#print axioms LevyStochCalc.Brownian.Ito.measurable_itoProcess
+#print axioms LevyStochCalc.Brownian.Ito.itoProcess_sub
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_taylorRemainder_le
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

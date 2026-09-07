@@ -21,6 +21,8 @@ Itô's formula.
   the uniform grid.
 * `LevyStochCalc.Brownian.Ito.sum_integral_abs_sub_pow_three_le` — the sum of third absolute
   moments of the Itô-integral increments across the grid, of order `m^{-1/2}`.
+* `LevyStochCalc.Brownian.Ito.integrable_abs_itoIncrement_pow_three` — the cube of an Itô
+  increment's absolute value is integrable.
 * `LevyStochCalc.Brownian.Ito.sum_integral_abs_itoIncrement_pow_three_le` — the same for the
   increments of a full Itô process, drift included.
 * `LevyStochCalc.Brownian.Ito.tendsto_riemann_weighted_unifGrid` — the Riemann sums of a
@@ -351,6 +353,55 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.B
     (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
   {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
 
+/-- The cube of the absolute increment of the integral of a bounded drift is integrable. -/
+theorem integrable_abs_drift_pow_three
+    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B)
+    {u v : ℝ} (huv : u ≤ v) :
+    MeasureTheory.Integrable
+      (fun ω : Ω => |∫ s in Set.Ioc u v, bdrift ω s ∂volume| ^ 3) P := by
+  have hDbd : ∀ ω : Ω, |∫ s in Set.Ioc u v, bdrift ω s ∂volume| ≤ B * (v - u) := fun ω =>
+    abs_setIntegral_Ioc_le (Measurable.of_uncurry_left hbm) (hB ω) huv
+  have hDmeas : Measurable fun ω : Ω => ∫ s in Set.Ioc u v, bdrift ω s ∂volume :=
+    measurable_setIntegral_Ioc hbm _ _
+  have hvu : (0 : ℝ) ≤ v - u := sub_nonneg.mpr huv
+  refine (MeasureTheory.integrable_const ((B * (v - u)) ^ 3)).mono
+    ((hDmeas.abs.pow_const 3).aestronglyMeasurable)
+    (Filter.Eventually.of_forall fun ω => ?_)
+  rw [Real.norm_eq_abs, Real.norm_eq_abs,
+    abs_of_nonneg (pow_nonneg (abs_nonneg _) 3),
+    abs_of_nonneg (pow_nonneg (mul_nonneg hB0 hvu) 3)]
+  exact pow_le_pow_left₀ (abs_nonneg _) (hDbd ω) 3
+
+include hℱ hC0 hCH in
+/-- The cube of the absolute increment of an Itô process is integrable. -/
+theorem integrable_abs_itoIncrement_pow_three
+    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B)
+    {u v : ℝ} (hu : 0 ≤ u) (huv : u < v) :
+    MeasureTheory.Integrable (fun ω : Ω =>
+      |(∫ s in Set.Ioc u v, bdrift ω s ∂volume)
+        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω)| ^ 3) P := by
+  have hDint := integrable_abs_drift_pow_three (P := P) bdrift hbm hB0 hB huv.le
+  have hDmeas : Measurable fun ω : Ω => ∫ s in Set.Ioc u v, bdrift ω s ∂volume :=
+    measurable_setIntegral_Ioc hbm _ _
+  have hMint := (integral_abs_sub_pow_three_le W ℱ hℱ H hm hp hq hC0 hCH hu huv).1
+  have hMmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq u v
+  refine ((hDint.add hMint).const_mul 4).mono
+    (((hDmeas.add hMmeas).abs.pow_const 3).aestronglyMeasurable)
+    (Filter.Eventually.of_forall fun ω => ?_)
+  rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (abs_nonneg _) 3)]
+  refine le_trans ?_ (le_abs_self _)
+  have h3 : |(∫ s in Set.Ioc u v, bdrift ω s ∂volume)
+      + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+        - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω)| ^ 3
+      ≤ (|∫ s in Set.Ioc u v, bdrift ω s ∂volume|
+        + |stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω|) ^ 3 :=
+    pow_le_pow_left₀ (abs_nonneg _) (abs_add_le _ _) 3
+  exact h3.trans (add_pow_three_le_four (abs_nonneg _) (abs_nonneg _))
+
 include hℱ hC0 hCH in
 /-- **The third absolute moments of an Itô process's increments across a uniform grid sum to
 `O(m^{-1/2})`.** The drift contributes `O(m^{-2})` and the martingale part `O(m^{-1/2})`. -/
@@ -389,19 +440,7 @@ theorem sum_integral_abs_itoIncrement_pow_three_le
       intro ω
       have h := abs_setIntegral_Ioc_le (Measurable.of_uncurry_left hbm) (hB ω) hle
       rwa [hstep i] at h
-    have hDmeas : Measurable fun ω : Ω =>
-        ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume :=
-      measurable_setIntegral_Ioc hbm _ _
-    have hDint : MeasureTheory.Integrable (fun ω : Ω =>
-        |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume| ^ 3) P := by
-      refine (MeasureTheory.integrable_const ((B * (T / (m : ℝ))) ^ 3)).mono
-        ((hDmeas.abs.pow_const 3).aestronglyMeasurable)
-        (Filter.Eventually.of_forall fun ω => ?_)
-      rw [Real.norm_eq_abs, Real.norm_eq_abs,
-        abs_of_nonneg (by positivity : (0 : ℝ) ≤ |∫ s in Set.Ioc (unifGrid T m i)
-          (unifGrid T m (i + 1)), bdrift ω s ∂volume| ^ 3),
-        abs_of_nonneg (by positivity : (0 : ℝ) ≤ (B * (T / (m : ℝ))) ^ 3)]
-      exact pow_le_pow_left₀ (abs_nonneg _) (hDbd ω) 3
+    have hDint := integrable_abs_drift_pow_three (P := P) bdrift hbm hB0 hB hle
     have hDle : ∫ ω, |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
         bdrift ω s ∂volume| ^ 3 ∂P ≤ (B * (T / (m : ℝ))) ^ 3 := by
       calc ∫ ω, |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
@@ -415,25 +454,8 @@ theorem sum_integral_abs_itoIncrement_pow_three_le
       (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)
     rw [hstep i] at hMle
     -- the sum
-    have hMmeas := measurable_sub_stochasticIntegralBrownian W ℱ hℱ H hm hp hq
-      (unifGrid T m i) (unifGrid T m (i + 1))
-    have hsumint : MeasureTheory.Integrable (fun ω : Ω =>
-        |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
-          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
-            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3) P := by
-      refine ((hDint.add hMint).const_mul 4).mono
-        (((hDmeas.add hMmeas).abs.pow_const 3).aestronglyMeasurable)
-        (Filter.Eventually.of_forall fun ω => ?_)
-      rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (by positivity : (0 : ℝ) ≤ |_| ^ 3)]
-      refine le_trans ?_ (le_abs_self _)
-      have h3 : |(∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume)
-          + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
-            - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω)| ^ 3
-          ≤ (|∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), bdrift ω s ∂volume|
-            + |stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m (i + 1)) ω
-              - stochasticIntegralBrownian W ℱ hℱ H hm hp hq (unifGrid T m i) ω|) ^ 3 :=
-        pow_le_pow_left₀ (abs_nonneg _) (abs_add_le _ _) 3
-      exact h3.trans (add_pow_three_le_four (abs_nonneg _) (abs_nonneg _))
+    have hsumint := integrable_abs_itoIncrement_pow_three W ℱ hℱ H hm hp hq hC0 hCH
+      bdrift hbm hB0 hB (unifGrid_nonneg hT.le m i) (unifGrid_lt_succ hT hm0 i)
     refine (integral_abs_add_pow_three_le hDint hMint hsumint).trans ?_
     have h4 : (0 : ℝ) ≤ 4 := by norm_num
     exact mul_le_mul_of_nonneg_left (add_le_add hDle hMle) h4
