@@ -336,6 +336,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sum_quadVar_le
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.sq_sub_ae
 #print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_quadVarRiemann_sub_le
+-- B1a (2026-09-07): Ito's formula for a continuous version of a scalar Ito process.
+#print axioms LevyStochCalc.Brownian.Ito.abs_sub_le_of_hasDerivAt_bound
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_le_sqrt_of_lintegral_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_itoGridError
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_itoFormula_le
+#print axioms LevyStochCalc.Brownian.Ito.IsItoVersion.itoFormula
 
 -- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique

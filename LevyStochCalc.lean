@@ -90,6 +90,7 @@ import LevyStochCalc.Brownian.ItoFormulaGrid
 import LevyStochCalc.Brownian.ItoGridPartition
 import LevyStochCalc.Brownian.ItoMartingaleRiemann
 import LevyStochCalc.Brownian.ItoQuadVarRiemann
+import LevyStochCalc.Brownian.ItoFormulaScalar
 import LevyStochCalc.Brownian.ItoProcess
 import LevyStochCalc.Brownian.ItoProcessVersion
 import LevyStochCalc.Brownian.ItoProcessWindow

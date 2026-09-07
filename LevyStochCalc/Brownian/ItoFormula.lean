@@ -153,11 +153,13 @@ theorem integral_abs_taylorRemainder_le
     (hf : ∀ x, HasDerivAt f (f' x) x) (hf' : ∀ x, HasDerivAt f' (f'' x) x)
     (hf'' : ∀ u v : ℝ, |f'' u - f'' v| ≤ K * |u - v|)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
-    ∫ ω, |taylorRemainder f f' f''
-        (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m| ∂P
-      ≤ K * (4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
-        + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
-          * (T * Real.sqrt (T / (m : ℝ))))) := by
+    MeasureTheory.Integrable (fun ω : Ω => taylorRemainder f f' f''
+        (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m) P
+      ∧ ∫ ω, |taylorRemainder f f' f''
+          (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m| ∂P
+        ≤ K * (4 * ((m : ℝ) * (B * (T / (m : ℝ))) ^ 3
+          + (C ^ 2 + (6 + gaussianFourthMoment) * C ^ 4) / 2
+            * (T * Real.sqrt (T / (m : ℝ))))) := by
   have hX : ∀ i : ℕ, Measurable (itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i)) :=
     fun i => measurable_itoProcess W ℱ hℱ H hm hp hq hX₀ hbm _
   have hfd : Differentiable ℝ f := fun x => (hf x).differentiableAt
@@ -211,6 +213,12 @@ theorem integral_abs_taylorRemainder_le
     refine hsumint.mono hR.abs.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
     rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_abs]
     exact (hptw ω).trans (le_abs_self _)
+  have hRint0 : MeasureTheory.Integrable (fun ω : Ω => taylorRemainder f f' f''
+      (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m) P := by
+    refine hsumint.mono hR.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs]
+    exact (hptw ω).trans (le_abs_self _)
+  refine ⟨hRint0, ?_⟩
   calc ∫ ω, |taylorRemainder f f' f''
         (fun i => itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (unifGrid T m i) ω) m| ∂P
       ≤ ∫ ω, K * ∑ i ∈ Finset.range m,

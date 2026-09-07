@@ -19,6 +19,8 @@ continuous function and fed back into a time integral or an Itô integral.
 * `LevyStochCalc.Brownian.Ito.IsItoVersion.measurable_uncurry` — its joint measurability.
 * `LevyStochCalc.Brownian.Ito.IsItoVersion.progressivelyMeasurable_comp` — a continuous function
   of it is progressively measurable.
+* `LevyStochCalc.Brownian.Ito.IsItoVersion.sub_ae` — its increment splits into drift and
+  martingale parts.
 * `LevyStochCalc.Brownian.Ito.IsItoVersion.integral_abs_sub_le` and
   `LevyStochCalc.Brownian.Ito.IsItoVersion.integral_sq_sub_le` — the increment moments carried
   over from `itoProcess`.
@@ -80,6 +82,26 @@ theorem IsItoVersion.measurable_uncurry_comp
     (h : IsItoVersion W ℱ hℱ H hm hp hq X₀ bdrift X) {φ : ℝ → ℝ} (hφ : Measurable φ) :
     Measurable (Function.uncurry fun ω s => φ (X s ω)) :=
   hφ.comp h.measurable_uncurry
+
+/-- A version agrees with the Itô process at every time of a countable family, simultaneously. -/
+theorem IsItoVersion.ae_eq_all (h : IsItoVersion W ℱ hℱ H hm hp hq X₀ bdrift X)
+    (t : ℕ → ℝ) (ht : ∀ i, 0 ≤ t i) :
+    ∀ᵐ ω ∂P, ∀ i : ℕ, X (t i) ω = itoProcess W ℱ hℱ H hm hp hq X₀ bdrift (t i) ω :=
+  MeasureTheory.ae_all_iff.mpr fun i => h.ae_eq (t i) (ht i)
+
+/-- The increment of a version splits into the drift's window integral and the Itô integral's
+increment. -/
+theorem IsItoVersion.sub_ae (h : IsItoVersion W ℱ hℱ H hm hp hq X₀ bdrift X)
+    (hbm : Measurable (Function.uncurry bdrift)) {B : ℝ}
+    (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) {u v : ℝ} (hu : 0 ≤ u) (huv : u ≤ v) :
+    ∀ᵐ ω ∂P, X v ω - X u ω
+      = (∫ s in Set.Ioc u v, bdrift ω s ∂volume)
+        + (stochasticIntegralBrownian W ℱ hℱ H hm hp hq v ω
+          - stochasticIntegralBrownian W ℱ hℱ H hm hp hq u ω) := by
+  filter_upwards [h.ae_eq v (hu.trans huv), h.ae_eq u hu] with ω hv hu'
+  rw [hv, hu']
+  exact itoProcess_sub W ℱ hℱ H hm hp hq X₀ bdrift hbm hB hu huv ω
+
 
 section Moments
 

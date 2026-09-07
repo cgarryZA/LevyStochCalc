@@ -293,10 +293,14 @@ theorem IsItoVersion.integral_abs_quadVarRiemann_sub_le
     {φ : ℝ → ℝ} (hφc : Continuous φ) {Kφ : ℝ} (hKφ0 : 0 ≤ Kφ) (hφbd : ∀ x, |φ x| ≤ Kφ)
     {L : ℝ} (hL0 : 0 ≤ L) (hφlip : ∀ x y : ℝ, |φ x - φ y| ≤ L * |x - y|)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
-    ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+    MeasureTheory.Integrable (fun ω : Ω => (∑ i ∈ Finset.range m,
+          φ (X (unifGrid T m i) ω)
+            * (X (unifGrid T m (i + 1)) ω - X (unifGrid T m i) ω) ^ 2)
+        - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * H ω s ^ 2 ∂volume) P
+      ∧ ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * (X (unifGrid T m (i + 1)) ω - X (unifGrid T m i) ω) ^ 2)
           - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * H ω s ^ 2 ∂volume| ∂P
-      ≤ (m : ℝ) * (Kφ * (B * (T / (m : ℝ))) ^ 2)
+        ≤ (m : ℝ) * (Kφ * (B * (T / (m : ℝ))) ^ 2)
         + (m : ℝ) * (2 * Kφ * (B * (T / (m : ℝ))) * (C * Real.sqrt (T / (m : ℝ))))
         + Real.sqrt (Kφ ^ 2 * ((2 * (6 + gaussianFourthMoment) + 2) * C ^ 4)
             * ((m : ℝ) * (T / (m : ℝ)) ^ 2))
@@ -385,6 +389,7 @@ theorem IsItoVersion.integral_abs_quadVarRiemann_sub_le
             - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * H ω s ^ 2 ∂volume)| := by
     filter_upwards [hsplit] with ω hω
     rw [hω]
+  refine ⟨(((hAint.add hBint).add hCint).add hDint).congr hsplit.symm, ?_⟩
   rw [MeasureTheory.integral_congr_ae hsplitabs]
   exact integral_abs_add_four_le hAint hBint hCint hDint hAle hBle hCle hDle
 
