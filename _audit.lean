@@ -1445,3 +1445,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integrable_cellPart
 #print axioms LevyStochCalc.Driver.cellPairing
 #print axioms LevyStochCalc.Driver.cellPairing_eq_parts
+-- ===== The cell identity in the recombination's form (A4d-ii-e-4-c-3-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.cellDrift
+#print axioms LevyStochCalc.Driver.abs_cellDrift_le
+#print axioms LevyStochCalc.Driver.cellPart_of_paired
+#print axioms LevyStochCalc.Driver.cellPart_identity_re
+#print axioms LevyStochCalc.Driver.cellPart_identity_im
