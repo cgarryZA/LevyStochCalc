@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CharacterStrict
 import LevyStochCalc.Poisson.ChainRule
+import LevyStochCalc.Poisson.CharacterIntegrand
 
 /-!
 # The character of a window family as a pure-jump process
@@ -91,6 +92,209 @@ theorem ae_forall_charAt_sub (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
             * (Complex.exp (Complex.I * (simpleMark w Bfam p : ℂ)) - 1) ∂(N.N ω) := rfl
   rw [hint, ← h2]
   ring
+
+/-- **The strict-past character as a pure-jump process.** -/
+theorem ae_forall_charStrict_sub (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
+    {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
+    (hAν : ν A ≠ ⊤) {T : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) :
+    ∀ᵐ ω ∂P, ∀ s : ℝ, charStrict N w Bfam s ω
+      = 1 + ∫ p in (⋃ j, Bfam j) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+          charJump N w Bfam ω p ∂(N.N ω) := by
+  have hBUm : MeasurableSet (⋃ j, Bfam j) := MeasurableSet.iUnion hBm
+  have hBUfin : referenceIntensity ν (⋃ j, Bfam j) ≠ ⊤ :=
+    ne_top_of_le_ne_top (referenceIntensity_Ioc_prod_ne_top hAν T)
+      (measure_mono (Set.iUnion_subset hBsub))
+  filter_upwards [ae_forall_exp_windowSum_sub_one N hBUm hBUfin (simpleMark w Bfam),
+    ae_windowSum_simple N hAν w hBm hBsub] with ω hchain hsum s
+  have h1 : charStrict N w Bfam s ω
+      = Complex.exp (Complex.I *
+          (windowSumStrict N (⋃ j, Bfam j) (simpleMark w Bfam) s ω : ℂ)) := by
+    rw [charStrict, (hsum s).2]
+  rw [h1]
+  have h2 := (hchain s).2
+  have hint : (∫ p in (⋃ j, Bfam j) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+        charJump N w Bfam ω p ∂(N.N ω))
+      = ∫ p in (⋃ j, Bfam j) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+          Complex.exp (Complex.I *
+              (windowSumStrict N (⋃ j, Bfam j) (simpleMark w Bfam) p.1 ω : ℂ))
+            * (Complex.exp (Complex.I * (simpleMark w Bfam p : ℂ)) - 1) ∂(N.N ω) := rfl
+  rw [hint, ← h2]
+  ring
+
+section Predictable
+
+variable (N : PoissonRandomMeasure P ν) (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
+  (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+  {T : ℝ} (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A)
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+include hBm hA hAν hBsub in
+/-- On the window the jump weight is the predictable integrand of the chain rule. -/
+theorem ae_forall_setIntegral_charJump_eq :
+    ∀ᵐ ω ∂P, ∀ S : Set ℝ, MeasurableSet S → (∀ x ∈ S, 0 < x) →
+      (∫ p in (⋃ j, Bfam j) ∩ S ×ˢ Set.univ, charJump N w Bfam ω p ∂(N.N ω))
+        = ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ S ×ˢ Set.univ,
+            charIntegrand N w Bfam A T ω q.1 q.2 ∂(N.N ω) := by
+  have hBUm : MeasurableSet (⋃ j, Bfam j) := MeasurableSet.iUnion hBm
+  have hBsub' : (⋃ j, Bfam j) ⊆ Set.Ioc (0 : ℝ) T ×ˢ A := Set.iUnion_subset hBsub
+  filter_upwards [ae_windowSum_simple N hAν w hBm hBsub] with ω hsim S hSm _hSpos
+  have hWm : MeasurableSet ((Set.Ioc (0 : ℝ) T ×ˢ A) ∩ S ×ˢ Set.univ) :=
+    (measurableSet_Ioc.prod hA).inter (hSm.prod MeasurableSet.univ)
+  have hpt : Set.EqOn (fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2)
+      ((⋃ j, Bfam j).indicator (fun p : ℝ × E => charJump N w Bfam ω p))
+      ((Set.Ioc (0 : ℝ) T ×ˢ A) ∩ S ×ˢ Set.univ) := by
+    intro q hq
+    have hq1 : (0 : ℝ) < q.1 := hq.1.1.1
+    have hq2 : q.1 ≤ T := hq.1.1.2
+    have hq3 : q.2 ∈ A := hq.1.2
+    simp only [charIntegrand, charJump]
+    rw [predStrict_eq N w Bfam hq1 hq2 hq3 ω, ← (hsim q.1).2]
+    by_cases hmem : q ∈ ⋃ j, Bfam j
+    · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem]
+      push_cast
+      ring
+    · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
+      simp
+  have hsets : (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ S ×ˢ Set.univ ∩ (⋃ j, Bfam j)
+      = (⋃ j, Bfam j) ∩ S ×ˢ Set.univ := by
+    refine Set.Subset.antisymm (fun q hq => ⟨hq.2, hq.1.2⟩)
+      (fun q hq => ⟨⟨hBsub' hq.1, hq.2⟩, hq.1⟩)
+  rw [setIntegral_congr_fun hWm hpt, setIntegral_indicator hBUm, hsets]
+
+include hBm hA hAν hBsub in
+/-- **The character as a pure-jump process, with the predictable weight.** -/
+theorem ae_forall_charAt_sub_pred :
+    ∀ᵐ ω ∂P, ∀ s : ℝ, charAt N w Bfam s ω
+      = 1 + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioc (0 : ℝ) s ×ˢ Set.univ,
+          charIntegrand N w Bfam A T ω q.1 q.2 ∂(N.N ω) := by
+  filter_upwards [ae_forall_charAt_sub N w hBm hAν hBsub,
+    ae_forall_setIntegral_charJump_eq N w hBm hA hAν hBsub] with ω h1 h2 s
+  rw [h1 s, h2 (Set.Ioc (0 : ℝ) s) measurableSet_Ioc fun x hx => hx.1]
+
+include hBm hA hAν hBsub in
+/-- **The strict-past character as a pure-jump process, with the predictable weight.** -/
+theorem ae_forall_charStrict_sub_pred :
+    ∀ᵐ ω ∂P, ∀ s : ℝ, charStrict N w Bfam s ω
+      = 1 + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+          charIntegrand N w Bfam A T ω q.1 q.2 ∂(N.N ω) := by
+  filter_upwards [ae_forall_charStrict_sub N w hBm hAν hBsub,
+    ae_forall_setIntegral_charJump_eq N w hBm hA hAν hBsub] with ω h1 h2 s
+  rw [h1 s, h2 (Set.Ioo (0 : ℝ) s) measurableSet_Ioo fun x hx => hx.1]
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem charAt_zero (ω : Ω) : charAt N w Bfam 0 ω = 1 := by
+  have h : ∀ j, Bfam j ∩ Set.Ioc (0 : ℝ) 0 ×ˢ (Set.univ : Set E) = ∅ := by
+    intro j
+    rw [Set.Ioc_self, Set.empty_prod, Set.inter_empty]
+  simp [charAt]
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem charStrict_zero (ω : Ω) : charStrict N w Bfam 0 ω = 1 := by
+  have h : ∀ j, Bfam j ∩ Set.Ioo (0 : ℝ) 0 ×ˢ (Set.univ : Set E) = ∅ := by
+    intro j
+    rw [Set.Ioo_self, Set.empty_prod, Set.inter_empty]
+  simp [charStrict]
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem norm_charAt (s : ℝ) (ω : Ω) : ‖charAt N w Bfam s ω‖ = 1 := by
+  rw [charAt, Complex.norm_exp_I_mul_ofReal]
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem norm_charStrict (s : ℝ) (ω : Ω) : ‖charStrict N w Bfam s ω‖ = 1 := by
+  rw [charStrict, Complex.norm_exp_I_mul_ofReal]
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem abs_charAt_re_le (s : ℝ) (ω : Ω) : |(charAt N w Bfam s ω).re| ≤ 1 := by
+  have := Complex.abs_re_le_norm (charAt N w Bfam s ω)
+  rwa [norm_charAt N w s ω] at this
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem abs_charAt_im_le (s : ℝ) (ω : Ω) : |(charAt N w Bfam s ω).im| ≤ 1 := by
+  have := Complex.abs_im_le_norm (charAt N w Bfam s ω)
+  rwa [norm_charAt N w s ω] at this
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem abs_charStrict_re_le (s : ℝ) (ω : Ω) : |(charStrict N w Bfam s ω).re| ≤ 1 := by
+  have := Complex.abs_re_le_norm (charStrict N w Bfam s ω)
+  rwa [norm_charStrict N w s ω] at this
+
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+theorem abs_charStrict_im_le (s : ℝ) (ω : Ω) : |(charStrict N w Bfam s ω).im| ≤ 1 := by
+  have := Complex.abs_im_le_norm (charStrict N w Bfam s ω)
+  rwa [norm_charStrict N w s ω] at this
+
+variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+
+include hBm hA hAν hBsub in
+/-- **The real and imaginary parts of the character as pure-jump processes.** -/
+theorem ae_forall_charAt_re_im_sub (hℱ : IsPoissonFiltration N ℱ) :
+    ∀ᵐ ω ∂P, ∀ s : ℝ,
+      ((charAt N w Bfam s ω).re = (charAt N w Bfam 0 ω).re
+          + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioc (0 : ℝ) s ×ˢ Set.univ,
+              charRe N w Bfam A T ω q.1 q.2 ∂(N.N ω))
+        ∧ ((charAt N w Bfam s ω).im = (charAt N w Bfam 0 ω).im
+          + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioc (0 : ℝ) s ×ˢ Set.univ,
+              charIm N w Bfam A T ω q.1 q.2 ∂(N.N ω)) := by
+  have hWm : MeasurableSet ((Set.Ioc (0 : ℝ) T ×ˢ A : Set (ℝ × E))) :=
+    measurableSet_Ioc.prod hA
+  have hWfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAν T
+  filter_upwards [ae_forall_charAt_sub_pred N w hBm hA hAν hBsub,
+    N.integer_valued hWm hWfin] with ω hω hnat s
+  obtain ⟨n, hn⟩ := hnat
+  haveI : IsFiniteMeasure ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) :=
+    ⟨by rw [Measure.restrict_apply_univ, hn]; exact ENNReal.natCast_lt_top n⟩
+  have hint : IntegrableOn (fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2)
+      ((Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioc (0 : ℝ) s ×ˢ Set.univ) (N.N ω) :=
+    (integrableOn_charIntegrand N hℱ w hBm hA hAν hBsub ω).mono_set Set.inter_subset_left
+  have hsplit := setIntegral_complex_split hint
+  rw [charAt_zero N w]
+  refine ⟨?_, ?_⟩
+  · rw [hω s, hsplit]
+    simp only [Complex.add_re, Complex.one_re, Complex.ofReal_re, Complex.mul_re,
+      Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, mul_one, sub_zero, add_zero]
+    rfl
+  · rw [hω s, hsplit]
+    simp only [Complex.add_im, Complex.one_im, Complex.ofReal_im, Complex.mul_im,
+      Complex.ofReal_re, Complex.I_re, Complex.I_im, mul_zero, mul_one, zero_add, add_zero]
+    rfl
+
+include hBm hA hAν hBsub in
+/-- **The real and imaginary parts of the strict-past character as pure-jump processes.** -/
+theorem ae_forall_charStrict_re_im_sub (hℱ : IsPoissonFiltration N ℱ) :
+    ∀ᵐ ω ∂P, ∀ s : ℝ,
+      ((charStrict N w Bfam s ω).re = (charAt N w Bfam 0 ω).re
+          + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+              charRe N w Bfam A T ω q.1 q.2 ∂(N.N ω))
+        ∧ ((charStrict N w Bfam s ω).im = (charAt N w Bfam 0 ω).im
+          + ∫ q in (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ,
+              charIm N w Bfam A T ω q.1 q.2 ∂(N.N ω)) := by
+  have hWm : MeasurableSet ((Set.Ioc (0 : ℝ) T ×ˢ A : Set (ℝ × E))) :=
+    measurableSet_Ioc.prod hA
+  have hWfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAν T
+  filter_upwards [ae_forall_charStrict_sub_pred N w hBm hA hAν hBsub,
+    N.integer_valued hWm hWfin] with ω hω hnat s
+  obtain ⟨n, hn⟩ := hnat
+  haveI : IsFiniteMeasure ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) :=
+    ⟨by rw [Measure.restrict_apply_univ, hn]; exact ENNReal.natCast_lt_top n⟩
+  have hint : IntegrableOn (fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2)
+      ((Set.Ioc (0 : ℝ) T ×ˢ A) ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ) (N.N ω) :=
+    (integrableOn_charIntegrand N hℱ w hBm hA hAν hBsub ω).mono_set Set.inter_subset_left
+  have hsplit := setIntegral_complex_split hint
+  rw [charAt_zero N w]
+  refine ⟨?_, ?_⟩
+  · rw [hω s, hsplit]
+    simp only [Complex.add_re, Complex.one_re, Complex.ofReal_re, Complex.mul_re,
+      Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, mul_one, sub_zero, add_zero]
+    rfl
+  · rw [hω s, hsplit]
+    simp only [Complex.add_im, Complex.one_im, Complex.ofReal_im, Complex.mul_im,
+      Complex.ofReal_re, Complex.I_re, Complex.I_im, mul_zero, mul_one, zero_add, add_zero]
+    rfl
+
+end Predictable
 
 end Jump
 

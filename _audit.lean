@@ -1379,3 +1379,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.markedPredictable_cutMul
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.cutMul
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.setIntegral_count_eq_integral_add
+-- ===== The predictable weight of the character's jumps (A4d-ii-e-4-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.ae_forall_charStrict_sub
+#print axioms LevyStochCalc.Poisson.ae_forall_setIntegral_charJump_eq
+#print axioms LevyStochCalc.Poisson.ae_forall_charAt_sub_pred
+#print axioms LevyStochCalc.Poisson.ae_forall_charStrict_sub_pred
+#print axioms LevyStochCalc.Poisson.charAt_zero
+#print axioms LevyStochCalc.Poisson.charStrict_zero
+#print axioms LevyStochCalc.Poisson.norm_charAt
+#print axioms LevyStochCalc.Poisson.norm_charStrict
+#print axioms LevyStochCalc.Poisson.abs_charAt_re_le
+#print axioms LevyStochCalc.Poisson.abs_charAt_im_le
+#print axioms LevyStochCalc.Poisson.abs_charStrict_re_le
+#print axioms LevyStochCalc.Poisson.abs_charStrict_im_le
+#print axioms LevyStochCalc.Poisson.ae_forall_charAt_re_im_sub
+#print axioms LevyStochCalc.Poisson.ae_forall_charStrict_re_im_sub
