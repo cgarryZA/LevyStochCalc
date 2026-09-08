@@ -953,3 +953,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_vectorIntegral_eq_zero
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.aestronglyMeasurable_vectorIntegral
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_vectorIntegral_of_mean_zero
+-- ===== The cross witness and the augmented filtration (A4b-iii-9a, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.CrossWitness
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossWitnessNatural
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.CrossWitness.aug
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossWitnessAugNatural
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_augNatural

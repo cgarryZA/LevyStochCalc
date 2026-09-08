@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.MultidimFiltered
+import LevyStochCalc.Brownian.AugmentedFiltration
 import LevyStochCalc.Brownian.ItoFourthMoment
 
 /-!
@@ -72,42 +73,83 @@ lemma measurable_increment_crossFiltration (W : MultidimBrownianMotion P d) {i j
   Measurable.of_comap_le ((comap_increment_le_sigmaBrownian (W.W i) p q).trans
     (le_sup_of_le_right (le_iSup₂_of_le i hij le_rfl)))
 
+/-- A base filtration for which the coordinate `Wʲ` is a Brownian motion, together with a larger
+filtration for which it still is one and which carries every other coordinate's increments at
+every time. -/
+structure CrossWitness (W : MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (j : Fin d) where
+  /-- The enlarged filtration. -/
+  larger : Filtration ℝ ‹MeasurableSpace Ω›
+  /-- The coordinate is a Brownian motion for the enlarged filtration. -/
+  brownian : IsBrownianFiltration (W.W j) larger
+  /-- The enlargement contains the base filtration. -/
+  le : ∀ s, ℱ s ≤ larger s
+  /-- Every other coordinate's increments are measurable for the enlargement at every time. -/
+  increment : ∀ i, i ≠ j → ∀ s p q : ℝ,
+    Measurable[larger s] fun ω => (W.W i).W q ω - (W.W i).W p ω
+
+/-- The joint natural filtration is witnessed by `crossFiltration`. -/
+noncomputable def crossWitnessNatural (W : MultidimBrownianMotion P d) (j : Fin d) :
+    CrossWitness W W.naturalFiltration j where
+  larger := crossFiltration W j
+  brownian := isBrownianFiltration_crossFiltration W j
+  le := naturalFiltration_le_crossFiltration W j
+  increment _ hij s p q := measurable_increment_crossFiltration W hij s p q
+
+/-- Augmenting the base filtration by the null sets preserves a witness. -/
+noncomputable def CrossWitness.aug {W : MultidimBrownianMotion P d}
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {j : Fin d} (𝒲 : CrossWitness W ℱ j) :
+    CrossWitness W (augFiltration ℱ P) j where
+  larger := augFiltration 𝒲.larger P
+  brownian := isBrownianFiltration_augFiltration 𝒲.brownian
+  le s := LevyStochCalc.Probability.aug_mono (𝒲.le (max s 0))
+  increment i hij s p q := (𝒲.increment i hij s p q).mono (le_augFiltration 𝒲.larger P s) le_rfl
+
+/-- The augmented joint natural filtration is witnessed by the augmented `crossFiltration`. -/
+noncomputable def crossWitnessAugNatural (W : MultidimBrownianMotion P d) (j : Fin d) :
+    CrossWitness W (augFiltration W.naturalFiltration P) j := (crossWitnessNatural W j).aug
+
+/-- Every coordinate is a Brownian motion for the augmented joint natural filtration. -/
+theorem isBrownianFiltration_augNatural (W : MultidimBrownianMotion P d) (j : Fin d) :
+    IsBrownianFiltration (W.W j) (augFiltration W.naturalFiltration P) :=
+  isBrownianFiltration_augFiltration (W.isBrownianFiltration_natural j)
+
 /-- **The cross term vanishes, when the `Wʲ` interval starts last.** -/
-theorem integral_cross_increment_eq_zero_of_le (W : MultidimBrownianMotion P d) {i j : Fin d}
-    (hij : i ≠ j) {p q r v : ℝ} (hr : 0 ≤ r) (hrv : r < v) (hpr : p ≤ r) {ξ η : Ω → ℝ}
-    (hξ : StronglyMeasurable[W.naturalFiltration p] ξ) (hξm : Measurable ξ)
-    (hη : StronglyMeasurable[W.naturalFiltration r] η) (hηm : Measurable η) :
+theorem integral_cross_increment_eq_zero_of_le (W : MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {i j : Fin d} (hij : i ≠ j)
+    (𝒲 : CrossWitness W ℱ j) {p q r v : ℝ} (hr : 0 ≤ r) (hrv : r < v) (hpr : p ≤ r)
+    {ξ η : Ω → ℝ} (hξ : StronglyMeasurable[ℱ p] ξ) (hξm : Measurable ξ)
+    (hη : StronglyMeasurable[ℱ r] η) (hηm : Measurable η) :
     ∫ ω, (ξ ω * ((W.W i).W q ω - (W.W i).W p ω))
       * (η ω * ((W.W j).W v ω - (W.W j).W r ω)) ∂P = 0 := by
   set Y : Ω → ℝ := fun ω => ξ ω * ((W.W i).W q ω - (W.W i).W p ω) * η ω with hYdef
   have hΔi : Measurable fun ω => (W.W i).W q ω - (W.W i).W p ω :=
     ((W.W i).measurable_eval q).sub ((W.W i).measurable_eval p)
   have hYm : Measurable Y := (hξm.mul hΔi).mul hηm
-  have hY : StronglyMeasurable[crossFiltration W j r] Y := by
+  have hY : StronglyMeasurable[𝒲.larger r] Y := by
     refine StronglyMeasurable.mul (StronglyMeasurable.mul ?_ ?_) ?_
-    · exact hξ.mono (((W.naturalFiltration).mono hpr).trans
-        (naturalFiltration_le_crossFiltration W j r))
-    · exact (measurable_increment_crossFiltration W hij r p q).stronglyMeasurable
-    · exact hη.mono (naturalFiltration_le_crossFiltration W j r)
+    · exact hξ.mono ((ℱ.mono hpr).trans (𝒲.le r))
+    · exact (𝒲.increment i hij r p q).stronglyMeasurable
+    · exact hη.mono (𝒲.le r)
   have hrewrite : (fun ω => (ξ ω * ((W.W i).W q ω - (W.W i).W p ω))
         * (η ω * ((W.W j).W v ω - (W.W j).W r ω)))
       = fun ω => Y ω * ((W.W j).W v ω - (W.W j).W r ω) ^ 1 := by
     funext ω; rw [hYdef, pow_one]; ring
-  rw [hrewrite, Ito.integral_mul_increment_pow (W.W j) (crossFiltration W j)
-    (isBrownianFiltration_crossFiltration W j) hr hrv hY hYm 1,
+  rw [hrewrite, Ito.integral_mul_increment_pow (W.W j) 𝒲.larger 𝒲.brownian hr hrv hY hYm 1,
     Ito.integral_increment_pow_odd (W.W j) hr hrv odd_one, mul_zero]
 
 /-- **The cross term vanishes.** For distinct coordinates the two increments are uncorrelated
 against coefficients measurable at the left endpoints, in either order. -/
-theorem integral_cross_increment_eq_zero (W : MultidimBrownianMotion P d) {i j : Fin d}
-    (hij : i ≠ j) {p q r v : ℝ} (hp : 0 ≤ p) (hpq : p < q) (hr : 0 ≤ r) (hrv : r < v)
-    {ξ η : Ω → ℝ} (hξ : StronglyMeasurable[W.naturalFiltration p] ξ) (hξm : Measurable ξ)
-    (hη : StronglyMeasurable[W.naturalFiltration r] η) (hηm : Measurable η) :
+theorem integral_cross_increment_eq_zero (W : MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {i j : Fin d} (hij : i ≠ j)
+    (𝒲 : ∀ k : Fin d, CrossWitness W ℱ k) {p q r v : ℝ} (hp : 0 ≤ p) (hpq : p < q)
+    (hr : 0 ≤ r) (hrv : r < v) {ξ η : Ω → ℝ} (hξ : StronglyMeasurable[ℱ p] ξ)
+    (hξm : Measurable ξ) (hη : StronglyMeasurable[ℱ r] η) (hηm : Measurable η) :
     ∫ ω, (ξ ω * ((W.W i).W q ω - (W.W i).W p ω))
       * (η ω * ((W.W j).W v ω - (W.W j).W r ω)) ∂P = 0 := by
   rcases le_or_gt p r with hpr | hrp
-  · exact integral_cross_increment_eq_zero_of_le W hij hr hrv hpr hξ hξm hη hηm
-  · have h := integral_cross_increment_eq_zero_of_le W hij.symm (q := v) hp hpq hrp.le
+  · exact integral_cross_increment_eq_zero_of_le W hij (𝒲 j) hr hrv hpr hξ hξm hη hηm
+  · have h := integral_cross_increment_eq_zero_of_le W hij.symm (𝒲 i) (q := v) hp hpq hrp.le
       hη hηm hξ hξm
     rw [← h]
     exact integral_congr_ae (Filter.Eventually.of_forall fun ω => mul_comm _ _)
@@ -168,11 +210,12 @@ lemma integrable_cross_term (V₁ V₂ : BrownianMotion P) {p q r v : ℝ} (hp :
     (abs_nonneg _) (abs_nonneg _)
 
 /-- A single clamped cross term is integrable and has zero mean. -/
-lemma integrable_and_integral_cross_clamped (W : MultidimBrownianMotion P d) {i j : Fin d}
-    (hij : i ≠ j) {p q r v : ℝ} (hp : 0 ≤ p) (hpq : p < q) (hr : 0 ≤ r) (hrv : r < v)
-    {ξ η : Ω → ℝ} (hξ : StronglyMeasurable[W.naturalFiltration p] ξ) (hξm : Measurable ξ)
-    {Mξ : ℝ} (hξb : ∀ ω, |ξ ω| ≤ Mξ)
-    (hη : StronglyMeasurable[W.naturalFiltration r] η) (hηm : Measurable η)
+lemma integrable_and_integral_cross_clamped (W : MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {i j : Fin d} (hij : i ≠ j)
+    (𝒲 : ∀ k : Fin d, CrossWitness W ℱ k) {p q r v : ℝ} (hp : 0 ≤ p) (hpq : p < q)
+    (hr : 0 ≤ r) (hrv : r < v) {ξ η : Ω → ℝ} (hξ : StronglyMeasurable[ℱ p] ξ)
+    (hξm : Measurable ξ) {Mξ : ℝ} (hξb : ∀ ω, |ξ ω| ≤ Mξ)
+    (hη : StronglyMeasurable[ℱ r] η) (hηm : Measurable η)
     {Mη : ℝ} (hηb : ∀ ω, |η ω| ≤ Mη) (t t' : ℝ) :
     Integrable (fun ω => (ξ ω * ((W.W i).W (min q t) ω - (W.W i).W (min p t) ω))
       * (η ω * ((W.W j).W (min v t') ω - (W.W j).W (min r t') ω))) P
@@ -192,16 +235,16 @@ lemma integrable_and_integral_cross_clamped (W : MultidimBrownianMotion P d) {i 
       exact ⟨integrable_zero Ω ℝ P, integral_zero Ω ℝ⟩
     · rw [hpe, hre]
       exact ⟨integrable_cross_term (W.W i) (W.W j) hp hplt.le hr hrlt.le hξm hηm hξb hηb,
-        integral_cross_increment_eq_zero W hij hp hplt hr hrlt hξ hξm hη hηm⟩
+        integral_cross_increment_eq_zero W hij 𝒲 hp hplt hr hrlt hξ hξm hη hηm⟩
 
 /-- **Orthogonality on simple integrands.** Elementary integrals against distinct Brownian
 coordinates have zero pairing, at any pair of times. -/
-theorem integral_simpleIntegral_mul_eq_zero (W : MultidimBrownianMotion P d) {i j : Fin d}
-    (hij : i ≠ j) {TH TK : ℝ} (H : SimplePredictable Ω TH) (K : SimplePredictable Ω TK)
-    (hH : ∀ a : Fin H.N,
-      StronglyMeasurable[W.naturalFiltration (H.partition a.castSucc)] (H.ξ a))
-    (hK : ∀ b : Fin K.N,
-      StronglyMeasurable[W.naturalFiltration (K.partition b.castSucc)] (K.ξ b))
+theorem integral_simpleIntegral_mul_eq_zero (W : MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {i j : Fin d} (hij : i ≠ j)
+    (𝒲 : ∀ k : Fin d, CrossWitness W ℱ k) {TH TK : ℝ} (H : SimplePredictable Ω TH)
+    (K : SimplePredictable Ω TK)
+    (hH : ∀ a : Fin H.N, StronglyMeasurable[ℱ (H.partition a.castSucc)] (H.ξ a))
+    (hK : ∀ b : Fin K.N, StronglyMeasurable[ℱ (K.partition b.castSucc)] (K.ξ b))
     (t t' : ℝ) :
     ∫ ω, simpleIntegral (W.W i) H t ω * simpleIntegral (W.W j) K t' ω ∂P = 0 := by
   have hHnn : ∀ a : Fin H.N, 0 ≤ H.partition a.castSucc := fun a => by
@@ -226,7 +269,7 @@ theorem integral_simpleIntegral_mul_eq_zero (W : MultidimBrownianMotion P d) {i 
     intro a b
     obtain ⟨Mξ, hMξ⟩ := H.ξ_bounded a
     obtain ⟨Mη, hMη⟩ := K.ξ_bounded b
-    exact integrable_and_integral_cross_clamped W hij (hHnn a) (hHlt a) (hKnn b) (hKlt b)
+    exact integrable_and_integral_cross_clamped W hij 𝒲 (hHnn a) (hHlt a) (hKnn b) (hKlt b)
       (hH a) (H.ξ_measurable a) hMξ (hK b) (K.ξ_measurable b) hMη t t'
   have hexp : (fun ω => simpleIntegral (W.W i) H t ω * simpleIntegral (W.W j) K t' ω)
       = fun ω => ∑ a : Fin H.N, ∑ b : Fin K.N,
@@ -326,41 +369,36 @@ theorem integral_mul_eq_zero_of_tendsto_eLpNorm {u v : Ω → ℝ} {un vn : ℕ 
   exact hlim.symm
 
 /-- **Orthogonality of Itô integrals against distinct Brownian coordinates.** -/
-theorem integral_stochasticIntegral_mul_eq_zero (W : MultidimBrownianMotion P d) {i j : Fin d}
-    (hij : i ≠ j) {H K : Ω → ℝ → ℝ} (hHm : Measurable (Function.uncurry H))
-    (hHp : Probability.ProgressivelyMeasurable W.naturalFiltration H)
+theorem integral_stochasticIntegral_mul_eq_zero (W : MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {i j : Fin d} (hij : i ≠ j)
+    (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ)
+    (𝒲 : ∀ k : Fin d, CrossWitness W ℱ k)
+    {H K : Ω → ℝ → ℝ} (hHm : Measurable (Function.uncurry H))
+    (hHp : Probability.ProgressivelyMeasurable ℱ H)
     (hHs : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hKm : Measurable (Function.uncurry K))
-    (hKp : Probability.ProgressivelyMeasurable W.naturalFiltration K)
+    (hKp : Probability.ProgressivelyMeasurable ℱ K)
     (hKs : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {t : ℝ} (ht : 0 ≤ t) :
-    ∫ ω, stochasticIntegral (W.W i) W.naturalFiltration (W.isBrownianFiltration_natural i)
-        H hHm hHp hHs t ω
-      * stochasticIntegral (W.W j) W.naturalFiltration (W.isBrownianFiltration_natural j)
-        K hKm hKp hKs t ω ∂P = 0 := by
-  have hui : MemLp (stochasticIntegral (W.W i) W.naturalFiltration
-      (W.isBrownianFiltration_natural i) H hHm hHp hHs t) 2 P :=
+    ∫ ω, stochasticIntegral (W.W i) ℱ (hcoord i) H hHm hHp hHs t ω
+      * stochasticIntegral (W.W j) ℱ (hcoord j) K hKm hKp hKs t ω ∂P = 0 := by
+  have hui : MemLp (stochasticIntegral (W.W i) ℱ (hcoord i) H hHm hHp hHs t) 2 P :=
     (MeasureTheory.Lp.memLp _).ae_eq (stochasticIntegralBrownian_ae_eq (W.W i)
-      W.naturalFiltration (W.isBrownianFiltration_natural i) H hHm hHp hHs t).symm
-  have huj : MemLp (stochasticIntegral (W.W j) W.naturalFiltration
-      (W.isBrownianFiltration_natural j) K hKm hKp hKs t) 2 P :=
+      ℱ (hcoord i) H hHm hHp hHs t).symm
+  have huj : MemLp (stochasticIntegral (W.W j) ℱ (hcoord j) K hKm hKp hKs t) 2 P :=
     (MeasureTheory.Lp.memLp _).ae_eq (stochasticIntegralBrownian_ae_eq (W.W j)
-      W.naturalFiltration (W.isBrownianFiltration_natural j) K hKm hKp hKs t).symm
+      ℱ (hcoord j) K hKm hKp hKs t).symm
   refine integral_mul_eq_zero_of_tendsto_eLpNorm
-    (un := fun n ω => simpleIntegral (W.W i)
-      (masterApprox W.naturalFiltration H hHm hHp hHs n) t ω)
-    (vn := fun n ω => simpleIntegral (W.W j)
-      (masterApprox W.naturalFiltration K hKm hKp hKs n) t ω)
+    (un := fun n ω => simpleIntegral (W.W i) (masterApprox ℱ H hHm hHp hHs n) t ω)
+    (vn := fun n ω => simpleIntegral (W.W j) (masterApprox ℱ K hKm hKp hKs n) t ω)
     hui huj (fun n => memLp_simpleIntegral _ _ t) (fun n => memLp_simpleIntegral _ _ t)
-    (fun n => integral_simpleIntegral_mul_eq_zero W hij _ _
-      (masterApprox_adapt W.naturalFiltration H hHm hHp hHs n)
-      (masterApprox_adapt W.naturalFiltration K hKm hKp hKs n) t t)
-    (masterApprox_tendsto_L2 (W.W i) W.naturalFiltration (W.isBrownianFiltration_natural i)
-      H hHm hHp hHs ht)
-    (masterApprox_tendsto_L2 (W.W j) W.naturalFiltration (W.isBrownianFiltration_natural j)
-      K hKm hKp hKs ht)
+    (fun n => integral_simpleIntegral_mul_eq_zero W hij 𝒲 _ _
+      (masterApprox_adapt ℱ H hHm hHp hHs n)
+      (masterApprox_adapt ℱ K hKm hKp hKs n) t t)
+    (masterApprox_tendsto_L2 (W.W i) ℱ (hcoord i) H hHm hHp hHs ht)
+    (masterApprox_tendsto_L2 (W.W j) ℱ (hcoord j) K hKm hKp hKs ht)
 
 end L2Limit
 
