@@ -1099,3 +1099,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.lintegral_enorm_count_eq
 #print axioms LevyStochCalc.Poisson.lintegral_enorm_pathwise_le
 #print axioms LevyStochCalc.Poisson.tendsto_lintegral_enorm_pathwise
+#print axioms LevyStochCalc.Poisson.lintegral_referenceIntensity_window
+#print axioms LevyStochCalc.Poisson.ae_integrableOn_window
+#print axioms LevyStochCalc.Poisson.pathwise_sub
+-- ===== Mark-restricted approximants (B2b-3b-ii-c1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.restrictMarks
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.restrictMarks_B_subset
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.restrictMarks_adapted
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.eval_restrictMarks_of_mem
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.eval_restrictMarks_of_notMem
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.abs_sub_eval_restrictMarks_le
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.lintegral_sq_sub_eval_restrictMarks_le

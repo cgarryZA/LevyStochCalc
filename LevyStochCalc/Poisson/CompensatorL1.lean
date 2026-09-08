@@ -28,6 +28,23 @@ section Bound
 
 variable {A : Set E} {T : ℝ}
 
+omit [IsProbabilityMeasure P] in
+/-- The reference intensity of a window, as an iterated integral over time and marks. -/
+theorem lintegral_referenceIntensity_window {f : ℝ × E → ℝ≥0∞} (hf : Measurable f)
+    (A : Set E) (T : ℝ) :
+    ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ A, f q ∂(referenceIntensity ν)
+      = ∫⁻ s in Set.Ioc (0 : ℝ) T, ∫⁻ e in A, f (s, e) ∂ν ∂volume := by
+  have hsub : Set.Ioc (0 : ℝ) T ∩ Set.Ici (0 : ℝ) = Set.Ioc (0 : ℝ) T := by
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_Ioc, Set.mem_Ici, and_iff_left_iff_imp]
+    exact fun h => h.1.le
+  have hres : (referenceIntensity ν).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)
+      = (volume.restrict (Set.Ioc (0 : ℝ) T)).prod (ν.restrict A) := by
+    rw [referenceIntensity, ← Measure.prod_restrict,
+      Measure.restrict_restrict measurableSet_Ioc, hsub]
+  rw [hres, lintegral_prod _ hf.aemeasurable]
+
+
 omit [SigmaFinite ν] in
 /-- **Energy controls the mean absolute intensity integral.** -/
 theorem lintegral_enorm_le_energy (hRfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤)
@@ -147,6 +164,53 @@ theorem tendsto_lintegral_enorm_pathwise (hℱ : IsPoissonFiltration N ℱ) (hA 
   refine (lintegral_enorm_pathwise_le N hℱ hA hAν T (hη n)).trans ?_
   gcongr
   exact lintegral_enorm_le_energy hRfin (hηm n)
+
+/-- **A predictable integrand of finite energy is almost surely integrable on the window**, both
+against the random measure and against the reference intensity. -/
+theorem ae_integrableOn_window (hℱ : IsPoissonFiltration N ℱ) (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤) (T : ℝ) {η : Ω → ℝ → E → ℝ}
+    (hη : Probability.MarkedPredictable ℱ ν η)
+    (hm : Measurable fun p : Ω × ℝ × E => η p.1 p.2.1 p.2.2)
+    (hen : ∫⁻ ω, ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      ‖η ω q.1 q.2‖ₑ ^ 2 ∂(referenceIntensity ν) ∂P ≠ ⊤) :
+    ∀ᵐ ω ∂P, IntegrableOn (fun q : ℝ × E => η ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A) (N.N ω)
+      ∧ IntegrableOn (fun q : ℝ × E => η ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A)
+          (referenceIntensity ν) := by
+  have hRfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAν T
+  have hmeanI : ∫⁻ ω, ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      ‖η ω q.1 q.2‖ₑ ∂(referenceIntensity ν) ∂P ≠ ⊤ := by
+    refine ne_top_of_le_ne_top ?_ (lintegral_enorm_le_energy hRfin hm)
+    exact ENNReal.mul_ne_top (ENNReal.rpow_ne_top_of_nonneg (by norm_num) hen)
+      (ENNReal.rpow_ne_top_of_nonneg (by norm_num) hRfin)
+  have hmeanN : ∫⁻ ω, ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ A, ‖η ω q.1 q.2‖ₑ ∂(N.N ω) ∂P ≠ ⊤ := by
+    rw [lintegral_enorm_count_eq N hℱ hA hAν T hη]
+    exact hmeanI
+  obtain ⟨hcAE, hiM, -⟩ := aemeasurable_and_lintegral_lintegral_slice_eq N hℱ hA hAν T
+    (Ψ := fun p : Ω × ℝ × E => ‖η p.1 p.2.1 p.2.2‖ₑ) (measurable_enorm.comp hη)
+  have hslice : ∀ ω : Ω, Measurable fun q : ℝ × E => η ω q.1 q.2 :=
+    fun ω => hm.comp measurable_prodMk_left
+  filter_upwards [ae_lt_top' hcAE hmeanN, ae_lt_top' hiM.aemeasurable hmeanI] with ω hN hI
+  exact ⟨⟨(hslice ω).stronglyMeasurable.aestronglyMeasurable, hN⟩,
+    ⟨(hslice ω).stronglyMeasurable.aestronglyMeasurable, hI⟩⟩
+
+/-- The pathwise compensated integral is additive on integrands integrable on the window. -/
+theorem pathwise_sub {η₁ η₂ : Ω → ℝ → E → ℝ} (ω : Ω)
+    (h1 : IntegrableOn (fun q : ℝ × E => η₁ ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A) (N.N ω))
+    (h1' : IntegrableOn (fun q : ℝ × E => η₁ ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A)
+      (referenceIntensity ν))
+    (h2 : IntegrableOn (fun q : ℝ × E => η₂ ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A) (N.N ω))
+    (h2' : IntegrableOn (fun q : ℝ × E => η₂ ω q.1 q.2) (Set.Ioc (0 : ℝ) T ×ˢ A)
+      (referenceIntensity ν)) :
+    ((∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η₁ ω q.1 q.2 ∂(N.N ω))
+        - ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η₁ ω q.1 q.2 ∂(referenceIntensity ν))
+      - ((∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η₂ ω q.1 q.2 ∂(N.N ω))
+        - ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η₂ ω q.1 q.2 ∂(referenceIntensity ν))
+      = (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, (η₁ ω q.1 q.2 - η₂ ω q.1 q.2) ∂(N.N ω))
+        - ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+            (η₁ ω q.1 q.2 - η₂ ω q.1 q.2) ∂(referenceIntensity ν) := by
+  rw [integral_sub h1 h2, integral_sub h1' h2']
+  ring
 
 end Pathwise
 
