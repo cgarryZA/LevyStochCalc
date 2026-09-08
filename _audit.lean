@@ -1439,3 +1439,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_drift
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_jump
 #print axioms LevyStochCalc.Driver.integral_mul_trigDriftCell
+-- ===== The complex pairing with the cell character (A4d-ii-e-4-c-3-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.memLp_two_of_bound
+#print axioms LevyStochCalc.Driver.cellPart
+#print axioms LevyStochCalc.Driver.integrable_cellPart
+#print axioms LevyStochCalc.Driver.cellPairing
+#print axioms LevyStochCalc.Driver.cellPairing_eq_parts
