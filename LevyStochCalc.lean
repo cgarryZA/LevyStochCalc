@@ -134,6 +134,7 @@ import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo
 import LevyStochCalc.Brownian.TaylorTwoVector
 import LevyStochCalc.Brownian.TaylorTwoTime
+import LevyStochCalc.Brownian.TaylorTwoModulus
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 

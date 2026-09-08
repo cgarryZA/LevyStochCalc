@@ -901,3 +901,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Martingale.lintegral_iSup_sq_le_energy_compensated
 #print axioms LevyStochCalc.Martingale.sq_enorm_add_le
 #print axioms LevyStochCalc.Martingale.lintegral_iSup_sq_sum_le
+-- ===== Taylor against a modulus of continuity (B1e-1, 2026-09-08) =====
+#print axioms LevyStochCalc.abs_sub_taylor_one_le_modulus
+#print axioms LevyStochCalc.abs_sub_taylor_two_le_modulus
+#print axioms LevyStochCalc.abs_sub_taylor_two_le_modulus_normed
