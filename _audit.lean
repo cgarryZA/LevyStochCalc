@@ -795,3 +795,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.pairing_gridCharacterMultidim_eq_zero
 #print axioms LevyStochCalc.Brownian.Ito.gridCharacterMultidim_eq_exp
 #print axioms LevyStochCalc.Brownian.Ito.pairing_value_characterMultidim_eq_zero
+-- ===== Sorting a weighted family of times into a grid (A4b-iii-5b, 2026-09-08) =====
+#print axioms LevyStochCalc.Analysis.sortedGrid
+#print axioms LevyStochCalc.Analysis.sortedGrid_zero
+#print axioms LevyStochCalc.Analysis.sortedGrid_succ_of_lt
+#print axioms LevyStochCalc.Analysis.sortedGrid_succ_mem
+#print axioms LevyStochCalc.Analysis.sortedGrid_lt_succ
+#print axioms LevyStochCalc.Analysis.sum_Ico_sortedGrid
+#print axioms LevyStochCalc.Analysis.posTimes
+#print axioms LevyStochCalc.Analysis.pos_of_mem_posTimes
+#print axioms LevyStochCalc.Analysis.mem_posTimes
+#print axioms LevyStochCalc.Analysis.weightAt
+#print axioms LevyStochCalc.Analysis.sum_weightAt_mul
+#print axioms LevyStochCalc.Analysis.sum_weight_eq_sum_grid
+-- ===== The orthogonal complement of the Brownian Ito integrals (A4b-iii-5c, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.ae_forall_eq_zero_of_nonpos
+#print axioms LevyStochCalc.Brownian.Ito.pairing_char_cylinder_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_zero_of_perpItoIntegrals

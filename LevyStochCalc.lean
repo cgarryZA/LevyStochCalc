@@ -14,6 +14,7 @@ import LevyStochCalc.Basic
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Analysis.GronwallIntegral
 import LevyStochCalc.Analysis.ScaledTrig
+import LevyStochCalc.Analysis.SortedGrid
 import LevyStochCalc.Probability.AbsMoment
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
@@ -79,6 +80,7 @@ import LevyStochCalc.Brownian.MultidimFiltered
 import LevyStochCalc.Brownian.LinearCombination
 import LevyStochCalc.Brownian.ItoDriverLinear
 import LevyStochCalc.Brownian.PRPMultidim
+import LevyStochCalc.Brownian.PRPBrownian
 import LevyStochCalc.Brownian.CylinderCharacters
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport
