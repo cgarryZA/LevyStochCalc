@@ -62,6 +62,7 @@ import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
 import LevyStochCalc.Poisson.PathwiseIdentity
 import LevyStochCalc.Poisson.Simplicity
+import LevyStochCalc.Poisson.ChainRule
 import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge

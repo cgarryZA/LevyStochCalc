@@ -1151,3 +1151,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.lintegral_sectionDensity
 #print axioms LevyStochCalc.Poisson.ae_exists_forall_count_timeSlab_le_one
 #print axioms LevyStochCalc.Poisson.ae_count_time_singleton_le_one
+-- ===== The jump chain rule (A4c-ii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.prod_sub_one_eq_sum
+#print axioms LevyStochCalc.Poisson.integral_of_eq_sum_dirac'
+#print axioms LevyStochCalc.Poisson.windowSum
+#print axioms LevyStochCalc.Poisson.windowSumStrict
+#print axioms LevyStochCalc.Poisson.ae_exp_windowSum_sub_one
