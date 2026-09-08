@@ -159,8 +159,17 @@ def main(argv):
     if malformed:
         failures.append(f"`#print axioms` without a name in {lean_path} at line(s): "
                         + ", ".join(str(n) for n in malformed))
-    expected = Counter(name for name, _ in commands)
     reported = Counter(name for name, _ in reports)
+    reported_names = list(reported)
+
+    def resolve(name):
+        # A script may print a short name under an `open`; Lean reports the qualified one.
+        if name in reported:
+            return name
+        candidates = [m for m in reported_names if m.endswith("." + name)]
+        return candidates[0] if len(candidates) == 1 else name
+
+    expected = Counter(resolve(name) for name, _ in commands)
     missing = sorted(n for n in expected if n not in reported)
     unexpected = sorted(n for n in reported if n not in expected)
     miscount = sorted(n for n in expected if n in reported and reported[n] != expected[n])
