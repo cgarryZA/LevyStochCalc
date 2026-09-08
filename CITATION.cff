@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata below.
+type: software
+title: LevyStochCalc
+version: "0.1.0"
+date-released: 2026-09-08
+authors:
+  - family-names: Garry
+    given-names: Christian
+    alias: cgarryZA
+    email: 92284648+cgarryZA@users.noreply.github.com
+repository-code: "https://github.com/cgarryZA/LevyStochCalc"
+license: Apache-2.0
+abstract: >-
+  A Lean 4 + Mathlib formalization of Lévy-driven stochastic calculus: L²
+  Itô integrals against Brownian motion and compensated Poisson random
+  measures, the Itô-Lévy formula for C^{1,2} functions of jump diffusions,
+  and backward stochastic differential equations with jumps (BSDEJs).
