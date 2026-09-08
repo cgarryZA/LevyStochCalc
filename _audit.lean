@@ -1062,3 +1062,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.ae_count_fullRect_ne_top
 #print axioms LevyStochCalc.Poisson.Compensated.ae_simpleIntegral_eq_sub_integral
 #print axioms LevyStochCalc.Poisson.Compensated.ae_exists_finset_simpleIntegral_eq
+-- ===== The marked predictable sigma-algebra (B2b-3b-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.markedPredictableRect
+#print axioms LevyStochCalc.Probability.isPiSystem_markedPredictableRect
+#print axioms LevyStochCalc.Probability.markedPredictableSigma
+#print axioms LevyStochCalc.Probability.MarkedPredictable
+#print axioms LevyStochCalc.Probability.measurableSet_timeIic
+#print axioms LevyStochCalc.Probability.measurableSet_inter_timeIic
+#print axioms LevyStochCalc.Probability.MarkedPredictable.markedProgressivelyMeasurable
