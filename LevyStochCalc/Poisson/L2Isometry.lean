@@ -21,11 +21,11 @@ variation identity from
 Applebaum, *Lévy Processes and Stochastic Calculus*, Cambridge 2009,
 Theorem 4.2.3.
 
-## Status
+## Structure
 
-Wrapper around `Compensated.itoLevyIsometry`; sorry-free, transitively
-depending only on the cited axiom
-`itoIsometry_compensated_unified_existence` (Applebaum 2009 Thm 4.2.3).
+Wrapper around `Compensated.itoLevyIsometry`, the isometry conjunct of the
+construction `itoIsometry_compensated_unified_existence`
+(`Poisson/Compensated.lean`; Applebaum 2009 Thm 4.2.3).
 -/
 
 open MeasureTheory ProbabilityTheory

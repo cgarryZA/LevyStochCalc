@@ -9,17 +9,19 @@ import Mathlib.Topology.MetricSpace.Contracting
 /-!
 # Existence and uniqueness via the Banach fixed-point theorem
 
-This file applies Banach's fixed-point theorem (`ContractingWith.fixedPoint`)
-to the Picard map: the contraction estimate of `Picard.lean` together with
-the complete-metric-space structure of `PicardSpace.lean` yield the
-existence/uniqueness theorem for the jump-diffusion SDE.
+This file packages Banach's fixed-point theorem (`ContractingWith.fixedPoint`)
+in the `∃!` shape of a Picard iteration, and states the existence/uniqueness
+theorem for the jump-diffusion SDE in the form consumed by `Ito/Setting.lean`,
+forwarding to `exists_jumpDiffusion_unique_of_solvesOn` in
+`Ito/PicardWellPosed.lean`.
 
 ## Contents
 
 * `picardFixedPoint_generic`, `picardFixedPoint`, `picardFixedPoint_of_exists`
   — the abstract fixed-point packaging.
 * `picardFixedPoint_jumpDiffusion_exists_unique` — the concrete
-  existence/uniqueness statement for the jump-diffusion SDE.
+  existence/uniqueness statement for the jump-diffusion SDE, relative to a
+  filtration satisfying the usual conditions.
 * `JumpDiffusion.exists_unique`, `JumpDiffusion.agree_at_zero` — the form
   consumed by `Ito/Setting.lean`.
 -/
@@ -81,14 +83,14 @@ specialisation — it discharges the typeclass obligation only.
 
 The literature-substantive Banach work (Bielecki β-weighted L²-sup
 norm with genuine contraction at the analytical rate
-`3 n L² (T+2) / (2β)` for `β > 3 n L² (T+2) / 2`) lives in
-`LevyStochCalc.Ito.PicardSpace`: the genuine metric on the
-AE-quotient `AEQuot β T` and the `CompleteSpace` instance (via Lp
-completeness + Doob càdlàg modification), and the SDE chain wraps up via
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` there. **Downstream
-consumers needing the actual SDE strong-existence
-result should use the `_via_aeQuot` wrap-up theorem, not this
-typeclass-shim theorem applied on `SBoundedProcess`.**
+`3 n L² (T+2) / (2β)` for `β > 3 n L² (T+2) / 2`) does not pass through
+this shim: the contraction estimate is `bieleckiNorm_picardSelfMap_diff_le`
+(`Ito/PicardContraction.lean`), the iterates converge to `picardLimit`
+(built on `bieleckiLimit`, `Ito/PicardLimit.lean`), and the SDE chain ends
+in `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`).
+**Downstream consumers needing the SDE strong-existence result should use
+`JumpDiffusion.exists_unique` below or that theorem, not this typeclass-shim
+theorem applied on `SBoundedProcess`.**
 
 The hypothesis bundle:
 
@@ -110,14 +112,17 @@ The hypothesis bundle:
   contraction estimate (combines `bielecki_weighted_integral_bound`
   with the per-component Lipschitz bounds on drift / diffusion / jump).
 
-Conclusion: **a unique fixed point of `Φ`**, which (downstream) becomes
-the strong solution of the SDE via `fixedPoint_is_solution`.
+Conclusion: **a unique fixed point of `Φ`**. For the actual Picard map the
+fixed point is `picardLimit` (`Ito/PicardContraction.lean`), and that it
+solves the SDE on the window is `solvesOn_of_isFixedPoint`
+(`Ito/PicardWindow.lean`).
 
 This form uses the globally-available instances on `SBoundedProcess`
 (from `PicardSpace.lean`: discrete metric + Cauchy-eventually-constant
-completeness — typeclass-placeholders only). Substantive Bielecki work
-uses `AEQuot β T` instead, where the Bielecki β-norm is a genuine
-metric. -/
+completeness — typeclass-placeholders only). The Bielecki β-norm is a
+genuine metric on the quotient `AEQuot β T` of `PicardSpace.lean`; the
+well-posedness proof works with it as a pseudo-edist on path maps
+directly. -/
 theorem picardFixedPoint
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -222,13 +227,14 @@ the level of qualified names.
 
 **Why the theorem lives here, not in `Ito/Setting.lean`**: the proof
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (above),
-which is the SDE-specialised Banach fixed-point output. Putting the
+which forwards to `exists_jumpDiffusion_unique_of_solvesOn` in
+`Ito/PicardWellPosed.lean`. Putting the
 theorem in `Ito/Setting.lean` would require `Setting.lean` to import
 `Picard.lean` and `PicardFixedPoint.lean`, creating a cycle (both already
 import `Setting.lean` for the `JumpDiffusion` structure definition).
 Forwarding through the Banach intermediate is the canonical pattern
 (mirrors the `itoIsometry_brownian_unified_existence` → `itoIsometry`
-derived-theorem forwarding used in `Brownian/Ito.lean`, and the
+derived-theorem forwarding used in `Brownian/ItoL2Completion.lean`, and the
 `itoIsometry_compensated_unified_existence` → `Compensated.itoLevyIsometry`
 forwarding in `Poisson/Compensated.lean`). -/
 

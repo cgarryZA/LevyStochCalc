@@ -263,9 +263,9 @@ private lemma simpleIntegral_term_condExp_brownian
       have h_const := MeasureTheory.condExp_const (μ := P) (ℱ.le' s) (0 : ℝ)
       rw [h_const]
 
-/-- **Martingale property of `simpleIntegral` (Brownian)** — for adapted simple
-predictable integrands `H`, `t ↦ simpleIntegral W H t` is a martingale wrt the
-natural filtration of `W`.
+/-- **Martingale property of `simpleIntegral` (Brownian)** — for a simple
+predictable integrand `H` adapted to a filtration `ℱ` for which `W` is a Brownian
+motion, `t ↦ simpleIntegral W H t` is a martingale wrt `ℱ`.
 
 Proof: `simpleIntegral W H t = ∑_i ξ_i · (W_{t_{i+1} ∧ t} - W_{t_i ∧ t})`.
 Adaptedness reduces to per-term `F_t`-measurability via

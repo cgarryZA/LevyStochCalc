@@ -106,7 +106,7 @@ theorem solvesOn_of_eqn {X : ℝ → Ω → (Fin n → ℝ)}
   ⟨h_σ_meas, h_σ_progMeas, h_σ_sq, h_γ_meas, h_γ_progMeas, h_γ_sq, fun t ht => heq t ht.1⟩
 
 /-- **Well-posedness of the jump-diffusion SDE relative to a filtration satisfying the usual
-conditions** (Applebaum 2009 Theorem 6.2.9; Ikeda–Witanabe Chapter IV).
+conditions** (Applebaum 2009 Theorem 6.2.9; Ikeda–Watanabe Chapter IV).
 
 There is a `JumpDiffusion` whose integral equation holds relative to `ℱ`, and any path map
 solving the equation relative to the same `ℱ`, with a finite `S²` norm on every window, agrees

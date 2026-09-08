@@ -33,9 +33,10 @@ jointly (`ContDiff ℝ 2 (Function.uncurry u)`) and for a drift `μ(s, X_s)` int
 `[0, T]` along the path — the two hypotheses under which the derivative-based integrands
 (`fderiv`, `deriv`, which vanish off the differentiability set) and the Bochner drift
 integral (which vanishes on non-integrable integrands) carry the formula's content. The
-progressive-measurability hypotheses on the integrands are relative to the natural
-filtration of each single driver (one Brownian coordinate, the Poisson random measure),
-the class the `L²` integrals of this library are built on: the canonical residual
+statement takes one filtration `ℱ` for which every coordinate of `W` is a Brownian motion
+(`IsBrownianFiltration`) and `N` a Poisson random measure (`IsPoissonFiltration`), and both
+stochastic integrands are progressively measurable for that `ℱ`, the class the `L²`
+integrals of this library are built on: the canonical residual
 `R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` equals the sum
 of the jump-martingale and compensator-drift terms. This is the whole content
 of the Itô–Lévy formula; its continuous part is the Itô formula for the
@@ -168,8 +169,8 @@ algebraic glue.
 The literature derivation is Applebaum 4.4.10 (the small/large jump
 decomposition `∫₀^T ∫_E φ Ñ = ∫₀^T ∫_{|e|<ε} φ Ñ + ∑_{|γ|≥ε} φ`) plus
 the `ε → 0` limit using the `L²`-isometry of the compensated-Poisson
-integral (Applebaum 4.2.3 / Tier 1 #6 / Tier 1 #18
-`itoIsometry_diff_compensated`).
+integral (Applebaum 4.2.3; `itoIsometry_compensated_unified_existence` and
+`itoIsometry_diff_compensated`, cited results #6 and #18, both theorems).
 
 **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*,
 2nd ed., Cambridge University Press, 2009, **Theorem 4.4.10** (small/
@@ -180,12 +181,12 @@ large jump decomposition); same source **Theorem 4.4.7** proof
 **Mathlib status (May 2026)**: No compensated-Poisson integral in
 Mathlib (waits on PRM construction). The small/large decomposition
 is itself a derived statement once the integral exists; the
-`ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #18).
+`ε → 0` limit uses `itoIsometry_diff_compensated` (cited result #18, a
+theorem in `Poisson/Compensated.lean`).
 
 **Replacement plan**: derive as a theorem from
-`itoIsometry_diff_compensated` (Tier 1 #18, in `Poisson/Compensated.lean`)
-+ a Mathlib-level linearity result on the compensated-Poisson
-L²-integral once that machinery becomes available. -/
+`itoIsometry_diff_compensated` and the small/large jump decomposition of
+the in-tree compensated integral (`tools/cited_axioms.md`, entry 16). -/
 axiom itoLevyFormula_jumpResidual_canonical_axiom
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

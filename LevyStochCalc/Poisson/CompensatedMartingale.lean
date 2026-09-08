@@ -410,9 +410,10 @@ lemma simpleIntegral_term_condExp_compensated
     refine htower.symm.trans ((MeasureTheory.condExp_congr_ae hpc_eq_zero).trans ?_)
     exact Filter.EventuallyEq.of_eq (MeasureTheory.condExp_const (ℱ.le' s) (0 : ℝ))
 
-/-- **Martingale property of `simpleIntegral` (compensated Poisson).** For an
-adapted simple predictable integrand `φ`, the process `t ↦ simpleIntegral N φ t`
-is a martingale wrt the natural filtration of `N`.
+/-- **Martingale property of `simpleIntegral` (compensated Poisson).** For a
+simple predictable integrand `φ` adapted to a filtration `ℱ` for which `N` is a
+Poisson random measure, the process `t ↦ simpleIntegral N φ t` is a martingale
+wrt `ℱ`.
 
 Proof: `simpleIntegral N φ t = ∑_i ξ_i · Ñ(timeRect i t)`. Adaptedness is
 `simpleIntegral_stronglyAdapted_compensated`; the cond-exp identity reduces to the

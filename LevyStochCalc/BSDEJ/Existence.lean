@@ -14,10 +14,12 @@ import LevyStochCalc.BSDEJ.MartingaleRepresentation
 Existence and uniqueness of the solution is not stated here. Its previous formulation
 `continuousBSDEJ_exists_unique` (cited result #9) quantified over an arbitrary measurable
 forward process `X` and asked for a solution in the class `IsBSDEJSolution`, whose integrands
-are adapted to the natural filtration of a single driver; a terminal condition `g(X_T)`
-independent of `(W, N)` has no adapted solution, and `ξ = W_T · Ñ_t` none in that class, so the
-statement was refutable and was retired on 2026-09-06. It will be restated once the `L²`
-integrals are built over the joint filtration of `(W, N)` (`Plan.md`, work package X2).
+were then adapted to the natural filtration of a single driver; a terminal condition `g(X_T)`
+independent of `(W, N)` has no adapted solution, and `ξ = W_T · Ñ_T` none in that class, so the
+statement was refutable and was retired on 2026-09-06. The `L²` integrals and
+`IsBSDEJSolution` now take a common filtration `ℱ` with `IsBrownianFiltration` and
+`IsPoissonFiltration` hypotheses; restating existence and uniqueness over the joint filtration
+of `(W, N)` is `Plan.md`'s work package A6.
 
 ## Source
 

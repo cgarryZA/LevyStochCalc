@@ -1219,7 +1219,7 @@ theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
   simp_rw [h_eq]
   exact simpleIntegral_sq_bochner_eq N ℱ hℱ φ h_adapt
 
-/-! ## C0b-Compensated mirror chain (in progress)
+/-! ## C0b-Compensated mirror chain
 
 The `simpleIntegral N φ T` lifted into `Lp ℝ 2 P` framework, mirroring
 `Brownian.SimplePredictableRefine.simpleIntegralLp_brownian` etc. -/

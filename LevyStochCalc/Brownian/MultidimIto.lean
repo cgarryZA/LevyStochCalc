@@ -54,9 +54,9 @@ variable {d : ℕ}
 at time `T` is the sum (over components) of the 1D Itô integrals against
 the component Brownian motions `W.W i`.
 
-Each component's 1D integral is well-defined by
-`LevyStochCalc.Brownian.SimplePredictableRefine.stochasticIntegral`, which
-itself extracts a process satisfying the unified-existence axiom
+Each component's 1D integral is `LevyStochCalc.Brownian.Ito.stochasticIntegral`
+(`Brownian/ItoL2Completion.lean`), the coherent `L²`-limit of simple integrals
+whose martingale, quadratic-variation and isometry properties are packaged in
 `itoIsometry_brownian_unified_existence`. -/
 noncomputable def stochasticIntegral
     (W : MultidimBrownianMotion P d)

@@ -18,10 +18,10 @@ The path-regularity bound itself is not stated here. Its previous formulation
 terminal function `g` and every measurable forward process `X`; for `ξ = 1_{W_T > 0}` the
 projection error of `Z` decays like `Δt^{1/2}` only (Geiss, Geiss & Gobet 2012), so the
 statement was refutable and was retired on 2026-09-06 together with its corollaries
-`bsdej_path_regularity_linear_rate` and `bsdej_U_L2_regularity_linear_rate`. It will be
-restated, with the regularity hypotheses of Bouchard & Elie (a Lipschitz `g` and a jump
-diffusion `X` with Lipschitz coefficients), once the `L²` integrals are built over the joint
-filtration of `(W, N)` (`Plan.md`, work package X2).
+`bsdej_path_regularity_linear_rate` and `bsdej_U_L2_regularity_linear_rate`. Restating it,
+with the regularity hypotheses of Bouchard & Elie (a Lipschitz `g` and a jump diffusion `X`
+with Lipschitz coefficients), over the common filtration the `L²` integrals now take is
+`Plan.md`'s work package A7, after the BSDEJ existence theorem of A6.
 
 ## Source
 

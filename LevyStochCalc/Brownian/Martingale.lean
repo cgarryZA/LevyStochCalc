@@ -990,17 +990,12 @@ theorem brownian_martingale_rightCont
     filter_upwards [W.negative_zero r hr.2, W.negative_zero s hs] with ω hr0 hs0
     simp [hr0, hs0]
 
-/-- The natural filtration of `W` (augmented by `P`-null sets) is
-right-continuous. (Blumenthal 0-1 law follows as a corollary.)
-
-Proof structure (Karatzas-Shreve 1991 Thm 2.7.7):
-1. Define the augmented natural filtration `F̄_t := σ(F_t ∪ 𝓝)` where
-   `𝓝` is the set of `P`-null sets.
-2. Show `F̄_t = ⨅ s > t, F̄_s` by Blumenthal's 0-1 law: any event in the
-   strict-future tail σ-algebra `⋂_{s > 0} σ(W_u : u ≤ s)` is `P`-trivial,
-   implying right-continuity at `t = 0`. By translation invariance of BM
-   the same holds at any `t`.
-3. Verify `W` is a martingale w.r.t. the augmented filtration. -/
+/-- There is a right-continuous filtration for which `W` is a martingale
+(Karatzas-Shreve 1991 Thm 2.7.7 and 2.7.9): the right-continuous
+regularisation `(naturalFiltration W).rightCont` of the natural filtration
+of `W`. The martingale property is `brownian_martingale_rightCont` (cited
+result #4), and `F t = ⨅ s > t, F s` holds for the regularisation by
+construction. -/
 theorem brownian_filtration_rightContinuous
     {P : Measure Ω} [IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P) :
@@ -1009,7 +1004,7 @@ theorem brownian_filtration_rightContinuous
         ∧ ∀ t : ℝ, F t = ⨅ s : {s : ℝ // t < s}, F s.1 := by
   -- Take the right-continuous augmentation of the natural filtration of W.
   refine ⟨(naturalFiltration W).rightCont, ?_, ?_⟩
-  · -- Martingale wrt rightCont via Blumenthal 0-1 (cited axiom).
+  · -- Martingale wrt rightCont: `brownian_martingale_rightCont` (cited result #4).
     exact LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont W
   · intro t
     apply le_antisymm

@@ -424,14 +424,12 @@ lemma dyadicAvg_shifted_brownian_measurable
 
 /-- **Predictable shifted dyadic SimplePredictable.** Same partition as
 `dyadicSimplePredictable_brownian`, but with ξ values from the
-PREVIOUS dyadic interval (and ξ_0 = 0). When `g` is adapted to a
-filtration that contains the natural filtration of `W` (e.g.,
-`g ω s` is `ℱ_s`-measurable in `ω`), this construction is predictable:
-each `ξ_i` is `ℱ_{t_i}`-measurable.
+PREVIOUS dyadic interval (and ξ_0 = 0). When `g` is progressively
+measurable for a filtration `ℱ`, this construction is predictable: each
+`ξ_i` is `ℱ_{t_i}`-measurable (`predictableDyadicSimple_brownian_adapted`).
 
-The L² convergence `(.eval) → g` holds for square-integrable `g`
-(Lebesgue differentiation theorem applied to left-shifted averages,
-deferred). -/
+The L² convergence `(.eval) → g` for bounded measurable `g` is
+`predictableDyadicSimple_brownian_L2_converges`. -/
 noncomputable def predictableDyadicSimple_brownian
     {T : ℝ} (hT : 0 < T)
     (g : Ω → ℝ → ℝ) (h_meas : Measurable (Function.uncurry g))

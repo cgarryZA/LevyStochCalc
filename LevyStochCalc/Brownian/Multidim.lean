@@ -20,15 +20,18 @@ Brownian motions on the same probability space. Constructed via
 * User's dissertation, ch02 §"Probability-space prerequisites", line 13
   (defines `d`-dim standard Brownian motion).
 
-## Status
+## Contents
 
-Phase 2 spec: `components_independent` wired to `iIndepFun`.
-
-Phase (a): existence theorem proved via `Measure.pi` (finite product of
-probability spaces) + `iIndepFun_pi` (independence of coordinate evaluations
-on a product measure). Internal proofs of structure-field preservation
-under projection are intermediate `sorry`s (each follows from a Mathlib API
-call but the boilerplate is non-trivial).
+* `MultidimBrownianMotion` — the structure; `components_independent` is
+  stated with `iIndepFun`, and `joint_continuous_paths` makes the almost-sure
+  continuity of the vector-valued path explicit.
+* `MultidimBrownianMotion.exists` — existence, via `Measure.pi` (finite
+  product of probability spaces) and the independence of coordinate
+  evaluations on a product measure; each coordinate is a 1-D Brownian motion
+  lifted along the corresponding projection.
+* `MultidimBrownianMotion.joint_increment_gaussian_diagonal` — each
+  coordinate increment is Gaussian and the coordinate increments are
+  independent.
 -/
 
 open MeasureTheory ProbabilityTheory

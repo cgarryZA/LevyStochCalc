@@ -41,9 +41,9 @@ structure SimplePredictable (Ω : Type u) [MeasurableSpace Ω] (T : ℝ) where
   ξ : Fin N → Ω → ℝ
   /-- Each `ξ_i` is bounded. -/
   ξ_bounded : ∀ i : Fin N, ∃ M : ℝ, ∀ ω : Ω, |ξ i ω| ≤ M
-  /-- Each `ξ_i` is measurable. (The full `ℱ_{t_i}`-measurability requires
-  the natural filtration of `W`; for the L²-density argument the ambient
-  measurability suffices.) -/
+  /-- Each `ξ_i` is measurable. (Adaptedness — `ℱ_{t_i}`-measurability of
+  `ξ_i` for a filtration `ℱ` — is a separate hypothesis of the consumers; for
+  the L²-density argument the ambient measurability suffices.) -/
   ξ_measurable : ∀ i : Fin N, Measurable (ξ i)
 
 /-- Evaluate a simple predictable integrand at a fixed time. -/

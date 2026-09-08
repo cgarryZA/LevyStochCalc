@@ -27,8 +27,9 @@ Banach's fixed-point theorem to the Picard map.
   quotient `SBoundedProcess.AEQuot` on which it becomes a genuine
   `EMetricSpace`.
 The existence/uniqueness statement itself is `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`
-in `Ito/PicardWellPosed.lean`. The section note "Status of the fixed-point programme" records
-the statement audit that added the `IsRegular` hypothesis.
+in `Ito/PicardWellPosed.lean`. The section note "The `IsRegular` hypothesis and the `S²` norm"
+records why that theorem takes `IsRegular`, why the Bielecki norm is not the `S²` norm, and
+where each step of the Picard chain lives.
 
 The Banach fixed-point conclusion is in `PicardFixedPoint.lean`.
 -/
@@ -116,12 +117,12 @@ generic Banach shim `picardFixedPoint`, NOT to deliver mathematics.
 
 The literature Banach work (Bielecki β-weighted L²-sup norm with genuine
 contraction at the analytical rate `3 n L² (T+2) / (2β)` for
-`β > 3 n L² (T+2) / 2`) lives on the AE-quotient
-`SBoundedProcess.AEQuot β T` and wraps up in
-`PicardSpace.lean`'s
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`. Downstream
-consumers should treat the discrete-metric `picardFixedPoint` invocation
-on `SBoundedProcess` as a typeclass shim only.
+`β > 3 n L² (T+2) / 2`) is carried by the pseudo-edist `bieleckiNorm` on
+path maps: the contraction estimate is `bieleckiNorm_picardSelfMap_diff_le`
+(`Ito/PicardContraction.lean`) and the well-posedness theorem is
+`exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`).
+Downstream consumers should treat the discrete-metric `picardFixedPoint`
+invocation on `SBoundedProcess` as a typeclass shim only.
 
 This is a genuine metric (separation holds by definition, triangle inequality
 holds via case analysis), and is **complete** because every Cauchy sequence
@@ -841,14 +842,13 @@ noncomputable instance instEMetricSpaceAEQuot
     EMetricSpace (SBoundedProcess.AEQuot (n := n) P ℱ T β) :=
   instEMetricSpaceSeparationQuotient
 
-/-! ### Status of the fixed-point programme (survey, 2026-09-06)
+/-! ### The `IsRegular` hypothesis and the `S²` norm
 
-**Statement audit — corrected 2026-09-06.** As first written,
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` asked, from
-`JumpDiffusionCoeffs.IsLipschitz coeffs ν L` alone, for a
-`JumpDiffusion W N coeffs x₀`, and in that form it was refutable. But
-`IsLipschitz` constrains the
-coefficients only in the state variable `x`; it says nothing about their
+**The `IsRegular` hypothesis.** `JumpDiffusionCoeffs.IsLipschitz coeffs ν L`
+alone does not yield a `JumpDiffusion W N coeffs x₀`, so the well-posedness
+theorem `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`)
+also takes `JumpDiffusionCoeffs.IsRegular coeffs ν`. `IsLipschitz` constrains
+the coefficients only in the state variable `x`; it says nothing about their
 dependence on `s`, or, for `γ`, on `e`. The `is_solution` field of
 `JumpDiffusion` existentially bundles joint measurability, progressive
 measurability and the `L²` bounds of `(s, ω) ↦ σ(s, X_s ω)` and
@@ -865,61 +865,41 @@ with `L = 0` and admit no `JumpDiffusion` at all:
   preimage, and the `ω`-sections of that set are `A`, so `h_σ_meas`
   fails for every `X`.
 
-So for those coefficients the existential in the conclusion was false, and
-the forwarder chain down to `JumpDiffusion.exists_unique` inherited the
-defect. The theorem and its three forwarders now also take
-`JumpDiffusionCoeffs.IsRegular coeffs ν`, which supplies (i) joint
-measurability of `(s, x) ↦ μ s x`, `(s, x) ↦ σ s x` and
-`(s, x, e) ↦ γ s x e`, and (ii) square integrability in `s` at a single
-state, `∫⁻ s in Icc 0 T', ‖σ s 0‖₊ ^ 2 < ∞` and
+`IsRegular` supplies (i) joint measurability of `(s, x) ↦ μ s x`,
+`(s, x) ↦ σ s x` and `(s, x, e) ↦ γ s x e`, and (ii) square integrability
+in `s` at a single state, `∫⁻ s in Icc 0 T', ‖σ s 0‖₊ ^ 2 < ∞` and
 `∫⁻ s in Icc 0 T', ∫⁻ e, ‖γ s 0 e‖₊ ^ 2 ∂ν < ∞` (and the same for `μ`).
 Together with the Lipschitz clauses these give the `L²` bounds along any
 `L²`-bounded path, since Lipschitz continuity in the state gives
-`‖f s x‖ ≤ ‖f s 0‖ + L ‖x‖`. Applebaum 6.2.9 assumes measurable
-coefficients of linear growth; the Lean statement had dropped that.
+`‖f s x‖ ≤ ‖f s 0‖ + L ‖x‖` (`Ito/PicardIntegrand.lean`). Applebaum 6.2.9
+assumes measurable coefficients of linear growth.
 
 **Not the `S²` space.** `bieleckiNorm β T X` is
 `⨆ t ∈ [0, T], exp (-β * t) * ‖X t‖_{L²}`, the weighted *sup-of-`L²`*
 norm. It is not the `S²` norm `‖ ⨆ t ≤ T, ‖X t‖ ‖_{L²}`, which is what
-`JumpDiffusion.sup_L2` asks for, and the separation quotient below
-therefore identifies processes that agree a.e. *at each fixed `t`*, not
-processes with a.e. equal paths. Any wrap-up has to bridge the two.
+`JumpDiffusion.sup_L2` asks for, and the separation quotient
+`SBoundedProcess.AEQuot` therefore identifies processes that agree a.e.
+*at each fixed `t`*, not processes with a.e. equal paths. The
+well-posedness chain bridges the two in `Ito/PicardSupL2.lean`, by Doob's
+`L²` inequality over the dyadic points for the stochastic components of
+the Picard step.
 
-**Per-step status.**
-
-1. *The metric.* Present in this file: `bieleckiEDist` with
-   `bieleckiEDist_comm` and `bieleckiEDist_triangle`, the
-   `PseudoEMetricSpace` on the type synonym
-   `SBoundedProcess.WithBielecki`, the separation quotient
-   `SBoundedProcess.AEQuot` with its `EMetricSpace`, and nonemptiness of
-   both.
-2. *Completeness of the quotient.* Open. A Cauchy sequence in `AEQuot`
-   lifts to Cauchy representatives; the per-`t` `L²` Cauchy property
-   descends to a per-`t` `L²` limit by `Lp` completeness; a jointly
-   measurable selection then yields a representative of the limit class.
-3. *The Picard map as a map.* Open. `SBoundedProcess` is parameterised
-   by a filtration `ℱ` and carries
-   `ProgressivelyMeasurable ℱ (fun ω s => X s ω i)` for each coordinate,
-   so `(s, ω) ↦ σ(s, X_s ω)` has a filtration to be progressively
-   measurable for. What remains is that `picardStepOnS2` is still not a
-   total self-map: it takes the `σ`- and `γ`-side integrand hypotheses
-   along `X.X`, and the joint measurability, adaptedness, càdlàg property
-   and finite Bielecki norm of its own output, as arguments. Deriving
-   them from `JumpDiffusionCoeffs.IsRegular` together with the Lipschitz
-   bounds is what makes the step total.
-4. *Contraction.* The estimates exist on the underlying path map
-   (`picardStep_bielecki_contraction`,
-   `picardStep_bielecki_contraction_tight` and their `_rate_lt_one`
-   companions in `Ito/Picard.lean`); transferring them to `edist` on
-   `AEQuot` is bookkeeping once step 3 gives a genuine map.
-5. *Fixed point to `JumpDiffusion`.* Open. `measurable_path` and
-   `cadlag_paths` come from the `SBoundedProcess` fields of a
-   representative, but `sup_L2` does not: it is the `L²`-of-sup bound,
-   strictly stronger than the sup-of-`L²` bound the space carries.
-   `initial_value` and `is_solution` are the fixed-point equation read
-   componentwise.
-6. *Uniqueness.* Open: two solutions define points of `AEQuot` fixed by
-   the map, hence equal there, hence a.e. equal at each `t`. -/
+**Where the chain lives.** The metric structure of this file —
+`bieleckiEDist` with `bieleckiEDist_comm` and `bieleckiEDist_triangle`, the
+`PseudoEMetricSpace` on `SBoundedProcess.WithBielecki`, the separation
+quotient `SBoundedProcess.AEQuot` with its `EMetricSpace`, and
+nonemptiness of both — is not what the well-posedness proof iterates on.
+That proof works with the pseudo-edist on path maps directly: the Picard
+step becomes a total self-map of the process space (`picardSelfMap`;
+`Ito/PicardIntegrand.lean`, `Ito/PicardOutput.lean`), it is a Bielecki
+contraction (`bieleckiNorm_picardSelfMap_diff_le`,
+`Ito/PicardContraction.lean`), its iterates `picardIter` converge to
+`picardLimit` (built on `bieleckiLimit`, `Ito/PicardLimit.lean`), the
+process built on the limit is a fixed point
+(`picardSelfMapRaw_isFixedPoint`), the fixed point solves the equation on
+the window and is the only solution there (`exists_solvesOn`,
+`ae_eq_of_solvesOn`, `Ito/PicardWindow.lean`), and the windows glue
+(`exists_globalSolution`, `Ito/PicardGlobal.lean`). -/
 
 end LevyStochCalc.Ito.Picard
 

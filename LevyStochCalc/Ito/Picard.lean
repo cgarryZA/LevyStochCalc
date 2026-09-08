@@ -69,9 +69,10 @@ noncomputable def bieleckiNorm
 /-- The space of jointly measurable, `ℱ`-progressively measurable, almost-surely càdlàg
 processes on `[0, T]` with values in `Fin n → ℝ` and finite Bielecki norm at weight `0`.
 
-One difference from the literature's `S²([0, T]; ℝⁿ)`, recorded in the section note "Status of
-the fixed-point programme" of `Ito/PicardSpace.lean`: the norm here is `bieleckiNorm`, the
-weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of the supremum. -/
+One difference from the literature's `S²([0, T]; ℝⁿ)`, recorded in the section note "The
+`IsRegular` hypothesis and the `S²` norm" of `Ito/PicardSpace.lean`: the norm here is
+`bieleckiNorm`, the weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of
+the supremum. -/
 structure SBoundedProcess
     {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P]
     (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) where
@@ -1059,46 +1060,38 @@ noncomputable def picardStep
     + picardStep_diffusion W ℱ hℱW coeffs X h_σ_meas h_σ_progMeas h_σ_sq t ω
     + picardStep_jump N ℱ hℱN coeffs X h_γ_meas h_γ_progMeas h_γ_sq t ω
 
-/-! ## Next-step roadmap (Picard contraction & fixed point)
+/-! ## Map of the contraction argument
 
-The lemmas above are the drift-component Lipschitz scaffolding (L¹
-form). The remaining pieces of the Picard fixed-point proof are:
+The Picard map `picardStep` and its three components are defined above,
+together with the drift-component Lipschitz estimates. The rest of the
+argument is:
 
-1. **L² Cauchy-Schwarz helper** `(∫_0^t f)² ≤ t · ∫_0^t f²` for the
-   Bielecki-norm contraction estimate. (Hölder with `p = q = 2`,
-   constant `1` as `g`; in progress, see commit history.)
-
-2. **`picardStep_diffusion`** — Brownian-integral component of the
-   Picard map, defined via `MultidimBrownianMotion.stochasticIntegral`
-   applied row-wise to `σ(s, X_s)`.
-
-3. **`picardStep_diffusion_lipschitz`** — Lipschitz bound via the
-   Tier 1 #5 L²-isometry + Lipschitz hypothesis on σ.
-
-4. **`picardStep_jump`** — Compensated-Poisson component via
-   `Compensated.stochasticIntegral` on `γ(s, X_s, e)`.
-
-5. **`picardStep_jump_lipschitz`** — Lipschitz bound via the Tier 1
-   #6 L²-isometry + Lipschitz hypothesis on γ.
-
-6. **`picardStep`** — full Picard map summing drift + diffusion + jump.
-
-7. **`picardStep_bielecki_contraction`** — for `β ≥ β₀(L)` (some
-   threshold depending on the Lipschitz constant), Φ is a contraction
-   in the Bielecki β-norm.
-
-8. **`picardFixedPoint`** — apply `ContractingWith.fixedPoint` (Mathlib
-   Banach-fixed-point) to get a unique fixed point of Φ.
-
-9. **`fixedPoint_is_solution`** — show the fixed point satisfies the
-   SDE integral equation, providing the strong solution.
-
-10. **`JumpDiffusion.exists_unique`** — assemble the above into the
-    theorem statement; uniqueness from the Banach contraction.
-
-Active work continues file by file; each Mathlib API need (Cauchy-
-Schwarz, integral monotonicity, ContractingWith) gets a dedicated
-lemma here when not already available. -/
+1. `integral_sq_le_mul_integral_sq_on_Icc` (above) — the `L²`
+   Cauchy–Schwarz bound `(∫_0^t f)² ≤ t · ∫_0^t f²` behind the
+   Bielecki-norm contraction estimate.
+2. `picardStep_diffusion_diff_lipschitz_sq_componentwise` — the Lipschitz
+   bound of the Brownian component, via the `L²`-isometry of the integral
+   difference (`itoIsometry_diff_brownian`) and the Lipschitz hypothesis on
+   `σ`.
+3. `picardStep_jump_diff_lipschitz_sq_componentwise` — the Lipschitz bound
+   of the compensated-Poisson component, via `itoIsometry_diff_compensated`
+   and the Lipschitz hypothesis on `γ`.
+4. `picardStep_bielecki_contraction`, `picardStep_bielecki_contraction_tight`
+   — the map is a Bielecki contraction once `β` is large relative to the
+   Lipschitz constant; `bieleckiNorm_picardStep_diff_le`
+   (`Ito/PicardOutput.lean`) is the form the well-posedness proof uses, and
+   `bieleckiNorm_picardSelfMap_diff_le` (`Ito/PicardContraction.lean`) its
+   transfer to the self-map of the process space.
+5. `picardIter`, `picardLimit` (`Ito/PicardContraction.lean`, on
+   `bieleckiLimit` of `Ito/PicardLimit.lean`) and
+   `picardSelfMapRaw_isFixedPoint` — the iterates converge and the limit is
+   a fixed point.
+6. `exists_solvesOn`, `ae_eq_of_solvesOn` (`Ito/PicardWindow.lean`),
+   `exists_globalSolution` (`Ito/PicardGlobal.lean`) and
+   `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`)
+   — the fixed point solves the SDE on each window, is unique there, and
+   the windows glue to a strong solution on `[0, ∞)`; `Ito/PicardFixedPoint.lean`
+   restates the result as `JumpDiffusion.exists_unique`. -/
 
 end LevyStochCalc.Ito.Picard
 
@@ -1296,8 +1289,8 @@ component is bounded by `d · L_σ² · 𝔼 ∫_0^T ‖X-Y‖²`:
 2. Cauchy-Schwarz on the j-sum:
    `(∑_j a_j)² ≤ d · ∑_j a_j²`.
 
-3. Per-(i, j) L²-isometry of the integral difference (Tier 1 axiom #11
-   `itoIsometry_diff_brownian`):
+3. Per-(i, j) L²-isometry of the integral difference
+   (`itoIsometry_diff_brownian`):
    `𝔼 |∫ σ(X)_{ij} dW^j - ∫ σ(Y)_{ij} dW^j|² = 𝔼 ∫ |σ(X)_{ij} - σ(Y)_{ij}|² ds`.
 
 4. Sum over `j` and apply the Lipschitz hypothesis (rebracketing the
@@ -1570,10 +1563,10 @@ This is the operator-level per-component bound that, when summed over
 `i ∈ Fin n` and combined with the Bielecki time-weight, yields the
 γ-Lipschitz term in the Bielecki β-norm contraction estimate.
 
-**Proof**: forwards through the per-difference L²-isometry axiom
-`LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated` (cited axiom
-#18), then applies the γ-Lipschitz hypothesis pointwise and extracts the
-constant via `lintegral_const_mul`. -/
+**Proof**: forwards through the per-difference L²-isometry
+`LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated`, then
+applies the γ-Lipschitz hypothesis pointwise and extracts the constant via
+`lintegral_const_mul`. -/
 lemma picardStep_jump_diff_lipschitz_sq_componentwise
     {n d : ℕ}
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
@@ -1617,15 +1610,15 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
             (‖X s ω - Y s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
   -- Step 1: unfold `picardStep_jump` (definitional) so the LHS is exactly
   -- the L²-norm-squared of the difference of two `Compensated.stochasticIntegral`
-  -- outputs, matching the LHS of the `itoIsometry_diff_compensated` axiom.
+  -- outputs, matching the LHS of `itoIsometry_diff_compensated`.
   -- `picardStep_jump` is `noncomputable def`-ed as
   --   `fun i => Compensated.stochasticIntegral N ℱ hℱN
   --     (fun ω' s e => γ s (X s ω') e i) ... T ω`
   -- so the lemma's LHS is, by `unfold + simp only [picardStep_jump]`,
-  -- exactly the LHS of Tier 1 axiom #14 with
+  -- exactly the LHS of `itoIsometry_diff_compensated` with
   --   φ₁ ω' s e := γ s (X s ω') e i
   --   φ₂ ω' s e := γ s (Y s ω') e i.
-  -- Step 2: apply the axiom to get equality with the inner double-lintegral
+  -- Step 2: apply the isometry to get equality with the inner double-lintegral
   -- of `‖γ(s, X_s, e) i − γ(s, Y_s, e) i‖²`.
   have h_iso := LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated
     N ℱ hℱN (fun ω' s e => coeffs.γ s (X s ω') e i)
@@ -1633,7 +1626,7 @@ lemma picardStep_jump_diff_lipschitz_sq_componentwise
     (hX_meas i) (hY_meas i)
     (hX_progMeas i) (hY_progMeas i)
     (hX_sq i) (hY_sq i) T hT
-  -- Rewriting the LHS via the axiom turns the goal into the bound
+  -- Rewriting the LHS via the isometry turns the goal into the bound
   -- `inner double lintegral ≤ ENNReal.ofReal L_γ²
   --   · ∫⁻ ω ∫⁻ s, ‖X-Y‖² ∂volume ∂P`.
   -- `picardStep_jump i` unfolds definitionally to the `Compensated.stochasticIntegral`
@@ -2210,8 +2203,7 @@ via the triangle bound on the three components (factor 3) combined with
 the uniform overbound `n L² t` on the σ-step and γ-step (factor 3 again
 because `t ≤ T` is applied to a sum of three identical-shape bounds). The
 literature-tight σ/γ bounds (`L²` per component without `n t`) tighten this
-to the prompt's stated `3 n L² T / (2β)` rate; the gap is intentionally
-left open since the σ/γ-Lipschitz proofs are in flight.
+to the `3 n L² (T + 2) / (2β)` rate of `picardStep_bielecki_contraction_tight`.
 
 After applying the Bielecki weight `e^{-2βt}` and using
 `bielecki_weighted_integral_bound`, the per-`t` weighted bound is
@@ -2220,9 +2212,12 @@ After applying the Bielecki weight `e^{-2βt}` and using
 contraction in the Bielecki β-norm for `β > 9 n L² T / 2`.
 
 The σ-step and γ-step bound hypotheses (`h_σ_step_bound`, `h_γ_step_bound`)
-have the EXACT signature shape of the proven drift bound
-`picardStep_drift_diff_lintegral_sq_bound`; they will be discharged when
-the parallel σ + γ Lipschitz proofs land. -/
+have the same signature shape as the drift bound
+`picardStep_drift_diff_lintegral_sq_bound`. The well-posedness proof does
+not go through this theorem: it uses the per-component estimates
+`picardStep_diffusion_diff_lipschitz_sq_componentwise` and
+`picardStep_jump_diff_lipschitz_sq_componentwise` through
+`bieleckiNorm_picardStep_diff_le` (`Ito/PicardOutput.lean`). -/
 theorem picardStep_bielecki_contraction
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]

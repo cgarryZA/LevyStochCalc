@@ -16,8 +16,8 @@ Lifts the simple-integrand Brownian integral to `Lp ℝ 2 P`, takes the L²-limi
 along a dense approximating sequence, and proves the L²-isometry of the limit,
 giving the L² Brownian Itô integral of a progressively measurable integrand with
 respect to any filtration `ℱ` for which `W` is a Brownian motion
-(`IsBrownianFiltration W ℱ`). The result is packaged as the cited
-existence axiom `itoIsometry_brownian_unified_existence` (#5) and the
+(`IsBrownianFiltration W ℱ`). The result is packaged as the theorem
+`itoIsometry_brownian_unified_existence` (cited result #5) and the
 `stochasticIntegral` API (`itoIsometry`, `quadVar_stochasticIntegral`,
 `martingale_stochasticIntegral`). Builds on the refinement machinery in
 `Brownian/SimplePredictableRefine.lean`.
@@ -944,7 +944,7 @@ the AEStronglyMeasurable + isometry conjuncts.
 This is the existence form of the Itô isometry — it does **not** define a single
 `stochasticIntegral : ℝ → Ω → ℝ` across all `t`. Constructing such a unified
 process (with the additional martingale + quadVar properties) is the strong-exists
-task; this lemma delivers conjunct 3 (isometry) at fixed `T` axiom-cleanly. -/
+task; this lemma delivers conjunct 3 (isometry) at fixed `T`. -/
 theorem itoIsometry_brownian_existence
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -1026,7 +1026,7 @@ theorem stochasticIntegral_isometry_only_brownian
 For `0 ≤ a < b` and an `F_a`-measurable `ξ`,
 `∫⁻ ‖ξ·(W_b − W_a)‖² = (b − a)·∫⁻ ‖ξ‖²`. Generalizes `simpleIntegral_diagonal`
 from partition points to arbitrary times — the foundational piece of the
-intermediate-time isometry needed for the coherent `F` (axiom #5). Proof:
+intermediate-time isometry needed for the coherent `F` (cited result #5). Proof:
 `ξ ⟂ (W_b − W_a)` (independence of an `F_a`-measurable r.v. from the future
 increment, `joint_increment_independent`), then the Gaussian second moment
 `∫⁻ ‖W_b − W_a‖² = b − a`. -/
@@ -1451,7 +1451,7 @@ lemma lintegral_eval_sq_clamped {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω)
 `0 ≤ t`, `∫⁻ ‖simpleIntegral W H t‖² = ∫⁻ ∫⁻_{[0,t]} ‖H.eval‖²`. The general-`t`
 companion of `simpleIntegral_isometry`; combines the clamped Bochner assembly
 (LHS) with the clamped inner integral (RHS) through `ENNReal.ofReal`. This is the
-hinge for the coherent L²-Itô integral (axiom #5). -/
+hinge for the coherent L²-Itô integral (cited result #5). -/
 lemma simpleIntegral_intermediate_isometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -2437,9 +2437,10 @@ lemma setIntegral_eval_sq_Icc_clamped {T : ℝ} (G : SimplePredictable Ω T) (ω
     ENNReal.toReal_ofReal
       (Finset.sum_nonneg (fun i _ => mul_nonneg (h_len_nn i) (sq_nonneg _)))]
 
-/-- **Simple-level quadratic-variation martingale.** For an adapted simple
-integrand `G` (horizon `T > 0`), the compensated square
-`t ↦ (∫₀ᵗ G dW)² − ∫₀ᵗ G² ds` is a martingale wrt the natural filtration. The
+/-- **Simple-level quadratic-variation martingale.** For a simple integrand `G`
+(horizon `T > 0`) adapted to a filtration `ℱ` for which `W` is a Brownian
+motion, the compensated square
+`t ↦ (∫₀ᵗ G dW)² − ∫₀ᵗ G² ds` is a martingale wrt `ℱ`. The
 conditional increment `𝔼[(I_t − I_s)² | ℱ_s]` equals `𝔼[A_t − A_s | ℱ_s]` by the
 set-level Itô isometry (`simpleIntegral_sub_sq_bochner_clamped_weighted` with
 `g = 1_B`), matched against the clamped compensator
@@ -4184,7 +4185,7 @@ noncomputable def stochasticIntegral
 
 for predictable square-integrable `H`. ENNReal form.
 
-Forwards to the L²-isometry conjunct of the unified-existence axiom #5. -/
+Forwards to the L²-isometry conjunct of `itoIsometry_brownian_unified_existence`. -/
 theorem itoIsometry
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -4208,7 +4209,7 @@ theorem itoIsometry
 For predictable square-integrable `H`, the process `t ↦ (M_t)² − ∫_0^t |H_s|² ds`
 is a martingale, where `M_t = ∫_0^t H_s dW_s`.
 
-Extracts conjunct 2 (quadratic variation) of the unified-existence axiom #5. -/
+Extracts conjunct 2 (quadratic variation) of `itoIsometry_brownian_unified_existence`. -/
 theorem quadVar_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)
@@ -4232,10 +4233,12 @@ theorem quadVar_stochasticIntegral
 
 /-- **The L² Itô integral is a martingale.**
 
-The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable continuous
-martingale w.r.t. the natural filtration of `W`.
+The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable martingale with
+respect to some filtration, namely the right-continuous augmentation
+`ℱ.rightCont` of the given filtration `ℱ` for which `W` is a Brownian motion
+and `H` is progressively measurable.
 
-Extracts conjunct 1 (martingale property) of the unified-existence axiom #5. -/
+Extracts conjunct 1 (martingale property) of `itoIsometry_brownian_unified_existence`. -/
 theorem martingale_stochasticIntegral
     {P : MeasureTheory.Measure Ω} [MeasureTheory.IsProbabilityMeasure P]
     (W : LevyStochCalc.Brownian.BrownianMotion P)

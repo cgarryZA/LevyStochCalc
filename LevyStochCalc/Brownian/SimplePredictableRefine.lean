@@ -1095,7 +1095,7 @@ lemma SimplePredictable.eval_sub_on_common
   · simp [h_cond]
 
 /-- **C0b.8-pre: adaptedness of `sub_on_common`.** If both inputs are
-adapted to the natural filtration of `W`, so is `sub_on_common`. The
+adapted to a filtration `ℱ`, so is `sub_on_common`. The
 proof: for each merged tile `j`, the input adaptedness gives StronglyMeas
 at `H_k.partition (idxMap_k j).castSucc`. By `Filtration.mono` and
 `mergedIdxMap_k_idx_le` (which says `H_k.partition (idxMap_k j).castSucc
