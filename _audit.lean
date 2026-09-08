@@ -1270,3 +1270,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charImIntegrand
 #print axioms LevyStochCalc.Poisson.charReIntegrand_integral
 #print axioms LevyStochCalc.Poisson.charImIntegrand_integral
+-- ===== The Grönwall inequality for the pairing (A4c-iii-b1-iii-c, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charPairing
+#print axioms LevyStochCalc.Poisson.integrable_mul_charAt
+#print axioms LevyStochCalc.Poisson.norm_charPairing_le
+#print axioms LevyStochCalc.Poisson.aestronglyMeasurable_pairing_exp
+#print axioms LevyStochCalc.Poisson.aestronglyMeasurable_of_pairing_exp
+#print axioms LevyStochCalc.Poisson.aestronglyMeasurable_charPairing
+#print axioms LevyStochCalc.Poisson.integrableOn_norm_charPairing
+#print axioms LevyStochCalc.Poisson.charPairing_eq_window_integral
+#print axioms LevyStochCalc.Poisson.integrableOn_prod_of_time
+#print axioms LevyStochCalc.Poisson.setIntegral_prod_of_time
+#print axioms LevyStochCalc.Poisson.norm_charPairing_le_integral
