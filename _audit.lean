@@ -1493,3 +1493,10 @@ import LevyStochCalc
 -- ===== The joint grid induction (A4d-iii-c, 2026-09-08) =====
 #print axioms LevyStochCalc.Driver.pairing_jointGridCharacter_eq_zero
 #print axioms LevyStochCalc.Driver.pairing_joint_value_character_eq_zero
+-- ===== The joint filtration and its augmentation (A4d-iv-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_combineBM
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_aug
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_combineBM_aug
+#print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration_aug
+#print axioms LevyStochCalc.Driver.LevyDriver.augFiltration_le_of_nonpos
+#print axioms LevyStochCalc.Driver.LevyDriver.measurableSet_augFiltration_of_null

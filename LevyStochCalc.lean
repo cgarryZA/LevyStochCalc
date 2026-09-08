@@ -130,6 +130,7 @@ import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport
 import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Driver.JointCharacters
+import LevyStochCalc.Driver.JointFiltration
 import LevyStochCalc.Driver.ProductRule
 import LevyStochCalc.Driver.CellPairing
 import LevyStochCalc.Driver.CellIdentity
