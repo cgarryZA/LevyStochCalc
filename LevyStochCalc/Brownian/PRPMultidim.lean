@@ -3,7 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
-import LevyStochCalc.Brownian.PRPCell
+import LevyStochCalc.Brownian.PRPGrid
 import LevyStochCalc.Brownian.ItoDriverLinear
 
 /-!
@@ -111,5 +111,117 @@ theorem pairing_cell_multidim_eq_zero (W : Multidim.MultidimBrownianMotion P d)
     simp only [hexp ω]
     rfl
 
+/-- The character of the vector of increments of `W` along the first `n` cells of a grid. -/
+noncomputable def gridCharacterMultidim (W : Multidim.MultidimBrownianMotion P d) (τ : ℕ → ℝ)
+    (lam : ℕ → Fin d → ℝ) (n : ℕ) (ω : Ω) : ℂ :=
+  ∏ k ∈ Finset.range n, Complex.exp
+    (((∑ i, lam k i * ((W.W i).W (τ (k + 1)) ω - (W.W i).W (τ k) ω) : ℝ) : ℂ) * Complex.I)
+
+theorem norm_gridCharacterMultidim (W : Multidim.MultidimBrownianMotion P d) (τ : ℕ → ℝ)
+    (lam : ℕ → Fin d → ℝ) (n : ℕ) (ω : Ω) : ‖gridCharacterMultidim W τ lam n ω‖ = 1 := by
+  rw [gridCharacterMultidim, norm_prod]
+  exact Finset.prod_eq_one fun k _ => Complex.norm_exp_ofReal_mul_I _
+
+/-- The character of the first `n` cells is measurable for the filtration at the `n`-th grid
+point. -/
+theorem measurable_gridCharacterMultidim (W : Multidim.MultidimBrownianMotion P d)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱi : ∀ i, IsBrownianFiltration (W.W i) ℱ)
+    {τ : ℕ → ℝ} {n : ℕ} (hτ : ∀ k, k < n → τ k ≤ τ (k + 1)) (lam : ℕ → Fin d → ℝ) :
+    Measurable[ℱ (τ n)] (gridCharacterMultidim W τ lam n) := by
+  refine Finset.measurable_prod _ fun k hk => ?_
+  have hkn : k < n := Finset.mem_range.mp hk
+  have hk1 : τ (k + 1) ≤ τ n := grid_le hτ hkn (le_refl n)
+  have hk0 : τ k ≤ τ n := grid_le hτ hkn.le (le_refl n)
+  refine Complex.measurable_exp.comp ((Complex.measurable_ofReal.comp ?_).mul measurable_const)
+  refine Finset.measurable_sum _ fun i _ => Measurable.const_mul ?_ _
+  exact (((hℱi i).measurable _).mono (ℱ.mono hk1) le_rfl).sub
+    (((hℱi i).measurable _).mono (ℱ.mono hk0) le_rfl)
+
+/-- **The multidimensional grid induction.** -/
+theorem pairing_gridCharacterMultidim_eq_zero (W : Multidim.MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱi : ∀ i, IsBrownianFiltration (W.W i) ℱ)
+    (hℱB : ∀ {c : Fin d → ℝ} (hc : ∑ i, c i ^ 2 = 1),
+      IsBrownianFiltration (Multidim.MultidimBrownianMotion.combineBM W hc) ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
+    {Z : Ω → ℂ} (hZm : Measurable Z) (hZ2 : MemLp Z 2 P)
+    (hperp : ∀ i, PerpItoIntegrals (W.W i) ℱ (hℱi i) Z)
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (lam : ℕ → Fin d → ℝ) :
+    ∀ n : ℕ, (∀ k, k < n → τ k < τ (k + 1)) →
+      ∫ ω, Z ω * gridCharacterMultidim W τ lam n ω ∂P = 0 := by
+  intro n
+  induction n with
+  | zero =>
+      intro _
+      have h1 : ∀ ω : Ω, Z ω * gridCharacterMultidim W τ lam 0 ω = Z ω := by
+        intro ω; rw [gridCharacterMultidim]; simp
+      simpa only [h1] using hZ0
+  | succ n ih =>
+      intro hlt
+      have hlt' : ∀ k, k < n → τ k < τ (k + 1) := fun k hk => hlt k (Nat.lt_succ_of_lt hk)
+      have hle' : ∀ k, k < n → τ k ≤ τ (k + 1) := fun k hk => (hlt' k hk).le
+      have hτn0 : 0 ≤ τ n := by
+        rw [← hτ0]; exact grid_le hle' (Nat.zero_le n) le_rfl
+      have hstep := pairing_cell_multidim_eq_zero W ℱ hℱi hℱB hℱ0 hnull hτn0
+        (hlt n (Nat.lt_succ_self n)) hZm hZ2 hperp
+        (V := gridCharacterMultidim W τ lam n)
+        ((measurable_gridCharacterMultidim W hℱi hle' lam).mono (ℱ.le _) le_rfl)
+        (Mv := 1) zero_le_one
+        (fun ω => le_of_eq (norm_gridCharacterMultidim W τ lam n ω))
+        (measurable_gridCharacterMultidim W hℱi hle' lam).stronglyMeasurable (ih hlt') (lam n)
+      have hrw : ∀ ω : Ω, Z ω * gridCharacterMultidim W τ lam (n + 1) ω
+          = Z ω * gridCharacterMultidim W τ lam n ω
+            * Complex.exp (((∑ i, lam n i
+                * ((W.W i).W (τ (n + 1)) ω - (W.W i).W (τ n) ω) : ℝ) : ℂ) * Complex.I) := by
+        intro ω
+        rw [gridCharacterMultidim, gridCharacterMultidim, Finset.prod_range_succ]
+        ring
+      simpa only [hrw] using hstep
+
+/-- The character of the increments is the character of a single sum. -/
+theorem gridCharacterMultidim_eq_exp (W : Multidim.MultidimBrownianMotion P d) (τ : ℕ → ℝ)
+    (lam : ℕ → Fin d → ℝ) (n : ℕ) (ω : Ω) :
+    gridCharacterMultidim W τ lam n ω
+      = Complex.exp (((∑ k ∈ Finset.range n, ∑ i, lam k i
+          * ((W.W i).W (τ (k + 1)) ω - (W.W i).W (τ k) ω) : ℝ) : ℂ) * Complex.I) := by
+  rw [gridCharacterMultidim, ← Complex.exp_sum]
+  congr 1
+  push_cast
+  rw [Finset.sum_mul]
+
+/-- **Value characters along a grid, multidimensional.** A square-integrable weight of mean zero,
+orthogonal to every coordinate's Itô integrals, is orthogonal to every character of the values of
+the coordinates at the points of a grid. -/
+theorem pairing_value_characterMultidim_eq_zero (W : Multidim.MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱi : ∀ i, IsBrownianFiltration (W.W i) ℱ)
+    (hℱB : ∀ {c : Fin d → ℝ} (hc : ∑ i, c i ^ 2 = 1),
+      IsBrownianFiltration (Multidim.MultidimBrownianMotion.combineBM W hc) ℱ)
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
+    {Z : Ω → ℂ} (hZm : Measurable Z) (hZ2 : MemLp Z 2 P)
+    (hperp : ∀ i, PerpItoIntegrals (W.W i) ℱ (hℱi i) Z)
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (c : ℕ → Fin d → ℝ) (n : ℕ)
+    (hlt : ∀ k, k < n → τ k < τ (k + 1)) :
+    ∫ ω, Z ω * Complex.exp (((∑ i, ∑ k ∈ Finset.Ico 1 (n + 1),
+      c k i * (W.W i).W (τ k) ω : ℝ) : ℂ) * Complex.I) ∂P = 0 := by
+  have hkey := pairing_gridCharacterMultidim_eq_zero W ℱ hℱi hℱB hℱ0 hnull hτ0 hZm hZ2 hperp hZ0
+    (fun k i => ∑ j ∈ Finset.Ico (k + 1) (n + 1), c j i) n hlt
+  refine Eq.trans (integral_congr_ae ?_) hkey
+  have hinit : ∀ᵐ ω ∂P, ∀ i : Fin d, (W.W i).W 0 ω = 0 :=
+    ae_all_iff.mpr fun i => (W.W i).initial_zero
+  filter_upwards [hinit] with ω hω
+  have heq : (∑ k ∈ Finset.range n, ∑ i, (∑ j ∈ Finset.Ico (k + 1) (n + 1), c j i)
+        * ((W.W i).W (τ (k + 1)) ω - (W.W i).W (τ k) ω))
+      = ∑ i, ∑ k ∈ Finset.Ico 1 (n + 1), c k i * (W.W i).W (τ k) ω := by
+    rw [Finset.sum_comm]
+    exact Finset.sum_congr rfl fun i _ =>
+      sum_tail_mul_sub (fun k => c k i) (Wv := fun k => (W.W i).W (τ k) ω)
+        (by rw [hτ0]; exact hω i) n
+  rw [gridCharacterMultidim_eq_exp, heq]
+
 end LevyStochCalc.Brownian.Ito
+
+
 

@@ -788,3 +788,10 @@ import LevyStochCalc
 -- ===== One window, multidimensional (A4b-iii-4d, 2026-09-08) =====
 #print axioms LevyStochCalc.Brownian.Ito.perpItoIntegrals_combineBM
 #print axioms LevyStochCalc.Brownian.Ito.pairing_cell_multidim_eq_zero
+-- ===== The multidimensional grid induction (A4b-iii-5, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.gridCharacterMultidim
+#print axioms LevyStochCalc.Brownian.Ito.norm_gridCharacterMultidim
+#print axioms LevyStochCalc.Brownian.Ito.measurable_gridCharacterMultidim
+#print axioms LevyStochCalc.Brownian.Ito.pairing_gridCharacterMultidim_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.gridCharacterMultidim_eq_exp
+#print axioms LevyStochCalc.Brownian.Ito.pairing_value_characterMultidim_eq_zero
