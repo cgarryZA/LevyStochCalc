@@ -896,3 +896,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.clm_apply_prod₂
 #print axioms LevyStochCalc.norm_prod_le_add
 #print axioms LevyStochCalc.abs_sub_taylor_two_time_le
+-- ===== Doob's L2 bound for the stochastic integrals (E1c/E1d, 2026-09-08) =====
+#print axioms LevyStochCalc.Martingale.lintegral_iSup_sq_le_energy_brownian
+#print axioms LevyStochCalc.Martingale.lintegral_iSup_sq_le_energy_compensated
+#print axioms LevyStochCalc.Martingale.sq_enorm_add_le
+#print axioms LevyStochCalc.Martingale.lintegral_iSup_sq_sum_le

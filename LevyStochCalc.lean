@@ -68,6 +68,7 @@ import LevyStochCalc.Poisson.Compensated
 
 -- Layer 0.5: martingale path regularity (càdlàg modifications)
 import LevyStochCalc.Martingale.RightCont
+import LevyStochCalc.Martingale.BDGTwo
 import LevyStochCalc.Martingale.CadlagModification
 import LevyStochCalc.Martingale.SquareCompensator
 
