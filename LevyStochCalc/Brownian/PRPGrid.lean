@@ -39,14 +39,27 @@ theorem norm_gridCharacter (W : LevyStochCalc.Brownian.BrownianMotion P) (τ lam
   rw [gridCharacter, norm_prod]
   exact Finset.prod_eq_one fun k _ => Complex.norm_exp_ofReal_mul_I _
 
+/-- A grid that increases up to index `n` is monotone up to index `n`. -/
+theorem grid_le {τ : ℕ → ℝ} {n : ℕ} (h : ∀ k, k < n → τ k ≤ τ (k + 1)) :
+    ∀ {i j : ℕ}, i ≤ j → j ≤ n → τ i ≤ τ j := by
+  intro i j hij hjn
+  induction j with
+  | zero => rw [Nat.le_zero.mp hij]
+  | succ j ih =>
+      rcases Nat.lt_succ_iff_lt_or_eq.mp (Nat.lt_succ_of_le hij) with hlt | heq
+      · exact (ih (Nat.lt_succ_iff.mp hlt) (le_of_lt hjn)).trans
+          (h j (Nat.lt_of_succ_le hjn))
+      · rw [heq]
+
 include hℱ in
 /-- The character of the first `n` cells is measurable for the filtration at the `n`-th grid
 point. -/
-theorem measurable_gridCharacter {τ : ℕ → ℝ} (hτ : Monotone τ) (lam : ℕ → ℝ) (n : ℕ) :
-    Measurable[ℱ (τ n)] (gridCharacter W τ lam n) := by
+theorem measurable_gridCharacter {τ : ℕ → ℝ} {n : ℕ} (hτ : ∀ k, k < n → τ k ≤ τ (k + 1))
+    (lam : ℕ → ℝ) : Measurable[ℱ (τ n)] (gridCharacter W τ lam n) := by
   refine Finset.measurable_prod _ fun k hk => ?_
-  have hk1 : τ (k + 1) ≤ τ n := hτ (Finset.mem_range.mp hk)
-  have hk0 : τ k ≤ τ n := (hτ (Nat.le_succ k)).trans hk1
+  have hkn : k < n := Finset.mem_range.mp hk
+  have hk1 : τ (k + 1) ≤ τ n := grid_le hτ hkn (le_refl n)
+  have hk0 : τ k ≤ τ n := grid_le hτ hkn.le (le_refl n)
   have hW1 : Measurable[ℱ (τ n)] (W.W (τ (k + 1))) :=
     (hℱ.measurable _).mono (ℱ.mono hk1) le_rfl
   have hW0 : Measurable[ℱ (τ n)] (W.W (τ k)) := (hℱ.measurable _).mono (ℱ.mono hk0) le_rfl
@@ -59,23 +72,30 @@ integral, is orthogonal to the character of the Brownian increments along any gr
 theorem pairing_gridCharacter_eq_zero
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
-    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0) (hτ : StrictMono τ)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
     {Z : Ω → ℂ} (hZm : Measurable Z) (hZ2 : MemLp Z 2 P) (hZp : PerpItoIntegrals W ℱ hℱ Z)
-    (hZ0 : ∫ ω, Z ω ∂P = 0) (lam : ℕ → ℝ) (n : ℕ) :
-    ∫ ω, Z ω * gridCharacter W τ lam n ω ∂P = 0 := by
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (lam : ℕ → ℝ) :
+    ∀ n : ℕ, (∀ k, k < n → τ k < τ (k + 1)) →
+      ∫ ω, Z ω * gridCharacter W τ lam n ω ∂P = 0 := by
+  intro n
   induction n with
   | zero =>
+      intro _
       have h1 : ∀ ω : Ω, Z ω * gridCharacter W τ lam 0 ω = Z ω := by
         intro ω; rw [gridCharacter]; simp
       simpa only [h1] using hZ0
   | succ n ih =>
-      have hτn0 : 0 ≤ τ n := by rw [← hτ0]; exact hτ.monotone (Nat.zero_le n)
+      intro hlt
+      have hlt' : ∀ k, k < n → τ k < τ (k + 1) := fun k hk => hlt k (Nat.lt_succ_of_lt hk)
+      have hle' : ∀ k, k < n → τ k ≤ τ (k + 1) := fun k hk => (hlt' k hk).le
+      have hτn0 : 0 ≤ τ n := by
+        rw [← hτ0]; exact grid_le hle' (Nat.zero_le n) le_rfl
       have hstep := pairing_cell_eq_zero (W := W) (ℱ := ℱ) (hℱ := hℱ) hℱ0 hnull hτn0
-        (hτ (Nat.lt_succ_self n)) hZm hZ2 hZp
+        (hlt n (Nat.lt_succ_self n)) hZm hZ2 hZp
         (V := gridCharacter W τ lam n)
-        ((measurable_gridCharacter (hℱ := hℱ) hτ.monotone lam n).mono (ℱ.le _) le_rfl)
+        ((measurable_gridCharacter (hℱ := hℱ) hle' lam).mono (ℱ.le _) le_rfl)
         (Mv := 1) zero_le_one (fun ω => le_of_eq (norm_gridCharacter W τ lam n ω))
-        (measurable_gridCharacter (hℱ := hℱ) hτ.monotone lam n).stronglyMeasurable ih (lam n)
+        (measurable_gridCharacter (hℱ := hℱ) hle' lam).stronglyMeasurable (ih hlt') (lam n)
       have hrw : ∀ ω : Ω, Z ω * gridCharacter W τ lam (n + 1) ω
           = Z ω * gridCharacter W τ lam n ω
             * Complex.exp (((lam n * (W.W (τ (n + 1)) ω - W.W (τ n) ω) : ℝ) : ℂ)
@@ -143,13 +163,13 @@ grid. -/
 theorem pairing_value_character_eq_zero
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
-    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0) (hτ : StrictMono τ)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
     {Z : Ω → ℂ} (hZm : Measurable Z) (hZ2 : MemLp Z 2 P) (hZp : PerpItoIntegrals W ℱ hℱ Z)
-    (hZ0 : ∫ ω, Z ω ∂P = 0) (c : ℕ → ℝ) (n : ℕ) :
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (c : ℕ → ℝ) (n : ℕ) (hlt : ∀ k, k < n → τ k < τ (k + 1)) :
     ∫ ω, Z ω * Complex.exp (((∑ k ∈ Finset.Ico 1 (n + 1), c k * W.W (τ k) ω : ℝ) : ℂ)
       * Complex.I) ∂P = 0 := by
-  have hkey := pairing_gridCharacter_eq_zero hℱ0 hnull hτ0 hτ hZm hZ2 hZp hZ0
-    (fun k => ∑ j ∈ Finset.Ico (k + 1) (n + 1), c j) n
+  have hkey := pairing_gridCharacter_eq_zero hℱ0 hnull hτ0 hZm hZ2 hZp hZ0
+    (fun k => ∑ j ∈ Finset.Ico (k + 1) (n + 1), c j) n hlt
   refine Eq.trans (integral_congr_ae ?_) hkey
   filter_upwards [W.initial_zero] with ω hω
   have heq : (∑ k ∈ Finset.Ico 1 (n + 1), c k * W.W (τ k) ω)
