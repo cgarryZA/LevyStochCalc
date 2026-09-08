@@ -1259,6 +1259,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.ae_charAt_eq_charStrict
 #print axioms LevyStochCalc.Poisson.exp_predStrict_truncFam
 #print axioms LevyStochCalc.Poisson.integral_mul_exp_predStrict
+-- ===== Fubini for the compensator (A4c-iii-b1-iii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charMark
+#print axioms LevyStochCalc.Poisson.charIntegrand_truncFam_eq
+#print axioms LevyStochCalc.Poisson.norm_charMark_le
+#print axioms LevyStochCalc.Poisson.charMark_eq_zero
+#print axioms LevyStochCalc.Poisson.integral_mul_charCompensator
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand
