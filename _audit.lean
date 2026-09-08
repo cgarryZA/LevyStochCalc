@@ -1409,3 +1409,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.progressivelyMeasurable_const'
 #print axioms LevyStochCalc.Poisson.progressivelyMeasurable_charStrictPred_re
 #print axioms LevyStochCalc.Poisson.progressivelyMeasurable_charStrictPred_im
+-- ===== Pairing the terms of the product rule (A4d-ii-e-4-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.integrable_mul_bdd_mul
+#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_count
+#print axioms LevyStochCalc.Driver.integral_mul_stochasticIntegralBrownian_eq_zero
