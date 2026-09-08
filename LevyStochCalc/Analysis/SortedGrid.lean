@@ -114,31 +114,54 @@ theorem sum_weightAt_mul (F : Finset (Fin d × Set.Iic T)) (w : F → ℝ) (v : 
 pairs with real weights, whose values vanish at nonpositive times, sums to a double sum over the
 coordinates and the increasing enumeration of the positive times of the family. -/
 theorem sum_weight_eq_sum_grid (F : Finset (Fin d × Set.Iic T)) (w : F → ℝ)
-    (v : Fin d → ℝ → ℝ) (hv : ∀ p : F, (p.1.2 : ℝ) ≤ 0 → v p.1.1 (p.1.2 : ℝ) = 0) :
+    (v : Fin d → ℝ → ℝ) (hv : ∀ p : F, (p.1.2 : ℝ) ≤ 0 → v p.1.1 (p.1.2 : ℝ) = 0)
+    {S : Finset ℝ} (hS : posTimes F ⊆ S) (hSpos : ∀ x ∈ S, 0 < x) :
     ∑ p : F, v p.1.1 (p.1.2 : ℝ) * w p
-      = ∑ i, ∑ k ∈ Finset.Ico 1 ((posTimes F).card + 1),
-          weightAt F w (sortedGrid (posTimes F) k) i * v i (sortedGrid (posTimes F) k) := by
+      = ∑ i, ∑ k ∈ Finset.Ico 1 (S.card + 1),
+          weightAt F w (sortedGrid S k) i * v i (sortedGrid S k) := by
   calc ∑ p : F, v p.1.1 (p.1.2 : ℝ) * w p
-      = ∑ p : F, (if (p.1.2 : ℝ) ∈ posTimes F then w p * v p.1.1 (p.1.2 : ℝ) else 0) := by
+      = ∑ p : F, (if (p.1.2 : ℝ) ∈ S then w p * v p.1.1 (p.1.2 : ℝ) else 0) := by
         refine Finset.sum_congr rfl fun p _ => ?_
         by_cases hpos : 0 < (p.1.2 : ℝ)
-        · rw [if_pos (mem_posTimes p.2 hpos)]
+        · rw [if_pos (hS (mem_posTimes p.2 hpos))]
           exact mul_comm _ _
-        · rw [if_neg fun hmem => absurd (pos_of_mem_posTimes hmem) hpos,
+        · rw [if_neg fun hmem => absurd (hSpos _ hmem) hpos,
             hv p (not_lt.mp hpos), zero_mul]
-    _ = ∑ p : F, ∑ x ∈ posTimes F,
+    _ = ∑ p : F, ∑ x ∈ S,
           (if (p.1.2 : ℝ) = x then w p * v p.1.1 (p.1.2 : ℝ) else 0) :=
-        Finset.sum_congr rfl fun p _ => (Finset.sum_ite_eq (posTimes F) ((p.1.2 : ℝ))
+        Finset.sum_congr rfl fun p _ => (Finset.sum_ite_eq S ((p.1.2 : ℝ))
           fun _ => w p * v p.1.1 (p.1.2 : ℝ)).symm
-    _ = ∑ x ∈ posTimes F, ∑ p : F,
+    _ = ∑ x ∈ S, ∑ p : F,
           (if (p.1.2 : ℝ) = x then w p * v p.1.1 (p.1.2 : ℝ) else 0) := Finset.sum_comm
-    _ = ∑ x ∈ posTimes F, ∑ i, weightAt F w x i * v i x :=
+    _ = ∑ x ∈ S, ∑ i, weightAt F w x i * v i x :=
         Finset.sum_congr rfl fun x _ => (sum_weightAt_mul F w v x).symm
-    _ = ∑ k ∈ Finset.Ico 1 ((posTimes F).card + 1), ∑ i,
-          weightAt F w (sortedGrid (posTimes F) k) i * v i (sortedGrid (posTimes F) k) :=
+    _ = ∑ k ∈ Finset.Ico 1 (S.card + 1), ∑ i,
+          weightAt F w (sortedGrid S k) i * v i (sortedGrid S k) :=
         (sum_Ico_sortedGrid _ fun x => ∑ i, weightAt F w x i * v i x).symm
-    _ = ∑ i, ∑ k ∈ Finset.Ico 1 ((posTimes F).card + 1),
-          weightAt F w (sortedGrid (posTimes F) k) i * v i (sortedGrid (posTimes F) k) :=
+    _ = ∑ i, ∑ k ∈ Finset.Ico 1 (S.card + 1),
+          weightAt F w (sortedGrid S k) i * v i (sortedGrid S k) :=
         Finset.sum_comm
+
+/-- Every element of a nonempty finite set is at most the last point of its sorted grid. -/
+theorem le_sortedGrid_card {S : Finset ℝ} {x : ℝ} (hx : x ∈ S) :
+    x ≤ sortedGrid S S.card := by
+  have hpos : 0 < S.card := Finset.card_pos.mpr ⟨x, hx⟩
+  set n := S.card - 1 with hn
+  have hcard : S.card = n + 1 := by omega
+  have hns : n < S.card := by omega
+  have hgrid : sortedGrid S S.card = S.orderEmbOfFin rfl ⟨n, hns⟩ := by
+    conv_lhs => rw [hcard]
+    exact sortedGrid_succ_of_lt S hns
+  rw [hgrid]
+  obtain ⟨j, hj⟩ : ∃ j : Fin S.card, S.orderEmbOfFin rfl j = x := by
+    have hmem : x ∈ Set.range (S.orderEmbOfFin (rfl : S.card = S.card)) := by
+      rw [Finset.range_orderEmbOfFin]
+      exact hx
+    exact hmem
+  rw [← hj]
+  have hjle : (j : ℕ) ≤ n := by
+    have := j.isLt
+    omega
+  exact (S.orderEmbOfFin rfl).monotone (Fin.le_def.mpr hjle)
 
 end LevyStochCalc.Analysis

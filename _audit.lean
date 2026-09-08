@@ -1508,3 +1508,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.measurable_jointGridCharacterMultidim
 #print axioms LevyStochCalc.Driver.pairing_jointGridCharacterMultidim_eq_zero
 #print axioms LevyStochCalc.Driver.pairing_joint_value_characterMultidim_eq_zero
+-- ===== Grids over a superset of the cylinder times (A4d-iv-b-3-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Analysis.sum_weight_eq_sum_grid
+#print axioms LevyStochCalc.Analysis.le_sortedGrid_card

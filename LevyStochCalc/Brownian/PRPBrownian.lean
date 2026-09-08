@@ -71,7 +71,9 @@ theorem pairing_char_cylinder_eq_zero (W : Multidim.MultidimBrownianMotion P d)
       = ∑ i, ∑ k ∈ Finset.Ico 1 ((Analysis.posTimes F).card + 1),
           Analysis.weightAt F w (Analysis.sortedGrid (Analysis.posTimes F) k) i
             * (W.W i).W (Analysis.sortedGrid (Analysis.posTimes F) k) ω :=
-    Analysis.sum_weight_eq_sum_grid F w (fun i t => (W.W i).W t ω) fun p hp => hω p.1 p.2 hp
+    Analysis.sum_weight_eq_sum_grid F w (fun i t => (W.W i).W t ω)
+      (fun p hp => hω p.1 p.2 hp) (Finset.Subset.refl _)
+      fun _ hx => Analysis.pos_of_mem_posTimes hx
   rw [heq, mul_comm]
 
 /-- **The orthogonal complement of the Brownian Itô integrals is trivial.** A square-integrable
