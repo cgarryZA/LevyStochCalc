@@ -13,6 +13,7 @@ import LevyStochCalc.Basic
 
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Analysis.GronwallIntegral
+import LevyStochCalc.Analysis.GronwallIterate
 import LevyStochCalc.Analysis.ScaledTrig
 import LevyStochCalc.Analysis.SortedGrid
 import LevyStochCalc.Probability.AbsMoment

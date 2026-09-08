@@ -1230,6 +1230,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.aug_le_of_le_aug
 #print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_windowSigma
 #print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_window
+-- ===== Gronwall by iteration (A4c-iii-b1-iv, 2026-09-08) =====
+#print axioms LevyStochCalc.Analysis.norm_le_pow_div_factorial_of_norm_le_integral
+#print axioms LevyStochCalc.Analysis.eq_zero_of_norm_le_integral
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand
