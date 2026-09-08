@@ -1424,3 +1424,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.window_inter_Ioc
 #print axioms LevyStochCalc.Driver.hid_cell
 #print axioms LevyStochCalc.Driver.paired_cell_char
+#print axioms LevyStochCalc.Poisson.charIntegrand_eq_zero_of_notMem
+#print axioms LevyStochCalc.Poisson.charRe_eq_zero_of_le
+#print axioms LevyStochCalc.Poisson.charIm_eq_zero_of_le
+#print axioms LevyStochCalc.Poisson.abs_charRe_le
+#print axioms LevyStochCalc.Poisson.abs_charIm_le

@@ -207,6 +207,48 @@ theorem progressivelyMeasurable_charStrictPred_im (T : ℝ) (e₀ : E) :
     rw [charStrictPred, exp_I_mul_ofReal_im]
   rwa [heq] at hsub
 
+section Parts
+
+variable (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
+
+/-- The chain rule's integrand vanishes off the family. -/
+theorem charIntegrand_eq_zero_of_notMem (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω)
+    {s : ℝ} {e : E} (h : ((s, e) : ℝ × E) ∉ ⋃ j, Bfam j) :
+    charIntegrand N w Bfam A T ω s e = 0 := by
+  classical
+  rw [charIntegrand, Set.indicator_of_notMem h]
+  simp
+
+/-- For a family carried after `a` the real part of the integrand vanishes at earlier times. -/
+theorem charRe_eq_zero_of_le {Bfam : ι → Set (ℝ × E)} {A : Set E} {a b : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc a b ×ˢ A) (T : ℝ) (ω : Ω) {s : ℝ} (hs : s ≤ a) (e : E) :
+    charRe N w Bfam A T ω s e = 0 := by
+  have h : ((s, e) : ℝ × E) ∉ ⋃ j, Bfam j := by
+    intro hmem
+    obtain ⟨j, hj⟩ := Set.mem_iUnion.mp hmem
+    exact absurd (hBsub j hj).1.1 (not_lt.mpr hs)
+  rw [charRe, charIntegrand_eq_zero_of_notMem N w Bfam A T ω h, Complex.zero_re]
+
+/-- The imaginary part vanishes at times before the family. -/
+theorem charIm_eq_zero_of_le {Bfam : ι → Set (ℝ × E)} {A : Set E} {a b : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc a b ×ˢ A) (T : ℝ) (ω : Ω) {s : ℝ} (hs : s ≤ a) (e : E) :
+    charIm N w Bfam A T ω s e = 0 := by
+  have h : ((s, e) : ℝ × E) ∉ ⋃ j, Bfam j := by
+    intro hmem
+    obtain ⟨j, hj⟩ := Set.mem_iUnion.mp hmem
+    exact absurd (hBsub j hj).1.1 (not_lt.mpr hs)
+  rw [charIm, charIntegrand_eq_zero_of_notMem N w Bfam A T ω h, Complex.zero_im]
+
+theorem abs_charRe_le (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
+    |charRe N w Bfam A T ω s e| ≤ 2 :=
+  (Complex.abs_re_le_norm _).trans (norm_charIntegrand_le N w Bfam A T ω s e)
+
+theorem abs_charIm_le (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
+    |charIm N w Bfam A T ω s e| ≤ 2 :=
+  (Complex.abs_im_le_norm _).trans (norm_charIntegrand_le N w Bfam A T ω s e)
+
+end Parts
+
 end Clamped
 
 end LevyStochCalc.Poisson
