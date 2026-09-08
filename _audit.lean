@@ -1222,3 +1222,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.comap_le_aug_of_ae_eq
 #print axioms LevyStochCalc.Poisson.natural_le_aug_windowSigma
 #print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_window
+-- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charReIntegrand
+#print axioms LevyStochCalc.Poisson.charImIntegrand
+#print axioms LevyStochCalc.Poisson.charReIntegrand_integral
+#print axioms LevyStochCalc.Poisson.charImIntegrand_integral
