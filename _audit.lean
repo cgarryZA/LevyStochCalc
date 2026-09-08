@@ -1417,10 +1417,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.cutWindow_eq_zero
 #print axioms LevyStochCalc.Poisson.Compensated.setIntegral_eq_of_vanishing
 -- ===== Pairing the product rule on a cell (A4d-ii-e-4-b/c, 2026-09-08) =====
-#print axioms LevyStochCalc.Driver.integrable_mul_bdd_mul
-#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_count
-#print axioms LevyStochCalc.Driver.integral_mul_stochasticIntegralBrownian_eq_zero
-#print axioms LevyStochCalc.Driver.pairing_of_product_rule
 #print axioms LevyStochCalc.Driver.window_inter_Ioc
 #print axioms LevyStochCalc.Driver.hid_cell
 #print axioms LevyStochCalc.Driver.paired_cell_char
@@ -1429,3 +1425,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charIm_eq_zero_of_le
 #print axioms LevyStochCalc.Poisson.abs_charRe_le
 #print axioms LevyStochCalc.Poisson.abs_charIm_le
+#print axioms LevyStochCalc.Driver.paired_cell_re
+#print axioms LevyStochCalc.Driver.paired_cell_im
