@@ -1282,3 +1282,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.integrableOn_prod_of_time
 #print axioms LevyStochCalc.Poisson.setIntegral_prod_of_time
 #print axioms LevyStochCalc.Poisson.norm_charPairing_le_integral
+-- ===== The pairing with the characters vanishes (A4c-iii-b1-v, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charPairing_of_forall_eq_empty
+#print axioms LevyStochCalc.Poisson.charPairing_eq_zero
