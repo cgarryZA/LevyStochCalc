@@ -1233,6 +1233,18 @@ import LevyStochCalc
 -- ===== Gronwall by iteration (A4c-iii-b1-iv, 2026-09-08) =====
 #print axioms LevyStochCalc.Analysis.norm_le_pow_div_factorial_of_norm_le_integral
 #print axioms LevyStochCalc.Analysis.eq_zero_of_norm_le_integral
+-- ===== The character at an intermediate time (A4c-iii-b1-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.truncFam
+#print axioms LevyStochCalc.Poisson.measurableSet_truncFam
+#print axioms LevyStochCalc.Poisson.truncFam_subset
+#print axioms LevyStochCalc.Poisson.truncFam_inter_Ioc
+#print axioms LevyStochCalc.Poisson.truncFam_inter_Ioo
+#print axioms LevyStochCalc.Poisson.iUnion_truncFam
+#print axioms LevyStochCalc.Poisson.simpleMark_truncFam
+#print axioms LevyStochCalc.Poisson.predStrict_truncFam
+#print axioms LevyStochCalc.Poisson.charAt
+#print axioms LevyStochCalc.Poisson.ae_windowSum_truncFam
+#print axioms LevyStochCalc.Poisson.ae_charAt_sub_one_eq_integral
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand
