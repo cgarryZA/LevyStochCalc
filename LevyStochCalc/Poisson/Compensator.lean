@@ -226,6 +226,96 @@ theorem aemeasurable_and_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
         lintegral_tsum fun i => (ih i).2.1.aemeasurable]
       exact tsum_congr fun i => (ih i).2.2
 
+/-- **The reference intensity compensates the counts on predictable functions.** Over a window
+of finite intensity the mean lower integral of a predictable marked function against the random
+measure equals its mean lower integral against the reference intensity. -/
+theorem lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
+    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ)
+    {Ψ : Ω × ℝ × E → ℝ≥0∞}
+    (hΨ : Measurable[Probability.markedPredictableSigma ℱ ν] Ψ) :
+    ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(N.N ω) ∂P
+      = ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(referenceIntensity ν) ∂P := by
+  classical
+  set R : Set (ℝ × E) := Set.Ioc (0 : ℝ) T ×ˢ A with hRdef
+  have hslicemeas : ∀ {G : Ω × ℝ × E → ℝ≥0∞},
+      Measurable[Probability.markedPredictableSigma ℱ ν] G →
+      ∀ ω : Ω, Measurable fun p : ℝ × E => G (ω, p) := by
+    intro G hG ω
+    exact (hG.mono (Probability.markedPredictableSigma_le ℱ ν) le_rfl).comp
+      measurable_prodMk_left
+  refine (@Measurable.ennreal_induction (Ω × ℝ × E)
+    (Probability.markedPredictableSigma ℱ ν)
+    (fun G => AEMeasurable (fun ω => ∫⁻ p in R, G (ω, p) ∂(N.N ω)) P
+      ∧ Measurable (fun ω => ∫⁻ p in R, G (ω, p) ∂(referenceIntensity ν))
+      ∧ ∫⁻ ω, ∫⁻ p in R, G (ω, p) ∂(N.N ω) ∂P
+          = ∫⁻ ω, ∫⁻ p in R, G (ω, p) ∂(referenceIntensity ν) ∂P)
+    ?_ ?_ ?_ Ψ hΨ).2.2
+  · intro c S hS
+    obtain ⟨hc, hi, he⟩ := aemeasurable_and_lintegral_slice_eq N hℱ hA hAν T hS
+    have hXm : ∀ ω : Ω, MeasurableSet (Prod.mk ω ⁻¹' S) :=
+      fun ω => Probability.measurableSet_slice hS ω
+    have hpt : ∀ (μ : Measure (ℝ × E)) (ω : Ω),
+        ∫⁻ p in R, (Set.indicator S fun _ => c) (ω, p) ∂μ = c * μ (Prod.mk ω ⁻¹' S ∩ R) := by
+      intro μ ω
+      have hfun : (fun p : ℝ × E => (Set.indicator S fun _ => c) (ω, p))
+          = (Prod.mk ω ⁻¹' S).indicator fun _ => c := by
+        funext p
+        by_cases hp : (ω, p) ∈ S
+        · rw [Set.indicator_of_mem hp,
+            Set.indicator_of_mem (show p ∈ Prod.mk ω ⁻¹' S from hp)]
+        · rw [Set.indicator_of_notMem hp,
+            Set.indicator_of_notMem (show p ∉ Prod.mk ω ⁻¹' S from hp)]
+      rw [hfun, lintegral_indicator (hXm ω), setLIntegral_const,
+        Measure.restrict_apply (hXm ω), mul_comm]
+    have hN : (fun ω => ∫⁻ p in R, (Set.indicator S fun _ => c) (ω, p) ∂(N.N ω))
+        = fun ω => c * sliceCount N R S ω := funext fun ω => hpt (N.N ω) ω
+    have hI : (fun ω => ∫⁻ p in R, (Set.indicator S fun _ => c) (ω, p) ∂(referenceIntensity ν))
+        = fun ω => c * sliceIntensity ν R S ω := funext fun ω => hpt (referenceIntensity ν) ω
+    refine ⟨?_, ?_, ?_⟩
+    · rw [hN]; exact hc.const_mul c
+    · rw [hI]; exact hi.const_mul c
+    · rw [hN, hI, lintegral_const_mul'' c hc, lintegral_const_mul'' c hi.aemeasurable, he]
+  · rintro f g - hf hg ⟨hcf, hif, hef⟩ ⟨hcg, hig, heg⟩
+    have hsplit : ∀ (μ : Measure (ℝ × E)) (ω : Ω), Measurable (fun p : ℝ × E => f (ω, p)) →
+        ∫⁻ p in R, (f + g) (ω, p) ∂μ
+          = (∫⁻ p in R, f (ω, p) ∂μ) + ∫⁻ p in R, g (ω, p) ∂μ := by
+      intro μ ω hfω
+      exact lintegral_add_left hfω _
+    have hN : (fun ω => ∫⁻ p in R, (f + g) (ω, p) ∂(N.N ω))
+        = fun ω => (∫⁻ p in R, f (ω, p) ∂(N.N ω)) + ∫⁻ p in R, g (ω, p) ∂(N.N ω) :=
+      funext fun ω => hsplit (N.N ω) ω (hslicemeas hf ω)
+    have hI : (fun ω => ∫⁻ p in R, (f + g) (ω, p) ∂(referenceIntensity ν))
+        = fun ω => (∫⁻ p in R, f (ω, p) ∂(referenceIntensity ν))
+            + ∫⁻ p in R, g (ω, p) ∂(referenceIntensity ν) :=
+      funext fun ω => hsplit (referenceIntensity ν) ω (hslicemeas hf ω)
+    refine ⟨?_, ?_, ?_⟩
+    · rw [hN]; exact hcf.add hcg
+    · rw [hI]; exact hif.add hig
+    · rw [hN, hI, lintegral_add_left' hcf, lintegral_add_left' hif.aemeasurable, hef, heg]
+  · intro f hf hmono ih
+    have hN : (fun ω => ∫⁻ p in R, (⨆ n, f n (ω, p)) ∂(N.N ω))
+        = fun ω => ⨆ n, ∫⁻ p in R, f n (ω, p) ∂(N.N ω) := by
+      funext ω
+      exact lintegral_iSup (fun n => hslicemeas (hf n) ω)
+        (fun m n hmn p => hmono hmn (ω, p))
+    have hI : (fun ω => ∫⁻ p in R, (⨆ n, f n (ω, p)) ∂(referenceIntensity ν))
+        = fun ω => ⨆ n, ∫⁻ p in R, f n (ω, p) ∂(referenceIntensity ν) := by
+      funext ω
+      exact lintegral_iSup (fun n => hslicemeas (hf n) ω)
+        (fun m n hmn p => hmono hmn (ω, p))
+    have hmonoN : ∀ ω : Ω, Monotone fun n => ∫⁻ p in R, f n (ω, p) ∂(N.N ω) :=
+      fun ω m n hmn => lintegral_mono fun p => hmono hmn (ω, p)
+    have hmonoI : ∀ ω : Ω, Monotone fun n => ∫⁻ p in R, f n (ω, p) ∂(referenceIntensity ν) :=
+      fun ω m n hmn => lintegral_mono fun p => hmono hmn (ω, p)
+    refine ⟨?_, ?_, ?_⟩
+    · rw [hN]; exact AEMeasurable.iSup fun n => (ih n).1
+    · rw [hI]; exact Measurable.iSup fun n => (ih n).2.1
+    · rw [hN, hI, lintegral_iSup' (fun n => (ih n).1)
+        (Filter.Eventually.of_forall hmonoN),
+        lintegral_iSup' (fun n => ((ih n).2.1).aemeasurable)
+        (Filter.Eventually.of_forall hmonoI)]
+      exact iSup_congr fun n => (ih n).2.2
+
 end Window
 
 end LevyStochCalc.Poisson

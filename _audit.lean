@@ -1079,3 +1079,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.sliceCount
 #print axioms LevyStochCalc.Poisson.sliceIntensity
 #print axioms LevyStochCalc.Poisson.aemeasurable_and_lintegral_slice_eq
+#print axioms LevyStochCalc.Poisson.lintegral_lintegral_slice_eq
