@@ -1471,3 +1471,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.cellPairing_zero
 #print axioms LevyStochCalc.Driver.norm_cellPairing_bound
 #print axioms LevyStochCalc.Driver.cellPairing_eq_zero
+-- ===== The cell lemma for a complex factor (A4d-iii-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.cellPairingC
+#print axioms LevyStochCalc.Driver.norm_cellFactor
+#print axioms LevyStochCalc.Driver.integrable_cellFactor
+#print axioms LevyStochCalc.Driver.cellPairingC_eq_parts
+#print axioms LevyStochCalc.Driver.integral_re_im_eq_zero
+#print axioms LevyStochCalc.Driver.cellPairingC_eq_zero
+#print axioms LevyStochCalc.Driver.pairing_cell_joint_eq_zero
