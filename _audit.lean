@@ -1245,6 +1245,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charAt
 #print axioms LevyStochCalc.Poisson.ae_windowSum_truncFam
 #print axioms LevyStochCalc.Poisson.ae_charAt_sub_one_eq_integral
+-- ===== Orthogonality removes the compensated halves (A4c-iii-b1-ii, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charCompensator
+#print axioms LevyStochCalc.Poisson.norm_charAt_sub_one_le
+#print axioms LevyStochCalc.Poisson.measurable_charAt
+#print axioms LevyStochCalc.Poisson.integral_mul_charAt_sub_one
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand
