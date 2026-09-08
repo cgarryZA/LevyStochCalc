@@ -905,3 +905,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.abs_sub_taylor_one_le_modulus
 #print axioms LevyStochCalc.abs_sub_taylor_two_le_modulus
 #print axioms LevyStochCalc.abs_sub_taylor_two_le_modulus_normed
+-- ===== Finite activity on a mark set of finite intensity (B2b-1a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod
+#print axioms LevyStochCalc.Poisson.exists_nat_count_Ioc
+#print axioms LevyStochCalc.Poisson.count_Ioc_ne_top
