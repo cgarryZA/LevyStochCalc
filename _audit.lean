@@ -823,3 +823,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.aestronglyMeasurable_simpleFunc_aug
 #print axioms LevyStochCalc.Probability.aestronglyMeasurable_of_stronglyMeasurable_aug
 #print axioms LevyStochCalc.Brownian.Ito.ae_eq_zero_of_perpItoIntegrals_augFiltration
+-- ===== Linearity of the L2 Ito integral in the integrand (A4b-iii-6a, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.add
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.sub
+#print axioms LevyStochCalc.Brownian.Ito.sq_nnnorm_eq_ofReal_sq
+#print axioms LevyStochCalc.Brownian.Ito.integral_sq_eq_toReal
+#print axioms LevyStochCalc.Brownian.Ito.integrable_sq_of_memLp
+#print axioms LevyStochCalc.Brownian.Ito.measurable_energyDensity
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_parallelogram
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_lt_top_of_bound
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_const_mul
+#print axioms LevyStochCalc.Brownian.Ito.sq_nnnorm_sub_le_two_mul
+#print axioms LevyStochCalc.Brownian.Ito.sq_nnnorm_add_le_two_mul
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_add_of_sq_distances
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_add
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_const_mul_of_sq_distances
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_const_mul
