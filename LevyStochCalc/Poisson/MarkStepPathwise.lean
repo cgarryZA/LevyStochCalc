@@ -195,6 +195,16 @@ theorem ae_count_rect_ne_top (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E 
   rw [hn]
   exact ENNReal.natCast_ne_top n
 
+/-- The counts on the clamped rectangles are almost surely finite. -/
+theorem ae_count_clamped_rect_ne_top (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g)
+    (t : ℝ) :
+    ∀ᵐ ω ∂P, ∀ i (k : Fin G.K),
+      N.N ω (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ≠ ⊤ := by
+  filter_upwards [ae_count_rect_ne_top N G] with ω hω i k
+  refine ne_top_of_le_ne_top (hω i k) (measure_mono ?_)
+  rw [← G.fullRect_inter_Iic i k t]
+  exact Set.inter_subset_left
+
 /-- The pathwise form of the mark-step compensated integral, almost surely. -/
 theorem ae_full_eq_sub_integral (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) :
     ∀ᵐ ω ∂P, G.full N ω = (∫ q, G.eval q.1 q.2 ω ∂(N.N ω))
@@ -385,6 +395,17 @@ theorem markedPredictable_evalTo (G : MarkStep Ω E ν g)
   rw [hrw]
   exact Finset.measurable_sum _ fun i hi =>
     Finset.measurable_sum _ fun k _ => hterm i (Finset.mem_range.mp hi) k
+
+/-- A mark-step integrand vanishes at nonpositive times. -/
+theorem eval_eq_zero_of_nonpos (G : MarkStep Ω E ν g) {s : ℝ} (hs : s ≤ 0) (e : E) (ω : Ω) :
+    G.eval s e ω = 0 := by
+  classical
+  refine Finset.sum_eq_zero fun i hi => ?_
+  have hnot : s ∉ Set.Ioc (g.p i) (g.p (i + 1)) := by
+    intro hmem
+    have h0 : 0 ≤ g.p i := g.p_nonneg (le_of_lt (Finset.mem_range.mp hi))
+    exact absurd (lt_of_le_of_lt h0 hmem.1) (not_lt.mpr hs)
+  rw [Set.indicator_of_notMem hnot, zero_mul]
 
 section RestrictMarks
 

@@ -60,6 +60,7 @@ import LevyStochCalc.Poisson.CompensatorL1
 import LevyStochCalc.Poisson.JumpSum
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
+import LevyStochCalc.Poisson.PathwiseIdentity
 import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge

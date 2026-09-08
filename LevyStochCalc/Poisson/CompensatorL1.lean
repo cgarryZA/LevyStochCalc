@@ -79,6 +79,74 @@ theorem lintegral_enorm_le_energy (hRfin : referenceIntensity ν (Set.Ioc (0 : �
   refine hcmp.trans (le_of_eq ?_)
   norm_num
 
+
+/-- On a probability space the mean size is at most the root mean square. -/
+theorem lintegral_enorm_le_eLpNorm_two {f : Ω → ℝ} (hf : AEStronglyMeasurable f P) :
+    ∫⁻ ω, ‖f ω‖ₑ ∂P ≤ eLpNorm f 2 P := by
+  have hcmp := eLpNorm_le_eLpNorm_mul_rpow_measure_univ (μ := P) (f := f)
+    (p := 1) (q := 2) (by norm_num) hf
+  rwa [eLpNorm_one_eq_lintegral_enorm, measure_univ, ENNReal.one_rpow, mul_one] at hcmp
+
+omit [IsProbabilityMeasure P] in
+/-- The `L²` seminorm as the square root of the mean square. -/
+theorem eLpNorm_two_eq_rpow (f : Ω → ℝ) :
+    eLpNorm f 2 P = (∫⁻ ω, ‖f ω‖ₑ ^ 2 ∂P) ^ (2 : ℝ)⁻¹ := by
+  rw [eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num)]
+  norm_num
+
+
+/-- Two functions with a common `L¹` approximating sequence agree almost everywhere. -/
+theorem ae_eq_of_tendsto_lintegral_enorm {Y Z : Ω → ℝ} {X : ℕ → Ω → ℝ}
+    (hY : AEStronglyMeasurable Y P) (hZ : AEStronglyMeasurable Z P)
+    (hX : ∀ n, AEStronglyMeasurable (X n) P)
+    (h1 : Tendsto (fun n => ∫⁻ ω, ‖Y ω - X n ω‖ₑ ∂P) atTop (𝓝 0))
+    (h2 : Tendsto (fun n => ∫⁻ ω, ‖X n ω - Z ω‖ₑ ∂P) atTop (𝓝 0)) :
+    Y =ᵐ[P] Z := by
+  have hsum : ∀ n : ℕ, ∫⁻ ω, ‖Y ω - Z ω‖ₑ ∂P
+      ≤ (∫⁻ ω, ‖Y ω - X n ω‖ₑ ∂P) + ∫⁻ ω, ‖X n ω - Z ω‖ₑ ∂P := by
+    intro n
+    have hpt : ∀ ω : Ω, ‖Y ω - Z ω‖ₑ ≤ ‖Y ω - X n ω‖ₑ + ‖X n ω - Z ω‖ₑ := by
+      intro ω
+      have hsplit : Y ω - Z ω = (Y ω - X n ω) + (X n ω - Z ω) := by ring
+      rw [hsplit]
+      exact enorm_add_le _ _
+    exact le_trans (lintegral_mono hpt) (le_of_eq (lintegral_add_left'
+      (measurable_enorm.comp_aemeasurable (hY.sub (hX n)).aemeasurable) _))
+  have hzero : ∫⁻ ω, ‖Y ω - Z ω‖ₑ ∂P = 0 := by
+    refine le_antisymm ?_ bot_le
+    exact ge_of_tendsto (by simpa using h1.add h2) (Eventually.of_forall hsum)
+  have hae := (lintegral_eq_zero_iff'
+    (measurable_enorm.comp_aemeasurable (hY.sub hZ).aemeasurable)).mp hzero
+  filter_upwards [hae] with ω hω
+  have hω0 : Y ω - Z ω = 0 := by
+    simpa only [Function.comp_apply, Pi.sub_apply, Pi.zero_apply, enorm_eq_zero] using hω
+  linarith
+
+/-- An approximating sequence in `L²` also approximates in `L¹` through an intermediate
+sequence. -/
+theorem tendsto_lintegral_enorm_of_eLpNorm {Y : Ω → ℝ} {X S : ℕ → Ω → ℝ}
+    (hY : AEStronglyMeasurable Y P) (hS : ∀ n, AEStronglyMeasurable (S n) P)
+    (hX : ∀ n, AEStronglyMeasurable (X n) P)
+    (h1 : Tendsto (fun n => eLpNorm (fun ω => S n ω - Y ω) 2 P) atTop (𝓝 0))
+    (h2 : Tendsto (fun n => (∫⁻ ω, ‖S n ω - X n ω‖ₑ ^ 2 ∂P) ^ (2 : ℝ)⁻¹) atTop (𝓝 0)) :
+    Tendsto (fun n => ∫⁻ ω, ‖Y ω - X n ω‖ₑ ∂P) atTop (𝓝 0) := by
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (by simpa using h1.add h2) (fun n => bot_le) fun n => ?_
+  have hpt : ∀ ω : Ω, ‖Y ω - X n ω‖ₑ ≤ ‖Y ω - S n ω‖ₑ + ‖S n ω - X n ω‖ₑ := by
+    intro ω
+    have hsplit : Y ω - X n ω = (Y ω - S n ω) + (S n ω - X n ω) := by ring
+    rw [hsplit]
+    exact enorm_add_le _ _
+  have hsum : ∫⁻ ω, ‖Y ω - X n ω‖ₑ ∂P
+      ≤ (∫⁻ ω, ‖Y ω - S n ω‖ₑ ∂P) + ∫⁻ ω, ‖S n ω - X n ω‖ₑ ∂P :=
+    le_trans (lintegral_mono hpt) (le_of_eq (lintegral_add_left'
+      (measurable_enorm.comp_aemeasurable (hY.sub (hS n)).aemeasurable) _))
+  refine hsum.trans (add_le_add ?_ ?_)
+  · refine (lintegral_enorm_le_eLpNorm_two (hY.sub (hS n))).trans (le_of_eq ?_)
+    exact eLpNorm_sub_comm Y (S n) 2 P
+  · exact (lintegral_enorm_le_eLpNorm_two ((hS n).sub (hX n))).trans
+      (le_of_eq (eLpNorm_two_eq_rpow _))
+
 end Bound
 
 section Pathwise
@@ -211,6 +279,41 @@ theorem pathwise_sub {η₁ η₂ : Ω → ℝ → E → ℝ} (ω : Ω)
             (η₁ ω q.1 q.2 - η₂ ω q.1 q.2) ∂(referenceIntensity ν) := by
   rw [integral_sub h1 h2, integral_sub h1' h2']
   ring
+
+
+/-- The pathwise integral of a predictable integrand of finite energy against the random
+measure, as a function of the sample point. -/
+theorem aestronglyMeasurable_pathwise_count (hℱ : IsPoissonFiltration N ℱ) (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤) (T : ℝ) {η : Ω → ℝ → E → ℝ}
+    (hη : Probability.MarkedPredictable ℱ ν η)
+    (hm : Measurable fun p : Ω × ℝ × E => η p.1 p.2.1 p.2.2)
+    (hen : ∫⁻ ω, ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      ‖η ω q.1 q.2‖ₑ ^ 2 ∂(referenceIntensity ν) ∂P ≠ ⊤) :
+    AEStronglyMeasurable
+      (fun ω => ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η ω q.1 q.2 ∂(N.N ω)) P := by
+  obtain ⟨hpos, -, -⟩ := aemeasurable_and_lintegral_lintegral_slice_eq N hℱ hA hAν T
+    (Ψ := fun p : Ω × ℝ × E => ENNReal.ofReal (η p.1 p.2.1 p.2.2))
+    (ENNReal.measurable_ofReal.comp hη)
+  obtain ⟨hneg, -, -⟩ := aemeasurable_and_lintegral_lintegral_slice_eq N hℱ hA hAν T
+    (Ψ := fun p : Ω × ℝ × E => ENNReal.ofReal (-η p.1 p.2.1 p.2.2))
+    (ENNReal.measurable_ofReal.comp hη.neg)
+  refine AEStronglyMeasurable.congr
+    (((ENNReal.measurable_toReal.comp_aemeasurable hpos).sub
+      (ENNReal.measurable_toReal.comp_aemeasurable hneg)).aestronglyMeasurable) ?_
+  filter_upwards [ae_integrableOn_window N hℱ hA hAν T hη hm hen] with ω hω
+  exact (integral_eq_lintegral_pos_part_sub_lintegral_neg_part hω.1).symm
+
+omit [IsProbabilityMeasure P] in
+/-- The pathwise integral against the reference intensity, as a function of the sample point. -/
+theorem stronglyMeasurable_pathwise_intensity {η : Ω → ℝ → E → ℝ}
+    (hm : Measurable fun p : Ω × ℝ × E => η p.1 p.2.1 p.2.2) (A : Set E) (T : ℝ) :
+    StronglyMeasurable
+      fun ω => ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, η ω q.1 q.2 ∂(referenceIntensity ν) := by
+  haveI : SigmaFinite (referenceIntensity ν) := by
+    rw [referenceIntensity]
+    infer_instance
+  exact StronglyMeasurable.integral_prod_right'
+    (ν := (referenceIntensity ν).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) hm.stronglyMeasurable
 
 end Pathwise
 
