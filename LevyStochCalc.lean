@@ -141,6 +141,8 @@ import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Brownian.CrossOrthogonality
 import LevyStochCalc.Brownian.PRPMultidimRange
+import LevyStochCalc.Brownian.PRPPerpBridge
+import LevyStochCalc.Brownian.PRPMultidimAssembly
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting

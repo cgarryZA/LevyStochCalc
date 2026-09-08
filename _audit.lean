@@ -959,3 +959,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.CrossWitness.aug
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossWitnessAugNatural
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_augNatural
+-- ===== The perp bridge and the multidim Brownian PRP (A4b-iii-9b, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.clipHorizonIntegrand
+#print axioms LevyStochCalc.Brownian.Ito.integral_clipHorizonIntegrand
+#print axioms LevyStochCalc.Brownian.Ito.integrable_mul_of_memLp_two
+#print axioms LevyStochCalc.Brownian.Ito.integral_mul_increment_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.integral_mul_stochasticIntegral_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_vectorIntegral_augFiltration
