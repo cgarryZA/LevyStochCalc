@@ -1088,6 +1088,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_count_rect_ne_top
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_full_eq_sub_integral
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.markedPredictable_eval
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.Ioc_inter_Iic
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.fullRect_inter_Iic
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.evalTo_eq_sum_indicator
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_evalTo_eq_sum
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_eq_sub_integral
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.markedPredictable_evalTo
 -- ===== From energy to the mean pathwise integral (B2b-3b-ii, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.lintegral_enorm_le_energy
 #print axioms LevyStochCalc.Poisson.lintegral_enorm_count_eq
