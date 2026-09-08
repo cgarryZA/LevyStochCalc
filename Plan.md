@@ -71,6 +71,16 @@ The end-to-end program for the three papers now lives in
   commits back. The "No pin bump" rule below was written to protect the Dissertation build;
   consuming the discharge requires revisiting it deliberately (roadmap decision **D1**).
 
+## Release-readiness tickets (2026-09-08)
+
+The verification-integrity, CI, documentation-truth and API-hygiene findings of the 2026-09-08
+external audits are ticketed in the Dissertation repo's `RELEASE_READINESS.md` (53 leaves, all
+S; the `(S, L)` and `(S, D+L)` rows are this repo's). They add no theorem and sit outside the
+phases below. The ones that change this repo's gates: `X1b`–`X1g` (`tools/lint.sh` must fail on
+a failed audit, a missing name, a primed name, or any axiom off an allowlist), `X2f` (CI on every
+branch), `X3a`–`X3d` (README/CLAUDE/PROVE2ME/cited_axioms counts and pins), `X4a`–`X4c`
+(`picardMap` placeholder, the broken `examples/` library), `X6c` (file splits).
+
 ## Rules of engagement (unchanged, apply to every task)
 
 - **Invariant after every commit:** `lake build` ✅ · `bash tools/lint.sh` at
