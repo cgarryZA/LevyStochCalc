@@ -81,6 +81,12 @@ a failed audit, a missing name, a primed name, or any axiom off an allowlist), `
 branch), `X3a`–`X3d` (README/CLAUDE/PROVE2ME/cited_axioms counts and pins), `X4a`–`X4c`
 (`picardMap` placeholder, the broken `examples/` library), `X6c` (file splits).
 
+The 2026-09-08 architecture review's LevyStochCalc tickets are group `Z` of the Dissertation
+repo's `ARCHITECTURE.md` (26 leaves, all S): the duplicated martingale identity (`Z1`), the five
+generic `L²` facts the Poisson layer reaches into `Brownian/` for (`Z2`), the `ItoDensity` /
+`CompensatedDensity` deduplication (`Z3`), the integrand bundles and an `Lp`-valued integral
+map (`Z4`, `Z5`), a public SDE surface (`Z6`), hygiene (`Z7`), and the upstream pilot (`P8`).
+
 ## Rules of engagement (unchanged, apply to every task)
 
 - **Invariant after every commit:** `lake build` ✅ · `bash tools/lint.sh` at
