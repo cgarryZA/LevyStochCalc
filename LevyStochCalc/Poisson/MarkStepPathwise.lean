@@ -1,0 +1,199 @@
+/-
+Copyright (c) 2026 Christian Garry. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Garry
+-/
+import LevyStochCalc.Poisson.MarkStep
+import LevyStochCalc.Poisson.Compensator
+
+/-!
+# The mark-step approximants are pathwise and predictable
+
+The approximants the compensated integral is built from are finite combinations of indicators of
+time–mark rectangles with coefficients known at the left endpoint of their piece. Their integral
+against any measure finite on those rectangles is the matching finite combination, so over the
+whole horizon the approximant's compensated integral is the difference of its integrals against
+the random measure and against the reference intensity. Adaptedness of the coefficients makes the
+approximant predictable, which is what the compensator identity asks for.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+namespace LevyStochCalc.Poisson.Compensated
+
+universe u v
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {ν : Measure E} [SigmaFinite ν] {P : Measure Ω} [IsProbabilityMeasure P] {g : TimeGrid}
+
+namespace MarkStep
+
+/-- The mark-step integrand as a finite combination of rectangle indicators. -/
+theorem eval_eq_sum_indicator (G : MarkStep Ω E ν g) (q : ℝ × E) (ω : Ω) :
+    G.eval q.1 q.2 ω = ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+      (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator (fun _ : ℝ × E => G.ξ i k ω) q := by
+  classical
+  rw [MarkStep.eval]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  by_cases hs : q.1 ∈ Set.Ioc (g.p i) (g.p (i + 1))
+  · by_cases he : q.2 ∈ G.B k
+    · rw [Set.indicator_of_mem (Set.mem_prod.mpr ⟨hs, he⟩), Set.indicator_of_mem hs,
+        Set.indicator_of_mem he]
+      ring
+    · rw [Set.indicator_of_notMem (fun h => he (Set.mem_prod.mp h).2),
+        Set.indicator_of_notMem he]
+      ring
+  · rw [Set.indicator_of_notMem (fun h => hs (Set.mem_prod.mp h).1),
+      Set.indicator_of_notMem hs]
+    ring
+
+/-- The integral of a mark-step integrand against a measure finite on its rectangles. -/
+theorem integral_eval_eq_sum (G : MarkStep Ω E ν g) (μ : Measure (ℝ × E))
+    (hfin : ∀ i k, μ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ≠ ⊤) (ω : Ω) :
+    ∫ q, G.eval q.1 q.2 ω ∂μ
+      = ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+          (μ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k)).toReal * G.ξ i k ω := by
+  classical
+  have hrectm : ∀ i (k : Fin G.K),
+      MeasurableSet (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) :=
+    fun i k => measurableSet_Ioc.prod (G.B_measurable k)
+  have hrw : (fun q : ℝ × E => G.eval q.1 q.2 ω)
+      = fun q : ℝ × E => ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+        (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k ω) q := funext fun q => G.eval_eq_sum_indicator q ω
+  rw [hrw, integral_finsetSum]
+  · refine Finset.sum_congr rfl fun i _ => ?_
+    rw [integral_finsetSum]
+    · refine Finset.sum_congr rfl fun k _ => ?_
+      rw [integral_indicator_const _ (hrectm i k), smul_eq_mul, measureReal_def]
+    · intro k _
+      rw [integrable_indicator_iff (hrectm i k)]
+      exact integrableOn_const (hfin i k)
+  · intro i _
+    refine integrable_finsetSum _ fun k _ => ?_
+    rw [integrable_indicator_iff (hrectm i k)]
+    exact integrableOn_const (hfin i k)
+
+/-- **The mark-step compensated integral over the horizon is pathwise.** -/
+theorem full_eq_sub_integral (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) (ω : Ω)
+    (hfin : ∀ i (k : Fin G.K),
+      N.N ω (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ≠ ⊤) :
+    G.full N ω = (∫ q, G.eval q.1 q.2 ω ∂(N.N ω))
+      - ∫ q, G.eval q.1 q.2 ω ∂(referenceIntensity ν) := by
+  have hIfin : ∀ i (k : Fin G.K),
+      referenceIntensity ν (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ≠ ⊤ :=
+    fun i k => referenceIntensity_Ioc_prod_ne_top' (G.B_finite k) _ _
+  rw [G.integral_eval_eq_sum (N.N ω) hfin ω,
+    G.integral_eval_eq_sum (referenceIntensity ν) hIfin ω, ← Finset.sum_sub_distrib,
+    MarkStep.full]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [PoissonRandomMeasure.compensated]
+  ring
+
+/-- The counts on the rectangles of a mark-step integrand are almost surely finite. -/
+theorem ae_count_rect_ne_top (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) :
+    ∀ᵐ ω ∂P, ∀ i (k : Fin G.K),
+      N.N ω (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ≠ ⊤ := by
+  rw [ae_all_iff]
+  intro i
+  rw [ae_all_iff]
+  intro k
+  filter_upwards [N.integer_valued (measurableSet_Ioc.prod (G.B_measurable k))
+    (referenceIntensity_Ioc_prod_ne_top' (G.B_finite k) _ _)] with ω hω
+  obtain ⟨n, hn⟩ := hω
+  rw [hn]
+  exact ENNReal.natCast_ne_top n
+
+/-- The pathwise form of the mark-step compensated integral, almost surely. -/
+theorem ae_full_eq_sub_integral (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) :
+    ∀ᵐ ω ∂P, G.full N ω = (∫ q, G.eval q.1 q.2 ω ∂(N.N ω))
+      - ∫ q, G.eval q.1 q.2 ω ∂(referenceIntensity ν) := by
+  filter_upwards [ae_count_rect_ne_top N G] with ω hω
+  exact full_eq_sub_integral N G ω hω
+
+/-- **An adapted mark-step integrand is predictable.** -/
+theorem markedPredictable_eval (G : MarkStep Ω E ν g)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hG : G.Adapted ℱ) :
+    Probability.MarkedPredictable ℱ ν fun ω s e => G.eval s e ω := by
+  classical
+  have hterm : ∀ i, i < g.N₀ → ∀ k : Fin G.K,
+      Measurable[Probability.markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E =>
+        (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k p.1) p.2 := by
+    intro i hi k U hU
+    have hξU : MeasurableSet[ℱ (g.p i)] (G.ξ i k ⁻¹' U) := (hG i hi k).measurable hU
+    have hbig : MeasurableSet[Probability.markedPredictableSigma ℱ ν]
+        ((G.ξ i k ⁻¹' U) ×ˢ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k)) :=
+      MeasurableSpace.measurableSet_generateFrom
+        ⟨g.p i, g.p (i + 1), _, _, g.p_nonneg hi.le, hξU, G.B_measurable k, G.B_finite k, rfl⟩
+    have huniv : MeasurableSet[Probability.markedPredictableSigma ℱ ν]
+        ((Set.univ : Set Ω) ×ˢ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k)) :=
+      MeasurableSpace.measurableSet_generateFrom
+        ⟨g.p i, g.p (i + 1), _, _, g.p_nonneg hi.le, MeasurableSet.univ, G.B_measurable k,
+          G.B_finite k, rfl⟩
+    by_cases h0 : (0 : ℝ) ∈ U
+    · have hset : (fun p : Ω × ℝ × E => (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k p.1) p.2) ⁻¹' U
+          = ((G.ξ i k ⁻¹' U) ×ˢ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k))
+            ∪ ((Set.univ : Set Ω) ×ˢ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k))ᶜ := by
+        ext p
+        by_cases hp : p.2 ∈ Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k
+        · have hL := Set.indicator_of_mem hp fun _ : ℝ × E => G.ξ i k p.1
+          constructor
+          · intro h
+            rw [Set.mem_preimage, hL] at h
+            exact Or.inl (Set.mem_prod.mpr ⟨h, hp⟩)
+          · intro h
+            rw [Set.mem_preimage, hL]
+            rcases h with h | h
+            · exact (Set.mem_prod.mp h).1
+            · exact absurd (Set.mem_prod.mpr ⟨Set.mem_univ p.1, hp⟩) h
+        · have hL := Set.indicator_of_notMem hp fun _ : ℝ × E => G.ξ i k p.1
+          constructor
+          · intro _
+            exact Or.inr fun h => hp (Set.mem_prod.mp h).2
+          · intro _
+            rw [Set.mem_preimage, hL]
+            exact h0
+      rw [hset]
+      exact hbig.union huniv.compl
+    · have hset : (fun p : Ω × ℝ × E => (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k p.1) p.2) ⁻¹' U
+          = (G.ξ i k ⁻¹' U) ×ˢ (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) := by
+        ext p
+        by_cases hp : p.2 ∈ Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k
+        · have hL := Set.indicator_of_mem hp fun _ : ℝ × E => G.ξ i k p.1
+          constructor
+          · intro h
+            rw [Set.mem_preimage, hL] at h
+            exact Set.mem_prod.mpr ⟨h, hp⟩
+          · intro h
+            rw [Set.mem_preimage, hL]
+            exact (Set.mem_prod.mp h).1
+        · have hL := Set.indicator_of_notMem hp fun _ : ℝ × E => G.ξ i k p.1
+          constructor
+          · intro h
+            rw [Set.mem_preimage, hL] at h
+            exact absurd h h0
+          · intro h
+            exact absurd (Set.mem_prod.mp h).2 hp
+      rw [hset]
+      exact hbig
+  have hrw : (fun p : Ω × ℝ × E => G.eval p.2.1 p.2.2 p.1)
+      = fun p : Ω × ℝ × E => ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+        (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k p.1) p.2 :=
+    funext fun p => G.eval_eq_sum_indicator p.2 p.1
+  change Measurable[Probability.markedPredictableSigma ℱ ν] _
+  rw [hrw]
+  exact Finset.measurable_sum _ fun i hi =>
+    Finset.measurable_sum _ fun k _ => hterm i (Finset.mem_range.mp hi) k
+
+end MarkStep
+
+end LevyStochCalc.Poisson.Compensated

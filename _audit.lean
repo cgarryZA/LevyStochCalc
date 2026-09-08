@@ -1080,3 +1080,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.sliceIntensity
 #print axioms LevyStochCalc.Poisson.aemeasurable_and_lintegral_slice_eq
 #print axioms LevyStochCalc.Poisson.lintegral_lintegral_slice_eq
+-- ===== Mark-step approximants are pathwise and predictable (B2b-3b-ii, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.eval_eq_sum_indicator
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.integral_eval_eq_sum
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.full_eq_sub_integral
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_count_rect_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_full_eq_sub_integral
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.markedPredictable_eval
