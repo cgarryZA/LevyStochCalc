@@ -984,3 +984,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_limsup
 #print axioms LevyStochCalc.Poisson.Compensated.limsupMarkedIntegrand
 #print axioms LevyStochCalc.Poisson.Compensated.exists_marked_progressive_energy_limit
+-- ===== Linearity of the compensated Poisson integral (A4c-iii-a2-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.markedDensity
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markedDensity
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markSlice
+#print axioms LevyStochCalc.Poisson.Compensated.lintegral_markedEnergy_parallelogram
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy_lt_top_of_bound
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_add
+#print axioms LevyStochCalc.Poisson.Compensated.lintegral_markedEnergy_const_mul
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_const_mul
