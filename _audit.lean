@@ -1041,3 +1041,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.ae_exists_finset_support
 #print axioms LevyStochCalc.Poisson.ae_exists_eq_sum_dirac_Ioc
 #print axioms LevyStochCalc.Poisson.ae_exists_finset_support_Ioc
+-- ===== The pathwise jump sum (B2b-2, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.lintegral_of_eq_sum_dirac
+#print axioms LevyStochCalc.Poisson.integral_of_eq_sum_dirac
+#print axioms LevyStochCalc.Poisson.exists_strictMono_enum
+#print axioms LevyStochCalc.Poisson.jumpTimes
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_integral_eq_sum
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_integral_eq_sum_Ioc
