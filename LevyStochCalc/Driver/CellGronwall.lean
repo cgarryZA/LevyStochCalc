@@ -889,6 +889,88 @@ theorem norm_cellPairing_le
             * ∫ s in Set.Ioc (0 : ℝ) t,
               ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by ring
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+/-- At the origin the pairing is the mean of the weight against the bounded factor. -/
+theorem cellPairing_zero (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {Z V : Ω → ℝ} {l : ℝ}
+    (hX0 : X 0 =ᵐ[P] fun _ => (0 : ℝ)) :
+    cellPairing N w Bfam Z V l X 0 = ((∫ ω, Z ω * V ω ∂P : ℝ) : ℂ) := by
+  rw [cellPairing]
+  have h : ∀ᵐ ω ∂P, ((Z ω * V ω : ℝ) : ℂ)
+      * (Complex.exp (Complex.I * ((l * X 0 ω : ℝ) : ℂ)) * charAt N w Bfam 0 ω)
+      = ((Z ω * V ω : ℝ) : ℂ) := by
+    filter_upwards [hX0] with ω hω
+    rw [hω, charAt_zero N w]
+    simp
+  rw [integral_congr_ae h]
+  exact integral_ofReal
+
+/-- The pairing is bounded uniformly in the time. -/
+theorem norm_cellPairing_bound (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
+    (hBm : ∀ j, MeasurableSet (Bfam j)) {Z V : Ω → ℝ} (hZ2 : MemLp Z 2 P)
+    (hVm : Measurable V) {Mv : ℝ} (hMv0 : 0 ≤ Mv) (hVb : ∀ ω, |V ω| ≤ Mv) {l : ℝ} {s : ℝ}
+    (hXs : Measurable (X s)) :
+    ‖cellPairing N w Bfam Z V l X s‖ ≤ 2 * (Mv * ∫ ω, ‖Z ω‖ ∂P) := by
+  rw [cellPairing_eq_halves N w hBm hZ2 hVm hVb hXs]
+  refine le_trans (norm_add_le _ _) ?_
+  have h1 := norm_cellHalf_le (l := l) (X := X) N w Bfam (hZ2.integrable one_le_two) hMv0 hVb
+    Real.abs_cos_le_one s
+  have h2 := norm_cellHalf_le (l := l) (X := X) N w Bfam (hZ2.integrable one_le_two) hMv0 hVb
+    Real.abs_sin_le_one s
+  rw [norm_mul, Complex.norm_I, one_mul]
+  linarith
+
+include hℱN hℱW in
+/-- **The mixed cell lemma.** For a square-integrable weight orthogonal to every Itô integral and
+every compensated integral, and of mean zero against a bounded factor measurable before the cell,
+the pairing with the product of the Brownian and Poisson cell characters vanishes throughout the
+cell. -/
+theorem cellPairing_eq_zero
+    (hXbase : IsItoVersion W ℱ hℱW (indIoc Ω a b) hm hp hq (fun _ => 0) (fun _ _ => 0) X)
+    (hX0 : X 0 =ᵐ[P] fun _ => (0 : ℝ)) (ha : 0 ≤ a) (hab : a < b) (l : ℝ)
+    {T : ℝ} (hT : 0 < T) (hbT : b < T) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc a b ×ˢ A) {e₀ : E} (he₀ : e₀ ∈ A)
+    {Z : Ω → ℝ} (hZ2 : MemLp Z 2 P)
+    (hZito : PerpItoIntegrals W ℱ hℱW fun ω => (Z ω : ℂ))
+    (hZcomp : ∀ G' : MarkedHorizonIntegrand P ν ℱ T, ∫ ω, Z ω * G'.integral N hℱN ω ∂P = 0)
+    {V : Ω → ℝ} (hVa : StronglyMeasurable[ℱ a] V) {Mv : ℝ} (hMv0 : 0 ≤ Mv)
+    (hVb : ∀ ω, |V ω| ≤ Mv) (hZV : ∫ ω, Z ω * V ω ∂P = 0) :
+    ∀ t ∈ Set.Icc (0 : ℝ) b, cellPairing N w Bfam Z V l X t = 0 := by
+  have hVm : Measurable V := (hVa.mono (ℱ.le a)).measurable
+  have hXm : Measurable (Function.uncurry fun ω s => X s ω) := hXbase.measurable_uncurry
+  have hBsub0 : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) b ×ˢ A := fun j =>
+    (hBsub j).trans (Set.prod_mono (Set.Ioc_subset_Ioc ha le_rfl) le_rfl)
+  have hu0 : cellPairing N w Bfam Z V l X 0 = 0 := by
+    rw [cellPairing_zero N w Bfam hX0, hZV, Complex.ofReal_zero]
+  have hsplit : ∀ s, cellPairing N w Bfam Z V l X s
+      = cellHalf N w Bfam Z V l X Real.cos s
+        + Complex.I * cellHalf N w Bfam Z V l X Real.sin s := fun s =>
+    cellPairing_eq_halves N w hBm hZ2 hVm hVb (hXbase.measurable s)
+  have hmeas : AEStronglyMeasurable (fun s => ‖cellPairing N w Bfam Z V l X s‖)
+      (volume.restrict (Set.Icc (0 : ℝ) b)) := by
+    have hc := aestronglyMeasurable_cellHalf (l := l) N hℱN w hBm hA hAν hT hbT hBsub0 he₀
+      hZ2 hVm Real.continuous_cos hXm b
+    have hs := aestronglyMeasurable_cellHalf (l := l) N hℱN w hBm hA hAν hT hbT hBsub0 he₀
+      hZ2 hVm Real.continuous_sin hXm b
+    exact ((hc.add (hs.const_mul Complex.I)).congr
+      (Filter.Eventually.of_forall fun s => (hsplit s).symm)).norm
+  have hzero := LevyStochCalc.Analysis.eq_zero_of_le_mul_setIntegral
+    (a := (0 : ℝ)) (b := b) (c := l ^ 2 / 2 + 2 * (ν A).toReal)
+    (B := 2 * (Mv * ∫ ω, ‖Z ω‖ ∂P))
+    (by positivity) hmeas (fun t => norm_nonneg _)
+    (fun t _ => norm_cellPairing_bound (l := l) N w hBm hZ2 hVm hMv0 hVb
+      (hXbase.measurable t)) ?_
+  · intro t ht
+    exact norm_eq_zero.mp (hzero t ht)
+  · intro t ht
+    rcases eq_or_lt_of_le ht.1 with h0 | h0
+    · rw [← h0, hu0, norm_zero, Set.Ioc_self]
+      simp
+    · have hb := norm_cellPairing_le N hℱN W hℱW hXbase hX0 ha hab l hT hbT hA hAν w hBm
+        hBsub he₀ hZ2 hZito hZcomp hVa hMv0 hVb h0 (ht.2.trans hbT.le)
+      rw [hu0, norm_zero, zero_add] at hb
+      exact hb
+
 end Identity
 
 end LevyStochCalc.Driver

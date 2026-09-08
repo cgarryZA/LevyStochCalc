@@ -17,10 +17,11 @@ open MeasureTheory
 
 namespace LevyStochCalc.Analysis
 
-/-- The iterated bound: a nonnegative function bounded by `B` and by `c` times its running
-integral is bounded by `B·(c(t−a))ᵐ/m!` for every `m`. -/
+/-- The iterated bound: a nonnegative function measurable on `Set.Icc a b`, bounded there by `B`
+and by `c` times its running integral, is bounded by `B·(c(t−a))ᵐ/m!` for every `m`. -/
 theorem le_mul_pow_div_factorial_of_le_mul_setIntegral {a b c B : ℝ} (hc : 0 ≤ c)
-    {f : ℝ → ℝ} (hf : Measurable f) (hf0 : ∀ t, 0 ≤ f t)
+    {f : ℝ → ℝ} (hf : AEStronglyMeasurable f (volume.restrict (Set.Icc a b)))
+    (hf0 : ∀ t, 0 ≤ f t)
     (hB : ∀ t ∈ Set.Icc a b, f t ≤ B)
     (hineq : ∀ t ∈ Set.Icc a b, f t ≤ c * ∫ u in Set.Ioc a t, f u) (m : ℕ) :
     ∀ t ∈ Set.Icc a b, f t ≤ B * (c * (t - a)) ^ m / (m).factorial := by
@@ -29,8 +30,13 @@ theorem le_mul_pow_div_factorial_of_le_mul_setIntegral {a b c B : ℝ} (hc : 0 �
   | succ m ih =>
       intro t ht
       obtain ⟨hat, htb⟩ := ht
+      haveI : IsFiniteMeasure (volume.restrict (Set.Ioc a t)) :=
+        ⟨by rw [Measure.restrict_apply_univ, Real.volume_Ioc]; exact ENNReal.ofReal_lt_top⟩
       have hfint : IntegrableOn f (Set.Ioc a t) := by
-        refine Measure.integrableOn_of_bounded (M := B) (by simp) hf.aestronglyMeasurable ?_
+        have hres : AEStronglyMeasurable f (volume.restrict (Set.Ioc a t)) :=
+          hf.mono_measure (Measure.restrict_mono
+            (Set.Ioc_subset_Icc_self.trans (Set.Icc_subset_Icc le_rfl htb)) le_rfl)
+        refine Integrable.mono' (integrable_const B) hres ?_
         refine (ae_restrict_iff' measurableSet_Ioc).mpr (Filter.Eventually.of_forall ?_)
         intro x hx
         rw [Real.norm_eq_abs, abs_of_nonneg (hf0 x)]
@@ -70,10 +76,11 @@ theorem le_mul_pow_div_factorial_of_le_mul_setIntegral {a b c B : ℝ} (hc : 0 �
         ring
       exact hstep.trans hfin
 
-/-- **Grönwall in integral form.** A nonnegative measurable function bounded on `Set.Icc a b`
-and dominated there by a constant multiple of its own running integral vanishes. -/
+/-- **Grönwall in integral form.** A nonnegative function measurable on `Set.Icc a b`, bounded
+there and dominated there by a constant multiple of its own running integral, vanishes. -/
 theorem eq_zero_of_le_mul_setIntegral {a b c B : ℝ} (hc : 0 ≤ c)
-    {f : ℝ → ℝ} (hf : Measurable f) (hf0 : ∀ t, 0 ≤ f t)
+    {f : ℝ → ℝ} (hf : AEStronglyMeasurable f (volume.restrict (Set.Icc a b)))
+    (hf0 : ∀ t, 0 ≤ f t)
     (hB : ∀ t ∈ Set.Icc a b, f t ≤ B)
     (hineq : ∀ t ∈ Set.Icc a b, f t ≤ c * ∫ u in Set.Ioc a t, f u) :
     ∀ t ∈ Set.Icc a b, f t = 0 := by

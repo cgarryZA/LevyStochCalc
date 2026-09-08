@@ -1467,3 +1467,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.cellPairing_identity
 -- ===== The Gronwall bound for the cell pairing (A4d-ii-e-4-c-3-d, 2026-09-08) =====
 #print axioms LevyStochCalc.Driver.norm_cellPairing_le
+-- ===== The mixed cell lemma (A4d-ii-f, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.cellPairing_zero
+#print axioms LevyStochCalc.Driver.norm_cellPairing_bound
+#print axioms LevyStochCalc.Driver.cellPairing_eq_zero

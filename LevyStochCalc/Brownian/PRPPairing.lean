@@ -470,7 +470,7 @@ theorem pairing_eq_zero_of_norm_le {b : ℝ} {X : ℝ → Ω → ℝ}
       _ = ‖Y ω‖ := mul_one _
   have hzero := LevyStochCalc.Analysis.eq_zero_of_le_mul_setIntegral
     (a := (0 : ℝ)) (b := b) (c := l ^ 2 / 2) (B := ∫ ω, ‖Y ω‖ ∂P) (by positivity)
-    (f := fun u => ‖∫ ω, Y ω * ((g (X u ω) : ℝ) : ℂ) ∂P‖) hΛmeas.norm
+    (f := fun u => ‖∫ ω, Y ω * ((g (X u ω) : ℝ) : ℂ) ∂P‖) hΛmeas.norm.aestronglyMeasurable
     (fun u => norm_nonneg _) (fun u _ => hΛbd u) ?_
   · intro t ht
     have := hzero t ht
