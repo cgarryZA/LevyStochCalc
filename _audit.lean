@@ -1305,3 +1305,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.sum_jointFamily_eq
 #print axioms LevyStochCalc.Driver.LevyDriver.ae_eq_zero_of_integral_char_jointWindowSigma
 #print axioms LevyStochCalc.Driver.LevyDriver.ae_eq_zero_of_integral_char_joint
+-- ===== Pulling a past weight inside a compensated integral (A4d-ii-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.integrable_mul_of_memLp_two
+#print axioms LevyStochCalc.Poisson.Compensated.compensator_eq_zero_of_vanishing
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_zero_of_vanishing
+#print axioms LevyStochCalc.Poisson.Compensated.integral_mul_sq_stochasticIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_mul_of_vanishing
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy_mul_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.mulLeft
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_congr_toFun
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.compensator_mulLeft
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_mul_sq_integral
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_mulLeft
