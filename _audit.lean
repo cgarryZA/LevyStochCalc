@@ -839,3 +839,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_add
 #print axioms LevyStochCalc.Brownian.Ito.ae_eq_const_mul_of_sq_distances
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_const_mul
+-- ===== Completeness of the admissible integrands (A4b-iii-6b, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.energyMeasure
+#print axioms LevyStochCalc.Brownian.Ito.energy
+#print axioms LevyStochCalc.Brownian.Ito.eLpNorm_sq_eq_lintegral
+#print axioms LevyStochCalc.Brownian.Ito.energy_eq_eLpNorm_sq
+#print axioms LevyStochCalc.Brownian.Ito.memLp_of_energy_ne_top
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_indicator_Icc
+#print axioms LevyStochCalc.Brownian.Ito.energy_le_of_vanishing
+#print axioms LevyStochCalc.Brownian.Ito.exists_energy_limit
+#print axioms LevyStochCalc.Brownian.Ito.limsupIntegrand
+#print axioms LevyStochCalc.Brownian.Ito.exists_progressive_energy_limit
