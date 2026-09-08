@@ -785,3 +785,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.simpleIntegral_combineBM
 #print axioms LevyStochCalc.Brownian.Ito.ae_eq_of_tendsto_eLpNorm
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_combineBM
+-- ===== One window, multidimensional (A4b-iii-4d, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.perpItoIntegrals_combineBM
+#print axioms LevyStochCalc.Brownian.Ito.pairing_cell_multidim_eq_zero
