@@ -1250,6 +1250,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.norm_charAt_sub_one_le
 #print axioms LevyStochCalc.Poisson.measurable_charAt
 #print axioms LevyStochCalc.Poisson.integral_mul_charAt_sub_one
+-- ===== The character and the strict-past character agree a.s. (A4c-iii-b1-iii-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.referenceIntensity_inter_singleton
+#print axioms LevyStochCalc.Poisson.ae_count_time_singleton_eq_zero
+#print axioms LevyStochCalc.Poisson.inter_Ioc_prod_eq_union
+#print axioms LevyStochCalc.Poisson.ae_count_Ioc_eq_count_Ioo
+#print axioms LevyStochCalc.Poisson.charStrict
+#print axioms LevyStochCalc.Poisson.ae_charAt_eq_charStrict
+#print axioms LevyStochCalc.Poisson.exp_predStrict_truncFam
+#print axioms LevyStochCalc.Poisson.integral_mul_exp_predStrict
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand

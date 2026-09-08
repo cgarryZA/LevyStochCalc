@@ -71,6 +71,7 @@ import LevyStochCalc.Poisson.WindowFiltration
 import LevyStochCalc.Poisson.CharacterOrthogonal
 import LevyStochCalc.Poisson.CharacterTruncate
 import LevyStochCalc.Poisson.CharacterCompensator
+import LevyStochCalc.Poisson.CharacterStrict
 import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge
