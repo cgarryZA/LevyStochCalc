@@ -1502,3 +1502,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.measurableSet_augFiltration_of_null
 -- ===== The multidimensional joint cell lemma (A4d-iv-b-1, 2026-09-08) =====
 #print axioms LevyStochCalc.Driver.pairing_cell_multidim_joint_eq_zero
+-- ===== The multidimensional joint grid (A4d-iv-b-2, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.jointGridCharacterMultidim
+#print axioms LevyStochCalc.Driver.norm_jointGridCharacterMultidim
+#print axioms LevyStochCalc.Driver.measurable_jointGridCharacterMultidim
+#print axioms LevyStochCalc.Driver.pairing_jointGridCharacterMultidim_eq_zero
+#print axioms LevyStochCalc.Driver.pairing_joint_value_characterMultidim_eq_zero
