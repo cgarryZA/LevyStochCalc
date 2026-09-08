@@ -76,6 +76,7 @@ import LevyStochCalc.Poisson.CharacterCompensator
 import LevyStochCalc.Poisson.CharacterStrict
 import LevyStochCalc.Poisson.CharacterCell
 import LevyStochCalc.Probability.PredictableContinuous
+import LevyStochCalc.Poisson.CellIntegrand
 import LevyStochCalc.Poisson.CharacterFubini
 import LevyStochCalc.Poisson.CharacterGronwall
 import LevyStochCalc.Poisson.CharacterVanish

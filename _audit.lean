@@ -1370,3 +1370,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.stepEvalCut
 #print axioms LevyStochCalc.Probability.markedPredictable_stepEvalCut
 #print axioms LevyStochCalc.Probability.markedPredictable_of_continuous_adapted
+-- ===== A continuous adapted factor in a marked integrand (A4d-ii-e-3, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.cutWindow
+#print axioms LevyStochCalc.Poisson.Compensated.cutWindow_eq
+#print axioms LevyStochCalc.Poisson.Compensated.abs_cutWindow_le
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_uncurry_cutWindow
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy_bddMul_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.markedPredictable_cutMul
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.cutMul
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.setIntegral_count_eq_integral_add
