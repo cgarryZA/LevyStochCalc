@@ -1211,7 +1211,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charIntegrand_re
 #print axioms LevyStochCalc.Poisson.charIntegrand_im
 #print axioms LevyStochCalc.Poisson.ae_char_sub_one_eq_compensated
--- ===== Window sets and the window sigma-algebra (A4c-ii-d scaffolding) =====
+-- ===== The window sigma-algebra generates the natural filtration (A4c-ii-d1, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.WindowSet
 #print axioms LevyStochCalc.Poisson.WindowSet.measurableSet
 #print axioms LevyStochCalc.Poisson.WindowSet.subset_Iic
@@ -1220,6 +1220,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.measurable_windowCount
 #print axioms LevyStochCalc.Poisson.windowSigma_le_natural
 #print axioms LevyStochCalc.Poisson.comap_le_aug_of_ae_eq
+#print axioms LevyStochCalc.Poisson.ae_count_ne_top
+#print axioms LevyStochCalc.Poisson.windowTrace
+#print axioms LevyStochCalc.Poisson.windowTrace_coe
+#print axioms LevyStochCalc.Poisson.monotone_windowTrace
+#print axioms LevyStochCalc.Poisson.iUnion_windowTrace
+#print axioms LevyStochCalc.Poisson.measurable_windowSigma_count
+#print axioms LevyStochCalc.Poisson.natural_le_aug_windowSigma
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand

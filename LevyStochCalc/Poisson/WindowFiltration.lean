@@ -80,6 +80,95 @@ theorem comap_le_aug_of_ae_eq {Ω' : Type*} [mΩ : MeasurableSpace Ω'] {α : Ty
   · exact fun hEq => hω.2 (by rw [Set.mem_preimage, ← hEq]; exact hω.1)
   · exact fun hEq => hω.2 (by rw [Set.mem_preimage, hEq]; exact hω.1)
 
+/-- A count of finite intensity is almost surely finite. -/
+theorem ae_count_ne_top (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)} (hB : MeasurableSet B)
+    (hfin : referenceIntensity ν B ≠ ⊤) : ∀ᵐ ω ∂P, N.N ω B ≠ ⊤ := by
+  filter_upwards [N.integer_valued hB hfin] with ω hω
+  obtain ⟨n, hn⟩ := hω
+  rw [hn]
+  exact ENNReal.natCast_ne_top n
+
+/-- The trace of a measurable set on the `n`-th stage of a σ-finite exhaustion of the marks,
+inside the window `(0, T]`. -/
+def windowTrace (ν : Measure E) [SigmaFinite ν] (T : ℝ) (B : Set (ℝ × E))
+    (hB : MeasurableSet B) (n : ℕ) : WindowSet E ν T :=
+  ⟨B ∩ Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν n,
+    hB.inter (measurableSet_Ioc.prod (measurableSet_spanningSets ν n)),
+    spanningSets ν n, measurableSet_spanningSets ν n, (measure_spanningSets_lt_top ν n).ne,
+    Set.inter_subset_right⟩
+
+theorem windowTrace_coe (T : ℝ) (B : Set (ℝ × E)) (hB : MeasurableSet B) (n : ℕ) :
+    (windowTrace ν T B hB n : Set (ℝ × E)) = B ∩ Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν n := rfl
+
+theorem monotone_windowTrace (T : ℝ) (B : Set (ℝ × E)) (hB : MeasurableSet B) :
+    Monotone fun n => (windowTrace ν T B hB n : Set (ℝ × E)) := by
+  intro m n hmn
+  exact Set.inter_subset_inter_right _
+    (Set.prod_mono le_rfl (monotone_spanningSets ν hmn))
+
+/-- On a set of times at most `T`, the traces exhaust the part after time `0`. -/
+theorem iUnion_windowTrace {T : ℝ} {B : Set (ℝ × E)} (hB : MeasurableSet B)
+    (hBT : B ⊆ Set.Iic T ×ˢ Set.univ) :
+    ⋃ n, (windowTrace ν T B hB n : Set (ℝ × E)) = B ∩ Set.Ioi (0 : ℝ) ×ˢ Set.univ := by
+  ext p
+  simp only [windowTrace_coe, Set.mem_iUnion, Set.mem_inter_iff, Set.mem_prod, Set.mem_Ioc,
+    Set.mem_Ioi, Set.mem_univ, and_true]
+  constructor
+  · rintro ⟨n, hpB, ⟨hp0, -⟩, -⟩
+    exact ⟨hpB, hp0⟩
+  · rintro ⟨hpB, hp0⟩
+    obtain ⟨n, hn⟩ : ∃ n, p.2 ∈ spanningSets ν n := by
+      have : p.2 ∈ ⋃ n, spanningSets ν n := by rw [iUnion_spanningSets]; trivial
+      exact Set.mem_iUnion.mp this
+    exact ⟨n, hpB, ⟨hp0, (hBT hpB).1⟩, hn⟩
+
+/-- Every window count is measurable for the window σ-algebra. -/
+theorem measurable_windowSigma_count (N : PoissonRandomMeasure P ν) {T : ℝ}
+    (D : WindowSet E ν T) :
+    Measurable[windowSigma N T] fun ω => (N.N ω (D : Set (ℝ × E))).toReal :=
+  Measurable.of_comap_le
+    (le_iSup (fun D : WindowSet E ν T =>
+      MeasurableSpace.comap (fun ω => (N.N ω (D : Set (ℝ × E))).toReal) inferInstance) D)
+
+/-- **The counts on the finite-intensity windows generate the natural filtration modulo null
+sets.** -/
+theorem natural_le_aug_windowSigma (N : PoissonRandomMeasure P ν) (T : ℝ) :
+    naturalFiltration N T ≤ Probability.aug (windowSigma N T) ‹MeasurableSpace Ω› P := by
+  rw [naturalFiltration_seq_eq]
+  refine iSup_le fun B => iSup_le fun hB => ?_
+  obtain ⟨hBT, hBm⟩ := hB
+  set Y : Ω → ℝ≥0∞ := fun ω =>
+    ⨆ n : ℕ, ENNReal.ofReal (N.N ω (windowTrace ν T B hBm n : Set (ℝ × E))).toReal with hY
+  have hYmeas : Measurable[windowSigma N T] Y :=
+    Measurable.iSup fun n =>
+      ENNReal.measurable_ofReal.comp (measurable_windowSigma_count N (windowTrace ν T B hBm n))
+  refine comap_le_aug_of_ae_eq (N.measurable_eval hBm) hYmeas ?_
+  have hfin : ∀ᵐ ω ∂P, ∀ n : ℕ,
+      N.N ω (windowTrace ν T B hBm n : Set (ℝ × E)) ≠ ⊤ :=
+    ae_all_iff.mpr fun n =>
+      ae_count_ne_top N (windowTrace ν T B hBm n).measurableSet
+        (windowTrace ν T B hBm n).intensity_ne_top
+  filter_upwards [ae_count_Iic_zero_eq_zero N hBm, hfin] with ω hzero hne
+  have hsplit : B = B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ ∪ B ∩ Set.Ioi (0 : ℝ) ×ˢ Set.univ := by
+    rw [← Set.inter_union_distrib_left]
+    refine (Set.inter_eq_left.mpr fun p _ => ?_).symm
+    rcases le_or_gt p.1 (0 : ℝ) with h | h
+    · exact Or.inl ⟨h, Set.mem_univ _⟩
+    · exact Or.inr ⟨h, Set.mem_univ _⟩
+  have hdisj : Disjoint (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ) (B ∩ Set.Ioi (0 : ℝ) ×ˢ Set.univ) := by
+    refine Set.disjoint_left.mpr fun p hp hq => ?_
+    exact absurd (Set.mem_Ioi.mp hq.2.1) (not_lt.mpr (Set.mem_Iic.mp hp.2.1))
+  have hmeas1 : MeasurableSet (B ∩ Set.Ioi (0 : ℝ) ×ˢ Set.univ) :=
+    hBm.inter (measurableSet_Ioi.prod MeasurableSet.univ)
+  have hunion : N.N ω B
+      = N.N ω (B ∩ Set.Iic (0 : ℝ) ×ˢ Set.univ) + N.N ω (B ∩ Set.Ioi (0 : ℝ) ×ˢ Set.univ) := by
+    conv_lhs => rw [hsplit]
+    exact measure_union hdisj hmeas1
+  have hmono : Monotone fun n => (windowTrace ν T B hBm n : Set (ℝ × E)) :=
+    monotone_windowTrace (ν := ν) T B hBm
+  rw [hunion, hzero, zero_add, ← iUnion_windowTrace (ν := ν) hBm hBT, hmono.measure_iUnion, hY]
+  exact iSup_congr fun n => (ENNReal.ofReal_toReal (hne n)).symm
+
 end Window
 
 end LevyStochCalc.Poisson
