@@ -1451,3 +1451,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.cellPart_of_paired
 #print axioms LevyStochCalc.Driver.cellPart_identity_re
 #print axioms LevyStochCalc.Driver.cellPart_identity_im
+-- ===== The complex combination of the cell identity (A4d-ii-e-4-c-3-c, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.cellHalf
+#print axioms LevyStochCalc.Driver.integrable_weight
+#print axioms LevyStochCalc.Driver.cellPart_eq_cellHalf_re
+#print axioms LevyStochCalc.Driver.cellPart_eq_cellHalf_im
+#print axioms LevyStochCalc.Driver.cellPairing_eq_halves
+#print axioms LevyStochCalc.Driver.integral_mul_charRe_eq
+#print axioms LevyStochCalc.Driver.integral_mul_charIm_eq
+#print axioms LevyStochCalc.Driver.norm_cellHalf_le
+#print axioms LevyStochCalc.Driver.aestronglyMeasurable_cellHalf
+#print axioms LevyStochCalc.Driver.integrableOn_cellHalf
+#print axioms LevyStochCalc.Driver.integrableOn_prod_of_time_complex
+#print axioms LevyStochCalc.Driver.cellHalf_identity
+#print axioms LevyStochCalc.Driver.cellPairing_identity
