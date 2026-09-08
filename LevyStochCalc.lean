@@ -55,6 +55,7 @@ import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.Restrict
 import LevyStochCalc.Poisson.FiniteActivity
 import LevyStochCalc.Poisson.Atomic
+import LevyStochCalc.Poisson.Compensator
 import LevyStochCalc.Poisson.JumpSum
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.Filtered

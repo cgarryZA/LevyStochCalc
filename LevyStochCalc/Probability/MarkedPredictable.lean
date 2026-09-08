@@ -56,6 +56,19 @@ section Progressive
 
 variable {ℱ : Filtration ℝ mΩ} {ν : Measure E}
 
+/-- The marked predictable σ-algebra is coarser than the product σ-algebra. -/
+theorem markedPredictableSigma_le (ℱ : Filtration ℝ mΩ) (ν : Measure E) :
+    markedPredictableSigma ℱ ν ≤ (inferInstance : MeasurableSpace (Ω × ℝ × E)) := by
+  refine MeasurableSpace.generateFrom_le ?_
+  rintro _ ⟨r, q, F, B, -, hF, hB, -, rfl⟩
+  exact (ℱ.le r _ hF).prod (measurableSet_Ioc.prod hB)
+
+/-- The slice of a predictable set at a sample point is measurable. -/
+theorem measurableSet_slice {S : Set (Ω × ℝ × E)}
+    (hS : MeasurableSet[markedPredictableSigma ℱ ν] S) (ω : Ω) :
+    MeasurableSet (Prod.mk ω ⁻¹' S) :=
+  measurable_prodMk_left (markedPredictableSigma_le ℱ ν _ hS)
+
 /-- The times up to `t` in the time–mark space. -/
 theorem measurableSet_timeIic (t : ℝ) :
     MeasurableSet[@Prod.instMeasurableSpace Ω (ℝ × E) (ℱ t) inferInstance]

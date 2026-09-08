@@ -161,6 +161,42 @@ lemma compensated_mean_zero
   rw [← h_c_eq_r]
   simp
 
+/-- **The mean count is the reference intensity.** For a measurable set of finite intensity the
+lower integral of the count is that intensity. -/
+lemma lintegral_count_eq_referenceIntensity
+    {P : Measure Ω} [IsProbabilityMeasure P]
+    {ν : Measure E} [SigmaFinite ν]
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    {B : Set (ℝ × E)} (hB : MeasurableSet B)
+    (h_finite : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤) :
+    ∫⁻ ω, N.N ω B ∂P = LevyStochCalc.Poisson.referenceIntensity ν B := by
+  set r : ℝ≥0 := (LevyStochCalc.Poisson.referenceIntensity ν B).toNNReal with hr_def
+  have h_NB_meas : Measurable (fun ω => N.N ω B) := N.measurable_eval hB
+  have h_int_id : MeasureTheory.Integrable
+      (fun n : ℕ => (n : ℝ)) (ProbabilityTheory.poissonMeasure r) := by
+    rw [ProbabilityTheory.integrable_poissonMeasure_iff]
+    have h_norm : ∀ n : ℕ, ‖((n : ℝ))‖ = (n : ℝ) := fun n => by
+      rw [Real.norm_eq_abs]; exact abs_of_nonneg (Nat.cast_nonneg n)
+    simp_rw [h_norm]
+    have h_eq : ∀ n : ℕ,
+        Real.exp (-(↑r : ℝ)) * (↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)
+        = Real.exp (-(↑r : ℝ))
+          * ((↑r : ℝ) ^ n / (↑n.factorial : ℝ) * (↑n : ℝ)) := by
+      intro n; ring
+    simp_rw [h_eq]
+    exact (summable_pow_div_factorial_mul_nat (↑r)).mul_left _
+  have hmap : ∫⁻ x, x ∂(P.map (fun ω => N.N ω B)) = ∫⁻ ω, N.N ω B ∂P :=
+    lintegral_map (f := fun x : ℝ≥0∞ => x) measurable_id' h_NB_meas
+  rw [← hmap, N.poisson_law hB h_finite]
+  change ∫⁻ x, x ∂((ProbabilityTheory.poissonMeasure r).map (fun n : ℕ => (n : ℝ≥0∞))) = _
+  rw [lintegral_map (f := fun x : ℝ≥0∞ => x) measurable_id' measurable_from_nat]
+  have hcast : (fun n : ℕ => ((n : ℝ≥0∞))) = fun n : ℕ => ENNReal.ofReal ((n : ℝ)) := by
+    funext n
+    rw [ENNReal.ofReal_natCast]
+  rw [hcast, ← MeasureTheory.ofReal_integral_eq_lintegral_ofReal h_int_id
+    (Filter.Eventually.of_forall fun n => Nat.cast_nonneg n), poissonMeasure_integral_id,
+    ENNReal.ofReal_coe_nnreal, hr_def, ENNReal.coe_toNNReal h_finite]
+
 /-- **Per-term reduction for `n²`:** `r^(n+1) / (n+1)! · (n+1)² = r · (n+1) · (r^n / n!)`. -/
 private lemma poisson_term_succ_sq_eq (r : ℝ) (n : ℕ) :
     r ^ (n + 1) / ((n + 1).factorial : ℝ) * ((n + 1 : ℕ) : ℝ) ^ 2

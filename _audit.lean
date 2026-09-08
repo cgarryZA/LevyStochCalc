@@ -1069,4 +1069,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.MarkedPredictable
 #print axioms LevyStochCalc.Probability.measurableSet_timeIic
 #print axioms LevyStochCalc.Probability.measurableSet_inter_timeIic
+#print axioms LevyStochCalc.Probability.markedPredictableSigma_le
+#print axioms LevyStochCalc.Probability.measurableSet_slice
 #print axioms LevyStochCalc.Probability.MarkedPredictable.markedProgressivelyMeasurable
+-- ===== The reference intensity as compensator (B2b-3b-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.lintegral_count_eq_referenceIntensity
+#print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod_ne_top'
+#print axioms LevyStochCalc.Poisson.setLIntegral_count_eq
+#print axioms LevyStochCalc.Poisson.sliceCount
+#print axioms LevyStochCalc.Poisson.sliceIntensity
+#print axioms LevyStochCalc.Poisson.aemeasurable_and_lintegral_slice_eq
