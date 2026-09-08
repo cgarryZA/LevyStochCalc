@@ -56,6 +56,7 @@ import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge
 import LevyStochCalc.Poisson.NaturalFiltration
+import LevyStochCalc.Poisson.CylinderCharacters
 import LevyStochCalc.Poisson.CompensatedSimple
 import LevyStochCalc.Poisson.CompensatedIsometry
 import LevyStochCalc.Poisson.CompensatedMartingale

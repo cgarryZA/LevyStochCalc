@@ -966,3 +966,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_mul_increment_eq_zero
 #print axioms LevyStochCalc.Brownian.Ito.integral_mul_stochasticIntegral_eq_zero
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_vectorIntegral_augFiltration
+-- ===== Cylinder characters of a Poisson random measure (A4c-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.encodeEquiv
+#print axioms LevyStochCalc.Poisson.encode
+#print axioms LevyStochCalc.Poisson.measurableEmbedding_encode
+#print axioms LevyStochCalc.Poisson.comap_encode
+#print axioms LevyStochCalc.Poisson.PastSet
+#print axioms LevyStochCalc.Poisson.naturalFiltration_eq_iSup_comap
+#print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_cylinder
