@@ -76,6 +76,7 @@ import LevyStochCalc.Poisson.CharacterCompensator
 import LevyStochCalc.Poisson.CharacterStrict
 import LevyStochCalc.Poisson.CharacterCell
 import LevyStochCalc.Poisson.CharacterStrictProcess
+import LevyStochCalc.Poisson.CharacterMarkFactor
 import LevyStochCalc.Probability.PredictableContinuous
 import LevyStochCalc.Poisson.CellIntegrand
 import LevyStochCalc.Poisson.CharacterFubini
@@ -132,7 +133,7 @@ import LevyStochCalc.Driver.JointCharacters
 import LevyStochCalc.Driver.ProductRule
 import LevyStochCalc.Driver.CellPairing
 import LevyStochCalc.Driver.CellIdentity
-import LevyStochCalc.Driver.CellPairing
+import LevyStochCalc.Driver.CellFubini
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement

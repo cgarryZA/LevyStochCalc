@@ -1427,3 +1427,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.abs_charIm_le
 #print axioms LevyStochCalc.Driver.paired_cell_re
 #print axioms LevyStochCalc.Driver.paired_cell_im
+-- ===== Fubini on the surviving terms of the cell identity (A4d-ii-e-4-c-2, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.markFactor
+#print axioms LevyStochCalc.Poisson.charIntegrand_eq_markFactor_mul
+#print axioms LevyStochCalc.Poisson.norm_markFactor_le
+#print axioms LevyStochCalc.Poisson.measurable_markFactor
+#print axioms LevyStochCalc.Poisson.ae_exp_predStrict_eq_charAt
+#print axioms LevyStochCalc.Poisson.ae_charStrictPred_eq_charAt
+#print axioms LevyStochCalc.Poisson.integral_mul_charIntegrand
+#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_swap
+#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_drift
+#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_jump
+#print axioms LevyStochCalc.Driver.integral_mul_trigDriftCell
