@@ -909,3 +909,21 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod
 #print axioms LevyStochCalc.Poisson.exists_nat_count_Ioc
 #print axioms LevyStochCalc.Poisson.count_Ioc_ne_top
+-- ===== Exit times of a continuous adapted process (B1d-3, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.exitSet
+#print axioms LevyStochCalc.Probability.exitTime
+#print axioms LevyStochCalc.Probability.gridPt
+#print axioms LevyStochCalc.Probability.bddBelow_exitSet
+#print axioms LevyStochCalc.Probability.isClosed_exitSet
+#print axioms LevyStochCalc.Probability.csInf_exitSet_mem
+#print axioms LevyStochCalc.Probability.coe_zero_le_exitTime
+#print axioms LevyStochCalc.Probability.exitTime_le_iff
+#print axioms LevyStochCalc.Probability.gridPt_mem_Icc
+#print axioms LevyStochCalc.Probability.abs_clamp_sub_le
+#print axioms LevyStochCalc.Probability.exists_gridPt_near
+#print axioms LevyStochCalc.Probability.exitTime_le_iff_forall
+#print axioms LevyStochCalc.Probability.measurable_norm_of_adapted
+#print axioms LevyStochCalc.Probability.measurableSet_exitTime_le
+#print axioms LevyStochCalc.Probability.isStoppingTime_exitTime
+#print axioms LevyStochCalc.Probability.exitTime_mono
+#print axioms LevyStochCalc.Probability.exists_lt_exitTime

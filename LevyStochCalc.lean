@@ -23,6 +23,7 @@ import LevyStochCalc.Probability.ComapTuple
 import LevyStochCalc.Probability.TrivialSigma
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.StoppedProgressive
+import LevyStochCalc.Probability.ExitTime
 import LevyStochCalc.Probability.ProgressiveCadlag
 import LevyStochCalc.Probability.Predictable
 import LevyStochCalc.Probability.CharTotal
