@@ -95,6 +95,92 @@ theorem full_eq_sub_integral (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E 
   rw [PoissonRandomMeasure.compensated]
   ring
 
+/-- A time interval cut at `t` is the interval between the cut endpoints. -/
+theorem Ioc_inter_Iic (a b t : ℝ) :
+    Set.Ioc a b ∩ Set.Iic t = Set.Ioc (min a t) (min b t) := by
+  ext x
+  have hnot : x ≤ t → ¬ t < x := fun h => not_lt.mpr h
+  simp only [Set.mem_inter_iff, Set.mem_Ioc, Set.mem_Iic, min_lt_iff, le_min_iff]
+  tauto
+
+/-- The rectangle of a mark-step integrand cut at `t`. -/
+theorem fullRect_inter_Iic (G : MarkStep Ω E ν g) (i : ℕ) (k : Fin G.K) (t : ℝ) :
+    (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ∩ (Set.Iic t ×ˢ (Set.univ : Set E))
+      = Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k := by
+  rw [Set.prod_inter_prod, Ioc_inter_Iic, Set.inter_univ]
+
+/-- The mark-step integrand cut at `t`, as a finite combination of cut-rectangle indicators. -/
+theorem evalTo_eq_sum_indicator (G : MarkStep Ω E ν g) (t : ℝ) (q : ℝ × E) (ω : Ω) :
+    (Set.Iic t).indicator (fun _ => (1 : ℝ)) q.1 * G.eval q.1 q.2 ω
+      = ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+        (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k ω) q := by
+  classical
+  rw [G.eval_eq_sum_indicator q ω, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [← G.fullRect_inter_Iic i k t]
+  by_cases hq : q.1 ∈ Set.Iic t
+  · rw [Set.indicator_of_mem hq, one_mul]
+    by_cases hr : q ∈ Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k
+    · rw [Set.indicator_of_mem hr,
+        Set.indicator_of_mem (Set.mem_inter hr (Set.mem_prod.mpr ⟨hq, Set.mem_univ q.2⟩))]
+    · rw [Set.indicator_of_notMem hr, Set.indicator_of_notMem fun h => hr h.1]
+  · rw [Set.indicator_of_notMem hq, zero_mul,
+      Set.indicator_of_notMem fun h => hq (Set.mem_prod.mp h.2).1]
+
+/-- The integral of a cut mark-step integrand against a measure finite on the cut rectangles. -/
+theorem integral_evalTo_eq_sum (G : MarkStep Ω E ν g) (t : ℝ) (μ : Measure (ℝ × E))
+    (hfin : ∀ i (k : Fin G.K),
+      μ (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ≠ ⊤) (ω : Ω) :
+    ∫ q, (Set.Iic t).indicator (fun _ => (1 : ℝ)) q.1 * G.eval q.1 q.2 ω ∂μ
+      = ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+          (μ (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k)).toReal * G.ξ i k ω := by
+  classical
+  have hrectm : ∀ i (k : Fin G.K),
+      MeasurableSet (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) :=
+    fun i k => measurableSet_Ioc.prod (G.B_measurable k)
+  have hrw : (fun q : ℝ × E =>
+        (Set.Iic t).indicator (fun _ => (1 : ℝ)) q.1 * G.eval q.1 q.2 ω)
+      = fun q : ℝ × E => ∑ i ∈ Finset.range g.N₀, ∑ k : Fin G.K,
+        (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k).indicator
+          (fun _ : ℝ × E => G.ξ i k ω) q :=
+    funext fun q => G.evalTo_eq_sum_indicator t q ω
+  rw [hrw, integral_finsetSum]
+  · refine Finset.sum_congr rfl fun i _ => ?_
+    rw [integral_finsetSum]
+    · refine Finset.sum_congr rfl fun k _ => ?_
+      rw [integral_indicator_const _ (hrectm i k), smul_eq_mul, measureReal_def]
+    · intro k _
+      rw [integrable_indicator_iff (hrectm i k)]
+      exact integrableOn_const (hfin i k)
+  · intro i _
+    refine integrable_finsetSum _ fun k _ => ?_
+    rw [integrable_indicator_iff (hrectm i k)]
+    exact integrableOn_const (hfin i k)
+
+/-- **The mark-step compensated integral up to any time is pathwise.** -/
+theorem integral_eq_sub_integral (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) (t : ℝ)
+    (ω : Ω) (hfin : ∀ i (k : Fin G.K),
+      N.N ω (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ≠ ⊤) :
+    G.integral N t ω
+      = (∫ q, (Set.Iic t).indicator (fun _ => (1 : ℝ)) q.1 * G.eval q.1 q.2 ω ∂(N.N ω))
+        - ∫ q, (Set.Iic t).indicator (fun _ => (1 : ℝ)) q.1 * G.eval q.1 q.2 ω
+            ∂(referenceIntensity ν) := by
+  have hIfin : ∀ i (k : Fin G.K),
+      referenceIntensity ν
+        (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ≠ ⊤ :=
+    fun i k => referenceIntensity_Ioc_prod_ne_top' (G.B_finite k) _ _
+  rw [G.integral_evalTo_eq_sum t (N.N ω) hfin ω,
+    G.integral_evalTo_eq_sum t (referenceIntensity ν) hIfin ω, ← Finset.sum_sub_distrib,
+    MarkStep.integral]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [PoissonRandomMeasure.compensated]
+  ring
+
 /-- The counts on the rectangles of a mark-step integrand are almost surely finite. -/
 theorem ae_count_rect_ne_top (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E ν g) :
     ∀ᵐ ω ∂P, ∀ i (k : Fin G.K),

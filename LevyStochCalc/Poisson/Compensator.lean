@@ -228,13 +228,17 @@ theorem aemeasurable_and_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
 
 /-- **The reference intensity compensates the counts on predictable functions.** Over a window
 of finite intensity the mean lower integral of a predictable marked function against the random
-measure equals its mean lower integral against the reference intensity. -/
-theorem lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
+measure equals its mean lower integral against the reference intensity, and both inner integrals
+are measurable in the sample point. -/
+theorem aemeasurable_and_lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ)
     {Ψ : Ω × ℝ × E → ℝ≥0∞}
     (hΨ : Measurable[Probability.markedPredictableSigma ℱ ν] Ψ) :
-    ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(N.N ω) ∂P
-      = ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(referenceIntensity ν) ∂P := by
+    AEMeasurable (fun ω => ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(N.N ω)) P
+      ∧ Measurable (fun ω =>
+          ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(referenceIntensity ν))
+      ∧ ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(N.N ω) ∂P
+          = ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(referenceIntensity ν) ∂P := by
   classical
   set R : Set (ℝ × E) := Set.Ioc (0 : ℝ) T ×ˢ A with hRdef
   have hslicemeas : ∀ {G : Ω × ℝ × E → ℝ≥0∞},
@@ -249,7 +253,7 @@ theorem lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
       ∧ Measurable (fun ω => ∫⁻ p in R, G (ω, p) ∂(referenceIntensity ν))
       ∧ ∫⁻ ω, ∫⁻ p in R, G (ω, p) ∂(N.N ω) ∂P
           = ∫⁻ ω, ∫⁻ p in R, G (ω, p) ∂(referenceIntensity ν) ∂P)
-    ?_ ?_ ?_ Ψ hΨ).2.2
+    ?_ ?_ ?_ Ψ hΨ)
   · intro c S hS
     obtain ⟨hc, hi, he⟩ := aemeasurable_and_lintegral_slice_eq N hℱ hA hAν T hS
     have hXm : ∀ ω : Ω, MeasurableSet (Prod.mk ω ⁻¹' S) :=
@@ -315,6 +319,15 @@ theorem lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
         lintegral_iSup' (fun n => ((ih n).2.1).aemeasurable)
         (Filter.Eventually.of_forall hmonoI)]
       exact iSup_congr fun n => (ih n).2.2
+
+/-- The compensator identity for predictable functions. -/
+theorem lintegral_lintegral_slice_eq (hℱ : IsPoissonFiltration N ℱ)
+    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ)
+    {Ψ : Ω × ℝ × E → ℝ≥0∞}
+    (hΨ : Measurable[Probability.markedPredictableSigma ℱ ν] Ψ) :
+    ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(N.N ω) ∂P
+      = ∫⁻ ω, ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, Ψ (ω, p) ∂(referenceIntensity ν) ∂P :=
+  (aemeasurable_and_lintegral_lintegral_slice_eq N hℱ hA hAν T hΨ).2.2
 
 end Window
 

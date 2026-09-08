@@ -1079,6 +1079,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.sliceCount
 #print axioms LevyStochCalc.Poisson.sliceIntensity
 #print axioms LevyStochCalc.Poisson.aemeasurable_and_lintegral_slice_eq
+#print axioms LevyStochCalc.Poisson.aemeasurable_and_lintegral_lintegral_slice_eq
 #print axioms LevyStochCalc.Poisson.lintegral_lintegral_slice_eq
 -- ===== Mark-step approximants are pathwise and predictable (B2b-3b-ii, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.eval_eq_sum_indicator
@@ -1087,3 +1088,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_count_rect_ne_top
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.ae_full_eq_sub_integral
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.markedPredictable_eval
+-- ===== From energy to the mean pathwise integral (B2b-3b-ii, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.lintegral_enorm_le_energy
+#print axioms LevyStochCalc.Poisson.lintegral_enorm_count_eq
+#print axioms LevyStochCalc.Poisson.lintegral_enorm_pathwise_le
+#print axioms LevyStochCalc.Poisson.tendsto_lintegral_enorm_pathwise
