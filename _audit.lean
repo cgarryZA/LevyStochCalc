@@ -1180,3 +1180,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.markedPredictable_strictCount
 #print axioms LevyStochCalc.Poisson.stepCount_eq
 #print axioms LevyStochCalc.Poisson.strictCount_eq
+-- ===== Simple integrands and their window sums (A4c-ii-c1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.simpleMark
+#print axioms LevyStochCalc.Poisson.measurable_simpleMark
+#print axioms LevyStochCalc.Poisson.simpleMark_eq_zero
+#print axioms LevyStochCalc.Poisson.ae_setIntegral_simpleMark
+#print axioms LevyStochCalc.Poisson.ae_windowSum_simple
+#print axioms LevyStochCalc.Poisson.predStrict
+#print axioms LevyStochCalc.Poisson.markedPredictable_predStrict
+#print axioms LevyStochCalc.Poisson.predStrict_eq
