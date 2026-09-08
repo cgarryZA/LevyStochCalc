@@ -781,3 +781,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.indep_combine
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.combineBM
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_combineBM
+-- ===== Linearity of the Ito integral in the driver (A4b-iii-4c, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.simpleIntegral_combineBM
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_of_tendsto_eLpNorm
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_combineBM

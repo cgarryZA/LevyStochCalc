@@ -77,6 +77,7 @@ import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Filtered
 import LevyStochCalc.Brownian.MultidimFiltered
 import LevyStochCalc.Brownian.LinearCombination
+import LevyStochCalc.Brownian.ItoDriverLinear
 import LevyStochCalc.Brownian.CylinderCharacters
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport
