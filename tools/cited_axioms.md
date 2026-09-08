@@ -1,76 +1,117 @@
 # Cited Axioms
 
-Theorems in `LevyStochCalc` that depend on **paper-cited stochastic calculus axioms**.
-Each entry below names an axiom whose statement is a real published theorem,
-introduced as `axiom <name> : <statement>` with a docstring giving the citation.
+The ledger of record for the **paper-cited stochastic calculus results** of
+`LevyStochCalc`. Each numbered entry is a real published theorem that was at some point
+introduced as `axiom <name> : <statement>` with a docstring giving the citation; most are now
+Lean `theorem`s or have been deleted, and the entry records which.
 
-The `tools/lint.sh` script flags only `sorryAx`-tainted theorems. Cited axioms
-are introduced as Lean `axiom` declarations and do NOT count as `sorryAx`.
+A cited axiom is a Lean `axiom` declaration, so it does not carry `sorryAx` and a `sorryAx`
+check does not see it; it is visible instead as a non-standard name in a `#print axioms`
+report, which is what an axiom allowlist (`X1e` in `../Dissertation/RELEASE_READINESS.md`)
+checks.
 
-## Tier 1: Honest cited axioms (2 currently live)
+## Tier 1: cited axioms (1 currently live)
 
-**History** (3rd audit reconciliation 2026-05-27):
-* #1 (`BrownianMotion.exists`) was PROVED axiom→theorem 2026-09-05 by forwarding to the
-  upstream construction in `RemyDegenne/brownian-motion` (`isBrownianReal_brownian` on the
-  projective-limit space `gaussianLimit`, pinned at `4d52fa77`, a `lake require` since decision
-  D1). `Brownian/Existence.lean` supplies the real-time extension `t ↦ X (t⁺) − X 0`, the
-  σ-algebra independence field via the weak Markov property (`IsPreBrownianReal.indepFun_shift`,
-  Mathlib), and the `ULift` transport to `Type u`; `#print axioms` shows the 3 standard axioms.
-  The statement is unchanged; the in-house construction stubs (`measurable_gaussianReal`,
-  `brownianKernel`) were dead and deleted. Entry #1 retained below, marked RESOLVED.
-* #3 (`kolmogorovChentsov_modification`) was PROVED axiom→theorem 2026-06-16: a
-  from-scratch Karatzas–Shreve 2.2.8 / Le Gall 2.9 proof on the current mathlib
-  pin (per-dyadic-level Markov bound → Borel–Cantelli a.s. dyadic Hölder →
-  `extendFrom` continuous extension), depending only on the 3 standard axioms.
-  It is now a `theorem`; its consumer `brownian_continuous_modification` is
-  unchanged. Entry #3 retained below for provenance, marked RESOLVED.
-* #7 and #8 deleted 2026-05-22 (dead post-refactor per M4).
-* #11 retired 2026-05-24 via decomposition into the new #15 + #16
-  (`itoLevyFormula` is now a derived theorem).
-* #12 and #13 added 2026-05-23 via theorem→axiom conversion of the previously
-  sorry-bodied `JumpDiffusion.exists_unique` and `jacodYor_representation`.
-* #13 was DECOMPOSED 2026-05-26 into two strictly narrower sub-axioms #13a +
-  #13b; the prior monolithic `jacodYor_representation_axiom` is now a derived
-  theorem; the public `jacodYor_representation` is preserved as a thin
-  forwarder.
-* #14 was added 2026-05-23 then converted axiom→theorem 2026-05-26 via the
-  Bielecki AE-quotient infrastructure in `PicardSpace.lean`;
-  `picardFixedPoint_jumpDiffusion_exists_unique_axiom` is now a thin forwarder
-  over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, the latter
-  carrying a single explicit `sorry` baseline entry.
-* #12 (`JumpDiffusion.exists_unique`) was similarly demoted axiom→theorem on
-  2026-05-26 (forwards through the same Bielecki wrap-up).
-* #12/#14 were CLOSED 2026-09-07: the Picard chain is complete and the wrap-up
-  theorem's `sorry` is gone, so `tools/sorry_baseline.txt` is empty and every
-  entry in `_audit.lean` reports only the three standard axioms. The redundant
-  intermediates `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` and
-  `..._axiom` were deleted; `picardFixedPoint_jumpDiffusion_exists_unique`
-  forwards to `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`. See the
-  statement audit on that theorem.
-* #16 was NARROWED 2026-05-26 from the previous universal-`R` form
-  `itoLevyFormula_jumpResidual_axiom` to the canonical-`R` form
-  `itoLevyFormula_jumpResidual_canonical_axiom`; the universal-`R` form is
-  now a derived theorem.
-* #17 and #18 added 2026-05-27 by the 3rd-audit reconciliation: the two
-  `_diff` axioms (`itoIsometry_diff_brownian`, `itoIsometry_diff_compensated`)
-  have lived in source since 2026-05-23 but were never assigned formal Tier 1
-  numbers in this file (they appeared as undocumented axioms in the 3rd-audit
-  CRITICAL #1 finding). They are the per-difference L²-isometries used by the
-  Picard contraction estimates and the Itô-Lévy formula (#16).
+**One cited axiom is live: #16**, `itoLevyFormula_jumpResidual_canonical_axiom`. It is the only
+`axiom` declaration in the repository (`LevyStochCalc/Ito/JumpFormula.lean:189`). The count in
+the heading above and the file agree by construction: only a digit-leading `### <n>.` heading
+marks a live axiom, so `grep -c "^### [0-9]" tools/cited_axioms.md == 1`. `### Resolved #N` /
+`### Retired #N` headings are kept for traceability and are not counted.
 
-Retired/deleted entries (#7, #8, #11, #12, #13, #14, and #15, retired 2026-09-06
-because its Lean statement was trivially satisfiable; #9, #10 and #13a retired
-2026-09-06 because their Lean statements were refutable — see their entries) and
-resolved-by-proof entries (#3, proved 2026-06-16; #5 and #17, proved 2026-06-17; #1, proved
-2026-09-05; #6, #18, #4 and #2, proved 2026-09-06) are kept as `### Retired #N` /
-`### Resolved #N` headings below for traceability; they are NOT counted in the
-headline "2 currently live" figure. Only `### N.` (digit-leading) headings correspond
-to live axioms, so `grep -c "^### [0-9]" tools/cited_axioms.md == 2`.
+Twenty numbered entries have existed, and they closed in three different ways, which the index
+below distinguishes because they are not equally good news:
 
-These axioms state real published theorems. The LevyStochCalc-side `axiom`
-declaration faithfully matches the cited statement. When Mathlib formalises
-the underlying theorem, the `axiom` is replaced with a `theorem` forwarding
-to the Mathlib version, no other changes needed downstream.
+* **Proved** (#1–#6, #13b, #17, #18) — now carried by a Lean `theorem` over the three standard
+  axioms. #1–#4 keep the statement they had as axioms; #5, #6, #17, #18 were restated on the
+  way (the integrand class and the filtration argument, X2-1/X2-2) and #13b now takes a
+  `LevyDriver` (X2-3) — each entry records the change.
+* **Re-derived from narrower entries** (#11, #12, #14) — also theorems, but that is a claim
+  about the derivation, not about grounding: #12 and the surviving #14 name are on the three
+  standard axioms, whereas #11 `itoLevyFormula` still carries #16 and is one of the three
+  declarations in the library that do.
+* **Retired as unsound** (#9, #10, #13a, #15) — the *Lean* statement was found refutable or
+  trivially satisfiable, and the declaration was deleted rather than weakened or relocated into
+  a hypothesis. The cited literature result is not proved and not disproved; with the integrals
+  now stated over a common filtration (`Plan.md` X2), it returns as a statement to prove under
+  `Plan.md`'s A6 (#9), A7 (#10) and B5 (#13a), with the hypotheses the literature actually
+  assumes; #15's content is #16's.
+* **Deleted as dead** (#7, #8) — superseded by a refactor, reachable from nothing. The derived
+  #13 was deleted with #13a, which it was built on.
+
+The index names, for each entry, the declaration that carries it now and the commit that closed
+it; the sections after it carry the statement, citation, mathlib status and replacement plan.
+#7 and #8 are cited by date and red-team finding (M4), #3 by date.
+
+### Index
+
+* **#1** `Brownian.BrownianMotion.exists` — theorem since 2026-09-05 in
+  `Brownian/Existence.lean`, over the `BrownianMotion` require (`3486f07`).
+* **#2** `Poisson.PoissonRandomMeasure.exists_of_sigmaFinite` — theorem since 2026-09-06 in
+  `Poisson/RandomMeasure.lean` (`9888119`).
+* **#3** `Brownian.Continuity.kolmogorovChentsov_modification` — theorem since 2026-06-16 in
+  `Brownian/Continuity.lean`, proved from scratch.
+* **#4** `Brownian.Martingale.brownian_martingale_rightCont` — theorem since 2026-09-06 in
+  `Brownian/Martingale.lean` (`900bb55`).
+* **#5** `Brownian.Ito.itoIsometry_brownian_unified_existence` — theorem since 2026-06-17 in
+  `Brownian/ItoL2Completion.lean` (`d899e08`).
+* **#6** `Poisson.Compensated.itoIsometry_compensated_unified_existence` — theorem since
+  2026-09-06 in `Poisson/Compensated.lean` (`9456014`).
+* **#7** `Poisson.Compensated.cauchySeq_simpleIntegralLp_compensated` — deleted 2026-05-22 with
+  its dead superseded chain (red-team finding M4).
+* **#8** `Poisson.Compensated.adaptedSimple_dense_L2_compensated` — deleted 2026-05-22 alongside
+  #7 (M4).
+* **#9** `BSDEJ.Existence.continuousBSDEJ_exists_unique` — retired and deleted 2026-09-06 as a
+  refutable statement (`7dad5c2`); restated after work package X2.
+* **#10** `BSDEJ.PathRegularity.bsdej_path_regularity` — retired and deleted 2026-09-06 as a
+  refutable statement (`7dad5c2`); restated after X2.
+* **#11** `Ito.JumpFormula.itoLevyFormula` — axiom→theorem 2026-05-24 (`8ff0234`); the theorem
+  in `Ito/JumpFormula.lean` now derives from #16 alone.
+* **#12** `Ito.Setting.JumpDiffusion.exists_unique` — axiom→theorem 2026-05-26; the chain's last
+  `sorry` was closed 2026-09-07 (`ba5e214`) and the theorem is in `Ito/PicardFixedPoint.lean`.
+* **#13** `BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` — decomposed into #13a +
+  #13b 2026-05-26 (`76ca7ef`); the derived theorem was deleted 2026-09-06 with #13a (`7dad5c2`).
+* **#13a** `BSDEJ.MartingaleRepresentation.jacodYor_PRP_martingale_axiom` — retired and deleted
+  2026-09-06 as a refutable statement (`7dad5c2`); the PRP returns after X2.
+* **#13b** `BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form` — theorem since
+  2026-09-06 in `BSDEJ/MartingaleRepresentation.lean` (`a50d97b`).
+* **#14** `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` — axiom→theorem
+  2026-05-26 (`bec976e`); the forwarder and its `_via_aeQuot` wrap-up were deleted 2026-09-07
+  (`ba5e214`), which also discharged the wrap-up's `sorry`.
+* **#15** `Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom` — retired and deleted
+  2026-09-06 as a trivially satisfiable statement (`df95191`); its content is #16's.
+* **#16** `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` — **live**, in
+  `Ito/JumpFormula.lean`.
+* **#17** `Brownian.Ito.itoIsometry_diff_brownian` — theorem since 2026-06-17 in
+  `Ito/Picard.lean` (`ad63700`).
+* **#18** `Poisson.Compensated.itoIsometry_diff_compensated` — theorem since 2026-09-06 in
+  `Poisson/Compensated.lean` (`6ddf8ca`).
+
+`tools/sorry_baseline.txt` is empty, and `sorry`/`admit` occur in the `.lean` sources only as
+words in docstrings and comments; `#print axioms` over `_audit.lean` reports a non-standard axiom
+for exactly three declarations, all of them #16 and its two consumers
+(`itoLevyFormula_jumpResidual_axiom`, `itoLevyFormula`), and the axiom is referenced by name
+nowhere else in the library. A `#print axioms` report of `{propext, Classical.choice,
+Quot.sound}` certifies the logical trust base only; it says nothing about whether a statement is
+faithful to the result it cites, which is what the per-entry statement audits below record.
+
+### History
+
+* #17 and #18 were added in source on 2026-05-23 but first assigned Tier 1 numbers in this file
+  on 2026-05-27 (3rd-audit reconciliation, CRITICAL #1); they are the per-difference
+  L²-isometries used by the Picard contraction estimates and the Itô–Lévy formula (#16).
+* #12 and #13 were added 2026-05-23 by theorem→axiom conversion of the previously sorry-bodied
+  `JumpDiffusion.exists_unique` and `jacodYor_representation`, then demoted again on 2026-05-26.
+* #14 was added 2026-05-23 and converted axiom→theorem 2026-05-26 via the Bielecki AE-quotient
+  infrastructure in `PicardSpace.lean`, leaving a single explicit `sorry` in the wrap-up; that
+  `sorry` was discharged on 2026-09-07 and the redundant intermediates were deleted.
+* #16 was narrowed 2026-05-26 (`f70f66a`) from the universal-`R` form
+  `itoLevyFormula_jumpResidual_axiom` to the canonical-`R` form; the universal-`R` form is now a
+  derived theorem.
+
+These axioms state real published theorems. The LevyStochCalc-side `axiom` declaration is
+intended to match the cited statement faithfully; where an audit found it did not, the entry
+below says so. When Mathlib formalises the underlying theorem, the `axiom` is replaced with a
+`theorem` forwarding to the Mathlib version, no other changes needed downstream.
 
 ### Resolved #1: `LevyStochCalc.Brownian.BrownianMotion.exists` (proved axiom→theorem 2026-09-05)
 
@@ -215,9 +256,33 @@ literature integral forms.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7** proof **step (II)** for the `ε → 0` limit (page 240); Ikeda–Watanabe **Section II.5**; Cont–Tankov **Proposition 8.18** + Chapter 8.
 * **Narrowness (2026-05-26 narrowing)**: the previous monolithic #16 (`itoLevyFormula_jumpResidual_axiom`, universal-`R` form) quantified over *any* `R` satisfying a continuous-part identity `u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`. The 2026-05-26 narrowing eliminates that quantifier: the axiom now asserts the identity only for the canonical `R` constructed by direct subtraction. The universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a derived theorem forwarding over this canonical axiom by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity). The narrower axiom captures exactly the analytical content of Applebaum 4.4.10 + 4.4.7 step II (the small/large-jump decomposition + ε→0 L²-limit + Lévy-Itô combinatorial step); the universal-`R` form adds only algebraic glue.
 * **Statement audit (2026-09-06) — two missing hypotheses, now added.** The statement had no smoothness hypothesis on `u` and no integrability of the drift `μ(s, X_s)` along the path. Its derivative-based integrands use Mathlib's `fderiv`/`deriv`, which are `0` off the differentiability set, and its drift term is a Bochner integral, which is `0` on non-integrable integrands; so the statement as written was refutable, not merely unproved: (i) `n = d = 1`, `(μ, σ, γ) = (0, 1, 0)`, `X = W`, `u(t, x) = 1_{x > 0}` — every integrand vanishes, all hypotheses hold, and the conclusion reads `1_{W_T > 0} = 0` a.s.; (ii) even for smooth `u`, `μ(s, x) = 1/s` makes the SDE drift integral silently `0` (so `X = x₀ + W`), and for `u(t, x) = t x` the claimed identity is off by `T`. The corrected statement assumes `hu : ContDiff ℝ 2 (Function.uncurry u)` (joint `C²`, which contains the cited `C^{1,2}` class) and `h_μ_int : ∀ᵐ ω, ∀ i, IntegrableOn (fun s => μ s (X s ω) i) (Icc 0 T)`; the derived theorems `itoLevyFormula_jumpResidual_axiom`, `itoLevyFormula` and the dissertation forwarder `Dissertation.Continuous.itoLevyFormula` carry both. (Integrability of the drift integrand `∂ₜu + 𝓛u` along the path follows from these and the structure's `sup_L2`/càdlàg fields and is not assumed.) No `sorry` and no change to the conclusion; the axiom is *narrower* than before.
-* **Scope (recorded 2026-09-06, not yet fixed — work package X2).** The progressive-measurability hypotheses `h_sigmaGrad_progMeas` / `h_jumpInt_progMeas` are relative to the natural filtration of a *single* driver (`naturalFiltration (W.W j)` per Brownian coordinate, `naturalFiltration N` alone), because the library's `L²` integrals (`Brownian/MultidimIto.lean`, `Poisson/Compensated.lean`) are built on that class. For the same reason `JumpDiffusion.is_solution` (`Ito/Setting.lean`) is inhabitable only when `σ(s, X_s) i j` is adapted to `ℱ^{W^j}` alone and `γ(s, X_s, e)` to `ℱ^N` alone — i.e. for uncoupled coefficients. The cited theorem is stated for integrands adapted to a common filtration to which `W` is a Brownian motion and `N` a Poisson random measure (the joint filtration of `(W, N)`); until the integrals are generalized to that filtration (X2), #16 is a faithful statement only on that restricted scope, and the same restriction affects #13a (whose representing integrands are asked to be single-driver adapted while the martingale is a `jointFiltration W N` martingale), #9 and #10. **X2-1/X2-2 (2026-09-06)**: the Brownian integrands `h_sigmaGrad_progMeas` are now `ProgressivelyMeasurable W.naturalFiltration`, the joint natural filtration of all coordinates of `W`, and the Poisson integrand `h_jumpInt_progMeas` is `MarkedProgressivelyMeasurable (naturalFiltration N)`; both are genuinely progressive, but for two separate filtrations, so the scope restriction stands until X2-3. **X2-3 (2026-09-06) — resolved**: #16 now takes a single filtration `ℱ` with `(∀ j, IsBrownianFiltration (W.W j) ℱ)` and `IsPoissonFiltration N ℱ`, and both `h_sigmaGrad_progMeas` and `h_jumpInt_progMeas` are progressive for that one `ℱ`; likewise `JumpDiffusion.is_solution`, `Ito/Picard*` and `IsBSDEJSolution`. The statement now matches the cited theorem's hypothesis (integrands adapted to a common filtration for which `W` is Brownian and `N` Poisson), so coupled `(σ, γ)` are in scope. #13a, #9 and #10 stay deleted (A5-1) and return as statements to prove.
+* **Scope (recorded 2026-09-06; resolved the same day by X2-3, at the end of this bullet).** The
+  progressive-measurability hypotheses `h_sigmaGrad_progMeas` / `h_jumpInt_progMeas` are relative to
+  the natural filtration of a *single* driver (`naturalFiltration (W.W j)` per Brownian coordinate,
+  `naturalFiltration N` alone), because the library's `L²` integrals (`Brownian/MultidimIto.lean`,
+  `Poisson/Compensated.lean`) are built on that class. For the same reason
+  `JumpDiffusion.is_solution` (`Ito/Setting.lean`) is inhabitable only when `σ(s, X_s) i j` is
+  adapted to `ℱ^{W^j}` alone and `γ(s, X_s, e)` to `ℱ^N` alone — i.e. for uncoupled coefficients.
+  The cited theorem is stated for integrands adapted to a common filtration to which `W` is a
+  Brownian motion and `N` a Poisson random measure (the joint filtration of `(W, N)`); until the
+  integrals are generalized to that filtration (X2), #16 is a faithful statement only on that
+  restricted scope, and the same restriction affects #13a (whose representing integrands are asked
+  to be single-driver adapted while the martingale is a `jointFiltration W N` martingale), #9 and
+  #10. **X2-1/X2-2 (2026-09-06)**: the Brownian integrands `h_sigmaGrad_progMeas` are now
+  `ProgressivelyMeasurable W.naturalFiltration`, the joint natural filtration of all coordinates of
+  `W`, and the Poisson integrand `h_jumpInt_progMeas` is `MarkedProgressivelyMeasurable
+  (naturalFiltration N)`; both are genuinely progressive, but for two separate filtrations, so the
+  scope restriction stands until X2-3. **X2-3 (2026-09-06) — resolved**: #16 now takes a single
+  filtration `ℱ` with `(∀ j, IsBrownianFiltration (W.W j) ℱ)` and `IsPoissonFiltration N ℱ`, and
+  both `h_sigmaGrad_progMeas` and `h_jumpInt_progMeas` are progressive for that one `ℱ`; likewise
+  `JumpDiffusion.is_solution`, `Ito/Picard*` and `IsBSDEJSolution`. The statement now matches the
+  cited theorem's hypothesis (integrands adapted to a common filtration for which `W` is Brownian
+  and `N` Poisson), so coupled `(σ, γ)` are in scope. #13a, #9 and #10 stay deleted (A5-1) and
+  return as statements to prove.
 * **Mathlib status (May 2026)**: No compensated-Poisson integral in Mathlib (waits on PRM construction). The small/large decomposition is itself a derived statement once the integral exists; the `ε → 0` limit uses `itoIsometry_diff_compensated` (Tier 1 #18, in `Poisson/Compensated.lean`).
-* **Replacement plan**: after X2, derive as a theorem: the continuous part through an Itô formula for the library's Brownian integral, the jump part in-house on `Compensated.stochasticIntegral` via `itoIsometry_diff_compensated`.
+* **Replacement plan** (Epic B in `../Dissertation/WORK_BREAKDOWN.md`): derive as a theorem —
+  the continuous part through an Itô formula for the library's Brownian integral, the jump part
+  in-house on `Compensated.stochasticIntegral` via `itoIsometry_diff_compensated`.
 * **Progress (B1a-1, 2026-09-06) — the algebra of the `L²` Brownian integral.** The continuous half is a Riemann-sum argument, and the integral as built exposed no algebra to rewrite those sums with: it is a limit of elementary integrals of simple integrands, but nothing said that feeding a *simple* integrand back into it returns the elementary integral it came from, nor how to move an `ℱ`-measurable factor across it. `Brownian/ItoAlgebra.lean` supplies that layer. A simple integrand is progressively measurable (`SimplePredictable.progressivelyMeasurable_eval`) and square-integrable on every window, so it is an admissible integrand; `stochasticIntegralBrownian_eval_simple` identifies its `L²` integral with its elementary integral (both are `L²` limits of the master approximating sequence, using a difference isometry — `simpleIntegral_diff_isometry_of_adapted` — that no longer requires the two horizons to agree); `isometry_simple_sub_stochasticIntegralBrownian` then measures an elementary integral against a general `L²` integral. On top of that, `SimplePredictable.mul_on_common` carries the product of two simple integrands on their common refinement, `sum_xi_mul_simpleIntegral_sub` is the combinatorial identity that summing the increments of one elementary integral against the coefficients of another gives the elementary integral of the product, and `stochasticIntegralBrownian_integralAgainst` passes that to the limit: for `M_t = ∫_0^t H dW` and adapted simple `G`, `∑ᵢ G.ξᵢ (M_{tᵢ₊₁∧t} − M_{tᵢ∧t}) = ∫_0^t G.eval·H dW` a.s. That last identity is what rewrites every Riemann sum in the Taylor expansion. All of it is in `_audit.lean` over the three standard axioms.
 * **Upstream survey (2026-09-06, ticket B0 of `../Dissertation/WORK_BREAKDOWN.md`) — the continuous part does NOT port from `formal-mathfin`.** The candidate named in the replacement plan was `MathFin.ito_formula_td_process`. Reading it and its neighbours against #16:
   * `MathFin.ito_formula_td_process` (`Foundations/ItoFormulaProcess.lean`, sorry-free) is Itô's formula for `f(t, B_t)` where `B` is a **single scalar** `IsPreBrownianReal` motion. It assumes six **global** derivative bounds — `|f_t| ≤ C_t`, `|f_x| ≤ C_1`, `|f_xx| ≤ C_2`, `|f_tt| ≤ C_tt`, `|f_tx| ≤ C_tx` and `|f_xxx| ≤ C_xxx` — so `f` is `C³` with a bounded third derivative.
@@ -255,6 +320,9 @@ literature integral forms.
   2. *Parse bug in `is_solution`, fixed.* The drift term was written `+ ∫ s in Set.Icc 0 t, coeffs.μ s (X s ω) i` with the two stochastic integrals on the following lines. Mathlib's `∫ x in s, ·` notation parses its body at level 60 and `+` sits at 65, so the body swallowed both stochastic integrals: the field asserted `X t = x₀ + ∫₀ᵗ (μ(s, X_s) + ∫σ dW + ∫γ dÑ) ds`, i.e. `x₀ + ∫μ + t·(∫σ dW + ∫γ dÑ)`, not the SDE. The drift integral is now parenthesised. Nothing depended on the old form (the only producer of a `JumpDiffusion` was the sorry-bodied theorem), so no downstream result changes. A repo-wide scan found no other occurrence.
 
 ### Retired #13: `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` (DEMOTED axiom→theorem 2026-05-26)
+
+**Deleted 2026-09-06 (`7dad5c2`)** together with #13a, on which the derived theorem was built;
+what follows is the record of the 2026-05-26 decomposition.
 
 On 2026-05-26 this axiom was demoted to a Lean `theorem` derived from a
 DECOMPOSITION into two strictly narrower Tier 1 sub-axioms (#13a + #13b
@@ -306,11 +374,28 @@ Springer 2003, **Theorem III.4.34**.
 * **Replacement plan (executed)**: `theorem condExp_to_PRP_martingale_form := <Doob L² càdlàg modification ∘ Blumenthal 0-1 ∘ condExp_of_stronglyMeasurable>`; the three pieces were built in-house rather than waited for.
 * **Status**: No longer an axiom — proved as a `theorem` in `BSDEJ/MartingaleRepresentation.lean`, statement unchanged (the `_axiom` suffix is dropped). `#print axioms` lists only `propext, Classical.choice, Quot.sound`. The witness is `LevyDriver.cadlagCondExp` (`Driver/CadlagMartingale.lean`): the `ℝ≥0`-indexed right-continuous modification of `t ↦ 𝔼[ξ | ℱ₊ t]`, extended by the constant `𝔼 ξ` before time `0`. The three pieces:
   1. **Doob `L²` càdlàg regularisation.** `Probability/CondExpModification.lean` builds the modification through `ProbabilityTheory.rightContModif` of the `BrownianMotion` dependency. Its hypothesis `IsRealQuasimartingale` is supplied by `Probability/Quasimartingale.lean` (`isRealQuasimartingale_of_martingale`, variation bound `0`) because the dependency's own `Martingale.isRealQuasimartingale` is a `sorry`; its other hypothesis, convergence in measure from the right, comes from the downward `L²` convergence of conditional expectations along a decreasing chain of σ-algebras (`Probability/ProjectionLimit.lean`, `Probability/AEMeasurableInf.lean`, `Probability/CondExpInf.lean`, `Probability/CondExpRightContinuous.lean`) — a statement Mathlib has only in the upward direction. `rightContModif`, not `cadlagModif`, is used: the latter needs a complete filtration, which `jointFiltration D` is not.
-  2. **Blumenthal 0-1 for the joint filtration.** `Driver/GermIndep.lean`, `isTrivialSigma_rightCont_zero`. The chain is `Driver/VectorIncrement.lean` (the whole mixed increment tuple of one interval against `ℱ_s`, which does *not* follow from the per-coordinate `IsBrownianFiltration`), `Driver/GridIncrement.lean` (the grid induction), `Driver/ValueSigma.lean` (the limit `s ↓ 0`), and the finite-subfamily assembly. The Poisson half needed the two-sided region independence of `Poisson/RegionIndependence.lean` and `Poisson/RegionPartition.lean`. Not the cited Karatzas–Shreve/Applebaum statements, which are for a single driver: the joint version is proved here.
+  2. **Blumenthal 0-1 for the joint filtration.** `Driver/GermIndep.lean`,
+     `isTrivialSigma_rightCont_zero`. The chain is `Driver/VectorIncrement.lean` (the whole mixed
+     increment tuple of one interval against `ℱ_s`, which does *not* follow from the per-coordinate
+     `IsBrownianFiltration`), `Driver/GridIncrement.lean` (the grid induction),
+     `Driver/ValueSigma.lean` (the limit `s ↓ 0`), and the finite-subfamily assembly. The Poisson
+     half needed the two-sided region independence of `Poisson/RegionIndependence.lean` and
+     `Poisson/RegionPartition.lean`. Not the cited Karatzas–Shreve/Applebaum statements, which are
+     for a single driver: the joint version is a theorem of `Driver/GermIndep.lean`.
   3. **Conditional-expectation reproducibility.** Mathlib's `condExp_of_stronglyMeasurable`, as planned.
 * **Statement audit (2026-09-06)**: not refuted. The càdlàg modification along rational right limits is measurable for the right-continuous joint filtration without completion, so adaptedness holds as stated; the `M_0 = 𝔼 ξ` clause is the 0-1 law of `ℱ_{0+}` for the *joint* filtration, which is the cited fact only when `W` and `N` are independent — a hypothesis this file never states (`W` and `N` are separate structures on one probability space). **X2-3 (2026-09-06) — fixed**: the axiom now takes a `LevyDriver D` (`Driver/Joint.lean`), whose `indep` field is exactly `σ(W) ⟂ σ(N)`, and is stated over `jointFiltration D = D.filtration.rightCont`; the coordinates of `D.W` are Brownian and `D.N` Poisson for that filtration (`LevyDriver.isBrownianFiltration`, `.isPoissonFiltration`, lifted by `.rightCont`).
 
-### Retired #14: `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DEMOTED axiom→theorem 2026-05-26)
+### Retired #14: `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` (DELETED 2026-09-07)
+
+* **CLOSED 2026-09-07 (`ba5e214`)**: the Picard chain is proved end to end, so the wrap-up's
+  `sorry` is gone and both intermediates (`..._axiom` and `..._via_aeQuot`) were deleted as
+  redundant. What survives is `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`
+  (`Ito/PicardFixedPoint.lean`) over `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`
+  (`Ito/PicardWellPosed.lean`), on the three standard axioms. Everything below this bullet is
+  the record of the 2026-05-26 to 2026-09-07 interval, when the chain still carried a `sorry`;
+  its present-tense claims about `tools/sorry_baseline.txt` describe that interval, not the
+  current tree. The statement audits in it (C0/C0a/C0b/C0c-ii, and the A6-1 filtration
+  narrowing) do describe the current statement and are the reason to read the entry.
 
 On 2026-05-26 this axiom was demoted to a Lean `theorem` forwarding through
 the wrap-up `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
@@ -320,8 +405,8 @@ chain (Applebaum 6.2.9 / Ikeda-Watanabe IV); the per-step status is in
 that file's section note "Status of the fixed-point programme".
 
 **Statement audit (survey C0, 2026-09-06) — the wrap-up statement is refutable, so the `sorry` cannot be discharged as it stands.** `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` asks, from `JumpDiffusionCoeffs.IsLipschitz coeffs ν L` alone, for a `JumpDiffusion W N coeffs x₀`. `IsLipschitz` constrains `(μ, σ, γ)` only in the state variable `x`; it says nothing about their dependence on `s`, or, for `γ`, on `e`. But the `is_solution` field of `JumpDiffusion` existentially bundles joint measurability, progressive measurability and the `L²` bounds of `(s, ω) ↦ σ(s, X_s ω)` and `(ω, s, e) ↦ γ(s, X_s ω, e)`, since the two stochastic integrals need them to be well-typed. Two coefficient families satisfy `IsLipschitz` with `L = 0` and admit no `JumpDiffusion` at all: (i) `n = d = 1`, `μ = γ = 0`, `σ s x = 1 / s` — every Lipschitz clause reads `0 ≤ 0`, but `∫⁻ s in Icc 0 T', ‖1/s‖₊² = ∞` for every `T' > 0`, so `h_σ_sq` fails for every path map; (ii) the same with `σ s x = 1_A s` for a non-measurable `A ⊆ ℝ` — the preimage `Set.univ ×ˢ A` has `ω`-sections `A`, so `h_σ_meas` fails for every path map. The whole forwarder chain down to `JumpDiffusion.exists_unique` inherits the defect. The correction is to add (a) joint measurability of `(s, x) ↦ μ s x`, `(s, x) ↦ σ s x`, `(s, x, e) ↦ γ s x e`, and (b) local square integrability in `s` at one state, `∫⁻ s in Icc 0 T', ‖σ s 0‖₊² < ∞` and `∫⁻ s in Icc 0 T', ∫⁻ e, ‖γ s 0 e‖₊² ∂ν < ∞`; with the Lipschitz clauses these give the `L²` bounds along any `L²`-bounded path. Applebaum 6.2.9 assumes measurable coefficients of linear growth; the Lean statement dropped that. **Corrected 2026-09-06 (C0a)**: `JumpDiffusionCoeffs.IsRegular coeffs ν` was added to `Ito/Setting.lean` and threaded through the wrap-up theorem and all three forwarders, so the statement is no longer refutable. Deriving the `is_solution` integrand hypotheses *from* it — which is what makes `picardStepOnS2` a total self-map — is the next leaf. **Third gap, closed 2026-09-06 (C0b)**: the space had no adaptedness field, only joint measurability, so `(s, ω) ↦ σ(s, X_s ω)` was progressively measurable for no filtration and the Brownian integral in the Picard step was not well-typed for a general member. `SBoundedProcess` is now parameterised by a filtration `ℱ` and carries `ProgressivelyMeasurable ℱ (fun ω s => X s ω i)` per coordinate; the Picard-step lemmas in `Ito/Picard.lean` take and return it. A second gap found by the same survey: `bieleckiNorm` is the weighted *sup-of-`L²`* norm, whereas `JumpDiffusion.sup_L2` is the strictly stronger `L²`-of-sup bound, so the fixed point does not by itself populate that field. **Fourth gap, closed 2026-09-07 (C0c-ii)**: the `γ` clause of `JumpDiffusionCoeffs.IsLipschitz` was stated as `(∫⁻ e, ‖γ s x₁ e - γ s x₂ e‖₊² ∂ν).toReal ≤ L² ‖x₁ - x₂‖²`. Since `(⊤ : ℝ≥0∞).toReal = 0`, that inequality is satisfied vacuously whenever the jump energy is infinite, so it constrains nothing in exactly the case the `h_γ_sq` hypothesis of `picardStep` needs constrained — no finiteness can be derived from it. It has been restated in `ℝ≥0∞`, `∫⁻ e, ‖γ s x₁ e - γ s x₂ e‖₊² ∂ν ≤ ENNReal.ofReal (L² ‖x₁ - x₂‖²)`, which is the statement Applebaum 6.2.9 assumes and is strictly stronger (it implies the `toReal` form and adds the finiteness). No declaration consumed the old clause — `hL` was only forwarded — so the change is a statement correction, not a re-proof. The forwarder `picardFixedPoint_jumpDiffusion_exists_unique_axiom`
-is now listed in the "Honest derivative theorems" table below; the
-single baseline-sorry entry in `tools/sorry_baseline.txt` is
+was then listed in the "Honest derivative theorems" table below; until 2026-09-07 the
+single baseline-`sorry` entry in `tools/sorry_baseline.txt` was
 `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`.
 
 **Why the demotion**: the Bielecki AE-quotient infrastructure landed in
@@ -366,11 +451,10 @@ Differential Equations and Diffusion Processes*, North-Holland 1989,
 
 ## Honest derivative theorems (proven from cited axioms)
 
-P5 F4 closure (red-team 2nd audit, 2026-05-23): table expanded to include
-the BSDEJ-side extractors + the two baseline-sorry theorems
-(`JumpDiffusion.exists_unique`, `jacodYor_representation`) that are
-literature-pinned sorry-bodied theorems with strengthened signatures, not
-plain `theorem`-axioms.
+Results downstream of the numbered entries, and what each one forwards through. Rows whose
+target has since been proved or deleted say so; only the last two rows still reach a live cited
+axiom (#16). The table was expanded on 2026-05-23 (red-team P5 F4) to cover the BSDEJ-side
+extractors and the then sorry-bodied Picard forwarders.
 
 | Theorem | Forwards via |
 |---|---|
@@ -392,44 +476,34 @@ plain `theorem`-axioms.
 | `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry` | 1-line forwarder over `Compensated.itoLevyIsometry` |
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` | deleted 2026-09-06 (built on the retired #13a) |
 | `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation` | deleted 2026-09-06 (built on the retired #13a) |
-| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | wrap-up theorem in `PicardSpace.lean` (single explicit baseline `sorry` for the entire Picard chain; ex-Tier-1-axiom #14 was demoted 2026-05-26 to a forwarder over this wrap-up) |
-| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (ex-Tier-1-axiom #14, demoted 2026-05-26 — name retained for downstream stability) |
-| `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | 1-line forwarder over `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now a theorem; transitively over `_via_aeQuot`) |
-| `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` | forwarder via `picardFixedPoint_jumpDiffusion_exists_unique` (transitively over `_via_aeQuot`'s sorry) |
-| `LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | `bsdej_path_regularity` (Tier 1 #10; specializes the polynomial-exponential constant to a single `C : ℝ` evaluated at `(T, L, ‖ξ‖_L²)` so downstream chapters can take `ψ(h) := C · h`) |
+| `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` | deleted 2026-09-07 (`ba5e214`); the ex-baseline-`sorry` wrap-up |
+| `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom` | deleted 2026-09-07 (`ba5e214`); ex-#14's forwarder over it |
+| `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`); 3 standard axioms |
+| `Ito.Setting.JumpDiffusion.exists_unique` | `picardFixedPoint_jumpDiffusion_exists_unique`; 3 standard axioms |
+| `BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | deleted 2026-09-06 (`7dad5c2`) with the retired #10 |
 | `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom` | derived theorem (was Tier 1 axiom #16 prior to 2026-05-26 narrowing); forwards over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity) |
 | `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | derived theorem forwarding over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` alone (since 2026-09-06; the vacuous #15 was retired); the previous Tier 1 #11 axiom (`itoLevyFormula`) was retired 2026-05-24 |
 
-### Literature-pinned baseline-sorry theorems (count: 1 — 2026-05-26 update)
+### Sorry baseline (count: 0)
 
-**2026-05-26 update**: the Picard chain wrap-up
-`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` is the single
-baseline-sorry theorem; ex-Tier-1-axiom #14 (and via the forwarders,
-`JumpDiffusion.exists_unique`) transitively depend on this single sorry.
+`tools/sorry_baseline.txt` is empty, and `sorry`/`admit` occur in the `.lean` sources only as
+words in docstrings and comments. The last entry was the Picard-chain wrap-up
+`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`, which carried the whole literature
+Picard iteration (Applebaum 6.2.9 / Ikeda–Watanabe IV) in a single explicit `sorry`. On
+2026-09-07 (`ba5e214`) that chain was completed — `exists_jumpDiffusion_unique_of_solvesOn`
+(`Ito/PicardWellPosed.lean`) builds the solution window by window, glues the windows along
+`⌈t⌉₊` and populates every field of `JumpDiffusion` — and the wrap-up with the intermediates
+`..._via_aeQuot` and `..._axiom` was deleted. `JumpDiffusion.exists_unique` now forwards through
+`picardFixedPoint_jumpDiffusion_exists_unique` to that theorem.
 
-* `jacodYor_representation` → `jacodYor_representation_axiom` (entry #13;
-  still an axiom).
-* `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` — single
-  explicit baseline `sorry`; entire literature Picard chain
-  (Applebaum 6.2.9) collected in the wrap-up theorem body (see
-  `PicardSpace.lean` module docstring for breakdown).
-* `picardFixedPoint_jumpDiffusion_exists_unique_axiom` (ex-#14, now
-  theorem) → forwards to `_via_aeQuot`.
-* `picardFixedPoint_jumpDiffusion_exists_unique` → forwards.
-* `JumpDiffusion.exists_unique` → forwards.
+Two statement audits landed with the closure and are recorded under entries #12 and #14:
+uniqueness is asserted relative to a fixed filtration, and `is_solution`'s drift integral needed
+parenthesising. Both change what the theorem says, so read those entries before citing it.
 
-Per Rule 0, this is HONEST: the wrap-up theorem carries an explicit
-`sorry` body (visible to the lint pipeline as a baseline-tracked
-sorryAx-tainted theorem) rather than being hidden behind an axiom.
-`tools/sorry_baseline.txt` contains the single entry
-`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`.
-Future Picard work continues in `PicardSpace.lean` / `PicardSpace.lean`
-/ `PicardSpace.lean` (Banach packaging), `Picard.lean`
-(`S²` self-map lift), `Picard.lean` (Bielecki
-contraction estimates) toward fully discharging the wrap-up theorem's
-sorry.
+### P7 F10 qualification (red-team 2nd audit, 2026-05-23) — about the retired #9
 
-### P7 F10 qualification (red-team 2nd audit, 2026-05-23)
+Kept as the record of what the retired `continuousBSDEJ_exists_unique` (#9, deleted 2026-09-06)
+asked of `IsBSDEJSolution`; the predicate itself is unchanged and still carries these clauses.
 
 The previous note that `continuousBSDEJ_exists_unique` is "no longer
 vacuously satisfiable" is TRUE for existence (the strengthened predicate
@@ -449,36 +523,37 @@ both satisfy the predicate for f = g = 0) would falsify the uniqueness
 clause. The current closure is via Y₂'s failure of `Adapted Filt`: `W_T`
 is not measurable in `Filt_t` for t < T.
 
-## Status snapshot (2026-05-26, axiom #14 `axiom → theorem` conversion COMPLETED)
+## Status snapshot
 
-`tools/sorry_baseline.txt` now contains **1 entry** — the Picard
-iteration for the jump-diffusion SDE, now exposed as the wrap-up
-theorem `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` in
-`PicardSpace.lean` (single explicit `sorry`). The
-chain `JumpDiffusion.exists_unique` →
-`picardFixedPoint_jumpDiffusion_exists_unique` →
-`picardFixedPoint_jumpDiffusion_exists_unique_axiom` (now theorem)
-→ `picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot` (sorry)
-collapses the previous "ex-Tier-1-axiom #14 → headline" route into
-a single sorry-tracked theorem. Every other previously sorry'd
-theorem is either:
-* Proven from Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`)
-  plus possibly one or more Tier 1 cited axioms documented here, OR
-* A Tier 1 cited axiom itself.
+Verified against the working tree on 2026-09-08:
 
-Baseline entries (the single genuinely-deferred classical theorem):
-* `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-  — Picard iteration in `S²([0, T]; ℝⁿ)` for the jump-diffusion SDE
-  (Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV). Real theorem statement
-  with single explicit sorry'd proof body collecting the entire chain.
+* `tools/sorry_baseline.txt` is empty; `grep -rn '\bsorry\b\|\badmit\b' LevyStochCalc/`
+  matches only prose in docstrings and module comments.
+* Exactly one `axiom` declaration exists in the repository —
+  `Ito/JumpFormula.lean:189`, entry #16 — and it is referenced by name only in that file, by
+  `itoLevyFormula_jumpResidual_axiom` and `itoLevyFormula`.
+* In `audit_output.txt` (untracked; the `#print axioms` report `tools/lint.sh` writes from
+  `_audit.lean`), exactly three reports name a non-standard axiom — #16 itself and those two
+  consumers — every other report is `{propext, Classical.choice, Quot.sound}`, and none names
+  `sorryAx`. That is a statement about the logical trust base, not about coverage: the
+  per-entry statement audits above are where the question of whether a Lean statement matches
+  the result it cites is answered.
+* Every `#print axioms` target in `_audit.lean` names a declaration present in the source tree
+  (checked by name). The report in `audit_output.txt` predates `3119ca3` and `c9a0966`, which
+  added `Poisson.natural_le_aug_windowSigma` and `Poisson.ae_eq_zero_of_integral_char_window`
+  to `Poisson/WindowFiltration.lean`, so it still lists those two names as unknown; it is not a
+  report on the current tree. Making the lint fail on such a mismatch is `X1b`/`X1c` in
+  `../Dissertation/RELEASE_READINESS.md`.
+
+### History (the Picard chain and the PRP decomposition)
 
 Resolved on 2026-05-26 (formerly Tier 1 cited axiom #14):
 * `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_axiom`
   — converted from a standalone axiom to a 1-line forwarder over the
   wrap-up theorem. The literature dependency (Applebaum 6.2.9 /
-  Ikeda-Watanabe IV) is now carried by the wrap-up's explicit
-  baseline sorry, not by a free-standing axiom — making the
-  unresolved analytical content visible to the lint pipeline.
+  Ikeda-Watanabe IV) was from then on carried by the wrap-up's explicit
+  baseline `sorry`, not by a free-standing axiom — visible to the lint
+  pipeline — until the chain was proved and both were deleted on 2026-09-07.
 
 Resolved on 2026-05-23 (formerly a baseline entry):
 * `LevyStochCalc.BSDEJ.MartingaleRepresentation.jacodYor_representation`
@@ -694,16 +769,14 @@ Itô–Lévy formula's hypotheses or a BSDEJ have solutions is separate and stil
   History markers: M4 deleted #7 + #8 (2026-05-22); #11 retired (2026-05-24);
   #12, #13, #14 demoted axiom→theorem (2026-05-26); #17, #18 added
   to this file (2026-05-27 — 3rd-audit CRITICAL #1 closure).
-* **Honest derivative theorems**, axiom-clean modulo Lean std + Tier 1 cited
-  + the single baseline-sorry wrap-up theorem.
-* `sorryAx` in the public API restricted to the 1 baseline-acknowledged entry
-  (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`); the chain
-  `JumpDiffusion.exists_unique` → `_unique` → `_unique_axiom` (now theorem)
-  → `_via_aeQuot` transitively surfaces this single sorry.
+* **Derivative theorems** over Lean's three standard axioms plus, for the two consumers of
+  #16, that one cited axiom.
+* **No `sorryAx` anywhere.** `tools/sorry_baseline.txt` is empty, the Picard wrap-up that held
+  the last entry was discharged and deleted on 2026-09-07 (`ba5e214`), and no report in
+  `audit_output.txt` names `sorryAx`.
 * No `True := trivial` stub lemmas remain in the project.
-* Dissertation forwarders transitively surface only real Tier 1 cited axioms
-  + the single baseline sorry, in their audit (including the
-  fully-pinned #11 `itoLevyFormula`).
+* The dissertation forwarders surface #16 alone; `Dissertation.Continuous.itoLevyFormula` is the
+  one dissertation declaration that carries it (through `itoLevyFormula`).
 
 ## Naming-suffix drift (P1 F11 acknowledgment)
 
@@ -760,9 +833,10 @@ contributors.
 
 ## Convention
 
-* `tools/sorry_baseline.txt` — sorry-blocked theorems (currently 1: see
-  status snapshot above).
-* `tools/cited_axioms.md` (this file) — Tier 1 cited axioms with citations + Mathlib status + replacement plans.
+* `tools/sorry_baseline.txt` — sorry-blocked theorems (currently empty: see the status
+  snapshot above).
+* `tools/cited_axioms.md` (this file) — Tier 1 cited axioms with citations + Mathlib status +
+  replacement plans.
 * `tools/lint.sh` — runs `_audit.lean` and fails on new sorryAx beyond
   the baseline.
 * `_audit.lean` — `#print axioms` on every load-bearing theorem; runs as

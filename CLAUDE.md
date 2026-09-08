@@ -23,10 +23,17 @@ A Lean 4 + Mathlib formalization of Lévy-driven stochastic calculus (L² Itô
 integrals, the Itô–Lévy formula, BSDEs with jumps). It is the substrate the main
 dissertation (`D:/Dissertation`) imports for its continuous-time foundations.
 
-Of the 14 cited results, Brownian existence (#1) is now discharged upstream
-(`RemyDegenne/brownian-motion`, a `lake require` at the shared Mathlib pin); the rest
-remain **upstream of** mathlib (no Itô integral, BSDE, Poisson random measure, or PRP
-exists in mathlib yet), so that math is being proved, not ported. See `Plan.md`.
+`tools/cited_axioms.md` is the per-axiom ledger of record — read it there rather than
+re-deriving counts here. One cited axiom is live (#16, the Itô–Lévy formula's jump residual,
+`Ito/JumpFormula.lean`), and it is the only `axiom` declaration in the repository. Of the rest,
+nine are theorems, four were retired as unsound statements, and the others were deleted or
+re-derived; the ledger's index says which. Two upstream `lake require`s at the shared Mathlib
+pin are load-bearing: `RemyDegenne/brownian-motion` discharges Brownian existence (#1) and
+supplies the càdlàg regularisation behind #6 and #13b; `raphaelrrcoelho/formal-mathfin`
+supplies Doob's `L²` maximal inequality (`Probability/DoobContinuous.lean`) and an Itô–Lévy
+isometry bridge (`Poisson/MathFinBridge.lean`) that #6 did not need in the end. Mathlib still
+has no Itô integral, BSDE, Poisson random measure or PRP, so this math is being proved, not
+ported. See `Plan.md`.
 
 ## Hard invariants (never break)
 
@@ -53,8 +60,9 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 ## Reference docs
 
 - `Plan.md` — the roadmap (start here).
-- `tools/cited_axioms.md` — the 14 axioms with paper references.
-- `tools/sorry_baseline.txt` — currently-deferred theorems.
+- `tools/cited_axioms.md` — the per-axiom ledger: every cited result, its status, the
+  declaration that carries it now, and the paper reference. Authoritative for counts.
+- `tools/sorry_baseline.txt` — currently-deferred theorems (empty).
 - `_audit.lean` — `#print axioms` budget check (input to `tools/lint.sh`).
 
 ## Prove2Me (planned; nothing uploaded yet)
@@ -63,13 +71,16 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 collaborative Lean platform Anthropic's FLT formalization was assembled on. The
 `prove2me` skill under `.claude/skills/` loads the upstream agent skill.
 
-- **Pin vs. environments.** Since decision D1 (2026-09-05) both repos sit on Mathlib
-  `81a5d257` / `v4.32.0`, which matches **no** Prove2Me environment (nearest: `c5ea003`
-  behind, `0df444a` ahead). Imports never cross environments, so any upload is re-verified
-  against the environment it targets; see `PROVE2ME.md`.
-- **The payload is the debt, not the library.** The 10 cited axioms and the one
-  `PicardSpace.lean` `sorry` are the natural Open nodes — each already carries a precise
-  literature citation in `tools/cited_axioms.md`. Publishing them makes the boundary
-  machine-visible instead of ledger-visible.
+- **Pin vs. environments.** Since decision D1 (2026-09-05) both repos sit on
+  `leanprover/lean4:v4.32.0` / Mathlib `81a5d257c8e410db227a6665ed08f64fea08e997`, which
+  matches **no** Prove2Me environment (nearest: `c5ea003` behind, `0df444a` ahead, as the
+  platform listed them on 2026-09-05). Imports never cross environments, so any upload is
+  re-verified against the environment it targets; see `PROVE2ME.md`.
+- **The payload is the debt, not the library.** That debt is one node: cited axiom #16,
+  `itoLevyFormula_jumpResidual_canonical_axiom` (`tools/sorry_baseline.txt` is empty; there is
+  no `sorry` to publish). It already carries a precise literature citation in
+  `tools/cited_axioms.md`; publishing it makes the boundary machine-visible instead of
+  ledger-visible. The four statements retired as unsound in 2026-09 (#9, #10, #13a, #15) are
+  *not* upload candidates until they are restated (`Plan.md` A6, A7, B5).
 - **A badge is not non-vacuity.** `GOAL.md` §1.B is unaffected by any platform verdict;
   the platform type-checks, it does not audit meaning.

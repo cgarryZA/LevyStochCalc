@@ -7,131 +7,81 @@ emphasis on:
   measures (the Itô-Lévy isometry).
 * The Itô-Lévy formula for `C^{1,2}` functions of jump diffusions
   (Applebaum 2009 Thm 4.4.7).
-* Backward stochastic differential equations with jumps (BSDEJs) — existence,
-  uniqueness, and path regularity (Tang-Li 1994 / Bouchard-Elie 2008).
+* Strong existence and uniqueness for the jump-diffusion SDE (Applebaum 2009
+  Thm 6.2.9), and the solution predicate for backward SDEs with jumps.
 
 This library is the substrate the main dissertation
 (`D:/Dissertation`) forwards into for its continuous-time stochastic
 foundations.
 
+## What is and is not established
+
+`tools/cited_axioms.md` is the ledger of record for every result this library cites rather than
+proves; nothing in this README overrides it. Its current state:
+
+* **One cited axiom is live** — entry #16,
+  `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` (Applebaum 2009 Thm 4.4.10 +
+  Thm 4.4.7 step II, the canonical-`R` form). It is the only `axiom` declaration in the
+  repository, at `LevyStochCalc/Ito/JumpFormula.lean:189`. Three declarations in the library
+  depend on it — itself, `itoLevyFormula_jumpResidual_axiom` and `itoLevyFormula` — and one
+  downstream, the dissertation forwarder `Dissertation.Continuous.itoLevyFormula`.
+* **No `sorry`.** `tools/sorry_baseline.txt` is empty, no `#print axioms` report names
+  `sorryAx`, and `sorry`/`admit` occur in the `.lean` sources only as words inside docstrings
+  and comments. The Picard-chain wrap-up that held the last baseline entry was discharged and
+  deleted on 2026-09-07.
+* **Four entries were retired as unsound statements**, not proved and not weakened: BSDEJ
+  existence (#9), BSDEJ path regularity (#10), the predictable representation property (#13a)
+  and the continuous-semimartingale Itô formula (#15). The first three were refutable as
+  written and the fourth trivially satisfiable; the declarations were deleted on 2026-09-06.
+  The BSDEJ layer therefore states the solution predicate and the Picard map, but **not**
+  existence, path regularity or the PRP. Now that the integrals are stated over a common
+  filtration (`Plan.md` X2), those three return as statements to prove — `Plan.md` A6, A7 and
+  B5 — with the hypotheses the literature assumes; #15's content is #16's.
+
+A `#print axioms` report of `{propext, Classical.choice, Quot.sound}` certifies the logical
+trust base only. It is not evidence that a Lean statement is a faithful rendering of the result
+it cites — that question is the subject of the per-entry statement audits in
+`tools/cited_axioms.md`, several of which found statements that type-checked and said the wrong
+thing.
+
 ## Build
 
 ```
-lake build                            # 8402 jobs
-bash tools/lint.sh                    # checks build + sorry baseline
+lake build
+bash tools/lint.sh                    # build + `#print axioms` audit
 bash tools/verify_import_contract.sh  # checks dissertation-import contract
                                       # (paths from tools/import_contract.md)
 ```
 
-Lean toolchain: `leanprover/lean4:v4.30.0-rc2`. Mathlib pin: see
-`lakefile.toml`.
+Lean toolchain: `leanprover/lean4:v4.32.0` (see `lean-toolchain`). Mathlib pin:
+`81a5d257c8e410db227a6665ed08f64fea08e997`; the `BrownianMotion` and `MathFin` requires are
+pinned by commit in `lakefile.toml` to revisions that resolve to the same Mathlib.
 
 ## Layout
 
 ```
 LevyStochCalc/
-├── Basic.lean                                 — common imports + L² bridge lemmas
-├── Brownian/
-│   ├── Construction.lean                      — BrownianMotion structure
-│   ├── Existence.lean                         — BrownianMotion.exists via RemyDegenne/brownian-motion (ex-Tier-1 #1)
-│   ├── Continuity.lean                        — KC modification + ae_eq (proven)
-│   ├── Martingale.lean                        — naturalFiltration W + Tier 1 #4 axiom
-│   ├── Ito.lean                               — L² Itô integral (4000+ lines)
-│   ├── SimplePredictableRefine.lean           — Tier 1 #5 axiom
-│   ├── Multidim.lean                          — multidim BM structure
-│   └── MultidimIto.lean                       — multidim L² Itô integral
-├── Poisson/
-│   ├── RandomMeasure.lean                     — PRM structure + existence (#2, a theorem)
-│   ├── NaturalFiltration.lean                 — filtration definition
-│   ├── Compensated.lean                       — L² Itô-Lévy integral (2400+ lines)
-│   │                                            + Tier 1 auxiliary axiom
-│   │                                            itoIsometry_diff_compensated
-│   ├── L2Isometry.lean                        — public isometry forwarder
-│   ├── IndependentScattering.lean             — σ-algebra independent scattering (from independent_disjoint)
-│   └── MathFinBridge.lean                     — PRM bridge to formal-mathfin; its L² isometry read back
-├── Ito/
-│   ├── Setting.lean                           — JumpDiffusion structure (baseline sorry)
-│   ├── JumpFormula.lean                       — Tier 1 #15 + #16 axioms + derived #11/#16 thms
-│   ├── Picard.lean                            — Picard map + Bielecki β-norm framework,
-│   │                                            σ/γ L² Lipschitz bounds (auxiliary axiom
-│   │                                            itoIsometry_diff_brownian), self-map and
-│   │                                            Bielecki contraction
-│   ├── PicardSpace.lean                       — complete metric space of bounded processes:
-│   │                                            discrete metric + Bielecki β-norm AE-quotient
-│   │                                            and wrap-up (single explicit baseline sorry
-│   │                                            for the entire Picard chain)
-│   └── PicardFixedPoint.lean                  — Banach-shim + JumpDiffusion.exists_unique
-│                                                forwarder (ex-Tier-1-axiom #14, now theorem)
-└── BSDEJ/
-    ├── Definition.lean                        — IsBSDEJSolution predicate + regression-test
-    │                                            extractors (Y-cadlag, Z/U progressive, M_W
-    │                                            and M_N canonical-integral pins)
-    ├── Existence.lean                         — Picard map + Lipschitz (#9 retired 2026-09-06)
-    ├── PathRegularity.lean                    — interval time-averages (#10 retired 2026-09-06)
-    └── MartingaleRepresentation.lean          — Tier 1 #13b (conditional-expectation bridge);
-                                                  #13a and the PRP retired 2026-09-06
+├── Basic.lean         — common imports + L² bridge lemmas
+├── Analysis/          — Gronwall, sorted grids, scaled trigonometric bounds
+├── Probability/       — filtrations, progressive measurability, conditional
+│                        expectation limits, independence, transport
+├── Brownian/          — Brownian motion, its filtration, the L² Itô integral
+│                        and its algebra, Itô's formula, the Brownian PRP
+├── Poisson/           — Poisson random measures, the compensated L² Itô-Lévy
+│                        integral, mark-step calculus, MathFin bridge
+├── Martingale/        — right-continuity, càdlàg modification, BDG, compensators
+├── Driver/            — the joint Lévy driver (W, N): existence, germ
+│                        independence, the càdlàg conditional-expectation martingale
+├── Ito/               — the jump-diffusion setting, the Itô-Lévy formula
+│                        (JumpFormula.lean holds the one live cited axiom),
+│                        and the Picard well-posedness chain
+└── BSDEJ/             — the BSDEJ data and solution predicate, the Picard map,
+                         interval time-averages, the conditional-expectation
+                         bridge to the PRP
 ```
 
-## Tier 1 cited axioms
-
-**14 axioms total** (as of 2026-05-27, 3rd-audit reconciliation), each a
-published theorem from the literature with paper references in
-`tools/cited_axioms.md`. Numbering history:
-
-* #7 and #8 deleted by the 2026-05-22 M4 cleanup (dead post-refactor).
-* #11 (`itoLevyFormula`) retired 2026-05-24 by decomposition into the two
-  narrower axioms #15 + #16; `itoLevyFormula` is now a derived theorem.
-* #12 (`JumpDiffusion.exists_unique`) and #13
-  (`jacodYor_representation_axiom`) were promoted theorem→axiom on
-  2026-05-23 and then demoted axiom→theorem on 2026-05-26 via the
-  Bielecki AE-quotient wrap-up + #13a/#13b decomposition.
-* #14 (`picardFixedPoint_jumpDiffusion_exists_unique_axiom`) was added
-  2026-05-23 then demoted axiom→theorem on 2026-05-26 (forwards through
-  the wrap-up `_via_aeQuot`, which carries the single explicit baseline
-  `sorry`).
-* #16 (`itoLevyFormula_jumpResidual_canonical_axiom`) was NARROWED on
-  2026-05-26 from the universal-`R` form to the canonical-`R` form; the
-  universal-`R` form is now a derived theorem.
-* #17 (`itoIsometry_diff_brownian`) and #18 (`itoIsometry_diff_compensated`)
-  were added in source on 2026-05-23 but first formally numbered in
-  `tools/cited_axioms.md` on 2026-05-27 (3rd-audit CRITICAL #1 closure).
-
-Currently-live axioms:
-
-1. ~~`BrownianMotion.exists`~~ — resolved 2026-09-05: a theorem in `Brownian/Existence.lean`,
-   forwarding to `RemyDegenne/brownian-motion` (`isBrownianReal_brownian`).
-2. ~~`PoissonRandomMeasure.exists_of_sigmaFinite`~~ — resolved 2026-09-06: a theorem in
-   `Poisson/RandomMeasure.lean` (the Poisson recipe over `Poisson/PoissonSuperposition.lean`).
-3. `kolmogorovChentsov_modification` — Karatzas-Shreve Thm 2.2.8 / Le Gall Thm 2.9.
-4. `brownian_martingale_rightCont` — Karatzas-Shreve Thm 2.7.7+2.7.9 / Le Gall Thm 2.13.
-5. `itoIsometry_brownian_unified_existence` — Karatzas-Shreve Thm 3.2.6 / Le Gall Thm 5.4.
-6. `itoIsometry_compensated_unified_existence` — Applebaum 2009 Thm 4.2.3+4.2.4.
-9. ~~`continuousBSDEJ_exists_unique`~~ — retired 2026-09-06: the Lean statement was refutable
-   (arbitrary non-adapted `X`; single-driver integrand class); deleted, to be restated after X2.
-10. ~~`bsdej_path_regularity`~~ — retired 2026-09-06: the Lean statement was refutable (the
-    `C·Δt` rate for merely measurable `g`, `X`); deleted, to be restated after X2.
-13a. ~~`jacodYor_PRP_martingale_axiom`~~ — retired 2026-09-06: the Lean statement was refutable
-     (single-driver integrands for a joint-filtration martingale); deleted, to be restated after X2.
-13b. `condExp_to_PRP_martingale_form_axiom` — Karatzas-Shreve Thm I.3.13 (Doob L² càdlàg regularization) + Thm 2.7.17 (Blumenthal 0-1) + Applebaum Thm 2.3.7.
-16. `itoLevyFormula_jumpResidual_canonical_axiom` — Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step (II) (canonical-`R` form).
-17. `itoIsometry_diff_brownian` — Karatzas-Shreve Thm 3.2.6 + §3.2.B eq. (2.20) (per-difference L²-isometry).
-18. `itoIsometry_diff_compensated` — Applebaum 2009 Thm 4.2.3 step (II) (per-difference L²-isometry).
-
-(Retired entries #7, #8, #11, #12, #13, #14, #15 and resolved entries #1, #3, #4, #5,
-#6, #17, #18 are kept in `tools/cited_axioms.md` for traceability.)
-
-## Sorry baseline
-
-**1 mathematical entry (as of 2026-05-27)**, with 4 transitive
-forwarders bottoming out in it. The single sorry is in the wrap-up
-theorem `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`
-(Applebaum 2009 Thm 6.2.9 / Ikeda-Watanabe IV — the literature Picard
-iteration in `S²([0,T]; ℝⁿ)`). The previous Tier 1 axiom #14 was
-demoted to a theorem on 2026-05-26 with the literature dependency moved
-into this single explicit sorry, making the unresolved analytical content
-visible to the lint pipeline rather than hidden behind an axiom.
-
-See `tools/sorry_baseline.txt` for the full chain.
+Module-level detail is in each file's docstring; `tools/import_contract.md` lists the 12
+modules and 19 symbols the dissertation pins.
 
 ## Scope (deliberate omissions)
 
@@ -159,21 +109,29 @@ library doesn't claim.
   applications of the PRM + compensated-integral toolkit.
 * **No deep-learning code.** The dissertation that motivates this
   formalization includes deep-BSDE training code; that code lives in
-  `D:/DeepBSDE/` and is OUT of `LevyStochCalc`'s scope. LevyStochCalc
-  provides the literature-pinned axiom layer (Tier 1 cited axioms +
-  honest derivative theorems) that the dissertation imports.
-* **`Classical.choose`-based `noncomputable`.** The stochasticIntegral
-  definitions use `Classical.choose` on the unified-existence axioms,
-  hence are `noncomputable`. This is mathematically correct (no
-  algorithm extracts the L²-Itô integral from its defining axiom) but
-  means future numerical extraction layers must wrap them with
-  separate computable approximations (e.g., simpleIntegral on a
-  partition).
+  `D:/DeepBSDE/` and is OUT of `LevyStochCalc`'s scope.
+* **`Classical.choose` in one integral.** The Brownian `stochasticIntegral` is a genuine
+  construction (`stochasticIntegralBrownian`, the L² limit of the simple integrals). The
+  compensated-Poisson `stochasticIntegral` is `Classical.choose` of `exists_cadlag_modification`
+  — a proved theorem, not an axiom, but a choice all the same (as is the stage sequence of
+  approximants beneath it, `Poisson/CompensatedApprox.lean`) — so it is `noncomputable` and its
+  API is the `choose_spec` lemmas. A numerical extraction layer would have to wrap it in a
+  separate computable approximation.
+* **Non-vacuity is not yet a CI artifact.** `GOAL.md` §1.B asks for an
+  `examples/Nonvacuity.lean` collecting, per headline result, an `example` that discharges its
+  hypotheses on a concrete non-degenerate model. It is not written. The satisfiability that
+  *is* established is the filtration hypothesis of the integrals
+  (`Driver.exists_isBrownianFiltration_and_isPoissonFiltration`); whether the SDE, the
+  Itô-Lévy formula's hypotheses or a BSDEJ have solutions is separate and open.
 
 ## Lint
 
-`tools/lint.sh` runs `lake build` + `_audit.lean` and fails on any new
-`sorryAx`-tainted theorem beyond the baseline. Wire into pre-commit via:
+`tools/lint.sh` runs `lake build`, then `_audit.lean` (`#print axioms` over every load-bearing
+declaration, written to `audit_output.txt`), and fails on any `sorryAx`-tainted theorem beyond
+`tools/sorry_baseline.txt` (which is empty). The script is authoritative for what it enforces;
+its hardening — failing on a failed audit run, an axiom allowlist, coverage of every audit
+target, and a documentation-consistency check — is tracked as `X1b`–`X1g` and `X3i` in
+`../Dissertation/RELEASE_READINESS.md`. Wire into pre-commit via:
 
 ```
 cp tools/lint.sh .git/hooks/pre-commit
@@ -189,7 +147,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Current state is whatever `lake build` and `bash tools/lint.sh` report.
+Current state is whatever `lake build` and `bash tools/lint.sh` report; the per-result state is
+`tools/cited_axioms.md`, and `GOAL.md` §1 is the definition of done.
 
 ## Authors
 
