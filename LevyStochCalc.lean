@@ -146,6 +146,7 @@ import LevyStochCalc.Brownian.ItoIncrement
 import LevyStochCalc.Brownian.ItoTrigIncrement
 import LevyStochCalc.Brownian.ItoPullOut
 import LevyStochCalc.Brownian.LeftFreeze
+import LevyStochCalc.Brownian.CellCharacter
 import LevyStochCalc.Brownian.PRPPairing
 import LevyStochCalc.Brownian.PRPCell
 import LevyStochCalc.Brownian.PRPGrid

@@ -109,28 +109,33 @@ noncomputable def windowSumStrict (N : PoissonRandomMeasure P ν) (B : Set (ℝ 
     (h : ℝ × E → ℝ) (t : ℝ) (ω : Ω) : ℝ :=
   ∫ p in B ∩ Set.Ioo (0 : ℝ) t ×ˢ Set.univ, h p ∂(N.N ω)
 
+omit [MeasurableSpace.CountablyGenerated E] in
 open scoped Classical in
-/-- **The jump chain rule for a Poisson random measure of finite intensity.** -/
-theorem ae_exp_windowSum_sub_one (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
-    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (h : ℝ × E → ℝ) (T : ℝ) :
-    ∀ᵐ ω ∂P, Complex.exp (Complex.I * (windowSum N B h T ω : ℂ)) - 1
-      = ∫ p in B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ,
+/-- **The jump chain rule on a time window, at a sample point.** For a window `B ∩ J ×ˢ univ`
+with `J ⊆ (0, ∞)` an initial segment of the positive reals, at a sample point where the random
+measure restricted to the window is a finite sum of point masses, integer valued, with no two
+points sharing a time, the exponential of the integral of `h` over the window telescopes over
+the points. -/
+theorem exp_windowSum_sub_one_of_repr (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (h : ℝ × E → ℝ) {J : Set ℝ} (hJm : MeasurableSet J)
+    (hJ0 : J ⊆ Set.Ioi 0) (hJ : ∀ u ∈ J, Set.Ioo (0 : ℝ) u ⊆ J) (ω : Ω)
+    (hsrepex : ∃ s : Finset (ℝ × E), (N.N ω).restrict (B ∩ J ×ˢ Set.univ)
+      = ∑ p ∈ s, ((N.N ω).restrict (B ∩ J ×ˢ Set.univ)) {p} • Measure.dirac p)
+    (hn : ∃ k : ℕ, N.N ω (B ∩ J ×ˢ Set.univ) = k)
+    (hIV : Probability.IsIntegerValued ((N.N ω).restrict (B ∩ J ×ˢ Set.univ)))
+    (hsimple : ∀ t : ℝ, N.N ω (B ∩ ({t} : Set ℝ) ×ˢ Set.univ) ≤ 1) :
+    Complex.exp (Complex.I * ((∫ p in B ∩ J ×ˢ Set.univ, h p ∂(N.N ω) : ℝ) : ℂ)) - 1
+      = ∫ p in B ∩ J ×ˢ Set.univ,
           Complex.exp (Complex.I * (windowSumStrict N B h p.1 ω : ℂ))
             * (Complex.exp (Complex.I * (h p : ℂ)) - 1) ∂(N.N ω) := by
-  have hRm : MeasurableSet (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) :=
-    hB.inter (measurableSet_Ioc.prod MeasurableSet.univ)
-  have hRfin : referenceIntensity ν (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) ≠ ⊤ :=
-    ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
-  filter_upwards [ae_exists_eq_sum_dirac N hRm hRfin, N.integer_valued hRm hRfin,
-    ae_isIntegerValued_restrict N hRm hRfin, ae_count_time_singleton_le_one N hB hfin]
-    with ω hsrepex hn hIV hsimple
+  have hRm : MeasurableSet (B ∩ J ×ˢ Set.univ) := hB.inter (hJm.prod MeasurableSet.univ)
   obtain ⟨s, hsrep⟩ := hsrepex
-  haveI : IsFiniteMeasure ((N.N ω).restrict (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ)) := by
+  haveI : IsFiniteMeasure ((N.N ω).restrict (B ∩ J ×ˢ Set.univ)) := by
     obtain ⟨k, hk⟩ := hn
     refine ⟨?_⟩
     rw [Measure.restrict_apply_univ, hk]
     exact ENNReal.natCast_lt_top k
-  set R : Set (ℝ × E) := B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ with hRdef
+  set R : Set (ℝ × E) := B ∩ J ×ˢ Set.univ with hRdef
   set m : ℝ × E → ℝ≥0∞ := fun p => ((N.N ω).restrict R) {p} with hmdef
   have hmapp : ∀ p : ℝ × E, m p = (N.N ω) ({p} ∩ R) := fun p => by
     rw [hmdef]
@@ -216,26 +221,26 @@ theorem ae_exp_windowSum_sub_one (N : PoissonRandomMeasure P ν) {B : Set (ℝ �
       simp
     rw [hdrop]
     exact Finset.sum_congr rfl fun p hp => by rw [hm1 p hp]; simp
-  have hwindow : windowSum N B h T ω = ∑ p ∈ s₁, h p := by
-    rw [windowSum, ← hRdef, hsumR R hRm le_rfl]
+  have hwindow : (∫ p in R, h p ∂(N.N ω)) = ∑ p ∈ s₁, h p := by
+    rw [hsumR R hRm le_rfl]
     exact Finset.sum_congr rfl fun p hp => Set.indicator_of_mem (hmR p hp) h
   have hstrict : ∀ p ∈ s₁, windowSumStrict N B h p.1 ω
       = ∑ q ∈ s₁.filter (fun q => q.1 < p.1), h q := by
     intro p hp
     have hpR : p ∈ R := hmR p hp
-    have hpT : p.1 ≤ T := hpR.2.1.2
+    have hJp : Set.Ioo (0 : ℝ) p.1 ⊆ J := hJ p.1 hpR.2.1
     have hSm : MeasurableSet (B ∩ Set.Ioo (0 : ℝ) p.1 ×ˢ Set.univ) :=
       hB.inter (measurableSet_Ioo.prod MeasurableSet.univ)
     have hSR : B ∩ Set.Ioo (0 : ℝ) p.1 ×ˢ Set.univ ⊆ R := by
       intro q hq
-      exact ⟨hq.1, ⟨⟨hq.2.1.1, le_trans hq.2.1.2.le hpT⟩, Set.mem_univ _⟩⟩
+      exact ⟨hq.1, ⟨hJp hq.2.1, Set.mem_univ _⟩⟩
     rw [windowSumStrict, hsumR _ hSm hSR]
     conv_rhs => rw [Finset.sum_filter]
     refine Finset.sum_congr rfl fun q hq => ?_
     have hqR : q ∈ R := hmR q hq
     by_cases hlt : q.1 < p.1
     · have hmem : q ∈ B ∩ Set.Ioo (0 : ℝ) p.1 ×ˢ Set.univ :=
-        ⟨hqR.1, ⟨⟨hqR.2.1.1, hlt⟩, Set.mem_univ _⟩⟩
+        ⟨hqR.1, ⟨⟨hJ0 hqR.2.1, hlt⟩, Set.mem_univ _⟩⟩
       rw [if_pos hlt, Set.indicator_of_mem hmem]
     · have hnmem : q ∉ B ∩ Set.Ioo (0 : ℝ) p.1 ×ˢ Set.univ := fun hmem => hlt hmem.2.1.2
       rw [if_neg hlt, Set.indicator_of_notMem hnmem]
@@ -276,6 +281,95 @@ theorem ae_exp_windowSum_sub_one (N : PoissonRandomMeasure P ν) {B : Set (ℝ �
   rw [hprod]
   refine Finset.sum_congr rfl fun p hp => ?_
   rw [← Complex.exp_sum, hcast, hstrict p hp]
+
+open scoped Classical in
+/-- **The jump chain rule for a Poisson random measure of finite intensity.** -/
+theorem ae_exp_windowSum_sub_one (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (h : ℝ × E → ℝ) (T : ℝ) :
+    ∀ᵐ ω ∂P, Complex.exp (Complex.I * (windowSum N B h T ω : ℂ)) - 1
+      = ∫ p in B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ,
+          Complex.exp (Complex.I * (windowSumStrict N B h p.1 ω : ℂ))
+            * (Complex.exp (Complex.I * (h p : ℂ)) - 1) ∂(N.N ω) := by
+  have hRm : MeasurableSet (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) :=
+    hB.inter (measurableSet_Ioc.prod MeasurableSet.univ)
+  have hRfin : referenceIntensity ν (B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
+  filter_upwards [ae_exists_eq_sum_dirac N hRm hRfin, N.integer_valued hRm hRfin,
+    ae_isIntegerValued_restrict N hRm hRfin, ae_count_time_singleton_le_one N hB hfin]
+    with ω hsrepex hn hIV hsimple
+  exact exp_windowSum_sub_one_of_repr N hB h measurableSet_Ioc (fun x hx => hx.1)
+    (fun u hu x hx => ⟨hx.1, hx.2.le.trans hu.2⟩) ω hsrepex hn hIV hsimple
+
+/-- Restricting a finite sum of point masses to a measurable subset of its window. -/
+theorem restrict_eq_sum_dirac_of_subset {α : Type*} [MeasurableSpace α]
+    [MeasurableSingletonClass α] {μ : Measure α} {B R : Set α} (hRm : MeasurableSet R)
+    (hRB : R ⊆ B) {s : Finset α}
+    (hs : μ.restrict B = ∑ p ∈ s, (μ.restrict B) {p} • Measure.dirac p) :
+    μ.restrict R = ∑ p ∈ s, (μ.restrict R) {p} • Measure.dirac p := by
+  classical
+  ext A hA
+  have h1 : (μ.restrict R) A = (μ.restrict B) (A ∩ R) := by
+    rw [Measure.restrict_apply hA, Measure.restrict_apply (hA.inter hRm),
+      Set.inter_eq_left.mpr (Set.inter_subset_right.trans hRB)]
+  rw [h1, hs, Measure.coe_finset_sum, Finset.sum_apply, Measure.coe_finset_sum,
+    Finset.sum_apply]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [Measure.smul_apply, Measure.smul_apply, Measure.dirac_apply' _ (hA.inter hRm),
+    Measure.dirac_apply' _ hA, smul_eq_mul, smul_eq_mul,
+    Measure.restrict_apply (measurableSet_singleton p),
+    Measure.restrict_apply (measurableSet_singleton p)]
+  by_cases hpR : p ∈ R
+  · rw [Set.inter_eq_left.mpr (Set.singleton_subset_iff.mpr (hRB hpR)),
+      Set.inter_eq_left.mpr (Set.singleton_subset_iff.mpr hpR)]
+    by_cases hpA : p ∈ A
+    · simp [hpA, hpR]
+    · simp [hpA]
+  · rw [Set.indicator_of_notMem (fun hm => hpR hm.2), Set.singleton_inter_eq_empty.mpr hpR,
+      measure_empty, mul_zero, zero_mul]
+
+/-- **The jump chain rule at all times simultaneously.** Outside one null set, at every time `T`
+the exponential of the window sum up to `T`, and that of the strict-past window sum, telescope
+over the points of the window before `T`. -/
+theorem ae_forall_exp_windowSum_sub_one (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (h : ℝ × E → ℝ) :
+    ∀ᵐ ω ∂P, ∀ T : ℝ,
+      (Complex.exp (Complex.I * (windowSum N B h T ω : ℂ)) - 1
+        = ∫ p in B ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ,
+            Complex.exp (Complex.I * (windowSumStrict N B h p.1 ω : ℂ))
+              * (Complex.exp (Complex.I * (h p : ℂ)) - 1) ∂(N.N ω))
+      ∧ (Complex.exp (Complex.I * (windowSumStrict N B h T ω : ℂ)) - 1
+        = ∫ p in B ∩ Set.Ioo (0 : ℝ) T ×ˢ Set.univ,
+            Complex.exp (Complex.I * (windowSumStrict N B h p.1 ω : ℂ))
+              * (Complex.exp (Complex.I * (h p : ℂ)) - 1) ∂(N.N ω)) := by
+  filter_upwards [ae_exists_eq_sum_dirac N hB hfin, ae_isIntegerValued_restrict N hB hfin,
+    ae_count_time_singleton_le_one N hB hfin] with ω hsrepex hIV hsimple
+  obtain ⟨s, hs⟩ := hsrepex
+  have key : ∀ (J : Set ℝ), MeasurableSet J → J ⊆ Set.Ioi 0 →
+      (∀ u ∈ J, Set.Ioo (0 : ℝ) u ⊆ J) →
+      Complex.exp (Complex.I * ((∫ p in B ∩ J ×ˢ Set.univ, h p ∂(N.N ω) : ℝ) : ℂ)) - 1
+        = ∫ p in B ∩ J ×ˢ Set.univ,
+            Complex.exp (Complex.I * (windowSumStrict N B h p.1 ω : ℂ))
+              * (Complex.exp (Complex.I * (h p : ℂ)) - 1) ∂(N.N ω) := by
+    intro J hJm hJ0 hJ
+    have hRm : MeasurableSet (B ∩ J ×ˢ Set.univ) := hB.inter (hJm.prod MeasurableSet.univ)
+    have hRB : B ∩ J ×ˢ Set.univ ⊆ B := Set.inter_subset_left
+    refine exp_windowSum_sub_one_of_repr N hB h hJm hJ0 hJ ω
+      ⟨s, restrict_eq_sum_dirac_of_subset hRm hRB hs⟩ ?_ ?_ hsimple
+    · obtain ⟨k, hk⟩ := hIV _ hRm
+      refine ⟨k, ?_⟩
+      rw [Measure.restrict_apply hRm, Set.inter_eq_left.mpr hRB] at hk
+      exact hk
+    · intro A hA
+      obtain ⟨k, hk⟩ := hIV (A ∩ (B ∩ J ×ˢ Set.univ)) (hA.inter hRm)
+      refine ⟨k, ?_⟩
+      rw [Measure.restrict_apply (hA.inter hRm),
+        Set.inter_eq_left.mpr (Set.inter_subset_right.trans hRB)] at hk
+      rw [Measure.restrict_apply hA]
+      exact hk
+  intro T
+  exact ⟨key _ measurableSet_Ioc (fun x hx => hx.1) (fun u hu x hx => ⟨hx.1, hx.2.le.trans hu.2⟩),
+    key _ measurableSet_Ioo (fun x hx => hx.1) (fun u hu x hx => ⟨hx.1, hx.2.trans hu.2⟩)⟩
+
 
 end Pathwise
 

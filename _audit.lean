@@ -1348,3 +1348,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.setIntegral_Ioo_eq_jumpSumStrict
 #print axioms LevyStochCalc.Driver.tendsto_eLpNorm_two_of_tendsto_lintegral_sq
 #print axioms LevyStochCalc.Driver.product_rule
+-- ===== The jump chain rule at all times simultaneously (A4d-ii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.exp_windowSum_sub_one_of_repr
+#print axioms LevyStochCalc.Poisson.restrict_eq_sum_dirac_of_subset
+#print axioms LevyStochCalc.Poisson.ae_forall_exp_windowSum_sub_one
+-- ===== Trigonometric functions of a Brownian increment are Itô processes (A4d-ii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.trigDriftCell
+#print axioms LevyStochCalc.Brownian.Ito.abs_trigDriftCell_le
+#print axioms LevyStochCalc.Brownian.Ito.measurable_trigDriftCell
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_trigDriftCell
+#print axioms LevyStochCalc.Brownian.Ito.isItoVersion_trig
