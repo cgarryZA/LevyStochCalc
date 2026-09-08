@@ -1157,3 +1157,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.windowSum
 #print axioms LevyStochCalc.Poisson.windowSumStrict
 #print axioms LevyStochCalc.Poisson.ae_exp_windowSum_sub_one
+-- ===== Deterministic factors are predictable (A4c-ii-c1, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.measurableSet_univ_prod_window_self
+#print axioms LevyStochCalc.Probability.measurableSet_univ_prod_timeInter
+#print axioms LevyStochCalc.Probability.measurableSet_univ_prod_window
+#print axioms LevyStochCalc.Probability.markedPredictable_of_measurable_window

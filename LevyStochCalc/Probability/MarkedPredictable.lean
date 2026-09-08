@@ -52,6 +52,140 @@ def MarkedPredictable {F : Type w} [MeasurableSpace F] (ℱ : Filtration ℝ mΩ
     (ψ : Ω → ℝ → E → F) : Prop :=
   Measurable[markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E => ψ p.1 p.2.1 p.2.2
 
+section Deterministic
+
+variable {ℱ : Filtration ℝ mΩ} {ν : Measure E}
+
+/-- A window of finite mark measure is a predictable rectangle. -/
+theorem measurableSet_univ_prod_window_self (ℱ : Filtration ℝ mΩ) (T : ℝ) {B : Set E}
+    (hB : MeasurableSet B) (hBν : ν B ≠ ⊤) :
+    MeasurableSet[markedPredictableSigma ℱ ν]
+      ((Set.univ : Set Ω) ×ˢ (Set.Ioc (0 : ℝ) T ×ˢ B)) :=
+  MeasurableSpace.measurableSet_generateFrom
+    ⟨0, T, Set.univ, B, le_rfl, MeasurableSet.univ, hB, hBν, rfl⟩
+
+/-- Every measurable time set, cut to a window of finite mark measure, is predictable. -/
+theorem measurableSet_univ_prod_timeInter {T : ℝ} {B : Set E} (hB : MeasurableSet B)
+    (hBν : ν B ≠ ⊤) {S : Set ℝ} (hS : MeasurableSet S) :
+    MeasurableSet[markedPredictableSigma ℱ ν]
+      ((Set.univ : Set Ω) ×ˢ ((S ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)) := by
+  have hwin := measurableSet_univ_prod_window_self ℱ T hB hBν
+  refine MeasurableSpace.induction_on_inter (C := fun S _ =>
+      MeasurableSet[markedPredictableSigma ℱ ν]
+        ((Set.univ : Set Ω) ×ˢ ((S ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)))
+    (borel_eq_generateFrom_Iic ℝ) isPiSystem_Iic ?_ ?_ ?_ ?_ S hS
+  · have hzero : (Set.univ : Set Ω) ×ˢ (((∅ : Set ℝ) ∩ Set.Ioc (0 : ℝ) T) ×ˢ B) = ∅ := by
+      simp
+    rw [hzero]
+    exact @MeasurableSet.empty _ (markedPredictableSigma ℱ ν)
+  · rintro t ⟨a, rfl⟩
+    have hset : Set.Iic a ∩ Set.Ioc (0 : ℝ) T = Set.Ioc (0 : ℝ) (min a T) := by
+      ext x
+      simp only [Set.mem_inter_iff, Set.mem_Iic, Set.mem_Ioc, le_min_iff]
+      tauto
+    rw [hset]
+    exact MeasurableSpace.measurableSet_generateFrom
+      ⟨0, min a T, Set.univ, B, le_rfl, MeasurableSet.univ, hB, hBν, rfl⟩
+  · intro t _ iht
+    have hset : (Set.univ : Set Ω) ×ˢ ((tᶜ ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)
+        = ((Set.univ : Set Ω) ×ˢ (Set.Ioc (0 : ℝ) T ×ˢ B))
+          \ ((Set.univ : Set Ω) ×ˢ ((t ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)) := by
+      ext p
+      simp only [Set.mem_prod, Set.mem_univ, true_and, Set.mem_sdiff, Set.mem_inter_iff,
+        Set.mem_compl_iff, not_and]
+      tauto
+    rw [hset]
+    exact hwin.diff iht
+  · intro f _ _ ihf
+    have hset : (Set.univ : Set Ω) ×ˢ (((⋃ i, f i) ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)
+        = ⋃ i, ((Set.univ : Set Ω) ×ˢ ((f i ∩ Set.Ioc (0 : ℝ) T) ×ˢ B)) := by
+      ext p
+      simp only [Set.mem_prod, Set.mem_univ, true_and, Set.mem_iUnion, Set.mem_inter_iff]
+      tauto
+    rw [hset]
+    exact MeasurableSet.iUnion ihf
+
+/-- Every measurable time–mark set, cut to a window of finite mark measure, is predictable. -/
+theorem measurableSet_univ_prod_window {T : ℝ} {A : Set E} (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤) {D : Set (ℝ × E)} (hD : MeasurableSet D) :
+    MeasurableSet[markedPredictableSigma ℱ ν]
+      ((Set.univ : Set Ω) ×ˢ (D ∩ Set.Ioc (0 : ℝ) T ×ˢ A)) := by
+  have hwin := measurableSet_univ_prod_window_self ℱ T hA hAν
+  refine MeasurableSpace.induction_on_inter (C := fun D _ =>
+      MeasurableSet[markedPredictableSigma ℱ ν]
+        ((Set.univ : Set Ω) ×ˢ (D ∩ Set.Ioc (0 : ℝ) T ×ˢ A)))
+    generateFrom_prod.symm isPiSystem_prod ?_ ?_ ?_ ?_ D hD
+  · have hzero : (Set.univ : Set Ω) ×ˢ ((∅ : Set (ℝ × E)) ∩ Set.Ioc (0 : ℝ) T ×ˢ A) = ∅ := by
+      simp
+    rw [hzero]
+    exact @MeasurableSet.empty _ (markedPredictableSigma ℱ ν)
+  · rintro t ⟨S, hS, B, hB, rfl⟩
+    rw [Set.prod_inter_prod]
+    exact measurableSet_univ_prod_timeInter (hB.inter hA)
+      (ne_top_of_le_ne_top hAν (measure_mono Set.inter_subset_right)) hS
+  · intro t _ iht
+    have hset : (Set.univ : Set Ω) ×ˢ (tᶜ ∩ Set.Ioc (0 : ℝ) T ×ˢ A)
+        = ((Set.univ : Set Ω) ×ˢ (Set.Ioc (0 : ℝ) T ×ˢ A))
+          \ ((Set.univ : Set Ω) ×ˢ (t ∩ Set.Ioc (0 : ℝ) T ×ˢ A)) := by
+      ext p
+      simp only [Set.mem_prod, Set.mem_univ, true_and, Set.mem_sdiff, Set.mem_inter_iff,
+        Set.mem_compl_iff, not_and]
+      tauto
+    rw [hset]
+    exact hwin.diff iht
+  · intro f _ _ ihf
+    have hset : (Set.univ : Set Ω) ×ˢ ((⋃ i, f i) ∩ Set.Ioc (0 : ℝ) T ×ˢ A)
+        = ⋃ i, ((Set.univ : Set Ω) ×ˢ (f i ∩ Set.Ioc (0 : ℝ) T ×ˢ A)) := by
+      ext p
+      simp only [Set.mem_prod, Set.mem_univ, true_and, Set.mem_iUnion, Set.mem_inter_iff]
+      tauto
+    rw [hset]
+    exact MeasurableSet.iUnion ihf
+
+/-- **A measurable function of the time and the mark, carried by a window of finite mark
+measure, is predictable.** -/
+theorem markedPredictable_of_measurable_window {T : ℝ} {A : Set E} (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤) {f : ℝ × E → ℝ} (hf : Measurable f)
+    (hsupp : ∀ p : ℝ × E, p ∉ Set.Ioc (0 : ℝ) T ×ˢ A → f p = 0) :
+    MarkedPredictable ℱ ν fun (_ : Ω) (s : ℝ) (e : E) => f (s, e) := by
+  intro U hU
+  have hwin := measurableSet_univ_prod_window_self ℱ T hA hAν
+  have hcut := measurableSet_univ_prod_window (ℱ := ℱ) (T := T) hA hAν (hf hU)
+  by_cases h0 : (0 : ℝ) ∈ U
+  · have hset : (fun p : Ω × ℝ × E => f p.2) ⁻¹' U
+        = ((Set.univ : Set Ω) ×ˢ (f ⁻¹' U ∩ Set.Ioc (0 : ℝ) T ×ˢ A))
+          ∪ ((Set.univ : Set Ω) ×ˢ (Set.Ioc (0 : ℝ) T ×ˢ A))ᶜ := by
+      ext p
+      constructor
+      · intro hp
+        by_cases hw : p.2 ∈ Set.Ioc (0 : ℝ) T ×ˢ A
+        · exact Or.inl ⟨Set.mem_univ _, hp, hw⟩
+        · exact Or.inr fun hmem => hw hmem.2
+      · rintro (hp | hp)
+        · exact hp.2.1
+        · have hw : p.2 ∉ Set.Ioc (0 : ℝ) T ×ˢ A := fun hmem => hp ⟨Set.mem_univ _, hmem⟩
+          show f p.2 ∈ U
+          rw [hsupp p.2 hw]
+          exact h0
+    rw [hset]
+    exact hcut.union hwin.compl
+  · have hset : (fun p : Ω × ℝ × E => f p.2) ⁻¹' U
+        = (Set.univ : Set Ω) ×ˢ (f ⁻¹' U ∩ Set.Ioc (0 : ℝ) T ×ˢ A) := by
+      ext p
+      constructor
+      · intro hp
+        refine ⟨Set.mem_univ _, hp, ?_⟩
+        by_contra hw
+        have hz : f p.2 = 0 := hsupp p.2 hw
+        have hpU : f p.2 ∈ U := hp
+        rw [hz] at hpU
+        exact h0 hpU
+      · exact fun hp => hp.2.1
+    rw [hset]
+    exact hcut
+
+end Deterministic
+
 section Progressive
 
 variable {ℱ : Filtration ℝ mΩ} {ν : Measure E}
