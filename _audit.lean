@@ -886,3 +886,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.mem_stoppedRegion
 #print axioms LevyStochCalc.Probability.measurableSet_stoppedRegion
 #print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.stopped
+-- ===== Restricting a Poisson random measure to a mark set (B2a-1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.referenceIntensity_restrict
+#print axioms LevyStochCalc.Poisson.referenceIntensity_restrict_apply
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.restrict
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.restrict_apply
+-- ===== Second-order Taylor in time and space (B1c-1, 2026-09-08) =====
+#print axioms LevyStochCalc.clm_apply_prod
+#print axioms LevyStochCalc.clm_apply_prod₂
+#print axioms LevyStochCalc.norm_prod_le_add
+#print axioms LevyStochCalc.abs_sub_taylor_two_time_le

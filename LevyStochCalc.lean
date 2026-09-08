@@ -49,6 +49,7 @@ import LevyStochCalc.Poisson.PoissonSplitting
 import LevyStochCalc.Poisson.PoissonSuperposition
 import LevyStochCalc.Poisson.RegionIndependence
 import LevyStochCalc.Poisson.RandomMeasure
+import LevyStochCalc.Poisson.Restrict
 import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge
@@ -131,6 +132,7 @@ import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo
 import LevyStochCalc.Brownian.TaylorTwoVector
+import LevyStochCalc.Brownian.TaylorTwoTime
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 
