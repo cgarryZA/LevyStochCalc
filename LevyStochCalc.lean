@@ -28,6 +28,7 @@ import LevyStochCalc.Probability.SetIntegralPiSystem
 import LevyStochCalc.Probability.CharCylinder
 import LevyStochCalc.Probability.PairingFubini
 import LevyStochCalc.Probability.IndepBlocks
+import LevyStochCalc.Probability.GaussianSum
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
@@ -75,6 +76,7 @@ import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Filtered
 import LevyStochCalc.Brownian.MultidimFiltered
+import LevyStochCalc.Brownian.LinearCombination
 import LevyStochCalc.Brownian.CylinderCharacters
 import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport

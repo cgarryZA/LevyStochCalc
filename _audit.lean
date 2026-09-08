@@ -766,3 +766,18 @@ import LevyStochCalc
 -- ===== Independence of two joins from blockwise independence (A4b-iii-4a, 2026-09-08) =====
 #print axioms LevyStochCalc.Probability.indepSets_piiUnionInter_of_blocks
 #print axioms LevyStochCalc.Probability.indep_iSup_of_indep_blocks
+-- ===== Sum of independent centred Gaussians (A4b-iii-4a, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.map_finsetSum_gaussianReal
+-- ===== A unit linear combination is a Brownian motion (A4b-iii-4a/4b, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.combine
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.measurable_combine
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.measurable_uncurry_combine
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.combine_sub
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.iIndepFun_scaled_increment
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.map_combine_sub
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.comap_combine_le
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.comap_combine_sub_le
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.indep_naturalFiltration_combine_sub
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.indep_combine
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.combineBM
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_combineBM
