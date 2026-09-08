@@ -1285,3 +1285,10 @@ import LevyStochCalc
 -- ===== The pairing with the characters vanishes (A4c-iii-b1-v, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charPairing_of_forall_eq_empty
 #print axioms LevyStochCalc.Poisson.charPairing_eq_zero
+-- ===== The predictable representation property of a Poisson random measure (A4c-iii-b2, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.exists_window_of_finset
+#print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_mul_compensated_eq_zero
+#print axioms LevyStochCalc.Poisson.exists_markedHorizonIntegrand_of_le_aug
+#print axioms LevyStochCalc.Poisson.exists_markedHorizonIntegrand_natural
+#print axioms LevyStochCalc.Poisson.isPoissonFiltration_augFiltration
+#print axioms LevyStochCalc.Poisson.exists_markedHorizonIntegrand_augFiltration

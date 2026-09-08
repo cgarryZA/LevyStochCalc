@@ -492,6 +492,14 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `jacodYor_representation(_axiom)` were deleted. **B5** becomes: after X2, state the
       predictable representation property over the joint filtration of an independent pair
       `(W, N)` (Jacod 1975 / Jacod–Shiryaev III.4.34) and prove it.
+      - [x] *Single-driver halves, 2026-09-08.* Brownian:
+        `Brownian/PRPMultidimAssembly.lean` (`exists_vectorIntegral_augFiltration`). Poisson:
+        `Poisson/PredictableRepresentation.lean` (`exists_markedHorizonIntegrand_of_le_aug`, for
+        any filtration whose horizon σ-algebra sits below the augmented natural one;
+        instantiated for the natural filtration and its `0`-clamped augmentation). The
+        separation input is the window-character totality of `Poisson/WindowFiltration.lean`
+        fed by the Grönwall vanishing of `Poisson/CharacterVanish.lean`. Axiom set: the 3
+        standard. The joint statement is `../Dissertation/WORK_BREAKDOWN.md` A4d.
 
 ## Phase C — Non-vacuity artifact (`GOAL.md` §B)
 
