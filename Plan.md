@@ -334,6 +334,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       bridge to `stochasticIntegralBrownian`, extended to `d` coordinates and to Itô
       processes; the jump part (Applebaum 4.4.10 + 4.4.7 (II)) in-house on
       `Compensated.stochasticIntegral`.
+- [ ] **A5 route notes 2026-09-08** — an external review of the #16 programme was checked and
+      ticketed in `../Dissertation/WORK_BREAKDOWN.md` Epic B (review notes; new leaves `B0a`,
+      the decomposition-based statement `X = X₀ + ∫b + ∫σ dW + ∫γ dÑ` with the SDE form as a
+      corollary, and `B0b`, the `X_{s−}` convention justified by the `L²` class argument rather
+      than the `Ñ ⊗ P`-null claim in `Ito/Setting.lean`). Epic B does not depend on the PRP.
 - [x] **A5-0 / #16 statement audit** — DONE 2026-09-06: added `hu : ContDiff ℝ 2 (uncurry u)`
       and `h_μ_int` (drift integrable on `[0, T]` along the path) to the axiom, its two derived
       theorems and the dissertation forwarder; without them the statement was refutable
@@ -430,8 +435,9 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [x] **A6-0 / #9 statement audit** — RETIRED 2026-09-06 (refutable: arbitrary non-adapted
       `X`; single-driver integrand class); the axiom and the dissertation forwarder Cu01 were
       deleted. **A6** becomes: after X2, state and prove BSDEJ existence/uniqueness over the
-      joint filtration via the Picard chain (Tang–Li 1994 / AGPP 2025); retires the lone
-      `sorry` (`picardFixedPoint_jumpDiffusion_exists_unique_via_aeQuot`).
+      joint filtration via the Picard chain (Tang–Li 1994 / AGPP 2025). The Picard chain's
+      last `sorry` was discharged 2026-09-07 with #12/#14 (`ba5e214`), so A6 is now the BSDEJ
+      existence statement alone.
       **A6-1 statement narrowing done 2026-09-06**: the four theorems of the chain asserted a
       solution for an arbitrary `(W, N)`; since X2-3 that is false for a dependent pair (no
       filtration carries both driver properties — see `tools/cited_axioms.md`, Retired #14,

@@ -14,6 +14,8 @@ import LevyStochCalc.Basic
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Analysis.GronwallIntegral
 import LevyStochCalc.Analysis.GronwallIterate
+import LevyStochCalc.Analysis.DyadicGrid
+import LevyStochCalc.Analysis.FiniteJumpSum
 import LevyStochCalc.Analysis.ScaledTrig
 import LevyStochCalc.Analysis.SortedGrid
 import LevyStochCalc.Probability.AbsMoment
@@ -123,6 +125,7 @@ import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport
 import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Driver.JointCharacters
+import LevyStochCalc.Driver.ProductRule
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
@@ -142,6 +145,7 @@ import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoIncrement
 import LevyStochCalc.Brownian.ItoTrigIncrement
 import LevyStochCalc.Brownian.ItoPullOut
+import LevyStochCalc.Brownian.LeftFreeze
 import LevyStochCalc.Brownian.PRPPairing
 import LevyStochCalc.Brownian.PRPCell
 import LevyStochCalc.Brownian.PRPGrid
@@ -212,7 +216,7 @@ to discharge the four cited continuous-time axioms of the main dissertation
   correcting the previous fabricated "Bouchard-Elie-Touzi 2009 SPA 119(11)"
   citation flagged by red-team 1st audit P11 + 2nd audit P10)
 
-Each layer below targets one axiom (or builds machinery used by the next layer).
-Modules are stubs (`sorry`) at bootstrap; they fill in incrementally per the
-dependency DAG documented in the plan.
+Each layer below targets one cited result (or builds machinery used by the next layer).
+Every module is complete: `tools/sorry_baseline.txt` is empty and the only `axiom`
+declaration is cited axiom #16 (`Ito/JumpFormula.lean`, `tools/cited_axioms.md`).
 -/

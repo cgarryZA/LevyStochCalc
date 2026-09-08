@@ -475,8 +475,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_generic
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_of_exists
--- Ex-Tier-1-axiom #14 chain (axiom→theorem 2026-05-26; wrap-up carries the
--- single explicit baseline `sorry` for the entire Picard chain):
+-- Ex-Tier-1-axiom #14 chain (axiom→theorem 2026-05-26; the Picard chain closes through
+-- `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`, 2026-09-07, with no `sorry`):
 #print axioms LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique
 -- σ-side L² Lipschitz bound (Ito/Picard.lean; depends on
 -- Tier 1 axiom itoIsometry_diff_brownian for stochastic-integral linearity):
@@ -1317,3 +1317,34 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.compensator_mulLeft
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_mul_sq_integral
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_mulLeft
+-- ===== Freezing at the left endpoints of a dyadic grid (A4d-ii-c, 2026-09-08) =====
+#print axioms LevyStochCalc.Analysis.dyadicPartition
+#print axioms LevyStochCalc.Analysis.dyadicPartition_strictMono
+#print axioms LevyStochCalc.Analysis.leftPt
+#print axioms LevyStochCalc.Analysis.leftPt_lt
+#print axioms LevyStochCalc.Analysis.le_leftPt_add
+#print axioms LevyStochCalc.Analysis.tendsto_leftPt
+#print axioms LevyStochCalc.Brownian.Ito.leftFreeze
+#print axioms LevyStochCalc.Brownian.Ito.leftFreeze_adapt
+#print axioms LevyStochCalc.Brownian.Ito.leftFreeze_eval
+#print axioms LevyStochCalc.Brownian.Ito.abs_leftFreeze_eval_le
+#print axioms LevyStochCalc.Brownian.Ito.leftFreeze_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_lintegral_sq_sub_leftFreeze
+-- ===== Sums of finitely many jumps along a dyadic grid (A4d-ii-c, 2026-09-08) =====
+#print axioms LevyStochCalc.Analysis.jumpSum
+#print axioms LevyStochCalc.Analysis.jumpSumStrict
+#print axioms LevyStochCalc.Analysis.jumpSum_sub
+#print axioms LevyStochCalc.Analysis.eventually_jumpSum_leftPt
+#print axioms LevyStochCalc.Analysis.sum_mul_jumpSum_sub
+#print axioms LevyStochCalc.Analysis.tendsto_sum_mul_jumpSum_sub
+#print axioms LevyStochCalc.Analysis.setIntegral_Ioc_of_eq_sum_dirac
+#print axioms LevyStochCalc.Analysis.setIntegral_Ioo_of_eq_sum_dirac
+-- ===== The product rule for a continuous Itô process and a pure-jump process (A4d-ii-d, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.telescope_dyadic
+#print axioms LevyStochCalc.Driver.sum_mul_setIntegral_eq_integral_leftFreeze
+#print axioms LevyStochCalc.Driver.tendsto_integral_leftFreeze_mul
+#print axioms LevyStochCalc.Driver.product_rule_core
+#print axioms LevyStochCalc.Driver.setIntegral_Ioc_eq_jumpSum
+#print axioms LevyStochCalc.Driver.setIntegral_Ioo_eq_jumpSumStrict
+#print axioms LevyStochCalc.Driver.tendsto_eLpNorm_two_of_tendsto_lintegral_sq
+#print axioms LevyStochCalc.Driver.product_rule
