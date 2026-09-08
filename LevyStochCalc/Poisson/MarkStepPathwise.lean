@@ -457,6 +457,24 @@ theorem lintegral_sq_sub_eval_restrictMarks_le (G : MarkStep Ω E ν g) (hA : Me
   rw [← Real.norm_eq_abs, ← Real.norm_eq_abs] at habs
   exact_mod_cast habs
 
+/-- **Restricting the marks moves the compensated integral by at most the energy error.** -/
+theorem lintegral_integral_sub_restrictMarks_le (N : PoissonRandomMeasure P ν)
+    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (hℱ : IsPoissonFiltration N ℱ)
+    (G : MarkStep Ω E ν g) (hG : G.Adapted ℱ) (hA : MeasurableSet A)
+    {φ : Ω → ℝ → E → ℝ} (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0) {t : ℝ} (ht : 0 ≤ t) :
+    ∫⁻ ω, (‖G.integral N t ω - (G.restrictMarks hA).integral N t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) t,
+          (‖φ ω s e - G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν ∂P := by
+  rw [MarkStep.lintegral_integral_sub_sq_at N hℱ G (G.restrictMarks hA) hG
+    (G.restrictMarks_adapted hA hG) ht]
+  refine lintegral_mono fun ω => lintegral_mono fun e => lintegral_mono fun s => ?_
+  refine pow_le_pow_left' (ENNReal.coe_le_coe.mpr ?_) 2
+  by_cases he : e ∈ A
+  · rw [G.eval_restrictMarks_of_mem hA s he ω, sub_self]
+    simp
+  · rw [G.eval_restrictMarks_of_notMem hA s he ω, sub_zero, hsupp ω s e he, zero_sub,
+      nnnorm_neg]
+
 end RestrictMarks
 
 end MarkStep

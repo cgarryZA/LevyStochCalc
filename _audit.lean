@@ -1110,3 +1110,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.eval_restrictMarks_of_notMem
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.abs_sub_eval_restrictMarks_le
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.lintegral_sq_sub_eval_restrictMarks_le
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.lintegral_integral_sub_restrictMarks_le
