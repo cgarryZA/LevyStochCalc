@@ -169,6 +169,50 @@ theorem natural_le_aug_windowSigma (N : PoissonRandomMeasure P ν) (T : ℝ) :
   rw [hunion, hzero, zero_add, ← iUnion_windowTrace (ν := ν) hBm hBT, hmono.measure_iUnion, hY]
   exact iSup_congr fun n => (ENNReal.ofReal_toReal (hne n)).symm
 
+/-- **Characters of the window counts separate on the window σ-algebra.** An integrable weight,
+strongly measurable for the window σ-algebra at `T` and integrating to zero against every
+character of every finite family of window counts, vanishes almost everywhere. -/
+theorem ae_eq_zero_of_integral_char_windowSigma (N : PoissonRandomMeasure P ν) (T : ℝ)
+    {Z : Ω → ℂ} (hZ : Integrable Z P) (hZm : StronglyMeasurable[windowSigma N T] Z)
+    (h : ∀ (F : Finset (WindowSet E ν T)) (w : F → ℝ),
+      ∫ ω, Complex.exp
+          ((∑ D : F, (N.N ω ((D : WindowSet E ν T) : Set (ℝ × E))).toReal * w D : ℝ)
+            * Complex.I) * Z ω ∂P = 0) :
+    Z =ᵐ[P] 0 := by
+  refine Probability.ae_eq_zero_of_integral_char_cylinder_eq_zero
+    (Y := fun D : WindowSet E ν T => fun ω => (N.N ω (D : Set (ℝ × E))).toReal)
+    (fun D => measurable_windowCount N D)
+    ((windowSigma_le_natural N T).trans ((naturalFiltration N).le T)) rfl hZ hZm ?_
+  intro F w
+  refine Eq.trans ?_ (h F w)
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
+  simp [RCLike.inner_apply, mul_comm]
+
+/-- **Characters of the window counts separate on the augmented natural filtration.** An
+integrable weight, almost everywhere strongly measurable for the natural filtration at `T`
+augmented by the null sets, and integrating to zero against every character of every finite
+family of window counts, vanishes almost everywhere. -/
+theorem ae_eq_zero_of_integral_char_window (N : PoissonRandomMeasure P ν) (T : ℝ)
+    {Z : Ω → ℂ} (hZ : Integrable Z P)
+    (hZm : AEStronglyMeasurable[Probability.aug (naturalFiltration N T) ‹MeasurableSpace Ω› P]
+      Z P)
+    (h : ∀ (F : Finset (WindowSet E ν T)) (w : F → ℝ),
+      ∫ ω, Complex.exp
+          ((∑ D : F, (N.N ω ((D : WindowSet E ν T) : Set (ℝ × E))).toReal * w D : ℝ)
+            * Complex.I) * Z ω ∂P = 0) :
+    Z =ᵐ[P] 0 := by
+  obtain ⟨Z₁, hZ₁m, hZZ₁⟩ := hZm
+  have hZ₁m' : StronglyMeasurable[Probability.aug (windowSigma N T) ‹MeasurableSpace Ω› P] Z₁ :=
+    hZ₁m.mono (Probability.aug_le_of_le_aug (natural_le_aug_windowSigma N T))
+  obtain ⟨Y, hYm, hZ₁Y⟩ := Probability.aestronglyMeasurable_of_stronglyMeasurable_aug hZ₁m'
+  have hZY : Z =ᵐ[P] Y := hZZ₁.trans hZ₁Y
+  refine hZY.trans (ae_eq_zero_of_integral_char_windowSigma N T (hZ.congr hZY) hYm ?_)
+  intro F w
+  rw [← h F w]
+  refine integral_congr_ae ?_
+  filter_upwards [hZY] with ω hω
+  rw [hω]
+
 end Window
 
 end LevyStochCalc.Poisson

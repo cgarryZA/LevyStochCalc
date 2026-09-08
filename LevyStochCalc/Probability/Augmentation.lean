@@ -73,6 +73,14 @@ theorem aug_mono {m' : MeasurableSpace Ω} (h : m ≤ m') : aug m m₀ μ ≤ au
   rintro A ⟨hA, B, hB, hAB⟩
   exact ⟨hA, B, h B hB, hAB⟩
 
+/-- A σ-algebra inside an augmentation has its own augmentation inside that augmentation. -/
+theorem aug_le_of_le_aug {m' : MeasurableSpace Ω} (h : m ≤ aug m' m₀ μ) :
+    aug m m₀ μ ≤ aug m' m₀ μ := by
+  rintro A ⟨hA, B, hB, hAB⟩
+  obtain ⟨-, C, hC, hBC⟩ := h B hB
+  exact ⟨hA, C, hC, measure_mono_null (symmDiff_triangle (a := A) (b := B) (c := C))
+    (measure_union_null hAB hBC)⟩
+
 /-- Null sets are augmented-measurable. -/
 theorem measurableSet_aug_of_null {A : Set Ω} (hA : MeasurableSet[m₀] A)
     (h : μ A = 0) : MeasurableSet[aug m m₀ μ] A :=
