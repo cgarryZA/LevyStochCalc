@@ -1423,3 +1423,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.pairing_of_product_rule
 #print axioms LevyStochCalc.Driver.window_inter_Ioc
 #print axioms LevyStochCalc.Driver.hid_cell
+#print axioms LevyStochCalc.Driver.paired_cell_char
