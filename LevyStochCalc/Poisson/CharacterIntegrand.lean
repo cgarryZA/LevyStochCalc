@@ -176,4 +176,49 @@ theorem sq_charIm (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} {A : Set E} (h
 
 end Integrand
 
+section Assembly
+
+variable [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+
+/-- **The character's increment is the integral of the predictable integrand against the random
+measure.** -/
+theorem ae_char_sub_one_eq_setIntegral (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
+    {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) :
+    ∀ᵐ ω ∂P,
+      Complex.exp (Complex.I * (windowSum N (⋃ j, Bfam j) (simpleMark w Bfam) T ω : ℂ)) - 1
+        = ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, charIntegrand N w Bfam A T ω q.1 q.2 ∂(N.N ω) := by
+  classical
+  have hBm' : MeasurableSet (⋃ j, Bfam j) := MeasurableSet.iUnion hBm
+  have hBsub' : (⋃ j, Bfam j) ⊆ Set.Ioc (0 : ℝ) T ×ˢ A := Set.iUnion_subset hBsub
+  have hBfin : referenceIntensity ν (⋃ j, Bfam j) ≠ ⊤ :=
+    ne_top_of_le_ne_top (referenceIntensity_Ioc_prod_ne_top hAν T) (measure_mono hBsub')
+  have hBinter : (⋃ j, Bfam j) ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ = ⋃ j, Bfam j :=
+    Set.inter_eq_self_of_subset_left fun p hp => ⟨(hBsub' hp).1, Set.mem_univ _⟩
+  filter_upwards [ae_exp_windowSum_sub_one N hBm' hBfin (simpleMark w Bfam) T,
+    ae_windowSum_simple N hAν w hBm hBsub] with ω hchain hsim
+  have hpt : Set.EqOn (fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2)
+      ((⋃ j, Bfam j).indicator (fun p : ℝ × E =>
+        Complex.exp (Complex.I *
+            (windowSumStrict N (⋃ j, Bfam j) (simpleMark w Bfam) p.1 ω : ℂ))
+          * (Complex.exp (Complex.I * (simpleMark w Bfam p : ℂ)) - 1)))
+      (Set.Ioc (0 : ℝ) T ×ˢ A) := by
+    intro q hq
+    have hq1 : (0 : ℝ) < q.1 := hq.1.1
+    have hq2 : q.1 ≤ T := hq.1.2
+    have hq3 : q.2 ∈ A := hq.2
+    simp only [charIntegrand]
+    rw [predStrict_eq N w Bfam hq1 hq2 hq3 ω, ← (hsim q.1).2]
+    by_cases hmem : q ∈ ⋃ j, Bfam j
+    · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem]
+      push_cast
+      ring
+    · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
+      simp
+  rw [hchain, setIntegral_congr_fun (measurableSet_Ioc.prod hA) hpt, setIntegral_indicator hBm',
+    Set.inter_eq_self_of_subset_right hBsub', hBinter]
+
+end Assembly
+
 end LevyStochCalc.Poisson

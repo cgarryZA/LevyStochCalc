@@ -1203,3 +1203,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.lintegral_sq_of_bounded
 #print axioms LevyStochCalc.Poisson.sq_charRe
 #print axioms LevyStochCalc.Poisson.sq_charIm
+#print axioms LevyStochCalc.Poisson.ae_char_sub_one_eq_setIntegral
