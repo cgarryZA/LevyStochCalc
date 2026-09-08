@@ -57,17 +57,18 @@ theorem integral_mul_setIntegral_count (hT : 0 < T) {Z : Ω → ℝ} (hZ2 : MemL
     (hGa : ∀ ω s e, s ≤ a → G.toFun ω s e = 0) {Cg : ℝ} (hGb : ∀ ω s e, |G.toFun ω s e| ≤ Cg)
     {X : ℝ → Ω → ℝ} (hXc : ∀ ω, Continuous fun t => X t ω)
     (hXa : ∀ t : ℝ, StronglyMeasurable[ℱ t] (X t)) {C : ℝ} (hC0 : 0 ≤ C)
-    (hXb : ∀ s ω, |X s ω| ≤ C) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) :
-    ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+    (hXb : ∀ s ω, |X s ω| ≤ C) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    {τ : ℝ} (hτT : τ ≤ T) :
+    ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
         X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) ∂P
-      = ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      = ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
           X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν)) ∂P := by
   classical
   have hVm : Measurable V := hVa.measurable.mono (ℱ.le a) le_rfl
-  set F := G.cutMul hXc hXa hC0 hXb hA hAν hGpred with hFdef
+  set F := G.cutMul hXc hXa hC0 hXb hA hAν hGpred τ with hFdef
   have hFa : ∀ ω s e, s ≤ a → F.toFun ω s e = 0 := by
     intro ω s e hs
-    change cutWindow X A T ω s e * G.toFun ω s e = 0
+    change cutWindow X A τ ω s e * G.toFun ω s e = 0
     rw [hGa ω s e hs, mul_zero]
   -- the compensated half pairs to zero
   have hzero : ∫ ω, Z ω * V ω * F.integral N hℱ ω ∂P = 0 := by
@@ -81,7 +82,7 @@ theorem integral_mul_setIntegral_count (hT : 0 < T) {Z : Ω → ℝ} (hZ2 : MemL
     exact hperp _
   -- the pathwise split of the window integral
   have hsplit := MarkedHorizonIntegrand.setIntegral_count_eq_integral_add N hℱ G hXc hXa hC0
-    hXb hA hAν hGpred hT
+    hXb hA hAν hGpred hT hτT
   have hFint : MemLp (F.integral N hℱ) 2 P := MarkedHorizonIntegrand.memLp N hℱ F
   have hIint : Integrable (fun ω => Z ω * V ω * F.integral N hℱ ω) P :=
     integrable_mul_bdd_mul hZ2 hFint hVm hVb
@@ -93,31 +94,31 @@ theorem integral_mul_setIntegral_count (hT : 0 < T) {Z : Ω → ℝ} (hZ2 : MemL
     exact h.comp measurable_swap
   have hjoint : Measurable fun p : Ω × (ℝ × E) => X p.2.1 p.1 * G.toFun p.1 p.2.1 p.2.2 :=
     (hXjoint.comp (measurable_fst.prodMk measurable_snd.fst)).mul G.measurable_uncurry
-  have hWfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤ :=
-    referenceIntensity_Ioc_prod_ne_top hAν T
-  haveI : IsFiniteMeasure ((referenceIntensity ν).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) :=
+  have hWfin : referenceIntensity ν (Set.Ioc (0 : ℝ) τ ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAν τ
+  haveI : IsFiniteMeasure ((referenceIntensity ν).restrict (Set.Ioc (0 : ℝ) τ ×ˢ A)) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact lt_top_iff_ne_top.mpr hWfin⟩
-  have hDm : StronglyMeasurable fun ω => ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+  have hDm : StronglyMeasurable fun ω => ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
       X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν) :=
     hjoint.stronglyMeasurable.integral_prod_right'
-  have hDb : ∀ ω, ‖∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+  have hDb : ∀ ω, ‖∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
       X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν)‖
-      ≤ (C * Cg) * ((referenceIntensity ν) (Set.Ioc (0 : ℝ) T ×ˢ A)).toReal := by
+      ≤ (C * Cg) * ((referenceIntensity ν) (Set.Ioc (0 : ℝ) τ ×ˢ A)).toReal := by
     intro ω
     refine norm_setIntegral_le_of_norm_le_const ?_ fun q _ => ?_
     · exact lt_top_iff_ne_top.mpr hWfin
     · rw [Real.norm_eq_abs, abs_mul]
       exact mul_le_mul (hXb q.1 ω) (hGb ω q.1 q.2) (abs_nonneg _) hC0
-  have hDint : Integrable (fun ω => Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+  have hDint : Integrable (fun ω => Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
       X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν)) P := by
     refine integrable_mul_bdd_mul hZ2 ?_ hVm hVb
     exact MemLp.of_bound hDm.aestronglyMeasurable _
       (Filter.Eventually.of_forall hDb)
   -- assemble
-  have hLHS : ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+  have hLHS : ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
         X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) ∂P
       = ∫ ω, (Z ω * V ω * F.integral N hℱ ω
-          + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+          + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
               X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν)) ∂P := by
     refine integral_congr_ae ?_
     filter_upwards [hsplit] with ω hω
@@ -213,17 +214,17 @@ theorem pairing_of_product_rule {T : ℝ} (hT : 0 < T) {a b : ℝ} (ha : 0 ≤ a
     (hpg : Probability.ProgressivelyMeasurable ℱ fun ω s => K ω s * indIoc Ω a b ω s)
     (hqg : ∀ T', 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖K ω s * indIoc Ω a b ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    {t : ℝ} (ht : 0 < t)
+    {t : ℝ} (ht : 0 < t) (htT : t ≤ T)
     (hid : ∀ᵐ ω ∂P, Xg t ω * Y t ω - Xg 0 ω * Y 0 ω
       = stochasticIntegralBrownian W ℱ hℱW
           (fun ω s => K ω s * indIoc Ω a b ω s) hmg hpg hqg t ω
         + (∫ s in Set.Ioc (0 : ℝ) t, Yminus s ω * bdrift ω s ∂volume)
-        + ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) :
+        + ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A, Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) :
     ∫ ω, Z ω * V ω * (Xg t ω * Y t ω) ∂P
       = ∫ ω, Z ω * V ω * (Xg 0 ω * Y 0 ω) ∂P
         + ∫ ω, Z ω * V ω * (∫ s in Set.Ioc (0 : ℝ) t,
             Yminus s ω * bdrift ω s ∂volume) ∂P
-        + ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+        + ∫ ω, Z ω * V ω * (∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
             Xg q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν)) ∂P := by
   classical
   have hVm : Measurable V := hVa.measurable.mono (ℱ.le a) le_rfl
@@ -255,7 +256,7 @@ theorem pairing_of_product_rule {T : ℝ} (hT : 0 < T) {a b : ℝ} (ha : 0 ≤ a
       rw [Real.norm_eq_abs, abs_mul]
       calc |Xg r ω| * |Y r ω| ≤ C * 1 := mul_le_mul (hXb r ω) (hYb r ω) (abs_nonneg _) hC0
         _ = C := mul_one C
-  have hjumpint : Integrable (fun ω => Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+  have hjumpint : Integrable (fun ω => Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
       Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) P := by
     refine Integrable.congr (((hprod t).sub (hprod 0)).sub (hSIBint.add hDint)) ?_
     filter_upwards [hid] with ω hω
@@ -265,26 +266,26 @@ theorem pairing_of_product_rule {T : ℝ} (hT : 0 < T) {a b : ℝ} (ha : 0 ≤ a
   have hSIBzero := integral_mul_stochasticIntegralBrownian_eq_zero W hℱW ha hab hZ2 hZito hVm
     hMv0 hVb hVa hKm hKp hKb0 hKbd hmg hpg hqg ht
   have hjumpeq := integral_mul_setIntegral_count N hℱN hT hZ2 hZcomp ha haT hVa hVb G hGpred
-    hGa hGb hXc hXa hC0 hXb hA hAν
+    hGa hGb hXc hXa hC0 hXb hA hAν htT
   -- assemble
   have hstep : ∫ ω, Z ω * V ω * (Xg t ω * Y t ω) ∂P
       = ∫ ω, (Z ω * V ω * (Xg 0 ω * Y 0 ω)
           + (Z ω * V ω * stochasticIntegralBrownian W ℱ hℱW
               (fun ω s => K ω s * indIoc Ω a b ω s) hmg hpg hqg t ω
             + (Z ω * V ω * (∫ s in Set.Ioc (0 : ℝ) t, Yminus s ω * bdrift ω s ∂volume)
-              + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+              + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
                   Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)))) ∂P := by
     refine integral_congr_ae ?_
     filter_upwards [hid] with ω hω
     linear_combination (Z ω * V ω) * hω
   have h34 : Integrable (fun ω => Z ω * V ω * (∫ s in Set.Ioc (0 : ℝ) t,
         Yminus s ω * bdrift ω s ∂volume)
-      + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
           Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω)) P := hDint.add hjumpint
   have h234 : Integrable (fun ω => Z ω * V ω * stochasticIntegralBrownian W ℱ hℱW
         (fun ω s => K ω s * indIoc Ω a b ω s) hmg hpg hqg t ω
       + (Z ω * V ω * (∫ s in Set.Ioc (0 : ℝ) t, Yminus s ω * bdrift ω s ∂volume)
-        + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+        + Z ω * V ω * ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
             Xg q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω))) P := hSIBint.add h34
   rw [hstep, integral_add (hprod 0) h234, integral_add hSIBint h34,
     integral_add hDint hjumpint, hSIBzero, hjumpeq]

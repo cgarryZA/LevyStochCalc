@@ -1414,3 +1414,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_count
 #print axioms LevyStochCalc.Driver.integral_mul_stochasticIntegralBrownian_eq_zero
 #print axioms LevyStochCalc.Driver.pairing_of_product_rule
+#print axioms LevyStochCalc.Poisson.Compensated.cutWindow_eq_zero
+#print axioms LevyStochCalc.Poisson.Compensated.setIntegral_eq_of_vanishing

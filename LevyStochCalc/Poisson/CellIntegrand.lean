@@ -31,8 +31,26 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 section Cut
 
 /-- A process cut to a window of the time–mark space. -/
-noncomputable def cutWindow (X : ℝ → Ω → ℝ) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) : ℝ :=
-  (Set.Ioc (0 : ℝ) T ×ˢ A).indicator (fun _ : ℝ × E => X s ω) (s, e)
+noncomputable def cutWindow (X : ℝ → Ω → ℝ) (A : Set E) (τ : ℝ) (ω : Ω) (s : ℝ) (e : E) : ℝ :=
+  (Set.Ioc (0 : ℝ) τ ×ˢ A).indicator (fun _ : ℝ × E => X s ω) (s, e)
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] [IsProbabilityMeasure P] [SigmaFinite ν] in
+theorem cutWindow_eq_zero {X : ℝ → Ω → ℝ} {A : Set E} {τ : ℝ} {s : ℝ} {e : E}
+    (h : ((s, e) : ℝ × E) ∉ Set.Ioc (0 : ℝ) τ ×ˢ A) (ω : Ω) : cutWindow X A τ ω s e = 0 :=
+  Set.indicator_of_notMem h _
+
+omit [MeasurableSpace Ω] [IsProbabilityMeasure P] [SigmaFinite ν] in
+/-- Shrinking the domain of a set integral to where the integrand lives. -/
+theorem setIntegral_eq_of_vanishing {μ : Measure (ℝ × E)} {S S' : Set (ℝ × E)}
+    (hS : MeasurableSet S) (hSS' : S ⊆ S') {f : ℝ × E → ℝ}
+    (hf : ∀ q ∈ S', q ∉ S → f q = 0) (hS'm : MeasurableSet S') :
+    ∫ q in S', f q ∂μ = ∫ q in S, f q ∂μ := by
+  have hcongr : ∫ q in S', f q ∂μ = ∫ q in S', S.indicator f q ∂μ := by
+    refine setIntegral_congr_fun hS'm fun q hq => ?_
+    by_cases hqS : q ∈ S
+    · rw [Set.indicator_of_mem hqS]
+    · rw [Set.indicator_of_notMem hqS, hf q hq hqS]
+  rw [hcongr, setIntegral_indicator hS, Set.inter_eq_right.mpr hSS']
 
 omit [MeasurableSpace Ω] [MeasurableSpace E] [IsProbabilityMeasure P] [SigmaFinite ν] in
 theorem cutWindow_eq {X : ℝ → Ω → ℝ} {A : Set E} {T s : ℝ} (hs : 0 < s) (hsT : s ≤ T) {e : E}
@@ -100,19 +118,19 @@ integrand. -/
 noncomputable def cutMul (G : MarkedHorizonIntegrand P ν ℱ T) {X : ℝ → Ω → ℝ}
     (hXc : ∀ ω, Continuous fun t => X t ω) (hXa : ∀ t : ℝ, StronglyMeasurable[ℱ t] (X t))
     {C : ℝ} (hC0 : 0 ≤ C) (hXb : ∀ s ω, |X s ω| ≤ C) {A : Set E} (hA : MeasurableSet A)
-    (hAν : ν A ≠ ⊤) (hGpred : Probability.MarkedPredictable ℱ ν G.toFun) :
+    (hAν : ν A ≠ ⊤) (hGpred : Probability.MarkedPredictable ℱ ν G.toFun) (τ : ℝ) :
     MarkedHorizonIntegrand P ν ℱ T where
-  toFun := fun ω s e => cutWindow X A T ω s e * G.toFun ω s e
+  toFun := fun ω s e => cutWindow X A τ ω s e * G.toFun ω s e
   measurable_uncurry := by
     have hXjoint : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω) := by
       have h : Measurable (Function.uncurry fun (t : ℝ) (ω : Ω) => X t ω) :=
         measurable_uncurry_of_continuous_of_measurable (fun ω => hXc ω)
           (fun t => ((hXa t).mono (ℱ.le t)).measurable)
       exact h.comp measurable_swap
-    exact (measurable_uncurry_cutWindow hXjoint hA T).mul G.measurable_uncurry
-  progressive := (markedPredictable_cutMul hXc hXa hA hAν hGpred T).markedProgressivelyMeasurable
+    exact (measurable_uncurry_cutWindow hXjoint hA τ).mul G.measurable_uncurry
+  progressive := (markedPredictable_cutMul hXc hXa hA hAν hGpred τ).markedProgressivelyMeasurable
   vanishing := fun ω s e hs => by rw [G.vanishing ω s e hs, mul_zero]
-  energy_ne_top := markedEnergy_bddMul_ne_top (abs_cutWindow_le hC0 hXb A T) G.energy_ne_top
+  energy_ne_top := markedEnergy_bddMul_ne_top (abs_cutWindow_le hC0 hXb A τ) G.energy_ne_top
 
 /-- **The window integral of a continuous adapted factor against the random measure.** For a
 bounded continuous adapted `X` and a predictable admissible integrand `G` carried by the window,
@@ -122,33 +140,43 @@ theorem setIntegral_count_eq_integral_add (N : PoissonRandomMeasure P ν)
     (hℱ : IsPoissonFiltration N ℱ) (G : MarkedHorizonIntegrand P ν ℱ T) {X : ℝ → Ω → ℝ}
     (hXc : ∀ ω, Continuous fun t => X t ω) (hXa : ∀ t : ℝ, StronglyMeasurable[ℱ t] (X t))
     {C : ℝ} (hC0 : 0 ≤ C) (hXb : ∀ s ω, |X s ω| ≤ C) {A : Set E} (hA : MeasurableSet A)
-    (hAν : ν A ≠ ⊤) (hGpred : Probability.MarkedPredictable ℱ ν G.toFun) (hT : 0 < T) :
-    ∀ᵐ ω ∂P, (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω))
-      = (G.cutMul hXc hXa hC0 hXb hA hAν hGpred).integral N hℱ ω
-        + ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+    (hAν : ν A ≠ ⊤) (hGpred : Probability.MarkedPredictable ℱ ν G.toFun) (hT : 0 < T)
+    {τ : ℝ} (hτT : τ ≤ T) :
+    ∀ᵐ ω ∂P, (∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω))
+      = (G.cutMul hXc hXa hC0 hXb hA hAν hGpred τ).integral N hℱ ω
+        + ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
             X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν) := by
-  set F := G.cutMul hXc hXa hC0 hXb hA hAν hGpred with hF
+  set F := G.cutMul hXc hXa hC0 hXb hA hAν hGpred τ with hF
   have hsupp : ∀ (ω : Ω) (s : ℝ) (e : E), e ∉ A → F.toFun ω s e = 0 := by
     intro ω s e he
-    have : cutWindow X A T ω s e = 0 :=
+    have : cutWindow X A τ ω s e = 0 :=
       Set.indicator_of_notMem (fun hmem => he hmem.2) _
-    change cutWindow X A T ω s e * G.toFun ω s e = 0
+    change cutWindow X A τ ω s e * G.toFun ω s e = 0
     rw [this, zero_mul]
   have hpath := stochasticIntegral_ae_eq_pathwise N ℱ hℱ F.toFun F.measurable_uncurry
     F.progressive F.sq_int_global hA
-    (markedPredictable_cutMul hXc hXa hA hAν hGpred T) hAν hsupp hT
+    (markedPredictable_cutMul hXc hXa hA hAν hGpred τ) hAν hsupp hT
   have hWm : MeasurableSet (Set.Ioc (0 : ℝ) T ×ˢ A) := measurableSet_Ioc.prod hA
+  have hSm : MeasurableSet (Set.Ioc (0 : ℝ) τ ×ˢ A) := measurableSet_Ioc.prod hA
+  have hSS : (Set.Ioc (0 : ℝ) τ ×ˢ A : Set (ℝ × E)) ⊆ Set.Ioc (0 : ℝ) T ×ˢ A :=
+    Set.prod_mono (Set.Ioc_subset_Ioc_right hτT) le_rfl
   have hcongr : ∀ (μ : Measure (ℝ × E)) (ω : Ω),
       (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, F.toFun ω q.1 q.2 ∂μ)
-        = ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂μ := by
+        = ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂μ := by
     intro μ ω
-    refine setIntegral_congr_fun hWm fun q hq => ?_
-    change cutWindow X A T ω q.1 q.2 * G.toFun ω q.1 q.2 = _
+    have hshrink : (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, F.toFun ω q.1 q.2 ∂μ)
+        = ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A, F.toFun ω q.1 q.2 ∂μ := by
+      refine setIntegral_eq_of_vanishing hSm hSS (fun q _ hq => ?_) hWm
+      change cutWindow X A τ ω q.1 q.2 * G.toFun ω q.1 q.2 = 0
+      rw [cutWindow_eq_zero (by simpa using hq) ω, zero_mul]
+    rw [hshrink]
+    refine setIntegral_congr_fun hSm fun q hq => ?_
+    change cutWindow X A τ ω q.1 q.2 * G.toFun ω q.1 q.2 = _
     rw [cutWindow_eq hq.1.1 hq.1.2 hq.2]
   filter_upwards [hpath] with ω hω
   have hI : F.integral N hℱ ω
-      = (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω))
-        - ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+      = (∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A, X q.1 ω * G.toFun ω q.1 q.2 ∂(N.N ω))
+        - ∫ q in Set.Ioc (0 : ℝ) τ ×ˢ A,
             X q.1 ω * G.toFun ω q.1 q.2 ∂(referenceIntensity ν) := by
     rw [MarkedHorizonIntegrand.integral, hω, hcongr (N.N ω) ω, hcongr (referenceIntensity ν) ω]
   rw [hI]

@@ -56,6 +56,10 @@ bash tools/verify_import_contract.sh  # dissertation import contract
   `LLM-generated` label on every mathlib PR.
 - **Ponytail:** git is the archive (no in-tree dated copies); one idea per file;
   don't refactor speculatively; prefer the diff that deletes more than it adds.
+- **`lake build`, not `lake env lean <file>`, after a cross-file change.** `lake env lean` on a
+  single file type-checks it against the *existing* oleans of its imports; if you edited an
+  import in the same round it silently checks against the stale one and reports success. Use it
+  only for a self-contained file whose imports are already built.
 
 ## Reference docs
 
