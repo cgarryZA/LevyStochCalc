@@ -1465,3 +1465,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integrableOn_prod_of_time_complex
 #print axioms LevyStochCalc.Driver.cellHalf_identity
 #print axioms LevyStochCalc.Driver.cellPairing_identity
+-- ===== The Gronwall bound for the cell pairing (A4d-ii-e-4-c-3-d, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.norm_cellPairing_le

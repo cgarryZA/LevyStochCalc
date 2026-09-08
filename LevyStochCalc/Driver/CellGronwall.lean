@@ -775,6 +775,120 @@ theorem cellPairing_identity
   rw [hsplit t, hsplit 0, hC, hS, hD, hW]
   ring
 
+include hℱN hℱW in
+/-- **The Grönwall bound for the cell pairing.** The pairing at `t` is bounded by its value at
+the origin plus a constant times the integral of its norm over `(0, t]`. -/
+theorem norm_cellPairing_le
+    (hXbase : IsItoVersion W ℱ hℱW (indIoc Ω a b) hm hp hq (fun _ => 0) (fun _ _ => 0) X)
+    (hX0 : X 0 =ᵐ[P] fun _ => (0 : ℝ)) (ha : 0 ≤ a) (hab : a < b) (l : ℝ)
+    {T : ℝ} (hT : 0 < T) (hbT : b < T) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc a b ×ˢ A) {e₀ : E} (he₀ : e₀ ∈ A)
+    {Z : Ω → ℝ} (hZ2 : MemLp Z 2 P)
+    (hZito : PerpItoIntegrals W ℱ hℱW fun ω => (Z ω : ℂ))
+    (hZcomp : ∀ G' : MarkedHorizonIntegrand P ν ℱ T, ∫ ω, Z ω * G'.integral N hℱN ω ∂P = 0)
+    {V : Ω → ℝ} (hVa : StronglyMeasurable[ℱ a] V) {Mv : ℝ} (hMv0 : 0 ≤ Mv)
+    (hVb : ∀ ω, |V ω| ≤ Mv)
+    {t : ℝ} (ht : 0 < t) (htT : t ≤ T) :
+    ‖cellPairing N w Bfam Z V l X t‖
+      ≤ ‖cellPairing N w Bfam Z V l X 0‖
+        + (l ^ 2 / 2 + 2 * (ν A).toReal)
+          * ∫ s in Set.Ioc (0 : ℝ) t, ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by
+  have hVm : Measurable V := (hVa.mono (ℱ.le a)).measurable
+  have hXm : Measurable (Function.uncurry fun ω s => X s ω) := hXbase.measurable_uncurry
+  have hBsub0 : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) b ×ˢ A := fun j =>
+    (hBsub j).trans (Set.prod_mono (Set.Ioc_subset_Ioc ha le_rfl) le_rfl)
+  have hcm : Measurable fun s : ℝ => ((cellDrift l a b s : ℝ) : ℂ) := by
+    refine Complex.measurable_ofReal.comp ?_
+    exact measurable_const.mul ((measurable_const.indicator measurableSet_Ioc).pow_const 2)
+  have hKt : ∀ h : ℝ → ℝ, Continuous h → (∀ x, |h x| ≤ 1) →
+      IntegrableOn (fun s => cellHalf N w Bfam Z V l X h s) (Set.Ioc (0 : ℝ) t) volume := by
+    intro h hhc hhb
+    exact (integrableOn_cellHalf N hℱN w hBm hA hAν hT hbT hBsub0 he₀ hZ2 hVm hMv0 hVb
+      hhc hhb hXm T).mono_set
+      (Set.Ioc_subset_Icc_self.trans (Set.Icc_subset_Icc le_rfl htT))
+  have hsplit : ∀ s, cellPairing N w Bfam Z V l X s
+      = cellHalf N w Bfam Z V l X Real.cos s
+        + Complex.I * cellHalf N w Bfam Z V l X Real.sin s := fun s =>
+    cellPairing_eq_halves N w hBm hZ2 hVm hVb (hXbase.measurable s)
+  have hUt : IntegrableOn (fun s => cellPairing N w Bfam Z V l X s)
+      (Set.Ioc (0 : ℝ) t) volume := by
+    have hc := hKt Real.cos Real.continuous_cos Real.abs_cos_le_one
+    have hs := hKt Real.sin Real.continuous_sin Real.abs_sin_le_one
+    exact (hc.add (hs.const_mul Complex.I)).congr
+      (Filter.Eventually.of_forall fun s => (hsplit s).symm)
+  have hUn : IntegrableOn (fun s => ‖cellPairing N w Bfam Z V l X s‖)
+      (Set.Ioc (0 : ℝ) t) volume := hUt.norm
+  have hdI : IntegrableOn
+      (fun s => (cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s)
+      (Set.Ioc (0 : ℝ) t) volume :=
+    hUt.bdd_mul (c := l ^ 2 / 2) hcm.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun s => by
+        rw [Complex.norm_real, Real.norm_eq_abs]; exact abs_cellDrift_le l a b s)
+  have hWn : IntegrableOn (fun q : ℝ × E => ‖cellPairing N w Bfam Z V l X q.1‖)
+      (Set.Ioc (0 : ℝ) t ×ˢ A) (referenceIntensity ν) :=
+    integrableOn_prod_of_time (ν := ν) hUn hAν
+  have hWI : IntegrableOn
+      (fun q : ℝ × E => markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1)
+      (Set.Ioc (0 : ℝ) t ×ˢ A) (referenceIntensity ν) :=
+    (integrableOn_prod_of_time_complex hUt hAν).bdd_mul (c := 2)
+      (measurable_markFactor w hBm).aestronglyMeasurable
+      (Filter.Eventually.of_forall fun q => norm_markFactor_le w Bfam q)
+  have hDbound : ‖∫ s in Set.Ioc (0 : ℝ) t,
+        (cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s ∂volume‖
+      ≤ l ^ 2 / 2 * ∫ s in Set.Ioc (0 : ℝ) t,
+          ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by
+    refine le_trans (norm_integral_le_integral_norm _) ?_
+    rw [← MeasureTheory.integral_const_mul]
+    refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun s => norm_nonneg _)
+      (hUn.const_mul _) (Filter.Eventually.of_forall fun s => ?_)
+    show ‖(cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s‖
+        ≤ l ^ 2 / 2 * ‖cellPairing N w Bfam Z V l X s‖
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs]
+    exact mul_le_mul_of_nonneg_right (abs_cellDrift_le l a b s) (norm_nonneg _)
+  have hWbound : ‖∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
+        markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1 ∂(referenceIntensity ν)‖
+      ≤ 2 * (ν A).toReal * ∫ s in Set.Ioc (0 : ℝ) t,
+          ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by
+    refine le_trans (norm_integral_le_integral_norm _) ?_
+    have hstep : ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
+          ‖markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1‖ ∂(referenceIntensity ν)
+        ≤ ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
+          2 * ‖cellPairing N w Bfam Z V l X q.1‖ ∂(referenceIntensity ν) := by
+      refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun q => norm_nonneg _)
+        (hWn.const_mul 2) (Filter.Eventually.of_forall fun q => ?_)
+      show ‖markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1‖
+          ≤ 2 * ‖cellPairing N w Bfam Z V l X q.1‖
+      rw [norm_mul]
+      exact mul_le_mul_of_nonneg_right (norm_markFactor_le w Bfam q) (norm_nonneg _)
+    refine hstep.trans ?_
+    rw [MeasureTheory.integral_const_mul, setIntegral_prod_of_time (ν := ν) hUn hAν, mul_assoc]
+  calc ‖cellPairing N w Bfam Z V l X t‖
+      = ‖cellPairing N w Bfam Z V l X 0
+          + (∫ s in Set.Ioc (0 : ℝ) t,
+              (cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s ∂volume)
+          + ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
+              markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1
+              ∂(referenceIntensity ν)‖ := by
+        rw [← cellPairing_identity N hℱN W hℱW hXbase hX0 ha hab l hT hbT hA hAν w hBm
+          hBsub he₀ hZ2 hZito hZcomp hVa hMv0 hVb ht htT]
+    _ ≤ ‖cellPairing N w Bfam Z V l X 0‖
+          + ‖∫ s in Set.Ioc (0 : ℝ) t,
+              (cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s ∂volume‖
+          + ‖∫ q in Set.Ioc (0 : ℝ) t ×ˢ A,
+              markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1
+              ∂(referenceIntensity ν)‖ := norm_add₃_le
+    _ ≤ ‖cellPairing N w Bfam Z V l X 0‖
+          + l ^ 2 / 2 * (∫ s in Set.Ioc (0 : ℝ) t,
+              ‖cellPairing N w Bfam Z V l X s‖ ∂volume)
+          + 2 * (ν A).toReal * ∫ s in Set.Ioc (0 : ℝ) t,
+              ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by
+        gcongr
+    _ = ‖cellPairing N w Bfam Z V l X 0‖
+          + (l ^ 2 / 2 + 2 * (ν A).toReal)
+            * ∫ s in Set.Ioc (0 : ℝ) t,
+              ‖cellPairing N w Bfam Z V l X s‖ ∂volume := by ring
+
 end Identity
 
 end LevyStochCalc.Driver
