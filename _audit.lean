@@ -1358,3 +1358,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.measurable_trigDriftCell
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_trigDriftCell
 #print axioms LevyStochCalc.Brownian.Ito.isItoVersion_trig
+-- ===== The character of a window family as a pure-jump process (A4d-ii-e-1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charJump
+#print axioms LevyStochCalc.Poisson.norm_charJump_le
+#print axioms LevyStochCalc.Poisson.stronglyMeasurable_charAt
+#print axioms LevyStochCalc.Poisson.ae_forall_charAt_sub
+-- ===== A continuous adapted process is marked predictable on a window (A4d-ii-e-2, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.stepEval
+#print axioms LevyStochCalc.Probability.markedPredictable_stepEval
+#print axioms LevyStochCalc.Probability.stepEval_eq
+#print axioms LevyStochCalc.Probability.stepEvalCut
+#print axioms LevyStochCalc.Probability.markedPredictable_stepEvalCut
+#print axioms LevyStochCalc.Probability.markedPredictable_of_continuous_adapted
