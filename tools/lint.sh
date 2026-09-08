@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Project lint: lake build must succeed + every load-bearing theorem in
-# _audit.lean must be axiom-clean (no NEW sorryAx beyond the baseline).
+# Project lint: `lake build` must succeed, `_audit.lean` must run to completion, and its
+# `#print axioms` transcript must pass tools/audit_check.py — no `: error` line, a report for
+# every audited name, every axiom inside {propext, Classical.choice, Quot.sound} ∪
+# tools/axiom_allowlist.txt, and `sorryAx` only on names in tools/sorry_baseline.txt (the
+# baseline is empty; a new sorry fails). Finally tools/check_docs.sh checks that the pins and
+# counts quoted in the prose match the tree.
 #
-# The baseline is `tools/sorry_baseline.txt` — a list of theorems that are
-# KNOWN to currently depend on sorryAx (work in progress). New sorries
-# (theorems with sorryAx not in the baseline) cause the lint to FAIL.
-# When you prove one of these baseline sorries, REMOVE its name from the
-# baseline file.
+# The transcript check can be replayed on a saved transcript without a build:
+#   python3 tools/audit_check.py audit_output.txt _audit.lean tools/axiom_allowlist.txt \
+#     --sorry-baseline tools/sorry_baseline.txt
 #
-# Run manually:  ./tools/lint.sh
-# Wire into pre-commit:  cp tools/lint.sh .git/hooks/pre-commit
+# A pass certifies the logical trust base of the audited declarations (the kernel axioms they
+# reduce to). It does not certify the mathematical coverage or grounding of their statements.
+#
+# Run manually:  bash tools/lint.sh
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || cd "$(dirname "$0")/.."
@@ -19,90 +23,28 @@ lake build
 
 echo "==> running _audit.lean"
 if [[ ! -f _audit.lean ]]; then
-  echo "FAIL: _audit.lean missing — cannot run axiom audit (red-team finding C9)."
+  echo "FAIL: _audit.lean missing — cannot run the axiom audit."
   exit 1
 fi
-lake env lean _audit.lean > audit_output.txt 2>&1 || true
+set +e
+lake env lean _audit.lean > audit_output.txt 2>&1
+AUDIT_EXIT=$?
+set -e
 if [[ ! -s audit_output.txt ]]; then
-  echo "FAIL: _audit.lean produced empty audit_output.txt — audit did not run."
+  echo "FAIL: _audit.lean produced an empty audit_output.txt — the audit did not run."
   exit 1
 fi
-# Verify the audit actually ran (output contains at least one axiom-set line).
-if ! grep -q "depends on axioms" audit_output.txt; then
-  echo "FAIL: audit_output.txt does not contain '#print axioms' output."
-  echo "      _audit.lean may have failed to elaborate. First 30 lines:"
-  head -30 audit_output.txt | sed 's/^/  /'
-  exit 1
-fi
-
-# Extract theorems whose axiom set contains sorryAx.
-# Force LF line endings (sys.stdout reconfigure) to match the baseline file
-# on Windows hosts where Python defaults to CRLF.
-CURRENT_SORRIES=$(python3 -c "
-import re, sys
-sys.stdout.reconfigure(newline='\n')
-content = open('audit_output.txt').read()
-pattern = re.compile(r\"'([^']+)' depends on axioms: \[([^\]]+)\]\", re.DOTALL)
-seen = set()
-for match in pattern.finditer(content):
-    name = match.group(1)
-    deps = match.group(2)
-    if 'sorryAx' in deps and name not in seen:
-        seen.add(name)
-        print(name)
-" | tr -d '\r' | sort -u)
-
-# Compare against baseline.
-BASELINE_FILE="tools/sorry_baseline.txt"
-if [[ ! -f "$BASELINE_FILE" ]]; then
-  echo "ERROR: missing $BASELINE_FILE — cannot compare against baseline."
-  exit 1
-fi
-BASELINE=$(tr -d '\r' < "$BASELINE_FILE" | sort -u)
-
-# P2 HIGH-2 fix (red-team 2nd audit, 2026-05-23): validate every baseline
-# entry corresponds to a real theorem that _audit.lean reports.  A typo'd
-# entry like `JumpDiffusion.exits_unique` (missing the `s`) would otherwise
-# be silently treated as a "resolved" sorry by the comm -13 below, while
-# the real theorem's still-active sorry would appear as a NEW finding and
-# break the lint.  A motivated saboteur could then swap a real baseline
-# entry for a typo'd one and "fix" the resulting failure by appending the
-# typo to the baseline — at which point the typo accumulates and the
-# unaudited sorry escapes detection.  By verifying baseline entries exist
-# in the audit output we close that escape route.
-INVALID_BASELINE=""
-while IFS= read -r baseline_name; do
-  [[ -z "$baseline_name" ]] && continue
-  if ! grep -qF "'$baseline_name' depends on axioms:" audit_output.txt; then
-    INVALID_BASELINE+="$baseline_name"$'\n'
-  fi
-done <<< "$BASELINE"
-if [[ -n "$INVALID_BASELINE" ]]; then
-  echo "FAIL: baseline entries do not match any theorem in audit_output.txt:"
-  echo "$INVALID_BASELINE" | sed 's/^/  /'
-  echo ""
-  echo "Likely a typo or stale entry. Either fix the spelling or remove from"
-  echo "$BASELINE_FILE."
+if (( AUDIT_EXIT != 0 )); then
+  echo "FAIL: lake env lean _audit.lean exited $AUDIT_EXIT. Error lines:"
+  grep -n ': error' audit_output.txt | head -20 | sed 's/^/  /' || true
   exit 1
 fi
 
-# New sorries = current minus baseline.
-NEW_SORRIES=$(comm -23 <(echo "$CURRENT_SORRIES") <(echo "$BASELINE"))
+echo "==> checking audit_output.txt (errors, coverage, axiom allowlist, sorry baseline)"
+python3 tools/audit_check.py audit_output.txt _audit.lean tools/axiom_allowlist.txt \
+  --sorry-baseline tools/sorry_baseline.txt
 
-if [[ -n "$NEW_SORRIES" ]]; then
-  echo "FAIL: new sorryAx-tainted theorems beyond baseline:"
-  echo "$NEW_SORRIES" | sed 's/^/  /'
-  echo ""
-  echo "If intentional, add them to $BASELINE_FILE."
-  exit 1
-fi
+echo "==> tools/check_docs.sh"
+bash tools/check_docs.sh
 
-# Resolved sorries = baseline minus current. (Informational only.)
-RESOLVED=$(comm -13 <(echo "$CURRENT_SORRIES") <(echo "$BASELINE"))
-if [[ -n "$RESOLVED" ]]; then
-  echo "INFO: theorems in baseline that no longer have sorryAx (good!):"
-  echo "$RESOLVED" | sed 's/^/  /'
-  echo "  -> Remove them from $BASELINE_FILE to tighten the baseline."
-fi
-
-echo "PASS: lake build + audit at or below baseline."
+echo "PASS: lake build, _audit.lean transcript, and documentation pins."

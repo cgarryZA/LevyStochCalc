@@ -1,0 +1,8 @@
+# tools/axiom_allowlist.txt — axioms beyond propext / Classical.choice / Quot.sound that an
+# audited declaration may depend on. One fully-qualified name per line; `#` starts a comment.
+# Read by tools/audit_check.py (from tools/lint.sh and tools/paper_c_status.sh); its entry count
+# is compared by tools/check_docs.sh with the live-axiom count in tools/cited_axioms.md. An entry
+# no audited declaration uses fails the lint: delete it in the commit that discharges the axiom.
+# An entry here records a cited, unproved hypothesis in the trust base; it is not a proof.
+# cited axiom #16 (LevyStochCalc/Ito/JumpFormula.lean), see tools/cited_axioms.md
+LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom
