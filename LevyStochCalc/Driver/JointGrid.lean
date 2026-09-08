@@ -20,7 +20,8 @@ open scoped ENNReal NNReal
 
 namespace LevyStochCalc.Driver
 
-open LevyStochCalc.Poisson LevyStochCalc.Brownian LevyStochCalc.Brownian.Ito
+open LevyStochCalc.Poisson LevyStochCalc.Poisson.Compensated
+open LevyStochCalc.Brownian LevyStochCalc.Brownian.Ito
 
 universe u v
 
@@ -103,6 +104,7 @@ theorem grid_nonneg {τ : ℕ → ℝ} (hτ0 : τ 0 = 0) {n : ℕ} (hτ : ∀ k,
   rw [← hτ0]
   exact grid_le hτ (Nat.zero_le k) hk
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- **The Poisson character factorises over the cells of a grid.** -/
 theorem ae_charAt_eq_prod_cellFam (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
@@ -196,5 +198,97 @@ theorem measurable_jointGridCharacter {W : LevyStochCalc.Brownian.BrownianMotion
   exact hbm.mul hpm
 
 end JointGrid
+
+section Induction
+
+variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+  (N : PoissonRandomMeasure P ν) (hℱN : IsPoissonFiltration N ℱ)
+  (W : LevyStochCalc.Brownian.BrownianMotion P) (hℱW : IsBrownianFiltration W ℱ)
+
+include hℱN hℱW in
+/-- **The joint grid induction.** A real square-integrable weight of mean zero, orthogonal to
+every Itô integral and every compensated integral, is orthogonal to the joint character of the
+Brownian increments and the Poisson counts along any grid. -/
+theorem pairing_jointGridCharacter_eq_zero
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
+    {T : ℝ} (hT : 0 < T) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) {e₀ : E} (he₀ : e₀ ∈ A)
+    {Z : Ω → ℝ} (hZ2 : MemLp Z 2 P)
+    (hZito : PerpItoIntegrals W ℱ hℱW fun ω => (Z ω : ℂ))
+    (hZcomp : ∀ G' : MarkedHorizonIntegrand P ν ℱ T, ∫ ω, Z ω * G'.integral N hℱN ω ∂P = 0)
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (lam : ℕ → ℝ) :
+    ∀ n : ℕ, (∀ k, k < n → τ k < τ (k + 1)) → τ n < T →
+      ∫ ω, ((Z ω : ℝ) : ℂ) * jointGridCharacter W N τ lam w Bfam n ω ∂P = 0 := by
+  intro n
+  induction n with
+  | zero =>
+      intro _ _
+      have h1 : ∀ ω : Ω, ((Z ω : ℝ) : ℂ) * jointGridCharacter W N τ lam w Bfam 0 ω
+          = ((Z ω : ℝ) : ℂ) := by
+        intro ω; rw [jointGridCharacter]; simp
+      simp_rw [h1]
+      rw [show ∫ ω, ((Z ω : ℝ) : ℂ) ∂P = ((∫ ω, Z ω ∂P : ℝ) : ℂ) from integral_ofReal, hZ0]
+      simp
+  | succ n ih =>
+      intro hlt hTn
+      have hlt' : ∀ k, k < n → τ k < τ (k + 1) := fun k hk => hlt k (Nat.lt_succ_of_lt hk)
+      have hle' : ∀ k, k < n → τ k ≤ τ (k + 1) := fun k hk => (hlt' k hk).le
+      have hcell : τ n < τ (n + 1) := hlt n (Nat.lt_succ_self n)
+      have hτn0 : 0 ≤ τ n := grid_nonneg hτ0 hle' (le_refl n)
+      have hmeas := measurable_jointGridCharacter hℱW N hℱN hle' lam w hBm
+      have hstep := pairing_cell_joint_eq_zero N hℱN W hℱW hℱ0 hnull hτn0 hcell (lam n)
+        hT hTn hA hAν w (measurableSet_cellFam hBm τ n)
+        (cellFam_subset hBsub τ n) he₀ hZ2 hZito hZcomp
+        (V := jointGridCharacter W N τ lam w Bfam n) hmeas.stronglyMeasurable
+        (Mv := 1) zero_le_one
+        (fun ω => le_of_eq (norm_jointGridCharacter W N τ lam w Bfam n ω))
+        (ih hlt' (lt_trans hcell hTn))
+      have hrw : ∀ ω : Ω, ((Z ω : ℝ) : ℂ) * jointGridCharacter W N τ lam w Bfam (n + 1) ω
+          = ((Z ω : ℝ) : ℂ) * jointGridCharacter W N τ lam w Bfam n ω
+            * (Complex.exp (Complex.I
+                * ((lam n * (W.W (τ (n + 1)) ω - W.W (τ n) ω) : ℝ) : ℂ))
+              * charAt N w (cellFam Bfam τ n) (τ (n + 1)) ω) := by
+        intro ω
+        rw [jointGridCharacter, jointGridCharacter, Finset.prod_range_succ]
+        ring
+      simpa only [hrw] using hstep
+
+include hℱN hℱW in
+/-- **Value characters along a joint grid.** The weight is orthogonal to the product of a
+character of the values of `W` at the grid points and the Poisson character at the last one. -/
+theorem pairing_joint_value_character_eq_zero
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {τ : ℕ → ℝ} (hτ0 : τ 0 = 0)
+    {T : ℝ} (hT : 0 < T) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) {e₀ : E} (he₀ : e₀ ∈ A)
+    {Z : Ω → ℝ} (hZ2 : MemLp Z 2 P)
+    (hZito : PerpItoIntegrals W ℱ hℱW fun ω => (Z ω : ℂ))
+    (hZcomp : ∀ G' : MarkedHorizonIntegrand P ν ℱ T, ∫ ω, Z ω * G'.integral N hℱN ω ∂P = 0)
+    (hZ0 : ∫ ω, Z ω ∂P = 0) (c : ℕ → ℝ) (n : ℕ)
+    (hlt : ∀ k, k < n → τ k < τ (k + 1)) (hTn : τ n < T) :
+    ∫ ω, ((Z ω : ℝ) : ℂ)
+        * (Complex.exp (Complex.I
+            * ((∑ k ∈ Finset.Ico 1 (n + 1), c k * W.W (τ k) ω : ℝ) : ℂ))
+          * charAt N w Bfam (τ n) ω) ∂P = 0 := by
+  have hle' : ∀ k, k < n → τ k ≤ τ (k + 1) := fun k hk => (hlt k hk).le
+  have hkey := pairing_jointGridCharacter_eq_zero N hℱN W hℱW hℱ0 hnull hτ0 hT hA hAν w hBm
+    hBsub he₀ hZ2 hZito hZcomp hZ0
+    (fun k => ∑ j ∈ Finset.Ico (k + 1) (n + 1), c j) n hlt hTn
+  refine Eq.trans (integral_congr_ae ?_) hkey
+  filter_upwards [W.initial_zero,
+    ae_charAt_eq_prod_cellFam N w hBm hA hAν hBsub hτ0 hle'] with ω h0 hprod
+  have heq : (∑ k ∈ Finset.Ico 1 (n + 1), c k * W.W (τ k) ω)
+      = ∑ k ∈ Finset.range n, (∑ j ∈ Finset.Ico (k + 1) (n + 1), c j)
+          * (W.W (τ (k + 1)) ω - W.W (τ k) ω) :=
+    (sum_tail_mul_sub c (Wv := fun k => W.W (τ k) ω) (by rw [hτ0]; exact h0) n).symm
+  rw [heq, hprod, jointGridCharacter, Finset.prod_mul_distrib, ← Complex.exp_sum,
+    Complex.ofReal_sum, Finset.mul_sum]
+
+end Induction
 
 end LevyStochCalc.Driver

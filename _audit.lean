@@ -1490,3 +1490,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.jointGridCharacter
 #print axioms LevyStochCalc.Driver.norm_jointGridCharacter
 #print axioms LevyStochCalc.Driver.measurable_jointGridCharacter
+-- ===== The joint grid induction (A4d-iii-c, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.pairing_jointGridCharacter_eq_zero
+#print axioms LevyStochCalc.Driver.pairing_joint_value_character_eq_zero
