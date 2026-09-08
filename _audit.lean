@@ -1189,3 +1189,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.predStrict
 #print axioms LevyStochCalc.Poisson.markedPredictable_predStrict
 #print axioms LevyStochCalc.Poisson.predStrict_eq
+-- ===== The predictable character integrand (A4c-ii-c1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.charIntegrand
+#print axioms LevyStochCalc.Poisson.charRe
+#print axioms LevyStochCalc.Poisson.charIm
+#print axioms LevyStochCalc.Poisson.markedPredictable_charIntegrand
+#print axioms LevyStochCalc.Poisson.markedPredictable_charRe
+#print axioms LevyStochCalc.Poisson.markedPredictable_charIm
+#print axioms LevyStochCalc.Poisson.charIntegrand_eq_zero
+#print axioms LevyStochCalc.Poisson.norm_charIntegrand_le
+#print axioms LevyStochCalc.Poisson.charRe_eq_zero
+#print axioms LevyStochCalc.Poisson.charIm_eq_zero
+#print axioms LevyStochCalc.Poisson.lintegral_sq_of_bounded
+#print axioms LevyStochCalc.Poisson.sq_charRe
+#print axioms LevyStochCalc.Poisson.sq_charIm
