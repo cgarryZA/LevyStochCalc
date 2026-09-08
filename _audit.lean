@@ -1500,3 +1500,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration_aug
 #print axioms LevyStochCalc.Driver.LevyDriver.augFiltration_le_of_nonpos
 #print axioms LevyStochCalc.Driver.LevyDriver.measurableSet_augFiltration_of_null
+-- ===== The multidimensional joint cell lemma (A4d-iv-b-1, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.pairing_cell_multidim_joint_eq_zero
