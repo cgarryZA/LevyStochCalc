@@ -872,3 +872,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.isClosed_itoRange
 #print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.aestronglyMeasurable
 #print axioms LevyStochCalc.Brownian.Ito.exists_horizonIntegrand_of_mean_zero
+-- ===== Driver increments against the right-continuous filtration (A2b, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration_rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_increment_rightCont
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_count_rightCont
+-- ===== Second-order Taylor on a normed space (B1b-1, 2026-09-08) =====
+#print axioms LevyStochCalc.abs_sub_taylor_two_le_normed
+-- ===== Stopping a progressively measurable process (B1d-1, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.stopped
+#print axioms LevyStochCalc.Probability.abs_stopped_le
+#print axioms LevyStochCalc.Probability.stoppedRegion
+#print axioms LevyStochCalc.Probability.mem_stoppedRegion
+#print axioms LevyStochCalc.Probability.measurableSet_stoppedRegion
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.stopped

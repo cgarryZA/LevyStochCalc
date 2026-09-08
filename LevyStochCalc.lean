@@ -22,6 +22,7 @@ import LevyStochCalc.Probability.IndepJoin
 import LevyStochCalc.Probability.ComapTuple
 import LevyStochCalc.Probability.TrivialSigma
 import LevyStochCalc.Probability.Progressive
+import LevyStochCalc.Probability.StoppedProgressive
 import LevyStochCalc.Probability.ProgressiveCadlag
 import LevyStochCalc.Probability.Predictable
 import LevyStochCalc.Probability.CharTotal
@@ -88,6 +89,7 @@ import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport
 import LevyStochCalc.Driver.Joint
+import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
@@ -128,6 +130,7 @@ import LevyStochCalc.Brownian.ItoTimeRiemann
 import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo
+import LevyStochCalc.Brownian.TaylorTwoVector
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 
