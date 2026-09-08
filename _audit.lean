@@ -812,3 +812,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.ae_forall_eq_zero_of_nonpos
 #print axioms LevyStochCalc.Brownian.Ito.pairing_char_cylinder_eq_zero
 #print axioms LevyStochCalc.Brownian.Ito.ae_eq_zero_of_perpItoIntegrals
+-- ===== Measurability for a sub-sigma-algebra and its augmentation (A4b-iii-5d, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.convSet
+#print axioms LevyStochCalc.Probability.mem_convSet
+#print axioms LevyStochCalc.Probability.limitOn
+#print axioms LevyStochCalc.Probability.tendsto_indicator_limitOn
+#print axioms LevyStochCalc.Probability.stronglyMeasurable_limitOn
+#print axioms LevyStochCalc.Probability.aestronglyMeasurable_of_tendsto_ae_sub
+#print axioms LevyStochCalc.Probability.aestronglyMeasurable_indicator_aug
+#print axioms LevyStochCalc.Probability.aestronglyMeasurable_simpleFunc_aug
+#print axioms LevyStochCalc.Probability.aestronglyMeasurable_of_stronglyMeasurable_aug
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_zero_of_perpItoIntegrals_augFiltration

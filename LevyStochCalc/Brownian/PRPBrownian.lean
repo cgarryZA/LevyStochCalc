@@ -5,6 +5,8 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.PRPMultidim
 import LevyStochCalc.Brownian.CylinderCharacters
+import LevyStochCalc.Brownian.AugmentedFiltration
+import LevyStochCalc.Probability.AugmentationMeasurable
 import LevyStochCalc.Analysis.SortedGrid
 
 /-!
@@ -89,5 +91,41 @@ theorem ae_eq_zero_of_perpItoIntegrals (W : Multidim.MultidimBrownianMotion P d)
   Multidim.MultidimBrownianMotion.ae_eq_zero_of_integral_char_cylinder W T
     (hZ2.integrable (by norm_num)) hZT
     fun F w => pairing_char_cylinder_eq_zero W ℱ hℱi hℱB hℱ0 hnull hZm hZ2 hperp hZ0 F w
+
+/-- **The orthogonal complement over the augmented natural filtration.** For the natural
+filtration of a multidimensional Brownian motion augmented by the `P`-null sets, a
+square-integrable weight of mean zero, strongly measurable at a time `T ≥ 0` and orthogonal to
+every coordinate's Itô integrals, vanishes almost everywhere. -/
+theorem ae_eq_zero_of_perpItoIntegrals_augFiltration (W : Multidim.MultidimBrownianMotion P d)
+    {Z : Ω → ℂ} (hZ2 : MemLp Z 2 P)
+    (hperp : ∀ i, PerpItoIntegrals (W.W i) (augFiltration W.naturalFiltration P)
+      (isBrownianFiltration_augFiltration (W.isBrownianFiltration_natural i)) Z)
+    (hZ0 : ∫ ω, Z ω ∂P = 0) {T : ℝ} (hT : 0 ≤ T)
+    (hZT : StronglyMeasurable[augFiltration W.naturalFiltration P T] Z) :
+    Z =ᵐ[P] 0 := by
+  have hfeq : (augFiltration W.naturalFiltration P) T
+      = Probability.aug (W.naturalFiltration T) ‹MeasurableSpace Ω› P := by
+    change Probability.aug (W.naturalFiltration (max T 0)) ‹MeasurableSpace Ω› P = _
+    rw [max_eq_left hT]
+  rw [hfeq] at hZT
+  obtain ⟨Y, hYm, hYae⟩ := Probability.aestronglyMeasurable_of_stronglyMeasurable_aug hZT
+  have hYmeas : Measurable Y := (hYm.mono (W.naturalFiltration.le T)).measurable
+  have hY2 : MemLp Y 2 P := hZ2.ae_eq hYae
+  have hY0 : ∫ ω, Y ω ∂P = 0 := by rw [← integral_congr_ae hYae]; exact hZ0
+  have hYperp : ∀ i, PerpItoIntegrals (W.W i) (augFiltration W.naturalFiltration P)
+      (isBrownianFiltration_augFiltration (W.isBrownianFiltration_natural i)) Y := by
+    intro i
+    constructor
+    intro K hm hp hq t ht
+    refine Eq.trans (integral_congr_ae ?_) ((hperp i).perp K hm hp hq t ht)
+    filter_upwards [hYae] with ω hω
+    rw [hω]
+  refine Filter.EventuallyEq.trans hYae ?_
+  refine ae_eq_zero_of_perpItoIntegrals W (augFiltration W.naturalFiltration P)
+    (fun i => isBrownianFiltration_augFiltration (W.isBrownianFiltration_natural i))
+    (fun hc => isBrownianFiltration_augFiltration (W.isBrownianFiltration_combineBM hc))
+    (fun t ht => le_of_eq (augFiltration_of_nonpos W.naturalFiltration P ht).symm)
+    (fun s hs h0 => measurableSet_augFiltration_of_null W.naturalFiltration P hs h0)
+    hYmeas hY2 hYperp hY0 (T := T) hYm
 
 end LevyStochCalc.Brownian.Ito
