@@ -1163,3 +1163,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.measurableSet_univ_prod_window
 #print axioms LevyStochCalc.Probability.markedPredictable_of_measurable_window
 #print axioms LevyStochCalc.Probability.markedPredictable_rectIndicator
+-- ===== The strictly-past count is predictable (A4c-ii-c1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.dyadicLeft
+#print axioms LevyStochCalc.Poisson.one_le_ceil_mul_pow
+#print axioms LevyStochCalc.Poisson.cast_ceil_pred
+#print axioms LevyStochCalc.Poisson.dyadicLeft_lt
+#print axioms LevyStochCalc.Poisson.sub_le_dyadicLeft
+#print axioms LevyStochCalc.Poisson.dyadicLeft_le_succ
+#print axioms LevyStochCalc.Poisson.dyadicLeft_mono
+#print axioms LevyStochCalc.Poisson.iUnion_Ioc_dyadicLeft
+#print axioms LevyStochCalc.Poisson.mem_timeSlab_dyadic
+#print axioms LevyStochCalc.Poisson.cast_ceil_pred_div
+#print axioms LevyStochCalc.Poisson.stepCount
+#print axioms LevyStochCalc.Poisson.strictCount
+#print axioms LevyStochCalc.Poisson.markedPredictable_stepCount
+#print axioms LevyStochCalc.Poisson.markedPredictable_strictCount
+#print axioms LevyStochCalc.Poisson.stepCount_eq
+#print axioms LevyStochCalc.Poisson.strictCount_eq

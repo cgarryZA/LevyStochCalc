@@ -187,8 +187,9 @@ theorem markedPredictable_of_measurable_window {T : ℝ} {A : Set E} (hA : Measu
 
 /-- **The indicator of a predictable rectangle, with a coefficient known at the left endpoint of
 its time interval, is predictable.** -/
-theorem markedPredictable_rectIndicator {r q : ℝ} (hr : 0 ≤ r) {A : Set E}
-    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {c : Ω → ℝ} (hc : Measurable[ℱ r] c) :
+theorem markedPredictable_rectIndicator {F : Type w} [MeasurableSpace F] [Zero F] {r q : ℝ}
+    (hr : 0 ≤ r) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {c : Ω → F}
+    (hc : Measurable[ℱ r] c) :
     MarkedPredictable ℱ ν fun (ω : Ω) (s : ℝ) (e : E) =>
       (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c ω) (s, e) := by
   intro U hU
@@ -201,7 +202,7 @@ theorem markedPredictable_rectIndicator {r q : ℝ} (hr : 0 ≤ r) {A : Set E}
     MeasurableSpace.measurableSet_generateFrom ⟨r, q, _, _, hr, MeasurableSet.univ, hA, hAν, rfl⟩
   show MeasurableSet[markedPredictableSigma ℱ ν]
     ((fun p : Ω × ℝ × E => (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U)
-  by_cases h0 : (0 : ℝ) ∈ U
+  by_cases h0 : (0 : F) ∈ U
   · have hset : (fun p : Ω × ℝ × E =>
         (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U
         = ((c ⁻¹' U) ×ˢ (Set.Ioc r q ×ˢ A))
