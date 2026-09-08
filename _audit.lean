@@ -944,3 +944,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.inner_toLp_eq_integral_mul
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_mul_eq_zero_of_tendsto_eLpNorm
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_stochasticIntegral_mul_eq_zero
+-- ===== The closed range of the multidim Ito integral (A4b-iii-8, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isClosed_iSup_of_orthogonalFamily
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.orthogonalFamily_itoRange
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isClosed_iSup_itoRange
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.vectorIntegral
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.memLp_vectorIntegral
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_vectorIntegral_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.aestronglyMeasurable_vectorIntegral
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_vectorIntegral_of_mean_zero
