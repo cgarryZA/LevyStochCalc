@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.SimpleCharacter
+import LevyStochCalc.Poisson.PathwiseIdentity
 
 /-!
 # The predictable integrand of the jump chain rule
@@ -218,6 +219,109 @@ theorem ae_char_sub_one_eq_setIntegral (N : PoissonRandomMeasure P ν) (w : ι �
       simp
   rw [hchain, setIntegral_congr_fun (measurableSet_Ioc.prod hA) hpt, setIntegral_indicator hBm',
     Set.inter_eq_self_of_subset_right hBsub', hBinter]
+
+
+variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+
+theorem measurable_charRe (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) :
+    Measurable fun p : Ω × ℝ × E => charRe N w Bfam A T p.1 p.2.1 p.2.2 :=
+  (markedPredictable_charRe N hℱ w hBm hA hAν hBsub).mono
+    (Probability.markedPredictableSigma_le ℱ ν) le_rfl
+
+theorem measurable_charIm (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) :
+    Measurable fun p : Ω × ℝ × E => charIm N w Bfam A T p.1 p.2.1 p.2.2 :=
+  (markedPredictable_charIm N hℱ w hBm hA hAν hBsub).mono
+    (Probability.markedPredictableSigma_le ℱ ν) le_rfl
+
+/-- The complex integral splits into its real and imaginary parts. -/
+theorem setIntegral_complex_split {μ : Measure (ℝ × E)} {g : ℝ × E → ℂ} {W : Set (ℝ × E)}
+    (hg : IntegrableOn g W μ) :
+    ∫ q in W, g q ∂μ
+      = ((∫ q in W, (g q).re ∂μ : ℝ) : ℂ) + ((∫ q in W, (g q).im ∂μ : ℝ) : ℂ) * Complex.I := by
+  have h1 : ∫ q in W, (g q).re ∂μ = (∫ q in W, g q ∂μ).re := integral_re hg
+  have h2 : ∫ q in W, (g q).im ∂μ = (∫ q in W, g q ∂μ).im := integral_im hg
+  rw [h1, h2, Complex.re_add_im]
+
+/-- The chain rule's integrand is integrable over the window against any finite measure. -/
+theorem integrableOn_charIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
+    (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
+    (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) (ω : Ω) {μ : Measure (ℝ × E)}
+    [IsFiniteMeasure (μ.restrict (Set.Ioc (0 : ℝ) T ×ˢ A))] :
+    IntegrableOn (fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2)
+      (Set.Ioc (0 : ℝ) T ×ˢ A) μ := by
+  have hm : Measurable fun q : ℝ × E => charIntegrand N w Bfam A T ω q.1 q.2 :=
+    ((markedPredictable_charIntegrand N hℱ w hBm hA hAν hBsub).mono
+      (Probability.markedPredictableSigma_le ℱ ν) le_rfl).comp measurable_prodMk_left
+  refine Integrable.mono' (integrable_const (2 : ℝ)) hm.aestronglyMeasurable ?_
+  exact Filter.Eventually.of_forall fun q => norm_charIntegrand_le N w Bfam A T ω q.1 q.2
+
+
+theorem charIntegrand_re (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
+    (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
+    (charIntegrand N w Bfam A T ω s e).re = charRe N w Bfam A T ω s e := rfl
+
+theorem charIntegrand_im (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
+    (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
+    (charIntegrand N w Bfam A T ω s e).im = charIm N w Bfam A T ω s e := rfl
+
+/-- **The character's increment splits into a compensated integral and its compensator.** -/
+theorem ae_char_sub_one_eq_compensated (N : PoissonRandomMeasure P ν)
+    (hℱ : IsPoissonFiltration N ℱ) (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
+    (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    {T : ℝ} (hT : 0 < T) (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) :
+    ∀ᵐ ω ∂P,
+      Complex.exp (Complex.I * (windowSum N (⋃ j, Bfam j) (simpleMark w Bfam) T ω : ℂ)) - 1
+        = ((Compensated.process N ℱ hℱ (charRe N w Bfam A T)
+              (measurable_charRe N hℱ w hBm hA hAν hBsub)
+              (markedPredictable_charRe N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
+              (fun T' _ => sq_charRe N w hA hAν hBsub T') T ω : ℝ) : ℂ)
+          + ((Compensated.process N ℱ hℱ (charIm N w Bfam A T)
+              (measurable_charIm N hℱ w hBm hA hAν hBsub)
+              (markedPredictable_charIm N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
+              (fun T' _ => sq_charIm N w hA hAν hBsub T') T ω : ℝ) : ℂ) * Complex.I
+          + ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+              charIntegrand N w Bfam A T ω q.1 q.2 ∂(referenceIntensity ν) := by
+  have hWfin : referenceIntensity ν (Set.Ioc (0 : ℝ) T ×ˢ A) ≠ ⊤ :=
+    referenceIntensity_Ioc_prod_ne_top hAν T
+  haveI : IsFiniteMeasure ((referenceIntensity ν).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) := by
+    refine ⟨?_⟩
+    rw [Measure.restrict_apply_univ]
+    exact lt_top_iff_ne_top.mpr hWfin
+  have hpRe := Compensated.process_ae_eq_pathwise N ℱ hℱ (charRe N w Bfam A T)
+    (measurable_charRe N hℱ w hBm hA hAν hBsub)
+    (markedPredictable_charRe N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
+    (fun T' _ => sq_charRe N w hA hAν hBsub T') hA
+    (markedPredictable_charRe N hℱ w hBm hA hAν hBsub) hAν
+    (fun ω s e he => charRe_eq_zero N w hBsub ω fun hm => he hm.2) hT
+  have hpIm := Compensated.process_ae_eq_pathwise N ℱ hℱ (charIm N w Bfam A T)
+    (measurable_charIm N hℱ w hBm hA hAν hBsub)
+    (markedPredictable_charIm N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
+    (fun T' _ => sq_charIm N w hA hAν hBsub T') hA
+    (markedPredictable_charIm N hℱ w hBm hA hAν hBsub) hAν
+    (fun ω s e he => charIm_eq_zero N w hBsub ω fun hm => he hm.2) hT
+  filter_upwards [ae_char_sub_one_eq_setIntegral N w hBm hA hAν hBsub, hpRe, hpIm,
+    N.integer_valued (measurableSet_Ioc.prod hA) hWfin] with ω hchain hRe hIm hcount
+  haveI : IsFiniteMeasure ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) := by
+    obtain ⟨m, hm⟩ := hcount
+    refine ⟨?_⟩
+    rw [Measure.restrict_apply_univ, hm]
+    exact ENNReal.natCast_lt_top m
+  rw [hchain,
+    setIntegral_complex_split (integrableOn_charIntegrand N hℱ w hBm hA hAν hBsub ω
+      (μ := N.N ω)),
+    setIntegral_complex_split (integrableOn_charIntegrand N hℱ w hBm hA hAν hBsub ω
+      (μ := referenceIntensity ν))]
+  simp only [charIntegrand_re, charIntegrand_im]
+  rw [hRe, hIm]
+  push_cast
+  ring
 
 end Assembly
 

@@ -1204,3 +1204,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.sq_charRe
 #print axioms LevyStochCalc.Poisson.sq_charIm
 #print axioms LevyStochCalc.Poisson.ae_char_sub_one_eq_setIntegral
+#print axioms LevyStochCalc.Poisson.measurable_charRe
+#print axioms LevyStochCalc.Poisson.measurable_charIm
+#print axioms LevyStochCalc.Poisson.setIntegral_complex_split
+#print axioms LevyStochCalc.Poisson.integrableOn_charIntegrand
+#print axioms LevyStochCalc.Poisson.charIntegrand_re
+#print axioms LevyStochCalc.Poisson.charIntegrand_im
+#print axioms LevyStochCalc.Poisson.ae_char_sub_one_eq_compensated
