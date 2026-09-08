@@ -974,3 +974,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.PastSet
 #print axioms LevyStochCalc.Poisson.naturalFiltration_eq_iSup_comap
 #print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_cylinder
+-- ===== Completeness of the marked integrands (A4c-iii-a1, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergyMeasure
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy_eq_eLpNorm_sq
+#print axioms LevyStochCalc.Poisson.Compensated.memLp_of_markedEnergy_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.markedEnergy_le_of_vanishing
+#print axioms LevyStochCalc.Poisson.Compensated.exists_markedEnergy_limit
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_limsup
+#print axioms LevyStochCalc.Poisson.Compensated.limsupMarkedIntegrand
+#print axioms LevyStochCalc.Poisson.Compensated.exists_marked_progressive_energy_limit
