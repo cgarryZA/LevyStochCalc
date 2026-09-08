@@ -755,3 +755,11 @@ import LevyStochCalc
 -- ===== One window of the Brownian PRP (A4b-iii, 2026-09-07) =====
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_zero
 #print axioms LevyStochCalc.Brownian.Ito.pairing_cell_eq_zero
+-- ===== The PRP over a grid (A4b-iii-2, A4b-iii-3, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.gridCharacter
+#print axioms LevyStochCalc.Brownian.Ito.norm_gridCharacter
+#print axioms LevyStochCalc.Brownian.Ito.measurable_gridCharacter
+#print axioms LevyStochCalc.Brownian.Ito.pairing_gridCharacter_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.gridCharacter_eq_exp
+#print axioms LevyStochCalc.Brownian.Ito.sum_tail_mul_sub
+#print axioms LevyStochCalc.Brownian.Ito.pairing_value_character_eq_zero
