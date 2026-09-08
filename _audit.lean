@@ -1162,3 +1162,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.measurableSet_univ_prod_timeInter
 #print axioms LevyStochCalc.Probability.measurableSet_univ_prod_window
 #print axioms LevyStochCalc.Probability.markedPredictable_of_measurable_window
+#print axioms LevyStochCalc.Probability.markedPredictable_rectIndicator

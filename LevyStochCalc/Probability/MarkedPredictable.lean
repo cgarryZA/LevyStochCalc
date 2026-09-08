@@ -184,6 +184,72 @@ theorem markedPredictable_of_measurable_window {T : ℝ} {A : Set E} (hA : Measu
     rw [hset]
     exact hcut
 
+
+/-- **The indicator of a predictable rectangle, with a coefficient known at the left endpoint of
+its time interval, is predictable.** -/
+theorem markedPredictable_rectIndicator {r q : ℝ} (hr : 0 ≤ r) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {c : Ω → ℝ} (hc : Measurable[ℱ r] c) :
+    MarkedPredictable ℱ ν fun (ω : Ω) (s : ℝ) (e : E) =>
+      (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c ω) (s, e) := by
+  intro U hU
+  have hcU : MeasurableSet[ℱ r] (c ⁻¹' U) := hc hU
+  have hbig : MeasurableSet[markedPredictableSigma ℱ ν]
+      ((c ⁻¹' U) ×ˢ (Set.Ioc r q ×ˢ A)) :=
+    MeasurableSpace.measurableSet_generateFrom ⟨r, q, _, _, hr, hcU, hA, hAν, rfl⟩
+  have huniv : MeasurableSet[markedPredictableSigma ℱ ν]
+      ((Set.univ : Set Ω) ×ˢ (Set.Ioc r q ×ˢ A)) :=
+    MeasurableSpace.measurableSet_generateFrom ⟨r, q, _, _, hr, MeasurableSet.univ, hA, hAν, rfl⟩
+  show MeasurableSet[markedPredictableSigma ℱ ν]
+    ((fun p : Ω × ℝ × E => (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U)
+  by_cases h0 : (0 : ℝ) ∈ U
+  · have hset : (fun p : Ω × ℝ × E =>
+        (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U
+        = ((c ⁻¹' U) ×ˢ (Set.Ioc r q ×ˢ A))
+          ∪ ((Set.univ : Set Ω) ×ˢ (Set.Ioc r q ×ˢ A))ᶜ := by
+      ext p
+      by_cases hp : p.2 ∈ Set.Ioc r q ×ˢ A
+      · have hL := Set.indicator_of_mem hp fun _ : ℝ × E => c p.1
+        constructor
+        · intro hmem
+          rw [Set.mem_preimage, hL] at hmem
+          exact Or.inl ⟨hmem, hp⟩
+        · rintro (hmem | hmem)
+          · rw [Set.mem_preimage, hL]
+            exact hmem.1
+          · exact absurd (⟨Set.mem_univ p.1, hp⟩ : p ∈ (Set.univ : Set Ω) ×ˢ
+              (Set.Ioc r q ×ˢ A)) hmem
+      · have hL := Set.indicator_of_notMem hp fun _ : ℝ × E => c p.1
+        constructor
+        · intro _
+          exact Or.inr fun hmem => hp hmem.2
+        · intro _
+          rw [Set.mem_preimage, hL]
+          exact h0
+    rw [hset]
+    exact hbig.union huniv.compl
+  · have hset : (fun p : Ω × ℝ × E =>
+        (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U
+        = (c ⁻¹' U) ×ˢ (Set.Ioc r q ×ˢ A) := by
+      ext p
+      by_cases hp : p.2 ∈ Set.Ioc r q ×ˢ A
+      · have hL := Set.indicator_of_mem hp fun _ : ℝ × E => c p.1
+        constructor
+        · intro hmem
+          rw [Set.mem_preimage, hL] at hmem
+          exact ⟨hmem, hp⟩
+        · intro hmem
+          rw [Set.mem_preimage, hL]
+          exact hmem.1
+      · have hL := Set.indicator_of_notMem hp fun _ : ℝ × E => c p.1
+        constructor
+        · intro hmem
+          rw [Set.mem_preimage, hL] at hmem
+          exact absurd hmem h0
+        · intro hmem
+          exact absurd hmem.2 hp
+    rw [hset]
+    exact hbig
+
 end Deterministic
 
 section Progressive
