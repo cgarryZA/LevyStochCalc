@@ -136,6 +136,7 @@ import LevyStochCalc.Driver.CellIdentity
 import LevyStochCalc.Driver.CellFubini
 import LevyStochCalc.Driver.CellGronwall
 import LevyStochCalc.Driver.CellComplex
+import LevyStochCalc.Driver.JointGrid
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement

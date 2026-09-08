@@ -1479,3 +1479,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_re_im_eq_zero
 #print axioms LevyStochCalc.Driver.cellPairingC_eq_zero
 #print axioms LevyStochCalc.Driver.pairing_cell_joint_eq_zero
+-- ===== The joint character of a grid of cells (A4d-iii-b, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.cellFam
+#print axioms LevyStochCalc.Driver.measurableSet_cellFam
+#print axioms LevyStochCalc.Driver.cellFam_subset
+#print axioms LevyStochCalc.Driver.cellFam_inter_Ioc
+#print axioms LevyStochCalc.Driver.count_inter_Ioc_sum
+#print axioms LevyStochCalc.Driver.grid_nonneg
+#print axioms LevyStochCalc.Driver.ae_charAt_eq_prod_cellFam
+#print axioms LevyStochCalc.Driver.jointGridCharacter
+#print axioms LevyStochCalc.Driver.norm_jointGridCharacter
+#print axioms LevyStochCalc.Driver.measurable_jointGridCharacter
