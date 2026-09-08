@@ -1136,3 +1136,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.tendsto_lintegral_restrictedStage_sub_pathwise
 #print axioms LevyStochCalc.Poisson.Compensated.process_ae_eq_pathwise
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_pathwise
+-- ===== Time-simplicity on a finite-intensity set (A4c-ii-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.poissonMeasure_two_le_le
+#print axioms LevyStochCalc.Poisson.measure_two_le_count_le
+#print axioms LevyStochCalc.Poisson.timeSlab
+#print axioms LevyStochCalc.Poisson.measurableSet_timeSlab
+#print axioms LevyStochCalc.Poisson.volume_timeSlab
+#print axioms LevyStochCalc.Poisson.pairwiseDisjoint_timeSlab
+#print axioms LevyStochCalc.Poisson.iUnion_timeSlab
+#print axioms LevyStochCalc.Poisson.exists_iSup_setLIntegral_timeSlab_le
+#print axioms LevyStochCalc.Poisson.sectionDensity
+#print axioms LevyStochCalc.Poisson.measurable_sectionDensity
+#print axioms LevyStochCalc.Poisson.referenceIntensity_inter_time
+#print axioms LevyStochCalc.Poisson.lintegral_sectionDensity
+#print axioms LevyStochCalc.Poisson.ae_exists_forall_count_timeSlab_le_one
+#print axioms LevyStochCalc.Poisson.ae_count_time_singleton_le_one
