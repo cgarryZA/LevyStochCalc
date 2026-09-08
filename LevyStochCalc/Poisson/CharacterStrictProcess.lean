@@ -121,6 +121,92 @@ theorem charStrictPred_eq (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
       rw [charStrictPred, hmin, predStrict_eq N w Bfam hTpos le_rfl he₀ ω, charStrict]
       simp_rw [hsame]
 
+theorem norm_charStrictPred (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (e₀ : E) (s : ℝ)
+    (ω : Ω) : ‖charStrictPred N w Bfam A T e₀ s ω‖ = 1 := by
+  rw [charStrictPred, Complex.norm_exp_I_mul_ofReal]
+
+theorem abs_charStrictPred_re_le (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (e₀ : E) (s : ℝ)
+    (ω : Ω) : |(charStrictPred N w Bfam A T e₀ s ω).re| ≤ 1 := by
+  have := Complex.abs_re_le_norm (charStrictPred N w Bfam A T e₀ s ω)
+  rwa [norm_charStrictPred N w Bfam A T e₀ s ω] at this
+
+theorem abs_charStrictPred_im_le (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (e₀ : E) (s : ℝ)
+    (ω : Ω) : |(charStrictPred N w Bfam A T e₀ s ω).im| ≤ 1 := by
+  have := Complex.abs_im_le_norm (charStrictPred N w Bfam A T e₀ s ω)
+  rwa [norm_charStrictPred N w Bfam A T e₀ s ω] at this
+
+variable (hℱ : IsPoissonFiltration N ℱ) (hBm : ∀ j, MeasurableSet (Bfam j))
+  (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+
+include hℱ hBm hA hAν in
+/-- The predictable representative of the strict-past character is jointly measurable. -/
+theorem measurable_uncurry_charStrictPred (T : ℝ) (e₀ : E) :
+    Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+      charStrictPred N w Bfam A T e₀ s ω) := by
+  have hpm : Measurable fun p : Ω × ℝ × E => predStrict N w Bfam A T p.1 p.2.1 p.2.2 :=
+    (markedPredictable_predStrict N hℱ w hBm hA hAν T).mono
+      (Probability.markedPredictableSigma_le ℱ ν) le_rfl
+  have hg : Measurable fun p : Ω × ℝ => (p.1, (min p.2 T, e₀)) :=
+    measurable_fst.prodMk ((measurable_snd.min measurable_const).prodMk measurable_const)
+  have hf := hpm.comp hg
+  exact Complex.measurable_exp.comp (measurable_const.mul (Complex.measurable_ofReal.comp hf))
+
+omit [IsProbabilityMeasure P] [SigmaFinite ν] [Fintype ι] in
+theorem exp_I_mul_ofReal_re (x : ℝ) : (Complex.exp (Complex.I * (x : ℂ))).re = Real.cos x := by
+  rw [mul_comm, Complex.exp_ofReal_mul_I_re]
+
+omit [IsProbabilityMeasure P] [SigmaFinite ν] [Fintype ι] in
+theorem exp_I_mul_ofReal_im (x : ℝ) : (Complex.exp (Complex.I * (x : ℂ))).im = Real.sin x := by
+  rw [mul_comm, Complex.exp_ofReal_mul_I_im]
+
+omit [IsProbabilityMeasure P] [SigmaFinite ν] [Fintype ι] in
+/-- A constant process is progressively measurable. -/
+theorem progressivelyMeasurable_const' (c : ℝ) :
+    Probability.ProgressivelyMeasurable ℱ fun (_ : Ω) (_ : ℝ) => c :=
+  Probability.ProgressivelyMeasurable.of_isStronglyProgressive
+    (MeasureTheory.StronglyAdapted.isStronglyProgressive_of_continuous
+      (fun _ => stronglyMeasurable_const) fun _ => continuous_const)
+
+include hℱ hBm hA hAν in
+/-- The predictable representative of the strict-past character is progressively measurable. -/
+theorem progressivelyMeasurable_charStrictPred_re (T : ℝ) (e₀ : E) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      (charStrictPred N w Bfam A T e₀ s ω).re := by
+  have hbase : Probability.MarkedProgressivelyMeasurable ℱ (predStrict N w Bfam A T) :=
+    (markedPredictable_predStrict N hℱ w hBm hA hAν T).markedProgressivelyMeasurable
+  have hcont : Continuous fun x : ℝ => Real.cos x - 1 :=
+    Real.continuous_cos.sub continuous_const
+  have hmp : Probability.MarkedProgressivelyMeasurable ℱ fun ω s e =>
+      Real.cos (predStrict N w Bfam A T ω s e) - 1 :=
+    Continuous.comp_markedProgressivelyMeasurable (g := fun x : ℝ => Real.cos x - 1) hcont
+      (by simp) hbase
+  have hsub := progressivelyMeasurable_comp_min (progressivelyMeasurable_eval_mark hmp e₀) T
+  have hsum := (progressivelyMeasurable_const' (ℱ := ℱ) (Ω := Ω) 1).add hsub
+  have heq : (fun ω s => (1 : ℝ) + (Real.cos (predStrict N w Bfam A T ω (min s T) e₀) - 1))
+      = fun ω s => (charStrictPred N w Bfam A T e₀ s ω).re := by
+    funext ω s
+    rw [charStrictPred, exp_I_mul_ofReal_re]
+    ring
+  rwa [heq] at hsum
+
+include hℱ hBm hA hAν in
+/-- The imaginary part of the predictable representative is progressively measurable. -/
+theorem progressivelyMeasurable_charStrictPred_im (T : ℝ) (e₀ : E) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      (charStrictPred N w Bfam A T e₀ s ω).im := by
+  have hbase : Probability.MarkedProgressivelyMeasurable ℱ (predStrict N w Bfam A T) :=
+    (markedPredictable_predStrict N hℱ w hBm hA hAν T).markedProgressivelyMeasurable
+  have hmp : Probability.MarkedProgressivelyMeasurable ℱ fun ω s e =>
+      Real.sin (predStrict N w Bfam A T ω s e) :=
+    Continuous.comp_markedProgressivelyMeasurable (g := Real.sin) Real.continuous_sin
+      (by simp) hbase
+  have hsub := progressivelyMeasurable_comp_min (progressivelyMeasurable_eval_mark hmp e₀) T
+  have heq : (fun ω s => Real.sin (predStrict N w Bfam A T ω (min s T) e₀))
+      = fun ω s => (charStrictPred N w Bfam A T e₀ s ω).im := by
+    funext ω s
+    rw [charStrictPred, exp_I_mul_ofReal_im]
+  rwa [heq] at hsub
+
 end Clamped
 
 end LevyStochCalc.Poisson

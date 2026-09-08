@@ -1400,3 +1400,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charStrictPred
 #print axioms LevyStochCalc.Poisson.predStrict_of_nonpos
 #print axioms LevyStochCalc.Poisson.charStrictPred_eq
+#print axioms LevyStochCalc.Poisson.norm_charStrictPred
+#print axioms LevyStochCalc.Poisson.abs_charStrictPred_re_le
+#print axioms LevyStochCalc.Poisson.abs_charStrictPred_im_le
+#print axioms LevyStochCalc.Poisson.measurable_uncurry_charStrictPred
+#print axioms LevyStochCalc.Poisson.exp_I_mul_ofReal_re
+#print axioms LevyStochCalc.Poisson.exp_I_mul_ofReal_im
+#print axioms LevyStochCalc.Poisson.progressivelyMeasurable_const'
+#print axioms LevyStochCalc.Poisson.progressivelyMeasurable_charStrictPred_re
+#print axioms LevyStochCalc.Poisson.progressivelyMeasurable_charStrictPred_im
