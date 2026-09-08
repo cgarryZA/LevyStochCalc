@@ -1394,3 +1394,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.abs_charStrict_im_le
 #print axioms LevyStochCalc.Poisson.ae_forall_charAt_re_im_sub
 #print axioms LevyStochCalc.Poisson.ae_forall_charStrict_re_im_sub
+-- ===== The strict-past character as a progressive process (A4d-ii-e-4-a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.progressivelyMeasurable_eval_mark
+#print axioms LevyStochCalc.Poisson.progressivelyMeasurable_comp_min
+#print axioms LevyStochCalc.Poisson.charStrictPred
+#print axioms LevyStochCalc.Poisson.predStrict_of_nonpos
+#print axioms LevyStochCalc.Poisson.charStrictPred_eq
