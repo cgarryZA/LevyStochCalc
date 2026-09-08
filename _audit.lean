@@ -763,3 +763,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.gridCharacter_eq_exp
 #print axioms LevyStochCalc.Brownian.Ito.sum_tail_mul_sub
 #print axioms LevyStochCalc.Brownian.Ito.pairing_value_character_eq_zero
+-- ===== Independence of two joins from blockwise independence (A4b-iii-4a, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.indepSets_piiUnionInter_of_blocks
+#print axioms LevyStochCalc.Probability.indep_iSup_of_indep_blocks

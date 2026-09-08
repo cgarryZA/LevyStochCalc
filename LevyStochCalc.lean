@@ -27,6 +27,7 @@ import LevyStochCalc.Probability.CharTotal
 import LevyStochCalc.Probability.SetIntegralPiSystem
 import LevyStochCalc.Probability.CharCylinder
 import LevyStochCalc.Probability.PairingFubini
+import LevyStochCalc.Probability.IndepBlocks
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
