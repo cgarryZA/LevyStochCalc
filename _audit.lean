@@ -1048,3 +1048,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.jumpTimes
 #print axioms LevyStochCalc.Poisson.ae_exists_finset_integral_eq_sum
 #print axioms LevyStochCalc.Poisson.ae_exists_finset_integral_eq_sum_Ioc
+-- ===== The pathwise elementary compensated integral (B2b-3a, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.measurableSet_fullRect
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.referenceIntensity_fullRect_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.timeRect_horizon
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.markSet
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.measurableSet_markSet
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.measure_markSet_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.fullRect_subset
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.eval_eq_zero_of_notMem
+#print axioms LevyStochCalc.Poisson.Compensated.SimplePredictable.integral_eval_eq_sum
+#print axioms LevyStochCalc.Poisson.Compensated.simpleIntegral_eq_sub_integral
+#print axioms LevyStochCalc.Poisson.Compensated.ae_count_fullRect_ne_top
+#print axioms LevyStochCalc.Poisson.Compensated.ae_simpleIntegral_eq_sub_integral
+#print axioms LevyStochCalc.Poisson.Compensated.ae_exists_finset_simpleIntegral_eq
