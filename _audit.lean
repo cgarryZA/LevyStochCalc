@@ -1292,3 +1292,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.exists_markedHorizonIntegrand_natural
 #print axioms LevyStochCalc.Poisson.isPoissonFiltration_augFiltration
 #print axioms LevyStochCalc.Poisson.exists_markedHorizonIntegrand_augFiltration
+-- ===== Product characters of a Lévy driver separate (A4d-i, 2026-09-08) =====
+#print axioms LevyStochCalc.Driver.extendZero
+#print axioms LevyStochCalc.Driver.extendZero_coe
+#print axioms LevyStochCalc.Driver.Finset.sum_toLeft_add_sum_toRight
+#print axioms LevyStochCalc.Driver.LevyDriver.jointFamily
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_jointFamily
+#print axioms LevyStochCalc.Driver.LevyDriver.jointWindowSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.jointWindowSigma_eq_iSup_comap
+#print axioms LevyStochCalc.Driver.LevyDriver.jointWindowSigma_le
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_le_aug_jointWindowSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.sum_jointFamily_eq
+#print axioms LevyStochCalc.Driver.LevyDriver.ae_eq_zero_of_integral_char_jointWindowSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.ae_eq_zero_of_integral_char_joint

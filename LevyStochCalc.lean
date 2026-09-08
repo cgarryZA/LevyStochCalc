@@ -121,6 +121,7 @@ import LevyStochCalc.Brownian.Multidim
 import LevyStochCalc.Brownian.Transport
 import LevyStochCalc.Poisson.Transport
 import LevyStochCalc.Driver.Joint
+import LevyStochCalc.Driver.JointCharacters
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
