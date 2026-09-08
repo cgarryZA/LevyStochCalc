@@ -1413,3 +1413,4 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integrable_mul_bdd_mul
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_count
 #print axioms LevyStochCalc.Driver.integral_mul_stochasticIntegralBrownian_eq_zero
+#print axioms LevyStochCalc.Driver.pairing_of_product_rule
