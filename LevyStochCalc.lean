@@ -103,6 +103,7 @@ import LevyStochCalc.Poisson.CompensatedQuadVar
 import LevyStochCalc.Poisson.CompensatedProcessQuadVar
 import LevyStochCalc.Poisson.CompensatedDiff
 import LevyStochCalc.Poisson.Compensated
+import LevyStochCalc.Poisson.PerpBridge
 
 -- Layer 0.5: martingale path regularity (càdlàg modifications)
 import LevyStochCalc.Martingale.RightCont

@@ -256,6 +256,21 @@ theorem indicator_mark (h : MarkedProgressivelyMeasurable ℱ φ) {S : Set E}
   rw [this]
   exact (h t).indicator (measurable_snd.snd hS)
 
+/-- Restricting the times to a measurable set preserves progressive measurability. -/
+theorem indicator_time (h : MarkedProgressivelyMeasurable ℱ φ) {S : Set ℝ}
+    (hS : MeasurableSet S) :
+    MarkedProgressivelyMeasurable ℱ fun ω s e => S.indicator (fun _ => φ ω s e) s := by
+  intro t
+  letI : MeasurableSpace Ω := ℱ t
+  have hrw : (fun p : Ω × ℝ × E =>
+        (Set.Iic t).indicator (fun s => S.indicator (fun _ => φ p.1 s p.2.2) s) p.2.1)
+      = {p : Ω × ℝ × E | p.2.1 ∈ S}.indicator
+        (fun p => (Set.Iic t).indicator (fun s => φ p.1 s p.2.2) p.2.1) := by
+    funext p
+    by_cases ht : p.2.1 ∈ Set.Iic t <;> by_cases hp : p.2.1 ∈ S <;> simp [ht, hp]
+  rw [hrw]
+  exact (h t).indicator (measurable_snd.fst hS)
+
 end MarkedProgressivelyMeasurable
 
 end Marked

@@ -1435,7 +1435,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.ae_exp_predStrict_eq_charAt
 #print axioms LevyStochCalc.Poisson.ae_charStrictPred_eq_charAt
 #print axioms LevyStochCalc.Poisson.integral_mul_charIntegrand
-#print axioms LevyStochCalc.Driver.integral_mul_setIntegral_swap
+#print axioms LevyStochCalc.Probability.integral_mul_setIntegral_swap
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_drift
 #print axioms LevyStochCalc.Driver.integral_mul_setIntegral_jump
 #print axioms LevyStochCalc.Driver.integral_mul_trigDriftCell
@@ -1511,3 +1511,10 @@ import LevyStochCalc
 -- ===== Grids over a superset of the cylinder times (A4d-iv-b-3-a, 2026-09-08) =====
 #print axioms LevyStochCalc.Analysis.sum_weight_eq_sum_grid
 #print axioms LevyStochCalc.Analysis.le_sortedGrid_card
+-- ===== The marked perp bridge (A4d-iv-b-3-a2, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.MarkedProgressivelyMeasurable.indicator_time
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_congr
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.clip
+#print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_clip
+#print axioms LevyStochCalc.Poisson.Compensated.integral_mul_increment_eq_zero
+#print axioms LevyStochCalc.Poisson.Compensated.integral_mul_integral_eq_zero
