@@ -850,3 +850,25 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_energy_limit
 #print axioms LevyStochCalc.Brownian.Ito.limsupIntegrand
 #print axioms LevyStochCalc.Brownian.Ito.exists_progressive_energy_limit
+-- ===== The closed range of the Ito integral and the representation (A4b-iii-6c/6d, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_const
+#print axioms LevyStochCalc.Brownian.Ito.energy_ne_top_of_bound
+#print axioms LevyStochCalc.Brownian.Ito.energy_add_ne_top
+#print axioms LevyStochCalc.Brownian.Ito.energy_const_mul_ne_top
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.sq_int_global
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.integral
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.zero
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.add
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.smul
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.memLp
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.lintegral_sq_integral_sub
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.integral_zero
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.integral_add
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.integral_smul
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.integral_mean_zero
+#print axioms LevyStochCalc.Brownian.Ito.itoRange
+#print axioms LevyStochCalc.Brownian.Ito.energy_eq_edist_sq
+#print axioms LevyStochCalc.Brownian.Ito.isClosed_itoRange
+#print axioms LevyStochCalc.Brownian.Ito.HorizonIntegrand.aestronglyMeasurable
+#print axioms LevyStochCalc.Brownian.Ito.exists_horizonIntegrand_of_mean_zero

@@ -101,6 +101,7 @@ import LevyStochCalc.Brownian.SimplePredictableRefine
 import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.ItoLinear
 import LevyStochCalc.Brownian.ItoIntegrandComplete
+import LevyStochCalc.Brownian.ItoRange
 import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoIncrement
 import LevyStochCalc.Brownian.ItoTrigIncrement
