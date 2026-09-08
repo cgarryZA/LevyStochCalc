@@ -908,6 +908,7 @@ import LevyStochCalc
 -- ===== Finite activity on a mark set of finite intensity (B2b-1a, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod
 #print axioms LevyStochCalc.Poisson.exists_nat_count_Ioc
+#print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod_ne_top
 #print axioms LevyStochCalc.Poisson.count_Ioc_ne_top
 -- ===== Exit times of a continuous adapted process (B1d-3, 2026-09-08) =====
 #print axioms LevyStochCalc.Probability.exitSet
@@ -1019,3 +1020,24 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.isClosed_compensatedRange
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.aestronglyMeasurable
 #print axioms LevyStochCalc.Poisson.Compensated.exists_markedHorizonIntegrand_of_mean_zero
+-- ===== Integer-valued finite measures (B2b-1b-i/ii, 2026-09-08) =====
+#print axioms LevyStochCalc.Probability.IsIntegerValued
+#print axioms LevyStochCalc.Probability.isIntegerValued_of_isPiSystem
+#print axioms LevyStochCalc.Probability.finInters
+#print axioms LevyStochCalc.Probability.mem_finInters_iff
+#print axioms LevyStochCalc.Probability.countable_finInters
+#print axioms LevyStochCalc.Probability.isPiSystem_finInters
+#print axioms LevyStochCalc.Probability.measurableSet_of_mem_finInters
+#print axioms LevyStochCalc.Probability.generateFrom_finInters
+#print axioms LevyStochCalc.Probability.exists_one_le_measure_singleton
+#print axioms LevyStochCalc.Probability.exists_finset_ae_mem
+#print axioms LevyStochCalc.Probability.exists_eq_sum_dirac
+-- ===== Atomicity on a finite-activity window (B2b-1b-iii, 2026-09-08) =====
+#print axioms LevyStochCalc.Poisson.markPiSystem
+#print axioms LevyStochCalc.Poisson.generateFrom_markPiSystem
+#print axioms LevyStochCalc.Poisson.isPiSystem_markPiSystem
+#print axioms LevyStochCalc.Poisson.ae_isIntegerValued_restrict
+#print axioms LevyStochCalc.Poisson.ae_exists_eq_sum_dirac
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_support
+#print axioms LevyStochCalc.Poisson.ae_exists_eq_sum_dirac_Ioc
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_support_Ioc

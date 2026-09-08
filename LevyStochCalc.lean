@@ -21,6 +21,7 @@ import LevyStochCalc.Probability.IndepLimit
 import LevyStochCalc.Probability.IndepJoin
 import LevyStochCalc.Probability.ComapTuple
 import LevyStochCalc.Probability.TrivialSigma
+import LevyStochCalc.Probability.IntegerValuedMeasure
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.StoppedProgressive
 import LevyStochCalc.Probability.ExitTime
@@ -52,6 +53,7 @@ import LevyStochCalc.Poisson.RegionIndependence
 import LevyStochCalc.Poisson.RandomMeasure
 import LevyStochCalc.Poisson.Restrict
 import LevyStochCalc.Poisson.FiniteActivity
+import LevyStochCalc.Poisson.Atomic
 import LevyStochCalc.Poisson.Filtered
 import LevyStochCalc.Poisson.IndependentScattering
 import LevyStochCalc.Poisson.MathFinBridge
