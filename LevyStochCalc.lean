@@ -139,6 +139,7 @@ import LevyStochCalc.Brownian.TaylorTwoTime
 import LevyStochCalc.Brownian.TaylorTwoModulus
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
+import LevyStochCalc.Brownian.CrossOrthogonality
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting

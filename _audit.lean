@@ -927,3 +927,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.isStoppingTime_exitTime
 #print axioms LevyStochCalc.Probability.exitTime_mono
 #print axioms LevyStochCalc.Probability.exists_lt_exitTime
+-- ===== Orthogonality across Brownian coordinates (A4b-iii-7, 2026-09-08) =====
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossFiltration
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossFiltration_apply
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_crossFiltration
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.naturalFiltration_le_crossFiltration
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.measurable_increment_crossFiltration
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_cross_increment_eq_zero_of_le
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_cross_increment_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.min_eq_or_lt_min
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integrable_increment_sq
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integrable_cross_term
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integrable_and_integral_cross_clamped
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_simpleIntegral_mul_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.memLp_simpleIntegral
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.inner_toLp_eq_integral_mul
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_mul_eq_zero_of_tendsto_eLpNorm
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_stochasticIntegral_mul_eq_zero
