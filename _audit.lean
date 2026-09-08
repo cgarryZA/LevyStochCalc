@@ -1211,7 +1211,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.charIntegrand_re
 #print axioms LevyStochCalc.Poisson.charIntegrand_im
 #print axioms LevyStochCalc.Poisson.ae_char_sub_one_eq_compensated
--- ===== The finite-intensity generating family (A4c-ii-d, 2026-09-08) =====
+-- ===== Window sets and the window sigma-algebra (A4c-ii-d scaffolding) =====
 #print axioms LevyStochCalc.Poisson.WindowSet
 #print axioms LevyStochCalc.Poisson.WindowSet.measurableSet
 #print axioms LevyStochCalc.Poisson.WindowSet.subset_Iic
@@ -1220,8 +1220,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.measurable_windowCount
 #print axioms LevyStochCalc.Poisson.windowSigma_le_natural
 #print axioms LevyStochCalc.Poisson.comap_le_aug_of_ae_eq
-#print axioms LevyStochCalc.Poisson.natural_le_aug_windowSigma
-#print axioms LevyStochCalc.Poisson.ae_eq_zero_of_integral_char_window
 -- ===== The character integrand as a horizon integrand (A4c-iii-b, 2026-09-08) =====
 #print axioms LevyStochCalc.Poisson.charReIntegrand
 #print axioms LevyStochCalc.Poisson.charImIntegrand
