@@ -1681,3 +1681,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_window_norm_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_window_sq_norm_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
+-- ===== The vector martingale Riemann sum (B1b-5, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_sq_frozen_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_sq_martingaleRiemann_sub_le
