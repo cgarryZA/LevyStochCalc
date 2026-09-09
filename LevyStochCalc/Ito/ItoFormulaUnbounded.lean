@@ -756,6 +756,141 @@ theorem tendsto_energy_coordDeriv_diff
   · rw [MeasureTheory.lintegral_const_mul' _ _ (by simp : ENNReal.ofReal (c ^ 2) ≠ ⊤)]
     exact (ENNReal.mul_lt_top ENNReal.ofReal_lt_top hqG).ne
 
+omit [IsProbabilityMeasure P] in
+/-- Additivity of the window energy. -/
+theorem lintegral_window_add {f g : Ω → ℝ → ℝ≥0∞}
+    (hf : Measurable (Function.uncurry f)) (hg : Measurable (Function.uncurry g)) (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (f ω s + g ω s) ∂volume ∂P
+      = (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume ∂P)
+        + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, g ω s ∂volume ∂P := by
+  have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (f ω s + g ω s) ∂volume
+      = (∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume)
+        + ∫⁻ s in Set.Icc (0 : ℝ) T, g ω s ∂volume :=
+    fun ω => MeasureTheory.lintegral_add_left (Measurable.of_uncurry_left hf) _
+  simp_rw [hinner]
+  exact MeasureTheory.lintegral_add_left hf.lintegral_prod_right' _
+
+omit [IsProbabilityMeasure P] in
+/-- Constants come out of the window energy. -/
+theorem lintegral_window_const_mul {f : Ω → ℝ → ℝ≥0∞}
+    (hf : Measurable (Function.uncurry f)) {c : ℝ≥0∞} (hc : c ≠ ⊤) (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, c * f ω s ∂volume ∂P
+      = c * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume ∂P := by
+  have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T, c * f ω s ∂volume
+      = c * ∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume :=
+    fun ω => MeasureTheory.lintegral_const_mul' _ _ hc
+  simp_rw [hinner]
+  exact MeasureTheory.lintegral_const_mul' _ _ hc
+
+/-- **The energies of the differences of the diffusion integrands vanish.** -/
+theorem tendsto_energy_diffusionIntegrand_clamp
+    {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ} (hf'c : Continuous f')
+    {K₁ : ℝ} (hK₁0 : 0 ≤ K₁) (hf'bd : ∀ z, ‖f' z‖ ≤ K₁)
+    {H : Fin n → Fin d → Ω → ℝ → ℝ} (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    {T : ℝ}
+    (hq : ∀ (p : Fin n) (k : Fin d), ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X : ℝ → Ω → Fin n → ℝ} {Y : ℕ → ℝ → Ω → Fin n → ℝ}
+    (hYm : ∀ i, Measurable (Function.uncurry fun ω s => Y i s ω))
+    (hXm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω))
+    {ns : ℕ → ℕ} (hge : ∀ i, i ≤ ns i)
+    (hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      Filter.Tendsto (fun i => Y i s ω) Filter.atTop (𝓝 (X s ω)))
+    (p : Fin n) (k : Fin d) :
+    Filter.Tendsto (fun i : ℕ => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s
+          - coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop (𝓝 0) := by
+  have hnsTop : Filter.Tendsto ns Filter.atTop Filter.atTop :=
+    Filter.tendsto_atTop_mono hge Filter.tendsto_id
+  have hclamp : Filter.Tendsto (fun i : ℕ => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      Filter.atTop (𝓝 0) :=
+    (tendsto_energy_clampAt_sub (hm p k) (hq p k).ne).comp hnsTop
+  have hderiv := tendsto_energy_coordDeriv_diff hf'c hK₁0 hf'bd (hm p k) (hq p k)
+    hYm hXm hae p
+  have hbound : ∀ (i : ℕ) (ω : Ω) (s : ℝ),
+      (‖coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s
+        - coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2
+      ≤ 2 * (ENNReal.ofReal (K₁ ^ 2)
+          * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+        + 2 * (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s‖₊ : ℝ≥0∞) ^ 2
+      := by
+    intro i ω s
+    have hsplit : coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s
+        - coordDeriv f' p (X s ω) * H p k ω s
+        = coordDeriv f' p (Y i s ω) * (clampCoeff H (ns i) p k ω s - H p k ω s)
+          + (coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s := by ring
+    rw [hsplit]
+    set A : ℝ := coordDeriv f' p (Y i s ω) * (clampCoeff H (ns i) p k ω s - H p k ω s) with hA
+    set B : ℝ := (coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s with hB
+    have hAle : (‖A‖₊ : ℝ≥0∞) ^ 2
+        ≤ ENNReal.ofReal (K₁ ^ 2)
+          * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 := by
+      rw [hA]
+      refine sq_enorm_le_of_abs_le hK₁0 ?_
+      rw [abs_mul]
+      exact mul_le_mul_of_nonneg_right (abs_coordDeriv_le hf'bd p _) (abs_nonneg _)
+    calc (‖A + B‖₊ : ℝ≥0∞) ^ 2
+        ≤ 2 * ((‖A‖₊ : ℝ≥0∞) ^ 2 + (‖B‖₊ : ℝ≥0∞) ^ 2) := sq_nnnorm_add_le_two_mul A B
+      _ = 2 * (‖A‖₊ : ℝ≥0∞) ^ 2 + 2 * (‖B‖₊ : ℝ≥0∞) ^ 2 := by rw [mul_add]
+      _ ≤ 2 * (ENNReal.ofReal (K₁ ^ 2)
+            * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+          + 2 * (‖B‖₊ : ℝ≥0∞) ^ 2 := by
+          exact add_le_add (mul_le_mul' le_rfl hAle) le_rfl
+  have hlimbound : Filter.Tendsto (fun i : ℕ =>
+      2 * (ENNReal.ofReal (K₁ ^ 2) * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        + 2 * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P) Filter.atTop (𝓝 0) := by
+    have h1 : Filter.Tendsto (fun i : ℕ =>
+        2 * (ENNReal.ofReal (K₁ ^ 2) * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P))
+        Filter.atTop (𝓝 0) := by
+      have hc := ENNReal.Tendsto.const_mul (a := 2 * ENNReal.ofReal (K₁ ^ 2)) hclamp
+        (Or.inr (ENNReal.mul_ne_top (by simp) ENNReal.ofReal_ne_top))
+      rw [mul_zero] at hc
+      exact hc.congr fun i => by rw [mul_assoc]
+    have h2 : Filter.Tendsto (fun i : ℕ =>
+        2 * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s‖₊ : ℝ≥0∞) ^ 2
+            ∂volume ∂P) Filter.atTop (𝓝 0) := by
+      have hc := ENNReal.Tendsto.const_mul (a := (2 : ℝ≥0∞)) hderiv (Or.inr (by simp))
+      rw [mul_zero] at hc
+      exact hc
+    simpa using h1.add h2
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlimbound
+    (fun i => zero_le) (fun i => ?_)
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s
+          - coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (2 * (ENNReal.ofReal (K₁ ^ 2)
+              * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+            + 2 * (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω))
+                * H p k ω s‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
+        MeasureTheory.lintegral_mono fun ω =>
+          MeasureTheory.lintegral_mono fun s => hbound i ω s
+    _ = _ := by
+        have hAm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+            ENNReal.ofReal (K₁ ^ 2)
+              * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2) :=
+          ((((measurable_clampCoeff hm (ns i) p k).sub
+            (hm p k)).nnnorm).coe_nnreal_ennreal).pow_const 2 |>.const_mul _
+        have hBm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+            (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s‖₊ : ℝ≥0∞) ^ 2) :=
+          (((((continuous_coordDeriv hf'c p).measurable.comp (hYm i)).sub
+            ((continuous_coordDeriv hf'c p).measurable.comp hXm)).mul
+              (hm p k)).nnnorm).coe_nnreal_ennreal.pow_const 2
+        rw [lintegral_window_add (hAm.const_mul _) (hBm.const_mul _) T,
+          lintegral_window_const_mul hAm (by simp) T,
+          lintegral_window_const_mul hBm (by simp) T,
+          lintegral_window_const_mul
+            (((((measurable_clampCoeff hm (ns i) p k).sub
+              (hm p k)).nnnorm).coe_nnreal_ennreal).pow_const 2)
+            (by simp : ENNReal.ofReal (K₁ ^ 2) ≠ ⊤) T]
+
 end Limits
 
 end Clamped

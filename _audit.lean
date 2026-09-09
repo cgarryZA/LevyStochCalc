@@ -1928,3 +1928,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_quadVar_clamp
 #print axioms LevyStochCalc.Brownian.Ito.sq_enorm_le_of_abs_le
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_coordDeriv_diff
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_window_add
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_window_const_mul
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_diffusionIntegrand_clamp
