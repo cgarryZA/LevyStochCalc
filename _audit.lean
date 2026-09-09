@@ -1714,3 +1714,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorItoProcess_sub_pow_three_le
 #print axioms LevyStochCalc.Brownian.Ito.integral_norm_vectorItoProcess_sub_pow_three_le
 #print axioms LevyStochCalc.Brownian.Ito.sum_integral_norm_vectorItoIncrement_pow_three_le
+-- ===== The vector Taylor remainder along a uniform grid (B1b-6, 2026-09-09) =====
+#print axioms LevyStochCalc.taylorRemainderNormed
+#print axioms LevyStochCalc.abs_taylorRemainderNormed_le
+#print axioms LevyStochCalc.Brownian.Ito.measurable_taylorRemainderNormed
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorTaylorRemainder_le

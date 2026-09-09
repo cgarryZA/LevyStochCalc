@@ -214,6 +214,7 @@ import LevyStochCalc.Brownian.VectorItoMartingaleRiemann
 import LevyStochCalc.Brownian.PolarisedQuadVar
 import LevyStochCalc.Brownian.VectorItoQuadVarRiemann
 import LevyStochCalc.Brownian.VectorItoThirdMoment
+import LevyStochCalc.Brownian.VectorItoTaylor
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
