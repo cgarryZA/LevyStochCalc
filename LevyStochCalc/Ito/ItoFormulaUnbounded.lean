@@ -349,6 +349,20 @@ theorem tendsto_of_tendsto_sq_enorm {E : Type*} [NormedAddCommGroup E] {u : ℕ 
   refine hsqrt.congr fun i => ?_
   exact Real.sqrt_sq (norm_nonneg _)
 
+/-- A sequence tending to zero drops below the geometric thresholds along indices that grow. -/
+theorem exists_seq_lt_of_tendsto_zero {u : ℕ → ℝ≥0∞}
+    (h : Filter.Tendsto u Filter.atTop (𝓝 0)) :
+    ∃ ms : ℕ → ℕ, (∀ i : ℕ, i ≤ ms i) ∧ ∀ i : ℕ, u (ms i) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+  have hchoice : ∀ i : ℕ, ∃ j : ℕ, i ≤ j ∧ u j < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+    intro i
+    have hpos : (0 : ℝ≥0∞) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+      refine pos_iff_ne_zero.mpr (pow_ne_zero i ?_)
+      simp
+    obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (h.eventually (gt_mem_nhds hpos))
+    exact ⟨max N i, le_max_right N i, hN (max N i) (le_max_left N i)⟩
+  choose ms hge hms using hchoice
+  exact ⟨ms, hge, hms⟩
+
 /-- **A clamping level along which the approximation error is summable.** -/
 theorem exists_seq_clampMesh_lt
     {H : Fin n → Fin d → Ω → ℝ → ℝ}
@@ -361,17 +375,7 @@ theorem exists_seq_clampMesh_lt
       (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤) :
     ∃ ns : ℕ → ℕ, (∀ i : ℕ, i ≤ ns i) ∧
       ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
-  have hmesh : Filter.Tendsto (clampMesh P H b T) Filter.atTop (𝓝 0) :=
-    tendsto_energy_window_clamp hm hbm hq hbq
-  have hchoice : ∀ i : ℕ, ∃ j : ℕ, i ≤ j ∧ clampMesh P H b T j < ((2 : ℝ≥0∞)⁻¹) ^ i := by
-    intro i
-    have hpos : (0 : ℝ≥0∞) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
-      refine pos_iff_ne_zero.mpr (pow_ne_zero i ?_)
-      simp
-    obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (hmesh.eventually (gt_mem_nhds hpos))
-    exact ⟨max N i, le_max_right N i, hN (max N i) (le_max_left N i)⟩
-  choose ns hge hns using hchoice
-  exact ⟨ns, hge, hns⟩
+  exact exists_seq_lt_of_tendsto_zero (tendsto_energy_window_clamp hm hbm hq hbq)
 
 /-- The geometric bound the summability argument uses. -/
 theorem tsum_geometric_inv_two_mul_ne_top (c : ℝ≥0∞) (hc : c ≠ ⊤) :
@@ -382,6 +386,39 @@ theorem tsum_geometric_inv_two_mul_ne_top (c : ℝ≥0∞) (hc : c ≠ ⊤) :
     rw [Ne, tsub_eq_zero_iff_le]
     exact not_le.mpr (ENNReal.inv_lt_one.mpr (by norm_num))
   exact lt_top_iff_ne_top.mpr (ENNReal.inv_ne_top.mpr hne)
+
+omit [IsProbabilityMeasure P] in
+/-- A finite family of sequences converging in `L²` converges almost everywhere along a common
+subsequence. -/
+theorem exists_seq_ae_tendsto_of_tendsto_lintegral {α : Type*} [MeasurableSpace α]
+    {μ : Measure α} {ι : Type*} [Fintype ι] {u : ℕ → ι → α → ℝ} {v : ι → α → ℝ}
+    (hu : ∀ (i : ℕ) (c : ι), Measurable (u i c)) (hv : ∀ c : ι, Measurable (v c))
+    (h : ∀ c : ι, Filter.Tendsto (fun i : ℕ => ∫⁻ a, (‖u i c a - v c a‖₊ : ℝ≥0∞) ^ 2 ∂μ)
+      Filter.atTop (𝓝 0)) :
+    ∃ ms : ℕ → ℕ, (∀ i : ℕ, i ≤ ms i) ∧
+      ∀ᵐ a ∂μ, ∀ c : ι, Filter.Tendsto (fun i : ℕ => u (ms i) c a) Filter.atTop (𝓝 (v c a)) := by
+  classical
+  have hsumTendsto : Filter.Tendsto
+      (fun i : ℕ => ∑ c : ι, ∫⁻ a, (‖u i c a - v c a‖₊ : ℝ≥0∞) ^ 2 ∂μ)
+      Filter.atTop (𝓝 0) := by
+    have hfin := tendsto_finsetSum (Finset.univ : Finset ι) fun c _ => h c
+    simpa using hfin
+  obtain ⟨ms, hmsge, hmslt⟩ := exists_seq_lt_of_tendsto_zero hsumTendsto
+  refine ⟨ms, hmsge, ?_⟩
+  rw [MeasureTheory.ae_all_iff]
+  intro c
+  have hmeasi : ∀ i : ℕ, Measurable fun a : α => (‖u (ms i) c a - v c a‖₊ : ℝ≥0∞) ^ 2 :=
+    fun i => ((((hu (ms i) c).sub (hv c)).nnnorm).coe_nnreal_ennreal).pow_const 2
+  have hsum : ∑' i : ℕ, ∫⁻ a, (‖u (ms i) c a - v c a‖₊ : ℝ≥0∞) ^ 2 ∂μ ≠ ⊤ := by
+    refine ne_of_lt (lt_of_le_of_lt (ENNReal.tsum_le_tsum fun i => ?_)
+      (lt_top_iff_ne_top.mpr (tsum_geometric_inv_two_mul_ne_top (1 : ℝ≥0∞) (by simp))))
+    rw [one_mul]
+    refine le_trans ?_ (hmslt i).le
+    exact Finset.single_le_sum
+      (f := fun c' : ι => ∫⁻ a, (‖u (ms i) c' a - v c' a‖₊ : ℝ≥0∞) ^ 2 ∂μ)
+      (fun _ _ => zero_le) (Finset.mem_univ c)
+  filter_upwards [ae_tendsto_zero_of_lintegral_summable hmeasi hsum] with a ha
+  exact tendsto_of_tendsto_sq_enorm ha
 
 /-- **Along the chosen levels the clamped versions converge to the original process almost
 everywhere on the window.** -/
@@ -890,6 +927,110 @@ theorem tendsto_energy_diffusionIntegrand_clamp
             (((((measurable_clampCoeff hm (ns i) p k).sub
               (hm p k)).nnnorm).coe_nnreal_ennreal).pow_const 2)
             (by simp : ENNReal.ofReal (K₁ ^ 2) ≠ ⊤) T]
+
+variable (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ')
+
+/-- **The stochastic integrals of the clamped approximation converge in `L²`.** -/
+theorem tendsto_lintegral_sq_norm_stochInt_clamp
+    {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ} (hf'c : Continuous f')
+    {K₁ : ℝ} (hK₁0 : 0 ≤ K₁) (hf'bd : ∀ z, ‖f' z‖ ≤ K₁)
+    {H : Fin n → Fin d → Ω → ℝ → ℝ} (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    {T : ℝ} (hT : 0 < T)
+    (hq : ∀ (p : Fin n) (k : Fin d), ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X : ℝ → Ω → Fin n → ℝ} {Y : ℕ → ℝ → Ω → Fin n → ℝ}
+    (hYm : ∀ i, Measurable (Function.uncurry fun ω s => Y i s ω))
+    (hXm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω))
+    {ns : ℕ → ℕ} (hge : ∀ i, i ≤ ns i)
+    (hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      Filter.Tendsto (fun i => Y i s ω) Filter.atTop (𝓝 (X s ω)))
+    (hmY : ∀ (i : ℕ) (p : Fin n) (k : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s))
+    (hpY : ∀ (i : ℕ) (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s)
+    (hqY : ∀ (i : ℕ) (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤)
+    (hmX : ∀ (p : Fin n) (k : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * H p k ω s))
+    (hpX : ∀ (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+    (hqX : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (p : Fin n) (k : Fin d) :
+    Filter.Tendsto (fun i : ℕ => ∫⁻ ω,
+        (‖stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
+              (fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s)
+              (hmY i p k) (hpY i p k) (hqY i p k) T ω
+            - stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
+              (fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+              (hmX p k) (hpX p k) (hqX p k) T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      Filter.atTop (𝓝 0) := by
+  refine Filter.Tendsto.congr (fun i => ?_)
+    (tendsto_energy_diffusionIntegrand_clamp hf'c hK₁0 hf'bd hm hq hYm hXm hge hae p k)
+  exact (isometry_diff_stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
+    (fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s)
+    (fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+    (hmY i p k) (hmX p k) (hpY i p k) (hpX p k) (hqY i p k) (hqX p k) hT).symm
+
+/-- **Along a further subsequence the stochastic integrals of the clamped approximation converge
+almost surely.** -/
+theorem exists_seq_ae_tendsto_stochInt_clamp
+    {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ} (hf'c : Continuous f')
+    {K₁ : ℝ} (hK₁0 : 0 ≤ K₁) (hf'bd : ∀ z, ‖f' z‖ ≤ K₁)
+    {H : Fin n → Fin d → Ω → ℝ → ℝ} (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    {T : ℝ} (hT : 0 < T)
+    (hq : ∀ (p : Fin n) (k : Fin d), ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X : ℝ → Ω → Fin n → ℝ} {Y : ℕ → ℝ → Ω → Fin n → ℝ}
+    (hYm : ∀ i, Measurable (Function.uncurry fun ω s => Y i s ω))
+    (hXm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω))
+    {ns : ℕ → ℕ} (hge : ∀ i, i ≤ ns i)
+    (hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      Filter.Tendsto (fun i => Y i s ω) Filter.atTop (𝓝 (X s ω)))
+    (hmY : ∀ (i : ℕ) (p : Fin n) (k : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s))
+    (hpY : ∀ (i : ℕ) (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s)
+    (hqY : ∀ (i : ℕ) (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (Y i s ω) * clampCoeff H (ns i) p k ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤)
+    (hmX : ∀ (p : Fin n) (k : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * H p k ω s))
+    (hpX : ∀ (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+    (hqX : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∃ ms : ℕ → ℕ, (∀ i : ℕ, i ≤ ms i) ∧ ∀ᵐ ω ∂P, ∀ (p : Fin n) (k : Fin d),
+      Filter.Tendsto (fun i : ℕ => stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
+          (fun ω s => coordDeriv f' p (Y (ms i) s ω) * clampCoeff H (ns (ms i)) p k ω s)
+          (hmY (ms i) p k) (hpY (ms i) p k) (hqY (ms i) p k) T ω) Filter.atTop
+        (𝓝 (stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
+          (fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+          (hmX p k) (hpX p k) (hqX p k) T ω)) := by
+  classical
+  obtain ⟨ms, hmsge, hms⟩ := exists_seq_ae_tendsto_of_tendsto_lintegral (μ := P)
+    (ι := Fin n × Fin d)
+    (u := fun i c ω => stochasticIntegralBrownian (W.W c.2) ℱ' (hcoord c.2)
+      (fun ω s => coordDeriv f' c.1 (Y i s ω) * clampCoeff H (ns i) c.1 c.2 ω s)
+      (hmY i c.1 c.2) (hpY i c.1 c.2) (hqY i c.1 c.2) T ω)
+    (v := fun c ω => stochasticIntegralBrownian (W.W c.2) ℱ' (hcoord c.2)
+      (fun ω s => coordDeriv f' c.1 (X s ω) * H c.1 c.2 ω s)
+      (hmX c.1 c.2) (hpX c.1 c.2) (hqX c.1 c.2) T ω)
+    (fun i c => ((stochasticIntegralBrownian_stronglyAdapted (W.W c.2) ℱ' (hcoord c.2) _
+      (hmY i c.1 c.2) (hpY i c.1 c.2) (hqY i c.1 c.2) T).mono (ℱ'.le T)).measurable)
+    (fun c => ((stochasticIntegralBrownian_stronglyAdapted (W.W c.2) ℱ' (hcoord c.2) _
+      (hmX c.1 c.2) (hpX c.1 c.2) (hqX c.1 c.2) T).mono (ℱ'.le T)).measurable)
+    (fun c => tendsto_lintegral_sq_norm_stochInt_clamp W ℱ' hcoord hf'c hK₁0 hf'bd hm hT hq
+      hYm hXm hge hae hmY hpY hqY hmX hpX hqX c.1 c.2)
+  refine ⟨ms, hmsge, ?_⟩
+  filter_upwards [hms] with ω hω
+  intro p k
+  exact hω (p, k)
 
 end Limits
 

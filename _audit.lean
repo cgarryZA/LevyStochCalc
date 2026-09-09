@@ -1931,3 +1931,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_window_add
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_window_const_mul
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_diffusionIntegrand_clamp
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_lt_of_tendsto_zero
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_of_tendsto_lintegral
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_lintegral_sq_norm_stochInt_clamp
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_stochInt_clamp
