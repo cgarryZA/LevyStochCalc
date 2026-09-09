@@ -1692,3 +1692,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.memLp_two_polarQuadVarIncrement
 #print axioms LevyStochCalc.Brownian.Ito.condExp_polarQuadVarIncrement
 #print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_polarQuadVarIncrement
+#print axioms LevyStochCalc.Brownian.Ito.integral_sq_polarQuadVarIncrement_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_sq_weighted_polarQuadVarSum_le

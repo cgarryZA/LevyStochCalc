@@ -225,6 +225,184 @@ theorem stronglyMeasurable_polarQuadVarIncrement {a b : ℝ} (hab : a ≤ b) :
       Set.Icc_subset_Iic_self volume).mono (ℱ.le_rightCont a)).mono (ℱ.rightCont.mono hab))
   exact ((h1b.sub h1a).mul (h2b.sub h2a)).sub (hcb.sub hca)
 
+include hℱ hma hpa hqa hC0 hCH₁ hCH₂ in
+/-- **Second moment of the compensated product.** -/
+theorem integral_sq_polarQuadVarIncrement_le {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
+    Integrable (fun ω =>
+        (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ a b ω) ^ 2) P
+      ∧ ∫ ω, (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ a b ω) ^ 2 ∂P
+        ≤ 3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4) * (b - a) ^ 2 := by
+  have hC20 : (0 : ℝ) ≤ 2 * C := by linarith
+  have hb₁ : ∀ ω s, |H₁ ω s| ≤ 2 * C := fun ω s => (hCH₁ ω s).trans (by linarith)
+  have hb₂ : ∀ ω s, |H₂ ω s| ≤ 2 * C := fun ω s => (hCH₂ ω s).trans (by linarith)
+  have hba : ∀ ω s, |H₁ ω s + H₂ ω s| ≤ 2 * C := fun ω s =>
+    (abs_add_le _ _).trans (by linarith [hCH₁ ω s, hCH₂ ω s])
+  have mAdd := memLp_two_quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa
+    hC20 hba ha hab
+  have m₁ := memLp_two_quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ hC20 hb₁ ha hab
+  have m₂ := memLp_two_quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ hC20 hb₂ ha hab
+  have lAdd := integral_sq_quadVarIncrement_le W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa
+    hC20 hba ha hab
+  have l₁ := integral_sq_quadVarIncrement_le W ℱ hℱ H₁ hm₁ hp₁ hq₁ hC20 hb₁ ha hab
+  have l₂ := integral_sq_quadVarIncrement_le W ℱ hℱ H₂ hm₂ hp₂ hq₂ hC20 hb₂ ha hab
+  have hmp := memLp_two_polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+    hma hpa hqa hC0 hCH₁ hCH₂ ha hab
+  have iA : Integrable (fun ω =>
+      (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2) P :=
+    mAdd.integrable_sq
+  have i₁ : Integrable (fun ω => (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2) P :=
+    m₁.integrable_sq
+  have i₂ : Integrable (fun ω => (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2) P :=
+    m₂.integrable_sq
+  have iS₁ : Integrable (fun ω =>
+      (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2) P := iA.add i₁
+  have iS : Integrable (fun ω =>
+      (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2) P := iS₁.add i₂
+  have hdom : Integrable (fun ω => 3 / 4 *
+      ((quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2)) P := iS.const_mul _
+  have hpol := smul_two_polarQuadVarIncrement_ae W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+    hma hpa hqa hC0 hCH₁ hCH₂ ha hab.le
+  have hpt : (fun ω =>
+      (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ a b ω) ^ 2)
+      ≤ᵐ[P] fun ω => 3 / 4 *
+        ((quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2
+          + (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2
+          + (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2) := by
+    filter_upwards [hpol] with ω hω
+    simp only [Pi.smul_apply, smul_eq_mul] at hω
+    have hpe : polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ a b ω
+        = (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω
+            - quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω
+            - quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) / 2 := by linarith
+    rw [hpe]
+    nlinarith [sq_nonneg (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω
+        + quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω),
+      sq_nonneg (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω
+        + quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω),
+      sq_nonneg (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω
+        - quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω)]
+  have hsplit : ∫ ω,
+      ((quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2
+        + (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2) ∂P
+      = (∫ ω, (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2 ∂P)
+        + (∫ ω, (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2 ∂P)
+        + ∫ ω, (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2 ∂P := by
+    rw [MeasureTheory.integral_add iS₁ i₂, MeasureTheory.integral_add iA i₁]
+  refine ⟨hmp.integrable_sq, ?_⟩
+  have hstep : ∫ ω,
+      (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ a b ω) ^ 2 ∂P
+      ≤ 3 / 4 * ((∫ ω,
+          (quadVarIncrement W ℱ hℱ (fun ω s => H₁ ω s + H₂ ω s) hma hpa hqa a b ω) ^ 2 ∂P)
+        + (∫ ω, (quadVarIncrement W ℱ hℱ H₁ hm₁ hp₁ hq₁ a b ω) ^ 2 ∂P)
+        + ∫ ω, (quadVarIncrement W ℱ hℱ H₂ hm₂ hp₂ hq₂ a b ω) ^ 2 ∂P) := by
+    have := MeasureTheory.integral_mono_ae hmp.integrable_sq hdom hpt
+    rwa [MeasureTheory.integral_const_mul, hsplit] at this
+  refine hstep.trans ?_
+  have hC4 : (0 : ℝ) ≤ (2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4 := by
+    have hcg : (0 : ℝ) ≤ gaussianFourthMoment := gaussianFourthMoment_nonneg
+    positivity
+  have hba2 : (0 : ℝ) ≤ (b - a) ^ 2 := sq_nonneg _
+  nlinarith [lAdd, l₁, l₂, mul_nonneg hC4 hba2]
+
+include hℱ hma hpa hqa hC0 hCH₁ hCH₂ in
+/-- **Second moment of a weighted sum of compensated products.** The compensated products are
+martingale differences, so the weighted sum's second moment is controlled by the sum of the
+squared cell lengths. -/
+theorem integral_sq_weighted_polarQuadVarSum_le
+    (t : ℕ → ℝ) (h0 : 0 ≤ t 0) (ht : ∀ k, t k < t (k + 1))
+    (g : ℕ → Ω → ℝ)
+    (hg : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.rightCont (t k)) (g k))
+    {D : ℝ} (hD0 : 0 ≤ D) (hgD : ∀ (k : ℕ) (ω : Ω), |g k ω| ≤ D) (N : ℕ) :
+    ∫ ω, (∑ i ∈ Finset.range N, g i ω
+        * polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t i) (t (i + 1)) ω) ^ 2 ∂P
+      ≤ D ^ 2 * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4))
+        * ∑ i ∈ Finset.range N, (t (i + 1) - t i) ^ 2 := by
+  have htmono : StrictMono t := strictMono_nat_of_lt_succ ht
+  have ht0 : ∀ k, 0 ≤ t k := fun k => h0.trans (htmono.monotone (Nat.zero_le k))
+  set 𝒢 : ℕ → MeasurableSpace Ω := fun k => ℱ.rightCont (t k) with h𝒢
+  have h𝒢le : ∀ k, 𝒢 k ≤ ‹MeasurableSpace Ω› := fun k => ℱ.rightCont.le (t k)
+  have h𝒢mono : Monotone 𝒢 := fun p q hpq => ℱ.rightCont.mono (htmono.monotone hpq)
+  set Y : ℕ → Ω → ℝ := fun k ω =>
+    g k ω * polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t k) (t (k + 1)) ω
+    with hY
+  have hζmem : ∀ k, MemLp
+      (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t k) (t (k + 1))) 2 P :=
+    fun k => memLp_two_polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+      hma hpa hqa hC0 hCH₁ hCH₂ (ht0 k) (ht k)
+  have hgmeas : ∀ k, Measurable (g k) := fun k => ((hg k).mono (h𝒢le k)).measurable
+  have hYmem : ∀ k, MemLp (Y k) 2 P := by
+    intro k
+    refine MeasureTheory.MemLp.mono ((hζmem k).const_mul D)
+      ((hgmeas k).aestronglyMeasurable.mul (hζmem k).aestronglyMeasurable)
+      (Filter.Eventually.of_forall fun ω => ?_)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul, abs_of_nonneg hD0]
+    exact mul_le_mul_of_nonneg_right (hgD k ω) (abs_nonneg _)
+  have hYmeas : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _ (𝒢 (k + 1)) (Y k) := fun k =>
+    ((hg k).mono (h𝒢mono (Nat.le_succ k))).mul
+      (stronglyMeasurable_polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (ht k).le)
+  have hYcond : ∀ k, P[Y k | 𝒢 k] =ᵐ[P] 0 := by
+    intro k
+    have hprod : Integrable (g k
+        * polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t k) (t (k + 1))) P :=
+      (hYmem k).integrable (by norm_num)
+    have hkey := MeasureTheory.condExp_mul_of_stronglyMeasurable_left (m := 𝒢 k) (hg k)
+      hprod ((hζmem k).integrable (by norm_num))
+    have hfun : Y k = g k
+        * polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t k) (t (k + 1)) := rfl
+    rw [hfun]
+    filter_upwards [hkey, condExp_polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+      hma hpa hqa hC0 hCH₁ hCH₂ (ht0 k) (ht k)] with ω hω hω'
+    rw [hω, Pi.mul_apply, hω', Pi.zero_apply, mul_zero]
+  rw [LevyStochCalc.Probability.integral_sq_sum_of_condExp_eq_zero 𝒢 h𝒢le h𝒢mono Y hYmem
+    hYmeas hYcond N]
+  have hterm : ∀ i ∈ Finset.range N, ∫ ω, (Y i ω) ^ 2 ∂P
+      ≤ D ^ 2 * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4))
+        * (t (i + 1) - t i) ^ 2 := by
+    intro i _
+    obtain ⟨hζint, hζle⟩ := integral_sq_polarQuadVarIncrement_le W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂
+      hq₁ hq₂ hma hpa hqa hC0 hCH₁ hCH₂ (ht0 i) (ht i)
+    have hYint : Integrable (fun ω => (Y i ω) ^ 2) P := by
+      have hfun : (fun ω => (Y i ω) ^ 2) = Y i * Y i := by funext ω; rw [pow_two]; rfl
+      rw [hfun]
+      exact (hYmem i).integrable_mul (hYmem i)
+    have hstep : ∫ ω, (Y i ω) ^ 2 ∂P ≤ D ^ 2 * ∫ ω,
+        (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t i) (t (i + 1)) ω) ^ 2
+          ∂P := by
+      have hle : ∫ ω, (Y i ω) ^ 2 ∂P ≤ ∫ ω, D ^ 2 *
+          (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ (t i) (t (i + 1)) ω) ^ 2
+            ∂P := by
+        refine MeasureTheory.integral_mono hYint (hζint.const_mul _) fun ω => ?_
+        have hgi : (g i ω) ^ 2 ≤ D ^ 2 := by
+          have h := pow_le_pow_left₀ (abs_nonneg (g i ω)) (hgD i ω) 2
+          rwa [← abs_pow, abs_of_nonneg (sq_nonneg (g i ω))] at h
+        have hsq : (Y i ω) ^ 2 = (g i ω) ^ 2 *
+            (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+              (t i) (t (i + 1)) ω) ^ 2 := by
+          simp only [hY]; ring
+        rw [hsq]
+        exact mul_le_mul_of_nonneg_right hgi (sq_nonneg _)
+      rwa [MeasureTheory.integral_const_mul] at hle
+    have hD2 : (0 : ℝ) ≤ D ^ 2 := sq_nonneg D
+    calc ∫ ω, (Y i ω) ^ 2 ∂P
+        ≤ D ^ 2 * ∫ ω, (polarQuadVarIncrement W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
+            (t i) (t (i + 1)) ω) ^ 2 ∂P := hstep
+      _ ≤ D ^ 2 * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4)
+            * (t (i + 1) - t i) ^ 2) := mul_le_mul_of_nonneg_left hζle hD2
+      _ = D ^ 2 * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4))
+            * (t (i + 1) - t i) ^ 2 := by ring
+  calc ∑ i ∈ Finset.range N, ∫ ω, (Y i ω) ^ 2 ∂P
+      ≤ ∑ i ∈ Finset.range N, D ^ 2
+          * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4))
+          * (t (i + 1) - t i) ^ 2 := Finset.sum_le_sum hterm
+    _ = D ^ 2 * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4))
+          * ∑ i ∈ Finset.range N, (t (i + 1) - t i) ^ 2 := by rw [Finset.mul_sum]
+
 end Bounds
 
 end Polarised
