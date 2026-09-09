@@ -204,6 +204,7 @@ import LevyStochCalc.Brownian.TaylorTwoModulus
 import LevyStochCalc.Probability.MartingaleDifference
 import LevyStochCalc.Brownian.MultidimIto
 import LevyStochCalc.Brownian.CrossOrthogonality
+import LevyStochCalc.Brownian.CrossVariation
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly

@@ -1612,3 +1612,11 @@ import LevyStochCalc
 -- ===== The Ito-Levy process interface (B0a, 2026-09-09) =====
 #print axioms LevyStochCalc.Ito.Setting.IsItoLevyProcess
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_isItoLevyProcess
+-- ===== The cross-variation of Ito integrals against distinct coordinates (B1b-2, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.twoCell
+#print axioms LevyStochCalc.Brownian.Ito.twoCell_eval
+#print axioms LevyStochCalc.Brownian.Ito.twoCell_adapted
+#print axioms LevyStochCalc.Brownian.Ito.twoCell_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.mul_sub_stochasticIntegralBrownian_ae
+#print axioms LevyStochCalc.Brownian.Ito.integral_mul_cross_increment_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.condExp_mul_cross_increment_eq_zero
