@@ -1707,3 +1707,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_finsetSum_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.quadVarRiemann_decomp_ae
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
+-- ===== Third absolute moments of vector Ito increments (B1b-6, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_sum_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_norm_pi_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorItoMartingale_sub_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorItoProcess_sub_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_norm_vectorItoProcess_sub_pow_three_le
+#print axioms LevyStochCalc.Brownian.Ito.sum_integral_norm_vectorItoIncrement_pow_three_le
