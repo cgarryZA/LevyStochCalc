@@ -252,6 +252,7 @@ import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 import LevyStochCalc.Ito.VectorItoProcessDiff
 import LevyStochCalc.Ito.ItoFormulaUnbounded
+import LevyStochCalc.Ito.ItoFormulaStopped
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

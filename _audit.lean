@@ -1949,3 +1949,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_clip
 #print axioms LevyStochCalc.Brownian.Ito.vectorItoProcess_zero_ae
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.stopped
+-- ===== Itô's formula along a stopped path (B3a-1b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.stopped_comp_eq
+#print axioms LevyStochCalc.Brownian.Ito.stopped_comp₂_eq
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped
