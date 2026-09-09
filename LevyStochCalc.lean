@@ -145,6 +145,8 @@ import LevyStochCalc.Driver.CrossFiltration
 import LevyStochCalc.Driver.CrossElementary
 import LevyStochCalc.Driver.CrossSimple
 import LevyStochCalc.Driver.CrossOrthogonality
+import LevyStochCalc.Driver.JointRange
+import LevyStochCalc.Driver.JointPRP
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement

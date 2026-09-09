@@ -1553,3 +1553,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.integrable_and_integral_cross_clamped
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_simpleIntegral_mul_markStep_eq_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_stochasticIntegral_mul_compensated_eq_zero
+-- ===== The joint range and its decomposition (A4d-v-b, 2026-09-09) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.coordCrossFiltration
+#print axioms LevyStochCalc.Driver.LevyDriver.crossFiltration_le_iSup_sigmaBrownian
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_coordCross
+#print axioms LevyStochCalc.Driver.LevyDriver.coordCrossWitness
+#print axioms LevyStochCalc.Driver.LevyDriver.jointRange
+#print axioms LevyStochCalc.Driver.LevyDriver.inner_itoRange_compensatedRange
+#print axioms LevyStochCalc.Driver.LevyDriver.orthogonalFamily_jointRange
+#print axioms LevyStochCalc.Driver.LevyDriver.isClosed_iSup_jointRange
+#print axioms LevyStochCalc.Driver.LevyDriver.jointIntegral
+#print axioms LevyStochCalc.Driver.LevyDriver.memLp_jointIntegral
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointIntegral_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.aestronglyMeasurable_jointIntegral
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_of_mean_zero
+-- ===== The predictable representation property of a Levy driver (A4d-vi, 2026-09-09) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration
