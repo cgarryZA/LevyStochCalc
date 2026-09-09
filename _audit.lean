@@ -1921,3 +1921,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.ae_ae_tendsto_version_clamp
 #print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_version_clamp_at
 #print axioms LevyStochCalc.Brownian.Ito.version_ae_eq_zero
+-- ===== The limits of the clamped approximation (B1d-4b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_clampAt_comp
+#print axioms LevyStochCalc.Brownian.Ito.ae_memLp_two_window
+#print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_drift_clamp
+#print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_quadVar_clamp
+#print axioms LevyStochCalc.Brownian.Ito.sq_enorm_le_of_abs_le
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_coordDeriv_diff
