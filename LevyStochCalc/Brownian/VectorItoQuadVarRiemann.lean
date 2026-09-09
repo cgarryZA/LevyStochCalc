@@ -345,6 +345,113 @@ theorem IsVectorItoVersion.integral_abs_sum_offDiagCross_le
   exact integral_abs_le_sqrt_of_integral_sq_le ((hSmem.integrable (by norm_num)).abs)
     hSmem.integrable_sq hbound
 
+/-- The product of the increments of two coordinates splits into a drift–drift term, two
+drift–martingale terms and the product of the martingale parts. -/
+theorem IsVectorItoVersion.prod_sub_ae
+    (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
+    (hbm : ∀ m, Measurable (Function.uncurry (bdrift m))) {B : ℝ}
+    (hB : ∀ (m : Fin n) (ω : Ω) (s : ℝ), |bdrift m ω s| ≤ B) (p q : Fin n)
+    {u v : ℝ} (hu : 0 ≤ u) (huv : u ≤ v) :
+    ∀ᵐ ω ∂P, (X v ω p - X u ω p) * (X v ω q - X u ω q)
+      = (∫ s in Set.Ioc u v, bdrift p ω s ∂volume)
+          * (∫ s in Set.Ioc u v, bdrift q ω s ∂volume)
+        + (∫ s in Set.Ioc u v, bdrift p ω s ∂volume)
+          * (vectorItoMartingale W ℱ hcoord H hHm hHp hHs q v ω
+            - vectorItoMartingale W ℱ hcoord H hHm hHp hHs q u ω)
+        + (∫ s in Set.Ioc u v, bdrift q ω s ∂volume)
+          * (vectorItoMartingale W ℱ hcoord H hHm hHp hHs p v ω
+            - vectorItoMartingale W ℱ hcoord H hHm hHp hHs p u ω)
+        + (vectorItoMartingale W ℱ hcoord H hHm hHp hHs p v ω
+            - vectorItoMartingale W ℱ hcoord H hHm hHp hHs p u ω)
+          * (vectorItoMartingale W ℱ hcoord H hHm hHp hHs q v ω
+            - vectorItoMartingale W ℱ hcoord H hHm hHp hHs q u ω) := by
+  filter_upwards [h.sub_ae hbm hB hu huv p, h.sub_ae hbm hB hu huv q] with ω e1 e2
+  rw [e1, e2]
+  ring
+
+include hC0 hCH in
+/-- The product of the martingale parts' increments splits into the compensated products on the
+diagonal in the Brownian index, their compensators, and the cross terms off that diagonal. -/
+theorem vectorItoMartingale_prod_eq (p q : Fin n) {u v : ℝ} (hu : 0 ≤ u) (huv : u ≤ v) (ω : Ω) :
+    (vectorItoMartingale W ℱ hcoord H hHm hHp hHs p v ω
+        - vectorItoMartingale W ℱ hcoord H hHm hHp hHs p u ω)
+      * (vectorItoMartingale W ℱ hcoord H hHm hHp hHs q v ω
+        - vectorItoMartingale W ℱ hcoord H hHm hHp hHs q u ω)
+      = (∑ k : Fin d, polarQuadVarIncrement (W.W k) ℱ (hcoord k) (H p k) (H q k) (hHm p k)
+            (hHm q k) (hHp p k) (hHp q k) (hHs p k) (hHs q k) u v ω)
+        + (∑ k : Fin d, ∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume)
+        + ∑ k : Fin d, ∑ l ∈ Finset.univ.erase k,
+            crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q l) (hHp q l)
+              (hHs q l) k l u v ω := by
+  have hcomp : ∀ k : Fin d,
+      (∫ s in Set.Icc (0 : ℝ) v, H p k ω s * H q k ω s ∂volume)
+        - ∫ s in Set.Icc (0 : ℝ) u, H p k ω s * H q k ω s ∂volume
+      = ∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume := by
+    intro k
+    refine setIntegral_Icc_sub_Icc (B := C ^ 2)
+      ((Measurable.of_uncurry_left (hHm p k)).mul (Measurable.of_uncurry_left (hHm q k)))
+      (fun s => ?_) hu huv
+    show |H p k ω s * H q k ω s| ≤ C ^ 2
+    rw [abs_mul, pow_two]
+    exact mul_le_mul (hCH p k ω s) (hCH q k ω s) (abs_nonneg _) hC0
+  have key : ∀ k : Fin d,
+      (∑ l : Fin d, (coordItoIntegral W ℱ hcoord H hHm hHp hHs p k v ω
+          - coordItoIntegral W ℱ hcoord H hHm hHp hHs p k u ω)
+        * (coordItoIntegral W ℱ hcoord H hHm hHp hHs q l v ω
+          - coordItoIntegral W ℱ hcoord H hHm hHp hHs q l u ω))
+      = polarQuadVarIncrement (W.W k) ℱ (hcoord k) (H p k) (H q k) (hHm p k) (hHm q k)
+          (hHp p k) (hHp q k) (hHs p k) (hHs q k) u v ω
+        + (∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume)
+        + ∑ l ∈ Finset.univ.erase k,
+            crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q l) (hHp q l)
+              (hHs q l) k l u v ω := by
+    intro k
+    have hcross : ∀ l : Fin d,
+        (coordItoIntegral W ℱ hcoord H hHm hHp hHs p k v ω
+            - coordItoIntegral W ℱ hcoord H hHm hHp hHs p k u ω)
+          * (coordItoIntegral W ℱ hcoord H hHm hHp hHs q l v ω
+            - coordItoIntegral W ℱ hcoord H hHm hHp hHs q l u ω)
+        = crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q l) (hHp q l)
+            (hHs q l) k l u v ω := fun l => rfl
+    simp only [hcross]
+    rw [← Finset.add_sum_erase Finset.univ _ (Finset.mem_univ k)]
+    have hdiag : crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q k) (hHp q k)
+          (hHs q k) k k u v ω
+        = polarQuadVarIncrement (W.W k) ℱ (hcoord k) (H p k) (H q k) (hHm p k) (hHm q k)
+            (hHp p k) (hHp q k) (hHs p k) (hHs q k) u v ω
+          + ∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume := by
+      simp only [crossIncrement, polarQuadVarIncrement]
+      rw [← hcomp k]
+      ring
+    rw [hdiag]
+  calc (vectorItoMartingale W ℱ hcoord H hHm hHp hHs p v ω
+          - vectorItoMartingale W ℱ hcoord H hHm hHp hHs p u ω)
+        * (vectorItoMartingale W ℱ hcoord H hHm hHp hHs q v ω
+          - vectorItoMartingale W ℱ hcoord H hHm hHp hHs q u ω)
+      = (∑ k : Fin d, (coordItoIntegral W ℱ hcoord H hHm hHp hHs p k v ω
+            - coordItoIntegral W ℱ hcoord H hHm hHp hHs p k u ω))
+          * ∑ l : Fin d, (coordItoIntegral W ℱ hcoord H hHm hHp hHs q l v ω
+            - coordItoIntegral W ℱ hcoord H hHm hHp hHs q l u ω) := by
+        rw [vectorItoMartingale_sub W ℱ hcoord H hHm hHp hHs p u v,
+          vectorItoMartingale_sub W ℱ hcoord H hHm hHp hHs q u v]
+    _ = ∑ k : Fin d, ∑ l : Fin d, (coordItoIntegral W ℱ hcoord H hHm hHp hHs p k v ω
+          - coordItoIntegral W ℱ hcoord H hHm hHp hHs p k u ω)
+        * (coordItoIntegral W ℱ hcoord H hHm hHp hHs q l v ω
+          - coordItoIntegral W ℱ hcoord H hHm hHp hHs q l u ω) := Finset.sum_mul_sum _ _ _ _
+    _ = ∑ k : Fin d, (polarQuadVarIncrement (W.W k) ℱ (hcoord k) (H p k) (H q k) (hHm p k)
+            (hHm q k) (hHp p k) (hHp q k) (hHs p k) (hHs q k) u v ω
+          + (∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume)
+          + ∑ l ∈ Finset.univ.erase k,
+              crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q l) (hHp q l)
+                (hHs q l) k l u v ω) := Finset.sum_congr rfl fun k _ => key k
+    _ = (∑ k : Fin d, polarQuadVarIncrement (W.W k) ℱ (hcoord k) (H p k) (H q k) (hHm p k)
+            (hHm q k) (hHp p k) (hHp q k) (hHs p k) (hHs q k) u v ω)
+          + (∑ k : Fin d, ∫ s in Set.Ioc u v, H p k ω s * H q k ω s ∂volume)
+          + ∑ k : Fin d, ∑ l ∈ Finset.univ.erase k,
+              crossIncrement W hcoord (hHm p k) (hHp p k) (hHs p k) (hHm q l) (hHp q l)
+                (hHs q l) k l u v ω := by
+        rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+
 end VectorQuadVar
 
 end LevyStochCalc.Brownian.Ito

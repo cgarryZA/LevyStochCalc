@@ -1701,3 +1701,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_driftCross_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_polarQuadVar_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_offDiagCross_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.prod_sub_ae
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoMartingale_prod_eq
