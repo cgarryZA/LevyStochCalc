@@ -1783,3 +1783,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.measurable_markEnergy
 #print axioms LevyStochCalc.Poisson.Compensated.lintegral_markCut_eq_setLIntegral
 #print axioms LevyStochCalc.Poisson.Compensated.tendsto_lintegral_sq_stochasticIntegral_markCut
+-- ===== Linearity of the Ito integral over finite sums (B1d-2a, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.energy_lt_top_congr
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_neg
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_sub
+#print axioms LevyStochCalc.Brownian.Ito.exists_stochasticIntegralBrownian_finsetSum
