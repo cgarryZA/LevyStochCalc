@@ -109,4 +109,53 @@ theorem ProgressivelyMeasurable.stopped {ℱ : Filtration ℝ mΩ} {τ : Ω → 
   rw [key]
   exact (hH t).indicator (measurableSet_stoppedRegion hτ t)
 
+/-- The whole region cut out by a stopping time. -/
+def stoppedSet (τ : Ω → WithTop ℝ) : Set (Ω × ℝ) :=
+  {p : Ω × ℝ | ((p.2 : ℝ) : WithTop ℝ) ≤ τ p.1}
+
+theorem measurableSet_stoppedSet {ℱ : Filtration ℝ mΩ} {τ : Ω → WithTop ℝ}
+    (hτ : MeasureTheory.IsStoppingTime ℱ τ) : MeasurableSet (stoppedSet τ) := by
+  have hcompl : (stoppedSet τ)ᶜ
+      = ⋃ q : ℚ, {ω : Ω | τ ω ≤ ((q : ℝ) : WithTop ℝ)} ×ˢ Set.Ioi (q : ℝ) := by
+    ext p
+    simp only [stoppedSet, Set.mem_compl_iff, Set.mem_setOf_eq, not_le, Set.mem_iUnion,
+      Set.mem_prod, Set.mem_Ioi]
+    constructor
+    · intro hlt
+      have hne : τ p.1 ≠ ⊤ := by
+        intro h
+        rw [h] at hlt
+        exact absurd hlt (by simp)
+      obtain ⟨r, hr⟩ := WithTop.ne_top_iff_exists.mp hne
+      rw [← hr] at hlt
+      have hrlt : r < p.2 := by exact_mod_cast hlt
+      obtain ⟨q, hq1, hq2⟩ := exists_rat_btwn hrlt
+      refine ⟨q, ?_, hq2⟩
+      rw [← hr]
+      exact_mod_cast hq1.le
+    · rintro ⟨q, hq1, hq2⟩
+      calc τ p.1 ≤ ((q : ℝ) : WithTop ℝ) := hq1
+        _ < ((p.2 : ℝ) : WithTop ℝ) := by exact_mod_cast hq2
+  have hmc : MeasurableSet (stoppedSet τ)ᶜ := by
+    rw [hcompl]
+    exact MeasurableSet.iUnion fun q =>
+      ((ℱ.le (q : ℝ)) _ (hτ (q : ℝ))).prod measurableSet_Ioi
+  simpa using hmc.compl
+
+/-- **Cutting off at a stopping time preserves joint measurability.** -/
+theorem measurable_uncurry_stopped {ℱ : Filtration ℝ mΩ} {τ : Ω → WithTop ℝ}
+    (hτ : MeasureTheory.IsStoppingTime ℱ τ) {H : Ω → ℝ → ℝ}
+    (hH : Measurable (Function.uncurry H)) :
+    Measurable (Function.uncurry (LevyStochCalc.Probability.stopped τ H)) := by
+  have hfun : Function.uncurry (LevyStochCalc.Probability.stopped τ H)
+      = Set.indicator (stoppedSet τ) (Function.uncurry H) := by
+    funext p
+    by_cases hp : p ∈ stoppedSet τ
+    · rw [Set.indicator_of_mem hp]
+      exact if_pos hp
+    · rw [Set.indicator_of_notMem hp]
+      exact if_neg hp
+  rw [hfun]
+  exact hH.indicator (measurableSet_stoppedSet hτ)
+
 end LevyStochCalc.Probability

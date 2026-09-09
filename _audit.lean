@@ -1788,3 +1788,25 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_neg
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_sub
 #print axioms LevyStochCalc.Brownian.Ito.exists_stochasticIntegralBrownian_finsetSum
+-- ===== The region cut out by a stopping time (B1d-2b-i, 2026-09-09) =====
+#print axioms LevyStochCalc.Probability.stoppedSet
+#print axioms LevyStochCalc.Probability.measurableSet_stoppedSet
+#print axioms LevyStochCalc.Probability.measurable_uncurry_stopped
+-- ===== Optional stopping for the Ito integral (B1d-2, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.energy_lt_top_of_abs_le
+#print axioms LevyStochCalc.Brownian.Ito.hitInd
+#print axioms LevyStochCalc.Brownian.Ito.abs_hitInd_le_one
+#print axioms LevyStochCalc.Brownian.Ito.measurable_hitInd
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_hitInd
+#print axioms LevyStochCalc.Brownian.Ito.cutTerm
+#print axioms LevyStochCalc.Brownian.Ito.measurable_cutTerm
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_cutTerm
+#print axioms LevyStochCalc.Brownian.Ito.abs_cutTerm_le
+#print axioms LevyStochCalc.Brownian.Ito.abs_stopped_le'
+#print axioms LevyStochCalc.Brownian.Ito.indTerm
+#print axioms LevyStochCalc.Brownian.Ito.measurable_indTerm
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_indTerm
+#print axioms LevyStochCalc.Brownian.Ito.abs_indTerm_le
+#print axioms LevyStochCalc.Brownian.Ito.stopped_eq_sub_sum
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indTerm_zero
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped
