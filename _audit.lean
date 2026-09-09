@@ -1575,3 +1575,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_dim_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_isEmpty
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_mean_zero
+-- ===== Predictable representatives of progressive integrands (A5b, 2026-09-09) =====
+#print axioms LevyStochCalc.Probability.measurableSet_predictableSigma_Iic_univ
+#print axioms LevyStochCalc.Probability.measurableSet_predictableSigma_Ioc_prod
+#print axioms LevyStochCalc.Probability.measurableSet_predictableSigma_compl_Ioc
+#print axioms LevyStochCalc.Probability.measurable_predictableSigma_cell
+#print axioms LevyStochCalc.Probability.predictable_simpleEval
+#print axioms LevyStochCalc.Probability.Predictable.limsup
+#print axioms LevyStochCalc.Probability.limsupSimpleEval
+#print axioms LevyStochCalc.Probability.exists_predictable_ae_eq
+#print axioms LevyStochCalc.Probability.exists_predictable_ae_eq_horizonIntegrand
+-- ===== Predictable representatives of marked integrands (A5b, marked half, 2026-09-09) =====
+#print axioms LevyStochCalc.Probability.markedPredictable_markStepEval
+#print axioms LevyStochCalc.Probability.MarkedPredictable.limsup
+#print axioms LevyStochCalc.Probability.limsupMarkStepEval
+#print axioms LevyStochCalc.Probability.exists_markedPredictable_ae_eq
+#print axioms LevyStochCalc.Probability.exists_markedPredictable_ae_eq_markedHorizonIntegrand

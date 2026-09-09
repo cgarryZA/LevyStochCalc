@@ -31,6 +31,8 @@ import LevyStochCalc.Probability.StoppedProgressive
 import LevyStochCalc.Probability.ExitTime
 import LevyStochCalc.Probability.ProgressiveCadlag
 import LevyStochCalc.Probability.Predictable
+import LevyStochCalc.Probability.PredictableModification
+import LevyStochCalc.Probability.MarkedPredictableModification
 import LevyStochCalc.Probability.CharTotal
 import LevyStochCalc.Probability.SetIntegralPiSystem
 import LevyStochCalc.Probability.CharCylinder
