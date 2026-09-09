@@ -1694,3 +1694,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_polarQuadVarIncrement
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_polarQuadVarIncrement_le
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_weighted_polarQuadVarSum_le
+-- ===== The vector quadratic-variation Riemann sum, four pieces (B1b-5, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_weighted_cellSum_le
+#print axioms LevyStochCalc.Brownian.Ito.sum_unifGrid_sq_diff
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_drift_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_driftCross_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_polarQuadVar_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sum_offDiagCross_le
