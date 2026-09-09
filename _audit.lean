@@ -1894,3 +1894,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_clampAt_sub
 #print axioms LevyStochCalc.Brownian.Ito.sq_enorm_pi_le_sum
 #print axioms LevyStochCalc.Brownian.Ito.sq_enorm_finsetSum_le
+-- ===== The L2 distance between two vector Ito processes (B1d-4b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.ae_integrableOn_of_energy_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_norm_vectorItoProcess_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.clampCoeff
+#print axioms LevyStochCalc.Brownian.Ito.clampDrift
+#print axioms LevyStochCalc.Brownian.Ito.measurable_clampCoeff
+#print axioms LevyStochCalc.Brownian.Ito.measurable_clampDrift
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_clampCoeff
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_clampDrift
+#print axioms LevyStochCalc.Brownian.Ito.abs_clampCoeff_le
+#print axioms LevyStochCalc.Brownian.Ito.abs_clampDrift_le
+#print axioms LevyStochCalc.Brownian.Ito.energy_clampCoeff_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.energy_clampDrift_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_window_clamp
