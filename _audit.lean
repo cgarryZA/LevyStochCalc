@@ -1664,3 +1664,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.integral_norm_vectorItoProcess_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.integral_sq_norm_vectorItoProcess_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.integrable_norm_vectorItoProcess_sub_pow_three
+-- ===== Vector Ito versions, windows and the drift Riemann sum (B1b-5, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.measurable
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.measurable_coord
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.measurable_uncurry
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.progressivelyMeasurable_comp
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.measurable_uncurry_comp
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.ae_eq_all
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.sub_ae
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_sq_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_norm_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_sq_norm_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integrable_norm_sub_pow_three
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_window_norm_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_window_sq_norm_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_frozenRiemann_sub_le

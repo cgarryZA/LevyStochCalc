@@ -207,6 +207,9 @@ import LevyStochCalc.Brownian.CrossOrthogonality
 import LevyStochCalc.Brownian.CrossVariation
 import LevyStochCalc.Brownian.CrossVariationSum
 import LevyStochCalc.Brownian.VectorItoProcess
+import LevyStochCalc.Brownian.VectorItoProcessVersion
+import LevyStochCalc.Brownian.VectorItoProcessWindow
+import LevyStochCalc.Brownian.VectorItoTimeRiemann
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
