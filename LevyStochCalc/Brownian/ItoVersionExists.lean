@@ -21,6 +21,8 @@ value and the drift's (Lipschitz, hence continuous) window integral gives an `Is
   containing the null sets does not distinguish a.e.-equal functions.
 * `LevyStochCalc.Brownian.Ito.dyadicApprox` — the dyadic approximation from below, whose values
   lie in a countable set.
+* `LevyStochCalc.Brownian.Ito.exists_continuousAdapted_modification` — the Itô integral has a
+  continuous adapted modification.
 * `LevyStochCalc.Brownian.Ito.exists_isItoVersion` — a continuous adapted version exists.
 * `LevyStochCalc.Brownian.Ito.exists_isItoVersion_aug` — the same over the augmented
   filtration, with no side conditions.
@@ -112,16 +114,14 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.B
   {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
 
 include hℱ hC0 hCH in
-/-- **A continuous adapted version of an Itô process exists** when the filtration is constant
-before time `0` and contains the measurable null sets. -/
-theorem exists_isItoVersion
+/-- **A continuous adapted modification of the Itô integral exists** when the filtration is
+constant before time `0` and contains the measurable null sets. -/
+theorem exists_continuousAdapted_modification
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
-    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
-    {X₀ : Ω → ℝ} (hX₀ : Measurable[ℱ 0] X₀)
-    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
-    (hbp : Probability.ProgressivelyMeasurable ℱ bdrift)
-    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) :
-    ∃ X : ℝ → Ω → ℝ, IsItoVersion W ℱ hℱ H hm hp hq X₀ bdrift X := by
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s) :
+    ∃ Y : ℝ → Ω → ℝ, (∀ ω : Ω, Continuous fun t => Y t ω)
+      ∧ (∀ u : ℝ, Measurable[ℱ u] (Y u))
+      ∧ ∀ t : ℝ, 0 ≤ t → Y t =ᵐ[P] stochasticIntegralBrownian W ℱ hℱ H hm hp hq t := by
   classical
   obtain ⟨Y, hYcont, hYmod⟩ :=
     exists_continuous_modification_stochasticIntegralBrownian W ℱ hℱ H hm hp hq hC0 hCH
@@ -181,38 +181,53 @@ theorem exists_isItoVersion
           (tendsto_dyadicApprox hu)
     letI : MeasurableSpace Ω := ℱ u
     exact measurable_of_tendsto_metrizable hstep hlim
-  refine ⟨fun t ω => if ω ∈ N then 0 else X₀ ω
-      + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume) + Y (max t 0) ω, ?_, ?_, ?_⟩
+  refine ⟨fun t ω => if ω ∈ N then 0 else Y (max t 0) ω, ?_, ?_, ?_⟩
   · intro ω
     by_cases hω : ω ∈ N
     · simpa [hω] using continuous_const
     · simp only [hω, if_false]
-      refine (continuous_const.add
-        (continuous_setIntegral_Icc (Measurable.of_uncurry_left hbm) hB0 (hB ω))).add ?_
       exact (hNcont ω hω).comp (continuous_id.max continuous_const)
-  · intro t
-    refine Measurable.stronglyMeasurable ?_
-    have hsplit : (fun ω : Ω => if ω ∈ N then (0 : ℝ) else X₀ ω
-          + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume) + Y (max t 0) ω)
-        = fun ω => (if ω ∈ N then (0 : ℝ) else X₀ ω
-            + ∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume)
-          + (if ω ∈ N then (0 : ℝ) else Y (max t 0) ω) := by
-      funext ω
-      by_cases hω : ω ∈ N <;> simp [hω]
-    rw [hsplit]
-    refine Measurable.add (Measurable.ite (hNm t) measurable_const ?_) ?_
-    · refine Measurable.add (fun A hA => hle0 t _ (hX₀ hA)) ?_
-      exact ((hbp.stronglyMeasurable_setIntegral measurableSet_Icc
-        Set.Icc_subset_Iic_self volume).mono le_rfl).measurable
-    · rcases le_or_gt 0 t with ht | ht
-      · rw [max_eq_left ht]
-        exact hYind t ht
-      · rw [max_eq_right ht.le]
-        exact fun A hA => hle0 t _ (hYind 0 le_rfl hA)
+  · intro u
+    rcases le_or_gt 0 u with hu | hu
+    · simp only [max_eq_left hu]
+      exact hYind u hu
+    · simp only [max_eq_right hu.le]
+      exact fun A hA => hle0 u _ (hYind 0 le_rfl hA)
   · intro t ht
     filter_upwards [hYmod t ht,
       MeasureTheory.compl_mem_ae_iff.mpr hNzero] with ω hω hωN
-    rw [if_neg hωN, max_eq_left ht, hω]
+    rw [if_neg hωN, max_eq_left ht]
+    exact hω
+
+include hℱ hC0 hCH in
+/-- **A continuous adapted version of an Itô process exists** when the filtration is constant
+before time `0` and contains the measurable null sets. -/
+theorem exists_isItoVersion
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {X₀ : Ω → ℝ} (hX₀ : Measurable[ℱ 0] X₀)
+    (bdrift : Ω → ℝ → ℝ) (hbm : Measurable (Function.uncurry bdrift))
+    (hbp : Probability.ProgressivelyMeasurable ℱ bdrift)
+    {B : ℝ} (hB0 : 0 ≤ B) (hB : ∀ (ω : Ω) (s : ℝ), |bdrift ω s| ≤ B) :
+    ∃ X : ℝ → Ω → ℝ, IsItoVersion W ℱ hℱ H hm hp hq X₀ bdrift X := by
+  obtain ⟨Y, hYcont, hYadapt, hYmod⟩ :=
+    exists_continuousAdapted_modification W ℱ hℱ H hm hp hq hC0 hCH hℱ0 hnull
+  have hle0 : ∀ t : ℝ, ℱ 0 ≤ ℱ t := by
+    intro t
+    rcases le_or_gt 0 t with ht | ht
+    · exact ℱ.mono ht
+    · exact hℱ0 t ht.le
+  refine ⟨fun t ω => X₀ ω + (∫ s in Set.Icc (0 : ℝ) t, bdrift ω s ∂volume) + Y t ω, ?_, ?_, ?_⟩
+  · exact fun ω => (continuous_const.add
+      (continuous_setIntegral_Icc (Measurable.of_uncurry_left hbm) hB0 (hB ω))).add (hYcont ω)
+  · intro t
+    refine Measurable.stronglyMeasurable (Measurable.add (Measurable.add ?_ ?_) (hYadapt t))
+    · exact fun A hA => hle0 t _ (hX₀ hA)
+    · exact ((hbp.stronglyMeasurable_setIntegral measurableSet_Icc
+        Set.Icc_subset_Iic_self volume).mono le_rfl).measurable
+  · intro t ht
+    filter_upwards [hYmod t ht] with ω hω
+    rw [hω]
     rfl
 
 include hC0 hCH in

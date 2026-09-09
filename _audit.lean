@@ -1747,3 +1747,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_vectorItoGridError
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_vectorItoFormula_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormula
+-- ===== Existence of a vector Ito version (B1b-6e, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.exists_continuousAdapted_modification
+#print axioms LevyStochCalc.Brownian.Ito.exists_isVectorItoVersion
+#print axioms LevyStochCalc.Brownian.Ito.exists_isVectorItoVersion_aug

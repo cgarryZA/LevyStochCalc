@@ -218,6 +218,7 @@ import LevyStochCalc.Brownian.VectorItoThirdMoment
 import LevyStochCalc.Brownian.VectorItoTaylor
 import LevyStochCalc.Brownian.VectorItoFormulaDecomp
 import LevyStochCalc.Brownian.VectorItoFormula
+import LevyStochCalc.Brownian.VectorItoVersionExists
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
