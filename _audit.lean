@@ -1751,3 +1751,22 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_continuousAdapted_modification
 #print axioms LevyStochCalc.Brownian.Ito.exists_isVectorItoVersion
 #print axioms LevyStochCalc.Brownian.Ito.exists_isVectorItoVersion_aug
+-- ===== Time as a state coordinate (B1c-2a, 2026-09-09) =====
+#print axioms LevyStochCalc.Probability.progressivelyMeasurable_const
+#print axioms LevyStochCalc.Probability.progressivelyMeasurable_zero
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero
+#print axioms LevyStochCalc.Brownian.Ito.timeAugDiffusion
+#print axioms LevyStochCalc.Brownian.Ito.timeAugDrift
+#print axioms LevyStochCalc.Brownian.Ito.timeAugInit
+#print axioms LevyStochCalc.Brownian.Ito.timeAugProcess
+#print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugDiffusion
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugDiffusion
+#print axioms LevyStochCalc.Brownian.Ito.sq_timeAugDiffusion
+#print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugDiffusion_add
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugDiffusion_add
+#print axioms LevyStochCalc.Brownian.Ito.sq_timeAugDiffusion_add
+#print axioms LevyStochCalc.Brownian.Ito.abs_timeAugDiffusion_le
+#print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugDrift
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugDrift
+#print axioms LevyStochCalc.Brownian.Ito.abs_timeAugDrift_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.timeAug
