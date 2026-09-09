@@ -1618,5 +1618,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.twoCell_adapted
 #print axioms LevyStochCalc.Brownian.Ito.twoCell_integralAgainst
 #print axioms LevyStochCalc.Brownian.Ito.mul_sub_stochasticIntegralBrownian_ae
+#print axioms LevyStochCalc.Brownian.Ito.oneCell
+#print axioms LevyStochCalc.Brownian.Ito.oneCell_eval
+#print axioms LevyStochCalc.Brownian.Ito.oneCell_adapted
+#print axioms LevyStochCalc.Brownian.Ito.oneCell_integralAgainst
+#print axioms LevyStochCalc.Brownian.Ito.mul_sub_stochasticIntegralBrownian_ae_zero
+#print axioms LevyStochCalc.Brownian.Ito.exists_pullout_mul_sub_stochasticIntegralBrownian
 #print axioms LevyStochCalc.Brownian.Ito.integral_mul_cross_increment_eq_zero
 #print axioms LevyStochCalc.Brownian.Ito.condExp_mul_cross_increment_eq_zero
+-- ===== Weighted sums of cross increments (B1b-3, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.integrable_sq_mul_and_le
+#print axioms LevyStochCalc.Brownian.Ito.crossIncrement
+#print axioms LevyStochCalc.Brownian.Ito.measurable_crossIncrement
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_crossIncrement
+#print axioms LevyStochCalc.Brownian.Ito.integrable_sq_crossIncrement_and_le
+#print axioms LevyStochCalc.Brownian.Ito.memLp_two_crossIncrement
+#print axioms LevyStochCalc.Brownian.Ito.condExp_crossIncrement
+#print axioms LevyStochCalc.Brownian.Ito.integral_sq_weighted_crossSum_le
