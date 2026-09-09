@@ -1719,3 +1719,31 @@ import LevyStochCalc
 #print axioms LevyStochCalc.abs_taylorRemainderNormed_le
 #print axioms LevyStochCalc.Brownian.Ito.measurable_taylorRemainderNormed
 #print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorTaylorRemainder_le
+-- ===== Partial derivatives on `Fin n -> R` (B1b-6c, 2026-09-09) =====
+#print axioms LevyStochCalc.clm_apply_pi
+#print axioms LevyStochCalc.clm_apply_pi_real
+#print axioms LevyStochCalc.coordDeriv
+#print axioms LevyStochCalc.coordDeriv₂
+#print axioms LevyStochCalc.apply_eq_sum_coordDeriv
+#print axioms LevyStochCalc.apply₂_eq_sum_coordDeriv₂
+#print axioms LevyStochCalc.abs_coordDeriv_le
+#print axioms LevyStochCalc.abs_coordDeriv₂_le
+#print axioms LevyStochCalc.norm_fderiv_sub_le
+#print axioms LevyStochCalc.abs_coordDeriv_sub_le
+#print axioms LevyStochCalc.abs_coordDeriv₂_sub_le
+#print axioms LevyStochCalc.continuous_coordDeriv
+#print axioms LevyStochCalc.continuous_coordDeriv₂
+-- ===== The vector Ito grid decomposition (B1b-6d-i, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_add_sum_comm
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_sum_sum_comm
+#print axioms LevyStochCalc.Brownian.Ito.sum_sub_sum_two
+#print axioms LevyStochCalc.Brownian.Ito.sum_apply_fderiv₂_eq
+#print axioms LevyStochCalc.Brownian.Ito.sum_apply_fderiv_eq
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.vectorItoFormula_decomp_ae
+-- ===== Ito's formula for a vector Ito process (B1b-6d, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoGridError
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoGridError_zero
+#print axioms LevyStochCalc.Brownian.Ito.continuous_vectorItoGridError
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_vectorItoGridError
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.integral_abs_vectorItoFormula_le
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormula

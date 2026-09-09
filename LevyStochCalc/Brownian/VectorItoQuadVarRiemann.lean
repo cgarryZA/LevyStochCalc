@@ -600,7 +600,12 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
     (hφbd : ∀ x, |φ x| ≤ Kφ) {L : ℝ} (hL0 : 0 ≤ L)
     (hφlip : ∀ x y : Fin n → ℝ, |φ x - φ y| ≤ L * ‖x - y‖)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
-    ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+    Integrable (fun ω : Ω => (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+          * ((X (unifGrid T m (i + 1)) ω p - X (unifGrid T m i) ω p)
+            * (X (unifGrid T m (i + 1)) ω q - X (unifGrid T m i) ω q)))
+        - ∫ s in Set.Ioc (0 : ℝ) T,
+            φ (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s ∂volume) P
+      ∧ ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
           * ((X (unifGrid T m (i + 1)) ω p - X (unifGrid T m i) ω p)
             * (X (unifGrid T m (i + 1)) ω q - X (unifGrid T m i) ω q)))
         - ∫ s in Set.Ioc (0 : ℝ) T,
@@ -745,6 +750,12 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
     filter_upwards [h.quadVarRiemann_decomp_ae hC0 hCH hbm hB p q φ hT hm0] with ω hω
     rw [hω]
     congr 1
+    ring
+  refine ⟨?_, ?_⟩
+  · refine (((((i1.add i2).add i3).add i4).add i5).add i6).congr ?_
+    filter_upwards [h.quadVarRiemann_decomp_ae hC0 hCH hbm hB p q φ hT hm0] with ω hω
+    simp only [Pi.add_apply]
+    rw [hω]
     ring
   rw [MeasureTheory.integral_congr_ae hae]
   exact integral_abs_add_le ((((i1.add i2).add i3).add i4).add i5) i6

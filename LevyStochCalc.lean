@@ -199,6 +199,7 @@ import LevyStochCalc.Brownian.ItoRiemannIntegrand
 import LevyStochCalc.Brownian.RiemannSum
 import LevyStochCalc.Brownian.TaylorTwo
 import LevyStochCalc.Brownian.TaylorTwoVector
+import LevyStochCalc.Brownian.CoordDerivative
 import LevyStochCalc.Brownian.TaylorTwoTime
 import LevyStochCalc.Brownian.TaylorTwoModulus
 import LevyStochCalc.Probability.MartingaleDifference
@@ -215,6 +216,8 @@ import LevyStochCalc.Brownian.PolarisedQuadVar
 import LevyStochCalc.Brownian.VectorItoQuadVarRiemann
 import LevyStochCalc.Brownian.VectorItoThirdMoment
 import LevyStochCalc.Brownian.VectorItoTaylor
+import LevyStochCalc.Brownian.VectorItoFormulaDecomp
+import LevyStochCalc.Brownian.VectorItoFormula
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
