@@ -1908,3 +1908,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.energy_clampCoeff_lt_top
 #print axioms LevyStochCalc.Brownian.Ito.energy_clampDrift_lt_top
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_window_clamp
+#print axioms LevyStochCalc.Brownian.Ito.clampMesh
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_norm_clampProcess_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_window_sq_norm_clampProcess_sub_le

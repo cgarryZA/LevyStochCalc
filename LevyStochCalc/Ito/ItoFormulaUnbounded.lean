@@ -81,6 +81,15 @@ theorem energy_clampDrift_lt_top {b : Fin n → Ω → ℝ → ℝ}
       (‖clampDrift b j p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
   energy_lt_top_of_bounded (fun ω s => abs_clampDrift_le b j p ω s) T hT
 
+/-- The combination of energies that bounds the `L²` distance on `[0, T]` between a vector Itô
+process and the one driven by its coefficients clamped at level `j`. -/
+noncomputable def clampMesh (P : Measure Ω) (H : Fin n → Fin d → Ω → ℝ → ℝ)
+    (b : Fin n → Ω → ℝ → ℝ) (T : ℝ) (j : ℕ) : ℝ≥0∞ :=
+  ∑ p : Fin n, (2 * (ENNReal.ofReal T * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖clampDrift b j p ω s - b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+      + 2 * ((d : ℝ≥0∞) * ∑ k : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖clampCoeff H j p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P))
+
 /-- **The clamped coefficients approximate the coefficients in energy**, in the combination that
 bounds the `L²` distance between the processes they drive. -/
 theorem tendsto_energy_window_clamp {H : Fin n → Fin d → Ω → ℝ → ℝ}
@@ -90,12 +99,8 @@ theorem tendsto_energy_window_clamp {H : Fin n → Fin d → Ω → ℝ → ℝ}
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤)
     (hbq : ∀ p : Fin n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤) :
-    Filter.Tendsto (fun j : ℕ => ∑ p : Fin n,
-        (2 * (ENNReal.ofReal T * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-            (‖clampDrift b j p ω s - b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
-          + 2 * ((d : ℝ≥0∞) * ∑ k : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-            (‖clampCoeff H j p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)))
-      Filter.atTop (𝓝 0) := by
+    Filter.Tendsto (clampMesh P H b T) Filter.atTop (𝓝 0) := by
+  unfold clampMesh
   have hdrift : ∀ p : Fin n, Filter.Tendsto (fun j : ℕ => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖clampDrift b j p ω s - b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) Filter.atTop (𝓝 0) :=
     fun p => tendsto_energy_clampAt_sub (hbm p) (hbq p)
@@ -135,6 +140,108 @@ theorem tendsto_energy_window_clamp {H : Fin n → Fin d → Ω → ℝ → ℝ}
     simpa using h1.add h2
   have := tendsto_finset_sum (Finset.univ : Finset (Fin n)) (fun p _ => hterm p)
   simpa using this
+
+section ClampProcess
+
+variable (W : Multidim.MultidimBrownianMotion P d)
+  (ℱ' : Filtration ℝ ‹MeasurableSpace Ω›)
+  (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ')
+
+/-- **The process driven by the clamped coefficients approximates the original one in `L²`,
+uniformly on `[0, T]`.** -/
+theorem lintegral_sq_norm_clampProcess_sub_le
+    {H : Fin n → Fin d → Ω → ℝ → ℝ}
+    (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    (hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ' (H p k))
+    (hq : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X₀ : Ω → Fin n → ℝ} (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
+    {b : Fin n → Ω → ℝ → ℝ} (hbm : ∀ p, Measurable (Function.uncurry (b p)))
+    (hbq : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (j : ℕ) {T t : ℝ} (ht : 0 < t) (htT : t ≤ T) :
+    ∫⁻ ω, (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
+            (fun p k => measurable_clampCoeff hm j p k)
+            (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            X₀ (clampDrift b j) t ω
+        - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ≤ clampMesh P H b T j := by
+  have hbound := lintegral_sq_norm_vectorItoProcess_sub_le W ℱ' hcoord
+    hm hpg hq (fun p k => measurable_clampCoeff hm j p k)
+    (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+    (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+    hX₀ hbm (fun p => measurable_clampDrift hbm j p) ht hbq
+    (fun p T' hT' => energy_clampDrift_lt_top hbm j p T' hT')
+  refine hbound.trans ?_
+  unfold clampMesh
+  refine Finset.sum_le_sum fun p _ => ?_
+  have hmonoD : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+        (‖clampDrift b j p ω s - b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖clampDrift b j p ω s - b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+    MeasureTheory.lintegral_mono fun ω =>
+      MeasureTheory.lintegral_mono_set (Set.Icc_subset_Icc_right htT)
+  have hmonoH : ∀ k : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+        (‖clampCoeff H j p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖clampCoeff H j p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+    fun k => MeasureTheory.lintegral_mono fun ω =>
+      MeasureTheory.lintegral_mono_set (Set.Icc_subset_Icc_right htT)
+  have hT : ENNReal.ofReal t ≤ ENNReal.ofReal T := ENNReal.ofReal_le_ofReal htT
+  gcongr
+
+/-- **The energy of the approximation error over the whole window.** -/
+theorem lintegral_window_sq_norm_clampProcess_sub_le
+    {H : Fin n → Fin d → Ω → ℝ → ℝ}
+    (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    (hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ' (H p k))
+    (hq : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X₀ : Ω → Fin n → ℝ} (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
+    {b : Fin n → Ω → ℝ → ℝ} (hbm : ∀ p, Measurable (Function.uncurry (b p)))
+    (hbq : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (j : ℕ) {T : ℝ} (hT : 0 < T) :
+    ∫⁻ s in Set.Icc (0 : ℝ) T, (∫⁻ ω,
+        (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
+            (fun p k => measurable_clampCoeff hm j p k)
+            (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            X₀ (clampDrift b j) s ω
+          - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
+      ≤ ENNReal.ofReal T * clampMesh P H b T j := by
+  have hset : ∫⁻ s in Set.Icc (0 : ℝ) T, (∫⁻ ω,
+        (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
+            (fun p k => measurable_clampCoeff hm j p k)
+            (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            X₀ (clampDrift b j) s ω
+          - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
+      = ∫⁻ s in Set.Ioc (0 : ℝ) T, (∫⁻ ω,
+        (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
+            (fun p k => measurable_clampCoeff hm j p k)
+            (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            X₀ (clampDrift b j) s ω
+          - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume := by
+    exact (MeasureTheory.setLIntegral_congr (MeasureTheory.Ioc_ae_eq_Icc)).symm
+  rw [hset]
+  calc ∫⁻ s in Set.Ioc (0 : ℝ) T, (∫⁻ ω,
+        (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
+            (fun p k => measurable_clampCoeff hm j p k)
+            (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            X₀ (clampDrift b j) s ω
+          - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
+      ≤ ∫⁻ _s in Set.Ioc (0 : ℝ) T, clampMesh P H b T j ∂volume := by
+        refine MeasureTheory.setLIntegral_mono' measurableSet_Ioc fun s hs => ?_
+        exact lintegral_sq_norm_clampProcess_sub_le W ℱ' hcoord hm hpg hq hX₀ hbm hbq j
+          hs.1 hs.2
+    _ = ENNReal.ofReal T * clampMesh P H b T j := by
+        rw [MeasureTheory.setLIntegral_const, Real.volume_Ioc, sub_zero, mul_comm]
+
+end ClampProcess
 
 end Clamped
 
