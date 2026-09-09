@@ -6,6 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Brownian.VectorItoTimeAug
 import LevyStochCalc.Brownian.VectorItoFormula
 import LevyStochCalc.Brownian.ItoAlgebra
+import LevyStochCalc.Brownian.ItoCutoff
 
 /-!
 # Itô's formula for a time-dependent function of a vector Itô process
@@ -46,8 +47,8 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
   (hCH : ∀ (p : Fin n) (k : Fin d) (ω : Ω) (s : ℝ), |H p k ω s| ≤ C)
 
 include hC0 hCH in
-/-- **Itô's formula for a time-dependent function of a vector Itô process.** With the time
-coordinate carried as coordinate `0`, `∂₀f` is the time derivative and `∂_{q+1}f` the space
+/-- **Itô's formula for a time-dependent, twice continuously differentiable function of a vector
+Itô process.** With the time coordinate carried as coordinate `0`, `∂₀f` is the time derivative and `∂_{q+1}f` the space
 derivatives, and
 
   `f(T, X_T) − f(0, X_0) = ∫_0^T ∂₀f ds + ∑_q ∫_0^T ∂_q f b^q ds
@@ -65,11 +66,7 @@ theorem IsVectorItoVersion.itoFormulaTime
     {f : (Fin (n + 1) → ℝ) → ℝ} {f' : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ) →L[ℝ] ℝ}
     {f'' : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ) →L[ℝ] ℝ}
     (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
-    {K₁ : ℝ} (hf'bd : ∀ z, ‖f' z‖ ≤ K₁)
-    {K₂ : ℝ} (hK₂0 : 0 ≤ K₂) (hf''bd : ∀ z, ‖f'' z‖ ≤ K₂)
-    (hf''c : Continuous f'')
-    (hf''unif : ∀ ε : ℝ, 0 < ε → ∃ δ : ℝ, 0 < δ ∧
-      ∀ z w : Fin (n + 1) → ℝ, ‖z - w‖ < δ → ‖f'' z - f'' w‖ ≤ ε)
+    (hfC : ContDiff ℝ 2 f)
     (hmg : ∀ (q : Fin n) (k : Fin d), Measurable (Function.uncurry fun ω s =>
       coordDeriv f' q.succ (timeAugProcess X s ω) * H q k ω s))
     (hpg : ∀ (q : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ
@@ -113,11 +110,11 @@ theorem IsVectorItoVersion.itoFormulaTime
     rw [stochasticIntegralBrownian_congr_fun (W.W k) ℱ (hcoord k) heq (hmgA 0 k) (hpgA 0 k)
       (hqgA 0 k) measurable_const (Probability.progressivelyMeasurable_const ℱ (0 : ℝ)) hq0 T]
     exact stochasticIntegralBrownian_ae_zero (W.W k) ℱ (hcoord k) _ _ _ T
-  have hform := (h.timeAug).itoFormula hC0 (abs_timeAugDiffusion_le H hC0 hCH) 𝒲 hX₀'
+  have hform := (h.timeAug).itoFormula_of_contDiff hC0 (abs_timeAugDiffusion_le H hC0 hCH) 𝒲 hX₀'
     (measurable_timeAugDrift bdrift hbm) (le_trans hB0 (le_max_left B 1))
     (abs_timeAugDrift_le bdrift hB) (measurable_timeAugDiffusion_add H hHm)
     (progressivelyMeasurable_timeAugDiffusion_add H ℱ hHp)
-    (sq_timeAugDiffusion_add H hHs hqa) hf hf' hf'bd hK₂0 hf''bd hf''c hf''unif
+    (sq_timeAugDiffusion_add H hHs hqa) hfC hf hf'
     hmgA hpgA hqgA hT
   filter_upwards [hform, MeasureTheory.ae_all_iff.mpr hSI0] with ω hω hz
   rw [hω]

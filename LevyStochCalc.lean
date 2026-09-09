@@ -224,6 +224,8 @@ import LevyStochCalc.Brownian.ItoZero
 import LevyStochCalc.Brownian.ItoFinsetSum
 import LevyStochCalc.Brownian.ItoOptionalStopping
 import LevyStochCalc.Brownian.ItoLocality
+import LevyStochCalc.Brownian.SmoothCutoff
+import LevyStochCalc.Brownian.ItoCutoff
 import LevyStochCalc.Brownian.VectorItoTimeAug
 import LevyStochCalc.Brownian.VectorItoTimeFormula
 import LevyStochCalc.Brownian.PRPMultidimRange

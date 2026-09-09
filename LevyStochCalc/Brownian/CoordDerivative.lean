@@ -143,6 +143,79 @@ theorem abs_coordDeriv₂_sub_le {K : ℝ} (h : ∀ z w, ‖f'' z - f'' w‖ ≤
     _ = ‖f'' x - f'' y‖ := by rw [hnorm, hnormq, mul_one, mul_one]
     _ ≤ K * ‖x - y‖ := h x y
 
+/-- A vector of `Fin n → ℝ` is the sum of its coordinate multiples of the standard basis. -/
+theorem sum_single_eq (x : Fin n → ℝ) : ∑ p, (x p) • (Pi.single p 1 : Fin n → ℝ) = x := by
+  have h : ∀ p : Fin n, (x p) • (Pi.single p 1 : Fin n → ℝ) = Pi.single p (x p) := by
+    intro p
+    funext i
+    by_cases hi : i = p
+    · subst hi; simp
+    · simp [Pi.single_apply, hi]
+  simp only [h]
+  exact Finset.univ_sum_single x
+
+/-- The operator norm of a functional on `Fin n → ℝ` is at most the sum of the absolute values of
+its coordinates. -/
+theorem norm_le_sum_abs_apply (A : (Fin n → ℝ) →L[ℝ] ℝ) :
+    ‖A‖ ≤ ∑ p, |A (Pi.single p 1)| := by
+  refine A.opNorm_le_bound (Finset.sum_nonneg fun p _ => abs_nonneg _) fun x => ?_
+  have hx : A x = ∑ p, x p * A (Pi.single p 1) := by
+    conv_lhs => rw [← sum_single_eq x]
+    rw [map_sum]
+    exact Finset.sum_congr rfl fun p _ => by rw [map_smul]; simp
+  rw [Real.norm_eq_abs, hx]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+  rw [Finset.sum_mul]
+  refine Finset.sum_le_sum fun p _ => ?_
+  rw [abs_mul]
+  have h1 : |x p| ≤ ‖x‖ := by simpa [Real.norm_eq_abs] using norm_le_pi_norm x p
+  calc |x p| * |A (Pi.single p 1)|
+      ≤ ‖x‖ * |A (Pi.single p 1)| := mul_le_mul_of_nonneg_right h1 (abs_nonneg _)
+    _ = |A (Pi.single p 1)| * ‖x‖ := by ring
+
+/-- The operator norm of a bilinear form on `Fin n → ℝ` is at most the sum of the absolute values
+of its coordinates. -/
+theorem norm_le_sum_abs_apply₂ (A : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ) :
+    ‖A‖ ≤ ∑ p, ∑ q, |A (Pi.single p 1) (Pi.single q 1)| := by
+  refine A.opNorm_le_bound₂ (Finset.sum_nonneg fun p _ =>
+    Finset.sum_nonneg fun q _ => abs_nonneg _) fun x y => ?_
+  have hx : A x y = ∑ p, x p * (A (Pi.single p 1) y) := by
+    conv_lhs => rw [← sum_single_eq x]
+    rw [map_sum]
+    simp only [_root_.sum_apply]
+    exact Finset.sum_congr rfl fun p _ => by rw [map_smul]; simp [mul_comm]
+  have hy : ∀ p : Fin n, A (Pi.single p 1) y
+      = ∑ q, y q * (A (Pi.single p 1) (Pi.single q 1)) := by
+    intro p
+    conv_lhs => rw [← sum_single_eq y]
+    rw [map_sum]
+    exact Finset.sum_congr rfl fun q _ => by rw [map_smul]; simp [mul_comm]
+  have hxnn : (0 : ℝ) ≤ ‖x‖ := norm_nonneg x
+  have hynn : (0 : ℝ) ≤ ‖y‖ := norm_nonneg y
+  rw [Real.norm_eq_abs, hx]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+  have hterm : ∀ p ∈ (Finset.univ : Finset (Fin n)),
+      |x p * (A (Pi.single p 1) y)|
+        ≤ ‖x‖ * ‖y‖ * ∑ q, |A (Pi.single p 1) (Pi.single q 1)| := by
+    intro p _
+    rw [abs_mul, hy p]
+    have h1 : |x p| ≤ ‖x‖ := by simpa [Real.norm_eq_abs] using norm_le_pi_norm x p
+    have h2 : |∑ q, y q * (A (Pi.single p 1) (Pi.single q 1))|
+        ≤ ‖y‖ * ∑ q, |A (Pi.single p 1) (Pi.single q 1)| := by
+      refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+      rw [Finset.mul_sum]
+      refine Finset.sum_le_sum fun q _ => ?_
+      rw [abs_mul]
+      refine mul_le_mul_of_nonneg_right ?_ (abs_nonneg _)
+      simpa [Real.norm_eq_abs] using norm_le_pi_norm y q
+    calc |x p| * |∑ q, y q * (A (Pi.single p 1) (Pi.single q 1))|
+        ≤ ‖x‖ * (‖y‖ * ∑ q, |A (Pi.single p 1) (Pi.single q 1)|) :=
+          mul_le_mul h1 h2 (abs_nonneg _) hxnn
+      _ = ‖x‖ * ‖y‖ * ∑ q, |A (Pi.single p 1) (Pi.single q 1)| := by ring
+  refine (Finset.sum_le_sum hterm).trans (le_of_eq ?_)
+  rw [← Finset.mul_sum]
+  ring
+
 /-- A second partial derivative inherits an affine oscillation bound on the second derivative. -/
 theorem abs_coordDeriv₂_sub_le_affine {A K : ℝ} (h : ∀ z w, ‖f'' z - f'' w‖ ≤ A + K * ‖z - w‖)
     (p q : Fin n) (x y : Fin n → ℝ) :

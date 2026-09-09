@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoOptionalStopping
+import LevyStochCalc.Brownian.ItoIncrement
 
 /-!
 # The local property of the Itô integral
@@ -18,6 +19,10 @@ converges in energy, and an `L²` squeeze removes the approximation.
 
 * `LevyStochCalc.Brownian.Ito.stepStop`, `gridStop` — the two-valued and the grid stopping times.
 * `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_eq_of_le` — the local property.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_pos` — the integral to a
+  positive time sees the integrand only at positive times.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_le` — two integrands agreeing
+  up to a stopping time have the same integral where that time has not been reached.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -493,6 +498,106 @@ theorem stochasticIntegralBrownian_stopped_eq_of_le
       - stochasticIntegralBrownian W ℱ hℱ H hm hp hq t ω = 0 := by
     simpa using this
   linarith [hsub]
+
+/-- **The Itô integral to a positive time sees the integrand only at positive times.** -/
+theorem stochasticIntegralBrownian_congr_of_pos
+    {H₁ H₂ : Ω → ℝ → ℝ} (hm₁ : Measurable (Function.uncurry H₁))
+    (hp₁ : Probability.ProgressivelyMeasurable ℱ H₁)
+    (hq₁ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hm₂ : Measurable (Function.uncurry H₂))
+    (hp₂ : Probability.ProgressivelyMeasurable ℱ H₂)
+    (hq₂ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hagree : ∀ (ω : Ω) (s : ℝ), 0 < s → H₁ ω s = H₂ ω s)
+    {t : ℝ} (ht : 0 < t) :
+    stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ t
+      =ᵐ[P] stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ t := by
+  classical
+  have hle1 : ∀ (H : Ω → ℝ → ℝ) (ω : Ω) (s : ℝ),
+      |(Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H ω s| ≤ |H ω s| := by
+    intro H ω s
+    rw [abs_mul]
+    refine mul_le_of_le_one_left (abs_nonneg _) ?_
+    simpa [indIoc] using indIoc_le_one (Ω := Ω) 0 t ω s
+  have hmI : ∀ {H : Ω → ℝ → ℝ}, Measurable (Function.uncurry H) →
+      Measurable (Function.uncurry fun ω s =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H ω s) :=
+    fun hm => (measurable_uncurry_indIoc (Ω := Ω) 0 t).mul hm
+  have hpI : ∀ {H : Ω → ℝ → ℝ}, Probability.ProgressivelyMeasurable ℱ H →
+      Probability.ProgressivelyMeasurable ℱ (fun ω s =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H ω s) :=
+    fun hp => (progressivelyMeasurable_indIoc₀ ℱ ht).mul hp
+  have hqI : ∀ {H : Ω → ℝ → ℝ}, (∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) →
+      ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤ :=
+    fun {H} hq => energy_lt_top_of_abs_le (hle1 H) hq
+  have key : ∀ (H : Ω → ℝ → ℝ) (hm : Measurable (Function.uncurry H))
+      (hp : Probability.ProgressivelyMeasurable ℱ H)
+      (hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+      stochasticIntegralBrownian W ℱ hℱ
+          (fun ω s => (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H ω s)
+          (hmI hm) (hpI hp) (hqI hq) t
+        =ᵐ[P] stochasticIntegralBrownian W ℱ hℱ H hm hp hq t := by
+    intro H hm hp hq
+    have hsplit := stochasticIntegralBrownian_indicator_Ioc W ℱ hℱ H hm hp hq
+      (le_refl (0 : ℝ)) ht (hmI hm) (hpI hp) (hqI hq) ht
+    have hz := stochasticIntegralBrownian_ae_zero_of_nonpos W ℱ hℱ H hm hp hq (le_refl (0 : ℝ))
+    filter_upwards [hsplit, hz] with ω hω hω0
+    rw [hω, min_self, min_eq_left ht.le]
+    simpa using hω0
+  have hfun : (fun (ω : Ω) (s : ℝ) =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H₁ ω s)
+      = fun ω s => (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * H₂ ω s := by
+    funext ω s
+    by_cases hs : s ∈ Set.Ioc (0 : ℝ) t
+    · rw [hagree ω s hs.1]
+    · rw [Set.indicator_of_notMem hs, zero_mul, zero_mul]
+  have hcongr := stochasticIntegralBrownian_congr_fun W ℱ hℱ hfun
+    (hmI hm₁) (hpI hp₁) (hqI hq₁) (hmI hm₂) (hpI hp₂) (hqI hq₂) t
+  refine ((key H₁ hm₁ hp₁ hq₁).symm.trans ?_).trans (key H₂ hm₂ hp₂ hq₂)
+  rw [hcongr]
+
+/-- **Two integrands agreeing up to a stopping time have the same integral at a time that
+stopping time has not reached.** -/
+theorem stochasticIntegralBrownian_congr_of_le
+    (hτ : MeasureTheory.IsStoppingTime ℱ τ)
+    {H₁ H₂ : Ω → ℝ → ℝ} (hm₁ : Measurable (Function.uncurry H₁))
+    (hp₁ : Probability.ProgressivelyMeasurable ℱ H₁)
+    (hq₁ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hm₂ : Measurable (Function.uncurry H₂))
+    (hp₂ : Probability.ProgressivelyMeasurable ℱ H₂)
+    (hq₂ : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hagree : ∀ (ω : Ω) (s : ℝ), 0 < s → ((s : ℝ) : WithTop ℝ) ≤ τ ω → H₁ ω s = H₂ ω s)
+    {t : ℝ} (ht : 0 < t) :
+    ∀ᵐ ω ∂P, ((t : ℝ) : WithTop ℝ) ≤ τ ω →
+      stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ t ω
+        = stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ t ω := by
+  classical
+  have e1 := stochasticIntegralBrownian_stopped_eq_of_le τ W ℱ hℱ hτ hm₁ hp₁ hq₁ ht
+  have e2 := stochasticIntegralBrownian_stopped_eq_of_le τ W ℱ hℱ hτ hm₂ hp₂ hq₂ ht
+  have hstop : ∀ (ω : Ω) (s : ℝ), 0 < s →
+      Probability.stopped τ H₁ ω s = Probability.stopped τ H₂ ω s := by
+    intro ω s hs
+    unfold LevyStochCalc.Probability.stopped
+    by_cases hle : ((s : ℝ) : WithTop ℝ) ≤ τ ω
+    · rw [if_pos hle, if_pos hle, hagree ω s hs hle]
+    · rw [if_neg hle, if_neg hle]
+  have e3 := stochasticIntegralBrownian_congr_of_pos W ℱ hℱ
+    (Probability.measurable_uncurry_stopped hτ hm₁)
+    (Probability.ProgressivelyMeasurable.stopped hτ hp₁)
+    (energy_lt_top_of_abs_le (fun ω s => Probability.abs_stopped_le τ H₁ ω s) hq₁)
+    (Probability.measurable_uncurry_stopped hτ hm₂)
+    (Probability.ProgressivelyMeasurable.stopped hτ hp₂)
+    (energy_lt_top_of_abs_le (fun ω s => Probability.abs_stopped_le τ H₂ ω s) hq₂)
+    hstop ht
+  filter_upwards [e1, e2, e3] with ω h1 h2 h3 hle
+  rw [← h1 hle, ← h2 hle, h3]
 
 end Local
 

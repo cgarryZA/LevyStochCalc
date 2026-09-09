@@ -188,6 +188,30 @@ theorem exitTime_mono (X : Ω → ℝ → E) (ω : Ω) {k k' : ℝ} (h : k ≤ k
   · exact absurd (Set.Nonempty.mono hsub h2) h1
   · exact le_rfl
 
+/-- Up to and including the exit time, a continuous path started at a positive time has norm at
+most `k`. The restriction to positive times is necessary: at time `0` the exit time is `0`
+whenever the path already starts outside the ball. -/
+theorem norm_le_of_le_exitTime {X : Ω → ℝ → E} {ω : Ω} (hX : Continuous (X ω)) {k s : ℝ}
+    (hs : 0 < s) (hle : (s : WithTop ℝ) ≤ exitTime X k ω) : ‖X ω s‖ ≤ k := by
+  classical
+  have hnot : ∀ u : ℝ, 0 ≤ u → u < s → ‖X ω u‖ ≤ k := by
+    intro u hu0 hus
+    by_contra hcon
+    have hmem : u ∈ exitSet X k ω := ⟨hu0, (not_le.mp hcon).le⟩
+    have : exitTime X k ω ≤ ((u : ℝ) : WithTop ℝ) := by
+      rw [exitTime, if_pos ⟨u, hmem⟩]
+      exact_mod_cast csInf_le (bddBelow_exitSet X k ω) hmem
+    have hsu : ((s : ℝ) : WithTop ℝ) ≤ ((u : ℝ) : WithTop ℝ) := hle.trans this
+    exact absurd (by exact_mod_cast hsu : s ≤ u) (not_le.mpr hus)
+  have hlim : Filter.Tendsto (fun u => ‖X ω u‖) (nhdsWithin s (Set.Iio s)) (nhds ‖X ω s‖) :=
+    (hX.norm.tendsto s).mono_left nhdsWithin_le_nhds
+  have hev : ∀ᶠ u in nhdsWithin s (Set.Iio s), ‖X ω u‖ ≤ k := by
+    have h0 : ∀ᶠ u in nhdsWithin s (Set.Iio s), 0 < u :=
+      Filter.Eventually.filter_mono nhdsWithin_le_nhds (eventually_gt_nhds hs)
+    filter_upwards [h0, self_mem_nhdsWithin] with u hu0 huc
+    exact hnot u hu0.le huc
+  exact le_of_tendsto hlim hev
+
 /-- **Localisation.** For a continuous path, every time lies strictly below the exit time at
 level `k` for all large `k`. -/
 theorem exists_lt_exitTime {X : Ω → ℝ → E} {ω : Ω} (hX : Continuous (X ω)) {t : ℝ} (ht : 0 ≤ t) :
