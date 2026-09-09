@@ -210,6 +210,7 @@ import LevyStochCalc.Brownian.PRPMultidimAssembly
 
 -- Layer 2: Itô-Lévy formula  → Cu03
 import LevyStochCalc.Ito.Setting
+import LevyStochCalc.Ito.ItoLevyProcess
 import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.PicardIntegrand
 import LevyStochCalc.Ito.PicardSpace

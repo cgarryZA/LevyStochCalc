@@ -1609,3 +1609,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Analysis.exists_isolating_radius
 #print axioms LevyStochCalc.Analysis.countable_setOf_ne_leftLim
 #print axioms LevyStochCalc.Analysis.ae_eq_leftLim_of_cadlag
+-- ===== The Ito-Levy process interface (B0a, 2026-09-09) =====
+#print axioms LevyStochCalc.Ito.Setting.IsItoLevyProcess
+#print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_isItoLevyProcess
