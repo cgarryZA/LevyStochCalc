@@ -140,6 +140,7 @@ import LevyStochCalc.Driver.CellGronwall
 import LevyStochCalc.Driver.CellComplex
 import LevyStochCalc.Driver.JointGrid
 import LevyStochCalc.Driver.JointMultidim
+import LevyStochCalc.Driver.JointComplement
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement

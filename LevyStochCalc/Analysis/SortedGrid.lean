@@ -87,6 +87,12 @@ theorem mem_posTimes {F : Finset (Fin d × Set.Iic T)} {p : Fin d × Set.Iic T} 
     (hx : 0 < (p.2 : ℝ)) : ((p.2 : ℝ)) ∈ posTimes F :=
   Finset.mem_image.mpr ⟨p, Finset.mem_filter.mpr ⟨hp, hx⟩, rfl⟩
 
+theorem le_of_mem_posTimes {F : Finset (Fin d × Set.Iic T)} {x : ℝ} (hx : x ∈ posTimes F) :
+    x ≤ T := by
+  rw [posTimes, Finset.mem_image] at hx
+  obtain ⟨p, -, rfl⟩ := hx
+  exact p.2.2
+
 /-- The total weight carried by the coordinate `i` at the time `x`. -/
 noncomputable def weightAt (F : Finset (Fin d × Set.Iic T)) (w : F → ℝ) (x : ℝ) (i : Fin d) :
     ℝ :=
@@ -141,6 +147,16 @@ theorem sum_weight_eq_sum_grid (F : Finset (Fin d × Set.Iic T)) (w : F → ℝ)
     _ = ∑ i, ∑ k ∈ Finset.Ico 1 (S.card + 1),
           weightAt F w (sortedGrid S k) i * v i (sortedGrid S k) :=
         Finset.sum_comm
+
+/-- The last point of the sorted grid of a nonempty finite set belongs to it. -/
+theorem sortedGrid_card_mem {S : Finset ℝ} (hS : S.Nonempty) : sortedGrid S S.card ∈ S := by
+  obtain ⟨x, hx⟩ := hS
+  obtain ⟨n, hn⟩ : ∃ n, S.card = n + 1 := ⟨S.card - 1, by
+    have : 0 < S.card := Finset.card_pos.mpr ⟨x, hx⟩
+    omega⟩
+  have hns : n < S.card := by omega
+  rw [hn]
+  exact sortedGrid_succ_mem S hns
 
 /-- Every element of a nonempty finite set is at most the last point of its sorted grid. -/
 theorem le_sortedGrid_card {S : Finset ℝ} {x : ℝ} (hx : x ∈ S) :

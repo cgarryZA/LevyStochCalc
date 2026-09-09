@@ -1518,3 +1518,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.MarkedHorizonIntegrand.integral_clip
 #print axioms LevyStochCalc.Poisson.Compensated.integral_mul_increment_eq_zero
 #print axioms LevyStochCalc.Poisson.Compensated.integral_mul_integral_eq_zero
+-- ===== The joint cylinder characters and the complement (A4d-iv-b-3-b, 2026-09-09) =====
+#print axioms LevyStochCalc.Analysis.le_of_mem_posTimes
+#print axioms LevyStochCalc.Analysis.sortedGrid_card_mem
+#print axioms LevyStochCalc.Driver.markSet
+#print axioms LevyStochCalc.Driver.measurableSet_markSet
+#print axioms LevyStochCalc.Driver.markSet_ne_top
+#print axioms LevyStochCalc.Driver.subset_markSet
+#print axioms LevyStochCalc.Driver.markUnion
+#print axioms LevyStochCalc.Driver.measurableSet_markUnion
+#print axioms LevyStochCalc.Driver.markUnion_ne_top
+#print axioms LevyStochCalc.Driver.markSet_subset_markUnion
+#print axioms LevyStochCalc.Driver.mem_markUnion
+#print axioms LevyStochCalc.Driver.pairing_char_joint_eq_zero
+#print axioms LevyStochCalc.Driver.ae_eq_zero_of_perp_joint
