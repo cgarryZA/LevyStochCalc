@@ -1935,3 +1935,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_of_tendsto_lintegral
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_lintegral_sq_norm_stochInt_clamp
 #print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_stochInt_clamp
+-- ===== The localisation step of Itô's formula (B1d-4b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.energy_lt_top_of_abs_le_mul
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormula_localise
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_of_unbounded_coeff
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_of_unbounded

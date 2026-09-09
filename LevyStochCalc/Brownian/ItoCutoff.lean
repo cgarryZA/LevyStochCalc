@@ -256,6 +256,40 @@ theorem energy_lt_top_of_bounded {K : Ω → ℝ → ℝ} {M : ℝ} (hM : ∀ ω
           Real.volume_Icc, measure_univ, mul_one]
         exact ENNReal.mul_lt_top (ENNReal.pow_lt_top ENNReal.coe_lt_top) ENNReal.ofReal_lt_top
 
+omit [IsProbabilityMeasure P] in
+/-- A pointwise bound `|u| ≤ c|v|` squares into a bound on the extended norms. -/
+theorem sq_enorm_le_of_abs_le {c : ℝ} (hc : 0 ≤ c) {u v : ℝ} (h : |u| ≤ c * |v|) :
+    (‖u‖₊ : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (c ^ 2) * (‖v‖₊ : ℝ≥0∞) ^ 2 := by
+  have h1 : ‖u‖₊ ≤ Real.toNNReal c * ‖v‖₊ := by
+    rw [← NNReal.coe_le_coe]
+    push_cast
+    rw [Real.coe_toNNReal c hc]
+    simpa [Real.norm_eq_abs] using h
+  calc (‖u‖₊ : ℝ≥0∞) ^ 2 ≤ ((Real.toNNReal c * ‖v‖₊ : ℝ≥0) : ℝ≥0∞) ^ 2 := by
+        exact pow_le_pow_left' (by exact_mod_cast h1) 2
+    _ = ENNReal.ofReal (c ^ 2) * (‖v‖₊ : ℝ≥0∞) ^ 2 := by
+        rw [ENNReal.coe_mul, mul_pow, ← ENNReal.coe_pow, ← Real.toNNReal_pow hc]
+        rfl
+
+/-- The energy of an integrand dominated by a multiple of another one is finite whenever the
+dominating integrand's is. -/
+theorem energy_lt_top_of_abs_le_mul {K G : Ω → ℝ → ℝ} {c : ℝ} (hc : 0 ≤ c)
+    (hbd : ∀ (ω : Ω) (s : ℝ), |K ω s| ≤ c * |G ω s|)
+    (hG : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖G ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  intro T hT
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          ENNReal.ofReal (c ^ 2) * (‖G ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P :=
+        MeasureTheory.lintegral_mono fun ω =>
+          MeasureTheory.lintegral_mono fun s => sq_enorm_le_of_abs_le hc (hbd ω s)
+    _ = ENNReal.ofReal (c ^ 2) * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          (‖G ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+        simp only [MeasureTheory.lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+    _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top (hG T hT)
+
 end Bounded
 
 section Formula
@@ -275,21 +309,10 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
   {C : ℝ} (hC0 : 0 ≤ C)
   (hCH : ∀ (p : Fin n) (k : Fin d) (ω : Ω) (s : ℝ), |H p k ω s| ≤ C)
 
-include hC0 hCH in
-/-- **Itô's formula for a twice continuously differentiable function of a vector Itô process.**
-No bound is placed on the derivatives of `f`. -/
-theorem IsVectorItoVersion.itoFormula_of_contDiff
+/-- **The localisation step of Itô's formula.** The formula for a `C²` function follows from the
+formula for functions with bounded first and second derivatives. -/
+theorem IsVectorItoVersion.itoFormula_localise
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
-    (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
-    (hbm : ∀ p, Measurable (Function.uncurry (bdrift p))) {B : ℝ} (hB0 : 0 ≤ B)
-    (hB : ∀ (p : Fin n) (ω : Ω) (s : ℝ), |bdrift p ω s| ≤ B)
-    (hma : ∀ (p q : Fin n) (k : Fin d),
-      Measurable (Function.uncurry fun ω s => H p k ω s + H q k ω s))
-    (hpa : ∀ (p q : Fin n) (k : Fin d),
-      Probability.ProgressivelyMeasurable ℱ fun ω s => H p k ω s + H q k ω s)
-    (hqa : ∀ (p q : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖H p k ω s + H q k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {f : (Fin n → ℝ) → ℝ} {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ}
     {f'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ}
     (hfC : ContDiff ℝ 2 f)
@@ -300,7 +323,29 @@ theorem IsVectorItoVersion.itoFormula_of_contDiff
       fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
     (hqg : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T) :
+    {T : ℝ} (hT : 0 < T)
+    (hbase : ∀ (g : (Fin n → ℝ) → ℝ) (g' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ)
+      (g'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ) (K₁ K₂ : ℝ),
+      (∀ z, HasFDerivAt g (g' z) z) → (∀ z, HasFDerivAt g' (g'' z) z) →
+      (∀ z, ‖g' z‖ ≤ K₁) → 0 ≤ K₂ → (∀ z, ‖g'' z‖ ≤ K₂) →
+      Continuous g' → Continuous g'' →
+      (∀ ε : ℝ, 0 < ε → ∃ δ : ℝ, 0 < δ ∧
+        ∀ z w : Fin n → ℝ, ‖z - w‖ < δ → ‖g'' z - g'' w‖ ≤ ε) →
+      ∀ (hmG : ∀ (p : Fin n) (k : Fin d), Measurable (Function.uncurry
+          fun ω s => coordDeriv g' p (X s ω) * H p k ω s))
+        (hpG : ∀ (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ
+          fun ω s => coordDeriv g' p (X s ω) * H p k ω s)
+        (hqG : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' →
+          ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+            (‖coordDeriv g' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤),
+      (fun ω : Ω => g (X T ω) - g (X 0 ω)) =ᵐ[P] fun ω : Ω =>
+        (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            coordDeriv g' p (X s ω) * bdrift p ω s ∂volume)
+          + (∑ p : Fin n, ∑ k : Fin d, stochasticIntegralBrownian (W.W k) ℱ (hcoord k)
+              (fun ω s => coordDeriv g' p (X s ω) * H p k ω s)
+              (hmG p k) (hpG p k) (hqG p k) T ω)
+          + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+              coordDeriv₂ g'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s ∂volume) :
     (fun ω : Ω => f (X T ω) - f (X 0 ω)) =ᵐ[P] fun ω : Ω =>
       (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
           coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
@@ -380,11 +425,11 @@ theorem IsVectorItoVersion.itoFormula_of_contDiff
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
           (‖coordDeriv (fderiv ℝ g) p (X s ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
       intro p j
-      refine energy_lt_top_of_bounded (M := K₁ * C) fun ω s => ?_
+      refine energy_lt_top_of_abs_le_mul (c := K₁) hK₁0 (fun ω s => ?_) (hHs p j)
       rw [abs_mul]
-      exact mul_le_mul (abs_coordDeriv_le hK₁ p _) (hCH p j ω s) (abs_nonneg _) hK₁0
-    have hform := h.itoFormula hC0 hCH 𝒲 hX₀ hbm hB0 hB hma hpa hqa hgf hgf' hK₁ hK₂0 hK₂
-      hg''c hunif hmgG hpgG hqgG hT
+      exact mul_le_mul_of_nonneg_right (abs_coordDeriv_le hK₁ p _) (abs_nonneg _)
+    have hform := hbase g (fderiv ℝ g) (fderiv ℝ (fderiv ℝ g)) K₁ K₂ hgf hgf' hK₁ hK₂0 hK₂
+      hg'c hg''c hunif hmgG hpgG hqgG
     have hSI : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d), ((T : ℝ) : WithTop ℝ) ≤ τ ω →
         stochasticIntegralBrownian (W.W j) ℱ (hcoord j)
             (fun ω s => coordDeriv (fderiv ℝ g) p (X s ω) * H p j ω s)
@@ -463,6 +508,45 @@ theorem IsVectorItoVersion.itoFormula_of_contDiff
     (h.continuous_path ω) hT.le
   exact hω (max K 1) (lt_of_lt_of_le Nat.zero_lt_one (le_max_right K 1))
     (hK (max K 1) (le_max_left K 1))
+
+include hC0 hCH in
+/-- **Itô's formula for a twice continuously differentiable function of a vector Itô process.**
+No bound is placed on the derivatives of `f`. -/
+theorem IsVectorItoVersion.itoFormula_of_contDiff
+    (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
+    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
+    (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
+    (hbm : ∀ p, Measurable (Function.uncurry (bdrift p))) {B : ℝ} (hB0 : 0 ≤ B)
+    (hB : ∀ (p : Fin n) (ω : Ω) (s : ℝ), |bdrift p ω s| ≤ B)
+    (hma : ∀ (p q : Fin n) (k : Fin d),
+      Measurable (Function.uncurry fun ω s => H p k ω s + H q k ω s))
+    (hpa : ∀ (p q : Fin n) (k : Fin d),
+      Probability.ProgressivelyMeasurable ℱ fun ω s => H p k ω s + H q k ω s)
+    (hqa : ∀ (p q : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖H p k ω s + H q k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {f : (Fin n → ℝ) → ℝ} {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ}
+    {f'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ}
+    (hfC : ContDiff ℝ 2 f)
+    (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
+    (hmg : ∀ (p : Fin n) (k : Fin d),
+      Measurable (Function.uncurry fun ω s => coordDeriv f' p (X s ω) * H p k ω s))
+    (hpg : ∀ (p : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ
+      fun ω s => coordDeriv f' p (X s ω) * H p k ω s)
+    (hqg : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv f' p (X s ω) * H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) :
+    (fun ω : Ω => f (X T ω) - f (X 0 ω)) =ᵐ[P] fun ω : Ω =>
+      (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+          coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
+        + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ (hcoord j)
+            (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+            (hmg p j) (hpg p j) (hqg p j) T ω)
+        + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s ∂volume :=
+  h.itoFormula_localise hfC hf hf' hmg hpg hqg hT
+    (fun _g _g' _g'' _K₁ _K₂ hgf hgf' hK₁ hK₂0 hK₂ _hg'c hg''c hunif hmG hpG hqG =>
+      h.itoFormula hC0 hCH 𝒲 hX₀ hbm hB0 hB hma hpa hqa hgf hgf' hK₁ hK₂0 hK₂ hg''c hunif
+        hmG hpG hqG hT)
 
 end Formula
 
