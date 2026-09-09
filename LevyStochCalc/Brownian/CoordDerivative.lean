@@ -143,6 +143,22 @@ theorem abs_coordDeriv₂_sub_le {K : ℝ} (h : ∀ z w, ‖f'' z - f'' w‖ ≤
     _ = ‖f'' x - f'' y‖ := by rw [hnorm, hnormq, mul_one, mul_one]
     _ ≤ K * ‖x - y‖ := h x y
 
+/-- A second partial derivative inherits an affine oscillation bound on the second derivative. -/
+theorem abs_coordDeriv₂_sub_le_affine {A K : ℝ} (h : ∀ z w, ‖f'' z - f'' w‖ ≤ A + K * ‖z - w‖)
+    (p q : Fin n) (x y : Fin n → ℝ) :
+    |coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y| ≤ A + K * ‖x - y‖ := by
+  have hnorm : ‖(Pi.single p 1 : Fin n → ℝ)‖ = 1 := by rw [Pi.norm_single, norm_one]
+  have hnormq : ‖(Pi.single q 1 : Fin n → ℝ)‖ = 1 := by rw [Pi.norm_single, norm_one]
+  have hsub : coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y
+      = (f'' x - f'' y) (Pi.single p 1) (Pi.single q 1) := by simp [coordDeriv₂]
+  calc |coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y|
+      = ‖(f'' x - f'' y) (Pi.single p 1) (Pi.single q 1)‖ := by
+        rw [hsub]; exact (Real.norm_eq_abs _).symm
+    _ ≤ ‖f'' x - f'' y‖ * ‖(Pi.single p 1 : Fin n → ℝ)‖ * ‖(Pi.single q 1 : Fin n → ℝ)‖ :=
+        (f'' x - f'' y).le_opNorm₂ _ _
+    _ = ‖f'' x - f'' y‖ := by rw [hnorm, hnormq, mul_one, mul_one]
+    _ ≤ A + K * ‖x - y‖ := h x y
+
 /-- Continuity of a partial derivative. -/
 theorem continuous_coordDeriv (hf'c : Continuous f') (p : Fin n) :
     Continuous (coordDeriv f' p) :=

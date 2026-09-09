@@ -597,8 +597,8 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
     (hqa : ∀ (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖H p k ω s + H q k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {φ : (Fin n → ℝ) → ℝ} (hφc : Continuous φ) {Kφ : ℝ} (hKφ0 : 0 ≤ Kφ)
-    (hφbd : ∀ x, |φ x| ≤ Kφ) {L : ℝ} (hL0 : 0 ≤ L)
-    (hφlip : ∀ x y : Fin n → ℝ, |φ x - φ y| ≤ L * ‖x - y‖)
+    (hφbd : ∀ x, |φ x| ≤ Kφ) {Mφ L : ℝ} (hMφ0 : 0 ≤ Mφ) (hL0 : 0 ≤ L)
+    (hφaff : ∀ x y : Fin n → ℝ, |φ x - φ y| ≤ Mφ + L * ‖x - y‖)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
     Integrable (fun ω : Ω => (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
           * ((X (unifGrid T m (i + 1)) ω p - X (unifGrid T m i) ω p)
@@ -617,9 +617,10 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
             * (3 * ((2 * (6 + gaussianFourthMoment) + 2) * (2 * C) ^ 4)) * (T ^ 2 / (m : ℝ)))
         + (d : ℝ) ^ 2 * Real.sqrt (Kφ ^ 2
             * ((6 + gaussianFourthMoment) * (C ^ 4 + C ^ 4) / 2) * (T ^ 2 / (m : ℝ)))
-        + L * ((d : ℝ) * C ^ 2)
-          * (T * ((n : ℝ) * (B * (T / (m : ℝ))
-            + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ)))))) := by
+        + (Mφ * ((d : ℝ) * C ^ 2) * T
+          + L * ((d : ℝ) * C ^ 2)
+            * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+              + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ))))))) := by
   classical
   -- the weight of the frozen Riemann sum
   have hwm : Measurable (Function.uncurry fun ω s => ∑ k : Fin d, H p k ω s * H q k ω s) :=
@@ -662,7 +663,7 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
     h.integral_abs_sum_offDiagCross_le hC0 hCH 𝒲 p q ((Finset.mem_erase.mp hl).1.symm)
       hφc hKφ0 hφbd hT hm0
   obtain ⟨i6, b6⟩ := h.integral_abs_frozenRiemann_sub_le hC0 hCH hbm hB0 hB
-    (fun ω s => ∑ k : Fin d, H p k ω s * H q k ω s) hwm hA0 hA hφc hφbd hL0 hφlip hT hm0
+    (fun ω s => ∑ k : Fin d, H p k ω s * H q k ω s) hwm hA0 hA hφc hφbd hMφ0 hL0 hφaff hT hm0
   -- integrability of the grouped sums
   have i4 : Integrable (fun ω : Ω => ∑ k : Fin d, ∑ i ∈ Finset.range m,
       φ (X (unifGrid T m i) ω)

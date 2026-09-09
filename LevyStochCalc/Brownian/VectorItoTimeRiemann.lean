@@ -55,7 +55,8 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
     (wgt : Ω → ℝ → ℝ) (hwm : Measurable (Function.uncurry wgt))
     {A : ℝ} (hA0 : 0 ≤ A) (hA : ∀ (ω : Ω) (s : ℝ), |wgt ω s| ≤ A)
     {φ : (Fin n → ℝ) → ℝ} (hφc : Continuous φ) {Kφ : ℝ} (hφbd : ∀ x, |φ x| ≤ Kφ)
-    {L : ℝ} (hL0 : 0 ≤ L) (hφlip : ∀ x y : Fin n → ℝ, |φ x - φ y| ≤ L * ‖x - y‖)
+    {Mφ L : ℝ} (hMφ0 : 0 ≤ Mφ) (hL0 : 0 ≤ L)
+    (hφaff : ∀ x y : Fin n → ℝ, |φ x - φ y| ≤ Mφ + L * ‖x - y‖)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
     Integrable (fun ω : Ω =>
         (∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
@@ -64,7 +65,7 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
       ∧ ∫ ω, |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
           - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume| ∂P
-        ≤ L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+        ≤ Mφ * A * T + L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
           + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ)))))) := by
   classical
   have hm' : (0 : ℝ) < (m : ℝ) := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm0)
@@ -106,6 +107,15 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
     refine MeasureTheory.IntegrableOn.mono_set ?_ Set.Ioc_subset_Icc_self
     exact Continuous.integrableOn_Icc
       (continuous_const.mul ((continuous_const.sub (h.continuous_path ω)).norm))
+  have hcellC : ∀ i : ℕ, IntegrableOn (fun _ : ℝ => Mφ * A)
+      (Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1))) volume := by
+    intro i
+    refine MeasureTheory.IntegrableOn.mono_set ?_ Set.Ioc_subset_Icc_self
+    exact Continuous.integrableOn_Icc continuous_const
+  have hcellLM : ∀ (ω : Ω) (i : ℕ),
+      IntegrableOn (fun s => Mφ * A + L * A * ‖X (unifGrid T m i) ω - X s ω‖)
+        (Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1))) volume := fun ω i =>
+    (hcellC i).add (hcellL ω i)
   have hpart : ∀ ω : Ω,
       ∑ i ∈ Finset.range m, ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
           φ (X s ω) * wgt ω s ∂volume
@@ -122,30 +132,60 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
       ← MeasureTheory.integral_sub ((hcellb ω i).const_mul _) (hcellg ω i)]
     refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioc fun s _ => ?_
     ring
+  have hcellvol : ∀ i : ℕ,
+      (volume : Measure ℝ).real (Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)))
+        = T / (m : ℝ) := by
+    intro i
+    rw [Real.volume_real_Ioc_of_le (unifGrid_lt_succ hT hm0 i).le, unifGrid_succ_sub hm0 i]
   have hcellle : ∀ (ω : Ω) (i : ℕ),
       |∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
           (φ (X (unifGrid T m i) ω) - φ (X s ω)) * wgt ω s ∂volume|
-      ≤ ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
-          L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume := by
+      ≤ Mφ * A * (T / (m : ℝ))
+        + ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+            L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume := by
     intro ω i
     refine (MeasureTheory.abs_integral_le_integral_abs).trans ?_
-    refine MeasureTheory.integral_mono (hcelld ω i).abs (hcellL ω i) fun s => ?_
-    rw [abs_mul]
-    calc |φ (X (unifGrid T m i) ω) - φ (X s ω)| * |wgt ω s|
-        ≤ (L * ‖X (unifGrid T m i) ω - X s ω‖) * A :=
-          mul_le_mul (hφlip _ _) (hA ω s) (abs_nonneg _) (mul_nonneg hL0 (norm_nonneg _))
-      _ = L * A * ‖X (unifGrid T m i) ω - X s ω‖ := by ring
+    have hstep : ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+        |(φ (X (unifGrid T m i) ω) - φ (X s ω)) * wgt ω s| ∂volume
+        ≤ ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+            (Mφ * A + L * A * ‖X (unifGrid T m i) ω - X s ω‖) ∂volume := by
+      refine MeasureTheory.integral_mono (hcelld ω i).abs (hcellLM ω i) fun s => ?_
+      rw [abs_mul]
+      calc |φ (X (unifGrid T m i) ω) - φ (X s ω)| * |wgt ω s|
+          ≤ (Mφ + L * ‖X (unifGrid T m i) ω - X s ω‖) * A :=
+            mul_le_mul (hφaff _ _) (hA ω s) (abs_nonneg _)
+              (by positivity)
+        _ = Mφ * A + L * A * ‖X (unifGrid T m i) ω - X s ω‖ := by ring
+    refine hstep.trans (le_of_eq ?_)
+    rw [MeasureTheory.integral_add (hcellC i) (hcellL ω i),
+      MeasureTheory.setIntegral_const, hcellvol i, smul_eq_mul]
+    ring
   have hZ : ∀ ω : Ω,
       |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
             * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
           - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume|
-      ≤ ∑ i ∈ Finset.range m, ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
-          L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume := by
+      ≤ Mφ * A * T
+        + ∑ i ∈ Finset.range m, ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+            L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume := by
     intro ω
     rw [← hpart ω, ← Finset.sum_sub_distrib]
-    refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
-    rw [hcell ω i]
-    exact hcellle ω i
+    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+    have hsum : ∑ i ∈ Finset.range m,
+        |φ (X (unifGrid T m i) ω)
+              * (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
+            - ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+                φ (X s ω) * wgt ω s ∂volume|
+        ≤ ∑ i ∈ Finset.range m, (Mφ * A * (T / (m : ℝ))
+            + ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+                L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) := by
+      refine Finset.sum_le_sum fun i _ => ?_
+      rw [hcell ω i]
+      exact hcellle ω i
+    refine hsum.trans (le_of_eq ?_)
+    rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+    have hTm : (m : ℝ) * (T / (m : ℝ)) = T := by field_simp
+    have : (m : ℝ) * (Mφ * A * (T / (m : ℝ))) = Mφ * A * ((m : ℝ) * (T / (m : ℝ))) := by ring
+    rw [this, hTm]
   have hjointg : Measurable (Function.uncurry fun ω s => φ (X s ω) * wgt ω s) :=
     (h.measurable_uncurry_comp hφc.measurable).mul hwm
   have hZmeas : Measurable fun ω : Ω =>
@@ -202,7 +242,7 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
     rw [Real.norm_eq_abs, Real.norm_eq_abs,
       abs_of_nonneg (le_trans (abs_nonneg _) (hZbd ω))]
     exact hZbd ω
-  have hRHS0 : (0 : ℝ) ≤ L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+  have hRHS0 : (0 : ℝ) ≤ Mφ * A * T + L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
       + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ)))))) := by
     have hT0 : (0 : ℝ) ≤ T := hT.le
     positivity
@@ -226,21 +266,17 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
     refine ENNReal.measurable_ofReal.comp (measurable_setIntegral ?_ _)
     exact measurable_const.mul
       ((((h.measurable (unifGrid T m i)).comp measurable_fst).sub h.measurable_uncurry).norm)
-  calc ∫⁻ ω, ENNReal.ofReal
-        |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
-              * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
-            - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume| ∂P
-      ≤ ∫⁻ ω, ∑ i ∈ Finset.range m, ENNReal.ofReal
-          (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
-            L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P := by
-        refine lintegral_mono fun ω => ?_
-        refine (ENNReal.ofReal_le_ofReal (hZ ω)).trans ?_
-        rw [ENNReal.ofReal_sum_of_nonneg]
-        intro i _
-        exact MeasureTheory.integral_nonneg fun s => by positivity
-    _ = ∑ i ∈ Finset.range m, ∫⁻ ω, ENNReal.ofReal
-          (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
-            L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P :=
+  have hYle : ∫⁻ ω, ∑ i ∈ Finset.range m, ENNReal.ofReal
+        (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+          L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P
+      ≤ ENNReal.ofReal (L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+        + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ))))))) := by
+    calc ∫⁻ ω, ∑ i ∈ Finset.range m, ENNReal.ofReal
+            (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+            L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P
+        = ∑ i ∈ Finset.range m, ∫⁻ ω, ENNReal.ofReal
+            (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+              L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P :=
         MeasureTheory.lintegral_finsetSum _ fun i _ => hmeasCell i
     _ = ∑ i ∈ Finset.range m, ENNReal.ofReal (L * A)
           * ∫⁻ ω, ∫⁻ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
@@ -267,6 +303,35 @@ theorem IsVectorItoVersion.integral_abs_frozenRiemann_sub_le
           (ENNReal.ofReal_natCast m).symm, ← ENNReal.ofReal_mul (Nat.cast_nonneg m)]
         congr 1
         field_simp
+  have hMAT0 : (0 : ℝ) ≤ Mφ * A * T := by positivity
+  have hLAT0 : (0 : ℝ) ≤ L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+      + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ)))))) := by
+    have hT0 : (0 : ℝ) ≤ T := hT.le
+    positivity
+  calc ∫⁻ ω, ENNReal.ofReal
+        |(∑ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)
+              * ∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)), wgt ω s ∂volume)
+            - ∫ s in Set.Ioc (0 : ℝ) T, φ (X s ω) * wgt ω s ∂volume| ∂P
+      ≤ ∫⁻ _ω : Ω, ENNReal.ofReal (Mφ * A * T) ∂P
+        + ∫⁻ ω, ∑ i ∈ Finset.range m, ENNReal.ofReal
+            (∫ s in Set.Ioc (unifGrid T m i) (unifGrid T m (i + 1)),
+              L * A * ‖X (unifGrid T m i) ω - X s ω‖ ∂volume) ∂P := by
+        rw [← MeasureTheory.lintegral_add_left measurable_const]
+        refine lintegral_mono fun ω => ?_
+        refine (ENNReal.ofReal_le_ofReal (hZ ω)).trans ?_
+        rw [ENNReal.ofReal_add hMAT0 (Finset.sum_nonneg fun i _ =>
+          MeasureTheory.integral_nonneg fun s => by positivity)]
+        gcongr
+        rw [ENNReal.ofReal_sum_of_nonneg]
+        intro i _
+        exact MeasureTheory.integral_nonneg fun s => by positivity
+    _ ≤ ENNReal.ofReal (Mφ * A * T)
+        + ENNReal.ofReal (L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+          + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ))))))) := by
+        rw [MeasureTheory.lintegral_const, measure_univ, mul_one]
+        exact add_le_add le_rfl hYle
+    _ = ENNReal.ofReal (Mφ * A * T + L * A * (T * ((n : ℝ) * (B * (T / (m : ℝ))
+          + (d : ℝ) * (C * Real.sqrt (T / (m : ℝ))))))) := (ENNReal.ofReal_add hMAT0 hLAT0).symm
 
 end VectorRiemann
 

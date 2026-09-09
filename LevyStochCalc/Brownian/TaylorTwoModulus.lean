@@ -10,7 +10,17 @@ import LevyStochCalc.Brownian.TaylorTwoVector
 
 A Lipschitz second derivative is more than the Taylor bound needs: the remainder is controlled by
 the oscillation of the second derivative on the segment alone, which is what a merely continuous
-second derivative supplies.
+second derivative supplies. The affine form `A + K‖z − w‖` of the oscillation bound covers a
+Lipschitz second derivative (`A = 0`) and a merely uniformly continuous one (`K` chosen from the
+modulus at scale `A`) in one statement.
+
+## Main statements
+
+* `LevyStochCalc.abs_sub_taylor_two_le_modulus_normed` — the bound by the oscillation on the
+  segment.
+* `LevyStochCalc.abs_sub_taylor_two_le_affine` — the bound `A‖y − x‖² + K‖y − x‖³` under an
+  affine oscillation bound.
+* `LevyStochCalc.abs_taylorRemainderNormed_le_affine` — its telescoped form along a sequence.
 -/
 
 namespace LevyStochCalc
@@ -125,5 +135,53 @@ theorem abs_sub_taylor_two_le_modulus_normed {f : E → ℝ} {f' : E → E →L[
     (f' := fun r : ℝ => f' (x + r • v) v) (f'' := fun r : ℝ => f'' (x + r • v) v v)
     (M := M * ‖v‖ ^ 2) (by positivity) hg hg' (x := 0) (y := 1) hosc
   simpa [hv] using hmain
+
+/-- **Second-order Taylor against an affine modulus.** If the second derivative satisfies
+`‖f'' z − f'' w‖ ≤ A + K‖z − w‖`, the second-order Taylor remainder is at most
+`A‖y − x‖² + K‖y − x‖³`. -/
+theorem abs_sub_taylor_two_le_affine {f : E → ℝ} {f' : E → E →L[ℝ] ℝ}
+    {f'' : E → E →L[ℝ] E →L[ℝ] ℝ} {A K : ℝ} (hA0 : 0 ≤ A) (hK0 : 0 ≤ K)
+    (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
+    (hf'' : ∀ z w, ‖f'' z - f'' w‖ ≤ A + K * ‖z - w‖) (x y : E) :
+    |f y - f x - f' x (y - x) - f'' x (y - x) (y - x) / 2|
+      ≤ A * ‖y - x‖ ^ 2 + K * ‖y - x‖ ^ 3 := by
+  have hM0 : (0 : ℝ) ≤ A + K * ‖y - x‖ := by positivity
+  have hM : ∀ z ∈ segment ℝ x y, ‖f'' z - f'' x‖ ≤ A + K * ‖y - x‖ := by
+    intro z hz
+    rw [segment_eq_image' ℝ x y] at hz
+    obtain ⟨θ, hθ, rfl⟩ := hz
+    have hnorm : ‖x + θ • (y - x) - x‖ = θ * ‖y - x‖ := by
+      have hsub : x + θ • (y - x) - x = θ • (y - x) := by module
+      rw [hsub, norm_smul, Real.norm_eq_abs, abs_of_nonneg hθ.1]
+    refine (hf'' _ x).trans ?_
+    rw [hnorm]
+    have : K * (θ * ‖y - x‖) ≤ K * ‖y - x‖ := by
+      refine mul_le_mul_of_nonneg_left ?_ hK0
+      nlinarith [norm_nonneg (y - x), hθ.1, hθ.2]
+    linarith
+  have hmain := abs_sub_taylor_two_le_modulus_normed hM0 hf hf' hM
+  refine hmain.trans (le_of_eq ?_)
+  ring
+
+/-- **Telescoped second-order Taylor expansion against an affine modulus.** -/
+theorem abs_taylorRemainderNormed_le_affine {f : E → ℝ} {f' : E → E →L[ℝ] ℝ}
+    {f'' : E → E →L[ℝ] E →L[ℝ] ℝ} {A K : ℝ} (hA0 : 0 ≤ A) (hK0 : 0 ≤ K)
+    (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
+    (hf'' : ∀ z w, ‖f'' z - f'' w‖ ≤ A + K * ‖z - w‖) (x : ℕ → E) (m : ℕ) :
+    |taylorRemainderNormed f f' f'' x m|
+      ≤ A * ∑ i ∈ Finset.range m, ‖x (i + 1) - x i‖ ^ 2
+        + K * ∑ i ∈ Finset.range m, ‖x (i + 1) - x i‖ ^ 3 := by
+  unfold taylorRemainderNormed
+  have htel : f (x m) - f (x 0) = ∑ i ∈ Finset.range m, (f (x (i + 1)) - f (x i)) :=
+    (Finset.sum_range_sub (fun i => f (x i)) m).symm
+  rw [htel, ← Finset.sum_add_distrib, ← Finset.sum_sub_distrib, Finset.mul_sum, Finset.mul_sum,
+    ← Finset.sum_add_distrib]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+  have heq : f (x (i + 1)) - f (x i)
+      - (f' (x i) (x (i + 1) - x i) + f'' (x i) (x (i + 1) - x i) (x (i + 1) - x i) / 2)
+      = f (x (i + 1)) - f (x i) - f' (x i) (x (i + 1) - x i)
+        - f'' (x i) (x (i + 1) - x i) (x (i + 1) - x i) / 2 := by ring
+  rw [heq]
+  exact abs_sub_taylor_two_le_affine hA0 hK0 hf hf' hf'' (x i) (x (i + 1))
 
 end LevyStochCalc

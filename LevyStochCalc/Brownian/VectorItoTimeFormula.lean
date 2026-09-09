@@ -67,7 +67,9 @@ theorem IsVectorItoVersion.itoFormulaTime
     (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ : ℝ} (hf'bd : ∀ z, ‖f' z‖ ≤ K₁)
     {K₂ : ℝ} (hK₂0 : 0 ≤ K₂) (hf''bd : ∀ z, ‖f'' z‖ ≤ K₂)
-    {K : ℝ} (hK0 : 0 ≤ K) (hf''lip : ∀ z w, ‖f'' z - f'' w‖ ≤ K * ‖z - w‖)
+    (hf''c : Continuous f'')
+    (hf''unif : ∀ ε : ℝ, 0 < ε → ∃ δ : ℝ, 0 < δ ∧
+      ∀ z w : Fin (n + 1) → ℝ, ‖z - w‖ < δ → ‖f'' z - f'' w‖ ≤ ε)
     (hmg : ∀ (q : Fin n) (k : Fin d), Measurable (Function.uncurry fun ω s =>
       coordDeriv f' q.succ (timeAugProcess X s ω) * H q k ω s))
     (hpg : ∀ (q : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ
@@ -115,7 +117,7 @@ theorem IsVectorItoVersion.itoFormulaTime
     (measurable_timeAugDrift bdrift hbm) (le_trans hB0 (le_max_left B 1))
     (abs_timeAugDrift_le bdrift hB) (measurable_timeAugDiffusion_add H hHm)
     (progressivelyMeasurable_timeAugDiffusion_add H ℱ hHp)
-    (sq_timeAugDiffusion_add H hHs hqa) hf hf' hf'bd hK₂0 hf''bd hK0 hf''lip
+    (sq_timeAugDiffusion_add H hHs hqa) hf hf' hf'bd hK₂0 hf''bd hf''c hf''unif
     hmgA hpgA hqgA hT
   filter_upwards [hform, MeasureTheory.ae_all_iff.mpr hSI0] with ω hω hz
   rw [hω]

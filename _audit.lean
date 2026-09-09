@@ -1741,6 +1741,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.sum_apply_fderiv_eq
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.vectorItoFormula_decomp_ae
 -- ===== Ito's formula for a vector Ito process (B1b-6d, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoGridResidue
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoGridResidue_nonneg
 #print axioms LevyStochCalc.Brownian.Ito.vectorItoGridError
 #print axioms LevyStochCalc.Brownian.Ito.vectorItoGridError_zero
 #print axioms LevyStochCalc.Brownian.Ito.continuous_vectorItoGridError
@@ -1830,3 +1832,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.gridStop_finiteRange
 #print axioms LevyStochCalc.Brownian.Ito.eventually_gridStop_lt
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_eq_of_le
+-- ===== The Ito formula for a uniformly continuous second derivative (B1e-2, 2026-09-09) =====
+#print axioms LevyStochCalc.abs_sub_taylor_two_le_affine
+#print axioms LevyStochCalc.abs_taylorRemainderNormed_le_affine
+#print axioms LevyStochCalc.abs_coordDeriv₂_sub_le_affine
+#print axioms LevyStochCalc.Brownian.Ito.sum_integral_sq_norm_vectorItoIncrement_le
+#print axioms LevyStochCalc.Brownian.Ito.integral_abs_vectorTaylorRemainder_le_affine
