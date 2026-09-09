@@ -134,6 +134,19 @@ variable [TopologicalSpace E] [MulZeroClass E] [ContinuousMul E] {ℱ : Filtrati
 
 /-- The pointwise product of two progressively measurable processes is progressively
 measurable. -/
+theorem ProgressivelyMeasurable.comp_continuous {A : Ω → ℝ → ℝ} {φ : ℝ → ℝ}
+    (hφ : Continuous φ) (hφ0 : φ 0 = 0) (hA : ProgressivelyMeasurable ℱ A) :
+    ProgressivelyMeasurable ℱ fun ω s => φ (A ω s) := by
+  intro t
+  have heq : (fun p : Ω × ℝ => (Set.Iic t).indicator (fun s => φ (A p.1 s)) p.2)
+      = fun p : Ω × ℝ => φ ((Set.Iic t).indicator (A p.1) p.2) := by
+    funext p
+    by_cases hp : p.2 ∈ Set.Iic t
+    · rw [Set.indicator_of_mem hp, Set.indicator_of_mem hp]
+    · rw [Set.indicator_of_notMem hp, Set.indicator_of_notMem hp, hφ0]
+  rw [heq]
+  exact hφ.comp_stronglyMeasurable (hA t)
+
 theorem ProgressivelyMeasurable.mul {A B : Ω → ℝ → E} (hA : ProgressivelyMeasurable ℱ A)
     (hB : ProgressivelyMeasurable ℱ B) :
     ProgressivelyMeasurable ℱ fun ω s => A ω s * B ω s := by

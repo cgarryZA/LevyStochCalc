@@ -1880,3 +1880,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.exists_delta_fderiv_fderiv_cutoffFun
 #print axioms LevyStochCalc.Brownian.Ito.energy_lt_top_of_bounded
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormula_of_contDiff
+-- ===== Truncating an integrand to a bounded one (B1d-4b, 2026-09-09) =====
+#print axioms LevyStochCalc.Probability.ProgressivelyMeasurable.comp_continuous
+#print axioms LevyStochCalc.clampAt
+#print axioms LevyStochCalc.clampAt_zero
+#print axioms LevyStochCalc.continuous_clampAt
+#print axioms LevyStochCalc.abs_clampAt_le
+#print axioms LevyStochCalc.abs_clampAt_le_abs
+#print axioms LevyStochCalc.abs_clampAt_sub_le
+#print axioms LevyStochCalc.clampAt_eq_self
+#print axioms LevyStochCalc.tendsto_clampAt
+#print axioms LevyStochCalc.Brownian.Ito.eventually_clampAt_eq
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_clampAt_sub
+#print axioms LevyStochCalc.Brownian.Ito.sq_enorm_pi_le_sum
+#print axioms LevyStochCalc.Brownian.Ito.sq_enorm_finsetSum_le
