@@ -159,21 +159,34 @@ structure JumpDiffusion
 
   **Convention note (`X_{s−}` vs `X s`)**: Applebaum 6.2.9 / Ikeda-
   Watanabe IV use `X_{s−}` (the left limit) inside the SDE integrands,
-  whereas this structure uses `X s` (point evaluation) below. For càdlàg
-  adapted X, the discrepancy `{s : X_{s−} ω ≠ X s ω}` has Lebesgue
-  measure 0 a.s. (a càdlàg path has at most countably many jumps), so
-  the Lebesgue-`ds` drift integral and the ν⊗ds-`dν` jump integrals
-  agree pointwise a.s. (Lebesgue⊗P-null differences are integrated
-  away). The compensated-Poisson integral evaluates the integrand at
-  `(s, e)` against `Ñ(ds, de)`; at a jump time `s₀` of the underlying
-  PRM, `X s₀` differs from `X_{s₀−}` and the integrand picks up the
-  right-limit value, but this is also Ñ⊗P-null because the integrand
-  is L² and PRM jumps are themselves a null set in ds. The two
-  conventions coincide for L²-Itô-Lévy integrals; the literature
-  prefers `X_{s−}` for predictability hygiene (`X_{s−}` is `ℱ_{s−}`-
-  measurable, i.e., predictable). The structure's `cadlag_paths` field
-  is what makes this convention-equivalence well-typed; without it,
-  the discrepancy is unbounded.
+  whereas this structure uses `X s` (point evaluation) below. Two
+  separate statements are involved, and only the first is what makes
+  the two conventions interchangeable here.
+
+  *`L²`-class identification.* The compensated integral constructed in
+  `Poisson/Compensated.lean` depends only on the `P ⊗ ds ⊗ ν`-class of
+  its integrand: two admissible integrands equal almost everywhere for
+  that measure have almost surely equal integrals
+  (`Poisson.Compensated.stochasticIntegral_congr_ae`, from the
+  difference isometry). A càdlàg path agrees with its left limits off a
+  countable, hence `ds`-null, set
+  (`Analysis.ae_eq_leftLim_of_cadlag`), so replacing `X s` by `X_{s−}`
+  inside an integrand changes it only on a `P ⊗ ds ⊗ ν`-null set and
+  therefore does not change the constructed integral. The same argument
+  covers the Lebesgue-`ds` drift integral.
+
+  *Pathwise interpretation.* Identifying that integral with a pathwise
+  sum over the jumps of `N` is a different claim: it needs a predictable
+  representative of the integrand and the compatibility theorem
+  (`Poisson/PathwiseIdentity.lean`, which assumes `MarkedPredictable`;
+  predictable modifications exist by
+  `Probability.exists_markedPredictable_ae_eq`). Against a *pathwise*
+  integral with respect to `N` the two conventions do **not** agree —
+  for a counting process, `∫_0^t N_s dN_s − ∫_0^t N_{s−} dN_s = N_t` —
+  so the interchangeability above is a statement about the `L²`
+  construction, not about pathwise Stieltjes integration. The
+  literature prefers `X_{s−}` because it is predictable; the structure's
+  `cadlag_paths` field is what makes the left limits exist at all.
 
   **Quantifier scope**: the time argument is quantified over `t ≥ 0` only —
   the literature scope of the SDE is `[0, ∞)` (the initial condition

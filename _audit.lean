@@ -1603,3 +1603,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.exists_markedPredictable_markedHorizonIntegrand
 -- ===== The joint representation with predictable integrands (A5c input, 2026-09-09) =====
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_predictable_jointIntegral
+-- ===== The X_{s-} convention: class identification and cadlag jumps (B0b, 2026-09-09) =====
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_ae
+#print axioms LevyStochCalc.Analysis.abs_leftLim_sub_le
+#print axioms LevyStochCalc.Analysis.exists_isolating_radius
+#print axioms LevyStochCalc.Analysis.countable_setOf_ne_leftLim
+#print axioms LevyStochCalc.Analysis.ae_eq_leftLim_of_cadlag

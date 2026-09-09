@@ -13,6 +13,7 @@ import LevyStochCalc.Basic
 
 -- Layer 0: Compensated Poisson
 import LevyStochCalc.Analysis.GronwallIntegral
+import LevyStochCalc.Analysis.CadlagJumps
 import LevyStochCalc.Analysis.GronwallIterate
 import LevyStochCalc.Analysis.DyadicGrid
 import LevyStochCalc.Analysis.FiniteJumpSum
@@ -105,6 +106,7 @@ import LevyStochCalc.Poisson.CompensatedQuadVar
 import LevyStochCalc.Poisson.CompensatedProcessQuadVar
 import LevyStochCalc.Poisson.CompensatedDiff
 import LevyStochCalc.Poisson.Compensated
+import LevyStochCalc.Poisson.CompensatedCongr
 import LevyStochCalc.Poisson.PredictableIntegrand
 import LevyStochCalc.Poisson.PerpBridge
 
