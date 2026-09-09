@@ -221,6 +221,7 @@ import LevyStochCalc.Brownian.VectorItoFormula
 import LevyStochCalc.Brownian.VectorItoVersionExists
 import LevyStochCalc.Brownian.ItoZero
 import LevyStochCalc.Brownian.VectorItoTimeAug
+import LevyStochCalc.Brownian.VectorItoTimeFormula
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly

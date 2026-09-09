@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoZero
 import LevyStochCalc.Brownian.VectorItoProcessVersion
+import LevyStochCalc.Brownian.CoordDerivative
 
 /-!
 # Time as a state coordinate
@@ -20,6 +21,8 @@ augmented process.
   `timeAugProcess` — the augmented data.
 * `LevyStochCalc.Brownian.Ito.IsVectorItoVersion.timeAug` — the augmented path is a version of
   the augmented Itô process.
+* `LevyStochCalc.Brownian.Ito.measurable_timeAugWeight` and its companions — the Itô formula's
+  integrand hypotheses transfer to the augmented indices.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -225,5 +228,50 @@ theorem IsVectorItoVersion.timeAug
       exact congrFun hX q
 
 end Version
+
+section Weight
+
+open LevyStochCalc.Brownian.Multidim
+
+variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P] {n d : ℕ}
+  (f' : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ) →L[ℝ] ℝ) (X : ℝ → Ω → Fin n → ℝ)
+  (H : Fin n → Fin d → Ω → ℝ → ℝ)
+
+theorem measurable_timeAugWeight
+    (hmg : ∀ (q : Fin n) (k : Fin d), Measurable (Function.uncurry fun ω s =>
+      coordDeriv f' q.succ (timeAugProcess X s ω) * H q k ω s))
+    (p : Fin (n + 1)) (k : Fin d) :
+    Measurable (Function.uncurry fun ω s =>
+      coordDeriv f' p (timeAugProcess X s ω) * timeAugDiffusion H p k ω s) := by
+  induction p using Fin.cases with
+  | zero =>
+    simp only [timeAugDiffusion, Fin.cons_zero, mul_zero]
+    exact measurable_const
+  | succ q => simpa [timeAugDiffusion] using hmg q k
+
+theorem progressivelyMeasurable_timeAugWeight (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (hpg : ∀ (q : Fin n) (k : Fin d), Probability.ProgressivelyMeasurable ℱ
+      fun ω s => coordDeriv f' q.succ (timeAugProcess X s ω) * H q k ω s)
+    (p : Fin (n + 1)) (k : Fin d) :
+    Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      coordDeriv f' p (timeAugProcess X s ω) * timeAugDiffusion H p k ω s := by
+  induction p using Fin.cases with
+  | zero =>
+    simp only [timeAugDiffusion, Fin.cons_zero, mul_zero]
+    exact Probability.progressivelyMeasurable_const ℱ (0 : ℝ)
+  | succ q => simpa [timeAugDiffusion] using hpg q k
+
+theorem sq_timeAugWeight
+    (hqg : ∀ (q : Fin n) (k : Fin d) (T : ℝ), 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖coordDeriv f' q.succ (timeAugProcess X s ω) * H q k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (p : Fin (n + 1)) (k : Fin d) (T : ℝ) (hT : 0 < T) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖coordDeriv f' p (timeAugProcess X s ω) * timeAugDiffusion H p k ω s‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤ := by
+  induction p using Fin.cases with
+  | zero => simp [timeAugDiffusion]
+  | succ q => simpa [timeAugDiffusion] using hqg q k T hT
+
+end Weight
 
 end LevyStochCalc.Brownian.Ito

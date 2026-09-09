@@ -1770,3 +1770,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugDrift
 #print axioms LevyStochCalc.Brownian.Ito.abs_timeAugDrift_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.timeAug
+-- ===== The time-dependent vector Ito formula (B1c-2b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugWeight
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugWeight
+#print axioms LevyStochCalc.Brownian.Ito.sq_timeAugWeight
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormulaTime
