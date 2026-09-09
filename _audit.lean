@@ -1532,3 +1532,24 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.mem_markUnion
 #print axioms LevyStochCalc.Driver.pairing_char_joint_eq_zero
 #print axioms LevyStochCalc.Driver.ae_eq_zero_of_perp_joint
+-- ===== Cross orthogonality of the two ranges (A4d-v-a, 2026-09-09) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.crossPoissonFiltration
+#print axioms LevyStochCalc.Driver.LevyDriver.crossPoissonFiltration_apply
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_le_crossPoisson
+#print axioms LevyStochCalc.Driver.LevyDriver.isPoissonFiltration_crossPoisson
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_increment_crossPoisson
+#print axioms LevyStochCalc.Driver.LevyDriver.crossBrownianFiltration
+#print axioms LevyStochCalc.Driver.LevyDriver.crossBrownianFiltration_apply
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_le_crossBrownian
+#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_crossBrownian
+#print axioms LevyStochCalc.Driver.LevyDriver.stronglyMeasurable_compensated_crossBrownian
+#print axioms LevyStochCalc.Driver.LevyDriver.CrossWitness
+#print axioms LevyStochCalc.Driver.LevyDriver.crossWitness
+#print axioms LevyStochCalc.Driver.LevyDriver.CrossWitness.aug
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_cross_term_eq_zero_of_le
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_cross_term_eq_zero_of_ge
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_cross_term_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.integrable_cross_term
+#print axioms LevyStochCalc.Driver.LevyDriver.integrable_and_integral_cross_clamped
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_simpleIntegral_mul_markStep_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_stochasticIntegral_mul_compensated_eq_zero

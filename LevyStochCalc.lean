@@ -141,6 +141,10 @@ import LevyStochCalc.Driver.CellComplex
 import LevyStochCalc.Driver.JointGrid
 import LevyStochCalc.Driver.JointMultidim
 import LevyStochCalc.Driver.JointComplement
+import LevyStochCalc.Driver.CrossFiltration
+import LevyStochCalc.Driver.CrossElementary
+import LevyStochCalc.Driver.CrossSimple
+import LevyStochCalc.Driver.CrossOrthogonality
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
