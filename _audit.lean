@@ -1940,3 +1940,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormula_localise
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_of_unbounded_coeff
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_of_unbounded
+-- ===== Stopping a vector Itô process (B3a-1a, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.clipTime
+#print axioms LevyStochCalc.Brownian.Ito.le_clipTime_iff
+#print axioms LevyStochCalc.Brownian.Ito.continuous_clipTime
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_clip
+#print axioms LevyStochCalc.Brownian.Ito.setIntegral_stopped_eq
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_clip
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoProcess_zero_ae
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.stopped
