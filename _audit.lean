@@ -1911,3 +1911,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.clampMesh
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_norm_clampProcess_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_window_sq_norm_clampProcess_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_norm_version_clamp_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_window_sq_norm_version_clamp_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_version_clamp
