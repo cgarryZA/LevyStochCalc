@@ -1569,3 +1569,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_of_mean_zero
 -- ===== The predictable representation property of a Levy driver (A4d-vi, 2026-09-09) =====
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration
+-- ===== The degenerate cases of the joint representation (A4d-vii, 2026-09-09) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.naturalFiltration_poisson_eq_bot
+#print axioms LevyStochCalc.Driver.LevyDriver.naturalFiltration_brownian_eq_bot
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_dim_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_isEmpty
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_jointIntegral_augFiltration_of_mean_zero
