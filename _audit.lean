@@ -1775,3 +1775,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_timeAugWeight
 #print axioms LevyStochCalc.Brownian.Ito.sq_timeAugWeight
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormulaTime
+-- ===== The compensated integral over shrinking marks (B2c, 2026-09-09) =====
+#print axioms LevyStochCalc.Poisson.Compensated.markCut
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markCut
+#print axioms LevyStochCalc.Poisson.Compensated.enorm_sq_markCut
+#print axioms LevyStochCalc.Poisson.Compensated.sq_markCut
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markEnergy
+#print axioms LevyStochCalc.Poisson.Compensated.lintegral_markCut_eq_setLIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.tendsto_lintegral_sq_stochasticIntegral_markCut

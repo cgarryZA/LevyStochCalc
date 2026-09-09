@@ -92,6 +92,7 @@ import LevyStochCalc.Poisson.MathFinBridge
 import LevyStochCalc.Poisson.NaturalFiltration
 import LevyStochCalc.Poisson.CylinderCharacters
 import LevyStochCalc.Poisson.CompensatedIntegrandComplete
+import LevyStochCalc.Poisson.SmallJump
 import LevyStochCalc.Poisson.CompensatedLinear
 import LevyStochCalc.Poisson.CompensatedRange
 import LevyStochCalc.Poisson.CompensatedPullOut
