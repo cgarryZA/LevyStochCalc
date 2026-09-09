@@ -223,6 +223,7 @@ import LevyStochCalc.Brownian.VectorItoVersionExists
 import LevyStochCalc.Brownian.ItoZero
 import LevyStochCalc.Brownian.ItoFinsetSum
 import LevyStochCalc.Brownian.ItoOptionalStopping
+import LevyStochCalc.Brownian.ItoLocality
 import LevyStochCalc.Brownian.VectorItoTimeAug
 import LevyStochCalc.Brownian.VectorItoTimeFormula
 import LevyStochCalc.Brownian.PRPMultidimRange

@@ -1810,3 +1810,23 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stopped_eq_sub_sum
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indTerm_zero
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped
+-- ===== The local property of the Ito integral (B1d-2c, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.stepStop
+#print axioms LevyStochCalc.Brownian.Ito.le_stepStop
+#print axioms LevyStochCalc.Brownian.Ito.stepStop_eq_or
+#print axioms LevyStochCalc.Brownian.Ito.isStoppingTime_stepStop
+#print axioms LevyStochCalc.Brownian.Ito.gridPt
+#print axioms LevyStochCalc.Brownian.Ito.gridStopAux
+#print axioms LevyStochCalc.Brownian.Ito.gridStopAux_le_iff
+#print axioms LevyStochCalc.Brownian.Ito.le_gridStopAux
+#print axioms LevyStochCalc.Brownian.Ito.gridStopAux_eq
+#print axioms LevyStochCalc.Brownian.Ito.isStoppingTime_gridStopAux
+#print axioms LevyStochCalc.Brownian.Ito.gridStop
+#print axioms LevyStochCalc.Brownian.Ito.isStoppingTime_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.le_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_nonneg
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_lt_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_self
+#print axioms LevyStochCalc.Brownian.Ito.gridStop_finiteRange
+#print axioms LevyStochCalc.Brownian.Ito.eventually_gridStop_lt
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_eq_of_le
