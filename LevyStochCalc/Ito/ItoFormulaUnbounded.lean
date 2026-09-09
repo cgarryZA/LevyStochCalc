@@ -311,9 +311,80 @@ theorem lintegral_window_sq_norm_version_clamp_sub_le
     _ = ENNReal.ofReal T * clampMesh P H b T j := by
         rw [MeasureTheory.setLIntegral_const, Real.volume_Ioc, sub_zero, mul_comm]
 
-/-- **A subsequence along which the clamped versions converge to the original process almost
+/-- If the integrals of a sequence of nonnegative functions are summable, their sum is finite
+almost everywhere. -/
+theorem ae_tsum_ne_top_of_lintegral_summable {α : Type*} [MeasurableSpace α]
+    {μ : Measure α} {g : ℕ → α → ℝ≥0∞} (hg : ∀ i, Measurable (g i))
+    (hsum : ∑' i : ℕ, ∫⁻ a, g i a ∂μ ≠ ⊤) : ∀ᵐ a ∂μ, ∑' i : ℕ, g i a ≠ ⊤ := by
+  have h1 : ∫⁻ a, ∑' i : ℕ, g i a ∂μ ≠ ⊤ := by
+    rw [MeasureTheory.lintegral_tsum fun i => (hg i).aemeasurable]
+    exact hsum
+  filter_upwards [MeasureTheory.ae_lt_top (Measurable.ennreal_tsum hg) h1] with a ha
+  exact ha.ne
+
+/-- If the integrals of a sequence of nonnegative functions are summable, the functions tend to
+zero almost everywhere. -/
+theorem ae_tendsto_zero_of_lintegral_summable {α : Type*} [MeasurableSpace α]
+    {μ : Measure α} {g : ℕ → α → ℝ≥0∞} (hg : ∀ i, Measurable (g i))
+    (hsum : ∑' i : ℕ, ∫⁻ a, g i a ∂μ ≠ ⊤) :
+    ∀ᵐ a ∂μ, Filter.Tendsto (fun i => g i a) Filter.atTop (𝓝 0) := by
+  filter_upwards [ae_tsum_ne_top_of_lintegral_summable hg hsum] with a ha
+  exact ENNReal.tendsto_atTop_zero_of_tsum_ne_top ha
+
+/-- Convergence of the squared extended norms of the differences is convergence. -/
+theorem tendsto_of_tendsto_sq_enorm {E : Type*} [NormedAddCommGroup E] {u : ℕ → E} {w : E}
+    (h : Filter.Tendsto (fun i => (‖u i - w‖₊ : ℝ≥0∞) ^ 2) Filter.atTop (𝓝 0)) :
+    Filter.Tendsto u Filter.atTop (𝓝 w) := by
+  have hnn : Filter.Tendsto (fun i : ℕ => ‖u i - w‖₊ ^ 2) Filter.atTop (𝓝 0) := by
+    rw [← ENNReal.tendsto_coe]
+    push_cast
+    simpa using h
+  have hreal : Filter.Tendsto (fun i : ℕ => ‖u i - w‖ ^ 2) Filter.atTop (𝓝 0) := by
+    have hco := NNReal.tendsto_coe.mpr hnn
+    push_cast at hco
+    simpa using hco
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  have hsqrt := (Real.continuous_sqrt.tendsto 0).comp hreal
+  simp only [Function.comp_def, Real.sqrt_zero] at hsqrt
+  refine hsqrt.congr fun i => ?_
+  exact Real.sqrt_sq (norm_nonneg _)
+
+/-- **A clamping level along which the approximation error is summable.** -/
+theorem exists_seq_clampMesh_lt
+    {H : Fin n → Fin d → Ω → ℝ → ℝ}
+    (hm : ∀ p k, Measurable (Function.uncurry (H p k)))
+    {b : Fin n → Ω → ℝ → ℝ} (hbm : ∀ p, Measurable (Function.uncurry (b p)))
+    {T : ℝ}
+    (hq : ∀ (p : Fin n) (k : Fin d), ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤)
+    (hbq : ∀ p : Fin n, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤) :
+    ∃ ns : ℕ → ℕ, ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+  have hmesh : Filter.Tendsto (clampMesh P H b T) Filter.atTop (𝓝 0) :=
+    tendsto_energy_window_clamp hm hbm hq hbq
+  have hchoice : ∀ i : ℕ, ∃ j : ℕ, clampMesh P H b T j < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+    intro i
+    have hpos : (0 : ℝ≥0∞) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
+      refine pos_iff_ne_zero.mpr (pow_ne_zero i ?_)
+      simp
+    obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (hmesh.eventually (gt_mem_nhds hpos))
+    exact ⟨N, hN N le_rfl⟩
+  choose ns hns using hchoice
+  exact ⟨ns, hns⟩
+
+/-- The geometric bound the summability argument uses. -/
+theorem tsum_geometric_inv_two_mul_ne_top (c : ℝ≥0∞) (hc : c ≠ ⊤) :
+    ∑' i : ℕ, c * ((2 : ℝ≥0∞)⁻¹) ^ i ≠ ⊤ := by
+  rw [ENNReal.tsum_mul_left, ENNReal.tsum_geometric]
+  refine ne_of_lt (ENNReal.mul_lt_top (lt_top_iff_ne_top.mpr hc) ?_)
+  have hne : (1 : ℝ≥0∞) - 2⁻¹ ≠ 0 := by
+    rw [Ne, tsub_eq_zero_iff_le]
+    exact not_le.mpr (ENNReal.inv_lt_one.mpr (by norm_num))
+  exact lt_top_iff_ne_top.mpr (ENNReal.inv_ne_top.mpr hne)
+
+/-- **Along the chosen levels the clamped versions converge to the original process almost
 everywhere on the window.** -/
-theorem exists_seq_ae_tendsto_version_clamp
+theorem ae_ae_tendsto_version_clamp
     {H : Fin n → Fin d → Ω → ℝ → ℝ}
     {hm : ∀ p k, Measurable (Function.uncurry (H p k))}
     {hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ' (H p k)}
@@ -330,30 +401,10 @@ theorem exists_seq_ae_tendsto_version_clamp
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
       (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
       X₀ (clampDrift b j) (Xj j))
-    {T : ℝ} (hT : 0 < T) :
-    ∃ ns : ℕ → ℕ, ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+    {T : ℝ} (hT : 0 < T) {ns : ℕ → ℕ}
+    (hns : ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i) :
+    ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
       Filter.Tendsto (fun i => Xj (ns i) s ω) Filter.atTop (𝓝 (X s ω)) := by
-  classical
-  -- choose a summably fast subsequence of the mesh
-  have hmesh : Filter.Tendsto (clampMesh P H b T) Filter.atTop (𝓝 0) :=
-    tendsto_energy_window_clamp hm hbm (fun p k => (hq p k T hT).ne) (fun p => (hbq p T hT).ne)
-  have hchoice : ∀ i : ℕ, ∃ j : ℕ, clampMesh P H b T j < ((2 : ℝ≥0∞)⁻¹) ^ i := by
-    intro i
-    have hpos : (0 : ℝ≥0∞) < ((2 : ℝ≥0∞)⁻¹) ^ i := by
-      refine pos_iff_ne_zero.mpr (pow_ne_zero i ?_)
-      simp
-    obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (hmesh.eventually (gt_mem_nhds hpos))
-    exact ⟨N, hN N le_rfl⟩
-  choose ns hns using hchoice
-  refine ⟨ns, ?_⟩
-  -- the errors along the subsequence are summable in energy
-  have hbnd : ∀ i : ℕ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
-      ≤ ENNReal.ofReal T * ((2 : ℝ≥0∞)⁻¹) ^ i := by
-    intro i
-    refine (lintegral_window_sq_norm_version_clamp_sub_le W ℱ' hcoord hX₀ hbm hbq hX
-      (hXj (ns i)) hT).trans ?_
-    exact mul_le_mul' le_rfl (hns i).le
   have hmeasi : ∀ i : ℕ, Measurable fun ω : Ω => ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume := by
     intro i
@@ -361,25 +412,15 @@ theorem exists_seq_ae_tendsto_version_clamp
       ((((hXj (ns i)).measurable_uncurry.sub
         hX.measurable_uncurry).nnnorm).coe_nnreal_ennreal).pow_const 2
     exact hjoint.lintegral_prod_right'
-  have hsumfin : ∫⁻ ω, ∑' i : ℕ, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P ≠ ⊤ := by
-    rw [MeasureTheory.lintegral_tsum fun i => (hmeasi i).aemeasurable]
-    refine ne_of_lt (lt_of_le_of_lt (ENNReal.tsum_le_tsum hbnd) ?_)
-    rw [ENNReal.tsum_mul_left, ENNReal.tsum_geometric]
-    refine ENNReal.mul_lt_top ENNReal.ofReal_lt_top ?_
-    have hne : (1 : ℝ≥0∞) - 2⁻¹ ≠ 0 := by
-      rw [Ne, tsub_eq_zero_iff_le]
-      exact not_le.mpr (ENNReal.inv_lt_one.mpr (by norm_num))
-    exact lt_top_iff_ne_top.mpr (ENNReal.inv_ne_top.mpr hne)
-  have hae1 : ∀ᵐ ω ∂P, ∑' i : ℕ, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ≠ ⊤ := by
-    have hmeassum : Measurable fun ω : Ω => ∑' i : ℕ, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
-      Measurable.ennreal_tsum hmeasi
-    filter_upwards [MeasureTheory.ae_lt_top hmeassum hsumfin] with ω hω
-    exact hω.ne
-  filter_upwards [hae1] with ω hω
-  -- for a.e. `s` the squared errors are summable, hence tend to zero
+  have hsum : ∑' i : ℕ, ∫⁻ ω, (∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume) ∂P ≠ ⊤ := by
+    refine ne_of_lt (lt_of_le_of_lt (ENNReal.tsum_le_tsum fun i => ?_)
+      (lt_top_iff_ne_top.mpr (tsum_geometric_inv_two_mul_ne_top (ENNReal.ofReal T)
+        ENNReal.ofReal_ne_top)))
+    refine (lintegral_window_sq_norm_version_clamp_sub_le W ℱ' hcoord hX₀ hbm hbq hX
+      (hXj (ns i)) hT).trans ?_
+    exact mul_le_mul' le_rfl (hns i).le
+  filter_upwards [ae_tsum_ne_top_of_lintegral_summable (μ := P) hmeasi hsum] with ω hω
   have hmeasω : ∀ i : ℕ, Measurable fun s : ℝ => (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 := by
     intro i
     have h1 : Measurable fun s : ℝ => Xj (ns i) s ω :=
@@ -387,33 +428,86 @@ theorem exists_seq_ae_tendsto_version_clamp
     have h2 : Measurable fun s : ℝ => X s ω :=
       (hX.measurable_uncurry.comp (measurable_const.prodMk measurable_id))
     exact (((h1.sub h2).nnnorm).coe_nnreal_ennreal).pow_const 2
-  have hswap : ∑' i : ℕ, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume
-      = ∫⁻ s in Set.Icc (0 : ℝ) T, ∑' i : ℕ,
-        (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
-    (MeasureTheory.lintegral_tsum fun i => (hmeasω i).aemeasurable).symm
-  rw [hswap] at hω
-  have hmeastsum : Measurable fun s : ℝ => ∑' i : ℕ,
-      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 := Measurable.ennreal_tsum hmeasω
-  filter_upwards [MeasureTheory.ae_lt_top hmeastsum hω] with s hs
-  have htend : Filter.Tendsto (fun i : ℕ => (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2)
-      Filter.atTop (𝓝 0) := ENNReal.tendsto_atTop_zero_of_tsum_ne_top hs.ne
-  -- convert to convergence of the vectors
-  have hnn : Filter.Tendsto (fun i : ℕ => ‖Xj (ns i) s ω - X s ω‖₊ ^ 2)
-      Filter.atTop (𝓝 0) := by
-    rw [← ENNReal.tendsto_coe]
-    push_cast
-    simpa using htend
-  have hreal : Filter.Tendsto (fun i : ℕ => ‖Xj (ns i) s ω - X s ω‖ ^ 2)
-      Filter.atTop (𝓝 0) := by
-    have hco := NNReal.tendsto_coe.mpr hnn
-    push_cast at hco
-    simpa using hco
-  rw [tendsto_iff_norm_sub_tendsto_zero]
-  have hsqrt := (Real.continuous_sqrt.tendsto 0).comp hreal
-  simp only [Function.comp_def, Real.sqrt_zero] at hsqrt
-  refine hsqrt.congr fun i => ?_
-  exact Real.sqrt_sq (norm_nonneg _)
+  have hinner := ae_tendsto_zero_of_lintegral_summable
+    (μ := volume.restrict (Set.Icc (0 : ℝ) T)) hmeasω hω
+  filter_upwards [hinner] with s hs
+  exact tendsto_of_tendsto_sq_enorm hs
+
+/-- **Along the chosen levels the clamped versions converge to the original process almost surely
+at each positive time of the window.** -/
+theorem ae_tendsto_version_clamp_at
+    {H : Fin n → Fin d → Ω → ℝ → ℝ}
+    {hm : ∀ p k, Measurable (Function.uncurry (H p k))}
+    {hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ' (H p k)}
+    {hq : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
+    {X₀ : Ω → Fin n → ℝ} (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
+    {b : Fin n → Ω → ℝ → ℝ} (hbm : ∀ p, Measurable (Function.uncurry (b p)))
+    (hbq : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {X : ℝ → Ω → Fin n → ℝ} {Xj : ℕ → ℝ → Ω → Fin n → ℝ}
+    (hX : IsVectorItoVersion W ℱ' hcoord H hm hpg hq X₀ b X)
+    (hXj : ∀ j : ℕ, IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
+      (fun p k => measurable_clampCoeff hm j p k)
+      (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
+      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      X₀ (clampDrift b j) (Xj j))
+    {T : ℝ} {ns : ℕ → ℕ}
+    (hns : ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i)
+    {s : ℝ} (hs : 0 < s) (hsT : s ≤ T) :
+    ∀ᵐ ω ∂P, Filter.Tendsto (fun i => Xj (ns i) s ω) Filter.atTop (𝓝 (X s ω)) := by
+  have hmeasi : ∀ i : ℕ, Measurable fun ω : Ω =>
+      (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 := by
+    intro i
+    have h1 : Measurable fun ω : Ω => Xj (ns i) s ω := (hXj (ns i)).measurable s
+    have h2 : Measurable fun ω : Ω => X s ω := hX.measurable s
+    exact (((h1.sub h2).nnnorm).coe_nnreal_ennreal).pow_const 2
+  have hsum : ∑' i : ℕ, ∫⁻ ω, (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≠ ⊤ := by
+    have hgeom := tsum_geometric_inv_two_mul_ne_top (1 : ℝ≥0∞) (by simp)
+    refine ne_of_lt (lt_of_le_of_lt (ENNReal.tsum_le_tsum fun i => ?_)
+      (lt_top_iff_ne_top.mpr hgeom))
+    refine (lintegral_sq_norm_version_clamp_sub_le W ℱ' hcoord hX₀ hbm hbq hX
+      (hXj (ns i)) hs hsT).trans ?_
+    rw [one_mul]
+    exact (hns i).le
+  filter_upwards [ae_tendsto_zero_of_lintegral_summable (μ := P) hmeasi hsum] with ω hω
+  exact tendsto_of_tendsto_sq_enorm hω
+
+/-- A version starts at its initial value. -/
+theorem version_ae_eq_zero
+    {H : Fin n → Fin d → Ω → ℝ → ℝ}
+    {hm : ∀ p k, Measurable (Function.uncurry (H p k))}
+    {hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ' (H p k)}
+    {hq : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
+    {X₀ : Ω → Fin n → ℝ} {b : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
+    (hX : IsVectorItoVersion W ℱ' hcoord H hm hpg hq X₀ b X) :
+    X 0 =ᵐ[P] X₀ := by
+  have hzero : ∀ (p : Fin n) (k : Fin d),
+      stochasticIntegralBrownian (W.W k) ℱ' (hcoord k) (H p k) (hm p k) (hpg p k) (hq p k) 0
+        =ᵐ[P] 0 :=
+    fun p k => stochasticIntegralBrownian_ae_zero_of_nonpos (W.W k) ℱ' (hcoord k) (H p k)
+      (hm p k) (hpg p k) (hq p k) le_rfl
+  have hall : ∀ᵐ ω ∂P, ∀ (p : Fin n) (k : Fin d),
+      stochasticIntegralBrownian (W.W k) ℱ' (hcoord k) (H p k) (hm p k) (hpg p k) (hq p k) 0 ω
+        = 0 := by
+    rw [MeasureTheory.ae_all_iff]
+    intro p
+    rw [MeasureTheory.ae_all_iff]
+    intro k
+    exact hzero p k
+  filter_upwards [hX.ae_eq 0 le_rfl, hall] with ω hω hz
+  rw [hω]
+  funext p
+  have hdrift : ∫ s in Set.Icc (0 : ℝ) 0, b p ω s ∂volume = 0 := by
+    rw [show Set.Icc (0 : ℝ) 0 = {(0 : ℝ)} from Set.Icc_self 0,
+      MeasureTheory.setIntegral_measure_zero _ Real.volume_singleton]
+  simp only [vectorItoProcess, vectorItoMartingale, coordItoIntegral, hdrift]
+  have : ∑ k : Fin d, stochasticIntegralBrownian (W.W k) ℱ' (hcoord k) (H p k)
+      (hm p k) (hpg p k) (hq p k) 0 ω = 0 :=
+    Finset.sum_eq_zero fun k _ => hz p k
+  rw [this]
+  ring
 
 end ClampProcess
 

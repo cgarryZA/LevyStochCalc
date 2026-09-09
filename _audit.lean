@@ -1913,4 +1913,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_window_sq_norm_clampProcess_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_norm_version_clamp_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_window_sq_norm_version_clamp_sub_le
-#print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_version_clamp
+#print axioms LevyStochCalc.Brownian.Ito.ae_tsum_ne_top_of_lintegral_summable
+#print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_zero_of_lintegral_summable
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_of_tendsto_sq_enorm
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_clampMesh_lt
+#print axioms LevyStochCalc.Brownian.Ito.tsum_geometric_inv_two_mul_ne_top
+#print axioms LevyStochCalc.Brownian.Ito.ae_ae_tendsto_version_clamp
+#print axioms LevyStochCalc.Brownian.Ito.ae_tendsto_version_clamp_at
+#print axioms LevyStochCalc.Brownian.Ito.version_ae_eq_zero
