@@ -211,6 +211,7 @@ import LevyStochCalc.Brownian.VectorItoProcessVersion
 import LevyStochCalc.Brownian.VectorItoProcessWindow
 import LevyStochCalc.Brownian.VectorItoTimeRiemann
 import LevyStochCalc.Brownian.VectorItoMartingaleRiemann
+import LevyStochCalc.Brownian.PolarisedQuadVar
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly

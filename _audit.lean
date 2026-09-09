@@ -1684,3 +1684,11 @@ import LevyStochCalc
 -- ===== The vector martingale Riemann sum (B1b-5, 2026-09-09) =====
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_sq_frozen_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.lintegral_sq_martingaleRiemann_sub_le
+-- ===== The polarised quadratic variation (B1b-3b, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.polarQuadVarIncrement
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_add_ae_of_nonneg
+#print axioms LevyStochCalc.Brownian.Ito.compensator_add_sq_eq
+#print axioms LevyStochCalc.Brownian.Ito.smul_two_polarQuadVarIncrement_ae
+#print axioms LevyStochCalc.Brownian.Ito.memLp_two_polarQuadVarIncrement
+#print axioms LevyStochCalc.Brownian.Ito.condExp_polarQuadVarIncrement
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_polarQuadVarIncrement
