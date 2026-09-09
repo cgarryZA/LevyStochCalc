@@ -105,6 +105,7 @@ import LevyStochCalc.Poisson.CompensatedQuadVar
 import LevyStochCalc.Poisson.CompensatedProcessQuadVar
 import LevyStochCalc.Poisson.CompensatedDiff
 import LevyStochCalc.Poisson.Compensated
+import LevyStochCalc.Poisson.PredictableIntegrand
 import LevyStochCalc.Poisson.PerpBridge
 
 -- Layer 0.5: martingale path regularity (càdlàg modifications)
@@ -150,6 +151,7 @@ import LevyStochCalc.Driver.CrossOrthogonality
 import LevyStochCalc.Driver.JointRange
 import LevyStochCalc.Driver.JointPRP
 import LevyStochCalc.Driver.JointPRPDegenerate
+import LevyStochCalc.Driver.PredictableRepresentation
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
@@ -165,6 +167,7 @@ import LevyStochCalc.Brownian.ItoL2Completion
 import LevyStochCalc.Brownian.ItoLinear
 import LevyStochCalc.Brownian.ItoIntegrandComplete
 import LevyStochCalc.Brownian.ItoRange
+import LevyStochCalc.Brownian.PredictableIntegrand
 import LevyStochCalc.Brownian.ItoAlgebra
 import LevyStochCalc.Brownian.ItoIncrement
 import LevyStochCalc.Brownian.ItoTrigIncrement

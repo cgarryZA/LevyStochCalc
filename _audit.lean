@@ -1591,3 +1591,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.limsupMarkStepEval
 #print axioms LevyStochCalc.Probability.exists_markedPredictable_ae_eq
 #print axioms LevyStochCalc.Probability.exists_markedPredictable_ae_eq_markedHorizonIntegrand
+-- ===== Admissible integrands have predictable versions (A5b capstone, 2026-09-09) =====
+#print axioms LevyStochCalc.Brownian.Ito.predictableSigma_le
+#print axioms LevyStochCalc.Brownian.Ito.measurable_uncurry_of_predictable
+#print axioms LevyStochCalc.Brownian.Ito.predictable_indicator_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.ae_mem_Ioc_energyMeasure
+#print axioms LevyStochCalc.Brownian.Ito.exists_predictable_horizonIntegrand
+#print axioms LevyStochCalc.Poisson.Compensated.measurableSet_markedPredictable_strip
+#print axioms LevyStochCalc.Poisson.Compensated.markedPredictable_indicator_Ioc
+#print axioms LevyStochCalc.Poisson.Compensated.ae_mem_Ioc_markedEnergyMeasure
+#print axioms LevyStochCalc.Poisson.Compensated.exists_markedPredictable_markedHorizonIntegrand
+-- ===== The joint representation with predictable integrands (A5c input, 2026-09-09) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_predictable_jointIntegral
