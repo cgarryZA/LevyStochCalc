@@ -2759,6 +2759,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
 #print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
+-- M16 wave 2, the split-drift dictionary in mixed form (A3, A4, A5)
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_mixedFirstOrder_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_mixedCompensatorDriftIntegrand_eq_sub
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedCompensatorDriftIntegrand_eq_zero_of_notMem
+#print axioms LevyStochCalc.Ito.JumpFormula.integral_mixedCompensatorDriftIntegrand_eq_setIntegral
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_mixedCompensatorDrift_eq_sub
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_firstOrder_add_mixedCompensatorDrift
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedDriftIntegrand_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.splitDriftIntegrand_dictionary_mixed
+#print axioms LevyStochCalc.Ito.JumpFormula.splitDrift_pointwise_mixed
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_splitDrift_dictionary_mixed
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum_mixed
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum_mixed_of_support
 
 -- ===== M16: the Itô–Lévy formula for bounded derivatives (ONE OPEN OBLIGATION) =====
 #print axioms LevyStochCalc.Ito.JumpFormula.norm_le_sum_abs
