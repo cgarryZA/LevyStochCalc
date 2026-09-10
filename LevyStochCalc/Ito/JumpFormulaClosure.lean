@@ -198,6 +198,32 @@ theorem repairOn_eq_on {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ} {ω : Ω}
     (fun t => repairOn G X t ω) = fun t => X t ω :=
   funext fun t => repairOn_of_mem hω t
 
+/-- On the augmented filtration a set of full measure is measurable at every nonnegative time. -/
+theorem measurableSet_augFiltration_of_full {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {G : Set Ω}
+    (hGm : MeasurableSet G) (hG : P Gᶜ = 0) {t : ℝ} (ht : 0 ≤ t) :
+    MeasurableSet[LevyStochCalc.Brownian.augFiltration ℱ P t] G := by
+  have h0 : MeasurableSet[LevyStochCalc.Brownian.augFiltration ℱ P 0] G := by
+    have := LevyStochCalc.Brownian.measurableSet_augFiltration_of_null ℱ P hGm.compl hG
+    simpa using this.compl
+  exact (LevyStochCalc.Brownian.augFiltration ℱ P).mono ht _ h0
+
+/-- The repaired path is adapted to the augmented filtration whenever the original is adapted to
+the filtration itself. -/
+theorem measurable_augFiltration_repairOn {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {G : Set Ω}
+    (hGm : MeasurableSet G) (hG : P Gᶜ = 0) {X : ℝ → Ω → Fin n → ℝ}
+    (hX : ∀ t : ℝ, Measurable[ℱ t] (X t)) {t : ℝ} (ht : 0 ≤ t) :
+    Measurable[LevyStochCalc.Brownian.augFiltration ℱ P t] (repairOn G X t) := by
+  classical
+  have hGaug : MeasurableSet[LevyStochCalc.Brownian.augFiltration ℱ P t] G :=
+    measurableSet_augFiltration_of_full hGm hG ht
+  have hXaug : Measurable[LevyStochCalc.Brownian.augFiltration ℱ P t] (X t) :=
+    (hX t).mono (LevyStochCalc.Brownian.le_augFiltration ℱ P t) le_rfl
+  have heq : repairOn G X t = fun ω => if ω ∈ G then X t ω else 0 := by
+    funext ω
+    by_cases hω : ω ∈ G <;> simp [repairOn, hω]
+  rw [heq]
+  exact Measurable.ite hGaug hXaug measurable_const
+
 end Repair
 
 end LevyStochCalc.Ito.JumpFormula

@@ -2591,3 +2591,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.stopped_sub_congr
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.itoFormula_between_shift_localise
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.stochasticIntegralBrownian_stopped_sub_congr_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormula.measurableSet_augFiltration_of_full
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_augFiltration_repairOn
