@@ -6,6 +6,7 @@ Authors: Christian Garry
 import LevyStochCalc.Ito.JumpFormulaLimit
 import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Brownian.ItoFiltrationChange
+import LevyStochCalc.Ito.BigJumpDiffusion
 
 /-!
 # Exhausting a σ-finite mark space by finite-activity complements
@@ -225,5 +226,18 @@ theorem measurable_augFiltration_repairOn {ℱ : Filtration ℝ ‹MeasurableSpa
   exact Measurable.ite hGaug hXaug measurable_const
 
 end Repair
+
+section Duplicates
+
+universe u₂ v₂
+
+variable {E : Type v₂} [MeasurableSpace E] {n d : ℕ}
+
+omit [MeasurableSpace E] in
+/-- Cutting the jump coefficient to a set of marks is one operation under two names. -/
+theorem markTruncCoeffs_eq_markCutγ (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
+    (S : Set E) : markTruncCoeffs coeffs S = coeffs.markCutγ S := rfl
+
+end Duplicates
 
 end LevyStochCalc.Ito.JumpFormula
