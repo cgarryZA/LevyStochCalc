@@ -159,7 +159,7 @@ theorem arrivalCount_le_of_jumpTime_eq (hA : MeasurableSet A) {T : ℝ} {ω : Ω
   · rw [arrivalCount_of_nonpos N A ht0 ω]
     exact zero_le
   · by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     obtain ⟨n, hn⟩ := exists_nat_arrivalCount N A hA hint (show t ≤ T + 1 by linarith)
     rw [hn] at hcon
     have hin : i ≤ n := by
@@ -215,7 +215,7 @@ theorem setOf_jumpTime_eq_setOf_count_singleton_ne_zero (hA : MeasurableSet A) {
     refine ⟨n, le_antisymm ((jumpTime_le_iff N A hA hu0.le hfinu).mpr (le_of_eq hn.symm)) ?_,
       hu0, huT⟩
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     obtain ⟨t, ht0, htu, hcount⟩ := (jumpTime_lt_iff N A n u ω).mp hcon
     have hct : arrivalCount N A t ω ≠ ⊤ :=
       arrivalCount_ne_top_of_isIntegerValued N A hA hint (by linarith)
@@ -280,7 +280,7 @@ theorem exists_coe_le_jumpTime {T : ℝ} {ω : Ω} (hfin : arrivalCount N A T ω
     ∃ m : ℕ, ((T : ℝ) : WithTop ℝ) ≤ jumpTime N A m ω := by
   refine ⟨⌈(arrivalCount N A T ω).toReal⌉₊ + 1, ?_⟩
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   obtain ⟨s, hs0, hsT, hle⟩ :=
     (jumpTime_lt_iff N A (⌈(arrivalCount N A T ω).toReal⌉₊ + 1) T ω).mp hcon
   have h1 : ((⌈(arrivalCount N A T ω).toReal⌉₊ + 1 : ℕ) : ℝ≥0∞) ≤ arrivalCount N A T ω :=
@@ -411,3 +411,16 @@ theorem ae_exists_finset_setOf_jumpTime_subset (hA : MeasurableSet A) (hAν : ν
 end AlmostEverywhere
 
 end LevyStochCalc.Poisson
+
+section TempAudit
+#print axioms LevyStochCalc.Poisson.setOf_jumpTime_eq_setOf_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.coe_zero_lt_jumpTime
+#print axioms LevyStochCalc.Poisson.jumpTime_lt_jumpTime_succ
+#print axioms LevyStochCalc.Poisson.exists_coe_le_jumpTime
+#print axioms LevyStochCalc.Poisson.mem_jumpTimes_of_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.ae_setOf_jumpTime_eq_setOf_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.ae_jumpTime_lt_jumpTime_succ
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_setOf_jumpTime_subset
+#print axioms LevyStochCalc.Poisson.exists_strictMono_enum_arrivalTime
+#print axioms LevyStochCalc.Poisson.ae_jumpTime_chain
+end TempAudit

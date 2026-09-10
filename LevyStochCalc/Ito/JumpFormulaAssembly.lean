@@ -226,4 +226,307 @@ theorem sum_range_itoTerms {n d m : ℕ} {a : ℕ → Fin n → ℝ} {b : ℕ �
 
 end Algebra
 
+
+section Assembly
+
+variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
+
+omit [IsProbabilityMeasure P] in
+/-- Finitely many almost-everywhere identities hold simultaneously almost everywhere. -/
+theorem ae_forall_lt {F G : ℕ → Ω → ℝ} {m : ℕ} (h : ∀ k < m, F k =ᵐ[P] G k) :
+    ∀ᵐ ω ∂P, ∀ k < m, F k ω = G k ω := by
+  rw [MeasureTheory.ae_all_iff]
+  intro k
+  by_cases hk : k < m
+  · filter_upwards [h k hk] with ω hω
+    exact fun _ => hω
+  · exact Filter.Eventually.of_forall fun _ hk' => absurd hk' hk
+
+variable {n d : ℕ} (W : Multidim.MultidimBrownianMotion P d)
+  (ℱ' : Filtration ℝ ‹MeasurableSpace Ω›)
+  (hcoord : ∀ j : Fin d, IsBrownianFiltration (W.W j) ℱ')
+
+include hcoord in
+/-- **Itô's formula over `(0, T]` for a path translated by a vector held fixed between the
+members of a chain of stopping times.** The increment of the composition is a drift integral, an
+Itô integral and a quadratic integral of the integrands built from the path the translated path
+agrees with, plus the increments of the composition across the translations. -/
+theorem itoFormula_chain
+    {H : Fin n → Fin d → Ω → ℝ → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ}
+    {V X : ℝ → Ω → Fin n → ℝ} {c : ℕ → Ω → Fin n → ℝ}
+    {f : (Fin n → ℝ) → ℝ} {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ}
+    {f'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ}
+    {σ : ℕ → Ω → WithTop ℝ} (hσ : ∀ k, MeasureTheory.IsStoppingTime ℱ' (σ k))
+    (hmono : ∀ (k : ℕ) (ω : Ω), σ k ω ≤ σ (k + 1) ω)
+    (hmG : ∀ (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * H p j ω s))
+    (hpG : ∀ (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+    (hqG : ∀ (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv f' p (X s ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hmD : ∀ p : Fin n, Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s))
+    (hqD : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv f' p (X s ω) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
+      fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s))
+    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤)
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s))
+    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s)
+    (hqV : ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
+    (hmT : ∀ ω, ((T : ℝ) : WithTop ℝ) ≤ σ m ω)
+    (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
+      ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
+    (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
+          - f (V (clipTime (σ k) T ω) ω + c k ω)) =ᵐ[P] fun ω : Ω =>
+        (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            (Probability.stopped (σ (k + 1))
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
+              - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s) ∂volume)
+          + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+              (fun ω s => Probability.stopped (σ (k + 1))
+                  (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+                - Probability.stopped (σ k)
+                    (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
+              (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
+              (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
+              (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+          + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+              (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+                  * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
+                - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+                    * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume) :
+    (fun ω : Ω => f (V T ω + c m ω) - f (V 0 ω + c 0 ω)) =ᵐ[P] fun ω : Ω =>
+      ((∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
+          + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+              (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+              (hmG p j) (hpG p j) (hqG p j) T ω)
+          + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+              coordDeriv₂ f'' p q (X s ω) * (∑ j : Fin d, H p j ω s * H q j ω s) ∂volume)
+        + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
+            - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) := by
+  classical
+  have hBfun : ∀ (k : ℕ) (p : Fin n) (j : Fin d),
+      stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+          (fun ω s => Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
+          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
+          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
+          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T
+        = stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+          (fun ω s => Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s)
+          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmG p j))
+          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpG p j))
+          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmG p j) (hqG p j)) T := by
+    intro k p j
+    exact stochasticIntegralBrownian_congr_fun (W.W j) ℱ' (hcoord j)
+      (stopped_sub_shift_funext (fun ω => hmono k ω) (coordDeriv f' p) (H p j)
+        (fun ω s h₁ h₂ => hshift k ω s h₁ h₂)) _ _ _ _ _ _ T
+  have hDint : ∀ᵐ ω ∂P, ∀ (p : Fin n) (k : ℕ), MeasureTheory.IntegrableOn
+      (Probability.stopped (σ k) (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω)
+      (Set.Ioc (0 : ℝ) T) volume := by
+    rw [MeasureTheory.ae_all_iff]
+    intro p
+    rw [MeasureTheory.ae_all_iff]
+    intro k
+    exact ae_integrableOn_stopped_Ioc (hσ k) (hmD p) (hqD p) hT
+  have hQint : ∀ᵐ ω ∂P, ∀ (p q : Fin n) (k : ℕ), MeasureTheory.IntegrableOn
+      (Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (X s ω)
+        * ∑ j : Fin d, H p j ω s * H q j ω s) ω) (Set.Ioc (0 : ℝ) T) volume := by
+    rw [MeasureTheory.ae_all_iff]
+    intro p
+    rw [MeasureTheory.ae_all_iff]
+    intro q
+    rw [MeasureTheory.ae_all_iff]
+    intro k
+    exact ae_integrableOn_stopped_Ioc (hσ k) (hmQ p q) (hqQ p q) hT
+  have hBcol : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d),
+      (∑ k ∈ Finset.range m, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+          (fun ω s => Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s)
+          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmG p j))
+          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpG p j))
+          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmG p j) (hqG p j)) T ω)
+        = stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+            (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+            (hmG p j) (hpG p j) (hqG p j) T ω := by
+    rw [MeasureTheory.ae_all_iff]
+    intro p
+    rw [MeasureTheory.ae_all_iff]
+    intro j
+    exact stochasticIntegralBrownian_sum_range_stopped_sub_of_chain (W.W j) ℱ' (hcoord j)
+      σ hσ (hmG p j) (hpG p j) (hqG p j) (fun ω => le_of_eq (h0 ω)) hmT hT
+  have hcontAll := ae_forall_lt hcont
+  filter_upwards [hcontAll, hBcol, hDint, hQint] with ω hcω hBω hDω hQω
+  have hAk : ∀ (k : ℕ) (p : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1))
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
+          - Probability.stopped (σ k)
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s) ∂volume)
+      = ∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1))
+            (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s
+          - Probability.stopped (σ k)
+              (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s) ∂volume :=
+    fun k p => MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun s =>
+      stopped_sub_shift_apply (hmono k ω) (coordDeriv f' p) (bdrift p) (hshift k ω) s)
+  have hQk : ∀ (k : ℕ) (p q : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+            * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
+          - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+              * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume)
+      = ∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (X s ω)
+            * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
+          - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (X s ω)
+              * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume :=
+    fun k p q => MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun s =>
+      stopped_sub_shift_apply (hmono k ω) (coordDeriv₂ f'' p q)
+        (fun ω s => ∑ j : Fin d, H p j ω s * H q j ω s) (hshift k ω) s)
+  have hA : ∀ p : Fin n, (∑ k ∈ Finset.range m, ∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1))
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
+          - Probability.stopped (σ k)
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s) ∂volume)
+      = ∫ s in Set.Ioc (0 : ℝ) T, coordDeriv f' p (X s ω) * bdrift p ω s ∂volume := by
+    intro p
+    have hstep := Finset.sum_congr (s₂ := Finset.range m) rfl
+      fun k (_ : k ∈ Finset.range m) => hAk k p
+    rw [hstep]
+    exact sum_range_integral_stopped_sub_of_chain σ
+      (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s)
+      (le_of_eq (h0 ω)) (hmT ω) fun k => hDω p k
+  have hC : ∀ p q : Fin n, (∑ k ∈ Finset.range m, ∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+            * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
+          - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+              * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume)
+      = ∫ s in Set.Ioc (0 : ℝ) T,
+        coordDeriv₂ f'' p q (X s ω) * (∑ j : Fin d, H p j ω s * H q j ω s) ∂volume := by
+    intro p q
+    have hstep := Finset.sum_congr (s₂ := Finset.range m) rfl
+      fun k (_ : k ∈ Finset.range m) => hQk k p q
+    rw [hstep]
+    exact sum_range_integral_stopped_sub_of_chain σ
+      (fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s)
+      (le_of_eq (h0 ω)) (hmT ω) fun k => hQω p q k
+  have hB : ∀ (p : Fin n) (j : Fin d), (∑ k ∈ Finset.range m,
+        stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+          (fun ω s => Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
+          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
+          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
+          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+      = stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+          (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+          (hmG p j) (hpG p j) (hqG p j) T ω := by
+    intro p j
+    have hstep := Finset.sum_congr (s₂ := Finset.range m) rfl
+      fun k (_ : k ∈ Finset.range m) => congrFun (hBfun k p j) ω
+    rw [hstep]
+    exact hBω p j
+  have htel : f (V (clipTime (σ m) T ω) ω + c m ω) - f (V (clipTime (σ 0) T ω) ω + c 0 ω)
+      = (∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
+            - f (V (clipTime (σ k) T ω) ω + c k ω)))
+        + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
+            - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) :=
+    sum_range_shift_telescope f V c (fun k ω => clipTime (σ k) T ω) m ω
+  rw [clipTime_of_le (hmT ω), clipTime_eq_zero hT.le (h0 ω)] at htel
+  have hsub := Finset.sum_congr (s₂ := Finset.range m) rfl
+    fun k (hk : k ∈ Finset.range m) => hcω k (Finset.mem_range.mp hk)
+  rw [htel, hsub, sum_range_itoTerms hA hB hC]
+
+include hcoord in
+/-- **Itô's formula over `(0, T]` for a jump path split into a piecewise translated path.**
+The increment of the composition with the path itself is the drift, Itô and quadratic
+integrals over the window plus the increments of the composition across the translations. -/
+theorem itoFormula_chain_path
+    {H : Fin n → Fin d → Ω → ℝ → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ}
+    {V X : ℝ → Ω → Fin n → ℝ} {c : ℕ → Ω → Fin n → ℝ}
+    {f : (Fin n → ℝ) → ℝ} {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ}
+    {f'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ}
+    {σ : ℕ → Ω → WithTop ℝ} (hσ : ∀ k, MeasureTheory.IsStoppingTime ℱ' (σ k))
+    (hmono : ∀ (k : ℕ) (ω : Ω), σ k ω ≤ σ (k + 1) ω)
+    (hmG : ∀ (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * H p j ω s))
+    (hpG : ∀ (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+    (hqG : ∀ (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv f' p (X s ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hmD : ∀ p : Fin n, Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s))
+    (hqD : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv f' p (X s ω) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
+      fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s))
+    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤)
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s))
+    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s)
+    (hqV : ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
+    (hmT : ∀ ω, ((T : ℝ) : WithTop ℝ) ≤ σ m ω)
+    (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
+      ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
+    (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
+          - f (V (clipTime (σ k) T ω) ω + c k ω)) =ᵐ[P] fun ω : Ω =>
+        (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            (Probability.stopped (σ (k + 1))
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
+              - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s) ∂volume)
+          + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+              (fun ω s => Probability.stopped (σ (k + 1))
+                  (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+                - Probability.stopped (σ k)
+                    (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
+              (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
+              (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
+              (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+          + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+              (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+                  * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
+                - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
+                    * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume)
+    (hV0 : ∀ ω, V 0 ω + c 0 ω = X 0 ω) (hVT : ∀ ω, V T ω + c m ω = X T ω) :
+    (fun ω : Ω => f (X T ω) - f (X 0 ω)) =ᵐ[P] fun ω : Ω =>
+      ((∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+            coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
+          + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+              (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
+              (hmG p j) (hpG p j) (hqG p j) T ω)
+          + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
+              coordDeriv₂ f'' p q (X s ω) * (∑ j : Fin d, H p j ω s * H q j ω s) ∂volume)
+        + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
+            - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) := by
+  filter_upwards [itoFormula_chain W ℱ' hcoord hσ hmono hmG hpG hqG hmD hqD hmQ hqQ hmV
+    hpV hqV hT h0 hmT hshift hcont] with ω hω
+  rw [hVT ω, hV0 ω] at hω
+  exact hω
+
+end Assembly
+
 end LevyStochCalc.Brownian.Ito

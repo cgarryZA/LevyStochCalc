@@ -290,6 +290,28 @@ literature integral forms.
   * `MathFin.ito_formula_unrestricted` / `ItoFormulaUnrestrictedLocMart.lean` package the same `f(t, B_t)` statement with the local-martingale property; they do not widen the class of `X`.
   * There is no Itô formula in `formal-mathfin` for a multidimensional state, for state-dependent coefficients, or at merely `C²`.
   #16 needs `u(t, X_t)` for `u : ℝ → (Fin n → ℝ) → ℝ` with `ContDiff ℝ 2 (uncurry u)` and `X` a jump-diffusion whose coefficients `μ(s, X_s)`, `σ(s, X_s)`, `γ(s, X_s, e)` depend on the state. Each of the four gaps — multidimensional state, state-dependent coefficients, `C²` rather than `C³`-with-bounded-third-derivative, and jumps — is on its own enough to block the port; the second is what `formal-mathfin` itself names as its frontier. **Conclusion: the continuous half of #16 is a proof, not a port**, and the Epic B sizing note that called it a port was wrong. This repo also has no Brownian counterpart of `Poisson/MathFinBridge.lean`, so even the constant-coefficient statement would need a bridge built first.
+* **Progress (2026-09-10) — where the discharge stands. The axiom is still live; nothing below
+  changes that.** The *continuous* half is complete at the generality #16 needs:
+  `Ito/ItoFormulaUnbounded.lean`'s `itoFormula_of_unbounded` is Itô's formula for a `C²` function
+  of a multidimensional Itô process with adapted coefficients, with **no** bound on the
+  coefficients or on the derivatives (the two obstructions are separated — an `L²` truncation for
+  the coefficients, a cutoff at an exit time for the derivatives — and composed through the
+  hypothesis-based `IsVectorItoVersion.itoFormula_localise`); `Ito/ItoFormulaStoppedLimit.lean`
+  and `Ito/ItoFormulaIncrement.lean` give the stopped form for a general stopping time and the
+  increment between two stopping times; `Ito/ItoFormulaTimeUnbounded.lean` gives the
+  time-augmented form, which is the one #16's `u : ℝ → (Fin n → ℝ) → ℝ` needs. On the *jump*
+  side: `Ito/JumpSplitting.lean` splits a finite-activity jump diffusion as a continuous Itô
+  version plus a pathwise jump sum, `Poisson/JumpTimes.lean` makes the arrival times stopping
+  times, and `Ito/SmallJumpProcess.lean` carries the `ε → 0` limit (Applebaum 4.4.7 step II) on
+  the everywhere-càdlàg modification of `Poisson/CompensatedCadlagMod.lean`, which is what makes
+  the big-jump process jointly measurable and hence gives convergence at almost every time.
+  **What is still missing**, and why the axiom cannot yet be deleted: the Itô formula for a
+  function shifted by an `ℱ_σ`-measurable random vector (the shift is the jump accumulation
+  frozen on each inter-jump interval; the `L²` limit from simple to general shifts currently
+  needs global bounds on the first two derivatives, which #16 does not assume, so a localisation
+  step must remove them again); the telescoped assembly over the arrival times; and the
+  dictionary between #16's integrand vocabulary and the Itô machinery's. These are tracked
+  leaf-by-leaf as B3a-1d, B3a-2, B3a-3 and B4-0 in `../Dissertation/WORK_BREAKDOWN.md`.
 
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 

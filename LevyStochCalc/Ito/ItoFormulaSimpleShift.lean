@@ -33,7 +33,7 @@ universe u
 
 section CellWeight
 
-variable {Ω : Type u} [MeasurableSpace Ω] {α : Type*}
+variable {Ω : Type u} {α : Type*}
 
 /-- The indicator of the event that a stopping time takes the value `a` and a random mark takes
 the value `v`. -/
@@ -42,12 +42,10 @@ noncomputable def cellWeight (σ : Ω → WithTop ℝ) (c : Ω → α) (a : ℝ)
 
 variable (σ : Ω → WithTop ℝ) (c : Ω → α) (a : ℝ) (v : α)
 
-omit [MeasurableSpace Ω] in
 theorem cellWeight_of_mem {ω : Ω} (hω : σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v) :
     cellWeight σ c a v ω = 1 :=
   Set.indicator_of_mem hω fun _ => (1 : ℝ)
 
-omit [MeasurableSpace Ω] in
 theorem cellWeight_of_notMem {ω : Ω} (hω : ¬ (σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v)) :
     cellWeight σ c a v ω = 0 :=
   Set.indicator_of_notMem hω fun _ => (1 : ℝ)
@@ -75,6 +73,13 @@ theorem hitInd_mul_cellWeight (ω : Ω) :
     rw [h1, one_mul]
   · rw [cellWeight_of_notMem σ c a v hω, mul_zero]
 
+end CellWeight
+
+section CellWeightMeasurable
+
+variable {Ω : Type u} [MeasurableSpace Ω] {α : Type*}
+  (σ : Ω → WithTop ℝ) (c : Ω → α) (a : ℝ) (v : α)
+
 theorem measurable_cellWeight {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
     (hset : MeasurableSet[ℱ a] {ω | σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v}) :
     Measurable (cellWeight σ c a v) := by
@@ -87,6 +92,12 @@ theorem stronglyMeasurable_cellWeight {ℱ : Filtration ℝ ‹MeasurableSpace �
   letI : MeasurableSpace Ω := ℱ a
   simp only [cellWeight]
   exact (measurable_const.indicator hset).stronglyMeasurable
+
+end CellWeightMeasurable
+
+section CellWeightSum
+
+variable {Ω : Type u} {α : Type*} (σ : Ω → WithTop ℝ) (c : Ω → α) (a : ℝ) (v : α)
 
 theorem cellWeight_eq_zero_of_notMem_left {J : Finset ℝ}
     (hσJ : ∀ ω, (∃ b ∈ J, σ ω = ((b : ℝ) : WithTop ℝ)) ∨ σ ω = ⊤) (haJ : a ∉ J) (ω : Ω) :
@@ -130,7 +141,7 @@ theorem sum_cellWeight_mul_of_top (J : Finset ℝ) (Vs : Finset α) (F : α → 
     simp at h1
   rw [hz, zero_mul]
 
-end CellWeight
+end CellWeightSum
 
 section Weight
 
@@ -242,5 +253,158 @@ theorem energy_weight_mul_stopped_sub_lt_top
     _ = |Probability.stopped τ K ω s - Probability.stopped σ K ω s| := one_mul _
 
 end WeightEnergy
+
+section CellIntegral
+
+variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
+  {α : Type*}
+  (W : LevyStochCalc.Brownian.BrownianMotion P)
+  (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
+
+include hℱ in
+/-- **The Itô integral of the increment of an integrand read along a simple random mark is the
+sum, over the cells on which the earlier stopping time and the mark are constant, of the cell
+indicator times the Itô integral of the increment of the integrand at the cell's mark.** -/
+theorem stochasticIntegralBrownian_stopped_sub_cells
+    {σ τ : Ω → WithTop ℝ} (hσ : MeasureTheory.IsStoppingTime ℱ σ)
+    (hτ : MeasureTheory.IsStoppingTime ℱ τ) (hστ : ∀ ω, σ ω ≤ τ ω)
+    {c : Ω → α} {Vs : Finset α} (hcVs : ∀ ω, c ω ∈ Vs)
+    {J : Finset ℝ} {T : ℝ} (hJ0 : ∀ a ∈ J, 0 ≤ a) (hJT : ∀ a ∈ J, a < T)
+    (hσJ : ∀ ω, (∃ a ∈ J, σ ω = ((a : ℝ) : WithTop ℝ)) ∨ σ ω = ⊤)
+    (hcell : ∀ a ∈ J, ∀ v ∈ Vs,
+      MeasurableSet[ℱ a] {ω | σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v})
+    (K : α → Ω → ℝ → ℝ) (hmK : ∀ v, Measurable (Function.uncurry (K v)))
+    (hpK : ∀ v, Probability.ProgressivelyMeasurable ℱ (K v))
+    (hqK : ∀ (v : α) (t : ℝ), 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+      (‖K v ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {Kc : Ω → ℝ → ℝ} (hKc : ∀ ω s, Kc ω s = K (c ω) ω s)
+    (hmc : Measurable (Function.uncurry fun ω s =>
+      Probability.stopped τ Kc ω s - Probability.stopped σ Kc ω s))
+    (hpc : Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      Probability.stopped τ Kc ω s - Probability.stopped σ Kc ω s)
+    (hqc : ∀ t, 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+      (‖Probability.stopped τ Kc ω s - Probability.stopped σ Kc ω s‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤)
+    (hT : 0 < T) :
+    ∀ᵐ ω ∂P, stochasticIntegralBrownian W ℱ hℱ
+        (fun ω s => Probability.stopped τ Kc ω s - Probability.stopped σ Kc ω s)
+        hmc hpc hqc T ω
+      = ∑ x ∈ J ×ˢ Vs, cellWeight σ c x.1 x.2 ω * stochasticIntegralBrownian W ℱ hℱ
+          (fun ω s => Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s)
+          (measurable_uncurry_stopped_sub hσ hτ (hmK x.2))
+          (progressivelyMeasurable_stopped_sub hσ hτ (hpK x.2))
+          (energy_stopped_sub_lt_top hσ hτ (hmK x.2) (hqK x.2)) T ω := by
+  classical
+  have hVeq : ∀ x : ℝ × α, (fun ω => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω)
+      = cellWeight σ c x.1 x.2 :=
+    fun x => funext fun ω => hitInd_mul_cellWeight σ c x.1 x.2 ω
+  have hgz : ∀ x : ℝ × α, ¬ (x.1 ∈ J ∧ x.2 ∈ Vs) →
+      (fun (ω : Ω) (s : ℝ) => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s))
+        = fun _ _ => (0 : ℝ) := by
+    intro x hx
+    have hc0 : ∀ ω, cellWeight σ c x.1 x.2 ω = 0 := by
+      by_cases h1 : x.1 ∈ J
+      · exact cellWeight_eq_zero_of_notMem_right σ c x.1 x.2 hcVs fun hv => hx ⟨h1, hv⟩
+      · exact cellWeight_eq_zero_of_notMem_left σ c x.1 x.2 hσJ h1
+    funext ω s
+    rw [hc0 ω, mul_zero, zero_mul]
+  have hgm : ∀ x : ℝ × α, Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
+      hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s)) := by
+    intro x
+    by_cases hx : x.1 ∈ J ∧ x.2 ∈ Vs
+    · have hV : Measurable fun ω => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω := by
+        rw [hVeq x]
+        exact measurable_cellWeight σ c x.1 x.2 (hcell x.1 hx.1 x.2 hx.2)
+      exact measurable_weight_mul_stopped_sub hσ hτ hV (hmK x.2)
+    · rw [hgz x hx]
+      exact measurable_const
+  have hgp : ∀ x : ℝ × α, Probability.ProgressivelyMeasurable ℱ
+      (fun (ω : Ω) (s : ℝ) => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s)) := by
+    intro x
+    by_cases hx : x.1 ∈ J ∧ x.2 ∈ Vs
+    · refine progressivelyMeasurable_weight_mul_stopped_sub hσ hτ hστ (hJ0 x.1 hx.1)
+        (V := fun ω => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω)
+        ⟨1, fun ω => ?_⟩ ?_ ?_ ?_ (hpK x.2)
+      · rw [hitInd_mul_cellWeight]
+        exact abs_cellWeight_le_one σ c x.1 x.2 ω
+      · rw [hVeq x]
+        exact measurable_cellWeight σ c x.1 x.2 (hcell x.1 hx.1 x.2 hx.2)
+      · rw [hVeq x]
+        exact stronglyMeasurable_cellWeight σ c x.1 x.2 (hcell x.1 hx.1 x.2 hx.2)
+      · intro ω hne
+        rw [hitInd_mul_cellWeight] at hne
+        exact le_of_cellWeight_ne_zero σ c x.1 x.2 hne
+    · rw [hgz x hx]
+      exact Probability.progressivelyMeasurable_zero ℱ
+  have hgq : ∀ (x : ℝ × α) (t : ℝ), 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
+      (‖hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω s
+          - Probability.stopped σ (K x.2) ω s)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    intro x
+    refine energy_weight_mul_stopped_sub_lt_top hσ hτ
+      (V := fun ω => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω) (fun ω => ?_)
+      (hmK x.2) (hqK x.2)
+    rw [hitInd_mul_cellWeight]
+    exact abs_cellWeight_le_one σ c x.1 x.2 ω
+  have hst : ∀ (ρ : Ω → WithTop ℝ) (ω : Ω) (s : ℝ),
+      Probability.stopped ρ Kc ω s = Probability.stopped ρ (K (c ω)) ω s := by
+    intro ρ ω s
+    simp only [Probability.stopped, hKc]
+  have hsumEq : (fun (ω : Ω) (s : ℝ) =>
+      Probability.stopped τ Kc ω s - Probability.stopped σ Kc ω s)
+      = fun (ω : Ω) (u : ℝ) => ∑ x ∈ J ×ˢ Vs, hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω u - Probability.stopped σ (K x.2) ω u) := by
+    funext ω u
+    have hrw : ∀ x ∈ J ×ˢ Vs, hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+        * (Probability.stopped τ (K x.2) ω u - Probability.stopped σ (K x.2) ω u)
+        = cellWeight σ c x.1 x.2 ω
+          * (Probability.stopped τ (K x.2) ω u - Probability.stopped σ (K x.2) ω u) :=
+      fun x _ => by rw [hitInd_mul_cellWeight]
+    rw [Finset.sum_congr rfl hrw]
+    rcases hσJ ω with ⟨a₀, ha₀, hσω⟩ | htop
+    · rw [sum_cellWeight_mul σ c J Vs
+        (fun v => Probability.stopped τ (K v) ω u - Probability.stopped σ (K v) ω u)
+        (hcVs ω) ha₀ hσω, hst τ ω u, hst σ ω u]
+    · rw [sum_cellWeight_mul_of_top σ c J Vs
+        (fun v => Probability.stopped τ (K v) ω u - Probability.stopped σ (K v) ω u) htop]
+      have hτω : τ ω = ⊤ := top_le_iff.mp (htop ▸ hστ ω)
+      have h1 : Probability.stopped τ Kc ω u = Kc ω u := by
+        simp [Probability.stopped, hτω]
+      have h2 : Probability.stopped σ Kc ω u = Kc ω u := by
+        simp [Probability.stopped, htop]
+      rw [h1, h2, sub_self]
+  obtain ⟨hms, hps, hqs, hae⟩ := exists_stochasticIntegralBrownian_finsetSum W ℱ hℱ
+    (fun (x : ℝ × α) (ω : Ω) (s : ℝ) => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+      * (Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s))
+    hgm hgp hgq (J ×ˢ Vs) hT
+  have hcongr := stochasticIntegralBrownian_congr_fun W ℱ hℱ hsumEq hmc hpc hqc hms hps hqs T
+  have hcells : ∀ᵐ ω ∂P, ∀ x ∈ J ×ˢ Vs,
+      stochasticIntegralBrownian W ℱ hℱ
+        (fun (ω : Ω) (s : ℝ) => hitInd σ x.1 ω * cellWeight σ c x.1 x.2 ω
+          * (Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s))
+        (hgm x) (hgp x) (hgq x) T ω
+      = cellWeight σ c x.1 x.2 ω * stochasticIntegralBrownian W ℱ hℱ
+          (fun ω s => Probability.stopped τ (K x.2) ω s - Probability.stopped σ (K x.2) ω s)
+          (measurable_uncurry_stopped_sub hσ hτ (hmK x.2))
+          (progressivelyMeasurable_stopped_sub hσ hτ (hpK x.2))
+          (energy_stopped_sub_lt_top hσ hτ (hmK x.2) (hqK x.2)) T ω := by
+    rw [Filter.eventually_all_finset]
+    intro x hx
+    obtain ⟨haJ, hvVs⟩ := Finset.mem_product.mp hx
+    have hpull := mul_stochasticIntegralBrownian_hitInd_stopped_sub W ℱ hℱ hσ hτ hστ
+      (hJ0 x.1 haJ) (hJT x.1 haJ) ⟨1, abs_cellWeight_le_one σ c x.1 x.2⟩
+      (measurable_cellWeight σ c x.1 x.2 (hcell x.1 haJ x.2 hvVs))
+      (stronglyMeasurable_cellWeight σ c x.1 x.2 (hcell x.1 haJ x.2 hvVs))
+      (hmK x.2) (hpK x.2) (hqK x.2) (hgm x) (hgp x) (hgq x)
+    filter_upwards [hpull] with ω hω
+    rw [← hω, hitInd_mul_cellWeight]
+  filter_upwards [hae, hcells] with ω h1 h2
+  refine (congrFun hcongr ω).trans (h1.trans ?_)
+  exact Finset.sum_congr rfl h2
+
+end CellIntegral
 
 end LevyStochCalc.Brownian.Ito
