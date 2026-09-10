@@ -2665,6 +2665,24 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.cutJumpIntegral_eq_smallJumpIntegral
 #print axioms LevyStochCalc.Ito.BigJump.bigJumpPath_eq_bigJumpProcess
 #print axioms LevyStochCalc.Ito.BigJump.bigJumpPath_smallMarks_eq_bigJumpProcess
+-- M16 wave 1, Taylor dominants (A6) and marked-predictable closure (C9a)
+#print axioms LevyStochCalc.Ito.JumpFormula.contDiff_state_section
+#print axioms LevyStochCalc.Ito.JumpFormula.hasFDerivAt_state_section
+#print axioms LevyStochCalc.Ito.JumpFormula.hasFDerivAt_fderiv_state_section
+#print axioms LevyStochCalc.Ito.JumpFormula.fderiv_apply_eq_sum_gradient
+#print axioms LevyStochCalc.Ito.JumpFormula.hessian_eq_fderiv_fderiv
+#print axioms LevyStochCalc.Ito.JumpFormula.norm_fderiv_le_of_gradient_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_sub_le_of_gradient_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_sub_le_of_norm_gradient_le
+#print axioms LevyStochCalc.Ito.JumpFormula.norm_fderiv_fderiv_le_of_hessian_le
+#print axioms LevyStochCalc.Ito.JumpFormula.norm_fderiv_sub_le_of_hessian_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_sub_sub_le_of_hessian_le
+#print axioms LevyStochCalc.Probability.measurableSet_markedPredictableSigma_time_pos
+#print axioms LevyStochCalc.Probability.measurable_markedPredictableSigma_ite_pos
+#print axioms LevyStochCalc.Probability.measurable_markedPredictableSigma_time_pos
+#print axioms LevyStochCalc.Probability.MarkedPredictable.comp_measurable
+#print axioms LevyStochCalc.Probability.MarkedPredictable.comp_measurable_of_predictable
+#print axioms LevyStochCalc.Probability.MarkedPredictable.comp_continuous
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
