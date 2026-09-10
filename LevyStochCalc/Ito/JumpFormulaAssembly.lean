@@ -166,14 +166,14 @@ theorem stochasticIntegralBrownian_sum_range_stopped_sub_of_chain
     (hpK : Probability.ProgressivelyMeasurable ℱ K)
     (hqK : ∀ t, 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
       (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    {m : ℕ} {T : ℝ} (h0 : ∀ ω, σ 0 ω ≤ ((0 : ℝ) : WithTop ℝ))
-    (hm : ∀ ω, ((T : ℝ) : WithTop ℝ) ≤ σ m ω) (hT : 0 < T) :
-    (fun ω => ∑ k ∈ Finset.range m, stochasticIntegralBrownian W ℱ hℱ
+    {m : ℕ} {T : ℝ} (h0 : ∀ ω, σ 0 ω ≤ ((0 : ℝ) : WithTop ℝ)) (hT : 0 < T) :
+    ∀ᵐ ω ∂P, ((T : ℝ) : WithTop ℝ) ≤ σ m ω →
+      (∑ k ∈ Finset.range m, stochasticIntegralBrownian W ℱ hℱ
         (fun ω s => Probability.stopped (σ (k + 1)) K ω s - Probability.stopped (σ k) K ω s)
         (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) hmK)
         (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) hpK)
         (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) hmK hqK) T ω)
-      =ᵐ[P] stochasticIntegralBrownian W ℱ hℱ K hmK hpK hqK T := by
+      = stochasticIntegralBrownian W ℱ hℱ K hmK hpK hqK T ω := by
   classical
   obtain ⟨hms, hps, hqs, hae⟩ := exists_stochasticIntegralBrownian_finsetSum W ℱ hℱ
     (fun k ω s => Probability.stopped (σ (k + 1)) K ω s - Probability.stopped (σ k) K ω s)
@@ -189,8 +189,8 @@ theorem stochasticIntegralBrownian_sum_range_stopped_sub_of_chain
     simp [Probability.stopped, hsm]
   have hcongr := stochasticIntegralBrownian_congr_of_le (σ m) W ℱ hℱ (hσ m)
     hms hps hqs hmK hpK hqK hagree hT
-  filter_upwards [hae, hcongr] with ω h1 h2
-  exact h1.symm.trans (h2 (hm ω))
+  filter_upwards [hae, hcongr] with ω h1 h2 hmω
+  exact h1.symm.trans (h2 hmω)
 
 end ItoCollapse
 
@@ -281,7 +281,6 @@ theorem itoFormula_chain
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
-    (hmT : ∀ ω, ((T : ℝ) : WithTop ℝ) ≤ σ m ω)
     (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
@@ -304,7 +303,8 @@ theorem itoFormula_chain
                   * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
                 - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
                     * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume) :
-    (fun ω : Ω => f (V T ω + c m ω) - f (V 0 ω + c 0 ω)) =ᵐ[P] fun ω : Ω =>
+    ∀ᵐ ω ∂P, ((T : ℝ) : WithTop ℝ) ≤ σ m ω →
+      f (V T ω + c m ω) - f (V 0 ω + c 0 ω) =
       ((∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
             coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
           + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
@@ -354,7 +354,7 @@ theorem itoFormula_chain
     rw [MeasureTheory.ae_all_iff]
     intro k
     exact ae_integrableOn_stopped_Ioc (hσ k) (hmQ p q) (hqQ p q) hT
-  have hBcol : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d),
+  have hBcol : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d), ((T : ℝ) : WithTop ℝ) ≤ σ m ω →
       (∑ k ∈ Finset.range m, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => Probability.stopped (σ (k + 1))
               (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s
@@ -371,9 +371,9 @@ theorem itoFormula_chain
     rw [MeasureTheory.ae_all_iff]
     intro j
     exact stochasticIntegralBrownian_sum_range_stopped_sub_of_chain (W.W j) ℱ' (hcoord j)
-      σ hσ (hmG p j) (hpG p j) (hqG p j) (fun ω => le_of_eq (h0 ω)) hmT hT
+      σ hσ (hmG p j) (hpG p j) (hqG p j) (fun ω => le_of_eq (h0 ω)) hT
   have hcontAll := ae_forall_lt hcont
-  filter_upwards [hcontAll, hBcol, hDint, hQint] with ω hcω hBω hDω hQω
+  filter_upwards [hcontAll, hBcol, hDint, hQint] with ω hcω hBω hDω hQω hmTω
   have hAk : ∀ (k : ℕ) (p : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1))
             (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
@@ -411,7 +411,7 @@ theorem itoFormula_chain
     rw [hstep]
     exact sum_range_integral_stopped_sub_of_chain σ
       (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s)
-      (le_of_eq (h0 ω)) (hmT ω) fun k => hDω p k
+      (le_of_eq (h0 ω)) hmTω fun k => hDω p k
   have hC : ∀ p q : Fin n, (∑ k ∈ Finset.range m, ∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
             * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
@@ -425,7 +425,7 @@ theorem itoFormula_chain
     rw [hstep]
     exact sum_range_integral_stopped_sub_of_chain σ
       (fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s)
-      (le_of_eq (h0 ω)) (hmT ω) fun k => hQω p q k
+      (le_of_eq (h0 ω)) hmTω fun k => hQω p q k
   have hB : ∀ (p : Fin n) (j : Fin d), (∑ k ∈ Finset.range m,
         stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => Probability.stopped (σ (k + 1))
@@ -442,14 +442,14 @@ theorem itoFormula_chain
     have hstep := Finset.sum_congr (s₂ := Finset.range m) rfl
       fun k (_ : k ∈ Finset.range m) => congrFun (hBfun k p j) ω
     rw [hstep]
-    exact hBω p j
+    exact hBω p j hmTω
   have htel : f (V (clipTime (σ m) T ω) ω + c m ω) - f (V (clipTime (σ 0) T ω) ω + c 0 ω)
       = (∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
             - f (V (clipTime (σ k) T ω) ω + c k ω)))
         + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
             - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) :=
     sum_range_shift_telescope f V c (fun k ω => clipTime (σ k) T ω) m ω
-  rw [clipTime_of_le (hmT ω), clipTime_eq_zero hT.le (h0 ω)] at htel
+  rw [clipTime_of_le hmTω, clipTime_eq_zero hT.le (h0 ω)] at htel
   have hsub := Finset.sum_congr (s₂ := Finset.range m) rfl
     fun k (hk : k ∈ Finset.range m) => hcω k (Finset.mem_range.mp hk)
   rw [htel, hsub, sum_range_itoTerms hA hB hC]
@@ -488,7 +488,6 @@ theorem itoFormula_chain_path
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
-    (hmT : ∀ ω, ((T : ℝ) : WithTop ℝ) ≤ σ m ω)
     (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
@@ -512,7 +511,8 @@ theorem itoFormula_chain_path
                 - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
                     * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume)
     (hV0 : ∀ ω, V 0 ω + c 0 ω = X 0 ω) (hVT : ∀ ω, V T ω + c m ω = X T ω) :
-    (fun ω : Ω => f (X T ω) - f (X 0 ω)) =ᵐ[P] fun ω : Ω =>
+    ∀ᵐ ω ∂P, ((T : ℝ) : WithTop ℝ) ≤ σ m ω →
+      f (X T ω) - f (X 0 ω) =
       ((∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
             coordDeriv f' p (X s ω) * bdrift p ω s ∂volume)
           + (∑ p : Fin n, ∑ j : Fin d, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
@@ -523,9 +523,9 @@ theorem itoFormula_chain_path
         + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
             - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) := by
   filter_upwards [itoFormula_chain W ℱ' hcoord hσ hmono hmG hpG hqG hmD hqD hmQ hqQ hmV
-    hpV hqV hT h0 hmT hshift hcont] with ω hω
+    hpV hqV hT h0 hshift hcont] with ω hω hmTω
   rw [hVT ω, hV0 ω] at hω
-  exact hω
+  exact hω hmTω
 
 end Assembly
 

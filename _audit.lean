@@ -2218,3 +2218,35 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.exists_strictMono_enum_of_fst_inj
 #print axioms LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum
 #print axioms LevyStochCalc.Poisson.ae_exists_atomEnum_sum_eq_stochasticIntegral_add
+
+-- ===== Itô's formula for a general random shift (B3a-1d step iii-b, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_sq_stopped_sub_diff_le
+#print axioms LevyStochCalc.Brownian.Ito.ae_integrableOn_Ioc_of_energy
+#print axioms LevyStochCalc.Brownian.Ito.ae_integrableOn_Ioc_sum_mul
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_generalShift
+#print axioms LevyStochCalc.Brownian.Ito.dyadicShift
+#print axioms LevyStochCalc.Brownian.Ito.dyadicShift_sub_eq
+#print axioms LevyStochCalc.Brownian.Ito.measurable_dyadicShift
+#print axioms LevyStochCalc.Brownian.Ito.abs_dyadicShift_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.floor_mul_mem_Icc
+#print axioms LevyStochCalc.Brownian.Ito.exists_simpleShift_approx
+
+-- ===== Drift reconciliation for the finite-activity formula (B4-1, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_firstOrder_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_compensatorDriftIntegrand_eq_sub
+#print axioms LevyStochCalc.Ito.JumpFormula.compensatorDriftIntegrand_eq_zero_of_notMem
+#print axioms LevyStochCalc.Ito.JumpFormula.integral_compensatorDriftIntegrand_eq_setIntegral
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_compensatorDrift_eq_sub
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_firstOrder_add_compensatorDrift
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_succ_succ_of_row_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.splitDriftIntegrand_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_succ_succ_coordDeriv₂_of_row_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.splitDrift_pointwise
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_splitDrift_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpTerm_eq_zero_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.eq_add_cappedJumpSum_of_le
