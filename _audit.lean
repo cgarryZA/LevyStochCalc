@@ -2730,6 +2730,31 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_gridStop_simple
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_gridStopTrunc_simple
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridShift_of_simpleShift
+-- M16 wave 1, measurability of the capped jump sum at its arrival time (C6b)
+#print axioms LevyStochCalc.Poisson.windowKernel
+#print axioms LevyStochCalc.Poisson.windowKernel_apply
+#print axioms LevyStochCalc.Poisson.windowKernel_apply_of_ne_top
+#print axioms LevyStochCalc.Poisson.windowKernelSlice
+#print axioms LevyStochCalc.Poisson.windowKernelSlice_apply
+#print axioms LevyStochCalc.Poisson.isFiniteKernel_windowKernelSlice
+#print axioms LevyStochCalc.Poisson.windowKernel_eq_sum
+#print axioms LevyStochCalc.Poisson.isSFiniteKernel_windowKernel
+#print axioms LevyStochCalc.Poisson.measurable_integral_windowKernel
+#print axioms LevyStochCalc.Poisson.measurable_integral_windowKernel_indicator
+#print axioms LevyStochCalc.Ito.JumpFormula.clipTime_eq_untopA_min
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_clipTime_jumpTime
+#print axioms LevyStochCalc.Ito.JumpFormula.isStoppingTime_cappedJumpTime_of_forall_ne_top
+#print axioms LevyStochCalc.Ito.JumpFormula.leftLimJumpCoeff
+#print axioms LevyStochCalc.Ito.JumpFormula.leftLimJumpCoeff_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_leftLimJumpCoeff
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_count_inter_window
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_count_inter_window'
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_leftLimPath_eq_integral_windowKernel
+#print axioms LevyStochCalc.Ito.JumpFormula.isStronglyProgressive_jumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_jumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_cappedJumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_cappedJumpSumAt_leftLimPath_of_isStoppingTime
+#print axioms LevyStochCalc.Ito.JumpFormula.aemeasurable_cappedJumpSumAt_leftLimPath
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
