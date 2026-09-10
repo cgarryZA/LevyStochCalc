@@ -2386,3 +2386,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_vectorItoProcess_continuousDriftLeft_eq
 #print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft
+
+-- ===== Change of filtration for the stochastic integrals (A9, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_filtration
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_augFiltration
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_mono
+#print axioms LevyStochCalc.Poisson.Compensated.MarkStep.Adapted.mono_filtration
+#print axioms LevyStochCalc.Poisson.Compensated.process_congr_filtration
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_filtration
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_augFiltration
