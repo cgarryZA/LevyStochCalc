@@ -54,9 +54,12 @@ separately only under an integrability hypothesis on the jump coefficient itself
 * `LevyStochCalc.Ito.JumpFormula.itoLevy_of_tendsto`,
   `LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto` — the two sides of an identity of
   real sequences have equal limits, pointwise and almost surely.
-* `LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_integrals` — the Itô–Lévy identity
-  along the limit path, from the identities along the truncated paths and the convergence of the
-  five terms.
+* `LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_terms` — the Itô–Lévy identity along
+  the limit path, from the identities along the truncated paths with the drift and
+  compensator-drift terms given as arbitrary sequences, and the convergence of the five terms.
+* `LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_integrals` — the same with the drift
+  and compensator-drift terms given as the integrals along the truncated paths, the latter over
+  the complements of the truncated mark sets.
 
 ## References
 
@@ -410,6 +413,35 @@ theorem ae_itoLevy_of_ae_tendsto {Lhs Drift Bro Cmp CDrift : ℕ → Ω → ℝ}
     with ω h1 h2 h3 h4 h5 h6
   exact itoLevy_of_tendsto h1 h2 h3 h4 h5 h6
 
+/-- **The Itô–Lévy identity along the limit path, from convergent terms.** From the identity
+along each truncated path, with the drift and compensator-drift terms given as arbitrary
+sequences, and the convergence of the increment of the state function, of the drift term to the
+drift integral along the limit path, of the diffusion and compensated jump terms, and of the
+compensator-drift term to the compensator-drift integral along the limit path over the whole mark
+space, the identity holds along the limit path. -/
+theorem ae_itoLevy_of_ae_tendsto_terms {E : Type v} [MeasurableSpace E] {ν : Measure E}
+    {n d : ℕ} (coeffs : JumpDiffusionCoeffs n d E) (u : ℝ → (Fin n → ℝ) → ℝ) (T : ℝ)
+    (xs : ℕ → ℝ → Ω → (Fin n → ℝ)) (x : ℝ → Ω → (Fin n → ℝ))
+    (Dr : ℕ → Ω → ℝ) (Bro : ℕ → Ω → ℝ) (B : Ω → ℝ) (Cmp : ℕ → Ω → ℝ) (C : Ω → ℝ)
+    (Cd : ℕ → Ω → ℝ)
+    (hstep : ∀ m, ∀ᵐ ω ∂P,
+      u T (xs m T ω) - u 0 (xs m 0 ω) - Dr m ω - Bro m ω = Cmp m ω + Cd m ω)
+    (hend : ∀ᵐ ω ∂P, Tendsto (fun m => u T (xs m T ω) - u 0 (xs m 0 ω)) atTop
+      (𝓝 (u T (x T ω) - u 0 (x 0 ω))))
+    (hdrift : ∀ᵐ ω ∂P, Tendsto (fun m => Dr m ω) atTop
+      (𝓝 (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (x s ω))))
+    (hbro : ∀ᵐ ω ∂P, Tendsto (fun m => Bro m ω) atTop (𝓝 (B ω)))
+    (hcmp : ∀ᵐ ω ∂P, Tendsto (fun m => Cmp m ω) atTop (𝓝 (C ω)))
+    (hcdrift : ∀ᵐ ω ∂P, Tendsto (fun m => Cd m ω) atTop
+      (𝓝 (∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+        compensatorDriftIntegrand u coeffs.γ s (x s ω) e ∂ν))) :
+    ∀ᵐ ω ∂P,
+      u T (x T ω) - u 0 (x 0 ω)
+          - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (x s ω)) - B ω
+        = C ω + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+            compensatorDriftIntegrand u coeffs.γ s (x s ω) e ∂ν :=
+  ae_itoLevy_of_ae_tendsto hstep hend hdrift hbro hcmp hcdrift
+
 /-- **The Itô–Lévy identity along the limit path.** From the identity along each truncated path,
 with the compensator-drift integral taken over the complement of the truncated mark set, and the
 convergence of the increment of the state function, of the drift integral, of the diffusion and
@@ -440,7 +472,11 @@ theorem ae_itoLevy_of_ae_tendsto_integrals {E : Type v} [MeasurableSpace E] {ν 
           - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (x s ω)) - B ω
         = C ω + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (x s ω) e ∂ν :=
-  ae_itoLevy_of_ae_tendsto hstep hend hdrift hbro hcmp hcdrift
+  ae_itoLevy_of_ae_tendsto_terms coeffs u T xs x
+    (fun m ω => ∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (xs m s ω)) Bro B Cmp C
+    (fun m ω => ∫ s in Set.Icc (0 : ℝ) T, ∫ e in (A m)ᶜ,
+      compensatorDriftIntegrand u coeffs.γ s (xs m s ω) e ∂ν)
+    hstep hend hdrift hbro hcmp hcdrift
 
 end Assembly
 

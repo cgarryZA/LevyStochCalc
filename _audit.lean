@@ -2651,5 +2651,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff
 #print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff_all
 
+-- ===== M16, wave 1 (2026-09-10): interface, mixed vocabulary, truncation bridge =====
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_terms
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedDriftIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedDiffusionIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedJumpIncrement
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedCompensatorDriftIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedDriftIntegrand_self
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedDiffusionIntegrand_self
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedJumpIncrement_self
+#print axioms LevyStochCalc.Ito.JumpFormula.mixedCompensatorDriftIntegrand_self
+#print axioms LevyStochCalc.Ito.BigJump.SdeData.toJumpIntegrand_ℱ
+#print axioms LevyStochCalc.Ito.BigJump.cutJumpIntegral_eq_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.BigJump.bigJumpPath_eq_bigJumpProcess
+#print axioms LevyStochCalc.Ito.BigJump.bigJumpPath_smallMarks_eq_bigJumpProcess
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

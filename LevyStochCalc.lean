@@ -294,6 +294,8 @@ import LevyStochCalc.Ito.CadlagExitTime
 import LevyStochCalc.Ito.JumpFormulaAssembled
 import LevyStochCalc.Ito.JumpCoefficientPredictable
 import LevyStochCalc.Ito.JumpFormulaClosure
+import LevyStochCalc.Ito.JumpFormulaMixed
+import LevyStochCalc.Ito.BigJumpPathBridge
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition
