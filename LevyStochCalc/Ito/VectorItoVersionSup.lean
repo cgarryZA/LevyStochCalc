@@ -372,6 +372,51 @@ theorem lintegral_iSup_sq_norm_version_sub_le
               (‖H₂ p k ω s - H₁ p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)) := by
         rw [mul_add]
 
+omit [IsProbabilityMeasure P] in
+/-- The energy of a difference is controlled by the energies of the two differences with a common
+third integrand. -/
+theorem lintegral_energy_sub_le {f g h : Ω → ℝ → ℝ}
+    (hf : Measurable (Function.uncurry f)) (hg : Measurable (Function.uncurry g))
+    (hh : Measurable (Function.uncurry h)) (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f ω s - g ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) := by
+  have hptw : ∀ (ω : Ω) (s : ℝ), (‖f ω s - g ω s‖₊ : ℝ≥0∞) ^ 2
+      ≤ 2 * ((‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 + (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2) := by
+    intro ω s
+    have hb := sq_nnnorm_sub_le_two_mul (f ω s - h ω s) (g ω s - h ω s)
+    simpa [sub_sub_sub_cancel_right] using hb
+  have hmfh : Measurable fun ω : Ω => ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume := measurable_energyDensity (hf.sub hh) T
+  have hmgh : Measurable fun ω : Ω => ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume := measurable_energyDensity (hg.sub hh) T
+  calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f ω s - g ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+          2 * ((‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2
+            + (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2) ∂volume ∂P :=
+        MeasureTheory.lintegral_mono fun ω => MeasureTheory.lintegral_mono fun s => hptw ω s
+    _ = 2 * ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+          + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P) := by
+        have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+            2 * ((‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2
+              + (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2) ∂volume
+            = 2 * ((∫⁻ s in Set.Icc (0 : ℝ) T, (‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+              + ∫⁻ s in Set.Icc (0 : ℝ) T, (‖g ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume) := by
+          intro ω
+          have hfhm : Measurable fun s : ℝ => (‖f ω s - h ω s‖₊ : ℝ≥0∞) ^ 2 := by
+            have h1 : Measurable fun s : ℝ => f ω s - h ω s :=
+              (Measurable.of_uncurry_left hf).sub (Measurable.of_uncurry_left hh)
+            exact ((h1.nnnorm).coe_nnreal_ennreal).pow_const 2
+          rw [MeasureTheory.lintegral_const_mul' _ _ (by finiteness),
+            MeasureTheory.lintegral_add_left hfhm]
+        simp only [hinner]
+        rw [MeasureTheory.lintegral_const_mul' _ _ (by finiteness),
+          MeasureTheory.lintegral_add_left hmfh]
+
 end SupBound
 
 end LevyStochCalc.Brownian.Ito

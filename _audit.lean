@@ -1962,3 +1962,5 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.martingale_finsetSum
 #print axioms LevyStochCalc.Brownian.Ito.martingale_vectorItoMartingale
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_iSup_sq_norm_version_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_sub_le
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_iSup_sq_norm_clamp_version_sub_le
