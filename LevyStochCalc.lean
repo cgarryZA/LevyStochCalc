@@ -65,6 +65,7 @@ import LevyStochCalc.Poisson.Compensator
 import LevyStochCalc.Poisson.CompensatorL1
 import LevyStochCalc.Poisson.JumpSum
 import LevyStochCalc.Poisson.JumpTimes
+import LevyStochCalc.Poisson.JumpTimesEnum
 import LevyStochCalc.Poisson.CompensatedCadlagMod
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
@@ -265,6 +266,7 @@ import LevyStochCalc.Ito.ItoFormulaStoppedLimit
 import LevyStochCalc.Ito.ItoFormulaShift
 import LevyStochCalc.Ito.ItoFormulaIncrement
 import LevyStochCalc.Ito.ItoFormulaRandomShift
+import LevyStochCalc.Ito.JumpFormulaAssembly
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

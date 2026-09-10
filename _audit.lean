@@ -2105,3 +2105,41 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_ae_tendsto_bigJumpProcess_pi
 #print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_drift_bigJumpProcess
 #print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_quadVar_bigJumpProcess
+
+-- ===== Telescoped assembly along a chain of stopping times (B3a-2, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_shift_telescope
+#print axioms LevyStochCalc.Brownian.Ito.clipTime_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.clipTime_eq_zero_of_le_zero
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_congr
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_shift_apply
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_shift_funext
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_integral_stopped_sub_of_chain
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_sum_range_stopped_sub_of_chain
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_itoTerms
+#print axioms LevyStochCalc.Brownian.Ito.ae_forall_lt
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_chain
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_chain_path
+
+-- ===== Arrival times and the atom representation (B3a-1e, 2026-09-10) =====
+#print axioms LevyStochCalc.Poisson.arrivalCount_eq_add_count_singleton
+#print axioms LevyStochCalc.Poisson.arrivalCount_add_count_singleton_le
+#print axioms LevyStochCalc.Poisson.count_Ioo_le_of_forall_lt
+#print axioms LevyStochCalc.Poisson.exists_nat_arrivalCount
+#print axioms LevyStochCalc.Poisson.exists_nat_count_singleton
+#print axioms LevyStochCalc.Poisson.arrivalCount_ne_top_of_isIntegerValued
+#print axioms LevyStochCalc.Poisson.coe_zero_lt_jumpTime
+#print axioms LevyStochCalc.Poisson.arrivalCount_le_of_jumpTime_eq
+#print axioms LevyStochCalc.Poisson.count_Ioo_le_of_jumpTime_eq
+#print axioms LevyStochCalc.Poisson.setOf_jumpTime_eq_setOf_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.jumpTime_lt_jumpTime_succ
+#print axioms LevyStochCalc.Poisson.exists_coe_le_jumpTime
+#print axioms LevyStochCalc.Poisson.jumpTime_chain_of_ne_top
+#print axioms LevyStochCalc.Poisson.finite_setOf_arrivalTime
+#print axioms LevyStochCalc.Poisson.exists_strictMono_enum_arrivalTime
+#print axioms LevyStochCalc.Poisson.exists_mem_of_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.mem_jumpTimes_of_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.count_singleton_ne_zero_of_restrict_ne_zero
+#print axioms LevyStochCalc.Poisson.ae_setOf_jumpTime_eq_setOf_count_singleton_ne_zero
+#print axioms LevyStochCalc.Poisson.ae_jumpTime_lt_jumpTime_succ
+#print axioms LevyStochCalc.Poisson.ae_jumpTime_chain
+#print axioms LevyStochCalc.Poisson.ae_exists_finset_jumpTimes_eq

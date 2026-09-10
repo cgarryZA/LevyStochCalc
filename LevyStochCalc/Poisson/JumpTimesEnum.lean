@@ -322,15 +322,15 @@ section AtomFinset
 
 variable (N : PoissonRandomMeasure.{u, v, w} P ν) (A : Set E)
 
-/-- A time of the window carrying mass in the mark set is one of the times of an atom finset of
-the restricted measure. -/
-theorem mem_jumpTimes_of_count_singleton_ne_zero (hA : MeasurableSet A) {T : ℝ} {ω : Ω}
+/-- A time of the window carrying mass in the mark set is the time of a point of positive mass in
+any atom finset of the restricted measure. -/
+theorem exists_mem_of_count_singleton_ne_zero (hA : MeasurableSet A) {T : ℝ} {ω : Ω}
     {s : Finset (ℝ × E)}
     (hs : ∀ g : ℝ × E → ℝ≥0∞,
       ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω)
         = ∑ p ∈ s, ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} * g p)
     {u : ℝ} (hu0 : 0 < u) (huT : u ≤ T) (hne : N.N ω (({u} : Set ℝ) ×ˢ A) ≠ 0) :
-    u ∈ jumpTimes s := by
+    ∃ p ∈ s, ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} ≠ 0 ∧ p.1 = u := by
   classical
   have hmeas : MeasurableSet ((({u} : Set ℝ) ×ˢ A : Set (ℝ × E))) :=
     (measurableSet_singleton u).prod hA
@@ -347,9 +347,46 @@ theorem mem_jumpTimes_of_count_singleton_ne_zero (hA : MeasurableSet A) {T : ℝ
   have hpmem : p ∈ ((({u} : Set ℝ) ×ˢ A) : Set (ℝ × E)) := by
     by_contra hc
     exact hp0 (by rw [Set.indicator_of_notMem hc, mul_zero])
-  exact Finset.mem_image.mpr ⟨p, hps, (Set.mem_prod.mp hpmem).1⟩
+  refine ⟨p, hps, fun hzero => hp0 ?_, (Set.mem_prod.mp hpmem).1⟩
+  rw [hzero, zero_mul]
+
+/-- A time of the window carrying mass in the mark set is one of the times of an atom finset of
+the restricted measure. -/
+theorem mem_jumpTimes_of_count_singleton_ne_zero (hA : MeasurableSet A) {T : ℝ} {ω : Ω}
+    {s : Finset (ℝ × E)}
+    (hs : ∀ g : ℝ × E → ℝ≥0∞,
+      ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω)
+        = ∑ p ∈ s, ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} * g p)
+    {u : ℝ} (hu0 : 0 < u) (huT : u ≤ T) (hne : N.N ω (({u} : Set ℝ) ×ˢ A) ≠ 0) :
+    u ∈ jumpTimes s := by
+  obtain ⟨p, hps, -, hpu⟩ := exists_mem_of_count_singleton_ne_zero N A hA hs hu0 huT hne
+  exact Finset.mem_image.mpr ⟨p, hps, hpu⟩
 
 end AtomFinset
+
+section AtomPoint
+
+variable [MeasurableSingletonClass E]
+variable (N : PoissonRandomMeasure.{u, v, w} P ν) (A : Set E)
+
+/-- A time–mark point of positive mass for the measure restricted to the window sits in the
+window, and its time carries mass in the mark set. -/
+theorem count_singleton_ne_zero_of_restrict_ne_zero {T : ℝ} {ω : Ω} {p : ℝ × E}
+    (hp : ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} ≠ 0) :
+    (0 < p.1 ∧ p.1 ≤ T) ∧ N.N ω (({p.1} : Set ℝ) ×ˢ A) ≠ 0 := by
+  have hpR : p ∈ Set.Ioc (0 : ℝ) T ×ˢ A := by
+    by_contra hc
+    exact hp (by rw [Measure.restrict_apply (measurableSet_singleton p),
+      Set.singleton_inter_eq_empty.mpr hc, measure_empty])
+  have hsub : ({p} : Set (ℝ × E)) ⊆ (({p.1} : Set ℝ) ×ˢ A) :=
+    Set.singleton_subset_iff.mpr ⟨rfl, (Set.mem_prod.mp hpR).2⟩
+  refine ⟨Set.mem_Ioc.mp (Set.mem_prod.mp hpR).1, fun hzero => hp (le_antisymm ?_ zero_le)⟩
+  calc ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p}
+      ≤ N.N ω ({p} : Set (ℝ × E)) := Measure.restrict_apply_le _ _
+    _ ≤ N.N ω ((({p.1} : Set ℝ) ×ˢ A)) := measure_mono hsub
+    _ = 0 := hzero
+
+end AtomPoint
 
 section AlmostEverywhere
 
@@ -393,34 +430,42 @@ theorem ae_jumpTime_chain (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ)
 
 variable [MeasurableSingletonClass E]
 
-/-- Almost surely the arrival times in `(0, T]` lie among the times of an atom finset of the
-restricted measure. -/
-theorem ae_exists_finset_setOf_jumpTime_subset (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ) :
+/-- **The arrival times enumerate the atoms of the window.** Almost surely the window carries a
+finite set of time–mark points computing every integral over it whose times are exactly the
+arrival times in `(0, T]`. -/
+theorem ae_exists_finset_jumpTimes_eq (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ) :
     ∀ᵐ ω ∂P, ∃ s : Finset (ℝ × E),
-      {u : ℝ | ∃ i : ℕ, jumpTime N A i ω = (u : WithTop ℝ) ∧ 0 < u ∧ u ≤ T}
-        ⊆ (jumpTimes s : Set ℝ) := by
+      (∀ g : ℝ × E → ℝ≥0∞,
+        ∫⁻ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω)
+          = ∑ p ∈ s, ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} * g p) ∧
+        (jumpTimes s : Set ℝ)
+          = {u : ℝ | ∃ i : ℕ, jumpTime N A i ω = (u : WithTop ℝ) ∧ 0 < u ∧ u ≤ T} := by
+  classical
   filter_upwards [ae_exists_finset_integral_eq_sum_Ioc N hA hAν T,
     ae_isIntegerValued_restrict N (measurableSet_Ioc.prod hA)
       (referenceIntensity_Ioc_prod_ne_top hAν (T + 1))] with ω hω hint
   obtain ⟨s, hs, -, -⟩ := hω
-  refine ⟨s, fun x hx => ?_⟩
-  rw [setOf_jumpTime_eq_setOf_count_singleton_ne_zero N A hA hint] at hx
-  obtain ⟨⟨hx0, hxT⟩, hne⟩ := hx
-  exact Finset.mem_coe.mpr (mem_jumpTimes_of_count_singleton_ne_zero N A hA hs hx0 hxT hne)
+  refine ⟨s.filter fun p => ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {p} ≠ 0,
+    fun g => ?_, ?_⟩
+  · rw [hs g]
+    refine (Finset.sum_filter_of_ne
+      (p := fun q => ((N.N ω).restrict (Set.Ioc (0 : ℝ) T ×ˢ A)) {q} ≠ 0) ?_).symm
+    intro x _ hx hzero
+    exact hx (by rw [hzero, zero_mul])
+  · rw [setOf_jumpTime_eq_setOf_count_singleton_ne_zero N A hA hint]
+    ext x
+    constructor
+    · intro hx
+      obtain ⟨p, hps, hpx⟩ := Finset.mem_image.mp (Finset.mem_coe.mp hx)
+      rw [← hpx]
+      exact count_singleton_ne_zero_of_restrict_ne_zero N A (Finset.mem_filter.mp hps).2
+    · rintro ⟨⟨hx0, hxT⟩, hne⟩
+      obtain ⟨p, hps, hpm, hpx⟩ :=
+        exists_mem_of_count_singleton_ne_zero N A hA hs hx0 hxT hne
+      exact Finset.mem_coe.mpr
+        (Finset.mem_image.mpr ⟨p, Finset.mem_filter.mpr ⟨hps, hpm⟩, hpx⟩)
 
 end AlmostEverywhere
 
 end LevyStochCalc.Poisson
 
-section TempAudit
-#print axioms LevyStochCalc.Poisson.setOf_jumpTime_eq_setOf_count_singleton_ne_zero
-#print axioms LevyStochCalc.Poisson.coe_zero_lt_jumpTime
-#print axioms LevyStochCalc.Poisson.jumpTime_lt_jumpTime_succ
-#print axioms LevyStochCalc.Poisson.exists_coe_le_jumpTime
-#print axioms LevyStochCalc.Poisson.mem_jumpTimes_of_count_singleton_ne_zero
-#print axioms LevyStochCalc.Poisson.ae_setOf_jumpTime_eq_setOf_count_singleton_ne_zero
-#print axioms LevyStochCalc.Poisson.ae_jumpTime_lt_jumpTime_succ
-#print axioms LevyStochCalc.Poisson.ae_exists_finset_setOf_jumpTime_subset
-#print axioms LevyStochCalc.Poisson.exists_strictMono_enum_arrivalTime
-#print axioms LevyStochCalc.Poisson.ae_jumpTime_chain
-end TempAudit

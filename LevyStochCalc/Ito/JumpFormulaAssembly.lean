@@ -530,3 +530,4 @@ theorem itoFormula_chain_path
 end Assembly
 
 end LevyStochCalc.Brownian.Ito
+
