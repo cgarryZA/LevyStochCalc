@@ -2009,3 +2009,25 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.sq_timeAugDrift
 #print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugInit
 #print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormulaTime_of_unbounded
+-- ===== Continuous versions for unbounded coefficients (B3a-1c-0, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.pow_inv_two_antitone
+#print axioms LevyStochCalc.Brownian.Ito.le_add_inv_mul_sq
+#print axioms LevyStochCalc.Brownian.Ito.tendstoUniformlyOn_of_shift
+#print axioms LevyStochCalc.Brownian.Ito.tendstoUniformlyOn_of_sub_const
+#print axioms LevyStochCalc.Brownian.Ito.clampMesh_mono_window
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_le_add_inv_mul_of_sq_le
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_clampMesh_window_lt
+#print axioms LevyStochCalc.Brownian.Ito.vectorItoProcess_ae_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.exists_isVectorItoVersion_of_unbounded
+-- ===== The finite-activity splitting X = V + J (B3a-1c, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDrift
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_zero
+#print axioms LevyStochCalc.Ito.JumpSplitting.stronglyMeasurable_markIntegral
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_continuousDrift
+#print axioms LevyStochCalc.Ito.JumpSplitting.progressivelyMeasurable_markIntegral
+#print axioms LevyStochCalc.Ito.JumpSplitting.progressivelyMeasurable_continuousDrift
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_markIntegral_le
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_continuousDrift_lt_top
+#print axioms LevyStochCalc.Ito.JumpSplitting.multidimIntegral_eq_vectorItoMartingale
+#print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSum
