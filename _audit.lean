@@ -2516,3 +2516,30 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measure_iInter_smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_augFiltration
+
+-- ===== Predictability of the jump coefficient at the left limits (B4-6, 2026-09-10) =====
+#print axioms LevyStochCalc.Probability.leftGridPoint
+#print axioms LevyStochCalc.Probability.mem_Ioc_iff_ceil_sub_one_eq
+#print axioms LevyStochCalc.Probability.mem_Ioc_leftGridPoint
+#print axioms LevyStochCalc.Probability.leftGridPoint_lt
+#print axioms LevyStochCalc.Probability.sub_leftGridPoint_le
+#print axioms LevyStochCalc.Probability.tendsto_leftGridPoint
+#print axioms LevyStochCalc.Probability.measurable_predictableSigma_comp_leftGridPoint
+#print axioms LevyStochCalc.Probability.measurable_predictableSigma_of_tendsto_leftGridPoint
+#print axioms LevyStochCalc.Probability.measurable_predictableSigma_of_leftContinuous
+#print axioms LevyStochCalc.Probability.measurable_predictableSigma_ite_of_leftContinuous
+#print axioms LevyStochCalc.Probability.measurableSet_markedPredictableSigma_prod_Ioi
+#print axioms LevyStochCalc.Probability.measurableSet_markedPredictableSigma_pos
+#print axioms LevyStochCalc.Probability.measurableSet_markedPredictableSigma_univ_prod_pos
+#print axioms LevyStochCalc.Probability.measurableSet_markedPredictableSigma_of_predictableSigma
+#print axioms LevyStochCalc.Probability.traceSigma
+#print axioms LevyStochCalc.Probability.markedPredictableSigma_disjoint_or_subset
+#print axioms LevyStochCalc.Probability.MarkedPredictable.eq_of_nonpos
+#print axioms LevyStochCalc.Probability.markedPredictable_ite_of_predictable
+#print axioms LevyStochCalc.Probability.markedPredictable_of_predictable
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPathPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_leftLimPath_self
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_predictableSigma_leftLimPathPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_jumpCoeff_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_forall_jumpCoeff_leftLimPath
