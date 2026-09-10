@@ -27,8 +27,6 @@ outside `A`.
 * `LevyStochCalc.Ito.BigJump.cutJumpIntegral` — the everywhere-càdlàg modification of the
   compensated integral of the jump coefficient restricted to a set of marks.
 * `LevyStochCalc.Ito.BigJump.bigJumpPath` — the path with that integral subtracted.
-* `LevyStochCalc.Ito.BigJump.bigJumpDiffusion` — that path as a jump diffusion for the truncated
-  coefficient bundle, for coefficients taking the same values along both paths.
 
 ## Main statements
 
@@ -541,92 +539,6 @@ theorem brownianIntegral_congr_fun (ℱ : Filtration ℝ ‹MeasurableSpace Ω�
       = LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
         W ℱ hℱ Z' hm' hp' hq' T := by
   subst h; rfl
-
-variable (S : SdeData X) {A : Set E} (hA : MeasurableSet A)
-  (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t)
-  (hnull0 : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
-  (hμ : ∀ (s : ℝ) (ω : Ω),
-    coeffs.μ s (bigJumpPath S hA hℱ0 hnull0 s ω) = coeffs.μ s (X.X s ω))
-  (hσ : ∀ (s : ℝ) (ω : Ω),
-    coeffs.σ s (bigJumpPath S hA hℱ0 hnull0 s ω) = coeffs.σ s (X.X s ω))
-  (hγ : ∀ (s : ℝ) (ω : Ω) (e : E),
-    coeffs.γ s (bigJumpPath S hA hℱ0 hnull0 s ω) e = coeffs.γ s (X.X s ω) e)
-
-/-- The big-jump path as a jump diffusion for the coefficient bundle whose jump coefficient is
-cut down to the complement of `A`, for coefficients taking the same values along the big-jump
-path as along the path of the given jump diffusion. -/
-noncomputable def bigJumpDiffusion : JumpDiffusion W N (coeffs.markCutγ Aᶜ) x₀ where
-  X := bigJumpPath S hA hℱ0 hnull0
-  measurable_path := measurable_uncurry_bigJumpPath S hA hℱ0 hnull0
-  initial_value := bigJumpPath_ae_initial S hA hℱ0 hnull0
-  sup_L2 := fun _ hT => lintegral_sq_iSup_bigJumpPath_lt_top S hA hℱ0 hnull0 hT
-  cadlag_paths := bigJumpPath_ae_cadlag S hA hℱ0 hnull0
-  is_solution := by
-    have hμpt : ∀ (s : ℝ) (ω : Ω) (i : Fin n),
-        (coeffs.markCutγ Aᶜ).μ s (bigJumpPath S hA hℱ0 hnull0 s ω) i
-          = coeffs.μ s (X.X s ω) i := fun s ω i => congrFun (hμ s ω) i
-    have hσpt : ∀ (s : ℝ) (ω : Ω) (i : Fin n) (j : Fin d),
-        (coeffs.markCutγ Aᶜ).σ s (bigJumpPath S hA hℱ0 hnull0 s ω) i j
-          = coeffs.σ s (X.X s ω) i j := fun s ω i j => congrFun (congrFun (hσ s ω) i) j
-    have hγpt : ∀ (s : ℝ) (ω : Ω) (e : E) (i : Fin n),
-        (coeffs.markCutγ Aᶜ).γ s (bigJumpPath S hA hℱ0 hnull0 s ω) e i
-          = (coeffs.markCutγ Aᶜ).γ s (X.X s ω) e i := by
-      intro s ω e i
-      simp only [JumpDiffusionCoeffs.markCutγ_γ, hγ s ω e]
-    have hσm : ∀ (i : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
-        (coeffs.markCutγ Aᶜ).σ s (bigJumpPath S hA hℱ0 hnull0 s ω) i j) := by
-      intro i j; simp only [hσpt]; exact S.σ_meas i j
-    have hσp : ∀ (i : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable S.ℱ
-        fun ω s => (coeffs.markCutγ Aᶜ).σ s (bigJumpPath S hA hℱ0 hnull0 s ω) i j := by
-      intro i j; simp only [hσpt]; exact S.σ_prog i j
-    have hσq : ∀ (i : Fin n) (j : Fin d), ∀ T' : ℝ, 0 < T' →
-        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-          (‖(coeffs.markCutγ Aᶜ).σ s (bigJumpPath S hA hℱ0 hnull0 s ω) i j‖₊ : ℝ≥0∞) ^ 2
-            ∂volume ∂P < ⊤ := by
-      intro i j; simp only [hσpt]; exact S.σ_sq i j
-    have hγm : ∀ i : Fin n, Measurable fun p : Ω × ℝ × E =>
-        (coeffs.markCutγ Aᶜ).γ p.2.1 (bigJumpPath S hA hℱ0 hnull0 p.2.1 p.1) p.2.2 i := by
-      intro i; simp only [hγpt]; exact measurable_pathJumpCoeff_markCutγ_compl S hA i
-    have hγp : ∀ i : Fin n, Probability.MarkedProgressivelyMeasurable S.ℱ
-        fun ω s e => (coeffs.markCutγ Aᶜ).γ s (bigJumpPath S hA hℱ0 hnull0 s ω) e i := by
-      intro i; simp only [hγpt]; exact markedProg_pathJumpCoeff_markCutγ_compl S hA i
-    have hγq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
-        (‖(coeffs.markCutγ Aᶜ).γ s (bigJumpPath S hA hℱ0 hnull0 s ω) e i‖₊ : ℝ≥0∞) ^ 2
-          ∂ν ∂volume ∂P < ⊤ := by
-      intro i; simp only [hγpt]; exact sq_pathJumpCoeff_markCutγ_compl (A := A) S i
-    refine ⟨S.ℱ, S.isBrownian, S.isPoisson, hσm, hσp, hσq, hγm, hγp, hγq, ?_⟩
-    intro t ht
-    filter_upwards [MeasureTheory.ae_all_iff.mpr fun i : Fin n =>
-      (isItoLevyProcess_bigJumpPath S hA hℱ0 hnull0 i).decomposition t ht] with ω hω i
-    refine (hω i).trans ?_
-    have hdrift : (∫ s in Set.Icc (0 : ℝ) t,
-          (coeffs.markCutγ Aᶜ).μ s (bigJumpPath S hA hℱ0 hnull0 s ω) i)
-        = ∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i := by simp only [hμpt]
-    have hbm : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-          W S.ℱ S.isBrownian
-          (fun s ω => (coeffs.markCutγ Aᶜ).σ s (bigJumpPath S hA hℱ0 hnull0 s ω) i)
-          (fun j => hσm i j) (fun j => hσp i j) (fun j => hσq i j) t ω
-        = LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral
-          W S.ℱ S.isBrownian (fun s ω => coeffs.σ s (X.X s ω) i)
-          (fun j => S.σ_meas i j) (fun j => S.σ_prog i j) (fun j => S.σ_sq i j) t ω := by
-      refine congrFun (brownianIntegral_congr_fun S.ℱ S.isBrownian _ _ _ _ _ _ ?_ t) ω
-      funext s ω'
-      exact congrFun (hσ s ω') i
-    have hcomp : stochasticIntegral N S.ℱ S.isPoisson
-          (fun ω' s e => (coeffs.markCutγ Aᶜ).γ s (bigJumpPath S hA hℱ0 hnull0 s ω') e i)
-          (hγm i) (hγp i) (hγq i) t ω
-        = stochasticIntegral N S.ℱ S.isPoisson (pathJumpCoeff (coeffs.markCutγ Aᶜ) X.X i)
-          (measurable_pathJumpCoeff_markCutγ_compl S hA i)
-          (markedProg_pathJumpCoeff_markCutγ_compl S hA i)
-          (sq_pathJumpCoeff_markCutγ_compl (A := A) S i) t ω := by
-      refine congrFun (stochasticIntegral_congr_fun N S.ℱ S.isPoisson (hγm i) (hγp i) (hγq i)
-        _ _ _ ?_ t) ω
-      funext ω' s e
-      exact hγpt s ω' e i
-    rw [hdrift, hbm, hcomp]
-
-@[simp] theorem bigJumpDiffusion_X :
-    (bigJumpDiffusion S hA hℱ0 hnull0 hμ hσ hγ).X = bigJumpPath S hA hℱ0 hnull0 := rfl
 
 end Diffusion
 

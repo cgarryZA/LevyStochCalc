@@ -2444,6 +2444,9 @@ import LevyStochCalc
 
 -- ===== The truncated path as a Lévy-type integral (B4-2a, 2026-09-10) =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ
+#print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_μ
+#print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_σ
+#print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_γ
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_γ_apply
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_add_markCutγ_compl
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.markCutγ_eq_zero
@@ -2476,7 +2479,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.lintegral_sq_iSup_cutJumpIntegral_lt_top
 #print axioms LevyStochCalc.Ito.BigJump.lintegral_sq_iSup_bigJumpPath_lt_top
 #print axioms LevyStochCalc.Ito.BigJump.brownianIntegral_congr_fun
-#print axioms LevyStochCalc.Ito.BigJump.bigJumpDiffusion
 
 -- ===== L² limits of the two stochastic integrals (B4-2b, 2026-09-10) =====
 #print axioms LevyStochCalc.Ito.IntegralLimit.tendsto_lintegral_of_dominated_tendsto_zero
@@ -2554,6 +2556,22 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.repairOn_eq_on
 
 -- ===== The left-limit splitting with a free path (B4-7b, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPathAt_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_zero
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPathAt_eq_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_countable_setOf_pos_ne_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_jumpSumLeftAt_nhdsWithin_Ioi
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_integrableOn_windowLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.multidimIntegral_eq_vectorItoMartingaleAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_congr_of_eqOn
+#print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeftAt_of_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeftAt_of_path
 #print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft_of_path
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_path
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion
