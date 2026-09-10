@@ -251,6 +251,7 @@ import LevyStochCalc.Ito.PicardWellPosed
 import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.JumpFormula
 import LevyStochCalc.Ito.VectorItoProcessDiff
+import LevyStochCalc.Ito.VectorItoVersionSup
 import LevyStochCalc.Ito.ItoFormulaUnbounded
 import LevyStochCalc.Ito.ItoFormulaStopped
 

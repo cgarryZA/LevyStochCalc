@@ -1953,3 +1953,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stopped_comp_eq
 #print axioms LevyStochCalc.Brownian.Ito.stopped_comp₂_eq
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped
+-- ===== The window supremum of a version difference (B3a-1c-0, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.enorm_pi_le_sum
+#print axioms LevyStochCalc.Brownian.Ito.nnnorm_abs_real
+#print axioms LevyStochCalc.Brownian.Ito.add_sq_le_four_mul
+#print axioms LevyStochCalc.Brownian.Ito.dyadicRunMax_congr
+#print axioms LevyStochCalc.Brownian.Ito.dyadicRunMax_abs
+#print axioms LevyStochCalc.Brownian.Ito.martingale_finsetSum
+#print axioms LevyStochCalc.Brownian.Ito.martingale_vectorItoMartingale
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_iSup_sq_norm_version_sub_le
