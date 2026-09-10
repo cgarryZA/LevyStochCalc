@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.JumpTelescope
 import LevyStochCalc.Ito.ItoFormulaIncrement
+import LevyStochCalc.Ito.ItoIntegrandAeCongr
 
 /-!
 # Itô's formula along a chain of stopping times
@@ -282,7 +283,7 @@ theorem itoFormula_chain
         (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
-      ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
+      ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
           - f (V (clipTime (σ k) T ω) ω + c k ω)) =ᵐ[P] fun ω : Ω =>
         (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
@@ -324,7 +325,7 @@ theorem itoFormula_chain
           (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
           (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
           (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T
-        = stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
+        =ᵐ[P] stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => Probability.stopped (σ (k + 1))
               (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s
             - Probability.stopped (σ k)
@@ -333,9 +334,12 @@ theorem itoFormula_chain
           (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpG p j))
           (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmG p j) (hqG p j)) T := by
     intro k p j
-    exact stochasticIntegralBrownian_congr_fun (W.W j) ℱ' (hcoord j)
-      (stopped_sub_shift_funext (fun ω => hmono k ω) (coordDeriv f' p) (H p j)
-        (fun ω s h₁ h₂ => hshift k ω s h₁ h₂)) _ _ _ _ _ _ T
+    exact stochasticIntegralBrownian_stopped_sub_shift_congr_of_lt (W.W j) ℱ' (hcoord j)
+      (fun ω => hmono k ω) (coordDeriv f' p) (H p j)
+      (fun ω s h₁ h₂ => hshift k ω s h₁ h₂) _ _ _ _ _ _ hT
+  have hBfunAll := (MeasureTheory.ae_all_iff (ι := ℕ)).2 fun k =>
+    (MeasureTheory.ae_all_iff (ι := Fin n)).2 fun p =>
+      (MeasureTheory.ae_all_iff (ι := Fin d)).2 fun j => hBfun k p j
   have hDint : ∀ᵐ ω ∂P, ∀ (p : Fin n) (k : ℕ), MeasureTheory.IntegrableOn
       (Probability.stopped (σ k) (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω)
       (Set.Ioc (0 : ℝ) T) volume := by
@@ -373,7 +377,7 @@ theorem itoFormula_chain
     exact stochasticIntegralBrownian_sum_range_stopped_sub_of_chain (W.W j) ℱ' (hcoord j)
       σ hσ (hmG p j) (hpG p j) (hqG p j) (fun ω => le_of_eq (h0 ω)) hT
   have hcontAll := ae_forall_lt hcont
-  filter_upwards [hcontAll, hBcol, hDint, hQint] with ω hcω hBω hDω hQω hmTω
+  filter_upwards [hcontAll, hBcol, hDint, hQint, hBfunAll] with ω hcω hBω hDω hQω hBfω hmTω
   have hAk : ∀ (k : ℕ) (p : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1))
             (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
@@ -384,8 +388,10 @@ theorem itoFormula_chain
             (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s
           - Probability.stopped (σ k)
               (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s) ∂volume :=
-    fun k p => MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun s =>
-      stopped_sub_shift_apply (hmono k ω) (coordDeriv f' p) (bdrift p) (hshift k ω) s)
+    fun k p => MeasureTheory.integral_congr_ae (by
+      filter_upwards [MeasureTheory.ae_restrict_of_ae (ae_coe_ne (σ (k + 1) ω))] with s hs
+      exact stopped_sub_shift_apply_of_lt (hmono k ω) (coordDeriv f' p) (bdrift p)
+        (hshift k ω) hs)
   have hQk : ∀ (k : ℕ) (p q : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
             * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
@@ -396,9 +402,10 @@ theorem itoFormula_chain
             * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
           - Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (X s ω)
               * ∑ j : Fin d, H p j ω s * H q j ω s) ω s) ∂volume :=
-    fun k p q => MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall fun s =>
-      stopped_sub_shift_apply (hmono k ω) (coordDeriv₂ f'' p q)
-        (fun ω s => ∑ j : Fin d, H p j ω s * H q j ω s) (hshift k ω) s)
+    fun k p q => MeasureTheory.integral_congr_ae (by
+      filter_upwards [MeasureTheory.ae_restrict_of_ae (ae_coe_ne (σ (k + 1) ω))] with s hs
+      exact stopped_sub_shift_apply_of_lt (hmono k ω) (coordDeriv₂ f'' p q)
+        (fun ω s => ∑ j : Fin d, H p j ω s * H q j ω s) (hshift k ω) hs)
   have hA : ∀ p : Fin n, (∑ k ∈ Finset.range m, ∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1))
             (fun ω s => coordDeriv f' p (V s ω + c k ω) * bdrift p ω s) ω s
@@ -440,7 +447,7 @@ theorem itoFormula_chain
           (hmG p j) (hpG p j) (hqG p j) T ω := by
     intro p j
     have hstep := Finset.sum_congr (s₂ := Finset.range m) rfl
-      fun k (_ : k ∈ Finset.range m) => congrFun (hBfun k p j) ω
+      fun k (_ : k ∈ Finset.range m) => hBfω k p j
     rw [hstep]
     exact hBω p j hmTω
   have htel : f (V (clipTime (σ m) T ω) ω + c m ω) - f (V (clipTime (σ 0) T ω) ω + c 0 ω)
@@ -489,7 +496,7 @@ theorem itoFormula_chain_path
         (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ (k : ℕ) (ω : Ω) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
-      ((s : ℝ) : WithTop ℝ) ≤ σ (k + 1) ω → V s ω + c k ω = X s ω)
+      ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
           - f (V (clipTime (σ k) T ω) ω + c k ω)) =ᵐ[P] fun ω : Ω =>
         (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,

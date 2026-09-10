@@ -2341,3 +2341,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_le_horizon
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_gridStopTrunc
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridStop_of_gridStopTrunc
+
+-- ===== Finite-activity assembly, round 4 (B4-1, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpTime
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpTime_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpTime_le_succ
+#print axioms LevyStochCalc.Ito.JumpFormula.le_cappedJumpTime_iff
+#print axioms LevyStochCalc.Ito.JumpFormula.clipTime_cappedJumpTime
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpTime_chain_of_complete
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_jumpSum_eq_cappedJumpSum
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSum_eq

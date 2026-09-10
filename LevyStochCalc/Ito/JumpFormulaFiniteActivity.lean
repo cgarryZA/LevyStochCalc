@@ -6,8 +6,9 @@ Authors: Christian Garry
 import LevyStochCalc.Ito.ItoFormulaExhaustion
 import LevyStochCalc.Ito.JumpFormulaAssembly
 import LevyStochCalc.Ito.JumpFormulaDictionary
-import LevyStochCalc.Ito.JumpSplitting
+import LevyStochCalc.Ito.JumpSplittingAllTimes
 import LevyStochCalc.Ito.JumpSumIdentity
+import LevyStochCalc.Poisson.JumpTimesComplete
 
 /-!
 # Reconciling the two drifts of the finite-activity Itô–Lévy formula
@@ -22,7 +23,9 @@ Itô–Lévy formula instead carries the drift `μ` itself and the compensator-d
 The accumulated jumps taken at the arrival times capped at the horizon are constant in the index
 once the arrival time has passed the horizon, so a telescope over a chain of arrival times has
 only in-window terms. Between consecutive arrival times inside the window that accumulation gains
-exactly the jump coefficient carried by the later arrival time and the mark enumerated with it.
+exactly the jump coefficient carried by the later arrival time and the mark enumerated with it,
+and strictly between them it does not move at all, so capping the arrival times themselves makes
+the accumulated jumps the piecewise translation carrying the jump path.
 
 ## Main definitions
 
@@ -56,6 +59,13 @@ exactly the jump coefficient carried by the later arrival time and the mark enum
   `LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_rightCont`,
   `LevyStochCalc.Ito.JumpFormula.jumpTime_chain_rightCont` — the chain data and the progressive
   measurability of the integrands for the right-continuous regularisation of a filtration.
+* `LevyStochCalc.Ito.JumpFormula.cappedJumpTime` — the arrival times capped at the horizon.
+* `LevyStochCalc.Ito.JumpFormula.cappedJumpTime_chain_of_complete` — the capped arrival times
+  are an increasing chain of stopping times starting at the origin.
+* `LevyStochCalc.Ito.JumpFormula.ae_forall_jumpSum_eq_cappedJumpSum`,
+  `LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSum_eq` — strictly between consecutive
+  capped arrival times the accumulated jumps are constant, so the jump path is the continuous
+  part translated by them.
 * `LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum`,
   `LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_add_gamma`,
   `LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_cappedJumpSum_succ` — the jump sum over a
@@ -779,6 +789,154 @@ theorem jumpSum_eq_sum_atomEnum_horizon (hA : MeasurableSet A)
   exact Finset.sum_congr rfl fun j _ => if_pos (hmem j).1.2
 
 end MarkIdentification
+
+section CappedChain
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {n d : ℕ}
+  {W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d}
+  {coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E} {x₀ : Fin n → ℝ}
+
+variable (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (A : Set E)
+
+/-- The `k`-th arrival time of a mark set capped at the horizon. -/
+noncomputable def cappedJumpTime (T : ℝ) (k : ℕ) (ω : Ω) : WithTop ℝ :=
+  min (LevyStochCalc.Poisson.jumpTime N A k ω) ((T : ℝ) : WithTop ℝ)
+
+/-- The capped chain starts at the origin. -/
+theorem cappedJumpTime_zero {T : ℝ} (hT : 0 ≤ T) (ω : Ω) :
+    cappedJumpTime N A T 0 ω = ((0 : ℝ) : WithTop ℝ) := by
+  rw [cappedJumpTime, LevyStochCalc.Poisson.jumpTime_zero, min_eq_left]
+  exact_mod_cast hT
+
+/-- The capped chain increases with the index. -/
+theorem cappedJumpTime_le_succ (T : ℝ) (k : ℕ) (ω : Ω) :
+    cappedJumpTime N A T k ω ≤ cappedJumpTime N A T (k + 1) ω :=
+  min_le_min (LevyStochCalc.Poisson.jumpTime_mono N A (Nat.le_succ k) ω) le_rfl
+
+/-- The capped chain passes the horizon exactly where the arrival times do. -/
+theorem le_cappedJumpTime_iff (T : ℝ) (m : ℕ) (ω : Ω) :
+    ((T : ℝ) : WithTop ℝ) ≤ cappedJumpTime N A T m ω
+      ↔ ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A m ω := by
+  simp [cappedJumpTime]
+
+/-- Clipping at the horizon does not distinguish the capped chain from the arrival times. -/
+theorem clipTime_cappedJumpTime (T : ℝ) (k : ℕ) (ω : Ω) :
+    LevyStochCalc.Brownian.Ito.clipTime (cappedJumpTime N A T k) T ω
+      = LevyStochCalc.Brownian.Ito.clipTime (LevyStochCalc.Poisson.jumpTime N A k) T ω := by
+  simp only [LevyStochCalc.Brownian.Ito.clipTime, cappedJumpTime]
+  by_cases h : ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A k ω
+  · rw [min_eq_right h, if_pos le_rfl, if_pos h]
+  · rw [min_eq_left (le_of_lt (not_le.mp h)), if_neg h]
+
+/-- **The chain data of the capped arrival times.** For a filtration whose time-zero
+`σ`-algebra contains the `P`-null sets and a mark set of finite intensity, the arrival times
+capped at the horizon are stopping times, they increase with the index, and the zeroth is the
+origin. -/
+theorem cappedJumpTime_chain_of_complete {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    (hℱ : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
+    {T : ℝ} (hT : 0 ≤ T) :
+    (∀ k : ℕ, MeasureTheory.IsStoppingTime ℱ (cappedJumpTime N A T k))
+      ∧ (∀ (k : ℕ) (ω : Ω), cappedJumpTime N A T k ω ≤ cappedJumpTime N A T (k + 1) ω)
+      ∧ ∀ ω : Ω, cappedJumpTime N A T 0 ω = ((0 : ℝ) : WithTop ℝ) :=
+  ⟨fun k =>
+      (LevyStochCalc.Poisson.isStoppingTime_jumpTime_of_complete N A hℱ hA hAν hnull k).min_const T,
+    cappedJumpTime_le_succ N A T, cappedJumpTime_zero N A hT⟩
+
+variable {N A}
+
+/-- **The capped jump sum is the jump sum strictly between consecutive capped arrival times.**
+No mark of the set arrives strictly between consecutive arrival times, so the accumulated jumps
+do not move there. -/
+theorem ae_forall_jumpSum_eq_cappedJumpSum
+    [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+    (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀) (hA : MeasurableSet A)
+    (hAν : ν A ≠ ⊤) (T : ℝ) :
+    ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), cappedJumpTime N A T k ω < ((s : ℝ) : WithTop ℝ) →
+      ((s : ℝ) : WithTop ℝ) < cappedJumpTime N A T (k + 1) ω →
+      ∀ i : Fin n, LevyStochCalc.Ito.JumpSplitting.jumpSum X A s ω i
+        = cappedJumpSum X A T k ω i := by
+  classical
+  filter_upwards [LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum N A hA hAν T]
+    with ω hω
+  obtain ⟨K, θ, ε, -, hrange, hmem, hsum⟩ := hω
+  intro k s h1 h2 i
+  -- Below the horizon the capped time is the arrival time itself.
+  have hkT : LevyStochCalc.Poisson.jumpTime N A k ω < ((T : ℝ) : WithTop ℝ) := by
+    by_contra hcon
+    have hk : cappedJumpTime N A T k ω = ((T : ℝ) : WithTop ℝ) :=
+      min_eq_right (not_lt.mp hcon)
+    have hk1 : cappedJumpTime N A T (k + 1) ω = ((T : ℝ) : WithTop ℝ) :=
+      min_eq_right ((not_lt.mp hcon).trans
+        (LevyStochCalc.Poisson.jumpTime_mono N A (Nat.le_succ k) ω))
+    rw [hk] at h1
+    rw [hk1] at h2
+    exact absurd (h1.trans h2) (lt_irrefl _)
+  obtain ⟨q, hq⟩ := WithTop.ne_top_iff_exists.mp
+    (lt_trans hkT (WithTop.coe_lt_top T)).ne
+  have hqT : q < T := by
+    have := hkT
+    rw [← hq] at this
+    exact_mod_cast this
+  have hkeq : cappedJumpTime N A T k ω = ((q : ℝ) : WithTop ℝ) := by
+    rw [cappedJumpTime, ← hq, min_eq_left (le_of_lt (by exact_mod_cast hqT))]
+  have hqs : q < s := by
+    rw [hkeq] at h1
+    exact_mod_cast h1
+  have hsucc : ((s : ℝ) : WithTop ℝ) < LevyStochCalc.Poisson.jumpTime N A (k + 1) ω :=
+    lt_of_lt_of_le h2 (min_le_left _ _)
+  have hsT : s ≤ T := by
+    have := lt_of_lt_of_le h2 (min_le_right _ _)
+    exact le_of_lt (by exact_mod_cast this)
+  have hqT' : q ≤ T := le_of_lt hqT
+  -- The capped jump sum at index `k` is the jump sum at the arrival time.
+  have hcap : cappedJumpSum X A T k ω i
+      = LevyStochCalc.Ito.JumpSplitting.jumpSum X A q ω i := by
+    rw [cappedJumpSum, LevyStochCalc.Brownian.Ito.clipTime_eq_min hq.symm,
+      min_eq_right hqT']
+  -- No enumerated atom time lies in the interval.
+  have hkey : ∀ j : Fin K, θ j ≤ s ↔ θ j ≤ q := by
+    intro j
+    constructor
+    · intro hjs
+      have hmemj : θ j ∈ Set.range θ := Set.mem_range_self j
+      rw [hrange] at hmemj
+      obtain ⟨i', hi', -, -⟩ := hmemj
+      rcases le_or_gt i' k with hik | hik
+      · have := LevyStochCalc.Poisson.jumpTime_mono N A hik ω
+        rw [hi', ← hq] at this
+        exact_mod_cast this
+      · have := LevyStochCalc.Poisson.jumpTime_mono N A (Nat.succ_le_of_lt hik) ω
+        rw [hi'] at this
+        exact absurd (lt_of_lt_of_le hsucc this) (not_lt.mpr (by exact_mod_cast hjs))
+    · intro hjq
+      exact le_of_lt (lt_of_le_of_lt hjq hqs)
+  rw [hcap, jumpSum_eq_sum_atomEnum X hA hmem hsum hsT i,
+    jumpSum_eq_sum_atomEnum X hA hmem hsum hqT' i]
+  exact Finset.sum_congr rfl fun j _ => by
+    by_cases hj : θ j ≤ s
+    · rw [if_pos hj, if_pos ((hkey j).mp hj)]
+    · rw [if_neg hj, if_neg (fun hc => hj ((hkey j).mpr hc))]
+
+/-- **The piecewise translation between consecutive capped arrival times.** Strictly between
+consecutive capped arrival times the jump path is the continuous part translated by the capped
+jump sum. -/
+theorem ae_forall_add_cappedJumpSum_eq
+    [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+    {X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀} {V : ℝ → Ω → Fin n → ℝ}
+    (hsplit : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+      X.X t ω i = V t ω i + LevyStochCalc.Ito.JumpSplitting.jumpSum X A t ω i)
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ} (hT : 0 ≤ T) :
+    ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), cappedJumpTime N A T k ω < ((s : ℝ) : WithTop ℝ) →
+      ((s : ℝ) : WithTop ℝ) < cappedJumpTime N A T (k + 1) ω →
+      V s ω + cappedJumpSum X A T k ω = X.X s ω :=
+  LevyStochCalc.Ito.JumpSplitting.add_shift_eq_of_ae_forall hsplit
+    (cappedJumpTime_zero N A hT) (cappedJumpTime_le_succ N A T)
+    (ae_forall_jumpSum_eq_cappedJumpSum X hA hAν T)
+
+end CappedChain
 
 section MarkIdentificationAe
 
