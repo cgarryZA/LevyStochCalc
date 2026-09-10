@@ -285,6 +285,7 @@ import LevyStochCalc.Ito.JumpFormulaFiniteActivity
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 import LevyStochCalc.Brownian.ItoFiltrationChange
 import LevyStochCalc.Ito.JumpFormulaLimit
+import LevyStochCalc.Ito.JumpFormulaGeneralShift
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

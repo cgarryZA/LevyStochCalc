@@ -2414,3 +2414,30 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_tendsto
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_integrals
+
+-- ===== The capped jump sum over a prescribed evaluation path (B4-4, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_path
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_path
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_succ_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpTermAt_eq_zero_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.eq_add_cappedJumpSumAt_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_eq_sum_atomEnum
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumAt_eq_sum_atomEnum_horizon
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_succ_eq_add_gamma
+#print axioms LevyStochCalc.Ito.JumpFormula.add_shift_eq_of_ae_forall_at
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_jumpSumAt_eq_cappedJumpSumAt
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumAt_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSumAt_succ_eq_of_horizon_lt
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTermAt_eq_sum_atomEnum
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermAt
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumLeft_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumPoint_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermLeft
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermPoint
