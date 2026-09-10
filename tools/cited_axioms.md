@@ -256,6 +256,49 @@ literature integral forms.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7** proof **step (II)** for the `ε → 0` limit (page 240); Ikeda–Watanabe **Section II.5**; Cont–Tankov **Proposition 8.18** + Chapter 8.
 * **Narrowness (2026-05-26 narrowing)**: the previous monolithic #16 (`itoLevyFormula_jumpResidual_axiom`, universal-`R` form) quantified over *any* `R` satisfying a continuous-part identity `u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`. The 2026-05-26 narrowing eliminates that quantifier: the axiom now asserts the identity only for the canonical `R` constructed by direct subtraction. The universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a derived theorem forwarding over this canonical axiom by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity). The narrower axiom captures exactly the analytical content of Applebaum 4.4.10 + 4.4.7 step II (the small/large-jump decomposition + ε→0 L²-limit + Lévy-Itô combinatorial step); the universal-`R` form adds only algebraic glue.
 * **Statement audit (2026-09-06) — two missing hypotheses, now added.** The statement had no smoothness hypothesis on `u` and no integrability of the drift `μ(s, X_s)` along the path. Its derivative-based integrands use Mathlib's `fderiv`/`deriv`, which are `0` off the differentiability set, and its drift term is a Bochner integral, which is `0` on non-integrable integrands; so the statement as written was refutable, not merely unproved: (i) `n = d = 1`, `(μ, σ, γ) = (0, 1, 0)`, `X = W`, `u(t, x) = 1_{x > 0}` — every integrand vanishes, all hypotheses hold, and the conclusion reads `1_{W_T > 0} = 0` a.s.; (ii) even for smooth `u`, `μ(s, x) = 1/s` makes the SDE drift integral silently `0` (so `X = x₀ + W`), and for `u(t, x) = t x` the claimed identity is off by `T`. The corrected statement assumes `hu : ContDiff ℝ 2 (Function.uncurry u)` (joint `C²`, which contains the cited `C^{1,2}` class) and `h_μ_int : ∀ᵐ ω, ∀ i, IntegrableOn (fun s => μ s (X s ω) i) (Icc 0 T)`; the derived theorems `itoLevyFormula_jumpResidual_axiom`, `itoLevyFormula` and the dissertation forwarder `Dissertation.Continuous.itoLevyFormula` carry both. (Integrability of the drift integrand `∂ₜu + 𝓛u` along the path follows from these and the structure's `sup_L2`/càdlàg fields and is not assumed.) No `sorry` and no change to the conclusion; the axiom is *narrower* than before.
+* **Statement audit (2026-09-10) — SEVEN further hypotheses are missing, and the axiom as it
+  currently stands CANNOT BE PROVED. Corrections identified, NOT YET APPLIED.** Assembling the
+  replacement proof (Epic B, `../Dissertation/WORK_BREAKDOWN.md` B4) surfaced seven gaps between what
+  the statement assumes and what the cited theorem needs. Each is faithful to Applebaum individually
+  — several restore hypotheses the source assumes that this Lean transcription dropped — but the
+  aggregate is a substantive change to what is being proved, and it is recorded here **before** the
+  closure rather than presented afterwards as a clean discharge of the statement as written.
+  1. `[MeasurableSpace.CountablyGenerated E]` and `[MeasurableSingletonClass E]` on the mark space.
+     Not derivable: they are what makes the realised counting measure on a finite-activity window a
+     *nameable* finite sum of Diracs, and the pathwise jump sum rests entirely on that enumeration.
+     Applebaum's mark space is `ℝᵈ ∖ {0}`, a Borel subset of a Polish space, which has both.
+  2. `∀ s ≤ 0, ∀ x e, coeffs.γ s x e = 0`. **Forced, not convenient.** The marked predictable
+     σ-algebra is *not* the product of the predictable σ-algebra with the mark σ-algebra — every one
+     of its generators lies inside `Ω × (0, ∞) × E` — so every marked predictable process is
+     constant at nonpositive times. Without this, the predictability the proof needs is **false**,
+     not merely unproved. It costs nothing modelling-wise: the compensated integral runs over
+     `(0, t]` and the drift over `[0, t]`, where `{0}` is Lebesgue-null.
+  3. `∀ t, Measurable[ℱ t] (X.X t)`. **This is a defect in `JumpDiffusion`, not in #16.** The
+     structure's docstring calls its solution "adapted" (`Ito/Setting.lean`) but carries no such
+     field, and adaptedness does not follow from `is_solution`: the two stochastic terms are
+     `ℱ t`-measurable, but the drift term is not known to be, and proving it would already require
+     `X` adapted. In the literature a solution is adapted by definition.
+  4. Càdlàg paths at **every** sample point, not almost every. Predictability is a pointwise
+     statement about a σ-algebra; off the null set where the structure's field says nothing,
+     `Function.leftLim` falls back to the point value, which is progressive but not predictable. The
+     same applies to continuity of the continuous part, which the per-interval Itô layer needs
+     pointwise while the splitting supplies it only almost surely. Both are **bridged** in
+     `Ito/JumpFormulaClosure.lean` (`repairOn`, `repairOn_cadlag`, `repairOn_continuous`) by
+     replacing the path on a null set, which is sound because the conclusion is an almost-sure
+     identity whose terms depend on the path only through null-insensitive integrals.
+  5. Measurability and an `L²` bound for `μ(·, X_·)` on windows. The structure needs neither, since
+     its drift term is a Bochner integral, and #16 assumes only pathwise integrability. Derivable
+     from `JumpDiffusionCoeffs.IsRegular` + `IsLipschitz` + `sup_L2` via `Ito/PicardIntegrand.lean`,
+     so a consumer with coefficient-level hypotheses discharges them — but **`IsLipschitz` must not
+     be added to #16**: it belongs to Applebaum Thm 6.2.9 (SDE existence), not Thm 4.4.7, which is
+     stated for predictable square-integrable integrands with no Lipschitz condition. Adding it
+     would narrow the statement past its own source.
+  6. Joint measurability of `γ` — the third conjunct of `IsRegular`, which the bare coefficient
+     bundle does not carry.
+  7. A **pointwise-in-the-mark** bound `‖γ s (X_s ω) e‖ ≤ M` along the path, needed by the
+     localisation that removes the derivative bounds #16 does not assume. Genuinely not implied by
+     the coefficient data: `IsLipschitz` constrains `γ` only in the state and only in an `L²(ν)`-in-`e`
+     sense, and `IsRegular` bounds only `∫⁻ e, ‖γ s 0 e‖²`. Neither gives a pointwise bound in `e`.
 * **Scope (recorded 2026-09-06; resolved the same day by X2-3, at the end of this bullet).** The
   progressive-measurability hypotheses `h_sigmaGrad_progMeas` / `h_jumpInt_progMeas` are relative to
   the natural filtration of a *single* driver (`naturalFiltration (W.W j)` per Brownian coordinate,
