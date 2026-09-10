@@ -82,4 +82,67 @@ theorem isBrownianFiltration_augFiltration {W : BrownianMotion P}
     rw [hfeq]
     exact indep_aug P (h.indep hs hst)
 
+
+/-- Augmenting a right-continuous filtration keeps it right-continuous. -/
+theorem rightCont_augFiltration_le (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (μ : Measure Ω) :
+    (augFiltration ℱ.rightCont μ).rightCont ≤ augFiltration ℱ.rightCont μ := by
+  intro t
+  rcases lt_or_ge t 0 with ht | ht
+  · have hs : t < t / 2 := by linarith
+    have h1 : (augFiltration ℱ.rightCont μ).rightCont t
+        ≤ augFiltration ℱ.rightCont μ (t / 2) := by
+      rw [Filtration.rightCont_eq]
+      exact iInf₂_le _ hs
+    rw [augFiltration_of_nonpos _ _ (by linarith : t / 2 ≤ 0)] at h1
+    rw [augFiltration_of_nonpos _ _ ht.le]
+    exact h1
+  · have hseq : ∀ n : ℕ, t < t + ((n : ℝ) + 1)⁻¹ := by
+      intro n
+      have : (0 : ℝ) < ((n : ℝ) + 1)⁻¹ := by positivity
+      linarith
+    have hanti : Antitone fun n : ℕ => ℱ.rightCont (t + ((n : ℝ) + 1)⁻¹) := by
+      intro a b hab
+      refine ℱ.rightCont.mono ?_
+      have hab' : (a : ℝ) ≤ (b : ℝ) := by exact_mod_cast hab
+      have hinv : ((b : ℝ) + 1)⁻¹ ≤ ((a : ℝ) + 1)⁻¹ := by gcongr
+      linarith
+    have h1 : (augFiltration ℱ.rightCont μ).rightCont t
+        ≤ ⨅ n : ℕ, aug (ℱ.rightCont (t + ((n : ℝ) + 1)⁻¹)) ‹MeasurableSpace Ω› μ := by
+      refine le_iInf fun n => ?_
+      have h2 : (augFiltration ℱ.rightCont μ).rightCont t
+          ≤ augFiltration ℱ.rightCont μ (t + ((n : ℝ) + 1)⁻¹) := by
+        rw [Filtration.rightCont_eq]
+        exact iInf₂_le _ (hseq n)
+      have h3 : augFiltration ℱ.rightCont μ (t + ((n : ℝ) + 1)⁻¹)
+          = aug (ℱ.rightCont (t + ((n : ℝ) + 1)⁻¹)) ‹MeasurableSpace Ω› μ := by
+        change aug (ℱ.rightCont (max (t + ((n : ℝ) + 1)⁻¹) 0)) ‹MeasurableSpace Ω› μ = _
+        rw [max_eq_left (by linarith [hseq n])]
+      rwa [h3] at h2
+    rw [aug_iInf_of_antitone hanti] at h1
+    have h4 : (⨅ n : ℕ, ℱ.rightCont (t + ((n : ℝ) + 1)⁻¹)) ≤ ℱ.rightCont t := by
+      rw [Filtration.rightCont_eq]
+      refine le_iInf₂ fun u hu => ?_
+      obtain ⟨n, hn⟩ := exists_nat_one_div_lt (show (0 : ℝ) < u - t by linarith)
+      refine le_trans (iInf_le _ n) ?_
+      rw [Filtration.rightCont_eq]
+      refine iInf₂_le u ?_
+      rw [one_div] at hn
+      linarith
+    have h5 : augFiltration ℱ.rightCont μ t = aug (ℱ.rightCont t) ‹MeasurableSpace Ω› μ := by
+      change aug (ℱ.rightCont (max t 0)) ‹MeasurableSpace Ω› μ = _
+      rw [max_eq_left ht]
+    rw [h5]
+    exact le_trans h1 (aug_mono h4)
+
+instance isRightContinuous_augFiltration (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (μ : Measure Ω) :
+    Filtration.IsRightContinuous (augFiltration ℱ.rightCont μ) :=
+  ⟨rightCont_augFiltration_le ℱ μ⟩
+
+/-- The `hℱ0` hypothesis, discharged for the augmentation of a right-continuous filtration. -/
+theorem hF0_augFiltration (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (μ : Measure Ω) (t : ℝ)
+    (ht : t ≤ 0) :
+    (augFiltration ℱ.rightCont μ).rightCont 0 ≤ (augFiltration ℱ.rightCont μ).rightCont t := by
+  rw [Filtration.IsRightContinuous.eq (𝓕 := augFiltration ℱ.rightCont μ)]
+  rw [augFiltration_of_nonpos _ _ ht, augFiltration_of_nonpos _ _ (le_refl (0 : ℝ))]
+
 end LevyStochCalc.Brownian

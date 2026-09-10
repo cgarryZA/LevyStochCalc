@@ -2618,3 +2618,35 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_of_nonpos
 #print axioms LevyStochCalc.Ito.JumpFormula.markedEnergyMeasure_nonpos
 #print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_ae_eq
+
+-- ===== The augmentation of a right-continuous filtration (B3a-4, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.rightCont_augFiltration_le
+#print axioms LevyStochCalc.Brownian.isRightContinuous_augFiltration
+#print axioms LevyStochCalc.Brownian.hF0_augFiltration
+
+-- ===== The exit time for the localisation transfer (B3a-4, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exists_coe_le_of_lt
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exists_lt_of_lt_coe
+#print axioms LevyStochCalc.Ito.CadlagExitTime.isClosed_setOf_le_coe
+#print axioms LevyStochCalc.Ito.CadlagExitTime.shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.shiftAfter_of_le
+#print axioms LevyStochCalc.Ito.CadlagExitTime.shiftAfter_of_not_le
+#print axioms LevyStochCalc.Ito.CadlagExitTime.norm_shiftAfter_le
+#print axioms LevyStochCalc.Ito.CadlagExitTime.continuousWithinAt_Ici_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.isClosed_exitSet_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exitTime_le_iff_of_isClosed
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exists_max_norm_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exists_gridPt_norm_gt
+#print axioms LevyStochCalc.Ito.CadlagExitTime.exitTime_shiftAfter_le_iff_forall
+#print axioms LevyStochCalc.Ito.CadlagExitTime.measurable_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.measurableSet_exitTime_shiftAfter_le
+#print axioms LevyStochCalc.Ito.CadlagExitTime.isStoppingTime_exitTime_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.le_exitTime_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.norm_add_le_of_le_exitTime_shiftAfter
+#print axioms LevyStochCalc.Ito.CadlagExitTime.shiftExitTime
+#print axioms LevyStochCalc.Ito.CadlagExitTime.isStoppingTime_shiftExitTime
+#print axioms LevyStochCalc.Ito.CadlagExitTime.le_shiftExitTime_of_mem_boundedPathSet
+#print axioms LevyStochCalc.Ito.CadlagExitTime.norm_add_le_of_le_shiftExitTime
+#print axioms LevyStochCalc.Ito.CadlagExitTime.coordDeriv_cutoffFun_eq
+#print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff
+#print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff_all
