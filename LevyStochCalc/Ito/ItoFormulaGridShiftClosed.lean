@@ -159,8 +159,6 @@ theorem itoFormula_between_gridShift_of_simpleShift
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
-    (hHQ : ∀ (p q : Fin n) (t : ℝ), 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-      (‖∑ k : Fin d, H p k ω s * H q k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hbm : ∀ p, Measurable (Function.uncurry (bdrift p)))
     (hbp : ∀ p, Probability.ProgressivelyMeasurable ℱ' (bdrift p))
     (hbq : ∀ (p : Fin n) (t : ℝ), 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
@@ -254,15 +252,6 @@ theorem itoFormula_between_gridShift_of_simpleShift
     intro v p q
     refine ((continuous_coordDeriv₂ hf''c p q).measurable.comp (hXm.add_const v)).mul ?_
     exact Finset.measurable_sum _ fun k _ => (hHm p k).mul (hHm q k)
-  have hqQ : ∀ (v : Fin n → ℝ) (p q : Fin n) (t : ℝ), 0 < t →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-        (‖coordDeriv₂ f'' p q (X s ω + v) * ∑ k : Fin d, H p k ω s * H q k ω s‖₊ : ℝ≥0∞) ^ 2
-          ∂volume ∂P < ⊤ := by
-    intro v p q
-    refine energy_lt_top_of_abs_le_mul (le_trans (abs_nonneg _) (hK₂ p q 0)) ?_ (hHQ p q)
-    intro ω s
-    rw [abs_mul]
-    exact mul_le_mul_of_nonneg_right (hK₂ p q _) (abs_nonneg _)
   -- admissibility of the integrands translated by the random vector
   have hXcm : Measurable (Function.uncurry fun ω s => X s ω + c ω) :=
     hXm.add (hcm.comp measurable_fst)
@@ -335,6 +324,17 @@ theorem itoFormula_between_gridShift_of_simpleShift
   have hQint : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
       (fun s => ∑ k : Fin d, H p k ω s * H q k ω s) (Set.Ioc (0 : ℝ) T) volume :=
     ae_integrableOn_Ioc_sum_mul hHm fun p k => hHs p k T hT
+  have hQintv : ∀ v : Fin n → ℝ, ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω + v) * ∑ k : Fin d, H p k ω s * H q k ω s)
+      (Set.Ioc (0 : ℝ) T) volume := by
+    intro v
+    filter_upwards [hQint] with ω hω p q
+    have hK₂0 : (0 : ℝ) ≤ K₂ := le_trans (abs_nonneg _) (hK₂ p q 0)
+    refine MeasureTheory.Integrable.mono ((hω p q).const_mul K₂)
+      (Measurable.of_uncurry_left (hmQ v p q)).aestronglyMeasurable ?_
+    filter_upwards with s
+    simp only [Real.norm_eq_abs, abs_mul, abs_of_nonneg hK₂0]
+    exact mul_le_mul_of_nonneg_right (hK₂ p q _) (abs_nonneg _)
   refine itoFormula_between_gridShift W ℱ' hcoord hXm hXc hHm hHs hbm hσ hτ hσ0 hτ0 hfC hf hf'
     hK₁ hK₂ hT hcm hbint hQint hmSc hpSc hqSc hmSm hpSm hqSm fun m => ?_
   refine itoFormula_between_gridStop_of_gridStopTrunc W ℱ' hcoord hT m (hmSt m) (hpSt m)
@@ -342,7 +342,7 @@ theorem itoFormula_between_gridShift_of_simpleShift
   exact itoFormula_between_simpleShift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq
     (isStoppingTime_gridStopTrunc hσ T m) (isStoppingTime_gridStopTrunc hτ T m)
     (gridStopTrunc_mono hστ T m) (zero_le_gridStopTrunc hσ0 T m) (zero_le_gridStopTrunc hτ0 T m)
-    hfC hf hf' hmG hpG hqG hmD hqD hmQ hqQ hT hcVs (gridPt_filter_nonneg hT m)
+    hfC hf hf' hmG hpG hqG hmD hqD hmQ hT hQintv hcVs (gridPt_filter_nonneg hT m)
     (gridPt_filter_lt T m) (gridStopTrunc_eq_or_top σ T m)
     (fun a _ v _ => measurableSet_cell_gridStopTrunc hσ hc T m a v) (hmSt m) (hpSt m) (hqSt m)
 

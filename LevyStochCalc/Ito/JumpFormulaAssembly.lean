@@ -271,9 +271,6 @@ theorem itoFormula_chain
       (‖coordDeriv f' p (X s ω) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
       fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s))
-    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
-        ∂volume ∂P < ⊤)
     (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
       Probability.stopped (σ (k + 1))
           (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
@@ -291,7 +288,11 @@ theorem itoFormula_chain
             - Probability.stopped (σ k)
                 (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
+    {T : ℝ} (hT : 0 < T)
+    (hQint : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s)
+      (Set.Ioc (0 : ℝ) T) volume)
+    {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
@@ -359,7 +360,7 @@ theorem itoFormula_chain
     rw [MeasureTheory.ae_all_iff]
     intro k
     exact ae_integrableOn_stopped_Ioc (hσ k) (hmD p) (hqD p) hT
-  have hQint : ∀ᵐ ω ∂P, ∀ (p q : Fin n) (k : ℕ), MeasureTheory.IntegrableOn
+  have hQstop : ∀ᵐ ω ∂P, ∀ (p q : Fin n) (k : ℕ), MeasureTheory.IntegrableOn
       (Probability.stopped (σ k) (fun ω s => coordDeriv₂ f'' p q (X s ω)
         * ∑ j : Fin d, H p j ω s * H q j ω s) ω) (Set.Ioc (0 : ℝ) T) volume := by
     rw [MeasureTheory.ae_all_iff]
@@ -368,7 +369,8 @@ theorem itoFormula_chain
     intro q
     rw [MeasureTheory.ae_all_iff]
     intro k
-    exact ae_integrableOn_stopped_Ioc (hσ k) (hmQ p q) (hqQ p q) hT
+    exact ae_integrableOn_stopped_Ioc_of_ae_integrableOn (hσ k) (hmQ p q)
+      (by filter_upwards [hQint] with ω hω using hω p q)
   have hBcol : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d), ((T : ℝ) : WithTop ℝ) ≤ σ m ω →
       (∑ k ∈ Finset.range m, stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => Probability.stopped (σ (k + 1))
@@ -388,7 +390,7 @@ theorem itoFormula_chain
     exact stochasticIntegralBrownian_sum_range_stopped_sub_of_chain (W.W j) ℱ' (hcoord j)
       σ hσ (hmG p j) (hpG p j) (hqG p j) (fun ω => le_of_eq (h0 ω)) hT
   have hcontAll := ae_forall_lt hcont
-  filter_upwards [hcontAll, hBcol, hDint, hQint, hBfunAll, hshift] with
+  filter_upwards [hcontAll, hBcol, hDint, hQstop, hBfunAll, hshift] with
     ω hcω hBω hDω hQω hBfω hshiftω hmTω
   have hAk : ∀ (k : ℕ) (p : Fin n), (∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped (σ (k + 1))
@@ -496,9 +498,6 @@ theorem itoFormula_chain_path
       (‖coordDeriv f' p (X s ω) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
       fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s))
-    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
-        ∂volume ∂P < ⊤)
     (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
       Probability.stopped (σ (k + 1))
           (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
@@ -516,7 +515,11 @@ theorem itoFormula_chain_path
             - Probability.stopped (σ k)
                 (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
+    {T : ℝ} (hT : 0 < T)
+    (hQint : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s)
+      (Set.Ioc (0 : ℝ) T) volume)
+    {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
     (hcont : ∀ k < m, (fun ω : Ω => f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)
@@ -551,8 +554,8 @@ theorem itoFormula_chain_path
               coordDeriv₂ f'' p q (X s ω) * (∑ j : Fin d, H p j ω s * H q j ω s) ∂volume)
         + ∑ k ∈ Finset.range m, (f (V (clipTime (σ (k + 1)) T ω) ω + c (k + 1) ω)
             - f (V (clipTime (σ (k + 1)) T ω) ω + c k ω)) := by
-  filter_upwards [itoFormula_chain W ℱ' hcoord hσ hmono hmG hpG hqG hmD hqD hmQ hqQ hmV
-    hpV hqV hT h0 hshift hcont] with ω hω hmTω
+  filter_upwards [itoFormula_chain W ℱ' hcoord hσ hmono hmG hpG hqG hmD hqD hmQ hmV
+    hpV hqV hT hQint h0 hshift hcont] with ω hω hmTω
   rw [hVT ω, hV0 ω] at hω
   exact hω hmTω
 

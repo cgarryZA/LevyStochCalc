@@ -547,11 +547,10 @@ theorem itoFormula_between_simpleShift
         (‖coordDeriv f' p (X s ω + v) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hmQ : ∀ (v : Fin n → ℝ) (p q : Fin n), Measurable (Function.uncurry
       fun ω s => coordDeriv₂ f'' p q (X s ω + v) * ∑ k : Fin d, H p k ω s * H q k ω s))
-    (hqQ : ∀ (v : Fin n → ℝ) (p q : Fin n) (T' : ℝ), 0 < T' →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-        (‖coordDeriv₂ f'' p q (X s ω + v) * ∑ k : Fin d, H p k ω s * H q k ω s‖₊ : ℝ≥0∞) ^ 2
-          ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T)
+    (hQint : ∀ v : Fin n → ℝ, ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω + v) * ∑ k : Fin d, H p k ω s * H q k ω s)
+      (Set.Ioc (0 : ℝ) T) volume)
     {c : Ω → Fin n → ℝ} {Vs : Finset (Fin n → ℝ)} (hcVs : ∀ ω, c ω ∈ Vs)
     {J : Finset ℝ} (hJ0 : ∀ a ∈ J, 0 ≤ a) (hJT : ∀ a ∈ J, a < T)
     (hσJ : ∀ ω, (∃ a ∈ J, σ ω = ((a : ℝ) : WithTop ℝ)) ∨ σ ω = ⊤)
@@ -616,7 +615,7 @@ theorem itoFormula_between_simpleShift
     rw [Filter.eventually_all_finset]
     intro v _
     exact itoFormula_between_shift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
-      hfC hf hf' v (hmG v) (hpG v) (hqG v) (hmD v) (hqD v) (hmQ v) (hqQ v) hT
+      hfC hf hf' v (hmG v) (hpG v) (hqG v) (hmD v) (hqD v) (hmQ v) hT (hQint v)
   have hitocells : ∀ (p : Fin n) (k : Fin d), ∀ᵐ ω ∂P,
       stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
         (fun ω s =>

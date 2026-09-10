@@ -22,6 +22,8 @@ integrand, and the two Itô integrals become the single Itô integral of that in
   increment between two cut-offs of an integrand is the difference of the two Itô integrals.
 * `LevyStochCalc.Brownian.Ito.ae_integrableOn_stopped_Ioc` — a cut-off integrand of finite energy
   is almost surely integrable on a bounded window.
+* `LevyStochCalc.Brownian.Ito.ae_integrableOn_stopped_Ioc_of_ae_integrableOn` — cutting off at a
+  stopping time preserves almost sure integrability on a bounded window.
 * `LevyStochCalc.Brownian.Ito.itoFormula_between` — Itô's formula for the increment of a path
   between two stopping times.
 * `LevyStochCalc.Brownian.Ito.itoFormula_stopped_general_shift` — Itô's formula along a path
@@ -98,6 +100,21 @@ theorem ae_integrableOn_stopped_Ioc {ℱ : Filtration ℝ ‹MeasurableSpace Ω�
   filter_upwards [ae_integrableOn_of_energy_lt_top
     (Probability.measurable_uncurry_stopped hτ hmK) hq] with ω hω
   exact hω.mono_set Set.Ioc_subset_Icc_self
+
+omit [IsProbabilityMeasure P] in
+/-- An integrand almost surely integrable on a bounded window stays almost surely integrable
+there after being cut off at a stopping time. -/
+theorem ae_integrableOn_stopped_Ioc_of_ae_integrableOn {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+    {τ : Ω → WithTop ℝ} (hτ : MeasureTheory.IsStoppingTime ℱ τ)
+    {K : Ω → ℝ → ℝ} (hmK : Measurable (Function.uncurry K)) {T : ℝ}
+    (hK : ∀ᵐ ω ∂P, MeasureTheory.IntegrableOn (K ω) (Set.Ioc (0 : ℝ) T) volume) :
+    ∀ᵐ ω ∂P, MeasureTheory.IntegrableOn
+      (Probability.stopped τ K ω) (Set.Ioc (0 : ℝ) T) volume := by
+  filter_upwards [hK] with ω hω
+  refine MeasureTheory.Integrable.mono hω ((Measurable.of_uncurry_left
+    (Probability.measurable_uncurry_stopped hτ hmK)).aestronglyMeasurable) ?_
+  filter_upwards with s
+  simpa only [Real.norm_eq_abs] using Probability.abs_stopped_le τ K ω s
 
 end IncrementEnergy
 
@@ -189,10 +206,10 @@ theorem itoFormula_between
       (‖coordDeriv f' p (X s ω) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
       fun ω s => coordDeriv₂ f'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s))
-    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖coordDeriv₂ f'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s‖₊ : ℝ≥0∞) ^ 2
-        ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T) :
+    {T : ℝ} (hT : 0 < T)
+    (hQint : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s)
+      (Set.Ioc (0 : ℝ) T) volume) :
     (fun ω : Ω => f (X (clipTime τ T ω) ω) - f (X (clipTime σ T ω) ω)) =ᵐ[P] fun ω : Ω =>
       (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
           (Probability.stopped τ (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s
@@ -269,20 +286,25 @@ theorem itoFormula_between
       (Set.Ioc (0 : ℝ) T) volume := by
     rw [MeasureTheory.ae_all_iff]
     exact fun p => ae_integrableOn_stopped_Ioc hσ (hmD p) (hqD p) hT
+  have hQ1 : ∀ p q : Fin n, ∀ᵐ ω ∂P, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s)
+      (Set.Ioc (0 : ℝ) T) volume := by
+    intro p q
+    filter_upwards [hQint] with ω hω using hω p q
   have hQτ : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
       (Probability.stopped τ (fun ω s => coordDeriv₂ f'' p q (X s ω)
         * ∑ k : Fin d, H p k ω s * H q k ω s) ω) (Set.Ioc (0 : ℝ) T) volume := by
     rw [MeasureTheory.ae_all_iff]
     intro p
     rw [MeasureTheory.ae_all_iff]
-    exact fun q => ae_integrableOn_stopped_Ioc hτ (hmQ p q) (hqQ p q) hT
+    exact fun q => ae_integrableOn_stopped_Ioc_of_ae_integrableOn hτ (hmQ p q) (hQ1 p q)
   have hQσ : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
       (Probability.stopped σ (fun ω s => coordDeriv₂ f'' p q (X s ω)
         * ∑ k : Fin d, H p k ω s * H q k ω s) ω) (Set.Ioc (0 : ℝ) T) volume := by
     rw [MeasureTheory.ae_all_iff]
     intro p
     rw [MeasureTheory.ae_all_iff]
-    exact fun q => ae_integrableOn_stopped_Ioc hσ (hmQ p q) (hqQ p q) hT
+    exact fun q => ae_integrableOn_stopped_Ioc_of_ae_integrableOn hσ (hmQ p q) (hQ1 p q)
   filter_upwards [hτres, hσres, hsub, hDτ, hDσ, hQτ, hQσ] with ω e1 e2 e3 e4 e5 e6 e7
   have hA : (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
         (Probability.stopped τ (fun ω s => coordDeriv f' p (X s ω) * bdrift p ω s) ω s
@@ -421,10 +443,10 @@ theorem itoFormula_between_shift
       (‖coordDeriv f' p (X s ω + c) * bdrift p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (hmQ : ∀ p q : Fin n, Measurable (Function.uncurry
       fun ω s => coordDeriv₂ f'' p q (X s ω + c) * ∑ k : Fin d, H p k ω s * H q k ω s))
-    (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖coordDeriv₂ f'' p q (X s ω + c) * ∑ k : Fin d, H p k ω s * H q k ω s‖₊ : ℝ≥0∞) ^ 2
-        ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T) :
+    {T : ℝ} (hT : 0 < T)
+    (hQint : ∀ᵐ ω ∂P, ∀ p q : Fin n, MeasureTheory.IntegrableOn
+      (fun s => coordDeriv₂ f'' p q (X s ω + c) * ∑ k : Fin d, H p k ω s * H q k ω s)
+      (Set.Ioc (0 : ℝ) T) volume) :
     (fun ω : Ω => f (X (clipTime τ T ω) ω + c) - f (X (clipTime σ T ω) ω + c))
       =ᵐ[P] fun ω : Ω =>
       (∑ p : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
@@ -448,7 +470,7 @@ theorem itoFormula_between_shift
   itoFormula_between W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
     (f := fun z => f (z + c)) (f' := fun z => f' (z + c)) (f'' := fun z => f'' (z + c))
     (contDiff_shiftArg hfC c) (fun z => hasFDerivAt_shiftArg hf c z)
-    (fun z => hasFDerivAt_shiftArg hf' c z) hmG hpG hqG hmD hqD hmQ hqQ hT
+    (fun z => hasFDerivAt_shiftArg hf' c z) hmG hpG hqG hmD hqD hmQ hT hQint
 
 end Between
 
