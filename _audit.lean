@@ -2496,3 +2496,23 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.IntegralLimit.tendsto_lintegral_sq_stochasticIntegral_markCut_compl_of_antitone
 #print axioms LevyStochCalc.Ito.IntegralLimit.exists_seq_ae_tendsto_stochasticIntegral_markCut_compl
 #print axioms LevyStochCalc.Ito.IntegralLimit.exists_seq_ae_tendsto_stochasticIntegral_markCut_compl_of_antitone
+
+-- ===== The capped layer with a free base-point path (B4-4b, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.add_shift_eq_of_ae_forall_at_of_path
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumAt_eq_of_path
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTermAt_eq_sum_atomEnum_of_path
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermAt_of_path
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumLeft_eq_of_path
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermLeft_of_path
+
+-- ===== Exhausting a σ-finite mark space (B4 assembly, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.measurableSet_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.compl_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.antitone_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.measure_compl_smallMarks_lt_top
+#print axioms LevyStochCalc.Ito.JumpFormula.measure_compl_smallMarks_ne_top
+#print axioms LevyStochCalc.Ito.JumpFormula.iInter_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.measure_iInter_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_smallMarks
+#print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_augFiltration
