@@ -260,6 +260,7 @@ import LevyStochCalc.Ito.VectorItoVersionUnbounded
 import LevyStochCalc.Ito.VectorItoVersionLimit
 import LevyStochCalc.Ito.JumpSplitting
 import LevyStochCalc.Ito.JumpSplittingAllTimes
+import LevyStochCalc.Ito.JumpSplittingLeftLim
 import LevyStochCalc.Ito.SmallJumpProcess
 import LevyStochCalc.Ito.ItoFormulaUnbounded
 import LevyStochCalc.Ito.ItoFormulaStopped

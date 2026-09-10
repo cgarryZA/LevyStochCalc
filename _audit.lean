@@ -2370,3 +2370,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTerm_eq_sum_atomEnum
 #print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTerm_eq_sum_atomEnum_of_shift
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTerm
+
+-- ===== The splitting in the left-limit convention (B4-4, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_setIntegral_Ioc_prod_nhdsWithin_Ioi
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPath
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeft
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDriftLeft
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeft_zero
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPath_eq_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_countable_setOf_pos_ne_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_ae_restrict_continuousDriftLeft_eq
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_jumpSumLeft_nhdsWithin_Ioi
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_integrableOn_windowLeft
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_vectorItoProcess_continuousDriftLeft_eq
+#print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft
