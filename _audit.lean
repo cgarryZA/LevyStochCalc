@@ -2755,6 +2755,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_cappedJumpSumAt_leftLimPath
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_cappedJumpSumAt_leftLimPath_of_isStoppingTime
 #print axioms LevyStochCalc.Ito.JumpFormula.aemeasurable_cappedJumpSumAt_leftLimPath
+-- M16 wave 2, the SDE data on the named filtration (B1)
+#print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn
+#print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
+#print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
