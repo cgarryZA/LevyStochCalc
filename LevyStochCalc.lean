@@ -299,6 +299,7 @@ import LevyStochCalc.Ito.BigJumpPathBridge
 import LevyStochCalc.Ito.JumpFormulaTaylorBounds
 import LevyStochCalc.Probability.MarkedPredictableComp
 import LevyStochCalc.Ito.JumpCoefficientPredictableZeroExt
+import LevyStochCalc.Ito.SubsequenceBookkeeping
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

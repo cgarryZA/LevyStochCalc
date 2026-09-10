@@ -2691,6 +2691,21 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.measurable_predictableSigma_leftLimPathAtPos
 #print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt
 #print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPath
+-- M16 wave 1, subsequence bookkeeping (K1)
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_atTop_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.Tendsto.comp_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.Tendsto.comp_of_strictMono
+#print axioms LevyStochCalc.Ito.JumpFormula.le_comp_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.le_comp₃_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.strictMono_comp_and_le
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp_of_strictMono
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp_comp_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp_comp_of_strictMono
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_comp'
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp₃
+#print axioms LevyStochCalc.Ito.JumpFormula.exists_strictMono_ae_tendsto₃
+#print axioms LevyStochCalc.Ito.JumpFormula.exists_ae_tendsto₃
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
