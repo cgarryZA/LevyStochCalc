@@ -345,13 +345,3 @@ theorem add_shift_eq_of_ae_forall {X : Setting.JumpDiffusion W N coeffs x₀} {A
 end Setup
 
 end LevyStochCalc.Ito.JumpSplitting
-
-#print axioms LevyStochCalc.Ito.JumpSplitting.exists_seq_rat_gt
-#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_of_ae_rat
-#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_eq_integral_indicator
-#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_jumpSum_nhdsWithin_Ioi
-#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_integrableOn_window
-#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_sub_jumpSum
-#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_eq_of_measure_zero
-#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSum
-#print axioms LevyStochCalc.Ito.JumpSplitting.add_shift_eq_of_ae_forall

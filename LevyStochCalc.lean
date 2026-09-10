@@ -258,6 +258,7 @@ import LevyStochCalc.Ito.VectorItoVersionSup
 import LevyStochCalc.Ito.VectorItoVersionUnbounded
 import LevyStochCalc.Ito.VectorItoVersionLimit
 import LevyStochCalc.Ito.JumpSplitting
+import LevyStochCalc.Ito.JumpSplittingAllTimes
 import LevyStochCalc.Ito.SmallJumpProcess
 import LevyStochCalc.Ito.ItoFormulaUnbounded
 import LevyStochCalc.Ito.ItoFormulaStopped
@@ -274,6 +275,7 @@ import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Ito.JumpSumIdentity
 import LevyStochCalc.Ito.ItoFormulaGeneralShift
 import LevyStochCalc.Ito.ItoFormulaLocalised
+import LevyStochCalc.Ito.ItoFormulaGridShift
 import LevyStochCalc.Ito.JumpFormulaFiniteActivity
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 

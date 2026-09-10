@@ -2264,3 +2264,23 @@ import LevyStochCalc
 
 -- ===== Localisation removing the derivative bounds (B3a-3, 2026-09-10) =====
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_generalShift_localise
+
+-- ===== The finite-activity splitting at all times (B3a-2 repair, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpSplitting.exists_seq_rat_gt
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_of_ae_rat
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_eq_integral_indicator
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_jumpSum_nhdsWithin_Ioi
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_integrableOn_window
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_sub_jumpSum
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSum_eq_of_measure_zero
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSum
+#print axioms LevyStochCalc.Ito.JumpSplitting.add_shift_eq_of_ae_forall
+
+-- ===== Grid discretisation of the stopping time (B3a-1d step iii-c, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.measurableSpace_le_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.measurable_gridStop_measurableSpace
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_stopped_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_setIntegral_stopped_sub_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_le_two_mul
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_stopped_sub_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridShift
