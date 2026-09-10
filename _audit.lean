@@ -2143,3 +2143,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.ae_jumpTime_lt_jumpTime_succ
 #print axioms LevyStochCalc.Poisson.ae_jumpTime_chain
 #print axioms LevyStochCalc.Poisson.ae_exists_finset_jumpTimes_eq
+
+-- ===== Exhaustion and cutoff agreement along the path (B3a-3 core, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_of_ae_eq_on_exhausting
+#print axioms LevyStochCalc.Brownian.Ito.boundedPathSet
+#print axioms LevyStochCalc.Brownian.Ito.boundedPathSet_mono
+#print axioms LevyStochCalc.Brownian.Ito.exists_mem_boundedPathSet
+#print axioms LevyStochCalc.Brownian.Ito.exists_mem_boundedPathSet_of_continuous
+#print axioms LevyStochCalc.Brownian.Ito.ae_exists_mem_boundedPathSet
+#print axioms LevyStochCalc.Brownian.Ito.cutoffFun_eq_on_boundedPathSet
