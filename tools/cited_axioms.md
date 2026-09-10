@@ -313,6 +313,22 @@ literature integral forms.
      localisation that removes the derivative bounds #16 does not assume. Genuinely not implied by
      the coefficient data: `IsLipschitz` constrains `γ` only in the state and only in an `L²(ν)`-in-`e`
      sense, and `IsRegular` bounds only `∫⁻ e, ‖γ s 0 e‖²`. Neither gives a pointwise bound in `e`.
+* **Assembly re-scoped (2026-09-10; plan of record `../Dissertation/WORK_BREAKDOWN.md`, "B4 re-scoped" and
+  "B4-P0 comparison").** The assembled theorem in `Ito/JumpFormulaAssembled.lean` carries seven
+  `sorry`s. Scoping them found: its limit interface is in the pure form while the truncated path's
+  integrands run along the original path; the truncated stochastic terms need bounded derivatives;
+  the axiom's `ℱ` and the SDE's existential `ℱ₀` are unrelated in the statement (correction 8, taken
+  as: usual conditions on `ℱ` and the SDE data at `ℱ` — the papers' own setting, dischargeable from
+  `PicardFixedPoint.exists_unique`'s `SolvesOn`); and correction 7's pointwise-in-mark bound is not
+  the papers' Assumption 2.3, which is `L²(ν)`-Lipschitz. **Next deliverable: milestone M16**, the
+  formula for `u` with bounded `∂ₜu`, `∇u`, `Hess u`. **M16 is narrower than this axiom and does not
+  close #16**; #16 stays live until the general statement is proved or explicitly retired.
+  **The papers do not apply this statement's shape:** WP (4.5) uses Itô only for `e^s|δY|²` and
+  `⟨Gx, y⟩`, with a jump term the paper says has no square moments and handles by the compensation
+  formula, and a local-martingale Brownian term; this axiom's `h_jumpInt_sq` / `h_sigmaGrad_sq`
+  exclude that use. Nothing here validates the papers' Itô applications; that formula ("D-Itô",
+  Epic D) needs local stochastic integrals the tree does not have. The "Applebaum Thm 4.4.7"
+  attribution is the Dissertation's tag, not checked against the book's statement (B4-P2).
 * **Scope (recorded 2026-09-06; resolved the same day by X2-3, at the end of this bullet).** The
   progressive-measurability hypotheses `h_sigmaGrad_progMeas` / `h_jumpInt_progMeas` are relative to
   the natural filtration of a *single* driver (`naturalFiltration (W.W j)` per Brownian coordinate,
