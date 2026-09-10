@@ -64,6 +64,7 @@ import LevyStochCalc.Poisson.Atomic
 import LevyStochCalc.Poisson.Compensator
 import LevyStochCalc.Poisson.CompensatorL1
 import LevyStochCalc.Poisson.JumpSum
+import LevyStochCalc.Poisson.JumpTimes
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
 import LevyStochCalc.Poisson.PathwiseIdentity
@@ -255,6 +256,10 @@ import LevyStochCalc.Ito.VectorItoVersionSup
 import LevyStochCalc.Ito.VectorItoVersionUnbounded
 import LevyStochCalc.Ito.ItoFormulaUnbounded
 import LevyStochCalc.Ito.ItoFormulaStopped
+import LevyStochCalc.Ito.JumpTelescope
+import LevyStochCalc.Ito.ItoFormulaStoppedLimit
+import LevyStochCalc.Ito.ItoFormulaShift
+import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

@@ -1964,3 +1964,48 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_iSup_sq_norm_version_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_sub_le
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_iSup_sq_norm_clamp_version_sub_le
+-- ===== Telescoping over a chain of stopping times (B3a-2, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.stopped_eq_self_of_mem_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.stopped_eq_zero_of_le_zero
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_stopped_eq_of_chain
+#print axioms LevyStochCalc.Brownian.Ito.sum_range_sub_comp
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_finsetSum
+-- ===== Jump times of a Poisson random measure (B3a-1e, 2026-09-10) =====
+#print axioms LevyStochCalc.Poisson.arrivalCount
+#print axioms LevyStochCalc.Poisson.arrivalCount_mono
+#print axioms LevyStochCalc.Poisson.measurable_arrivalCount
+#print axioms LevyStochCalc.Poisson.adapted_arrivalCount
+#print axioms LevyStochCalc.Poisson.iInf_arrivalCount_gt
+#print axioms LevyStochCalc.Poisson.ae_forall_arrivalCount_ne_top
+#print axioms LevyStochCalc.Poisson.jumpTime
+#print axioms LevyStochCalc.Poisson.jumpTime_zero
+#print axioms LevyStochCalc.Poisson.jumpTime_mono
+#print axioms LevyStochCalc.Poisson.measurableSet_jumpTime_lt
+#print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime_rightCont
+#print axioms LevyStochCalc.Poisson.jumpTime_le_iff
+#print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime
+#print axioms LevyStochCalc.Poisson.finite_setOf_jumpTime_le
+#print axioms LevyStochCalc.Poisson.ae_finite_setOf_jumpTime_le
+#print axioms LevyStochCalc.Poisson.exists_strictMono_enum_jumpTime
+-- ===== The stopped Itô formula at a general stopping time (B3a-1b', 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.clipTime_lt_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.gridStop_eq_or_top
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_clipTime_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_of_tendsto_pi
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_stopped_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.stopped_general
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped_general
+-- ===== The shifted stopped Itô formula and the pull-out (B3a-1d part, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.contDiff_shiftArg
+#print axioms LevyStochCalc.Brownian.Ito.hasFDerivAt_shiftArg
+#print axioms LevyStochCalc.Brownian.Ito.coordDeriv_shiftArg
+#print axioms LevyStochCalc.Brownian.Ito.coordDeriv₂_shiftArg
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped_shift
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_stopped_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.mul_stochasticIntegralBrownian_hitInd
+#print axioms LevyStochCalc.Brownian.Ito.mul_stochasticIntegralBrownian_hitInd_stopped_sub
+-- ===== The time-dependent Itô formula without bounds (B1d-5, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.sq_timeAugDrift
+#print axioms LevyStochCalc.Brownian.Ito.measurable_timeAugInit
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.itoFormulaTime_of_unbounded
