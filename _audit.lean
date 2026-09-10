@@ -2395,3 +2395,22 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.process_congr_filtration
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_filtration
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_augFiltration
+
+-- ===== The small-jump limit of the Itô–Lévy formula (B4-2c, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_of_antitone
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_comp
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_setIntegral_of_dominated
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_gradient
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_compensatorDriftIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_compensatorDriftIntegrand_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_setIntegral_compensatorDrift
+#print axioms LevyStochCalc.Ito.JumpFormula.firstOrderIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_setIntegral_firstOrder
+#print axioms LevyStochCalc.Ito.JumpFormula.markTruncCoeffs
+#print axioms LevyStochCalc.Ito.JumpFormula.driftIntegrand_markTruncCoeffs
+#print axioms LevyStochCalc.Ito.JumpFormula.compensatorDriftIntegrand_markTruncCoeffs
+#print axioms LevyStochCalc.Ito.JumpFormula.integral_compensatorDriftIntegrand_markTruncCoeffs
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_sub_of_markTruncCoeffs
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_itoLevy_of_ae_tendsto_integrals
