@@ -300,6 +300,8 @@ import LevyStochCalc.Ito.JumpFormulaTaylorBounds
 import LevyStochCalc.Probability.MarkedPredictableComp
 import LevyStochCalc.Ito.JumpCoefficientPredictableZeroExt
 import LevyStochCalc.Ito.SubsequenceBookkeeping
+import LevyStochCalc.Ito.ItoFormulaGridShiftClosed
+import LevyStochCalc.Ito.JumpFormulaContinuity
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

@@ -2706,6 +2706,30 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_tendsto_comp₃
 #print axioms LevyStochCalc.Ito.JumpFormula.exists_strictMono_ae_tendsto₃
 #print axioms LevyStochCalc.Ito.JumpFormula.exists_ae_tendsto₃
+-- M16 wave 1, continuity of the derivative integrands (K3a)
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_timeDeriv
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_gradient_uncurry
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_hessian
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_levyGenerator
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_driftIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_diffusionIntegrand
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_timeDeriv_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_gradient_apply_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_gradient_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_hessian_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_sum_gradient_mul_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_driftIntegrand_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_diffusionIntegrand_of_tendsto
+-- M16 wave 1, the per-interval chain closed for a finitely valued shift (C1a)
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_image_succ_nonneg
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_filter_nonneg
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_filter_lt
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc_eq_or_top
+#print axioms LevyStochCalc.Brownian.Ito.measurableSet_cell_gridStop
+#print axioms LevyStochCalc.Brownian.Ito.measurableSet_cell_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_gridStop_simple
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_gridStopTrunc_simple
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridShift_of_simpleShift
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
