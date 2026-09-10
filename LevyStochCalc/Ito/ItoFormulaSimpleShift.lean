@@ -30,6 +30,8 @@ deterministic time carried by the cell — passes inside the Itô integral of th
   that increment splits over the cells.
 * `LevyStochCalc.Brownian.Ito.itoFormula_between_simpleShift` — Itô's formula for the increment of
   a path between two stopping times, for a function translated by a simple random vector.
+* `LevyStochCalc.Brownian.Ito.measurableSet_cell_of_measurable` — a mark measurable at a stopping
+  time has cells measurable at the deterministic times that stopping time takes.
 -/
 
 namespace LevyStochCalc.Brownian.Ito
@@ -701,5 +703,33 @@ theorem itoFormula_between_simpleShift
     simp [hz]
 
 end SimpleShift
+
+section CellFromStoppingTime
+
+variable {Ω : Type u} {mΩ : MeasurableSpace Ω} {α : Type*}
+
+/-- A cell on which a stopping time takes a deterministic value and a random mark known at that
+stopping time takes a given value is measurable at that deterministic time. -/
+theorem measurableSet_cell_of_measurableSpace {ℱ : Filtration ℝ mΩ} {σ : Ω → WithTop ℝ}
+    (hσ : MeasureTheory.IsStoppingTime ℱ σ) {c : Ω → α} {v : α} (a : ℝ)
+    (hc : MeasurableSet[hσ.measurableSpace] {ω | c ω = v}) :
+    MeasurableSet[ℱ a] {ω | σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v} := by
+  have hset : {ω | σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v}
+      = {ω | c ω = v} ∩ {ω | σ ω = ((a : ℝ) : WithTop ℝ)} :=
+    Set.ext fun _ => ⟨fun h => ⟨h.2, h.1⟩, fun h => ⟨h.2, h.1⟩⟩
+  rw [hset]
+  exact (hσ.measurableSet_inter_eq_iff _ a).1
+    (MeasurableSet.inter hc (hσ.measurableSet_eq' a))
+
+/-- The cells of a random mark measurable at a stopping time are measurable at the deterministic
+times the stopping time takes. -/
+theorem measurableSet_cell_of_measurable [MeasurableSpace α] [MeasurableSingletonClass α]
+    {ℱ : Filtration ℝ mΩ} {σ : Ω → WithTop ℝ}
+    (hσ : MeasureTheory.IsStoppingTime ℱ σ) {c : Ω → α}
+    (hc : Measurable[hσ.measurableSpace] c) (a : ℝ) (v : α) :
+    MeasurableSet[ℱ a] {ω | σ ω = ((a : ℝ) : WithTop ℝ) ∧ c ω = v} :=
+  measurableSet_cell_of_measurableSpace hσ a (hc (measurableSet_singleton v))
+
+end CellFromStoppingTime
 
 end LevyStochCalc.Brownian.Ito

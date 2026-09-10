@@ -2205,3 +2205,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_eq_sum
 #print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_eq_sum_congr
 #print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_Icc_eq_setIntegral_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.measurableSet_cell_of_measurableSpace
+#print axioms LevyStochCalc.Brownian.Ito.measurableSet_cell_of_measurable
+
+-- ===== The pathwise jump sum against the compensated integral (B4-0b, 2026-09-10) =====
+#print axioms LevyStochCalc.Poisson.mem_window_of_restrict_ne_zero
+#print axioms LevyStochCalc.Poisson.restrict_singleton_eq_count_of_mem
+#print axioms LevyStochCalc.Poisson.count_singleton_eq_one_of_restrict_ne_zero
+#print axioms LevyStochCalc.Poisson.restrict_singleton_eq_one_of_ne_zero
+#print axioms LevyStochCalc.Poisson.eq_of_fst_eq_of_restrict_ne_zero
+#print axioms LevyStochCalc.Poisson.exists_atomFinset_integral_eq_sum
+#print axioms LevyStochCalc.Poisson.exists_strictMono_enum_of_fst_inj
+#print axioms LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum
+#print axioms LevyStochCalc.Poisson.ae_exists_atomEnum_sum_eq_stochasticIntegral_add

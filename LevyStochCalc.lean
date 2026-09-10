@@ -270,6 +270,7 @@ import LevyStochCalc.Ito.JumpFormulaAssembly
 import LevyStochCalc.Ito.ItoFormulaExhaustion
 import LevyStochCalc.Ito.ItoFormulaSimpleShift
 import LevyStochCalc.Ito.JumpFormulaDictionary
+import LevyStochCalc.Ito.JumpSumIdentity
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
