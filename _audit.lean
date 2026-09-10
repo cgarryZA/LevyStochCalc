@@ -2650,3 +2650,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.CadlagExitTime.coordDeriv_cutoffFun_eq
 #print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff
 #print axioms LevyStochCalc.Ito.CadlagExitTime.stochasticIntegralBrownian_stopped_sub_congr_cutoff_all
+
+-- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

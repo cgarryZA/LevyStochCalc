@@ -1,0 +1,12 @@
+# tools/sorry_baseline.txt — declarations permitted to depend on `sorryAx`.
+# Read by tools/audit_check.py (from tools/lint.sh). An entry here is an OPEN OBLIGATION, not a
+# proof: the declaration type-checks but its proof term is incomplete. Delete the entry in the
+# commit that closes it. One fully-qualified name per line; `#` starts a comment.
+#
+# The assembled Itô–Lévy formula (Epic B4). Its statement carries the hypotheses the assembly
+# consumes — the cited result's, plus the corrections in tools/cited_axioms.md entry 16 — and its
+# proof is the small-jump truncation, reduced to the six inputs of
+# `JumpFormulaLimit.ae_itoLevy_of_ae_tendsto_integrals` plus the truncated data they range over.
+# The seven `sorry`s in it are those obligations, each carrying its own local context; see the
+# comments at each one in Ito/JumpFormulaAssembled.lean.
+LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
