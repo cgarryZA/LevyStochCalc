@@ -2152,3 +2152,29 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.exists_mem_boundedPathSet_of_continuous
 #print axioms LevyStochCalc.Brownian.Ito.ae_exists_mem_boundedPathSet
 #print axioms LevyStochCalc.Brownian.Ito.cutoffFun_eq_on_boundedPathSet
+
+-- ===== Itô's formula for a simple random shift (B3a-1d step iii-a, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.cellWeight
+#print axioms LevyStochCalc.Brownian.Ito.cellWeight_of_mem
+#print axioms LevyStochCalc.Brownian.Ito.cellWeight_of_notMem
+#print axioms LevyStochCalc.Brownian.Ito.abs_cellWeight_le_one
+#print axioms LevyStochCalc.Brownian.Ito.eq_of_cellWeight_ne_zero
+#print axioms LevyStochCalc.Brownian.Ito.le_of_cellWeight_ne_zero
+#print axioms LevyStochCalc.Brownian.Ito.hitInd_mul_cellWeight
+#print axioms LevyStochCalc.Brownian.Ito.measurable_cellWeight
+#print axioms LevyStochCalc.Brownian.Ito.stronglyMeasurable_cellWeight
+#print axioms LevyStochCalc.Brownian.Ito.cellWeight_eq_zero_of_notMem_left
+#print axioms LevyStochCalc.Brownian.Ito.cellWeight_eq_zero_of_notMem_right
+#print axioms LevyStochCalc.Brownian.Ito.sum_cellWeight_mul
+#print axioms LevyStochCalc.Brownian.Ito.sum_cellWeight_mul_of_top
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_of_agree
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_weight_mul_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.measurable_weight_mul_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.energy_weight_mul_stopped_sub_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.cell_stopped_sub_eq_zero
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_eq_sum_cells
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_finsetSum
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_cell_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_simple
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_cells
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_simpleShift

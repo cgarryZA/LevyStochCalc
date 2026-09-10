@@ -73,7 +73,7 @@ theorem consEmbed_single (q : Fin n) :
   induction i using Fin.cases with
   | zero =>
     have h : (0 : Fin (n + 1)) ≠ q.succ := fun hz => (Fin.succ_ne_zero q) hz.symm
-    simp [Pi.single_apply, h]
+    simp [h]
   | succ p => simp [Pi.single_apply, Fin.succ_inj]
 
 /-- The map `y ↦ Fin.cons s y` is affine with linear part the embedding of the state space. -/
@@ -112,7 +112,7 @@ theorem hasDerivAt_consTime (x : Fin n → ℝ) (s : ℝ) :
     funext t i
     induction i using Fin.cases with
     | zero => simp
-    | succ p => simp [Pi.single_apply, Fin.succ_ne_zero p]
+    | succ p => simp [Fin.succ_ne_zero p]
   rw [heq] at hbase
   simpa using hbase
 
@@ -205,17 +205,17 @@ theorem coordDeriv₂_succ_succ_cons_eq_hessian_comm (hfu : ∀ z, f z = timeAug
     have h := coordDeriv_succ_cons_eq_gradient hfu hf s y q
     simp only [coordDeriv, gradient] at h
     exact h.symm
-  have hev : HasFDerivAt (fun w : Fin (n + 1) → ℝ => f' w (Pi.single q.succ (1 : ℝ)))
-      ((ContinuousLinearMap.apply ℝ ℝ (Pi.single q.succ (1 : ℝ))).comp
-        (f'' (Fin.cons s x))) (Fin.cons s x) := by
-    exact HasFDerivAt.comp (Fin.cons s x)
+  have hev0 := HasFDerivAt.comp (Fin.cons s x : Fin (n + 1) → ℝ)
       (ContinuousLinearMap.apply ℝ ℝ (Pi.single q.succ (1 : ℝ))).hasFDerivAt
       (hf' (Fin.cons s x))
+  have hev : HasFDerivAt (fun w : Fin (n + 1) → ℝ => f' w (Pi.single q.succ (1 : ℝ)))
+      ((ContinuousLinearMap.apply ℝ ℝ (Pi.single q.succ (1 : ℝ))).comp
+        (f'' (Fin.cons s x))) (Fin.cons s x) := hev0
+  have hcomp0 := HasFDerivAt.comp x hev (hasFDerivAt_cons s x)
   have hcomp : HasFDerivAt
       (fun y : Fin n → ℝ => f' (Fin.cons s y) (Pi.single q.succ (1 : ℝ)))
       (((ContinuousLinearMap.apply ℝ ℝ (Pi.single q.succ (1 : ℝ))).comp
-        (f'' (Fin.cons s x))).comp (consEmbed n)) x := by
-    exact HasFDerivAt.comp x hev (hasFDerivAt_cons s x)
+        (f'' (Fin.cons s x))).comp (consEmbed n)) x := hcomp0
   simp only [hessian, hgrad, hcomp.fderiv, coordDeriv₂, ContinuousLinearMap.comp_apply,
     consEmbed_single, ContinuousLinearMap.apply_apply]
 
