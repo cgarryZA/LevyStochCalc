@@ -2062,3 +2062,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_exists_leftLim
 #print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_ae_eq
 #print axioms LevyStochCalc.Poisson.Compensated.measurable_uncurry_cadlagIntegralPi
+-- ===== Itô's formula for the increment between two stopping times (B3a-1f, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.measurable_uncurry_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.energy_stopped_sub_lt_top
+#print axioms LevyStochCalc.Brownian.Ito.ae_integrableOn_stopped_Ioc
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped_general_shift
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_shift
