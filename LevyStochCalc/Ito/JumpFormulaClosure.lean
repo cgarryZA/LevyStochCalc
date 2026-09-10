@@ -7,6 +7,8 @@ import LevyStochCalc.Ito.JumpFormulaLimit
 import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Brownian.ItoFiltrationChange
 import LevyStochCalc.Ito.BigJumpDiffusion
+import LevyStochCalc.Ito.JumpCoefficientPredictable
+import LevyStochCalc.Poisson.SmallJump
 
 /-!
 # Exhausting a σ-finite mark space by finite-activity complements
@@ -226,6 +228,49 @@ theorem measurable_augFiltration_repairOn {ℱ : Filtration ℝ ‹MeasurableSpa
   exact Measurable.ite hGaug hXaug measurable_const
 
 end Repair
+
+section MarkCut
+
+open LevyStochCalc.Probability
+
+universe u₃ v₃
+
+variable {Ω : Type u₃} [MeasurableSpace Ω] {E : Type v₃} [MeasurableSpace E]
+  {ν : Measure E} [SigmaFinite ν] {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+
+/-- An integrand vanishing at nonpositive times stays predictable when cut to a measurable set of
+marks. The vanishing is necessary: every generator of the marked predictable σ-algebra lies at
+strictly positive times, so a set meeting the nonpositive strip without containing it is not
+measurable there, and the mark cut of a general predictable integrand is one such. -/
+theorem markedPredictable_markCut {φ : Ω → ℝ → E → ℝ} (hφ : MarkedPredictable ℱ ν φ)
+    (hφ0 : ∀ (ω : Ω) (s : ℝ) (e : E), s ≤ 0 → φ ω s e = 0)
+    {A : Set E} (hA : MeasurableSet A) :
+    MarkedPredictable ℱ ν (LevyStochCalc.Poisson.Compensated.markCut A φ) := by
+  classical
+  set S : Set (Ω × ℝ × E) :=
+    (Set.univ : Set Ω) ×ˢ (((Set.univ : Set ℝ) ×ˢ A) ∩ Set.Ioi (0 : ℝ) ×ˢ (Set.univ : Set E))
+    with hSdef
+  have hS : MeasurableSet[markedPredictableSigma ℱ ν] S :=
+    measurableSet_markedPredictableSigma_univ_prod_pos (MeasurableSet.univ.prod hA)
+  have heq : (fun p : Ω × ℝ × E =>
+        LevyStochCalc.Poisson.Compensated.markCut A φ p.1 p.2.1 p.2.2)
+      = S.indicator fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2 := by
+    funext p
+    by_cases hmem : p.2.2 ∈ A
+    · by_cases hpos : (0 : ℝ) < p.2.1
+      · have : p ∈ S := by simp [hSdef, hmem, hpos]
+        simp [LevyStochCalc.Poisson.Compensated.markCut, hmem, Set.indicator_of_mem this]
+      · have hle : p.2.1 ≤ 0 := le_of_not_gt hpos
+        have : p ∉ S := by simp [hSdef, hpos]
+        simp [LevyStochCalc.Poisson.Compensated.markCut, hmem,
+          Set.indicator_of_notMem this, hφ0 p.1 p.2.1 p.2.2 hle]
+    · have : p ∉ S := by simp [hSdef, hmem]
+      simp [LevyStochCalc.Poisson.Compensated.markCut, hmem, Set.indicator_of_notMem this]
+  show Measurable[markedPredictableSigma ℱ ν] _
+  rw [heq]
+  exact hφ.indicator hS
+
+end MarkCut
 
 section Duplicates
 
