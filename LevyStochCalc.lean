@@ -264,6 +264,7 @@ import LevyStochCalc.Ito.ItoFormulaStopped
 import LevyStochCalc.Ito.JumpTelescope
 import LevyStochCalc.Ito.ItoFormulaStoppedLimit
 import LevyStochCalc.Ito.ItoFormulaShift
+import LevyStochCalc.Ito.ItoIntegrandAeCongr
 import LevyStochCalc.Ito.ItoFormulaIncrement
 import LevyStochCalc.Ito.ItoFormulaRandomShift
 import LevyStochCalc.Ito.JumpFormulaAssembly
@@ -272,6 +273,7 @@ import LevyStochCalc.Ito.ItoFormulaSimpleShift
 import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Ito.JumpSumIdentity
 import LevyStochCalc.Ito.ItoFormulaGeneralShift
+import LevyStochCalc.Ito.ItoFormulaLocalised
 import LevyStochCalc.Ito.JumpFormulaFiniteActivity
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 

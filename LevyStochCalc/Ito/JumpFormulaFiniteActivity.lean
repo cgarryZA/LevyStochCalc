@@ -3,6 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
+import LevyStochCalc.Ito.ItoFormulaExhaustion
 import LevyStochCalc.Ito.JumpFormulaAssembly
 import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Ito.JumpSplitting
@@ -20,7 +21,8 @@ Itô–Lévy formula instead carries the drift `μ` itself and the compensator-d
 
 The accumulated jumps taken at the arrival times capped at the horizon are constant in the index
 once the arrival time has passed the horizon, so a telescope over a chain of arrival times has
-only in-window terms.
+only in-window terms. Between consecutive arrival times inside the window that accumulation gains
+exactly the jump coefficient carried by the later arrival time and the mark enumerated with it.
 
 ## Main definitions
 
@@ -43,6 +45,15 @@ only in-window terms.
   identity and the jump-sum identity.
 * `LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq` — past the horizon the capped jump sum
   no longer moves.
+* `LevyStochCalc.Ito.JumpFormula.ae_eq_of_ae_eq_of_le_jumpTime` — an identity holding almost
+  everywhere on each event where the chain of arrival times has passed the horizon holds almost
+  everywhere.
+* `LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum`,
+  `LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_add_gamma`,
+  `LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_cappedJumpSum_succ` — the jump sum over a
+  sub-window as the sum over the enumerated atoms it contains, and the increment of the capped
+  jump sum between consecutive arrival times as the jump coefficient at the later arrival time
+  and its mark.
 
 ## References
 
@@ -405,5 +416,222 @@ theorem eq_add_cappedJumpSum_of_le {T : ℝ} {m : ℕ} {ω : Ω} {V : ℝ → Ω
   rw [cappedJumpSum_of_le X A hm, hsplit i]
 
 end CappedShift
+
+section Exhaustion
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+
+variable (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (A : Set E)
+
+/-- Consecutive arrival times increase. -/
+theorem jumpTime_le_jumpTime_succ (k : ℕ) (ω : Ω) :
+    LevyStochCalc.Poisson.jumpTime N A k ω ≤ LevyStochCalc.Poisson.jumpTime N A (k + 1) ω :=
+  LevyStochCalc.Poisson.jumpTime_mono N A (Nat.le_succ k) ω
+
+/-- The chain of arrival times starts at the origin. -/
+theorem jumpTime_chain_zero (ω : Ω) :
+    LevyStochCalc.Poisson.jumpTime N A 0 ω = ((0 : ℝ) : WithTop ℝ) :=
+  LevyStochCalc.Poisson.jumpTime_zero N A ω
+
+/-- The events on which the chain of arrival times has passed the horizon cover almost every
+sample point. -/
+theorem ae_exists_le_jumpTime (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ) :
+    ∀ᵐ ω ∂P, ∃ m : ℕ,
+      ω ∈ {ω' : Ω | ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A m ω'} := by
+  filter_upwards [LevyStochCalc.Poisson.ae_jumpTime_chain N A hA hAν T] with ω hω
+  exact hω.2
+
+/-- An identity that holds almost everywhere on each event where the chain of arrival times has
+passed the horizon holds almost everywhere. -/
+theorem ae_eq_of_ae_eq_of_le_jumpTime (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ)
+    {L R : Ω → ℝ}
+    (h : ∀ m : ℕ, ∀ᵐ ω ∂P, ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A m ω →
+      L ω = R ω) :
+    L =ᵐ[P] R :=
+  LevyStochCalc.Brownian.Ito.ae_eq_of_ae_eq_on_exhausting
+    (S := fun m => {ω' : Ω | ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A m ω'})
+    (ae_exists_le_jumpTime N A hA hAν T) h
+
+end Exhaustion
+
+section MarkIdentification
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {n d : ℕ}
+  {W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d}
+  {N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν}
+  {coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E} {x₀ : Fin n → ℝ}
+
+variable (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀) {A : Set E} {K : ℕ}
+  {θ : Fin K → ℝ} {ε : Fin K → E} {T : ℝ} {ω : Ω}
+
+/-- The jump sum over a sub-window of an enumerated window is the sum of the jump coefficient
+over the enumerated atoms whose times lie in the sub-window. -/
+theorem jumpSum_eq_sum_atomEnum (hA : MeasurableSet A)
+    (hmem : ∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A)
+    (hsum : ∀ g : ℝ × E → ℝ,
+      ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j))
+    {t : ℝ} (ht : t ≤ T) (i : Fin n) :
+    LevyStochCalc.Ito.JumpSplitting.jumpSum X A t ω i
+      = ∑ j : Fin K, if θ j ≤ t then coeffs.γ (θ j) (X.X (θ j) ω) (ε j) i else 0 := by
+  classical
+  have hmt : MeasurableSet (Set.Ioc (0 : ℝ) t ×ˢ A) := measurableSet_Ioc.prod hA
+  have hsub : (Set.Ioc (0 : ℝ) T ×ˢ A) ∩ (Set.Ioc (0 : ℝ) t ×ˢ A) = Set.Ioc (0 : ℝ) t ×ˢ A :=
+    Set.inter_eq_self_of_subset_right
+      (Set.prod_mono (Set.Ioc_subset_Ioc_right ht) le_rfl)
+  have hind := hsum ((Set.Ioc (0 : ℝ) t ×ˢ A).indicator
+    fun q : ℝ × E => coeffs.γ q.1 (X.X q.1 ω) q.2 i)
+  rw [setIntegral_indicator hmt, hsub] at hind
+  simp only [LevyStochCalc.Ito.JumpSplitting.jumpSum]
+  rw [hind]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  by_cases hj : θ j ≤ t
+  · have hmemj : ((θ j, ε j) : ℝ × E) ∈ Set.Ioc (0 : ℝ) t ×ˢ A :=
+      Set.mem_prod.mpr ⟨Set.mem_Ioc.mpr ⟨(hmem j).1.1, hj⟩, (hmem j).2⟩
+    rw [if_pos hj, Set.indicator_of_mem hmemj]
+  · have hnot : ((θ j, ε j) : ℝ × E) ∉ Set.Ioc (0 : ℝ) t ×ˢ A := fun hc =>
+      hj (Set.mem_Ioc.mp (Set.mem_prod.mp hc).1).2
+    rw [if_neg hj, Set.indicator_of_notMem hnot]
+
+/-- Between consecutive arrival times inside the window the jump sum gains exactly the jump
+coefficient carried by the later arrival time and its mark. -/
+theorem cappedJumpSum_succ_eq_add_gamma (hA : MeasurableSet A)
+    (hmem : ∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A)
+    (hsum : ∀ g : ℝ × E → ℝ,
+      ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j))
+    (hθ : Function.Injective θ)
+    (hrange : Set.range θ
+      = {v : ℝ | ∃ i : ℕ, LevyStochCalc.Poisson.jumpTime N A i ω = (v : WithTop ℝ)
+          ∧ 0 < v ∧ v ≤ T})
+    {k : ℕ}
+    (hlt : LevyStochCalc.Poisson.jumpTime N A k ω
+      < LevyStochCalc.Poisson.jumpTime N A (k + 1) ω)
+    (hle : LevyStochCalc.Poisson.jumpTime N A (k + 1) ω ≤ ((T : ℝ) : WithTop ℝ)) :
+    ∃ j : Fin K, LevyStochCalc.Poisson.jumpTime N A (k + 1) ω = ((θ j : ℝ) : WithTop ℝ) ∧
+      cappedJumpSum X A T (k + 1) ω
+        = cappedJumpSum X A T k ω + coeffs.γ (θ j) (X.X (θ j) ω) (ε j) := by
+  classical
+  -- The two arrival times are finite reals `q < r ≤ T`, with `0 ≤ q`.
+  obtain ⟨r, hr⟩ := WithTop.ne_top_iff_exists.mp
+    (hle.trans_lt (WithTop.coe_lt_top T)).ne
+  have hkle : LevyStochCalc.Poisson.jumpTime N A k ω ≤ ((r : ℝ) : WithTop ℝ) := by
+    rw [hr]; exact hlt.le
+  obtain ⟨q, hq⟩ := WithTop.ne_top_iff_exists.mp
+    (lt_of_le_of_lt hkle (WithTop.coe_lt_top r)).ne
+  have hqr : q < r := by
+    have := hlt
+    rw [← hq, ← hr] at this
+    exact_mod_cast this
+  have hrT : r ≤ T := by
+    have := hle
+    rw [← hr] at this
+    exact_mod_cast this
+  have hq0 : (0 : ℝ) ≤ q := by
+    have := LevyStochCalc.Poisson.coe_zero_le_jumpTime N A k ω
+    rw [← hq] at this
+    exact_mod_cast this
+  have hqT : q ≤ T := le_of_lt (lt_of_lt_of_le hqr hrT)
+  have hr0 : (0 : ℝ) < r := lt_of_le_of_lt hq0 hqr
+  -- The later arrival time is one of the enumerated atom times.
+  have hmemr : r ∈ Set.range θ := by
+    rw [hrange]
+    exact ⟨k + 1, hr.symm, hr0, hrT⟩
+  obtain ⟨j₀, hj₀⟩ := hmemr
+  refine ⟨j₀, by rw [← hr, hj₀], ?_⟩
+  -- The two capped shifts are the jump sums at `r` and at `q`.
+  have hck1 : cappedJumpSum X A T (k + 1) ω
+      = LevyStochCalc.Ito.JumpSplitting.jumpSum X A r ω := by
+    rw [cappedJumpSum, LevyStochCalc.Brownian.Ito.clipTime_eq_min hr.symm, min_eq_right hrT]
+  have hck : cappedJumpSum X A T k ω = LevyStochCalc.Ito.JumpSplitting.jumpSum X A q ω := by
+    rw [cappedJumpSum, LevyStochCalc.Brownian.Ito.clipTime_eq_min hq.symm, min_eq_right hqT]
+  -- Only the atom at the later arrival time enters the increment.
+  have hkey : ∀ j : Fin K, j ≠ j₀ → (θ j ≤ r ↔ θ j ≤ q) := by
+    intro j hj
+    constructor
+    · intro hjr
+      have hmemj : θ j ∈ Set.range θ := Set.mem_range_self j
+      rw [hrange] at hmemj
+      obtain ⟨i, hi, -, -⟩ := hmemj
+      rcases le_or_gt i k with hik | hik
+      · have := LevyStochCalc.Poisson.jumpTime_mono N A hik ω
+        rw [hi, ← hq] at this
+        exact_mod_cast this
+      · have := LevyStochCalc.Poisson.jumpTime_mono N A (Nat.succ_le_of_lt hik) ω
+        rw [hi, ← hr] at this
+        have hrj : r ≤ θ j := by exact_mod_cast this
+        exact absurd (hθ (hj₀.trans (le_antisymm hrj hjr))).symm hj
+    · intro hjq
+      exact le_of_lt (lt_of_le_of_lt hjq hqr)
+  funext i
+  have h1 := jumpSum_eq_sum_atomEnum X hA hmem hsum hrT i
+  have h2 := jumpSum_eq_sum_atomEnum X hA hmem hsum hqT i
+  have hdiff : LevyStochCalc.Ito.JumpSplitting.jumpSum X A r ω i
+      - LevyStochCalc.Ito.JumpSplitting.jumpSum X A q ω i
+      = coeffs.γ (θ j₀) (X.X (θ j₀) ω) (ε j₀) i := by
+    rw [h1, h2, ← Finset.sum_sub_distrib]
+    refine (Finset.sum_eq_single j₀ ?_ ?_).trans ?_
+    · intro j _ hj
+      by_cases hjr : θ j ≤ r
+      · rw [if_pos hjr, if_pos ((hkey j hj).mp hjr), sub_self]
+      · rw [if_neg hjr, if_neg (fun hc => hjr ((hkey j hj).mpr hc)), sub_self]
+    · intro hj
+      exact absurd (Finset.mem_univ j₀) hj
+    · rw [if_pos (le_of_eq hj₀), if_neg (by rw [hj₀]; exact not_le.mpr hqr), sub_zero]
+  rw [hck1, hck]
+  simp only [Pi.add_apply]
+  linarith
+
+/-- The jump sum over the whole enumerated window is the sum of the jump coefficient over the
+enumerated atoms. -/
+theorem jumpSum_eq_sum_atomEnum_horizon (hA : MeasurableSet A)
+    (hmem : ∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A)
+    (hsum : ∀ g : ℝ × E → ℝ,
+      ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) :
+    LevyStochCalc.Ito.JumpSplitting.jumpSum X A T ω
+      = ∑ j : Fin K, coeffs.γ (θ j) (X.X (θ j) ω) (ε j) := by
+  classical
+  funext i
+  rw [Finset.sum_apply, jumpSum_eq_sum_atomEnum X hA hmem hsum le_rfl i]
+  exact Finset.sum_congr rfl fun j _ => if_pos (hmem j).1.2
+
+end MarkIdentification
+
+section MarkIdentificationAe
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {n d : ℕ}
+  {W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d}
+  {N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν}
+  {coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E} {x₀ : Fin n → ℝ}
+
+/-- **The atoms of the window carry the increments of the capped jump sum.** Almost surely the
+window of finite intensity carries a strictly increasing enumeration of its atoms which computes
+every integral over the window, whose values sum to the jump sum over the window, and along
+which the capped jump sum gains, between consecutive arrival times inside the window, exactly
+the jump coefficient evaluated at the later arrival time and its mark. -/
+theorem ae_exists_atomEnum_cappedJumpSum_succ
+    (X : LevyStochCalc.Ito.Setting.JumpDiffusion W N coeffs x₀) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ) :
+    ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
+      (∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
+      (∀ g : ℝ × E → ℝ,
+        ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) ∧
+      LevyStochCalc.Ito.JumpSplitting.jumpSum X A T ω
+        = ∑ j : Fin K, coeffs.γ (θ j) (X.X (θ j) ω) (ε j) ∧
+      ∀ k : ℕ, LevyStochCalc.Poisson.jumpTime N A (k + 1) ω ≤ ((T : ℝ) : WithTop ℝ) →
+        ∃ j : Fin K, LevyStochCalc.Poisson.jumpTime N A (k + 1) ω = ((θ j : ℝ) : WithTop ℝ) ∧
+          cappedJumpSum X A T (k + 1) ω
+            = cappedJumpSum X A T k ω + coeffs.γ (θ j) (X.X (θ j) ω) (ε j) := by
+  filter_upwards [LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum N A hA hAν T,
+    LevyStochCalc.Poisson.ae_jumpTime_lt_jumpTime_succ N A hA hAν T] with ω hω hstrict
+  obtain ⟨K, θ, ε, hmono, hrange, hmem, hsum⟩ := hω
+  refine ⟨K, θ, ε, hmono, hmem, hsum,
+    jumpSum_eq_sum_atomEnum_horizon X hA hmem hsum, fun k hk => ?_⟩
+  exact cappedJumpSum_succ_eq_add_gamma X hA hmem hsum hmono.injective hrange
+    (hstrict k hk) hk
+
+end MarkIdentificationAe
 
 end LevyStochCalc.Ito.JumpFormula

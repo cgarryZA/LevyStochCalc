@@ -2250,3 +2250,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq
 #print axioms LevyStochCalc.Ito.JumpFormula.jumpTerm_eq_zero_of_le
 #print axioms LevyStochCalc.Ito.JumpFormula.eq_add_cappedJumpSum_of_le
+
+-- ===== Almost-everywhere congruence for the Itô integrand (B3a-2 repair, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.countable_setOf_coe_eq
+#print axioms LevyStochCalc.Brownian.Ito.ae_coe_ne
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_ae
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_countable
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_congr_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_shift_apply_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.integral_stopped_sub_shift_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_congr_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_shift_congr_of_lt
+
+-- ===== Localisation removing the derivative bounds (B3a-3, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_generalShift_localise
