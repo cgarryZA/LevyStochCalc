@@ -273,6 +273,13 @@ literature integral forms.
      constant at nonpositive times. Without this, the predictability the proof needs is **false**,
      not merely unproved. It costs nothing modelling-wise: the compensated integral runs over
      `(0, t]` and the drift over `[0, t]`, where `{0}` is Lebesgue-null.
+     **It is load-bearing twice, in two independent places** (second one found 2026-09-10 while
+     building the assembly): besides making the coefficient at the left limits predictable at all,
+     it is what makes predictability *survive the mark cut* the truncation applies. Cutting a
+     general predictable integrand to a set of marks does **not** preserve predictability — the cut
+     set meets the nonpositive strip without containing it, and no measurable set of that σ-algebra
+     does — so without the vanishing the truncated integrand is not admissible either
+     (`Ito/JumpFormulaClosure.lean`, `markedPredictable_markCut`).
   3. `∀ t, Measurable[ℱ t] (X.X t)`. **This is a defect in `JumpDiffusion`, not in #16.** The
      structure's docstring calls its solution "adapted" (`Ito/Setting.lean`) but carries no such
      field, and adaptedness does not follow from `is_solution`: the two stochastic terms are
