@@ -2315,3 +2315,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.compensatedIntegral_congr_of_countable_ne
 #print axioms LevyStochCalc.Ito.setIntegral_congr_of_countable_ne
 #print axioms LevyStochCalc.Ito.setIntegral_referenceIntensity_congr_of_countable_ne
+
+-- ===== Arrival times as stopping times for the filtration itself (B3a-1e, 2026-09-10) =====
+#print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime_of_complete
+#print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime_chain_of_complete
