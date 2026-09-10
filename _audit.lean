@@ -2759,6 +2759,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
 #print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
+-- M16 wave 2, the per-interval formula for a measurable shift (C1b, C1c)
+#print axioms LevyStochCalc.Brownian.Ito.measurable_indicator_le_of_measurableSpace
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stoppingTimeWeight_mul
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_eq_sum_indicator
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_of_measurableShift
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_eq_indicator_add
+#print axioms LevyStochCalc.Brownian.Ito.exists_simpleShift_approx_measurableSpace
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_boundedShift
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_measurableShift
 -- M16 wave 2, the telescope's hypotheses in stopped form (C6c)
 #print axioms LevyStochCalc.Brownian.Ito.measurable_indicator_shiftRegion
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_shift
