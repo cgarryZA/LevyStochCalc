@@ -2071,3 +2071,37 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_stopped_general_shift
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_shift
+
+-- ===== Limits in a shifted Itô formula (B3a-1d step iii-b, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.stopped_sub_stopped_sub
+#print axioms LevyStochCalc.Brownian.Ito.abs_stopped_sub_stopped_le
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_of_tendsto_of_forall_ae_eq
+#print axioms LevyStochCalc.Brownian.Ito.abs_sub_le_two_mul_of_abs_le
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_lintegral_sq_comp_shift
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_setIntegral_stopped_sub_shift
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_lintegral_sq_stochInt_of_tendsto_energy
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_ae_tendsto_stochInt_of_tendsto_energy
+#print axioms LevyStochCalc.Brownian.Ito.ae_eq_of_tendsto_comp_of_forall_ae_eq
+
+-- ===== Small-jump limit on the càdlàg modification (B3b, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.SmallJump.bigJumpProcess_sub
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_pathCoord
+#print axioms LevyStochCalc.Ito.SmallJump.smallJumpIntegral_ae_eq
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.rightContinuous_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.exists_leftLim_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_uncurry_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_uncurry_bigJumpProcess_pi
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_uncurry_sq_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_uncurry_sq_bigJumpProcess_sub
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_sq_bigJumpProcess_sub_time
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_lintegral_sq_bigJumpProcess_sub
+#print axioms LevyStochCalc.Ito.SmallJump.lintegral_sq_smallJumpIntegral_le
+#print axioms LevyStochCalc.Ito.SmallJump.tendsto_markCut_energy
+#print axioms LevyStochCalc.Ito.SmallJump.lintegral_window_sq_smallJumpIntegral_le
+#print axioms LevyStochCalc.Ito.SmallJump.lintegral_window_sq_bigJumpProcess_sub_le
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_ae_tendsto_bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_ae_tendsto_bigJumpProcess_pi
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_drift_bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_quadVar_bigJumpProcess

@@ -264,6 +264,7 @@ import LevyStochCalc.Ito.JumpTelescope
 import LevyStochCalc.Ito.ItoFormulaStoppedLimit
 import LevyStochCalc.Ito.ItoFormulaShift
 import LevyStochCalc.Ito.ItoFormulaIncrement
+import LevyStochCalc.Ito.ItoFormulaRandomShift
 import LevyStochCalc.Ito.ItoFormulaTimeUnbounded
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
