@@ -2760,5 +2760,34 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
 #print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
 
+-- ===== M16: the Itô–Lévy formula for bounded derivatives (ONE OPEN OBLIGATION) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.norm_le_sum_abs
+#print axioms LevyStochCalc.Ito.JumpFormula.sq_sum_abs_le
+#print axioms LevyStochCalc.Ito.JumpFormula.norm_sq_le_card_mul_sum_sq
+#print axioms LevyStochCalc.Ito.JumpFormula.enorm_sq_le_of_abs_le_mul_sum
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_window_sum
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_window_mark_sum
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_window_sq_le_of_abs_le
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_window_mark_sq_le_of_abs_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_mixedDriftIntegrand_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_mixedDiffusionIntegrand_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_mixedJumpIncrement_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_mixedCompensatorDriftIntegrand_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_markCut_le
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_mixedDriftIntegrand_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_mixedJumpIncrement_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_mixedCompensatorDriftIntegrand_of_tendsto
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_finset_sum
+#print axioms LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_time_state_jump
+#print axioms LevyStochCalc.Ito.JumpFormula.tendsto_setIntegral_of_dominated_ae
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath_of_nonneg
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath_of_neg
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath_eq_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_uncurry_truncPath
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath_rightContinuous
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_rightCont_truncPath
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_boundedDerivs
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
