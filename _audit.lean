@@ -2351,3 +2351,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpTime_chain_of_complete
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_jumpSum_eq_cappedJumpSum
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSum_eq
+
+-- ===== The endpoint of a shifted interval is the left limit (B4-1, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.exists_seq_lt_tendsto_of_lt_coe
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_nhdsLT_of_shift
+#print axioms LevyStochCalc.Brownian.Ito.leftLim_eq_of_shift
+#print axioms LevyStochCalc.Brownian.Ito.shift_endpoint_eq_leftLim
+#print axioms LevyStochCalc.Brownian.Ito.shift_endpoint_eq_leftLim_apply
+#print axioms LevyStochCalc.Brownian.Ito.leftLim_pi_eq_leftLim_apply
+#print axioms LevyStochCalc.Brownian.Ito.jumpTerm_eq_zero_of_shift_eq
+#print axioms LevyStochCalc.Brownian.Ito.shift_eq_of_clipTime_eq
+#print axioms LevyStochCalc.Brownian.Ito.jumpTerm_of_horizon_le
+#print axioms LevyStochCalc.Brownian.Ito.jumpTerm_of_eq_top
+#print axioms LevyStochCalc.Brownian.Ito.jumpTerm_eq_leftLim_increment
