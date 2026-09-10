@@ -2550,3 +2550,44 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.measurable_predictableSigma_leftLimPathPos
 #print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_jumpCoeff_leftLimPath
 #print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_forall_jumpCoeff_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn_continuous
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn_eq_on
+
+-- ===== The left-limit splitting with a free path (B4-7b, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft_of_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion
+
+-- ===== Localising the assembled formula (B3a-3, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeBoxCut
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.uncurry_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.contDiff_timeBoxCut
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeBoxCut_eq_one
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeBoxCut_eq_zero
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.hasCompactSupport_timeBoxCut
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeBoxCut_eventuallyEq_one
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.contDiff_uncurry_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.hasCompactSupport_uncurry_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.cutoffFun₂_slice
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.cutoffFun₂_eq
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.gradient_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.hessian_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeDeriv_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.diffusionIntegrand_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.driftIntegrand_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.compensatorDriftIntegrand_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.jumpIntegrand_cutoffFun₂
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.exists_bound_of_locally_bounded
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.exists_eventually_norm_le
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.norm_le_of_tendsto_nhdsLT
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_bound_norm
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_mem_boundedPathSet
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.boundedJumpSet
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.boundedJumpSet_mono
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.integrands_cutoffFun₂_eq_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_mem_boundedJumpSet
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_mem_inter
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.stopped_sub_congr
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.itoFormula_between_shift_localise
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.stochasticIntegralBrownian_stopped_sub_congr_of_mem

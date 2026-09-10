@@ -288,6 +288,8 @@ import LevyStochCalc.Ito.JumpFormulaLimit
 import LevyStochCalc.Ito.JumpFormulaGeneralShift
 import LevyStochCalc.Ito.BigJumpDiffusion
 import LevyStochCalc.Ito.StochasticIntegralLimit
+import LevyStochCalc.Ito.JumpSplittingPath
+import LevyStochCalc.Ito.JumpFormulaCutoff
 import LevyStochCalc.Ito.JumpCoefficientPredictable
 import LevyStochCalc.Ito.JumpFormulaClosure
 

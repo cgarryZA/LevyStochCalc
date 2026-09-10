@@ -181,6 +181,23 @@ theorem repairOn_cadlag {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ}
     · simp only [repairOn_of_notMem hω]
       exact tendsto_const_nhds
 
+omit [MeasurableSpace Ω] in
+/-- Off the good set the repaired path is the constant zero path, which is continuous; on it the
+repaired path is the original one, so the repair is continuous at every sample point. -/
+theorem repairOn_continuous {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ}
+    (hGc : ∀ ω ∈ G, Continuous fun t => X t ω) (ω : Ω) :
+    Continuous fun t => repairOn G X t ω := by
+  by_cases hω : ω ∈ G
+  · simpa only [repairOn_of_mem hω] using hGc ω hω
+  · simp only [repairOn_of_notMem hω]
+    exact continuous_const
+
+omit [MeasurableSpace Ω] in
+/-- The repaired path agrees with the original at every sample point of the good set. -/
+theorem repairOn_eq_on {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ} {ω : Ω} (hω : ω ∈ G) :
+    (fun t => repairOn G X t ω) = fun t => X t ω :=
+  funext fun t => repairOn_of_mem hω t
+
 end Repair
 
 end LevyStochCalc.Ito.JumpFormula
