@@ -2802,6 +2802,32 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_splitDrift_dictionary_mixed
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum_mixed
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum_mixed_of_support
+-- M16 wave 4, the zero extension propagated to its consumers (C3-fix)
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_eq_indicator
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_eq_zero_of_notMem
+#print axioms LevyStochCalc.Ito.JumpFormula.nnnorm_zeroExtPos_le
+#print axioms LevyStochCalc.Ito.JumpFormula.enorm_zeroExtPos_le
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.energy_zeroExtPos_le
+#print axioms LevyStochCalc.Ito.JumpFormula.energy_zeroExtPos_lt_top
+#print axioms LevyStochCalc.Ito.JumpFormula.eqOn_window_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_window_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.window_energy_zeroExtPos_le
+#print axioms LevyStochCalc.Ito.JumpFormula.compensated_zeroExtPos_congr
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_integrableOn_window_of_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.stochasticIntegral_ae_eq_pathwise_of_zeroExtPos
+#print axioms LevyStochCalc.Probability.measurable_leftGridPoint
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_uncurry_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.progressivelyMeasurable_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedProgressivelyMeasurable_comp_state
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_jumpCoeff_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedProgressivelyMeasurable_jumpCoeff_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_congr_of_countable_ne
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_jumpCoeff_leftLimPathAt_eq
+#print axioms LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt_congr_of_eqOn
 
 -- ===== M16: the Itô–Lévy formula for bounded derivatives (ONE OPEN OBLIGATION) =====
 #print axioms LevyStochCalc.Ito.JumpFormula.norm_le_sum_abs

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.JumpSplittingLeftLim
+import LevyStochCalc.Ito.MarkedZeroExtension
 
 /-!
 # Finite-activity splitting along the left limits of a prescribed path
@@ -35,6 +36,12 @@ half-line. The two paths are therefore free of one another.
   sum and drift as the instances of these at the path of the jump diffusion.
 * `LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_congr_of_eqOn` — two bundles whose jump
   coefficients agree on a mark set have the same jump sum over it.
+* `LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt_congr_of_eqOn` — two bundles with the
+  same drift whose jump coefficients agree on a mark set have the same compensator drift.
+* `LevyStochCalc.Ito.JumpSplitting.jumpSumLeftAt_zeroExtPos`,
+  `LevyStochCalc.Ito.JumpSplitting.continuousDriftLeftAt_zeroExtPos` — the jump sum and the
+  compensator drift at a positive time are unchanged by the zero extension of the left-limit
+  jump integrand.
 * `LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeftAt_of_path` — the splitting
   at a fixed nonnegative time, for a path satisfying the integral equation.
 * `LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeftAt_of_path` — the same identity
@@ -42,6 +49,10 @@ half-line. The two paths are therefore free of one another.
 * `LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_path`,
   `LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion` — the case of
   the coefficients read along the path of a jump diffusion, and of its own path.
+* `LevyStochCalc.Ito.JumpSplitting.ae_forall_integrableOn_windowLeft`,
+  `LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft`,
+  `LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft` — the same three statements
+  indexed on a jump diffusion rather than on a coefficient bundle and a path.
 
 ## References
 
@@ -110,6 +121,24 @@ theorem jumpSumLeftAt_zero (A : Set E) (ω : Ω) (i : Fin n) :
     jumpSumLeftAt coeffs N Xp A 0 ω i = 0 := by
   simp [jumpSumLeftAt]
 
+/-- The jump sum integrates over a window of positive times, so it is unchanged when the
+left-limit jump integrand is replaced by its zero extension. -/
+theorem jumpSumLeftAt_zeroExtPos {A : Set E} (hA : MeasurableSet A) (t : ℝ) (ω : Ω)
+    (i : Fin n) :
+    ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A, JumpFormula.zeroExtPos
+        (fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) ω q.1 q.2 ∂(N.N ω)
+      = jumpSumLeftAt coeffs N Xp A t ω i :=
+  JumpFormula.setIntegral_window_zeroExtPos _ ω hA t (N.N ω)
+
+omit [MeasurableSpace Ω] [SigmaFinite ν] in
+/-- At a positive time the drift carrying the left-limit compensator is unchanged when the
+left-limit jump integrand is replaced by its zero extension. -/
+theorem continuousDriftLeftAt_zeroExtPos (A : Set E) (i : Fin n) (ω : Ω) {s : ℝ} (hs : 0 < s) :
+    coeffs.μ s (Xp s ω) i - ∫ e in A, JumpFormula.zeroExtPos
+        (fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) ω s e ∂ν
+      = continuousDriftLeftAt coeffs ν Xp A i ω s := by
+  simp only [continuousDriftLeftAt, JumpFormula.zeroExtPos_of_pos _ ω hs]
+
 variable {Xp}
 
 omit [MeasurableSpace Ω] in
@@ -166,7 +195,7 @@ theorem ae_forall_integrableOn_windowLeftAt (ℱ : Filtration ℝ ‹MeasurableS
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) {A : Set E}
     (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
-      fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i)
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i))
     (hγmL : ∀ i : Fin n, Measurable fun p : Ω × ℝ × E =>
       coeffs.γ p.2.1 (leftLimPathAt Xp p.2.1 p.1) p.2.2 i)
     (hγqL : ∀ (i : Fin n) (T : ℝ), 0 < T →
@@ -180,7 +209,7 @@ theorem ae_forall_integrableOn_windowLeftAt (ℱ : Filtration ℝ ‹MeasurableS
         (Set.Ioc (0 : ℝ) ((m : ℝ) + 1) ×ˢ A) (N.N ω) := by
     intro m i
     have hpos : (0 : ℝ) < (m : ℝ) + 1 := by positivity
-    filter_upwards [LevyStochCalc.Poisson.ae_integrableOn_window N hℱN hA hAν ((m : ℝ) + 1)
+    filter_upwards [JumpFormula.ae_integrableOn_window_of_zeroExtPos N hℱN hA hAν ((m : ℝ) + 1)
       (hpredL i) (hγmL i)
       (LevyStochCalc.Poisson.Compensated.window_energy_ne_top
         (fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) (hγmL i) (hγqL i)
@@ -227,6 +256,18 @@ theorem jumpSumLeftAt_congr_of_eqOn (coeffs coeffs' : Setting.JumpDiffusionCoeff
   setIntegral_congr_fun (measurableSet_Ioc.prod hA) fun q hq =>
     congrFun (hγ q.1 (leftLimPathAt Xp q.1 ω) q.2 hq.2) i
 
+omit [MeasurableSpace Ω] [SigmaFinite ν] in
+/-- Two coefficient bundles with the same drift whose jump coefficients agree on a mark set have
+the same drift carrying the left-limit compensator over that mark set. -/
+theorem continuousDriftLeftAt_congr_of_eqOn (coeffs coeffs' : Setting.JumpDiffusionCoeffs n d E)
+    (Xp : ℝ → Ω → Fin n → ℝ) {A : Set E} (hA : MeasurableSet A) (hμ : coeffs'.μ = coeffs.μ)
+    (hγ : ∀ (s : ℝ) (y : Fin n → ℝ) (e : E), e ∈ A → coeffs'.γ s y e = coeffs.γ s y e) :
+    continuousDriftLeftAt coeffs' ν Xp A = continuousDriftLeftAt coeffs ν Xp A := by
+  funext i ω s
+  rw [continuousDriftLeftAt, continuousDriftLeftAt, hμ]
+  congr 1
+  exact setIntegral_congr_fun hA fun e he => congrFun (hγ s (leftLimPathAt Xp s ω) e he) i
+
 end Bundles
 
 section SplittingAt
@@ -260,8 +301,9 @@ variable (coeffs : Setting.JumpDiffusionCoeffs n d E)
 
 include hγmL hγpL hγqL in
 /-- **The finite-activity splitting of a path satisfying the integral equation.** If the jump
-coefficient is carried by a mark set of finite intensity, its left-limit integrand along the
-evaluation path is predictable and that path is càdlàg, then at every nonnegative time a path
+coefficient is carried by a mark set of finite intensity, the zero extension of its left-limit
+integrand along the evaluation path is marked predictable and that path is càdlàg, then at every
+nonnegative time a path
 satisfying that equation is almost surely the sum of the vector Itô process with diffusion `σ`
 and drift `continuousDriftLeftAt`, and the left-limit jump sum over that mark set. -/
 theorem eq_vectorItoProcess_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n → ℝ)
@@ -279,7 +321,7 @@ theorem eq_vectorItoProcess_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n 
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
     (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
-      fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i)
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i))
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (Xp s ω) i))
     (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -331,14 +373,14 @@ theorem eq_vectorItoProcess_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n 
           = jumpSumLeftAt coeffs N Xp A t ω i
             - ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A, coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2 i
                 ∂(LevyStochCalc.Poisson.referenceIntensity ν) := fun i =>
-      LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_pathwise N ℱ hℱN
+      JumpFormula.stochasticIntegral_ae_eq_pathwise_of_zeroExtPos N ℱ hℱN
         (fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) (hγmL i) (hγpL i) (hγqL i) hA
         (hpredL i) hAν (hsupp' i) hpos
     have hwinL : ∀ i : Fin n, ∀ᵐ ω ∂P,
         IntegrableOn (fun q : ℝ × E => coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2 i)
           (Set.Ioc (0 : ℝ) t ×ˢ A) (LevyStochCalc.Poisson.referenceIntensity ν) := by
       intro i
-      filter_upwards [LevyStochCalc.Poisson.ae_integrableOn_window N hℱN hA hAν t (hpredL i)
+      filter_upwards [JumpFormula.ae_integrableOn_window_of_zeroExtPos N hℱN hA hAν t (hpredL i)
         (hγmL i) (LevyStochCalc.Poisson.Compensated.window_energy_ne_top
           (fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) (hγmL i) (hγqL i)
           (A := A) hpos)] with ω hω
@@ -371,9 +413,10 @@ theorem eq_vectorItoProcess_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n 
 
 include hγmL hγpL hγqL in
 /-- **The finite-activity splitting of a path satisfying the integral equation, at all
-nonnegative times.** If the jump coefficient is carried by a mark set of finite intensity, its
-left-limit integrand along the càdlàg evaluation path is predictable, `V` is a modification of the
-vector Itô process with diffusion `σ` and drift `continuousDriftLeftAt` whose paths are
+nonnegative times.** If the jump coefficient is carried by a mark set of finite intensity, the
+zero extension of its left-limit integrand along the càdlàg evaluation path is marked predictable,
+`V` is a modification of the vector Itô process with diffusion `σ` and drift
+`continuousDriftLeftAt` whose paths are
 right-continuous, and `Z` is a right-continuous path satisfying that equation, then almost surely
 `Z` is, at every nonnegative time, the sum of `V` and the left-limit jump sum over that mark
 set. -/
@@ -394,7 +437,7 @@ theorem ae_forall_eq_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n → ℝ
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
     (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
-      fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i)
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i))
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (Xp s ω) i))
     (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -430,6 +473,31 @@ theorem ae_forall_eq_add_jumpSumLeftAt_of_path (Z : ℝ → Ω → Fin n → ℝ
   exact hω i t ht
 
 end SplittingAt
+
+section JumpDiffusionWindow
+
+variable {N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν}
+  {coeffs : Setting.JumpDiffusionCoeffs n d E} {x₀ : Fin n → ℝ}
+
+/-- The left-limit jump coefficient along the path of a jump diffusion is almost surely
+integrable against the random measure over every bounded window of the mark set. -/
+theorem ae_forall_integrableOn_windowLeft (X : Setting.JumpDiffusion W N coeffs x₀)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) {A : Set E}
+    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
+    (hγmL : ∀ i : Fin n,
+      Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (leftLimPath X p.2.1 p.1) p.2.2 i)
+    (hγqL : ∀ (i : Fin n) (T : ℝ), 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖coeffs.γ s (leftLimPath X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ∀ (T : ℝ) (i : Fin n),
+      IntegrableOn (fun q : ℝ × E => coeffs.γ q.1 (leftLimPath X q.1 ω) q.2 i)
+        (Set.Ioc (0 : ℝ) T ×ˢ A) (N.N ω) :=
+  ae_forall_integrableOn_windowLeftAt coeffs N X.X ℱ hℱN hA hAν hpredL hγmL hγqL
+
+end JumpDiffusionWindow
 
 section Splitting
 
@@ -476,8 +544,8 @@ theorem eq_vectorItoProcess_add_jumpSumLeft_of_path (Z : ℝ → Ω → Fin n �
             (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
-    (hpredL : ∀ i : Fin n,
-      Probability.MarkedPredictable ℱ ν fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
     (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -508,8 +576,8 @@ theorem ae_forall_eq_add_jumpSumLeft_of_path (Z : ℝ → Ω → Fin n → ℝ)
             (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
-    (hpredL : ∀ i : Fin n,
-      Probability.MarkedPredictable ℱ ν fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
     (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -540,8 +608,8 @@ theorem ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion
             (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
-    (hpredL : ∀ i : Fin n,
-      Probability.MarkedPredictable ℱ ν fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
     (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -558,6 +626,75 @@ theorem ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion
   ae_forall_eq_add_jumpSumLeft_of_path X ℱ hℱW hσm hσp hσq hℱN hγm hγp hγq hγmL hγpL hγqL
     X.X (by filter_upwards [X.cadlag_paths] with ω hω t ht using (hω t ht).1)
     hSDE hA hAν hsupp hpredL hμm hμq V hVae hVright
+
+include hγmL hγpL hγqL in
+/-- **The finite-activity splitting of a jump diffusion along the left limits of its path.** If
+the jump coefficient is carried by a mark set of finite intensity and the zero extension of its
+left-limit integrand along the path is marked predictable, then at every nonnegative time the
+path is almost surely the sum of the vector Itô process with diffusion `σ` and drift
+`continuousDriftLeft`, and the left-limit jump sum over that mark set. -/
+theorem eq_vectorItoProcess_add_jumpSumLeft
+    (hSDE : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
+      X.X t ω i = x₀ i
+        + (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i)
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+            (fun s ω => coeffs.σ s (X.X s ω) i) (fun j => hσm i j) (fun j => hσp i j)
+            (fun j => hσq i j) t ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
+            (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
+    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
+    (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
+    (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ∀ᵐ ω ∂P, ∀ i : Fin n,
+      X.X t ω i
+        = LevyStochCalc.Brownian.Ito.vectorItoProcess W ℱ hℱW
+            (fun i j ω s => coeffs.σ s (X.X s ω) i j) hσm hσp hσq (fun _ => x₀)
+            (continuousDriftLeft X A) t ω i
+          + jumpSumLeft X A t ω i :=
+  eq_vectorItoProcess_add_jumpSumLeft_of_path X ℱ hℱW hσm hσp hσq hℱN hγm hγp hγq hγmL hγpL
+    hγqL X.X hSDE hA hAν hsupp hpredL hμm hμq ht
+
+include hγmL hγpL hγqL in
+/-- **The finite-activity splitting along the left limits at all nonnegative times.** If the jump
+coefficient is carried by a mark set of finite intensity, the zero extension of its left-limit
+integrand along the path is marked predictable and `V` is a modification of the vector Itô
+process with diffusion `σ` and drift `continuousDriftLeft` whose paths are right-continuous, then
+almost surely the path is, at every nonnegative time, the sum of `V` and the left-limit jump sum
+over that mark set. -/
+theorem ae_forall_eq_add_jumpSumLeft
+    (hSDE : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
+      X.X t ω i = x₀ i
+        + (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i)
+        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+            (fun s ω => coeffs.σ s (X.X s ω) i) (fun j => hσm i j) (fun j => hσp i j)
+            (fun j => hσq i j) t ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
+            (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
+    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
+    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPath X s ω) e i))
+    (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
+    (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (V : ℝ → Ω → Fin n → ℝ)
+    (hVae : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
+      V t ω i = LevyStochCalc.Brownian.Ito.vectorItoProcess W ℱ hℱW
+        (fun i j ω s => coeffs.σ s (X.X s ω) i j) hσm hσp hσq (fun _ => x₀)
+        (continuousDriftLeft X A) t ω i)
+    (hVright : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+      Tendsto (fun s => V s ω i) (𝓝[>] t) (𝓝 (V t ω i))) :
+    ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+      X.X t ω i = V t ω i + jumpSumLeft X A t ω i :=
+  ae_forall_eq_add_jumpSumLeft_of_jumpDiffusion X ℱ hℱW hσm hσp hσq hℱN hγm hγp hγq hγmL hγpL
+    hγqL hSDE hA hAν hsupp hpredL hμm hμq V hVae hVright
 
 end Splitting
 

@@ -13,8 +13,9 @@ The jump coefficient of a jump diffusion can be evaluated along the left limits 
 instead of along the path itself. The two integrands agree off a countable set of times, so they
 have the same compensated integral, while the pathwise integral against the random measure and
 the compensator against the reference intensity are both taken with the left-limit integrand.
-The splitting of the path into a vector Itô process and a pathwise jump sum therefore holds in
-this form as well, with the left-limit compensator subtracted from the drift.
+The drift carrying the compensator of the left-limit integrand agrees with the drift carrying
+that of the path integrand at almost every time of every horizon, so the two build the same
+vector Itô process.
 
 ## Main definitions
 
@@ -26,11 +27,8 @@ this form as well, with the left-limit compensator subtracted from the drift.
 
 ## Main statements
 
-* `LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeft` — at every nonnegative
-  time a jump diffusion is almost surely the sum of the vector Itô process with diffusion `σ` and
-  drift `continuousDriftLeft`, and the left-limit jump sum.
-* `LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeft` — the same identity almost
-  surely at all nonnegative times simultaneously.
+* `LevyStochCalc.Ito.JumpSplitting.tendsto_jumpSumLeft_nhdsWithin_Ioi` — the left-limit jump sum
+  over `(0, ·]` is right-continuous in time.
 * `LevyStochCalc.Ito.JumpSplitting.ae_ae_restrict_continuousDriftLeft_eq` and
   `LevyStochCalc.Ito.JumpSplitting.ae_forall_vectorItoProcess_continuousDriftLeft_eq` — the two
   drifts agree at almost every time of every horizon, hence build the same vector Itô process.
@@ -195,40 +193,6 @@ theorem tendsto_jumpSumLeft_nhdsWithin_Ioi (X : Setting.JumpDiffusion W N coeffs
     hγmL.comp measurable_prodMk_left
   exact tendsto_setIntegral_Ioc_prod_nhdsWithin_Ioi hA hfm hint t
 
-/-- The left-limit jump coefficient along the path of a jump diffusion is almost surely
-integrable against the random measure over every bounded window of the mark set. -/
-theorem ae_forall_integrableOn_windowLeft (X : Setting.JumpDiffusion W N coeffs x₀)
-    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
-    (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) {A : Set E}
-    (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
-    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable ℱ ν
-      fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
-    (hγmL : ∀ i : Fin n,
-      Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (leftLimPath X p.2.1 p.1) p.2.2 i)
-    (hγqL : ∀ (i : Fin n) (T : ℝ), 0 < T →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-        (‖coeffs.γ s (leftLimPath X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
-    ∀ᵐ ω ∂P, ∀ (T : ℝ) (i : Fin n),
-      IntegrableOn (fun q : ℝ × E => coeffs.γ q.1 (leftLimPath X q.1 ω) q.2 i)
-        (Set.Ioc (0 : ℝ) T ×ˢ A) (N.N ω) := by
-  have hstep : ∀ (m : ℕ) (i : Fin n), ∀ᵐ ω ∂P,
-      IntegrableOn (fun q : ℝ × E => coeffs.γ q.1 (leftLimPath X q.1 ω) q.2 i)
-        (Set.Ioc (0 : ℝ) ((m : ℝ) + 1) ×ˢ A) (N.N ω) := by
-    intro m i
-    have hpos : (0 : ℝ) < (m : ℝ) + 1 := by positivity
-    filter_upwards [LevyStochCalc.Poisson.ae_integrableOn_window N hℱN hA hAν ((m : ℝ) + 1)
-      (hpredL i) (hγmL i)
-      (LevyStochCalc.Poisson.Compensated.window_energy_ne_top
-        (fun ω s e => coeffs.γ s (leftLimPath X s ω) e i) (hγmL i) (hγqL i)
-        (A := A) hpos)] with ω hω
-    exact hω.1
-  filter_upwards [MeasureTheory.ae_all_iff.mpr fun m : ℕ =>
-    MeasureTheory.ae_all_iff.mpr fun i : Fin n => hstep m i] with ω hω
-  intro T i
-  obtain ⟨m, hm⟩ := exists_nat_ge T
-  refine (hω m i).mono_set (Set.prod_mono (Set.Ioc_subset_Ioc_right ?_) (subset_refl A))
-  linarith
-
 end Window
 
 section Splitting
@@ -273,163 +237,6 @@ theorem ae_forall_vectorItoProcess_continuousDriftLeft_eq (A : Set E) :
   intro t i
   simp only [LevyStochCalc.Brownian.Ito.vectorItoProcess]
   rw [integral_congr_ae (hω i t)]
-
-include hγmL hγpL hγqL in
-/-- **The finite-activity splitting of a jump diffusion along the left limits of its path.** If
-the jump coefficient is carried by a mark set of finite intensity and its left-limit integrand
-along the path is predictable, then at every nonnegative time the path is almost surely the sum
-of the vector Itô process with diffusion `σ` and drift `continuousDriftLeft`, and the left-limit
-jump sum over that mark set. -/
-theorem eq_vectorItoProcess_add_jumpSumLeft
-    (hSDE : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
-      X.X t ω i = x₀ i
-        + (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i)
-        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
-            (fun s ω => coeffs.σ s (X.X s ω) i) (fun j => hσm i j) (fun j => hσp i j)
-            (fun j => hσq i j) t ω
-        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-            (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
-    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
-    (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
-    (hpredL : ∀ i : Fin n,
-      Probability.MarkedPredictable ℱ ν fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
-    (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
-    (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    {t : ℝ} (ht : 0 ≤ t) :
-    ∀ᵐ ω ∂P, ∀ i : Fin n,
-      X.X t ω i
-        = LevyStochCalc.Brownian.Ito.vectorItoProcess W ℱ hℱW
-            (fun i j ω s => coeffs.σ s (X.X s ω) i j) hσm hσp hσq (fun _ => x₀)
-            (continuousDriftLeft X A) t ω i
-          + jumpSumLeft X A t ω i := by
-  have hsupp' : ∀ (i : Fin n) (ω : Ω) (s : ℝ) (e : E), e ∉ A →
-      coeffs.γ s (leftLimPath X s ω) e i = 0 := by
-    intro i ω s e he
-    simp [hsupp s (leftLimPath X s ω) e he]
-  rcases eq_or_lt_of_le ht with h0 | hpos
-  · subst h0
-    have hCzero : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-          (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) 0 ω = 0 := by
-      intro i
-      filter_upwards [LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_process N ℱ hℱN
-          (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) 0,
-        LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos N ℱ hℱN
-          (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i)
-          (le_refl (0 : ℝ))] with ω h1 h2
-      rw [h1, h2]
-      rfl
-    have hz0 : ∀ g : ℝ → ℝ, ∫ s in Set.Icc (0 : ℝ) 0, g s ∂volume = 0 :=
-      fun g => setIntegral_measure_zero g (by simp)
-    filter_upwards [hSDE 0 le_rfl, MeasureTheory.ae_all_iff.mpr hCzero] with ω hω hz
-    intro i
-    rw [hω i, hz i, multidimIntegral_eq_vectorItoMartingale X ℱ hℱW hσm hσp hσq i 0 ω]
-    simp only [LevyStochCalc.Brownian.Ito.vectorItoProcess, hz0, jumpSumLeft_zero]
-  · have hcong : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-            (fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
-            (hγmL i) (hγpL i) (hγqL i) t ω
-          = LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-            (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω := fun i =>
-      compensatedIntegral_congr_of_countable_ne N hℱN (fun s x e => coeffs.γ s x e i)
-        (ae_countable_setOf_pos_ne_leftLimPath X) (hγmL i) (hγm i) (hγpL i) (hγp i)
-        (hγqL i) (hγq i) hpos
-    have hpathL : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-            (fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
-            (hγmL i) (hγpL i) (hγqL i) t ω
-          = jumpSumLeft X A t ω i
-            - ∫ q in Set.Ioc (0 : ℝ) t ×ˢ A, coeffs.γ q.1 (leftLimPath X q.1 ω) q.2 i
-                ∂(LevyStochCalc.Poisson.referenceIntensity ν) := fun i =>
-      LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_pathwise N ℱ hℱN
-        (fun ω s e => coeffs.γ s (leftLimPath X s ω) e i) (hγmL i) (hγpL i) (hγqL i) hA
-        (hpredL i) hAν (hsupp' i) hpos
-    have hwinL : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        IntegrableOn (fun q : ℝ × E => coeffs.γ q.1 (leftLimPath X q.1 ω) q.2 i)
-          (Set.Ioc (0 : ℝ) t ×ˢ A) (LevyStochCalc.Poisson.referenceIntensity ν) := by
-      intro i
-      filter_upwards [LevyStochCalc.Poisson.ae_integrableOn_window N hℱN hA hAν t (hpredL i)
-        (hγmL i) (LevyStochCalc.Poisson.Compensated.window_energy_ne_top
-          (fun ω s e => coeffs.γ s (leftLimPath X s ω) e i) (hγmL i) (hγqL i)
-          (A := A) hpos)] with ω hω
-      exact hω.2
-    have hμint : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        IntegrableOn (fun s => coeffs.μ s (X.X s ω) i) (Set.Icc (0 : ℝ) t) volume := by
-      intro i
-      have hmeas : Measurable fun ω => ∫⁻ s in Set.Icc (0 : ℝ) t,
-          (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume :=
-        ((ENNReal.continuous_coe.measurable.comp (hμm i).nnnorm).pow_const
-          2).lintegral_prod_right' (ν := volume.restrict (Set.Icc (0 : ℝ) t))
-      filter_upwards [ae_lt_top' hmeas.aemeasurable (hμq i t hpos).ne] with ω hω
-      exact integrableOn_Icc_of_lintegral_sq_lt_top
-        ((hμm i).comp measurable_prodMk_left).aestronglyMeasurable hω
-    refine MeasureTheory.ae_all_iff.mpr fun i => ?_
-    filter_upwards [hSDE t ht, hcong i, hpathL i, hwinL i, hμint i] with ω hω hc hp hw hm
-    obtain ⟨heq, hcint⟩ :=
-      integral_window_eq_and_integrableOn (fun s e => coeffs.γ s (leftLimPath X s ω) e i) hw
-    have hd : ∫ s in Set.Icc (0 : ℝ) t, continuousDriftLeft X A i ω s ∂volume
-        = (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i ∂volume)
-          - ∫ s in Set.Icc (0 : ℝ) t,
-              (∫ e in A, coeffs.γ s (leftLimPath X s ω) e i ∂ν) ∂volume :=
-      integral_sub hm hcint
-    rw [hω i, ← hc, hp, multidimIntegral_eq_vectorItoMartingale X ℱ hℱW hσm hσp hσq i t ω]
-    simp only [LevyStochCalc.Brownian.Ito.vectorItoProcess]
-    rw [hd, heq]
-    ring
-
-include hγmL hγpL hγqL in
-/-- **The finite-activity splitting along the left limits at all nonnegative times.** If the jump
-coefficient is carried by a mark set of finite intensity, its left-limit integrand along the path
-is predictable and `V` is a modification of the vector Itô process with diffusion `σ` and drift
-`continuousDriftLeft` whose paths are right-continuous, then almost surely the path is, at every
-nonnegative time, the sum of `V` and the left-limit jump sum over that mark set. -/
-theorem ae_forall_eq_add_jumpSumLeft
-    (hSDE : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
-      X.X t ω i = x₀ i
-        + (∫ s in Set.Icc (0 : ℝ) t, coeffs.μ s (X.X s ω) i)
-        + LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
-            (fun s ω => coeffs.σ s (X.X s ω) i) (fun j => hσm i j) (fun j => hσp i j)
-            (fun j => hσq i j) t ω
-        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱN
-            (fun ω s e => coeffs.γ s (X.X s ω) e i) (hγm i) (hγp i) (hγq i) t ω)
-    {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
-    (hsupp : ∀ (s : ℝ) (x : Fin n → ℝ) (e : E), e ∉ A → coeffs.γ s x e = 0)
-    (hpredL : ∀ i : Fin n,
-      Probability.MarkedPredictable ℱ ν fun ω s e => coeffs.γ s (leftLimPath X s ω) e i)
-    (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
-    (hμq : ∀ (i : Fin n) (T : ℝ), 0 < T →
-      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-        (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    (V : ℝ → Ω → Fin n → ℝ)
-    (hVae : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
-      V t ω i = LevyStochCalc.Brownian.Ito.vectorItoProcess W ℱ hℱW
-        (fun i j ω s => coeffs.σ s (X.X s ω) i j) hσm hσp hσq (fun _ => x₀)
-        (continuousDriftLeft X A) t ω i)
-    (hVright : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-      Tendsto (fun s => V s ω i) (𝓝[>] t) (𝓝 (V t ω i))) :
-    ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-      X.X t ω i = V t ω i + jumpSumLeft X A t ω i := by
-  have hwin := ae_forall_integrableOn_windowLeft X ℱ hℱN hA hAν hpredL hγmL hγqL
-  have key : ∀ᵐ ω ∂P, ∀ (i : Fin n) (t : ℝ), 0 ≤ t →
-      X.X t ω i = V t ω i + jumpSumLeft X A t ω i := by
-    refine MeasureTheory.ae_all_iff.mpr fun i => ?_
-    refine ae_forall_eq_of_ae_rat (P := P) (Y := fun s ω => X.X s ω i)
-      (Z := fun s ω => V s ω i + jumpSumLeft X A s ω i) ?_ ?_ ?_
-    · intro q hq
-      filter_upwards [eq_vectorItoProcess_add_jumpSumLeft X ℱ hℱW hσm hσp hσq hℱN hγm hγp hγq
-        hγmL hγpL hγqL hSDE hA hAν hsupp hpredL hμm hμq hq, hVae (q : ℝ) hq] with ω h1 h2
-      show X.X (q : ℝ) ω i = V (q : ℝ) ω i + jumpSumLeft X A (q : ℝ) ω i
-      rw [h1 i, h2 i]
-    · filter_upwards [X.cadlag_paths] with ω hω t ht
-      exact ((continuous_apply i).tendsto (X.X t ω)).comp (hω t ht).1
-    · filter_upwards [hVright, hwin] with ω hVω hwω t ht
-      exact (hVω t ht i).add
-        (tendsto_jumpSumLeft_nhdsWithin_Ioi X hA (hγmL i) (fun T => hwω T i) t)
-  filter_upwards [key] with ω hω
-  intro t ht i
-  exact hω i t ht
 
 end Splitting
 

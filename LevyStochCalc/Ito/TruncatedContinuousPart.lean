@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.BigJumpDiffusion
+import LevyStochCalc.Ito.JumpCoefficientPredictableZeroExt
 import LevyStochCalc.Ito.JumpSplittingPath
 import LevyStochCalc.Ito.VectorItoVersionLimit
 
@@ -285,7 +286,8 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
   {coeffs : JumpDiffusionCoeffs n d E} {x₀ : Fin n → ℝ} {X : JumpDiffusion W N coeffs x₀}
 
 /-- **The path with the jumps carried by `A` removed is its continuous part plus the left-limit
-jump sum over the complement of `A`**, when that complement has finite intensity. -/
+jump sum over the complement of `A`**, when that complement has finite intensity, the path is
+adapted with left limits at the positive times, and the jump coefficient is jointly measurable. -/
 theorem ae_forall_bigJumpPath_eq_add_jumpSumLeftAt (S : SdeData X) {A : Set E}
     (hA : MeasurableSet A)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t)
@@ -300,8 +302,10 @@ theorem ae_forall_bigJumpPath_eq_add_jumpSumLeftAt (S : SdeData X) {A : Set E}
       fun ω s e => coeffs.γ s (leftLimPathAt X.X s ω) e i)
     (hγqL : ∀ (i : Fin n) (T : ℝ), 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖coeffs.γ s (leftLimPathAt X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
-    (hpredL : ∀ i : Fin n, Probability.MarkedPredictable S.ℱ ν
-      fun ω s e => (coeffs.markCutγ Aᶜ).γ s (leftLimPathAt X.X s ω) e i)
+    (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
+    (hXleft : ∀ (ω : Ω) (t : ℝ), 0 < t → ∀ j : Fin n,
+      ∃ L : ℝ, Filter.Tendsto (fun s => X.X s ω j) (𝓝[<] t) (𝓝 L))
+    (hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
     (V : ℝ → Ω → Fin n → ℝ)
     (hV : LevyStochCalc.Brownian.Ito.IsVectorItoVersion W S.ℱ S.isBrownian
       (fun i j ω s => coeffs.σ s (X.X s ω) i j) S.σ_meas S.σ_prog S.σ_sq (fun _ => x₀)
@@ -309,6 +313,20 @@ theorem ae_forall_bigJumpPath_eq_add_jumpSumLeftAt (S : SdeData X) {A : Set E}
     ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
       bigJumpPath S hA hℱ0 hnull0 t ω i
         = V t ω i + jumpSumLeftAt (coeffs.markCutγ Aᶜ) N X.X Aᶜ t ω i := by
+  have hpredL : ∀ i : Fin n, Probability.MarkedPredictable S.ℱ ν
+      (JumpFormula.zeroExtPos fun ω s e =>
+        (coeffs.markCutγ Aᶜ).γ s (leftLimPathAt X.X s ω) e i) := by
+    intro i
+    have hbase : Probability.MarkedPredictable S.ℱ ν
+        (JumpFormula.zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt X.X s ω) e i) :=
+      markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt (ν := ν) X.X S.ℱ i hXadapt hXleft
+        ((measurable_pi_apply i).comp hγmeas)
+    have hrw : (fun (ω : Ω) (s : ℝ) (e : E) =>
+        (coeffs.markCutγ Aᶜ).γ s (leftLimPathAt X.X s ω) e i)
+        = markCut Aᶜ fun ω s e => coeffs.γ s (leftLimPathAt X.X s ω) e i :=
+      pathJumpCoeff_markCutγ Aᶜ (leftLimPathAt X.X) i
+    rw [hrw]
+    exact JumpFormula.markedPredictable_zeroExtPos_markCut hbase hA.compl
   have hγmLc : ∀ i : Fin n, Measurable fun p : Ω × ℝ × E =>
       pathJumpCoeff (coeffs.markCutγ Aᶜ) (leftLimPathAt X.X) i p.1 p.2.1 p.2.2 := by
     intro i

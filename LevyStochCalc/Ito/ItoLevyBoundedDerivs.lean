@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Ito.BigJumpPathBridge
+import LevyStochCalc.Ito.LeftLimIntegrandRegularity
+import LevyStochCalc.Ito.TruncatedContinuousPart
 import LevyStochCalc.Ito.JumpFormulaMixed
 import LevyStochCalc.Ito.JumpFormulaTaylorBounds
 import LevyStochCalc.Ito.JumpFormulaContinuity
@@ -572,8 +574,9 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 
 open LevyStochCalc.Ito.IntegralLimit in
 /-- **The Itô–Lévy formula at bounded derivatives.** For a jump diffusion with SDE data `S`
-whose right-continuous filtration satisfies the usual conditions at time zero, and a `C²` state
-function with bounded time derivative, gradient and Hessian, the canonical residual of the
+whose right-continuous filtration satisfies the usual conditions at time zero, whose path has
+left limits at every time and whose drift along the path is progressively measurable, and a `C²`
+state function with bounded time derivative, gradient and Hessian, the canonical residual of the
 Itô–Lévy formula is the compensated jump integral plus the compensator-drift integral, every
 stochastic integral being taken over the filtration of `S`.
 
@@ -592,17 +595,29 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     -- Correction 8 (one filtration): the SDE data of `X`, with the usual-conditions shape at
     -- time zero that the truncated paths need.
     (S : LevyStochCalc.Ito.BigJump.SdeData X)
+    -- Correction 8 (usual conditions): the filtration of the SDE data is right continuous, so
+    -- its right continuation is itself and the two shapes of `hℱ0` are the same statement.
+    [S.ℱ.IsRightContinuous]
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t)
     (hnull0 : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
     -- (3) The structure calls its solution adapted but carries no such field.
     (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
+    -- (3') Statement change: `cadlag_paths` holds almost surely and only on `[0, ∞)`, while the
+    -- left limits along which the jump coefficient is read must exist at every sample point and
+    -- every time for that reading to be a process at all.
+    (hXleft : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
+      ∃ L : ℝ, Tendsto (fun s => X.X s ω j) (𝓝[<] t) (𝓝 L))
     -- (5) The drift along the path.
     (hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i))
+    -- (5') Statement change: `SdeData` carries no drift field, and progressive measurability of
+    -- the drift along the path does not follow from its joint measurability.
+    (hμp : ∀ i : Fin n,
+      Probability.ProgressivelyMeasurable S.ℱ fun ω s => coeffs.μ s (X.X s ω) i)
     (hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     -- (6) Joint measurability of the jump coefficient.
-    (_hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
+    (hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
     (u : ℝ → (Fin n → ℝ) → ℝ)
     (hu : ContDiff ℝ 2 (Function.uncurry u))
     -- The bounded derivatives, coordinatewise.
@@ -950,9 +965,59 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     filter_upwards [hpath'] with ω hω
     filter_upwards [hω] with s hs
     exact Tendsto.comp_of_le hs hk
+  -- The two shapes of the usual-conditions hypothesis at time zero, under right continuity.
+  have hℱ0' : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t := by
+    intro t ht
+    have hrc : S.ℱ.rightCont = S.ℱ := MeasureTheory.Filtration.IsRightContinuous.eq
+    have h := hℱ0 t ht
+    rwa [hrc] at h
+  -- The admissibility of the jump coefficient read at the left limits of the solution.
+  have hγmeasi : ∀ i : Fin n,
+      Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2 i :=
+    fun i => (measurable_pi_apply i).comp hγmeas
+  have hXm : Measurable fun q : ℝ × Ω => X.X q.1 q.2 := X.measurable_path
+  have hγmL : ∀ i : Fin n, Measurable fun p : Ω × ℝ × E =>
+      coeffs.γ p.2.1 (JumpSplitting.leftLimPathAt X.X p.2.1 p.1) p.2.2 i :=
+    fun i => JumpSplitting.measurable_jumpCoeff_leftLimPathAt hXm hXleft i (hγmeasi i)
+  have hγpL : ∀ i : Fin n, Probability.MarkedProgressivelyMeasurable S.ℱ
+      fun ω s e => coeffs.γ s (JumpSplitting.leftLimPathAt X.X s ω) e i :=
+    fun i => JumpSplitting.markedProgressivelyMeasurable_jumpCoeff_leftLimPathAt hℱ0' hXadapt
+      hXleft i (hγmeasi i)
+  have hγqL : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+      (‖coeffs.γ s (JumpSplitting.leftLimPathAt X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2
+        ∂ν ∂volume ∂P < ⊤ := by
+    intro i T' hT'
+    rw [JumpSplitting.lintegral_sq_jumpCoeff_leftLimPathAt_eq X.cadlag_paths i T']
+    exact S.γ_sq i T' hT'
+  -- The finite-activity splitting of the truncated path at level `m`, from the hypotheses of
+  -- this theorem alone. This is the step `[OB-1]` starts from: the truncated path is a
+  -- continuous vector Itô process plus the sum of the jumps carried by the big marks.
+  have hsplit : ∀ m : ℕ, ∃ V : ℝ → Ω → Fin n → ℝ, ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+      xs m t ω i = V t ω i
+        + JumpSplitting.jumpSumLeftAt (coeffs.markCutγ (smallMarks ν m)ᶜ) N X.X
+            (smallMarks ν m)ᶜ t ω i := by
+    intro m
+    obtain ⟨V, hV⟩ := JumpSplitting.exists_continuousPart S (A := (smallMarks ν m)ᶜ)
+      (measure_compl_smallMarks_ne_top ν m) hℱ0' hnull0 hμm hμp hμq hγmL hγpL hγqL
+    have hdrift : JumpSplitting.continuousDriftLeftAt (coeffs.markCutγ (smallMarks ν m)ᶜ) ν X.X
+          (smallMarks ν m)ᶜ
+        = JumpSplitting.continuousDriftLeftAt coeffs ν X.X (smallMarks ν m)ᶜ :=
+      JumpSplitting.continuousDriftLeftAt_congr_of_eqOn coeffs _ X.X (hA m).compl rfl
+        fun _ _ e he => Set.indicator_of_mem he _
+    rw [← hdrift] at hV
+    refine ⟨V, ?_⟩
+    filter_upwards [ae_forall_bigJumpPath_eq_add_jumpSumLeftAt S (hA m) hℱ0 hnull0
+      (measure_compl_smallMarks_ne_top ν m) hμm hμq hγmL hγpL hγqL hXadapt
+      (fun ω t _ j => hXleft ω t j) hγmeas V hV, hGae] with ω hω hωG
+    intro t ht i
+    simp only [hxs_def]
+    rw [truncPath_of_nonneg S hℱ0 hnull0 G m ht, repairOn_of_mem hωG]
+    exact hω t ht i
   -- Obligation 1' (the finite-activity identity at each level, in the mixed form).
   have hstep : ∀ m, ∀ᵐ ω ∂P,
       u T (xs m T ω) - u 0 (xs m 0 ω) - Dr m ω - Bro m ω = Cmp m ω + Cd m ω := by
+    -- The splitting `hsplit` above is the C2 input; the remaining steps C3–C11 (the mixed
+    -- Itô formula between the jumps of `xs m` and the telescoping over them) are open.
     sorry -- [OB-1: finite-activity identity at level m, mixed form — B4-C2..C11]
   -- The endpoints.
   have hend : ∀ᵐ ω ∂P, Tendsto (fun i => u T (xs (φ i) T ω) - u 0 (xs (φ i) 0 ω)) atTop
