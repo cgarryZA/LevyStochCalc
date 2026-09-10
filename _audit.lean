@@ -2364,3 +2364,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.jumpTerm_of_horizon_le
 #print axioms LevyStochCalc.Brownian.Ito.jumpTerm_of_eq_top
 #print axioms LevyStochCalc.Brownian.Ito.jumpTerm_eq_leftLim_increment
+
+-- ===== Finite-activity assembly, round 5 (B4-1, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_of_horizon_lt
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTerm_eq_sum_atomEnum
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTerm_eq_sum_atomEnum_of_shift
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTerm
