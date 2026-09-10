@@ -48,6 +48,14 @@ exactly the jump coefficient carried by the later arrival time and the mark enum
 * `LevyStochCalc.Ito.JumpFormula.ae_eq_of_ae_eq_of_le_jumpTime` — an identity holding almost
   everywhere on each event where the chain of arrival times has passed the horizon holds almost
   everywhere.
+* `LevyStochCalc.Ito.JumpFormula.sum_range_ite_eq_sum_atomEnum`,
+  `LevyStochCalc.Ito.JumpFormula.sum_range_ite_eq_sum_atomEnum_exists` — the in-window members of
+  a chain of times are matched with the entries of the strictly monotone enumeration of the
+  window's atom times.
+* `LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_rightCont`,
+  `LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_rightCont`,
+  `LevyStochCalc.Ito.JumpFormula.jumpTime_chain_rightCont` — the chain data and the progressive
+  measurability of the integrands for the right-continuous regularisation of a filtration.
 * `LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum`,
   `LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_add_gamma`,
   `LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_cappedJumpSum_succ` — the jump sum over a
@@ -415,7 +423,182 @@ theorem eq_add_cappedJumpSum_of_le {T : ℝ} {m : ℕ} {ω : Ω} {V : ℝ → Ω
     V T ω i + cappedJumpSum X A T m ω i = X.X T ω i := by
   rw [cappedJumpSum_of_le X A hm, hsplit i]
 
+/-- Past the horizon index the telescope's jump sum no longer grows with the range. -/
+theorem sum_range_jumpTerm_eq_of_le (f : (Fin n → ℝ) → ℝ) (Y : ℕ → Fin n → ℝ)
+    {T : ℝ} {ω : Ω} {m m' : ℕ} (hmm : m ≤ m')
+    (hm : ((T : ℝ) : WithTop ℝ) ≤ LevyStochCalc.Poisson.jumpTime N A m ω) :
+    (∑ k ∈ Finset.range m', (f (Y k + cappedJumpSum X A T (k + 1) ω)
+          - f (Y k + cappedJumpSum X A T k ω)))
+      = ∑ k ∈ Finset.range m, (f (Y k + cappedJumpSum X A T (k + 1) ω)
+          - f (Y k + cappedJumpSum X A T k ω)) := by
+  refine (Finset.sum_subset (fun x hx => Finset.mem_range.mpr
+    (lt_of_lt_of_le (Finset.mem_range.mp hx) hmm)) fun k _ hk => ?_).symm
+  have hmk : m ≤ k := not_lt.mp fun hc => hk (Finset.mem_range.mpr hc)
+  exact jumpTerm_eq_zero_of_le X A f (Y k)
+    (hm.trans (LevyStochCalc.Poisson.jumpTime_mono N A hmk ω))
+
 end CappedShift
+
+section Reindex
+
+/-- **Reindexing the in-window arrival indices by the atom enumeration.** For a chain of times
+starting at the origin, increasing with the index, strictly increasing at every index whose
+successor lies inside the window, and passing the horizon at index `m`, a choice of atom index
+carrying each in-window arrival time matches the in-window indices below `m` with the entries of
+the strictly monotone enumeration of the window's atom times. -/
+theorem sum_range_ite_eq_sum_atomEnum {K m : ℕ} {θ : Fin K → ℝ} {σ : ℕ → WithTop ℝ} {T : ℝ}
+    (hθ : StrictMono θ) (hmemθ : ∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T)
+    (hrange : Set.range θ
+      = {v : ℝ | ∃ i : ℕ, σ i = ((v : ℝ) : WithTop ℝ) ∧ 0 < v ∧ v ≤ T})
+    (hσmono : Monotone σ) (hσ0 : σ 0 = ((0 : ℝ) : WithTop ℝ))
+    (hstrict : ∀ i : ℕ, σ (i + 1) ≤ ((T : ℝ) : WithTop ℝ) → σ i < σ (i + 1))
+    (hm : ((T : ℝ) : WithTop ℝ) ≤ σ m) (idx : ℕ → Fin K)
+    (hidx : ∀ k : ℕ, σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) →
+      σ (k + 1) = ((θ (idx k) : ℝ) : WithTop ℝ)) (G : Fin K → ℝ) :
+    (∑ k ∈ Finset.range m,
+        if σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) then G (idx k) else 0)
+      = ∑ j : Fin K, G j := by
+  classical
+  rw [← Finset.sum_filter]
+  refine Finset.sum_bij (fun k _ => idx k) (fun _ _ => Finset.mem_univ _) ?_ ?_ ?_
+  · intro a₁ ha₁ a₂ ha₂ hidxeq
+    have hp₁ : σ (a₁ + 1) ≤ ((T : ℝ) : WithTop ℝ) := (Finset.mem_filter.mp ha₁).2
+    have hp₂ : σ (a₂ + 1) ≤ ((T : ℝ) : WithTop ℝ) := (Finset.mem_filter.mp ha₂).2
+    have heq : σ (a₁ + 1) = σ (a₂ + 1) := by
+      rw [hidx a₁ hp₁, hidx a₂ hp₂, hidxeq]
+    by_contra hne
+    rcases lt_or_gt_of_ne hne with hlt | hlt
+    · exact absurd heq
+        (ne_of_lt (lt_of_le_of_lt (hσmono (Nat.succ_le_of_lt hlt)) (hstrict a₂ hp₂)))
+    · exact absurd heq.symm
+        (ne_of_lt (lt_of_le_of_lt (hσmono (Nat.succ_le_of_lt hlt)) (hstrict a₁ hp₁)))
+  · intro j _
+    have hmemj : θ j ∈ Set.range θ := Set.mem_range_self j
+    rw [hrange] at hmemj
+    obtain ⟨i, hi, hpos, -⟩ := hmemj
+    have hi0 : i ≠ 0 := by
+      intro hc
+      rw [hc, hσ0] at hi
+      exact absurd (by exact_mod_cast hi.symm : (θ j : ℝ) = 0) (ne_of_gt hpos)
+    obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero hi0
+    subst hk
+    have hpk : σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) := by
+      rw [hi]
+      exact_mod_cast (hmemθ j).2
+    have hkm : k < m := by
+      by_contra hc
+      have hmk : m ≤ k := not_lt.mp hc
+      exact absurd (lt_of_lt_of_le (hstrict k hpk) (hpk.trans (hm.trans (hσmono hmk))))
+        (lt_irrefl _)
+    have hjeq : idx k = j := by
+      have : ((θ (idx k) : ℝ) : WithTop ℝ) = ((θ j : ℝ) : WithTop ℝ) := by
+        rw [← hidx k hpk, hi]
+      exact hθ.injective (by exact_mod_cast this)
+    exact ⟨k, Finset.mem_filter.mpr ⟨Finset.mem_range.mpr hkm, hpk⟩, hjeq⟩
+  · intro _ _
+    rfl
+
+/-- **Reindexing with the atom index supplied existentially.** The form of
+`sum_range_ite_eq_sum_atomEnum` that asks only for an atom index at each in-window arrival time,
+so no total index function has to be produced when the window carries no atoms. -/
+theorem sum_range_ite_eq_sum_atomEnum_exists {K m : ℕ} {θ : Fin K → ℝ} {σ : ℕ → WithTop ℝ}
+    {T : ℝ} (hθ : StrictMono θ) (hmemθ : ∀ j : Fin K, θ j ∈ Set.Ioc (0 : ℝ) T)
+    (hrange : Set.range θ
+      = {v : ℝ | ∃ i : ℕ, σ i = ((v : ℝ) : WithTop ℝ) ∧ 0 < v ∧ v ≤ T})
+    (hσmono : Monotone σ) (hσ0 : σ 0 = ((0 : ℝ) : WithTop ℝ))
+    (hstrict : ∀ i : ℕ, σ (i + 1) ≤ ((T : ℝ) : WithTop ℝ) → σ i < σ (i + 1))
+    (hm : ((T : ℝ) : WithTop ℝ) ≤ σ m) (G' : ℕ → ℝ) (G : Fin K → ℝ)
+    (hex : ∀ k : ℕ, σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) →
+      ∃ j : Fin K, σ (k + 1) = ((θ j : ℝ) : WithTop ℝ) ∧ G' k = G j) :
+    (∑ k ∈ Finset.range m,
+        if σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) then G' k else 0)
+      = ∑ j : Fin K, G j := by
+  classical
+  rcases isEmpty_or_nonempty (Fin K) with hK | hK
+  · have hzero : ∀ k : ℕ,
+        (if σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) then G' k else 0) = 0 := by
+      intro k
+      by_cases hp : σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ)
+      · exact absurd (hex k hp) fun h => hK.false h.choose
+      · exact if_neg hp
+    rw [Finset.sum_congr rfl fun k _ => hzero k, Finset.sum_const_zero,
+      Finset.sum_eq_zero fun j _ => (hK.false j).elim]
+  · obtain ⟨j₀⟩ := hK
+    refine (Finset.sum_congr rfl fun k _ => ?_).trans
+      (sum_range_ite_eq_sum_atomEnum hθ hmemθ hrange hσmono hσ0 hstrict hm
+        (fun k => if h : σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ) then (hex k h).choose else j₀)
+        (fun k h => by rw [dif_pos h]; exact (hex k h).choose_spec.1) G)
+    by_cases hp : σ (k + 1) ≤ ((T : ℝ) : WithTop ℝ)
+    · rw [if_pos hp, if_pos hp, dif_pos hp]
+      exact (hex k hp).choose_spec.2
+    · rw [if_neg hp, if_neg hp]
+
+end Reindex
+
+section RightContinuous
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
+/-- Enlarging the first factor's `σ`-algebra enlarges the product `σ`-algebra. -/
+theorem prod_le_prod_left {α : Type*} [MeasurableSpace α]
+    {m₁ m₂ : MeasurableSpace Ω} (h : m₁ ≤ m₂) :
+    @Prod.instMeasurableSpace Ω α m₁ inferInstance
+      ≤ @Prod.instMeasurableSpace Ω α m₂ inferInstance :=
+  sup_le_sup_right (MeasurableSpace.comap_mono h) _
+
+omit [MeasurableSpace E] in
+/-- A process progressively measurable for a filtration is progressively measurable for any
+larger filtration. -/
+theorem progressivelyMeasurable_of_le {H : Ω → ℝ → ℝ}
+    {ℱ 𝒢 : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} (hle : ℱ ≤ 𝒢)
+    (h : Probability.ProgressivelyMeasurable ℱ H) :
+    Probability.ProgressivelyMeasurable 𝒢 H :=
+  fun t => (h t).mono (prod_le_prod_left (hle t))
+
+/-- A marked process progressively measurable for a filtration is progressively measurable for
+any larger filtration. -/
+theorem markedProgressivelyMeasurable_of_le {φ : Ω → ℝ → E → ℝ}
+    {ℱ 𝒢 : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›} (hle : ℱ ≤ 𝒢)
+    (h : Probability.MarkedProgressivelyMeasurable ℱ φ) :
+    Probability.MarkedProgressivelyMeasurable 𝒢 φ :=
+  fun t => (h t).mono (prod_le_prod_left (hle t))
+
+omit [MeasurableSpace E] in
+/-- A process progressively measurable for a filtration is progressively measurable for its
+right-continuous regularisation. -/
+theorem progressivelyMeasurable_rightCont {H : Ω → ℝ → ℝ}
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    (h : Probability.ProgressivelyMeasurable ℱ H) :
+    Probability.ProgressivelyMeasurable ℱ.rightCont H :=
+  progressivelyMeasurable_of_le ℱ.le_rightCont h
+
+/-- A marked process progressively measurable for a filtration is progressively measurable for
+its right-continuous regularisation. -/
+theorem markedProgressivelyMeasurable_rightCont {φ : Ω → ℝ → E → ℝ}
+    {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
+    (h : Probability.MarkedProgressivelyMeasurable ℱ φ) :
+    Probability.MarkedProgressivelyMeasurable ℱ.rightCont φ :=
+  markedProgressivelyMeasurable_of_le ℱ.le_rightCont h
+
+variable {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+
+/-- **The chain data of the arrival times.** For the right-continuous regularisation of a
+filtration for which the random measure is Poisson, the arrival times of a measurable mark set
+are stopping times, they increase with the index, and the zeroth is the origin. -/
+theorem jumpTime_chain_rightCont (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (A : Set E)
+    (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱ : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) (hA : MeasurableSet A) :
+    (∀ k : ℕ, MeasureTheory.IsStoppingTime ℱ.rightCont
+        (LevyStochCalc.Poisson.jumpTime N A k))
+      ∧ (∀ (k : ℕ) (ω : Ω), LevyStochCalc.Poisson.jumpTime N A k ω
+          ≤ LevyStochCalc.Poisson.jumpTime N A (k + 1) ω)
+      ∧ ∀ ω : Ω, LevyStochCalc.Poisson.jumpTime N A 0 ω = ((0 : ℝ) : WithTop ℝ) :=
+  ⟨fun k => LevyStochCalc.Poisson.isStoppingTime_jumpTime_rightCont N A hℱ hA k,
+    fun k ω => LevyStochCalc.Poisson.jumpTime_mono N A (Nat.le_succ k) ω,
+    fun ω => LevyStochCalc.Poisson.jumpTime_zero N A ω⟩
+
+end RightContinuous
 
 section Exhaustion
 

@@ -2284,3 +2284,22 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.lintegral_energy_le_two_mul
 #print axioms LevyStochCalc.Brownian.Ito.tendsto_energy_stopped_sub_gridStop
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridShift
+
+-- ===== Finite-activity assembly, rounds 2-3 (B4-1, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_jumpTerm_eq_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_ite_eq_sum_atomEnum
+#print axioms LevyStochCalc.Ito.JumpFormula.sum_range_ite_eq_sum_atomEnum_exists
+#print axioms LevyStochCalc.Ito.JumpFormula.prod_le_prod_left
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_of_le
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_rightCont
+#print axioms LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_rightCont
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpTime_chain_rightCont
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpTime_le_jumpTime_succ
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpTime_chain_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_le_jumpTime
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_eq_of_ae_eq_of_le_jumpTime
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum
+#print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_add_gamma
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum_horizon
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_cappedJumpSum_succ
