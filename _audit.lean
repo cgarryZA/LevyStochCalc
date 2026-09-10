@@ -2178,3 +2178,30 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_simple
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_cells
 #print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_simpleShift
+
+-- ===== Dictionary between the two integrand vocabularies (B4-0a, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.consEmbed
+#print axioms LevyStochCalc.Ito.JumpFormula.consEmbed_apply
+#print axioms LevyStochCalc.Ito.JumpFormula.cons_zero_succ
+#print axioms LevyStochCalc.Ito.JumpFormula.consEmbed_single
+#print axioms LevyStochCalc.Ito.JumpFormula.hasFDerivAt_cons
+#print axioms LevyStochCalc.Ito.JumpFormula.hasDerivAt_consTime
+#print axioms LevyStochCalc.Ito.JumpFormula.timeAugFun
+#print axioms LevyStochCalc.Ito.JumpFormula.timeAugFun_cons
+#print axioms LevyStochCalc.Ito.JumpFormula.timeAugProcess_eq_cons
+#print axioms LevyStochCalc.Ito.JumpFormula.timeAugFun_timeAugProcess
+#print axioms LevyStochCalc.Ito.JumpFormula.hasFDerivAt_section
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv_succ_cons_eq_gradient
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv_succ_eq_gradient
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv_zero_cons_eq_timeDeriv
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv_zero_eq_timeDeriv
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv₂_succ_succ_cons_eq_hessian_comm
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv₂_succ_succ_cons_eq_hessian
+#print axioms LevyStochCalc.Ito.JumpFormula.coordDeriv₂_succ_succ_eq_hessian
+#print axioms LevyStochCalc.Ito.JumpFormula.diffusionIntegrand_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.levyGenerator_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.driftIntegrand_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.compensatorDriftIntegrand_dictionary
+#print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_eq_sum
+#print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_eq_sum_congr
+#print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_Icc_eq_setIntegral_Ioc
