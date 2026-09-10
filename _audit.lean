@@ -2759,6 +2759,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
 #print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
+-- M16 wave 2, the telescope's hypotheses in stopped form (C6c)
+#print axioms LevyStochCalc.Brownian.Ito.measurable_indicator_shiftRegion
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_shift
+#print axioms LevyStochCalc.Brownian.Ito.measurable_uncurry_stopped_sub_shift
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_stopped_sub_cappedJumpSumAt
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_uncurry_stopped_sub_cappedJumpSumAt
 -- M16 wave 2, the split-drift dictionary in mixed form (A3, A4, A5)
 #print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_mixedFirstOrder_eq
 #print axioms LevyStochCalc.Ito.JumpFormula.setIntegral_mixedCompensatorDriftIntegrand_eq_sub

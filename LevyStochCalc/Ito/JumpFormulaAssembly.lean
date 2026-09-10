@@ -274,13 +274,23 @@ theorem itoFormula_chain
     (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P < ⊤)
-    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
-      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s))
-    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
-      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s)
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
+      Probability.stopped (σ (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (σ k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s))
+    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ' fun ω s =>
+      Probability.stopped (σ (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (σ k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
     (hqV : ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-        (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+        (‖Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
@@ -296,9 +306,9 @@ theorem itoFormula_chain
                   (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
                 - Probability.stopped (σ k)
                     (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
-              (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
-              (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
-              (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+              (hmV k p j)
+              (hpV k p j)
+              (hqV k p j) T ω)
           + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
               (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
                   * ∑ j : Fin d, H p j ω s * H q j ω s) ω s
@@ -322,9 +332,9 @@ theorem itoFormula_chain
               (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
             - Probability.stopped (σ k)
                 (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
-          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
-          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
-          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T
+          (hmV k p j)
+          (hpV k p j)
+          (hqV k p j) T
         =ᵐ[P] stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => Probability.stopped (σ (k + 1))
               (fun ω s => coordDeriv f' p (X s ω) * H p j ω s) ω s
@@ -441,9 +451,9 @@ theorem itoFormula_chain
               (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
             - Probability.stopped (σ k)
                 (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
-          (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
-          (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
-          (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+          (hmV k p j)
+          (hpV k p j)
+          (hqV k p j) T ω)
       = stochasticIntegralBrownian (W.W j) ℱ' (hcoord j)
           (fun ω s => coordDeriv f' p (X s ω) * H p j ω s)
           (hmG p j) (hpG p j) (hqG p j) T ω := by
@@ -489,13 +499,23 @@ theorem itoFormula_chain_path
     (hqQ : ∀ (p q : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P < ⊤)
-    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
-      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s))
-    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ'
-      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s)
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
+      Probability.stopped (σ (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (σ k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s))
+    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ' fun ω s =>
+      Probability.stopped (σ (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (σ k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
     (hqV : ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-        (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+        (‖Probability.stopped (σ (k + 1))
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+            - Probability.stopped (σ k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤)
     {T : ℝ} (hT : 0 < T) {m : ℕ} (h0 : ∀ ω, σ 0 ω = ((0 : ℝ) : WithTop ℝ))
     (hshift : ∀ᵐ ω ∂P, ∀ (k : ℕ) (s : ℝ), σ k ω < ((s : ℝ) : WithTop ℝ) →
       ((s : ℝ) : WithTop ℝ) < σ (k + 1) ω → V s ω + c k ω = X s ω)
@@ -511,9 +531,9 @@ theorem itoFormula_chain_path
                   (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
                 - Probability.stopped (σ k)
                     (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s)
-              (measurable_uncurry_stopped_sub (hσ k) (hσ (k + 1)) (hmV k p j))
-              (progressivelyMeasurable_stopped_sub (hσ k) (hσ (k + 1)) (hpV k p j))
-              (energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmV k p j) (hqV k p j)) T ω)
+              (hmV k p j)
+              (hpV k p j)
+              (hqV k p j) T ω)
           + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
               (Probability.stopped (σ (k + 1)) (fun ω s => coordDeriv₂ f'' p q (V s ω + c k ω)
                   * ∑ j : Fin d, H p j ω s * H q j ω s) ω s

@@ -305,6 +305,7 @@ import LevyStochCalc.Ito.JumpFormulaContinuity
 import LevyStochCalc.Ito.CappedJumpSumMeasurable
 import LevyStochCalc.Ito.SdeDataOfSolvesOn
 import LevyStochCalc.Ito.JumpFormulaMixedDictionary
+import LevyStochCalc.Ito.JumpFormulaChainStopped
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
