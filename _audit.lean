@@ -2303,3 +2303,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.cappedJumpSum_succ_eq_add_gamma
 #print axioms LevyStochCalc.Ito.JumpFormula.jumpSum_eq_sum_atomEnum_horizon
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_cappedJumpSum_succ
+
+-- ===== Left-limit versus point-evaluated jump integrand (B4-0c, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.countable_setOf_ne_leftLim_pi
+#print axioms LevyStochCalc.Ito.countable_setOf_pos_ne_of_cadlag
+#print axioms LevyStochCalc.Ito.ae_eq_of_cadlag
+#print axioms LevyStochCalc.Ito.ae_pos_restrict_Icc
+#print axioms LevyStochCalc.Ito.ae_restrict_eq_of_countable_ne
+#print axioms LevyStochCalc.Ito.ae_ae_forall_eq_of_countable_ne
+#print axioms LevyStochCalc.Ito.markedEnergyMeasure_ae_eq_of_ae_ae
+#print axioms LevyStochCalc.Ito.compensatedIntegral_congr_of_countable_ne
+#print axioms LevyStochCalc.Ito.setIntegral_congr_of_countable_ne
+#print axioms LevyStochCalc.Ito.setIntegral_referenceIntensity_congr_of_countable_ne

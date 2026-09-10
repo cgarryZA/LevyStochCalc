@@ -273,6 +273,7 @@ import LevyStochCalc.Ito.ItoFormulaExhaustion
 import LevyStochCalc.Ito.ItoFormulaSimpleShift
 import LevyStochCalc.Ito.JumpFormulaDictionary
 import LevyStochCalc.Ito.JumpSumIdentity
+import LevyStochCalc.Ito.JumpIntegrandLeftLim
 import LevyStochCalc.Ito.ItoFormulaGeneralShift
 import LevyStochCalc.Ito.ItoFormulaLocalised
 import LevyStochCalc.Ito.ItoFormulaGridShift
