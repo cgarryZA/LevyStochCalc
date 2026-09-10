@@ -2047,3 +2047,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_bigJumpProcess_pi
 #print axioms LevyStochCalc.Ito.SmallJump.tendsto_comp_of_tendsto
 #print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_comp
+-- ===== An everywhere-càdlàg modification of the compensated integral (B3b-0, 2026-09-10) =====
+#print axioms LevyStochCalc.Poisson.Compensated.exists_everywhere_cadlag_stochasticIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegral_adapted
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegral_ae_eq
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegral_rightContinuous
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegral_exists_leftLim
+#print axioms LevyStochCalc.Poisson.Compensated.progressivelyMeasurable_cadlagIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_uncurry_cadlagIntegral
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_adapted
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_rightContinuous
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_exists_leftLim
+#print axioms LevyStochCalc.Poisson.Compensated.cadlagIntegralPi_ae_eq
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_uncurry_cadlagIntegralPi

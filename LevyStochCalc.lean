@@ -65,6 +65,7 @@ import LevyStochCalc.Poisson.Compensator
 import LevyStochCalc.Poisson.CompensatorL1
 import LevyStochCalc.Poisson.JumpSum
 import LevyStochCalc.Poisson.JumpTimes
+import LevyStochCalc.Poisson.CompensatedCadlagMod
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
 import LevyStochCalc.Poisson.PathwiseIdentity
