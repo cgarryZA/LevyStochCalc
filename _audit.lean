@@ -2319,3 +2319,25 @@ import LevyStochCalc
 -- ===== Arrival times as stopping times for the filtration itself (B3a-1e, 2026-09-10) =====
 #print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime_of_complete
 #print axioms LevyStochCalc.Poisson.isStoppingTime_jumpTime_chain_of_complete
+
+-- ===== The grid stopping time truncated at the horizon (B3a-1d step iii-c, 2026-09-10) =====
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc_of_le
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc_of_lt
+#print axioms LevyStochCalc.Brownian.Ito.gridStop_le_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.le_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.zero_le_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.stepStop_mono
+#print axioms LevyStochCalc.Brownian.Ito.gridStopAux_mono
+#print axioms LevyStochCalc.Brownian.Ito.gridStop_mono
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc_mono
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_image_nonneg
+#print axioms LevyStochCalc.Brownian.Ito.gridPt_image_lt
+#print axioms LevyStochCalc.Brownian.Ito.gridStopTrunc_finiteRange
+#print axioms LevyStochCalc.Brownian.Ito.isStoppingTime_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.measurableSpace_le_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.clipTime_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.stopped_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_le_horizon
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stopped_sub_gridStopTrunc
+#print axioms LevyStochCalc.Brownian.Ito.itoFormula_between_gridStop_of_gridStopTrunc

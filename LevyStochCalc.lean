@@ -266,6 +266,7 @@ import LevyStochCalc.Ito.ItoFormulaStopped
 import LevyStochCalc.Ito.JumpTelescope
 import LevyStochCalc.Ito.ItoFormulaStoppedLimit
 import LevyStochCalc.Ito.ItoFormulaShift
+import LevyStochCalc.Ito.GridStopTruncated
 import LevyStochCalc.Ito.ItoIntegrandAeCongr
 import LevyStochCalc.Ito.ItoFormulaIncrement
 import LevyStochCalc.Ito.ItoFormulaRandomShift
