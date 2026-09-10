@@ -256,9 +256,9 @@ literature integral forms.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7** proof **step (II)** for the `ε → 0` limit (page 240); Ikeda–Watanabe **Section II.5**; Cont–Tankov **Proposition 8.18** + Chapter 8.
 * **Narrowness (2026-05-26 narrowing)**: the previous monolithic #16 (`itoLevyFormula_jumpResidual_axiom`, universal-`R` form) quantified over *any* `R` satisfying a continuous-part identity `u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω`. The 2026-05-26 narrowing eliminates that quantifier: the axiom now asserts the identity only for the canonical `R` constructed by direct subtraction. The universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a derived theorem forwarding over this canonical axiom by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity). The narrower axiom captures exactly the analytical content of Applebaum 4.4.10 + 4.4.7 step II (the small/large-jump decomposition + ε→0 L²-limit + Lévy-Itô combinatorial step); the universal-`R` form adds only algebraic glue.
 * **Statement audit (2026-09-06) — two missing hypotheses, now added.** The statement had no smoothness hypothesis on `u` and no integrability of the drift `μ(s, X_s)` along the path. Its derivative-based integrands use Mathlib's `fderiv`/`deriv`, which are `0` off the differentiability set, and its drift term is a Bochner integral, which is `0` on non-integrable integrands; so the statement as written was refutable, not merely unproved: (i) `n = d = 1`, `(μ, σ, γ) = (0, 1, 0)`, `X = W`, `u(t, x) = 1_{x > 0}` — every integrand vanishes, all hypotheses hold, and the conclusion reads `1_{W_T > 0} = 0` a.s.; (ii) even for smooth `u`, `μ(s, x) = 1/s` makes the SDE drift integral silently `0` (so `X = x₀ + W`), and for `u(t, x) = t x` the claimed identity is off by `T`. The corrected statement assumes `hu : ContDiff ℝ 2 (Function.uncurry u)` (joint `C²`, which contains the cited `C^{1,2}` class) and `h_μ_int : ∀ᵐ ω, ∀ i, IntegrableOn (fun s => μ s (X s ω) i) (Icc 0 T)`; the derived theorems `itoLevyFormula_jumpResidual_axiom`, `itoLevyFormula` and the dissertation forwarder `Dissertation.Continuous.itoLevyFormula` carry both. (Integrability of the drift integrand `∂ₜu + 𝓛u` along the path follows from these and the structure's `sup_L2`/càdlàg fields and is not assumed.) No `sorry` and no change to the conclusion; the axiom is *narrower* than before.
-* **Statement audit (2026-09-10) — SEVEN further hypotheses are missing, and the axiom as it
+* **Statement audit (2026-09-10) — SIX further hypotheses are missing (a seventh, item 2, was WITHDRAWN the same day), and the axiom as it
   currently stands CANNOT BE PROVED. Corrections identified, NOT YET APPLIED.** Assembling the
-  replacement proof (Epic B, `../Dissertation/WORK_BREAKDOWN.md` B4) surfaced seven gaps between what
+  replacement proof (Epic B, `../Dissertation/WORK_BREAKDOWN.md` B4) surfaced these gaps between what
   the statement assumes and what the cited theorem needs. Each is faithful to Applebaum individually
   — several restore hypotheses the source assumes that this Lean transcription dropped — but the
   aggregate is a substantive change to what is being proved, and it is recorded here **before** the
@@ -267,19 +267,26 @@ literature integral forms.
      Not derivable: they are what makes the realised counting measure on a finite-activity window a
      *nameable* finite sum of Diracs, and the pathwise jump sum rests entirely on that enumeration.
      Applebaum's mark space is `ℝᵈ ∖ {0}`, a Borel subset of a Polish space, which has both.
-  2. `∀ s ≤ 0, ∀ x e, coeffs.γ s x e = 0`. **Forced, not convenient.** The marked predictable
-     σ-algebra is *not* the product of the predictable σ-algebra with the mark σ-algebra — every one
-     of its generators lies inside `Ω × (0, ∞) × E` — so every marked predictable process is
-     constant at nonpositive times. Without this, the predictability the proof needs is **false**,
-     not merely unproved. It costs nothing modelling-wise: the compensated integral runs over
-     `(0, t]` and the drift over `[0, t]`, where `{0}` is Lebesgue-null.
-     **It is load-bearing twice, in two independent places** (second one found 2026-09-10 while
-     building the assembly): besides making the coefficient at the left limits predictable at all,
-     it is what makes predictability *survive the mark cut* the truncation applies. Cutting a
-     general predictable integrand to a set of marks does **not** preserve predictability — the cut
-     set meets the nonpositive strip without containing it, and no measurable set of that σ-algebra
-     does — so without the vanishing the truncated integrand is not admissible either
-     (`Ito/JumpFormulaClosure.lean`, `markedPredictable_markCut`).
+  2. ~~`∀ s ≤ 0, ∀ x e, coeffs.γ s x e = 0`~~ — **WITHDRAWN 2026-09-10, the same day, as mis-framed.**
+     This was listed as a hypothesis the *coefficient* must satisfy. That was wrong. It is an
+     artefact of **this tree's** `markedPredictableSigma`, whose generators are the rectangles
+     `F ×ˢ (Ioc r q ×ˢ B)` with `0 ≤ r`, leaving the whole nonpositive strip a single atom. The
+     literature's marked predictable σ-algebra is the **product** `𝒫 ⊗ ℰ` of the predictable
+     σ-algebra with the mark σ-algebra, under which `1_A(e)` is measurable outright and the mark cut
+     preserves predictability with no hypothesis whatever. The obstruction is in the Lean
+     definition, not in the mathematics, and it does not narrow #16.
+     **The right adjustment is a convention on the integrand, not an assumption on the model**:
+     extend by zero below the time domain, `Ĥ(ω, s, e) = if 0 < s then H(ω, s, e) else 0`. It is the
+     *integrand* that is zeroed, not the coefficient or the initial state — zeroing the input tuple
+     would not suffice when the coefficient is nonzero at the origin.
+     `Ito/JumpCoefficientPredictable.lean`'s `markedPredictable_ite_of_predictable` already gives
+     predictability of the extension with **no** extra hypothesis, and the two checks that make the
+     convention free are proved in `Ito/JumpFormulaClosure.lean`: `zeroExtPos_of_pos`, the extension
+     agrees with the integrand at every positive time; and `zeroExtPos_ae_eq`, it has the same class
+     for `markedEnergyMeasure P ν T`, so the compensated integral is unchanged — that intensity is
+     `dt ν(de)` on `[0, T]`, which meets the nonpositive times only at `{0}`. The pathwise jump sum
+     integrates over `(0, t]` and never sees them; the drift integral over `[0, t]` differs on a
+     Lebesgue-null set.
   3. `∀ t, Measurable[ℱ t] (X.X t)`. **This is a defect in `JumpDiffusion`, not in #16.** The
      structure's docstring calls its solution "adapted" (`Ito/Setting.lean`) but carries no such
      field, and adaptedness does not follow from `is_solution`: the two stochastic terms are

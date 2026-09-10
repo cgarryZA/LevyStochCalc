@@ -2613,3 +2613,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_augFiltration_repairOn
 #print axioms LevyStochCalc.Ito.JumpFormula.markTruncCoeffs_eq_markCutγ
 #print axioms LevyStochCalc.Ito.JumpFormula.markedPredictable_markCut
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_of_pos
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_of_nonpos
+#print axioms LevyStochCalc.Ito.JumpFormula.markedEnergyMeasure_nonpos
+#print axioms LevyStochCalc.Ito.JumpFormula.zeroExtPos_ae_eq

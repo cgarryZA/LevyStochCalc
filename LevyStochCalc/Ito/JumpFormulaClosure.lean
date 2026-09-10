@@ -239,9 +239,14 @@ variable {Ω : Type u₃} [MeasurableSpace Ω] {E : Type v₃} [MeasurableSpace 
   {ν : Measure E} [SigmaFinite ν] {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
 
 /-- An integrand vanishing at nonpositive times stays predictable when cut to a measurable set of
-marks. The vanishing is necessary: every generator of the marked predictable σ-algebra lies at
-strictly positive times, so a set meeting the nonpositive strip without containing it is not
-measurable there, and the mark cut of a general predictable integrand is one such. -/
+marks.
+
+The vanishing is needed for the marked predictable σ-algebra as generated here, whose generators
+`F ×ˢ (Ioc r q ×ˢ B)` with `0 ≤ r` leave the nonpositive strip a single atom: a set meeting that
+strip without containing it is not measurable, and the mark cut of a general predictable integrand
+is one such. It is a feature of that generating family rather than of the mark cut, which for the
+product of the predictable σ-algebra with the mark σ-algebra needs no hypothesis; `zeroExtPos`
+supplies the vanishing as a convention on the integrand, at no cost to any integral. -/
 theorem markedPredictable_markCut {φ : Ω → ℝ → E → ℝ} (hφ : MarkedPredictable ℱ ν φ)
     (hφ0 : ∀ (ω : Ω) (s : ℝ) (e : E), s ≤ 0 → φ ω s e = 0)
     {A : Set E} (hA : MeasurableSet A) :
@@ -271,6 +276,59 @@ theorem markedPredictable_markCut {φ : Ω → ℝ → E → ℝ} (hφ : MarkedP
   exact hφ.indicator hS
 
 end MarkCut
+
+section ZeroExtension
+
+open LevyStochCalc.Probability LevyStochCalc.Poisson.Compensated
+
+universe u₄ v₄
+
+variable {Ω : Type u₄} [MeasurableSpace Ω] {E : Type v₄} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+
+/-- A marked integrand extended by zero to the nonpositive times. -/
+noncomputable def zeroExtPos (φ : Ω → ℝ → E → ℝ) (ω : Ω) (s : ℝ) (e : E) : ℝ :=
+  haveI := Classical.dec (0 < s)
+  if 0 < s then φ ω s e else 0
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] [IsProbabilityMeasure P] [SigmaFinite ν] in
+/-- The extension agrees with the integrand at every positive time. -/
+@[simp] theorem zeroExtPos_of_pos (φ : Ω → ℝ → E → ℝ) (ω : Ω) {s : ℝ} (hs : 0 < s) (e : E) :
+    zeroExtPos φ ω s e = φ ω s e := by
+  simp only [zeroExtPos, hs, if_true]
+
+omit [MeasurableSpace Ω] [MeasurableSpace E] [IsProbabilityMeasure P] [SigmaFinite ν] in
+theorem zeroExtPos_of_nonpos (φ : Ω → ℝ → E → ℝ) (ω : Ω) {s : ℝ} (hs : s ≤ 0) (e : E) :
+    zeroExtPos φ ω s e = 0 := by
+  simp only [zeroExtPos, not_lt.mpr hs, if_false]
+
+/-- The nonpositive times carry no energy: the window is `[0, T]` and meets them only at `0`. -/
+theorem markedEnergyMeasure_nonpos (T : ℝ) :
+    markedEnergyMeasure P ν T {p : Ω × ℝ × E | p.2.1 ≤ 0} = 0 := by
+  have hsub : {p : Ω × ℝ × E | p.2.1 ≤ 0}
+      ⊆ (Set.univ : Set Ω) ×ˢ (Set.Iic (0 : ℝ) ×ˢ (Set.univ : Set E)) := by
+    intro p hp; exact ⟨Set.mem_univ _, hp, Set.mem_univ _⟩
+  refine measure_mono_null hsub ?_
+  rw [markedEnergyMeasure, Measure.prod_prod, Measure.prod_prod,
+    Measure.restrict_apply measurableSet_Iic]
+  have : Set.Iic (0 : ℝ) ∩ Set.Icc (0 : ℝ) T ⊆ {(0 : ℝ)} := by
+    intro x hx
+    exact le_antisymm hx.1 hx.2.1
+  have hz : volume (Set.Iic (0 : ℝ) ∩ Set.Icc (0 : ℝ) T) = 0 :=
+    measure_mono_null this (by simp)
+  simp [hz]
+
+/-- The extension has the same energy class as the integrand, so the compensated integrals of the
+two agree almost surely. -/
+theorem zeroExtPos_ae_eq (φ : Ω → ℝ → E → ℝ) (T : ℝ) :
+    (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)
+      =ᵐ[markedEnergyMeasure P ν T] fun p : Ω × ℝ × E => zeroExtPos φ p.1 p.2.1 p.2.2 := by
+  refine measure_mono_null ?_ (markedEnergyMeasure_nonpos (P := P) (ν := ν) T)
+  intro p hp
+  by_contra hpos
+  exact hp (zeroExtPos_of_pos φ p.1 (not_le.mp hpos) p.2.2).symm
+
+end ZeroExtension
 
 section Duplicates
 
