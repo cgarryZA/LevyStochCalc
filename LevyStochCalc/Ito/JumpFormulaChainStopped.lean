@@ -199,6 +199,61 @@ theorem measurable_uncurry_stopped_sub_shift (hσ : MeasureTheory.IsStoppingTime
 
 end StoppedShift
 
+section FromUnstopped
+
+open scoped NNReal ENNReal
+
+variable {Ω : Type u} {mΩ : MeasurableSpace Ω} {n d : ℕ} {ℱ : Filtration ℝ mΩ}
+  {P : Measure Ω} [IsProbabilityMeasure P] {chain : ℕ → Ω → WithTop ℝ}
+  {V : ℝ → Ω → Fin n → ℝ} {c : ℕ → Ω → Fin n → ℝ} {H : Fin n → Fin d → Ω → ℝ → ℝ}
+  {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ}
+
+/-- An integrand jointly measurable in the sample point and the time has jointly measurable
+increments between the members of a chain of stopping times. -/
+theorem measurable_uncurry_stopped_sub_chain_of_measurable
+    (hchain : ∀ k, MeasureTheory.IsStoppingTime ℱ (chain k))
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s)) :
+    ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry fun ω s =>
+      Probability.stopped (chain (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (chain k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s) :=
+  fun k p j => measurable_uncurry_stopped_sub (hchain k) (hchain (k + 1)) (hmV k p j)
+
+/-- A progressively measurable integrand has progressively measurable increments between the
+members of a chain of stopping times. -/
+theorem progressivelyMeasurable_stopped_sub_chain_of_progressivelyMeasurable
+    (hchain : ∀ k, MeasureTheory.IsStoppingTime ℱ (chain k))
+    (hpV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) :
+    ∀ (k : ℕ) (p : Fin n) (j : Fin d), Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      Probability.stopped (chain (k + 1))
+          (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+        - Probability.stopped (chain k)
+            (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s :=
+  fun k p j => progressivelyMeasurable_stopped_sub (hchain k) (hchain (k + 1)) (hpV k p j)
+
+/-- An integrand of finite energy on every bounded window has increments of finite energy
+between the members of a chain of stopping times. -/
+theorem energy_stopped_sub_chain_lt_top
+    (hchain : ∀ k, MeasureTheory.IsStoppingTime ℱ (chain k))
+    (hmV : ∀ (k : ℕ) (p : Fin n) (j : Fin d), Measurable (Function.uncurry
+      fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s))
+    (hqV : ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coordDeriv f' p (V s ω + c k ω) * H p j ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ (k : ℕ) (p : Fin n) (j : Fin d) (T' : ℝ), 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖Probability.stopped (chain (k + 1))
+              (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s
+            - Probability.stopped (chain k)
+                (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤ :=
+  fun k p j => energy_stopped_sub_lt_top (hchain k) (hchain (k + 1)) (hmV k p j) (hqV k p j)
+
+end FromUnstopped
+
 end LevyStochCalc.Brownian.Ito
 
 namespace LevyStochCalc.Ito.JumpFormula

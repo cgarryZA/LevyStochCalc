@@ -2759,6 +2759,21 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn_ℱ
 #print axioms LevyStochCalc.Ito.BigJump.exists_sdeData_of_solvesOn
+-- M16 wave 3, the continuous part of the truncated path (C2) and the chain's weakening (C6c)
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.ae_forall_coord_eq
+#print axioms LevyStochCalc.Brownian.Ito.IsVectorItoVersion.ae_forall_tendsto_nhdsGT
+#print axioms LevyStochCalc.Brownian.Ito.measurable_uncurry_stopped_sub_chain_of_measurable
+#print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stopped_sub_chain_of_progressivelyMeasurable
+#print axioms LevyStochCalc.Brownian.Ito.energy_stopped_sub_chain_lt_top
+#print axioms LevyStochCalc.Ito.JumpSplitting.stronglyMeasurable_setIntegral_mark
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_setIntegral_mark_le
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_sub_setIntegral_mark_lt_top
+#print axioms LevyStochCalc.Ito.JumpSplitting.stronglyMeasurable_markIntegralLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_uncurry_continuousDriftLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.progressivelyMeasurable_continuousDriftLeftAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_continuousDriftLeftAt_lt_top
+#print axioms LevyStochCalc.Ito.JumpSplitting.exists_continuousPart
+#print axioms LevyStochCalc.Ito.BigJump.ae_forall_bigJumpPath_eq_add_jumpSumLeftAt
 -- M16 wave 2, the per-interval formula for a measurable shift (C1b, C1c)
 #print axioms LevyStochCalc.Brownian.Ito.measurable_indicator_le_of_measurableSpace
 #print axioms LevyStochCalc.Brownian.Ito.progressivelyMeasurable_stoppingTimeWeight_mul
