@@ -2683,6 +2683,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.MarkedPredictable.comp_measurable
 #print axioms LevyStochCalc.Probability.MarkedPredictable.comp_measurable_of_predictable
 #print axioms LevyStochCalc.Probability.MarkedPredictable.comp_continuous
+-- M16 wave 1, zero-extension plumbing (C4)
+#print axioms LevyStochCalc.Ito.JumpFormula.markCut_zeroExtPos_comm
+#print axioms LevyStochCalc.Ito.JumpFormula.markedPredictable_markCut_zeroExtPos
+#print axioms LevyStochCalc.Ito.JumpFormula.markedPredictable_zeroExtPos_markCut
+#print axioms LevyStochCalc.Ito.JumpSplitting.leftLimPathAtPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.measurable_predictableSigma_leftLimPathAtPos
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPath
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
