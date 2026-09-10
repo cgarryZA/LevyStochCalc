@@ -2031,3 +2031,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.lintegral_sq_continuousDrift_lt_top
 #print axioms LevyStochCalc.Ito.JumpSplitting.multidimIntegral_eq_vectorItoMartingale
 #print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSum
+-- ===== The small-jump limit at the level of the process (B3b, 2026-09-10) =====
+#print axioms LevyStochCalc.Ito.SmallJump.pathJumpCoeff
+#print axioms LevyStochCalc.Ito.SmallJump.JumpIntegrand.ofJumpDiffusion
+#print axioms LevyStochCalc.Ito.SmallJump.smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.adapted_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.ae_cadlag_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.measurable_uncurry_bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.smallJumpIntegral_ae_zero
+#print axioms LevyStochCalc.Ito.SmallJump.tendsto_lintegral_sq_smallJumpIntegral
+#print axioms LevyStochCalc.Ito.SmallJump.tendsto_lintegral_sq_bigJumpProcess_sub
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_bigJumpProcess
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_bigJumpProcess_pi
+#print axioms LevyStochCalc.Ito.SmallJump.tendsto_comp_of_tendsto
+#print axioms LevyStochCalc.Ito.SmallJump.exists_seq_ae_tendsto_comp
