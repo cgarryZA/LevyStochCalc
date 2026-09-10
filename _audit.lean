@@ -2505,7 +2505,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_add_cappedJumpSumLeft_eq_of_path
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_exists_atomEnum_sum_range_jumpTermLeft_of_path
 
--- ===== Exhausting a σ-finite mark space (B4 assembly, 2026-09-10) =====
+-- ===== The closure assembly: mark exhaustion, filtration move, càdlàg repair =====
 #print axioms LevyStochCalc.Ito.JumpFormula.smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.measurableSet_smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.compl_smallMarks
@@ -2516,6 +2516,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measure_iInter_smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_eventually_notMem_smallMarks
 #print axioms LevyStochCalc.Ito.JumpFormula.multidimStochasticIntegral_augFiltration
+#print axioms LevyStochCalc.Ito.JumpFormula.exists_measurable_full_of_ae
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn_of_notMem
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_repairOn_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_uncurry_repairOn
+#print axioms LevyStochCalc.Ito.JumpFormula.repairOn_cadlag
 
 -- ===== Predictability of the jump coefficient at the left limits (B4-6, 2026-09-10) =====
 #print axioms LevyStochCalc.Probability.leftGridPoint

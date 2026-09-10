@@ -110,4 +110,77 @@ theorem multidimStochasticIntegral_augFiltration
 
 end Augmentation
 
+section Repair
+
+universe w
+
+variable {Ω : Type w} [MeasurableSpace Ω] {P : Measure Ω} {n : ℕ}
+
+/-- An almost-sure property holds on a measurable set whose complement is null. -/
+theorem exists_measurable_full_of_ae {p : Ω → Prop} (h : ∀ᵐ ω ∂P, p ω) :
+    ∃ G : Set Ω, MeasurableSet G ∧ P Gᶜ = 0 ∧ ∀ ω ∈ G, p ω := by
+  obtain ⟨Z, hsub, hZm, hZ0⟩ := exists_measurable_superset_of_null (ae_iff.mp h)
+  refine ⟨Zᶜ, hZm.compl, ?_, fun ω hω => ?_⟩
+  · rwa [compl_compl]
+  · by_contra hp
+    exact hω (hsub hp)
+
+/-- A path agreeing with a given one on a set and vanishing off it. -/
+noncomputable def repairOn (G : Set Ω) (X : ℝ → Ω → Fin n → ℝ) (t : ℝ) (ω : Ω) : Fin n → ℝ :=
+  haveI := Classical.dec (ω ∈ G)
+  if ω ∈ G then X t ω else 0
+
+omit [MeasurableSpace Ω] in
+@[simp] theorem repairOn_of_mem {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ} {ω : Ω} (hω : ω ∈ G) (t : ℝ) :
+    repairOn G X t ω = X t ω := by
+  simp only [repairOn, hω, if_true]
+
+omit [MeasurableSpace Ω] in
+@[simp] theorem repairOn_of_notMem {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ} {ω : Ω} (hω : ω ∉ G)
+    (t : ℝ) : repairOn G X t ω = 0 := by
+  simp only [repairOn, hω, if_false]
+
+/-- The repaired path agrees with the original almost surely, at every time simultaneously. -/
+theorem ae_forall_repairOn_eq {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ} (hG : P Gᶜ = 0) :
+    ∀ᵐ ω ∂P, ∀ t : ℝ, repairOn G X t ω = X t ω := by
+  have : ∀ᵐ ω ∂P, ω ∈ G := mem_ae_iff.mpr hG
+  filter_upwards [this] with ω hω t
+  exact repairOn_of_mem hω t
+
+/-- The repaired path is jointly measurable. -/
+theorem measurable_uncurry_repairOn {G : Set Ω} (hGm : MeasurableSet G)
+    {X : ℝ → Ω → Fin n → ℝ} (hX : Measurable (Function.uncurry X)) :
+    Measurable (Function.uncurry (repairOn G X)) := by
+  classical
+  have hmem : MeasurableSet {q : ℝ × Ω | q.2 ∈ G} := measurable_snd hGm
+  have heq : Function.uncurry (repairOn G X)
+      = fun q : ℝ × Ω => if q.2 ∈ G then Function.uncurry X q else 0 := by
+    funext q
+    by_cases hq : q.2 ∈ G <;> simp [Function.uncurry, repairOn, hq]
+  rw [heq]
+  exact Measurable.ite hmem hX measurable_const
+
+omit [MeasurableSpace Ω] in
+/-- Off the good set the repaired path is the constant zero path, which is càdlàg; on it the
+repaired path is the original one, so the repair is càdlàg at every sample point. -/
+theorem repairOn_cadlag {G : Set Ω} {X : ℝ → Ω → Fin n → ℝ}
+    (hGp : ∀ ω ∈ G, ∀ t : ℝ, 0 ≤ t →
+      Filter.Tendsto (fun s => X s ω) (nhdsWithin t (Set.Ioi t)) (nhds (X t ω))
+        ∧ ∀ i : Fin n, ∃ L : ℝ,
+            Filter.Tendsto (fun s => X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L))
+    (ω : Ω) (t : ℝ) (ht : 0 ≤ t) :
+    Filter.Tendsto (fun s => repairOn G X s ω) (nhdsWithin t (Set.Ioi t))
+        (nhds (repairOn G X t ω))
+      ∧ ∀ i : Fin n, ∃ L : ℝ,
+          Filter.Tendsto (fun s => repairOn G X s ω i) (nhdsWithin t (Set.Iio t)) (nhds L) := by
+  by_cases hω : ω ∈ G
+  · simpa only [repairOn_of_mem hω] using hGp ω hω t ht
+  · refine ⟨?_, fun i => ⟨0, ?_⟩⟩
+    · simp only [repairOn_of_notMem hω]
+      exact tendsto_const_nhds
+    · simp only [repairOn_of_notMem hω]
+      exact tendsto_const_nhds
+
+end Repair
+
 end LevyStochCalc.Ito.JumpFormula
