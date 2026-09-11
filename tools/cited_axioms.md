@@ -458,6 +458,28 @@ literature integral forms.
   derivatives; the axiom asks none), so #16 stays live: Stage 2 (removing the derivative bounds)
   is the open L-group, and the papers' own Itô applications are Epic D. `#print axioms` on the
   finite-activity identity and on M16 lists only the three standard axioms.
+* **Progress (2026-09-11, B4-L4) — locality of the compensated integral at a stopping time.**
+  `Ito/CompensatedLocality.lean` proves for the compensated Poisson integral what
+  `Brownian/ItoLocality.lean` proves for the Itô integral: for a stopping time `τ` of the
+  filtration and two admissible marked integrands agreeing at the positive times `s ≤ τ ω`
+  (`stochasticIntegral_congr_of_le`) or `s < τ ω` (`stochasticIntegral_congr_of_lt`), the two
+  compensated integrals at a time `t > 0` coincide almost surely on `{t ≤ τ}`. The route: the
+  integrand cut off at `τ` (`markedStopped τ φ`; jointly and progressively measurable and of
+  finite energy via `stoppedSet` / `stoppedRegion`); the increment identity
+  `CI(1_{(c,t]} φ)_t = CI(φ)_t − CI(φ)_c` from the martingale property — the integral of an
+  integrand vanishing after `c` has the same second moment at `c` and at `t`
+  (`stochasticIntegral_ae_eq_of_vanishing_gt`, `stochasticIntegral_indicator_Ioc`); the
+  pull-out of the hit indicator `1_{τ = c}` through the integral over `(c, t]`
+  (`hitInd_mul_stochasticIntegral_indIoc`, from `MarkedHorizonIntegrand.integral_mulLeft`);
+  optional stopping for a stopping time of finite range
+  (`stochasticIntegral_markedStopped_finiteRange`: the pathwise decomposition
+  `markedStopped_eq_sub_sum`, `stochasticIntegral_sub`, `exists_stochasticIntegral_finsetSum`);
+  and the grid approximations `gridStop τ t n ↓ τ` of `Brownian/ItoLocality.lean`, whose
+  cut-offs converge to `markedStopped τ φ` in energy by dominated convergence, so that the
+  difference isometry `itoIsometry_diff_compensated` squeezes the integrals
+  (`stochasticIntegral_markedStopped_eq_of_le`). `#print axioms` on every declaration of the
+  file lists the three standard axioms. This supplies the compensated transfer that Stage 2
+  (general `u`, the L-group) needs; Stage 2 itself stays open and the axiom stays live.
 
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 

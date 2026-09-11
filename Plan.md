@@ -31,7 +31,10 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   (`Ito/JumpFormulaAssembled.lean`, seven `sorry` blocks — the Stage-2 obligations for general
   `u`), a separate open node from the one live axiom #16. The bounded-derivative milestone M16
   (`itoLevyFormula_jumpResidual_of_boundedDerivs`) is proved with no `sorry` (2026-09-10) and
-  takes no cross witness (2026-09-11, B4-C12). The Picard chain is complete since 2026-09-07 —
+  takes no cross witness (2026-09-11, B4-C12) and is callable from the solution data
+  (2026-09-11, B4-C13); the locality of the compensated integral at a stopping time, the
+  Stage-2 transfer tool, is proved in `Ito/CompensatedLocality.lean` (2026-09-11, B4-L4).
+  The Picard chain is complete since 2026-09-07 —
   `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
   window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two
   statement audits landed with it (uniqueness is relative to the filtration; the drift integral

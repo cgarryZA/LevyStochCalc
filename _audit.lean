@@ -2899,5 +2899,42 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_lintegral_compensatorDriftIntegrand_lt_top
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_solvesOn
 
+-- ===== Locality of the compensated integral at a stopping time (B4-L4, 2026-09-11) =====
+#print axioms LevyStochCalc.Poisson.Compensated.markedStopped
+#print axioms LevyStochCalc.Poisson.Compensated.abs_markedStopped_le
+#print axioms LevyStochCalc.Poisson.Compensated.markedStopped_of_le
+#print axioms LevyStochCalc.Poisson.Compensated.markedStopped_of_not_le
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markedStopped
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_markedStopped
+#print axioms LevyStochCalc.Poisson.Compensated.sq_int_global_of_abs_le
+#print axioms LevyStochCalc.Poisson.Compensated.sq_int_global_markedStopped
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_uncurry_congr
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_congr
+#print axioms LevyStochCalc.Poisson.Compensated.sq_int_global_congr
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_sub
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_pos
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_of_vanishing_gt
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_fun
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_eqOn_Ioc
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_indIoc_mul
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_indIoc_mul
+#print axioms LevyStochCalc.Poisson.Compensated.sq_int_global_indIoc_mul
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_indIoc_zero
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_zero_of_nonpos
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_indicator_Ioc
+#print axioms LevyStochCalc.Poisson.Compensated.hitInd_mul_stochasticIntegral_indIoc
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_sub
+#print axioms LevyStochCalc.Poisson.Compensated.exists_stochasticIntegral_finsetSum
+#print axioms LevyStochCalc.Poisson.Compensated.markedCutTerm
+#print axioms LevyStochCalc.Poisson.Compensated.abs_markedCutTerm_le
+#print axioms LevyStochCalc.Poisson.Compensated.markedStopped_eq_sub_sum
+#print axioms LevyStochCalc.Poisson.Compensated.measurable_markedCutTerm
+#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_markedCutTerm
+#print axioms LevyStochCalc.Poisson.Compensated.sq_int_global_markedCutTerm
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_markedStopped_finiteRange
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_markedStopped_eq_of_le
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_le
+#print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_lt
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
