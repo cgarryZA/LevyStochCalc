@@ -1856,6 +1856,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.norm_le_of_le_exitTime
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_pos
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_le
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_ae
+#print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_lt
 #print axioms LevyStochCalc.smoothCut
 #print axioms LevyStochCalc.contDiff_smoothCut
 #print axioms LevyStochCalc.smoothCut_eq_one

@@ -230,6 +230,7 @@ import LevyStochCalc.Brownian.ItoFinsetSum
 import LevyStochCalc.Brownian.ItoOptionalStopping
 import LevyStochCalc.Brownian.VectorItoStopped
 import LevyStochCalc.Brownian.ItoLocality
+import LevyStochCalc.Brownian.ItoLocalityStrict
 import LevyStochCalc.Brownian.SmoothCutoff
 import LevyStochCalc.Brownian.ItoCutoff
 import LevyStochCalc.Brownian.ItoTruncate
