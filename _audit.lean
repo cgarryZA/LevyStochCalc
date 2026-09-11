@@ -3010,5 +3010,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
 #print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
+-- ===== The left-limit jump sum as a step function (B4-L5a, 2026-09-11) =====
+#print axioms LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
