@@ -303,6 +303,7 @@ import LevyStochCalc.Ito.JumpCoefficientPredictableZeroExt
 import LevyStochCalc.Ito.SubsequenceBookkeeping
 import LevyStochCalc.Ito.ItoFormulaGridShiftClosed
 import LevyStochCalc.Ito.JumpFormulaContinuity
+import LevyStochCalc.Ito.LocalDerivBounds
 import LevyStochCalc.Ito.CappedJumpSumMeasurable
 import LevyStochCalc.Ito.SdeDataOfSolvesOn
 import LevyStochCalc.Ito.JumpFormulaMixedDictionary

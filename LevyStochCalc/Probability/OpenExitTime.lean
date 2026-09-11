@@ -141,6 +141,14 @@ theorem isStoppingTime_openExitTime {ℱ : Filtration ℝ mΩ} [MeasurableSpace 
   MeasureTheory.isStoppingTime_of_measurableSet_lt_of_isRightContinuous
     fun t => ℱ.le_rightCont t _ (measurableSet_openExitTime_lt hadapt hright R t)
 
+/-- **A path that has not exited by `T` stays in the closed ball strictly before `T`.** This is
+the form the localisation uses: the window `[0, T)` of a path stopped at the exit time meets the
+state function only inside a ball, where its derivatives are bounded. -/
+theorem norm_le_of_le_openExitTime {X : Ω → ℝ → E} {R : ℝ} {ω : Ω} {T s : ℝ} (hs : 0 ≤ s)
+    (hsT : s < T) (hT : (T : WithTop ℝ) ≤ openExitTime X R ω) : ‖X ω s‖ ≤ R :=
+  norm_le_of_lt_openExitTime hs
+    (lt_of_lt_of_le (by exact_mod_cast hsT : (s : WithTop ℝ) < (T : WithTop ℝ)) hT)
+
 /-- The exit time grows with the radius. -/
 theorem openExitTime_mono (X : Ω → ℝ → E) (ω : Ω) {R R' : ℝ} (h : R ≤ R') :
     openExitTime X R ω ≤ openExitTime X R' ω := by

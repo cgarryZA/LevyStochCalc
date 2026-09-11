@@ -935,6 +935,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.measurableSet_openExitTime_lt
 #print axioms LevyStochCalc.Probability.isStoppingTime_openExitTime
 #print axioms LevyStochCalc.Probability.openExitTime_mono
+#print axioms LevyStochCalc.Probability.norm_le_of_le_openExitTime
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_sum_abs_gradient
+#print axioms LevyStochCalc.Ito.JumpFormula.continuous_sum_abs_hessian
+#print axioms LevyStochCalc.Ito.JumpFormula.exists_bound_on_box
 #print axioms LevyStochCalc.Probability.exitTime_mono
 #print axioms LevyStochCalc.Probability.exists_lt_exitTime
 -- ===== Orthogonality across Brownian coordinates (A4b-iii-7, 2026-09-08) =====
