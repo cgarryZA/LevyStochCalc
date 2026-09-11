@@ -2978,6 +2978,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.SecondMoment.integrableOn_integral_mul_drift
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_add_setIntegral
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_sum_mul_self_eq_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_eq_of_isItoLevyProcess_aug
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess_aug
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
