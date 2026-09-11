@@ -2936,5 +2936,28 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_le
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_lt
 
+-- ===== The second moment of an Itô–Lévy process (D-Itô, expectation form, 2026-09-11) =====
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_toReal
+#print axioms LevyStochCalc.Ito.SecondMoment.lintegral_sq_lt_top_of_memLp_two
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_add
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_add_mul_add
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_martingale_eq
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_martingale_eq_zero
+#print axioms LevyStochCalc.Ito.SecondMoment.memLp_two_prod
+#print axioms LevyStochCalc.Ito.SecondMoment.memLp_two_prod_fst
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_setIntegral_mul
+#print axioms LevyStochCalc.Ito.SecondMoment.memLp_two_setIntegral
+#print axioms LevyStochCalc.Ito.SecondMoment.mul_self_setIntegral_eq
+#print axioms LevyStochCalc.Ito.SecondMoment.energy_lt_top_of_nonneg
+#print axioms LevyStochCalc.Ito.SecondMoment.ae_memLp_two_eval
+#print axioms LevyStochCalc.Ito.SecondMoment.running
+#print axioms LevyStochCalc.Ito.SecondMoment.running_eq
+#print axioms LevyStochCalc.Ito.SecondMoment.stronglyMeasurable_running
+#print axioms LevyStochCalc.Ito.SecondMoment.memLp_two_running
+#print axioms LevyStochCalc.Ito.SecondMoment.memLp_two_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_sum_mul_self_eq_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_of_isItoLevyProcess_aug
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

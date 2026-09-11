@@ -314,6 +314,7 @@ import LevyStochCalc.Ito.FiniteActivityMixed
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.CompensatedLocality
+import LevyStochCalc.Ito.SecondMoment
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition
