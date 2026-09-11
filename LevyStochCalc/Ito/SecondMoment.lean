@@ -26,6 +26,15 @@ and the pathwise identity `(∫_0^T b)² = 2 ∫_0^T (∫_0^s b) b_s ds`. The dr
 integral of the expected pairing; at every time the pairing is expanded along the decomposition,
 and the two martingale pieces are read at the horizon by the martingale property.
 
+Polarising, for two such processes `X` and `Y` over the same driver,
+
+`𝔼[X_T Y_T] = 𝔼[X₀ Y₀] + ∫_0^T 𝔼[X_s b'_s + Y_s b_s] ds + ∑_j 𝔼 ∫_0^T σ_j σ'_j ds
+  + 𝔼 ∫_0^T ∫_E γ γ' dν ds`,
+
+the expectation form of the bilinear Itô formula, from the polarised isometries of the two
+stochastic integrals and the polarised drift identity
+`(∫_0^T b)(∫_0^T b') = ∫_0^T ((∫_0^s b) b'_s + b_s (∫_0^s b')) ds`.
+
 ## Main statements
 
 * `integral_mul_self_eq_of_isItoLevyProcess` — the second moment of a scalar Itô–Lévy process
@@ -35,6 +44,8 @@ and the two martingale pieces are read at the horizon by the martingale property
 * `integral_sum_mul_self_eq_of_isItoLevyProcess` — the vector form, coordinate by coordinate.
 * `integral_mul_self_eq_of_isItoLevyProcess_aug` — the scalar form over the augmented joint
   natural filtration of the driver, with the witness supplied by the driver.
+* `integral_mul_eq_of_isItoLevyProcess` — the bilinear form: the expected product at the
+  horizon of two scalar Itô–Lévy processes over the same driver.
 * `memLp_two_of_isItoLevyProcess` — such a process is square integrable at every nonnegative
   time.
 * `integral_mul_martingale_eq` — pairing a square-integrable martingale at a later time against
@@ -44,6 +55,10 @@ and the two martingale pieces are read at the horizon by the martingale property
   variable is the time integral of the pairings.
 * `mul_self_setIntegral_eq` — the square of the integral of an integrable function over `[0, T]`
   is twice the integral of its running integral against the function.
+* `mul_setIntegral_eq` — its polarised form for two integrable functions.
+* `integral_mul_stochasticIntegralBrownian`, `integral_mul_stochasticIntegral` — the polarised
+  isometries: the expected product of two Brownian, or two compensated, integrals at a time is
+  the expected time integral of the product of the integrands.
 -/
 
 open MeasureTheory ProbabilityTheory Filter
@@ -751,5 +766,861 @@ theorem integral_mul_self_eq_of_isItoLevyProcess_aug
   integral_mul_self_eq_of_isItoLevyProcess h D.crossWitness.aug hX₀ hX₀2 hbm hbp hbq hT
 
 end Augmented
+
+section Polarised
+
+omit [IsProbabilityMeasure P] in
+/-- The energy of a square-integrable integrand on a window is the integral of its square for the
+product measure. -/
+theorem toReal_lintegral_sq_eq {f : Ω → ℝ → ℝ} (hf : Measurable (Function.uncurry f)) {T : ℝ}
+    (hfq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P).toReal
+      = ∫ p, f p.1 p.2 * f p.1 p.2 ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := by
+  have hmeas : Measurable fun p : Ω × ℝ => (‖f p.1 p.2‖₊ : ℝ≥0∞) ^ 2 :=
+    hf.nnnorm.coe_nnreal_ennreal.pow_const 2
+  rw [integral_mul_self_eq_toReal (memLp_two_prod hf hfq)]
+  congr 1
+  exact (lintegral_prod _ hmeas.aemeasurable).symm
+
+/-- **The polarised Itô isometry.** The pairing of two Itô integrals at a positive time is the
+integral of the pairing of their integrands over the window. -/
+theorem integral_mul_stochasticIntegralBrownian (W : LevyStochCalc.Brownian.BrownianMotion P)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : LevyStochCalc.Brownian.IsBrownianFiltration W ℱ)
+    {H K : Ω → ℝ → ℝ} (hHm : Measurable (Function.uncurry H))
+    (hHp : LevyStochCalc.Probability.ProgressivelyMeasurable ℱ H)
+    (hHs : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hKm : Measurable (Function.uncurry K))
+    (hKp : LevyStochCalc.Probability.ProgressivelyMeasurable ℱ K)
+    (hKs : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) :
+    ∫ ω, LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω ∂P
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, H ω s * K ω s ∂volume ∂P := by
+  have hU2 := LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_memLp W ℱ hℱ H hHm hHp hHs T
+  have hV2 := LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_memLp W ℱ hℱ K hKm hKp hKs T
+  have hUV2 : MemLp (fun ω =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω) 2 P :=
+    hU2.sub hV2
+  have hdiff := LevyStochCalc.Brownian.Ito.isometry_diff_stochasticIntegralBrownian W ℱ hℱ H K
+    hHm hKm hHp hKp hHs hKs hT
+  have hdq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖H ω s - K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    rw [← hdiff]
+    exact lintegral_sq_lt_top_of_memLp_two hUV2
+  have hHm2 := memLp_two_prod hHm (hHs T hT)
+  have hKm2 := memLp_two_prod hKm (hKs T hT)
+  -- the three energies, on the product measure
+  have hUU : ∫ ω, LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω ∂P
+      = ∫ p, H p.1 p.2 * H p.1 p.2 ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := by
+    rw [integral_mul_self_eq_toReal hU2,
+      LevyStochCalc.Brownian.Ito.isometry_stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs hT]
+    exact toReal_lintegral_sq_eq hHm (hHs T hT)
+  have hVV : ∫ ω, LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω ∂P
+      = ∫ p, K p.1 p.2 * K p.1 p.2 ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := by
+    rw [integral_mul_self_eq_toReal hV2,
+      LevyStochCalc.Brownian.Ito.isometry_stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs hT]
+    exact toReal_lintegral_sq_eq hKm (hKs T hT)
+  have hDD : ∫ ω, (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω)
+        * (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω) ∂P
+      = ∫ p, (H p.1 p.2 - K p.1 p.2) * (H p.1 p.2 - K p.1 p.2)
+          ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := by
+    rw [integral_mul_self_eq_toReal hUV2, hdiff]
+    exact toReal_lintegral_sq_eq (f := fun ω s => H ω s - K ω s) (hHm.sub hKm) hdq
+  -- the algebra of the polarisation identity
+  have iUU : Integrable (fun ω =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω) P :=
+    hU2.integrable_mul hU2
+  have iVV : Integrable (fun ω =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω) P :=
+    hV2.integrable_mul hV2
+  have iDD : Integrable (fun ω =>
+      (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω)
+      * (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω)) P :=
+    hUV2.integrable_mul hUV2
+  have iS : Integrable (fun ω =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+      + LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω) P :=
+    iUU.add iVV
+  have hexp : (fun ω =>
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω)
+      = fun ω =>
+        (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+          * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+        + LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω
+          * LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω
+        - (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+          - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω)
+        * (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ H hHm hHp hHs T ω
+          - LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian W ℱ hℱ K hKm hKp hKs T ω))
+        / 2 := by
+    funext ω
+    ring
+  have iHH : Integrable (fun p : Ω × ℝ => H p.1 p.2 * H p.1 p.2)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := hHm2.integrable_mul hHm2
+  have iKK : Integrable (fun p : Ω × ℝ => K p.1 p.2 * K p.1 p.2)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := hKm2.integrable_mul hKm2
+  have iHK : Integrable (fun p : Ω × ℝ => H p.1 p.2 * K p.1 p.2)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := hHm2.integrable_mul hKm2
+  have iDD' : Integrable (fun p : Ω × ℝ => (H p.1 p.2 - K p.1 p.2) * (H p.1 p.2 - K p.1 p.2))
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) :=
+    (hHm2.sub hKm2).integrable_mul (hHm2.sub hKm2)
+  have iS' : Integrable (fun p : Ω × ℝ => H p.1 p.2 * H p.1 p.2 + K p.1 p.2 * K p.1 p.2)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) := iHH.add iKK
+  rw [hexp, integral_div, integral_sub iS iDD, integral_add iUU iVV, hUU, hVV, hDD,
+    ← integral_add iHH iKK, ← integral_sub iS' iDD', ← integral_div, ← integral_prod _ iHK]
+  refine integral_congr_ae (Eventually.of_forall fun p => ?_)
+  ring
+
+end Polarised
+
+section PolarisedMarked
+
+variable {E : Type v} [MeasurableSpace E] {ν : Measure E} [SigmaFinite ν]
+
+omit [IsProbabilityMeasure P] in
+/-- The energy of a marked integrand on a window, as a lintegral for the product measure. -/
+theorem lintegral_prod_marked {φ : Ω → ℝ → E → ℝ}
+    (hm : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) (T : ℝ) :
+    ∫⁻ p, (‖φ p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2
+        ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν))
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
+  have hmeas : Measurable fun p : Ω × ℝ × E => (‖φ p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2 :=
+    hm.nnnorm.coe_nnreal_ennreal.pow_const 2
+  rw [lintegral_prod _ hmeas.aemeasurable]
+  refine lintegral_congr fun ω => ?_
+  exact lintegral_prod _ (hmeas.comp (measurable_prodMk_left (x := ω))).aemeasurable
+
+omit [IsProbabilityMeasure P] in
+/-- A marked integrand of finite energy on a window is square integrable for the product
+measure. -/
+theorem memLp_two_prod_marked {φ : Ω → ℝ → E → ℝ}
+    (hm : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) {T : ℝ}
+    (hq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    MemLp (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) 2
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := by
+  refine LevyStochCalc.Brownian.Ito.memLp_two_of_lintegral_sq_lt_top hm.aestronglyMeasurable ?_
+  rw [lintegral_prod_marked hm T]
+  exact hq
+
+omit [IsProbabilityMeasure P] in
+/-- The energy of a marked integrand on a window is the integral of its square for the product
+measure. -/
+theorem toReal_lintegral_sq_marked_eq {φ : Ω → ℝ → E → ℝ}
+    (hm : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2) {T : ℝ}
+    (hq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
+    (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P).toReal
+      = ∫ p, φ p.1 p.2.1 p.2.2 * φ p.1 p.2.1 p.2.2
+          ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := by
+  rw [← lintegral_prod_marked hm T, ← integral_mul_self_eq_toReal (memLp_two_prod_marked hm hq)]
+
+/-- A Bochner integral for the product measure of a marked window, iterated. -/
+theorem integral_prod_marked {F : Ω × ℝ × E → ℝ} {T : ℝ}
+    (hF : Integrable F (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν))) :
+    ∫ p, F p ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν))
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, ∫ e, F (ω, (s, e)) ∂ν ∂volume ∂P := by
+  rw [integral_prod _ hF]
+  refine integral_congr_ae ?_
+  filter_upwards [hF.prod_right_ae] with ω hω
+  exact integral_prod _ hω
+
+/-- **The polarised isometry of the compensated integral.** The pairing of two compensated
+integrals at a positive time is the integral of the pairing of their integrands over the window
+and the marks. -/
+theorem integral_mul_stochasticIntegral (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    {φ ψ : Ω → ℝ → E → ℝ}
+    (hφm : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)
+    (hφp : LevyStochCalc.Probability.MarkedProgressivelyMeasurable ℱ φ)
+    (hφq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    (hψm : Measurable fun p : Ω × ℝ × E => ψ p.1 p.2.1 p.2.2)
+    (hψp : LevyStochCalc.Probability.MarkedProgressivelyMeasurable ℱ ψ)
+    (hψq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖ψ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) :
+    ∫ ω, LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω ∂P
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, ∫ e, φ ω s e * ψ ω s e ∂ν ∂volume ∂P := by
+  have hU2 := LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp N ℱ hℱ φ hφm hφp hφq T
+  have hV2 := LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp N ℱ hℱ ψ hψm hψp hψq T
+  have hUV2 : MemLp (fun ω =>
+      LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω) 2 P :=
+    hU2.sub hV2
+  have hdiff := LevyStochCalc.Poisson.Compensated.itoIsometry_diff_compensated N ℱ hℱ φ ψ hφm hψm
+    hφp hψp hφq hψq T hT
+  have hdq : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e - ψ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ := by
+    rw [← hdiff]
+    exact lintegral_sq_lt_top_of_memLp_two hUV2
+  have hφ2 := memLp_two_prod_marked hφm (hφq T hT)
+  have hψ2 := memLp_two_prod_marked hψm (hψq T hT)
+  have hUU : ∫ ω, LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω ∂P
+      = ∫ p, φ p.1 p.2.1 p.2.2 * φ p.1 p.2.1 p.2.2
+          ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := by
+    rw [integral_mul_self_eq_toReal hU2,
+      LevyStochCalc.Poisson.Compensated.isometry_stochasticIntegral N ℱ hℱ φ hφm hφp hφq T hT]
+    exact toReal_lintegral_sq_marked_eq hφm (hφq T hT)
+  have hVV : ∫ ω, LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω ∂P
+      = ∫ p, ψ p.1 p.2.1 p.2.2 * ψ p.1 p.2.1 p.2.2
+          ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := by
+    rw [integral_mul_self_eq_toReal hV2,
+      LevyStochCalc.Poisson.Compensated.isometry_stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T hT]
+    exact toReal_lintegral_sq_marked_eq hψm (hψq T hT)
+  have hDD : ∫ ω, (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω)
+        * (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω) ∂P
+      = ∫ p, (φ p.1 p.2.1 p.2.2 - ψ p.1 p.2.1 p.2.2) * (φ p.1 p.2.1 p.2.2 - ψ p.1 p.2.1 p.2.2)
+          ∂(P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := by
+    rw [integral_mul_self_eq_toReal hUV2, hdiff]
+    exact toReal_lintegral_sq_marked_eq (φ := fun ω s e => φ ω s e - ψ ω s e) (hφm.sub hψm) hdq
+  have iUU : Integrable (fun ω =>
+      LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω) P :=
+    hU2.integrable_mul hU2
+  have iVV : Integrable (fun ω =>
+      LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω) P :=
+    hV2.integrable_mul hV2
+  have iDD : Integrable (fun ω =>
+      (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω)
+      * (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω)) P :=
+    hUV2.integrable_mul hUV2
+  have iS : Integrable (fun ω =>
+      LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+      + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω) P :=
+    iUU.add iVV
+  have hexp : (fun ω =>
+      LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω)
+      = fun ω =>
+        (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+          * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+        + LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω
+          * LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω
+        - (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+          - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω)
+        * (LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ φ hφm hφp hφq T ω
+          - LevyStochCalc.Poisson.Compensated.stochasticIntegral N ℱ hℱ ψ hψm hψp hψq T ω))
+        / 2 := by
+    funext ω
+    ring
+  have iφφ : Integrable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2 * φ p.1 p.2.1 p.2.2)
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := hφ2.integrable_mul hφ2
+  have iψψ : Integrable (fun p : Ω × ℝ × E => ψ p.1 p.2.1 p.2.2 * ψ p.1 p.2.1 p.2.2)
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := hψ2.integrable_mul hψ2
+  have iφψ : Integrable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2 * ψ p.1 p.2.1 p.2.2)
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := hφ2.integrable_mul hψ2
+  have iDD' : Integrable (fun p : Ω × ℝ × E =>
+      (φ p.1 p.2.1 p.2.2 - ψ p.1 p.2.1 p.2.2) * (φ p.1 p.2.1 p.2.2 - ψ p.1 p.2.1 p.2.2))
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) :=
+    (hφ2.sub hψ2).integrable_mul (hφ2.sub hψ2)
+  have iS' : Integrable (fun p : Ω × ℝ × E =>
+      φ p.1 p.2.1 p.2.2 * φ p.1 p.2.1 p.2.2 + ψ p.1 p.2.1 p.2.2 * ψ p.1 p.2.1 p.2.2)
+      (P.prod ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)) := iφφ.add iψψ
+  rw [hexp, integral_div, integral_sub iS iDD, integral_add iUU iVV, hUU, hVV, hDD,
+    ← integral_add iφφ iψψ, ← integral_sub iS' iDD', ← integral_div, ← integral_prod_marked iφψ]
+  refine integral_congr_ae (Eventually.of_forall fun p => ?_)
+  ring
+
+end PolarisedMarked
+
+section PolarisedDrift
+
+omit [IsProbabilityMeasure P] in
+/-- **The product of the integrals of two integrable functions over `[0, T]`** is the integral of
+the pairing of their running integrals against each other. -/
+theorem mul_setIntegral_eq {b b' : ℝ → ℝ} {T : ℝ}
+    (hb : IntegrableOn b (Set.Icc (0 : ℝ) T)) (hb' : IntegrableOn b' (Set.Icc (0 : ℝ) T)) :
+    (∫ s in Set.Icc (0 : ℝ) T, b s) * (∫ s in Set.Icc (0 : ℝ) T, b' s)
+      = ∫ s in Set.Icc (0 : ℝ) T,
+          ((∫ r in Set.Icc (0 : ℝ) s, b r) * b' s + b s * ∫ r in Set.Icc (0 : ℝ) s, b' r) := by
+  set μ : Measure ℝ := volume.restrict (Set.Icc (0 : ℝ) T) with hμ
+  have hprod : Integrable (fun p : ℝ × ℝ => b p.1 * b' p.2) (μ.prod μ) := hb.mul_prod hb'
+  set F : ℝ × ℝ → ℝ := {p : ℝ × ℝ | p.1 ≤ p.2}.indicator fun p => b p.1 * b' p.2 with hF
+  set G : ℝ × ℝ → ℝ := {p : ℝ × ℝ | p.2 ≤ p.1}.indicator fun p => b p.1 * b' p.2 with hG
+  set Dg : ℝ × ℝ → ℝ := {p : ℝ × ℝ | p.1 = p.2}.indicator fun p => b p.1 * b' p.2 with hDg
+  have hle : MeasurableSet {p : ℝ × ℝ | p.1 ≤ p.2} :=
+    measurableSet_le measurable_fst measurable_snd
+  have hge : MeasurableSet {p : ℝ × ℝ | p.2 ≤ p.1} :=
+    measurableSet_le measurable_snd measurable_fst
+  have hdiag : MeasurableSet {p : ℝ × ℝ | p.1 = p.2} :=
+    measurableSet_eq_fun measurable_fst measurable_snd
+  have hFint : Integrable F (μ.prod μ) := hprod.indicator hle
+  have hGint : Integrable G (μ.prod μ) := hprod.indicator hge
+  have hDint : Integrable Dg (μ.prod μ) := hprod.indicator hdiag
+  have hsplit : ∀ p : ℝ × ℝ, b p.1 * b' p.2 + Dg p = F p + G p := by
+    intro p
+    simp only [hF, hG, hDg, Set.indicator, Set.mem_setOf_eq]
+    rcases lt_trichotomy p.1 p.2 with h | h | h
+    · simp [h.le, h.ne, not_le.mpr h]
+    · simp [h]
+    · simp [h.le, h.ne', not_le.mpr h]
+  have hDzero : ∫ p, Dg p ∂(μ.prod μ) = 0 := by
+    rw [hDg, integral_indicator hdiag]
+    refine setIntegral_measure_zero _ ?_
+    rw [Measure.prod_apply hdiag]
+    simp
+  have hset : ∀ s ∈ Set.Icc (0 : ℝ) T, Set.Iic s ∩ Set.Icc (0 : ℝ) T = Set.Icc (0 : ℝ) s := by
+    intro s hs
+    ext r
+    simp only [Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc]
+    constructor
+    · rintro ⟨h1, h2, _⟩
+      exact ⟨h2, h1⟩
+    · rintro ⟨h2, h1⟩
+      exact ⟨h1, h2, h1.trans hs.2⟩
+  -- the lower triangle, sliced at the second coordinate
+  have hinnerF : ∀ s ∈ Set.Icc (0 : ℝ) T,
+      ∫ r, F (r, s) ∂μ = (∫ r in Set.Icc (0 : ℝ) s, b r) * b' s := by
+    intro s hs
+    have h1 : (fun r => F (r, s)) = fun r => (Set.Iic s).indicator (fun r => b r * b' s) r := by
+      funext r
+      simp only [hF, Set.indicator, Set.mem_setOf_eq, Set.mem_Iic]
+    rw [h1, integral_indicator measurableSet_Iic, integral_mul_const, hμ,
+      Measure.restrict_restrict measurableSet_Iic, hset s hs]
+  -- the upper triangle, sliced at the first coordinate
+  have hinnerG : ∀ r ∈ Set.Icc (0 : ℝ) T,
+      ∫ s, G (r, s) ∂μ = b r * ∫ s in Set.Icc (0 : ℝ) r, b' s := by
+    intro r hr
+    have h1 : (fun s => G (r, s)) = fun s => (Set.Iic r).indicator (fun s => b r * b' s) s := by
+      funext s
+      simp only [hG, Set.indicator, Set.mem_setOf_eq, Set.mem_Iic]
+    rw [h1, integral_indicator measurableSet_Iic, integral_const_mul, hμ,
+      Measure.restrict_restrict measurableSet_Iic, hset r hr]
+  have hFeq : ∫ p, F p ∂(μ.prod μ)
+      = ∫ s in Set.Icc (0 : ℝ) T, (∫ r in Set.Icc (0 : ℝ) s, b r) * b' s := by
+    rw [integral_prod_symm F hFint]
+    exact setIntegral_congr_fun measurableSet_Icc fun s hs => hinnerF s hs
+  have hGeq : ∫ p, G p ∂(μ.prod μ)
+      = ∫ r in Set.Icc (0 : ℝ) T, b r * ∫ s in Set.Icc (0 : ℝ) r, b' s := by
+    rw [integral_prod G hGint]
+    exact setIntegral_congr_fun measurableSet_Icc fun r hr => hinnerG r hr
+  have hFi : Integrable (fun s => (∫ r in Set.Icc (0 : ℝ) s, b r) * b' s)
+      (volume.restrict (Set.Icc (0 : ℝ) T)) := by
+    have h1 : Integrable (fun s => ∫ r, F (r, s) ∂μ) μ := hFint.integral_prod_right
+    refine h1.congr ?_
+    filter_upwards [ae_restrict_mem measurableSet_Icc] with s hs
+    exact hinnerF s hs
+  have hGi : Integrable (fun r => b r * ∫ s in Set.Icc (0 : ℝ) r, b' s)
+      (volume.restrict (Set.Icc (0 : ℝ) T)) := by
+    have h1 : Integrable (fun r => ∫ s, G (r, s) ∂μ) μ := hGint.integral_prod_left
+    refine h1.congr ?_
+    filter_upwards [ae_restrict_mem measurableSet_Icc] with r hr
+    exact hinnerG r hr
+  have hsum : ∫ p, b p.1 * b' p.2 ∂(μ.prod μ) = ∫ p, F p ∂(μ.prod μ) + ∫ p, G p ∂(μ.prod μ) := by
+    have h1 : ∫ p, (b p.1 * b' p.2 + Dg p) ∂(μ.prod μ) = ∫ p, (F p + G p) ∂(μ.prod μ) :=
+      integral_congr_ae (Eventually.of_forall hsplit)
+    rw [integral_add hprod hDint, integral_add hFint hGint, hDzero, add_zero] at h1
+    exact h1
+  calc (∫ s in Set.Icc (0 : ℝ) T, b s) * (∫ s in Set.Icc (0 : ℝ) T, b' s)
+      = ∫ p, b p.1 * b' p.2 ∂(μ.prod μ) := (integral_prod_mul b b').symm
+    _ = ∫ p, F p ∂(μ.prod μ) + ∫ p, G p ∂(μ.prod μ) := hsum
+    _ = ∫ s in Set.Icc (0 : ℝ) T,
+          ((∫ r in Set.Icc (0 : ℝ) s, b r) * b' s + b s * ∫ r in Set.Icc (0 : ℝ) s, b' r) := by
+        rw [hFeq, hGeq, ← integral_add hFi hGi]
+
+end PolarisedDrift
+
+section Bilinear
+
+variable {E : Type v} [MeasurableSpace E] {ν : Measure E} [SigmaFinite ν] {d : ℕ}
+  {D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν} {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
+  {hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (D.W.W j) ℱ}
+  {hℱN : LevyStochCalc.Poisson.IsPoissonFiltration D.N ℱ}
+  {X : ℝ → Ω → ℝ} {X₀ : Ω → ℝ} {b : ℝ → Ω → ℝ} {σ : ℝ → Ω → Fin d → ℝ} {γ : Ω → ℝ → E → ℝ}
+
+/-- The pairing of an Itô–Lévy process at a time `s` of a window against a square-integrable
+variable measurable at `s`, expanded along the decomposition at `s` with the two martingale
+pieces read at the horizon `T`. -/
+theorem integral_mul_eq_expand
+    (h : LevyStochCalc.Ito.Setting.IsItoLevyProcess D.W D.N ℱ hℱW hℱN X X₀ b σ γ)
+    (hX₀2 : MemLp X₀ 2 P) (hbm : Measurable (Function.uncurry fun ω s => b s ω))
+    (hbq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖b s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {s T : ℝ} (hs0 : 0 ≤ s) (hsT : s ≤ T) {g : Ω → ℝ} (hg : StronglyMeasurable[ℱ s] g)
+    (hg2 : MemLp g 2 P) :
+    ∫ ω, X s ω * g ω ∂P
+      = ∫ ω, g ω * X₀ ω ∂P + ∫ ω, g ω * (∫ r in Set.Icc (0 : ℝ) s, b r ω) ∂P
+        + (∑ j, ∫ ω, g ω * LevyStochCalc.Brownian.Ito.stochasticIntegral (D.W.W j) ℱ (hℱW j)
+            (fun ω s => σ s ω j) (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) T ω ∂P)
+        + ∫ ω, g ω * LevyStochCalc.Poisson.Compensated.stochasticIntegral D.N ℱ hℱN γ h.γ_meas
+            h.γ_prog h.γ_sq T ω ∂P := by
+  classical
+  set S : Fin d → ℝ → Ω → ℝ := fun j =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegral (D.W.W j) ℱ (hℱW j) (fun ω s => σ s ω j)
+      (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) with hSdef
+  set C : ℝ → Ω → ℝ :=
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq
+    with hCdef
+  set Dr : ℝ → Ω → ℝ := fun t ω => ∫ s in Set.Icc (0 : ℝ) t, b s ω with hDrdef
+  have hdec : ∀ᵐ ω ∂P, X s ω = X₀ ω + Dr s ω + (∑ j, S j s ω) + C s ω := h.decomposition s hs0
+  have hS2 : ∀ (j : Fin d) (t : ℝ), MemLp (S j t) 2 P := fun j t =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_memLp (D.W.W j) ℱ (hℱW j) _
+      (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) t
+  have hC2 : ∀ t, MemLp (C t) 2 P := fun t =>
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp D.N ℱ hℱN γ h.γ_meas h.γ_prog
+      h.γ_sq t
+  have hDr2 : MemLp (Dr s) 2 P :=
+    memLp_two_setIntegral (f := fun ω s => b s ω) hbm hs0
+      (energy_lt_top_of_nonneg (f := fun ω s => b s ω) hbq hs0)
+  have hg' : StronglyMeasurable[ℱ.rightCont s] g := hg.mono (ℱ.le_rightCont s)
+  have h1 : ∫ ω, X s ω * g ω ∂P
+      = ∫ ω, (X₀ ω + Dr s ω + (∑ j, S j s ω) + C s ω) * g ω ∂P := by
+    refine integral_congr_ae ?_
+    filter_upwards [hdec] with ω hω
+    rw [hω]
+  have hexp : (fun ω => (X₀ ω + Dr s ω + (∑ j, S j s ω) + C s ω) * g ω)
+      = fun ω => g ω * X₀ ω + g ω * Dr s ω + (∑ j, g ω * S j s ω) + g ω * C s ω := by
+    funext ω
+    rw [← Finset.mul_sum]
+    ring
+  have i1 : Integrable (fun ω => g ω * X₀ ω) P := hg2.integrable_mul hX₀2
+  have i2 : Integrable (fun ω => g ω * Dr s ω) P := hg2.integrable_mul hDr2
+  have i3 : ∀ j, Integrable (fun ω => g ω * S j s ω) P := fun j => hg2.integrable_mul (hS2 j s)
+  have i3' : Integrable (fun ω => ∑ j, g ω * S j s ω) P := integrable_finsetSum _ fun j _ => i3 j
+  have i4 : Integrable (fun ω => g ω * C s ω) P := hg2.integrable_mul (hC2 s)
+  have i12 : Integrable (fun ω => g ω * X₀ ω + g ω * Dr s ω) P := i1.add i2
+  have i123 : Integrable (fun ω => g ω * X₀ ω + g ω * Dr s ω + ∑ j, g ω * S j s ω) P :=
+    i12.add i3'
+  have hSj : ∀ j, ∫ ω, g ω * S j s ω ∂P = ∫ ω, g ω * S j T ω ∂P := fun j =>
+    (integral_mul_martingale_eq
+      (LevyStochCalc.Brownian.Ito.martingale_rightCont_stochasticIntegralBrownian (D.W.W j) ℱ
+        (hℱW j) _ (h.σ_meas j) (h.σ_prog j) (h.σ_sq j)) hsT hg' hg2 (hS2 j T)).symm
+  have hCproc : ∀ t, C t =ᵐ[P]
+      LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq t :=
+    fun t => LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_process D.N ℱ hℱN γ
+      h.γ_meas h.γ_prog h.γ_sq t
+  have hCs : ∫ ω, g ω * C s ω ∂P = ∫ ω, g ω * C T ω ∂P := by
+    have e1 : (fun ω => g ω * C s ω) =ᵐ[P] fun ω => g ω
+        * LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq s ω := by
+      filter_upwards [hCproc s] with ω hω
+      rw [hω]
+    have e2 : (fun ω => g ω * C T ω) =ᵐ[P] fun ω => g ω
+        * LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq T ω := by
+      filter_upwards [hCproc T] with ω hω
+      rw [hω]
+    rw [integral_congr_ae e1, integral_congr_ae e2]
+    exact (integral_mul_martingale_eq
+      (LevyStochCalc.Poisson.Compensated.martingale_process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq)
+      hsT hg hg2
+      (LevyStochCalc.Poisson.Compensated.process_memLp D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq T)).symm
+  rw [h1, hexp, integral_add i123 i4, integral_add i12 i3', integral_add i1 i2,
+    integral_finsetSum _ fun j _ => i3 j, hCs]
+  congr 1
+  congr 1
+  exact Finset.sum_congr rfl fun j _ => hSj j
+
+/-- **The bilinear second-moment identity.** For two Itô–Lévy processes over the same Lévy
+driver and filtration, with square-integrable initial values measurable at time zero and
+square-integrable progressive drifts,
+
+`𝔼[X_T Y_T] = 𝔼[X₀ Y₀] + ∫_0^T 𝔼[X_s b'_s + Y_s b_s] ds + ∑_j 𝔼 ∫_0^T σ_j σ'_j ds
+  + 𝔼 ∫_0^T ∫_E γ γ' dν ds`. -/
+theorem integral_mul_eq_of_isItoLevyProcess
+    (h : LevyStochCalc.Ito.Setting.IsItoLevyProcess D.W D.N ℱ hℱW hℱN X X₀ b σ γ)
+    {Y : ℝ → Ω → ℝ} {Y₀ : Ω → ℝ} {b' : ℝ → Ω → ℝ} {σ' : ℝ → Ω → Fin d → ℝ}
+    {γ' : Ω → ℝ → E → ℝ}
+    (h' : LevyStochCalc.Ito.Setting.IsItoLevyProcess D.W D.N ℱ hℱW hℱN Y Y₀ b' σ' γ')
+    (𝒲 : D.CrossWitness ℱ)
+    (hX₀ : StronglyMeasurable[ℱ 0] X₀) (hX₀2 : MemLp X₀ 2 P)
+    (hbm : Measurable (Function.uncurry fun ω s => b s ω))
+    (hbp : LevyStochCalc.Probability.ProgressivelyMeasurable ℱ fun ω s => b s ω)
+    (hbq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖b s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hY₀ : StronglyMeasurable[ℱ 0] Y₀) (hY₀2 : MemLp Y₀ 2 P)
+    (hb'm : Measurable (Function.uncurry fun ω s => b' s ω))
+    (hb'p : LevyStochCalc.Probability.ProgressivelyMeasurable ℱ fun ω s => b' s ω)
+    (hb'q : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+      (‖b' s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {T : ℝ} (hT : 0 < T) :
+    ∫ ω, X T ω * Y T ω ∂P
+      = ∫ ω, X₀ ω * Y₀ ω ∂P
+        + (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, X s ω * b' s ω + Y s ω * b s ω ∂P)
+        + (∑ j : Fin d, ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, σ s ω j * σ' s ω j ∂volume ∂P)
+        + ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, ∫ e, γ ω s e * γ' ω s e ∂ν ∂volume ∂P := by
+  classical
+  -- the pieces of the two decompositions
+  set S : Fin d → ℝ → Ω → ℝ := fun j =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegral (D.W.W j) ℱ (hℱW j) (fun ω s => σ s ω j)
+      (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) with hSdef
+  set S' : Fin d → ℝ → Ω → ℝ := fun j =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegral (D.W.W j) ℱ (hℱW j) (fun ω s => σ' s ω j)
+      (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j) with hS'def
+  set C : ℝ → Ω → ℝ :=
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq
+    with hCdef
+  set C' : ℝ → Ω → ℝ :=
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog h'.γ_sq
+    with hC'def
+  set Dr : ℝ → Ω → ℝ := fun t ω => ∫ s in Set.Icc (0 : ℝ) t, b s ω with hDrdef
+  set Dr' : ℝ → Ω → ℝ := fun t ω => ∫ s in Set.Icc (0 : ℝ) t, b' s ω with hDr'def
+  have hdec : ∀ᵐ ω ∂P, X T ω = X₀ ω + Dr T ω + (∑ j, S j T ω) + C T ω :=
+    h.decomposition T hT.le
+  have hdec' : ∀ᵐ ω ∂P, Y T ω = Y₀ ω + Dr' T ω + (∑ j, S' j T ω) + C' T ω :=
+    h'.decomposition T hT.le
+  -- square integrability of every piece
+  have hS2 : ∀ (j : Fin d) (t : ℝ), MemLp (S j t) 2 P := fun j t =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_memLp (D.W.W j) ℱ (hℱW j) _
+      (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) t
+  have hS'2 : ∀ (j : Fin d) (t : ℝ), MemLp (S' j t) 2 P := fun j t =>
+    LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_memLp (D.W.W j) ℱ (hℱW j) _
+      (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j) t
+  have hSsum2 : MemLp (fun ω => ∑ j, S j T ω) 2 P := memLp_finsetSum Finset.univ fun j _ => hS2 j T
+  have hS'sum2 : MemLp (fun ω => ∑ j, S' j T ω) 2 P :=
+    memLp_finsetSum Finset.univ fun j _ => hS'2 j T
+  have hC2 : ∀ t, MemLp (C t) 2 P := fun t =>
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp D.N ℱ hℱN γ h.γ_meas h.γ_prog
+      h.γ_sq t
+  have hC'2 : ∀ t, MemLp (C' t) 2 P := fun t =>
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral_memLp D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog
+      h'.γ_sq t
+  have hDr2 : ∀ t, 0 ≤ t → MemLp (Dr t) 2 P := fun t ht =>
+    memLp_two_setIntegral (f := fun ω s => b s ω) hbm ht
+      (energy_lt_top_of_nonneg (f := fun ω s => b s ω) hbq ht)
+  have hDr'2 : ∀ t, 0 ≤ t → MemLp (Dr' t) 2 P := fun t ht =>
+    memLp_two_setIntegral (f := fun ω s => b' s ω) hb'm ht
+      (energy_lt_top_of_nonneg (f := fun ω s => b' s ω) hb'q ht)
+  -- the polarised isometries and the orthogonalities
+  have hSjj : ∀ j, ∫ ω, S j T ω * S' j T ω ∂P
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, σ s ω j * σ' s ω j ∂volume ∂P := fun j =>
+    integral_mul_stochasticIntegralBrownian (D.W.W j) ℱ (hℱW j) (h.σ_meas j) (h.σ_prog j)
+      (h.σ_sq j) (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j) hT
+  have hCC' : ∫ ω, C T ω * C' T ω ∂P
+      = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, ∫ e, γ ω s e * γ' ω s e ∂ν ∂volume ∂P :=
+    integral_mul_stochasticIntegral D.N ℱ hℱN h.γ_meas h.γ_prog h.γ_sq h'.γ_meas h'.γ_prog
+      h'.γ_sq hT
+  have hSS' : ∀ j k, j ≠ k → ∫ ω, S j T ω * S' k T ω ∂P = 0 := fun j k hjk =>
+    LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_stochasticIntegral_mul_eq_zero
+      D.W hjk hℱW (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) (h'.σ_meas k) (h'.σ_prog k) (h'.σ_sq k)
+      hT.le
+  have hSC' : ∀ j, ∫ ω, S j T ω * C' T ω ∂P = 0 := fun j =>
+    LevyStochCalc.Driver.LevyDriver.integral_stochasticIntegral_mul_compensated_eq_zero 𝒲 hℱW hℱN
+      (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) h'.γ_meas h'.γ_prog h'.γ_sq hT.le
+  have hCS' : ∀ j, ∫ ω, C T ω * S' j T ω ∂P = 0 := by
+    intro j
+    rw [integral_congr_ae (Eventually.of_forall fun ω => mul_comm (C T ω) (S' j T ω))]
+    exact LevyStochCalc.Driver.LevyDriver.integral_stochasticIntegral_mul_compensated_eq_zero 𝒲
+      hℱW hℱN (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j) h.γ_meas h.γ_prog h.γ_sq hT.le
+  have hSsumS' : ∫ ω, (∑ j, S j T ω) * (∑ j, S' j T ω) ∂P
+      = ∑ j : Fin d, ∫ ω, ∫ s in Set.Icc (0 : ℝ) T, σ s ω j * σ' s ω j ∂volume ∂P := by
+    have hexp : (fun ω => (∑ j, S j T ω) * (∑ j, S' j T ω))
+        = fun ω => ∑ j, ∑ k, S j T ω * S' k T ω := by
+      funext ω
+      exact Finset.sum_mul_sum _ _ _ _
+    have hint : ∀ j k, Integrable (fun ω => S j T ω * S' k T ω) P := fun j k =>
+      (hS2 j T).integrable_mul (hS'2 k T)
+    have hint' : ∀ j, Integrable (fun ω => ∑ k, S j T ω * S' k T ω) P := fun j =>
+      integrable_finsetSum _ fun k _ => hint j k
+    rw [hexp, integral_finsetSum _ fun j _ => hint' j]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [integral_finsetSum _ fun k _ => hint j k,
+      Finset.sum_eq_single j (fun k _ hkj => hSS' j k (Ne.symm hkj))
+        (fun hj => absurd (Finset.mem_univ j) hj)]
+    exact hSjj j
+  have hSsumC' : ∫ ω, (∑ j, S j T ω) * C' T ω ∂P = 0 := by
+    have hexp : (fun ω => (∑ j, S j T ω) * C' T ω) = fun ω => ∑ j, S j T ω * C' T ω := by
+      funext ω
+      exact Finset.sum_mul _ _ _
+    have hint : ∀ j, Integrable (fun ω => S j T ω * C' T ω) P := fun j =>
+      (hS2 j T).integrable_mul (hC'2 T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_eq_zero fun j _ => hSC' j
+  have hCS'sum : ∫ ω, C T ω * (∑ j, S' j T ω) ∂P = 0 := by
+    have hexp : (fun ω => C T ω * (∑ j, S' j T ω)) = fun ω => ∑ j, C T ω * S' j T ω := by
+      funext ω
+      exact Finset.mul_sum _ _ _
+    have hint : ∀ j, Integrable (fun ω => C T ω * S' j T ω) P := fun j =>
+      (hC2 T).integrable_mul (hS'2 j T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_eq_zero fun j _ => hCS' j
+  -- the martingale pieces are orthogonal to the initial values
+  have hX₀S' : ∀ j, ∫ ω, X₀ ω * S' j T ω ∂P = 0 := fun j =>
+    integral_mul_martingale_eq_zero
+      (LevyStochCalc.Brownian.Ito.martingale_rightCont_stochasticIntegralBrownian (D.W.W j) ℱ
+        (hℱW j) _ (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j))
+      hT.le (hX₀.mono (ℱ.le_rightCont 0)) hX₀2 (hS'2 j T)
+      (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero_of_nonpos (D.W.W j) ℱ
+        (hℱW j) _ (h'.σ_meas j) (h'.σ_prog j) (h'.σ_sq j) le_rfl)
+  have hY₀S : ∀ j, ∫ ω, Y₀ ω * S j T ω ∂P = 0 := fun j =>
+    integral_mul_martingale_eq_zero
+      (LevyStochCalc.Brownian.Ito.martingale_rightCont_stochasticIntegralBrownian (D.W.W j) ℱ
+        (hℱW j) _ (h.σ_meas j) (h.σ_prog j) (h.σ_sq j))
+      hT.le (hY₀.mono (ℱ.le_rightCont 0)) hY₀2 (hS2 j T)
+      (LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_ae_zero_of_nonpos (D.W.W j) ℱ
+        (hℱW j) _ (h.σ_meas j) (h.σ_prog j) (h.σ_sq j) le_rfl)
+  have hX₀S'sum : ∫ ω, X₀ ω * (∑ j, S' j T ω) ∂P = 0 := by
+    have hexp : (fun ω => X₀ ω * (∑ j, S' j T ω)) = fun ω => ∑ j, X₀ ω * S' j T ω := by
+      funext ω
+      exact Finset.mul_sum _ _ _
+    have hint : ∀ j, Integrable (fun ω => X₀ ω * S' j T ω) P := fun j =>
+      hX₀2.integrable_mul (hS'2 j T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_eq_zero fun j _ => hX₀S' j
+  have hSsumY₀ : ∫ ω, (∑ j, S j T ω) * Y₀ ω ∂P = 0 := by
+    have hexp : (fun ω => (∑ j, S j T ω) * Y₀ ω) = fun ω => ∑ j, Y₀ ω * S j T ω := by
+      funext ω
+      rw [Finset.sum_mul]
+      exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+    have hint : ∀ j, Integrable (fun ω => Y₀ ω * S j T ω) P := fun j =>
+      hY₀2.integrable_mul (hS2 j T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_eq_zero fun j _ => hY₀S j
+  have hproc : ∀ t, C t =ᵐ[P]
+      LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq t := fun t =>
+    LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_process D.N ℱ hℱN γ h.γ_meas
+      h.γ_prog h.γ_sq t
+  have hproc' : ∀ t, C' t =ᵐ[P]
+      LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog h'.γ_sq t :=
+    fun t => LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_process D.N ℱ hℱN γ'
+      h'.γ_meas h'.γ_prog h'.γ_sq t
+  have hX₀C' : ∫ ω, X₀ ω * C' T ω ∂P = 0 := by
+    have e : (fun ω => X₀ ω * C' T ω) =ᵐ[P] fun ω => X₀ ω
+        * LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog h'.γ_sq
+          T ω := by
+      filter_upwards [hproc' T] with ω hω
+      rw [hω]
+    rw [integral_congr_ae e]
+    exact integral_mul_martingale_eq_zero
+      (LevyStochCalc.Poisson.Compensated.martingale_process D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog
+        h'.γ_sq) hT.le hX₀ hX₀2
+      (LevyStochCalc.Poisson.Compensated.process_memLp D.N ℱ hℱN γ' h'.γ_meas h'.γ_prog h'.γ_sq T)
+      (LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos D.N ℱ hℱN γ' h'.γ_meas
+        h'.γ_prog h'.γ_sq (le_refl (0 : ℝ)))
+  have hCY₀ : ∫ ω, C T ω * Y₀ ω ∂P = 0 := by
+    have e : (fun ω => C T ω * Y₀ ω) =ᵐ[P] fun ω => Y₀ ω
+        * LevyStochCalc.Poisson.Compensated.process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq T ω := by
+      filter_upwards [hproc T] with ω hω
+      rw [hω, mul_comm]
+    rw [integral_congr_ae e]
+    exact integral_mul_martingale_eq_zero
+      (LevyStochCalc.Poisson.Compensated.martingale_process D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq)
+      hT.le hY₀ hY₀2
+      (LevyStochCalc.Poisson.Compensated.process_memLp D.N ℱ hℱN γ h.γ_meas h.γ_prog h.γ_sq T)
+      (LevyStochCalc.Poisson.Compensated.process_ae_zero_of_nonpos D.N ℱ hℱN γ h.γ_meas h.γ_prog
+        h.γ_sq (le_refl (0 : ℝ)))
+  -- the drift pairings at the horizon, as time integrals
+  have hDrS' : ∀ j, ∫ ω, Dr T ω * S' j T ω ∂P
+      = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * S' j T ω ∂P :=
+    fun j => integral_setIntegral_mul (f := fun ω s => b s ω) hbm (hbq T hT) (hS'2 j T)
+  have hDrS'sum : ∫ ω, Dr T ω * (∑ j, S' j T ω) ∂P
+      = ∑ j, ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * S' j T ω ∂P := by
+    have hexp : (fun ω => Dr T ω * (∑ j, S' j T ω)) = fun ω => ∑ j, Dr T ω * S' j T ω := by
+      funext ω
+      exact Finset.mul_sum _ _ _
+    have hint : ∀ j, Integrable (fun ω => Dr T ω * S' j T ω) P := fun j =>
+      (hDr2 T hT.le).integrable_mul (hS'2 j T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_congr rfl fun j _ => hDrS' j
+  have hDrC' : ∫ ω, Dr T ω * C' T ω ∂P = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * C' T ω ∂P :=
+    integral_setIntegral_mul (f := fun ω s => b s ω) hbm (hbq T hT) (hC'2 T)
+  have hDrY₀ : ∫ ω, Dr T ω * Y₀ ω ∂P = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * Y₀ ω ∂P :=
+    integral_setIntegral_mul (f := fun ω s => b s ω) hbm (hbq T hT) hY₀2
+  have hDr'S : ∀ j, ∫ ω, Dr' T ω * S j T ω ∂P
+      = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * S j T ω ∂P :=
+    fun j => integral_setIntegral_mul (f := fun ω s => b' s ω) hb'm (hb'q T hT) (hS2 j T)
+  have hSsumDr' : ∫ ω, (∑ j, S j T ω) * Dr' T ω ∂P
+      = ∑ j, ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * S j T ω ∂P := by
+    have hexp : (fun ω => (∑ j, S j T ω) * Dr' T ω) = fun ω => ∑ j, Dr' T ω * S j T ω := by
+      funext ω
+      rw [Finset.sum_mul]
+      exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+    have hint : ∀ j, Integrable (fun ω => Dr' T ω * S j T ω) P := fun j =>
+      (hDr'2 T hT.le).integrable_mul (hS2 j T)
+    rw [hexp, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_congr rfl fun j _ => hDr'S j
+  have hCDr' : ∫ ω, C T ω * Dr' T ω ∂P = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * C T ω ∂P := by
+    rw [integral_congr_ae (Eventually.of_forall fun ω => mul_comm (C T ω) (Dr' T ω))]
+    exact integral_setIntegral_mul (f := fun ω s => b' s ω) hb'm (hb'q T hT) (hC2 T)
+  have hX₀Dr' : ∫ ω, X₀ ω * Dr' T ω ∂P = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * X₀ ω ∂P := by
+    rw [integral_congr_ae (Eventually.of_forall fun ω => mul_comm (X₀ ω) (Dr' T ω))]
+    exact integral_setIntegral_mul (f := fun ω s => b' s ω) hb'm (hb'q T hT) hX₀2
+  -- integrability in time of the pairings
+  have hint_s : ∀ (g : Ω → ℝ), MemLp g 2 P →
+      Integrable (fun s => ∫ ω, b s ω * g ω ∂P) (volume.restrict (Set.Icc (0 : ℝ) T)) :=
+    fun g hg => ((memLp_two_prod (f := fun ω s => b s ω) hbm (hbq T hT)).integrable_mul
+      (memLp_two_prod_fst hg)).integral_prod_right
+  have hint_s' : ∀ (g : Ω → ℝ), MemLp g 2 P →
+      Integrable (fun s => ∫ ω, b' s ω * g ω ∂P) (volume.restrict (Set.Icc (0 : ℝ) T)) :=
+    fun g hg => ((memLp_two_prod (f := fun ω s => b' s ω) hb'm (hb'q T hT)).integrable_mul
+      (memLp_two_prod_fst hg)).integral_prod_right
+  have hsw : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), s ∈ Set.Icc (0 : ℝ) T :=
+    ae_restrict_mem measurableSet_Icc
+  have hR := memLp_two_running (P := P) hbm (hbq T hT)
+  have hR' := memLp_two_running (P := P) hb'm (hb'q T hT)
+  have hint1 : Integrable (fun p : Ω × ℝ => b' p.2 p.1 * running b T p)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) :=
+    (memLp_two_prod (f := fun ω s => b' s ω) hb'm (hb'q T hT)).integrable_mul hR
+  have hint2 : Integrable (fun p : Ω × ℝ => b p.2 p.1 * running b' T p)
+      (P.prod (volume.restrict (Set.Icc (0 : ℝ) T))) :=
+    (memLp_two_prod (f := fun ω s => b s ω) hbm (hbq T hT)).integrable_mul hR'
+  have hint_Dr : Integrable (fun s => ∫ ω, b' s ω * Dr s ω ∂P)
+      (volume.restrict (Set.Icc (0 : ℝ) T)) := by
+    refine hint1.integral_prod_right.congr ?_
+    filter_upwards [hsw] with s hs
+    refine integral_congr_ae (Eventually.of_forall fun ω => ?_)
+    exact congrArg (fun x => b' s ω * x) (running_eq hs)
+  have hint_Dr' : Integrable (fun s => ∫ ω, b s ω * Dr' s ω ∂P)
+      (volume.restrict (Set.Icc (0 : ℝ) T)) := by
+    refine hint2.integral_prod_right.congr ?_
+    filter_upwards [hsw] with s hs
+    refine integral_congr_ae (Eventually.of_forall fun ω => ?_)
+    exact congrArg (fun x => b s ω * x) (running_eq hs)
+  -- the product of the two drift integrals, by the polarised pathwise identity and Fubini
+  have hDrDr' : ∫ ω, Dr T ω * Dr' T ω ∂P
+      = (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * Dr s ω ∂P)
+        + ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * Dr' s ω ∂P := by
+    have hbint : ∀ᵐ ω ∂P, IntegrableOn (fun s => b s ω) (Set.Icc (0 : ℝ) T) volume := by
+      filter_upwards [LevyStochCalc.Ito.Picard.ae_integrableOn_of_lintegral_sq
+        (f := fun ω s => b s ω) hbm hbq] with ω hω
+      exact hω T
+    have hb'int : ∀ᵐ ω ∂P, IntegrableOn (fun s => b' s ω) (Set.Icc (0 : ℝ) T) volume := by
+      filter_upwards [LevyStochCalc.Ito.Picard.ae_integrableOn_of_lintegral_sq
+        (f := fun ω s => b' s ω) hb'm hb'q] with ω hω
+      exact hω T
+    have hpath : ∀ᵐ ω ∂P, Dr T ω * Dr' T ω
+        = ∫ s in Set.Icc (0 : ℝ) T,
+            (b' s ω * running b T (ω, s) + b s ω * running b' T (ω, s)) := by
+      filter_upwards [hbint, hb'int] with ω hω hω'
+      simp only [hDrdef, hDr'def]
+      rw [mul_setIntegral_eq hω hω']
+      refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
+      rw [running_eq hs, running_eq hs]
+      ring
+    have hbs : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), MemLp (fun ω => b s ω) 2 P :=
+      ae_memLp_two_eval (f := fun ω s => b s ω) hbm (hbq T hT)
+    have hb's : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), MemLp (fun ω => b' s ω) 2 P :=
+      ae_memLp_two_eval (f := fun ω s => b' s ω) hb'm (hb'q T hT)
+    calc ∫ ω, Dr T ω * Dr' T ω ∂P
+        = ∫ ω, ∫ s in Set.Icc (0 : ℝ) T,
+            (b' s ω * running b T (ω, s) + b s ω * running b' T (ω, s)) ∂volume ∂P :=
+          integral_congr_ae hpath
+      _ = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω,
+            (b' s ω * running b T (ω, s) + b s ω * running b' T (ω, s)) ∂P := by
+          rw [integral_integral_swap
+            (f := fun ω s => b' s ω * running b T (ω, s) + b s ω * running b' T (ω, s))
+            (hint1.add hint2)]
+      _ = ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, (b' s ω * Dr s ω + b s ω * Dr' s ω) ∂P := by
+          refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
+          refine integral_congr_ae (Eventually.of_forall fun ω => ?_)
+          change b' s ω * running b T (ω, s) + b s ω * running b' T (ω, s)
+            = b' s ω * Dr s ω + b s ω * Dr' s ω
+          rw [running_eq hs, running_eq hs]
+      _ = (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * Dr s ω ∂P)
+            + ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * Dr' s ω ∂P := by
+          rw [← integral_add hint_Dr hint_Dr']
+          refine integral_congr_ae ?_
+          filter_upwards [hbs, hb's, hsw] with s hs2 hs2' hs
+          exact integral_add (hs2'.integrable_mul (hDr2 s hs.1)) (hs2.integrable_mul (hDr'2 s hs.1))
+  -- at almost every time of the window, the two pairings of the paths with the drifts expand
+  have hXb' : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∫ ω, X s ω * b' s ω ∂P
+      = ∫ ω, b' s ω * X₀ ω ∂P + ∫ ω, b' s ω * Dr s ω ∂P
+        + (∑ j, ∫ ω, b' s ω * S j T ω ∂P) + ∫ ω, b' s ω * C T ω ∂P := by
+    filter_upwards [ae_memLp_two_eval (f := fun ω s => b' s ω) hb'm (hb'q T hT), hsw] with s hs2 hs
+    exact integral_mul_eq_expand h hX₀2 hbm hbq hs.1 hs.2 (hb'p.stronglyMeasurable_eval s) hs2
+  have hYb : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∫ ω, Y s ω * b s ω ∂P
+      = ∫ ω, b s ω * Y₀ ω ∂P + ∫ ω, b s ω * Dr' s ω ∂P
+        + (∑ j, ∫ ω, b s ω * S' j T ω ∂P) + ∫ ω, b s ω * C' T ω ∂P := by
+    filter_upwards [ae_memLp_two_eval (f := fun ω s => b s ω) hbm (hbq T hT), hsw] with s hs2 hs
+    exact integral_mul_eq_expand h' hY₀2 hb'm hb'q hs.1 hs.2 (hbp.stronglyMeasurable_eval s) hs2
+  have hXY : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+      ∫ ω, X s ω * b' s ω + Y s ω * b s ω ∂P
+        = ∫ ω, X s ω * b' s ω ∂P + ∫ ω, Y s ω * b s ω ∂P := by
+    filter_upwards [ae_memLp_two_eval (f := fun ω s => b s ω) hbm (hbq T hT),
+      ae_memLp_two_eval (f := fun ω s => b' s ω) hb'm (hb'q T hT), hsw] with s hs2 hs2' hs
+    exact integral_add ((memLp_two_of_isItoLevyProcess h hX₀2 hbm hbq hs.1).integrable_mul hs2')
+      ((memLp_two_of_isItoLevyProcess h' hY₀2 hb'm hb'q hs.1).integrable_mul hs2)
+  have hdrift : ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, X s ω * b' s ω + Y s ω * b s ω ∂P
+      = (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * X₀ ω ∂P)
+        + (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * Dr s ω ∂P)
+        + (∑ j, ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * S j T ω ∂P)
+        + (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b' s ω * C T ω ∂P)
+        + ((∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * Y₀ ω ∂P)
+        + (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * Dr' s ω ∂P)
+        + (∑ j, ∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * S' j T ω ∂P)
+        + (∫ s in Set.Icc (0 : ℝ) T, ∫ ω, b s ω * C' T ω ∂P)) := by
+    have j1 := hint_s' X₀ hX₀2
+    have j3 : ∀ j, Integrable (fun s => ∫ ω, b' s ω * S j T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := fun j => hint_s' _ (hS2 j T)
+    have j3' : Integrable (fun s => ∑ j, ∫ ω, b' s ω * S j T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := integrable_finsetSum _ fun j _ => j3 j
+    have j4 := hint_s' _ (hC2 T)
+    have j12 : Integrable (fun s => ∫ ω, b' s ω * X₀ ω ∂P + ∫ ω, b' s ω * Dr s ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := j1.add hint_Dr
+    have j123 : Integrable (fun s => ∫ ω, b' s ω * X₀ ω ∂P + ∫ ω, b' s ω * Dr s ω ∂P
+        + ∑ j, ∫ ω, b' s ω * S j T ω ∂P) (volume.restrict (Set.Icc (0 : ℝ) T)) := j12.add j3'
+    have j1234 : Integrable (fun s => ∫ ω, b' s ω * X₀ ω ∂P + ∫ ω, b' s ω * Dr s ω ∂P
+        + ∑ j, ∫ ω, b' s ω * S j T ω ∂P + ∫ ω, b' s ω * C T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := j123.add j4
+    have k1 := hint_s Y₀ hY₀2
+    have k3 : ∀ j, Integrable (fun s => ∫ ω, b s ω * S' j T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := fun j => hint_s _ (hS'2 j T)
+    have k3' : Integrable (fun s => ∑ j, ∫ ω, b s ω * S' j T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := integrable_finsetSum _ fun j _ => k3 j
+    have k4 := hint_s _ (hC'2 T)
+    have k12 : Integrable (fun s => ∫ ω, b s ω * Y₀ ω ∂P + ∫ ω, b s ω * Dr' s ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := k1.add hint_Dr'
+    have k123 : Integrable (fun s => ∫ ω, b s ω * Y₀ ω ∂P + ∫ ω, b s ω * Dr' s ω ∂P
+        + ∑ j, ∫ ω, b s ω * S' j T ω ∂P) (volume.restrict (Set.Icc (0 : ℝ) T)) := k12.add k3'
+    have k1234 : Integrable (fun s => ∫ ω, b s ω * Y₀ ω ∂P + ∫ ω, b s ω * Dr' s ω ∂P
+        + ∑ j, ∫ ω, b s ω * S' j T ω ∂P + ∫ ω, b s ω * C' T ω ∂P)
+        (volume.restrict (Set.Icc (0 : ℝ) T)) := k123.add k4
+    have hsum : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
+        ∫ ω, X s ω * b' s ω + Y s ω * b s ω ∂P
+          = (∫ ω, b' s ω * X₀ ω ∂P + ∫ ω, b' s ω * Dr s ω ∂P
+            + (∑ j, ∫ ω, b' s ω * S j T ω ∂P) + ∫ ω, b' s ω * C T ω ∂P)
+          + (∫ ω, b s ω * Y₀ ω ∂P + ∫ ω, b s ω * Dr' s ω ∂P
+            + (∑ j, ∫ ω, b s ω * S' j T ω ∂P) + ∫ ω, b s ω * C' T ω ∂P) := by
+      filter_upwards [hXY, hXb', hYb] with s e0 e1 e2
+      rw [e0, e1, e2]
+    rw [integral_congr_ae hsum, integral_add j1234 k1234, integral_add j123 j4,
+      integral_add j12 j3', integral_add j1 hint_Dr, integral_finsetSum _ fun j _ => j3 j,
+      integral_add k123 k4, integral_add k12 k3', integral_add k1 hint_Dr',
+      integral_finsetSum _ fun j _ => k3 j]
+  -- the expansion of the product of the two decompositions at the horizon
+  have hL : ∫ ω, X T ω * Y T ω ∂P
+      = ∫ ω, (X₀ ω + Dr T ω + ((∑ j, S j T ω) + C T ω))
+          * (Y₀ ω + Dr' T ω + ((∑ j, S' j T ω) + C' T ω)) ∂P := by
+    refine integral_congr_ae ?_
+    filter_upwards [hdec, hdec'] with ω hω hω'
+    rw [hω, hω']
+    ring
+  have hf1 : MemLp (fun ω => X₀ ω + Dr T ω) 2 P := hX₀2.add (hDr2 T hT.le)
+  have hg1 : MemLp (fun ω => (∑ j, S j T ω) + C T ω) 2 P := hSsum2.add (hC2 T)
+  have hf2 : MemLp (fun ω => Y₀ ω + Dr' T ω) 2 P := hY₀2.add (hDr'2 T hT.le)
+  have hg2 : MemLp (fun ω => (∑ j, S' j T ω) + C' T ω) 2 P := hS'sum2.add (hC'2 T)
+  rw [hL, integral_add_mul_add hf1 hg1 hf2 hg2,
+    integral_add_mul_add hX₀2 (hDr2 T hT.le) hY₀2 (hDr'2 T hT.le),
+    integral_add_mul_add hX₀2 (hDr2 T hT.le) hS'sum2 (hC'2 T),
+    integral_add_mul_add hSsum2 (hC2 T) hY₀2 (hDr'2 T hT.le),
+    integral_add_mul_add hSsum2 (hC2 T) hS'sum2 (hC'2 T),
+    hSsumS', hSsumC', hCS'sum, hCC', hX₀S'sum, hX₀C', hSsumY₀, hCY₀, hDrS'sum, hDrC', hDrY₀,
+    hSsumDr', hCDr', hX₀Dr', hDrDr', hdrift]
+  ring
+
+end Bilinear
 
 end LevyStochCalc.Ito.SecondMoment
