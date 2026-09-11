@@ -2981,6 +2981,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_sum_mul_self_eq_of_isItoLevyProcess
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_eq_of_isItoLevyProcess_aug
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess_aug
+#print axioms LevyStochCalc.Ito.Stability.integral_mul_self_le_of_rate_le
+#print axioms LevyStochCalc.Ito.Stability.lintegral_sq_sub_marked_lt_top
+#print axioms LevyStochCalc.Ito.Stability.isItoLevyProcess_sub
+#print axioms LevyStochCalc.Ito.Stability.toReal_lintegral_le_of_le
+#print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_rate_le
+#print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
+#print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

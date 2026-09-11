@@ -315,6 +315,7 @@ import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.CompensatedLocality
 import LevyStochCalc.Ito.SecondMoment
+import LevyStochCalc.Ito.StabilityEstimate
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition

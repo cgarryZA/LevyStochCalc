@@ -37,7 +37,11 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
-  formula with local integrals stays open (Epic D).
+  formula with local integrals stays open (Epic D). `Ito/StabilityEstimate.lean` applies the
+  weighted identity: the difference of two such processes is one (`isItoLevyProcess_sub`), and
+  one-sided Lipschitz coefficient bounds give `𝔼[|ΔX_T|²] ≤ e^{(2L + 2L²)T} 𝔼[|ΔX₀|²]` and
+  pathwise-at-each-time uniqueness (2026-09-11, DE-5). This is the fixed-time `L²` estimate
+  only; the supremum-in-time estimates the papers also use need Doob/BDG and are not proved.
   The Picard chain is complete since 2026-09-07 —
   `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
   window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two
