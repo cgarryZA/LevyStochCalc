@@ -2622,6 +2622,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.CutoffPath.integrands_cutoffFun₂_eq_of_boundedPath
 #print axioms LevyStochCalc.Ito.CutoffPath.boundedPathSet_subset_le_openExitTime
 #print axioms LevyStochCalc.Ito.CutoffPath.diffusionIntegrand_cutoffFun₂_eq_of_lt
+#print axioms LevyStochCalc.Ito.CutoffPath.stochasticIntegralBrownian_cutoffFun₂_eq_of_le
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_mem_boundedJumpSet
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.ae_exists_mem_inter
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.stopped_sub_congr
