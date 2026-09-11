@@ -30,6 +30,7 @@ import LevyStochCalc.Probability.MarkedPredictable
 import LevyStochCalc.Probability.Progressive
 import LevyStochCalc.Probability.StoppedProgressive
 import LevyStochCalc.Probability.ExitTime
+import LevyStochCalc.Probability.OpenExitTime
 import LevyStochCalc.Probability.ProgressiveCadlag
 import LevyStochCalc.Probability.Predictable
 import LevyStochCalc.Probability.PredictableModification
