@@ -2455,7 +2455,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.BigJump.markCut_add_markCut_compl
 #print axioms LevyStochCalc.Ito.BigJump.stochasticIntegral_markCut_add_compl
 #print axioms LevyStochCalc.Ito.BigJump.SdeData
-#print axioms LevyStochCalc.Ito.BigJump.nonempty_sdeData
 #print axioms LevyStochCalc.Ito.BigJump.SdeData.toJumpIntegrand
 #print axioms LevyStochCalc.Ito.BigJump.cutJumpIntegral
 #print axioms LevyStochCalc.Ito.BigJump.bigJumpPath
@@ -2898,6 +2897,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_compensatorDriftIntegrand_path
 #print axioms LevyStochCalc.Ito.JumpFormula.ae_lintegral_compensatorDriftIntegrand_lt_top
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_solvesOn
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_sdeData
 
 -- ===== Locality of the compensated integral at a stopping time (B4-L4, 2026-09-11) =====
 #print axioms LevyStochCalc.Poisson.Compensated.markedStopped

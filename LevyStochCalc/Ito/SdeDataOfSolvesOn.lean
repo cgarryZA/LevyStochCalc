@@ -49,11 +49,13 @@ def SdeData.ofSolvesOn (X : JumpDiffusion W N coeffs x₀)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hXa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => X.X s ω i)
     (hsolves : ∀ T : ℝ, LevyStochCalc.Ito.Picard.SolvesOn W N ℱ hℱW hℱN coeffs x₀ X.X T) :
     SdeData X where
   ℱ := ℱ
   isBrownian := hℱW
   isPoisson := hℱN
+  X_prog := hXa
   σ_meas := (hsolves 0).h_σ_meas
   σ_prog := (hsolves 0).h_σ_progMeas
   σ_sq := (hsolves 0).h_σ_sq
@@ -67,8 +69,9 @@ def SdeData.ofSolvesOn (X : JumpDiffusion W N coeffs x₀)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hXa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => X.X s ω i)
     (hsolves : ∀ T : ℝ, LevyStochCalc.Ito.Picard.SolvesOn W N ℱ hℱW hℱN coeffs x₀ X.X T) :
-    (SdeData.ofSolvesOn X ℱ hℱW hℱN hsolves).ℱ = ℱ :=
+    (SdeData.ofSolvesOn X ℱ hℱW hℱN hXa hsolves).ℱ = ℱ :=
   rfl
 
 /-- A jump diffusion that solves the integral equation on every window relative to `ℱ` carries
@@ -77,8 +80,9 @@ theorem exists_sdeData_of_solvesOn (X : JumpDiffusion W N coeffs x₀)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
     (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
     (hℱN : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ)
+    (hXa : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => X.X s ω i)
     (hsolves : ∀ T : ℝ, LevyStochCalc.Ito.Picard.SolvesOn W N ℱ hℱW hℱN coeffs x₀ X.X T) :
     ∃ S : SdeData X, S.ℱ = ℱ :=
-  ⟨SdeData.ofSolvesOn X ℱ hℱW hℱN hsolves, rfl⟩
+  ⟨SdeData.ofSolvesOn X ℱ hℱW hℱN hXa hsolves, rfl⟩
 
 end LevyStochCalc.Ito.BigJump

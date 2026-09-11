@@ -458,6 +458,34 @@ literature integral forms.
   derivatives; the axiom asks none), so #16 stays live: Stage 2 (removing the derivative bounds)
   is the open L-group, and the papers' own Itô applications are Epic D. `#print axioms` on the
   finite-activity identity and on M16 lists only the three standard axioms.
+* **Statement audit (2026-09-11) — the axiom is under-specified, and the repair.** Lining the
+  axiom up against milestone M16 shows the axiom takes an *arbitrary* filtration `ℱ` with `W`
+  Brownian and `N` Poisson for it, and asserts the formula with the two integrals taken at that
+  `ℱ` — while `JumpDiffusion.is_solution` only says the SDE holds at *some* filtration. Nothing
+  in the axiom's statement ties the process to `ℱ`: it is not asked to be adapted to it, and it
+  need not solve the equation relative to it. That is a specification defect, not a missing
+  proof. The correct statement is the formula for a solution *relative to its own filtration*,
+  which is what `BigJump.SdeData` packages. Classifying the eleven hypotheses M16 carries beyond
+  the axiom's:
+  - **specification repair** — `S : SdeData X` (the equation and the admissibility at the same
+    `ℱ` used in the conclusion), and `SdeData.X_prog`, the progressive measurability of the
+    path. Adaptedness is part of the literature definition of a solution (Applebaum 6.2.9,
+    Ikeda–Watanabe IV) and the structure's own docstring claims it, but no field carried it; it
+    is **not** derivable from the equation, since the drift term `∫_0^t μ(s, X_s) ds` is
+    `ℱ t`-measurable only once the path already is. Added as a field 2026-09-11;
+    `nonempty_sdeData` was deleted with it, being no longer provable from the structure alone.
+  - **version convention** — the usual conditions (`[S.ℱ.IsRightContinuous]`, `hℱ0`, `hnull`).
+  - **implementation bridges, now derived** — adaptedness of the path from `X_prog`; the drift's
+    joint measurability, progressive measurability and window energy from `IsRegular`,
+    `IsLipschitz` and `JumpDiffusion.sup_L2`; joint measurability of `γ` from `IsRegular`; the
+    four derived-integrand admissibility bundles and the drift and compensator-drift
+    integrability from the same. All of these were already proved as standalone lemmas and were
+    being applied at the call site; `itoLevyFormula_jumpResidual_of_sdeData` moves them inside
+    the theorem, so they are no longer public assumptions.
+  - **genuine narrowing, still open** — the three derivative bounds `hK₀`, `hK₁`, `hK₂`. Only
+    these separate M16 from the general statement; removing them is Stage 2 and is what closes
+    this axiom. A Stage-2 theorem that kept any of the bridges as hypotheses would **not**
+    close it.
 * **Progress (2026-09-11, B4-L4) — locality of the compensated integral at a stopping time.**
   `Ito/CompensatedLocality.lean` proves for the compensated Poisson integral what
   `Brownian/ItoLocality.lean` proves for the Itô integral: for a stopping time `τ` of the

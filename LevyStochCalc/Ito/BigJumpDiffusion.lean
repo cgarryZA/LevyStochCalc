@@ -210,6 +210,13 @@ structure SdeData (X : JumpDiffusion W N coeffs x₀) where
   /-- The jump coefficient along the path has finite energy on every bounded window. -/
   γ_sq : ∀ i : Fin n, ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
     (‖pathJumpCoeff coeffs X.X i ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤
+  /-- The path is progressively measurable for the filtration it solves against.
+
+  This is part of the specification of a solution, not a consequence of the equation: the
+  literature (Applebaum 6.2.9, Ikeda–Watanabe IV) asks a solution to be adapted, and the
+  equation alone does not give it, since the drift term `∫_0^t μ(s, X_s) ds` is measurable for
+  `ℱ t` only once the path already is. -/
+  X_prog : ∀ i : Fin n, Probability.ProgressivelyMeasurable ℱ fun ω s => X.X s ω i
   /-- The SDE integral equation, almost surely at every nonnegative time. -/
   sde : ∀ t : ℝ, 0 ≤ t → ∀ᵐ ω ∂P, ∀ i : Fin n,
     X.X t ω i = x₀ i
@@ -220,10 +227,10 @@ structure SdeData (X : JumpDiffusion W N coeffs x₀) where
       + stochasticIntegral N ℱ isPoisson (pathJumpCoeff coeffs X.X i)
           (γ_meas i) (γ_prog i) (γ_sq i) t ω
 
-/-- A jump-diffusion solution carries SDE data. -/
-theorem nonempty_sdeData (X : JumpDiffusion W N coeffs x₀) : Nonempty (SdeData X) := by
-  obtain ⟨ℱ, hℱW, hℱN, hσm, hσp, hσq, hγm, hγp, hγq, heq⟩ := X.is_solution
-  exact ⟨⟨ℱ, hℱW, hℱN, hσm, hσp, hσq, hγm, hγp, hγq, heq⟩⟩
+/-! `SdeData` is **not** derivable from `JumpDiffusion` alone: the structure's `is_solution`
+field bundles the equation and the integrand admissibility but no adaptedness of the path, and
+`X_prog` does not follow from them. It is supplied where a solution is built, by
+`SdeData.ofSolvesOn` (`Ito/SdeDataOfSolvesOn.lean`). -/
 
 /-- The jump-integrand data underlying the SDE data. -/
 def SdeData.toJumpIntegrand {X : JumpDiffusion W N coeffs x₀} (S : SdeData X) :

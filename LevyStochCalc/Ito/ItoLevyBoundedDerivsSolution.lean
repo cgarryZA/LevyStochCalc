@@ -41,6 +41,11 @@ integrals depend only on the class of their integrand.
   `lintegral_sq_jumpIncrement_path_lt_top` — admissibility of `u(x + γ) − u(x)` along a path.
 * `ae_integrableOn_drift_path`, `ae_lintegral_compensatorDriftIntegrand_lt_top` — integrability
   of the drift and of the compensator-drift integrand along a path.
+* `itoLevyFormula_jumpResidual_of_sdeData` — the formula for a *given* jump diffusion carrying
+  SDE data at a filtration satisfying the usual conditions; the adaptedness of the path, the
+  drift's measurability, progressive measurability and energy, the four derived-integrand
+  admissibility bundles and the two integrability side conditions are all derived from the SDE
+  data and the coefficient regularity.
 * `itoLevyFormula_jumpResidual_of_solvesOn` — the formula for a jump diffusion solving the
   equation relative to the given filtration, every admissibility input being one of the lemmas
   above.
@@ -572,7 +577,7 @@ theorem itoLevyFormula_jumpResidual_of_solvesOn [ℱ.IsRightContinuous]
       (Eventually.of_forall fun ω t _ => hYcad ω t) hYS hYsol
   refine ⟨X, hYsol, hYa, hYcad, ?_⟩
   -- the SDE data of the representative at the given filtration
-  let S : SdeData X := SdeData.ofSolvesOn X ℱ hℱW hℱN hYsol
+  let S : SdeData X := SdeData.ofSolvesOn X ℱ hℱW hℱN hYa hYsol
   haveI : S.ℱ.IsRightContinuous := ‹ℱ.IsRightContinuous›
   have hrc : ℱ.rightCont = ℱ := Filtration.IsRightContinuous.eq
   have hℱ0' : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t := by
@@ -602,6 +607,71 @@ theorem itoLevyFormula_jumpResidual_of_solvesOn [ℱ.IsRightContinuous]
       (hYsol 0).h_γ_sq hT')
     (ae_lintegral_compensatorDriftIntegrand_lt_top hu hK₂ hReg.2.2.1 X.measurable_path
       (hYsol 0).h_γ_meas (hYsol 0).h_γ_sq hT)
+
+
+/-- **The Itô–Lévy formula at bounded derivatives, for a given solution.** For a jump diffusion
+carrying SDE data at a filtration satisfying the usual conditions, with regular Lipschitz
+coefficients and left limits along every path, a `C²` state function with bounded time
+derivative, gradient and Hessian satisfies the Itô–Lévy formula relative to that filtration.
+
+Every admissibility input of the two stochastic integrals, the adaptedness of the path, the
+drift's measurability, progressive measurability and energy, and the integrability of the drift
+and of the compensator drift are derived from the SDE data and the coefficient regularity, not
+assumed. -/
+theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
+    (X : JumpDiffusion W N coeffs x₀) (S : LevyStochCalc.Ito.BigJump.SdeData X)
+    [S.ℱ.IsRightContinuous]
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
+    (hXleft : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
+      ∃ L : ℝ, Tendsto (fun s => X.X s ω j) (𝓝[<] t) (𝓝 L))
+    (hReg : coeffs.IsRegular ν) {L : ℝ} (hLip : coeffs.IsLipschitz ν L)
+    (u : ℝ → (Fin n → ℝ) → ℝ) (hu : ContDiff ℝ 2 (Function.uncurry u))
+    {K₀ K₁ K₂ : ℝ} (hK₀ : ∀ s x, |timeDeriv u s x| ≤ K₀)
+    (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂)
+    (T : ℝ) (hT : 0 < T) :
+    ∀ᵐ ω ∂P,
+      (u T (X.X T ω) - u 0 (X.X 0 ω)
+        - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
+        - MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
+            (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+            (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 X.measurable_path j)
+            (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+            (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁
+              S.σ_meas S.σ_sq j hT') T ω)
+      = LevyStochCalc.Poisson.Compensated.stochasticIntegral N S.ℱ S.isPoisson
+          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
+          (measurable_jumpIncrement_path hu hReg.2.2.1 X.measurable_path)
+          (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+          (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT') T ω
+        + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+            compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
+  have hrc : S.ℱ.rightCont = S.ℱ := Filtration.IsRightContinuous.eq
+  have hℱ0' : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t := by
+    intro t ht
+    rw [hrc]
+    exact hℱ0 t ht
+  have hXm : Measurable (Function.uncurry X.X) := X.measurable_path
+  have hXsq := fun b => lintegral_lintegral_sq_lt_top_of_supL2 X.sup_L2 b
+  have hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i) :=
+    fun i => measurable_mu_comp_state coeffs hReg hXm i
+  have hμp : ∀ i : Fin n,
+      ProgressivelyMeasurable S.ℱ fun ω s => coeffs.μ s (X.X s ω) i :=
+    fun i => progressivelyMeasurable_comp_state S.X_prog (f := fun s x => coeffs.μ s x i)
+      ((measurable_pi_apply i).comp hReg.1)
+  have hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
+    fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hXm hXsq i hT'
+  exact itoLevyFormula_jumpResidual_of_boundedDerivs W N coeffs x₀ X S hℱ0' hnull
+    (fun t => measurable_of_progressivelyMeasurable S.ℱ S.X_prog t) hXleft
+    hμm hμp hμq hReg.2.2.1 u hu hK₀ hK₁ hK₂ T hT (ae_integrableOn_drift_path hμm hμq T)
+    (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 hXm j)
+    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+    (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁ S.σ_meas S.σ_sq j hT')
+    (measurable_jumpIncrement_path hu hReg.2.2.1 hXm)
+    (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+    (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT')
+    (ae_lintegral_compensatorDriftIntegrand_lt_top hu hK₂ hReg.2.2.1 hXm S.γ_meas S.γ_sq hT)
 
 end Main
 
