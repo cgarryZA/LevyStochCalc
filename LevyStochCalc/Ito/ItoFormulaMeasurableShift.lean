@@ -261,7 +261,9 @@ theorem itoFormula_between_boundedShift
     (hfC : ContDiff ℝ 2 f) (hf : ∀ z, HasFDerivAt f (f' z) z)
     (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ K₂ : ℝ} (hK₁ : ∀ (p : Fin n) (z : Fin n → ℝ), |coordDeriv f' p z| ≤ K₁)
-    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ), |coordDeriv₂ f'' p q z| ≤ K₂)
+    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ) (ω : Ω) (s : ℝ),
+      |coordDeriv₂ f'' p q z| * |∑ k : Fin d, H p k ω s * H q k ω s|
+        ≤ K₂ * |∑ k : Fin d, H p k ω s * H q k ω s|)
     {T : ℝ} (hT : 0 < T)
     {c : Ω → Fin n → ℝ} (hc : Measurable[hσ.measurableSpace] c)
     {M : ℝ} (hcb : ∀ ω, ‖c ω‖ ≤ M)
@@ -380,7 +382,9 @@ theorem itoFormula_between_measurableShift
     (hfC : ContDiff ℝ 2 f) (hf : ∀ z, HasFDerivAt f (f' z) z)
     (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ K₂ : ℝ} (hK₁ : ∀ (p : Fin n) (z : Fin n → ℝ), |coordDeriv f' p z| ≤ K₁)
-    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ), |coordDeriv₂ f'' p q z| ≤ K₂)
+    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ) (ω : Ω) (s : ℝ),
+      |coordDeriv₂ f'' p q z| * |∑ k : Fin d, H p k ω s * H q k ω s|
+        ≤ K₂ * |∑ k : Fin d, H p k ω s * H q k ω s|)
     {T : ℝ} (hT : 0 < T)
     {c : Ω → Fin n → ℝ} (hc : Measurable[hσ.measurableSpace] c)
     (hmSc : ∀ (p : Fin n) (k : Fin d), Measurable (Function.uncurry fun ω s =>

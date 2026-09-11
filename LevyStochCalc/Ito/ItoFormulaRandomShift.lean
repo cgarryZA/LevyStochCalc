@@ -261,6 +261,50 @@ theorem tendsto_setIntegral_stopped_sub_shift {n : ℕ} {X : ℝ → Ω → Fin 
       · simp [hs]
     exact (hstop τ).sub (hstop σ)
 
+/-- The variant of `tendsto_setIntegral_stopped_sub_shift` in which the state function is bounded
+only against the coefficient: it suffices that `|g z| · |D ω s| ≤ K · |D ω s|`. -/
+theorem tendsto_setIntegral_stopped_sub_shift_of_mul {n : ℕ} {X : ℝ → Ω → Fin n → ℝ}
+    {g : (Fin n → ℝ) → ℝ} (hgc : Continuous g) {D : Ω → ℝ → ℝ} {ω : Ω} {K : ℝ}
+    (hK : ∀ (z : Fin n → ℝ) (s : ℝ), |g z| * |D ω s| ≤ K * |D ω s|)
+    {σ τ : Ω → WithTop ℝ} {T : ℝ}
+    {c : Ω → Fin n → ℝ} {cm : ℕ → Ω → Fin n → ℝ}
+    (hlim : Filter.Tendsto (fun m => cm m ω) Filter.atTop (nhds (c ω)))
+    (hint : IntegrableOn (fun s => D ω s) (Set.Ioc (0 : ℝ) T) volume)
+    (hmeas : ∀ m : ℕ, AEStronglyMeasurable (fun s =>
+        Probability.stopped τ (fun ω s => g (X s ω + cm m ω) * D ω s) ω s
+          - Probability.stopped σ (fun ω s => g (X s ω + cm m ω) * D ω s) ω s)
+      (volume.restrict (Set.Ioc (0 : ℝ) T))) :
+    Filter.Tendsto (fun m => ∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped τ (fun ω s => g (X s ω + cm m ω) * D ω s) ω s
+          - Probability.stopped σ (fun ω s => g (X s ω + cm m ω) * D ω s) ω s) ∂volume)
+      Filter.atTop (nhds (∫ s in Set.Ioc (0 : ℝ) T,
+        (Probability.stopped τ (fun ω s => g (X s ω + c ω) * D ω s) ω s
+          - Probability.stopped σ (fun ω s => g (X s ω + c ω) * D ω s) ω s) ∂volume)) := by
+  refine MeasureTheory.tendsto_integral_of_dominated_convergence
+    (fun s => 2 * (K * |D ω s|)) hmeas ((hint.abs.const_mul K).const_mul 2) ?_ ?_
+  · intro m
+    refine Filter.Eventually.of_forall fun s => ?_
+    refine le_trans (abs_stopped_sub_stopped_le σ τ
+      (fun ω s => g (X s ω + cm m ω) * D ω s) ω s) ?_
+    have : |g (X s ω + cm m ω) * D ω s| ≤ K * |D ω s| := by
+      rw [abs_mul]
+      exact hK _ s
+    exact mul_le_mul_of_nonneg_left this (by norm_num)
+  · refine Filter.Eventually.of_forall fun s => ?_
+    have hg : Filter.Tendsto (fun m => g (X s ω + cm m ω) * D ω s) Filter.atTop
+        (nhds (g (X s ω + c ω) * D ω s)) :=
+      Filter.Tendsto.mul_const _ ((hgc.tendsto _).comp (Filter.Tendsto.const_add _ hlim))
+    have hstop : ∀ (υ : Ω → WithTop ℝ), Filter.Tendsto
+        (fun m => Probability.stopped υ (fun ω s => g (X s ω + cm m ω) * D ω s) ω s)
+        Filter.atTop
+        (nhds (Probability.stopped υ (fun ω s => g (X s ω + c ω) * D ω s) ω s)) := by
+      intro υ
+      unfold LevyStochCalc.Probability.stopped
+      by_cases hs : ((s : ℝ) : WithTop ℝ) ≤ υ ω
+      · simpa [hs] using hg
+      · simp [hs]
+    exact (hstop τ).sub (hstop σ)
+
 end PathIntegral
 
 section StochasticTerm

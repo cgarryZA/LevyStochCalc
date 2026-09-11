@@ -11,6 +11,8 @@ import LevyStochCalc.Ito.JumpFormulaTaylorBounds
 import LevyStochCalc.Ito.JumpFormulaContinuity
 import LevyStochCalc.Ito.SubsequenceBookkeeping
 import LevyStochCalc.Ito.VectorItoProcessDiff
+import LevyStochCalc.Ito.ItoLevyMixedBounds
+import LevyStochCalc.Ito.FiniteActivityMixed
 
 /-!
 # The Itô–Lévy formula for a jump diffusion at bounded derivatives
@@ -47,313 +49,6 @@ namespace LevyStochCalc.Ito.JumpFormula
 
 universe u v
 
-section Norms
-
-/-- The supremum norm on `Fin n → ℝ` is at most the sum of the absolute coordinates. -/
-theorem norm_le_sum_abs {n : ℕ} (v : Fin n → ℝ) : ‖v‖ ≤ ∑ i, |v i| := by
-  refine (pi_norm_le_iff_of_nonneg (Finset.sum_nonneg fun i _ => abs_nonneg _)).mpr fun i => ?_
-  rw [Real.norm_eq_abs]
-  exact Finset.single_le_sum (fun j _ => abs_nonneg (v j)) (Finset.mem_univ i)
-
-/-- The square of the sum of `n` absolute values is at most `n` times the sum of the squares. -/
-theorem sq_sum_abs_le {n : ℕ} (v : Fin n → ℝ) : (∑ i, |v i|) ^ 2 ≤ (n : ℝ) * ∑ i, v i ^ 2 := by
-  have h := sq_sum_le_card_mul_sum_sq (s := Finset.univ) (f := fun i : Fin n => |v i|)
-  simpa [sq_abs] using h
-
-/-- The squared supremum norm is at most `n` times the sum of the squared coordinates. -/
-theorem norm_sq_le_card_mul_sum_sq {n : ℕ} (v : Fin n → ℝ) :
-    ‖v‖ ^ 2 ≤ (n : ℝ) * ∑ i, v i ^ 2 :=
-  (pow_le_pow_left₀ (norm_nonneg v) (norm_le_sum_abs v) 2).trans (sq_sum_abs_le v)
-
-/-- A real dominated by `c` times a sum of `n` absolute values has squared extended norm at most
-`c² n` times the sum of the squared extended norms. -/
-theorem enorm_sq_le_of_abs_le_mul_sum {n : ℕ} {x c : ℝ} {a : Fin n → ℝ}
-    (h : |x| ≤ c * ∑ i, |a i|) :
-    (‖x‖₊ : ℝ≥0∞) ^ 2 ≤ ENNReal.ofReal (c ^ 2 * n) * ∑ i, (‖a i‖₊ : ℝ≥0∞) ^ 2 := by
-  have hreal : x ^ 2 ≤ c ^ 2 * n * ∑ i, a i ^ 2 := by
-    calc x ^ 2 = |x| ^ 2 := (sq_abs x).symm
-      _ ≤ (c * ∑ i, |a i|) ^ 2 := pow_le_pow_left₀ (abs_nonneg x) h 2
-      _ = c ^ 2 * (∑ i, |a i|) ^ 2 := by ring
-      _ ≤ c ^ 2 * ((n : ℝ) * ∑ i, a i ^ 2) :=
-          mul_le_mul_of_nonneg_left (sq_sum_abs_le a) (sq_nonneg c)
-      _ = c ^ 2 * n * ∑ i, a i ^ 2 := by ring
-  have hconv : ∀ y : ℝ, (‖y‖₊ : ℝ≥0∞) ^ 2 = ENNReal.ofReal (y ^ 2) := by
-    intro y
-    rw [show ((‖y‖₊ : ℝ≥0∞)) = ‖y‖ₑ from rfl, Real.enorm_eq_ofReal_abs,
-      ← ENNReal.ofReal_pow (abs_nonneg y), sq_abs]
-  simp_rw [hconv]
-  rw [← ENNReal.ofReal_sum_of_nonneg (fun i _ => sq_nonneg (a i)),
-    ← ENNReal.ofReal_mul (by positivity)]
-  exact ENNReal.ofReal_le_ofReal hreal
-
-end Norms
-
-section Energies
-
-variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
-  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-
-/-- The energy of a finite sum of jointly measurable kernels over a window is the sum of the
-energies. -/
-theorem lintegral_window_sum {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ → ℝ≥0∞}
-    (hf : ∀ i, Measurable (Function.uncurry (f i))) (T : ℝ) :
-    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∑ i, f i ω s ∂volume ∂P
-      = ∑ i, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, f i ω s ∂volume ∂P := by
-  have h1 : ∀ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∑ i, f i ω s ∂volume
-      = ∑ i, ∫⁻ s in Set.Icc (0 : ℝ) T, f i ω s ∂volume := fun ω =>
-    lintegral_finsetSum _ fun i _ => Measurable.of_uncurry_left (hf i)
-  simp_rw [h1]
-  exact lintegral_finsetSum _ fun i _ => (hf i).lintegral_prod_right'
-
-/-- The marked energy of a finite sum of jointly measurable kernels over a window is the sum of
-the marked energies. -/
-theorem lintegral_window_mark_sum {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ → E → ℝ≥0∞}
-    (hf : ∀ i, Measurable fun p : Ω × ℝ × E => f i p.1 p.2.1 p.2.2) (T : ℝ) :
-    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, ∑ i, f i ω s e ∂ν ∂volume ∂P
-      = ∑ i, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, f i ω s e ∂ν ∂volume ∂P := by
-  have h1 : ∀ ω s, ∫⁻ e, ∑ i, f i ω s e ∂ν = ∑ i, ∫⁻ e, f i ω s e ∂ν := fun ω s =>
-    lintegral_finsetSum _ fun i _ =>
-      (hf i).comp (measurable_const.prodMk (measurable_const.prodMk measurable_id))
-  have h2 : ∀ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∑ i, ∫⁻ e, f i ω s e ∂ν ∂volume
-      = ∑ i, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, f i ω s e ∂ν ∂volume := fun ω =>
-    lintegral_finsetSum _ fun i _ =>
-      LevyStochCalc.Ito.IntegralLimit.measurable_section_markLIntegral (hf i) ω
-  simp_rw [h1, h2]
-  exact lintegral_finsetSum _ fun i _ => measurable_markEnergy (hf i) T
-
-/-- A process dominated by `c` times a sum of `n` processes of finite energy on a window has
-finite energy on that window. -/
-theorem lintegral_window_sq_le_of_abs_le {n : ℕ} {H : Ω → ℝ → ℝ} {a : Fin n → Ω → ℝ → ℝ}
-    {c : ℝ} (ha : ∀ i, Measurable (Function.uncurry (a i)))
-    (h : ∀ ω s, |H ω s| ≤ c * ∑ i, |a i ω s|) (T : ℝ)
-    (hq : ∀ i, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖a i ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
-    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
-  have hpt : ∀ ω s, (‖H ω s‖₊ : ℝ≥0∞) ^ 2
-      ≤ ENNReal.ofReal (c ^ 2 * n) * ∑ i, (‖a i ω s‖₊ : ℝ≥0∞) ^ 2 :=
-    fun ω s => enorm_sq_le_of_abs_le_mul_sum (h ω s)
-  refine lt_of_le_of_lt (lintegral_mono fun ω => lintegral_mono fun s => hpt ω s) ?_
-  have hm : ∀ i, Measurable (Function.uncurry fun ω s => (‖a i ω s‖₊ : ℝ≥0∞) ^ 2) :=
-    fun i => ((ha i).nnnorm.coe_nnreal_ennreal).pow_const 2
-  have hC : ENNReal.ofReal (c ^ 2 * n) ≠ ⊤ := ENNReal.ofReal_ne_top
-  simp_rw [lintegral_const_mul' _ _ hC]
-  rw [lintegral_window_sum (f := fun i ω s => (‖a i ω s‖₊ : ℝ≥0∞) ^ 2) hm T]
-  exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.sum_lt_top.mpr fun i _ => hq i)
-
-/-- A marked integrand dominated by `c` times a sum of `n` marked integrands of finite energy on
-a window has finite energy on that window. -/
-theorem lintegral_window_mark_sq_le_of_abs_le {n : ℕ} {φ : Ω → ℝ → E → ℝ}
-    {a : Fin n → Ω → ℝ → E → ℝ} {c : ℝ}
-    (ha : ∀ i, Measurable fun p : Ω × ℝ × E => a i p.1 p.2.1 p.2.2)
-    (h : ∀ ω s e, |φ ω s e| ≤ c * ∑ i, |a i ω s e|) (T : ℝ)
-    (hq : ∀ i, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-      (‖a i ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) :
-    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ := by
-  have hpt : ∀ ω s e, (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2
-      ≤ ENNReal.ofReal (c ^ 2 * n) * ∑ i, (‖a i ω s e‖₊ : ℝ≥0∞) ^ 2 :=
-    fun ω s e => enorm_sq_le_of_abs_le_mul_sum (h ω s e)
-  refine lt_of_le_of_lt
-    (lintegral_mono fun ω => lintegral_mono fun s => lintegral_mono fun e => hpt ω s e) ?_
-  have hm : ∀ i, Measurable fun p : Ω × ℝ × E => (‖a i p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2 :=
-    fun i => ((ha i).nnnorm.coe_nnreal_ennreal).pow_const 2
-  have hC : ENNReal.ofReal (c ^ 2 * n) ≠ ⊤ := ENNReal.ofReal_ne_top
-  simp_rw [lintegral_const_mul' _ _ hC]
-  rw [lintegral_window_mark_sum (f := fun i ω s e => (‖a i ω s e‖₊ : ℝ≥0∞) ^ 2) hm T]
-  exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.sum_lt_top.mpr fun i _ => hq i)
-
-end Energies
-
-section MixedBounds
-
-variable {n d : ℕ} {E : Type v} {u : ℝ → (Fin n → ℝ) → ℝ}
-
-/-- The mixed drift integrand is bounded, through the derivative bounds, by an affine function
-of the drift and the squared diffusion coefficients. -/
-theorem abs_mixedDriftIntegrand_le (coeffs : JumpDiffusionCoeffs n d E) {K₀ K₁ K₂ : ℝ}
-    (hK₂0 : 0 ≤ K₂) (hK₀ : ∀ s x, |timeDeriv u s x| ≤ K₀)
-    (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂)
-    (s : ℝ) (y x : Fin n → ℝ) :
-    |mixedDriftIntegrand u coeffs s y x|
-      ≤ K₀ + K₁ * ∑ p, |coeffs.μ s x p|
-        + (1 / 2) * K₂ * ∑ p, ∑ q, ∑ j, (coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2 := by
-  unfold mixedDriftIntegrand
-  have h1 : |∑ p, coeffs.μ s x p * gradient u s y p| ≤ K₁ * ∑ p, |coeffs.μ s x p| := by
-    rw [Finset.mul_sum]
-    refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun p _ => ?_)
-    rw [abs_mul, mul_comm]
-    exact mul_le_mul_of_nonneg_right (hK₁ s y p) (abs_nonneg _)
-  have h2 : |(1 / 2) * ∑ p, ∑ q, ∑ j, coeffs.σ s x p j * coeffs.σ s x q j * hessian u s y p q|
-      ≤ (1 / 2) * K₂ * ∑ p, ∑ q, ∑ j, (coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2 := by
-    rw [abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), mul_assoc]
-    refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
-    rw [Finset.mul_sum]
-    refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun p _ => ?_)
-    rw [Finset.mul_sum]
-    refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun q _ => ?_)
-    rw [Finset.mul_sum]
-    refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun j _ => ?_)
-    rw [abs_mul]
-    have hsq : |coeffs.σ s x p j * coeffs.σ s x q j|
-        ≤ (coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2 := by
-      rw [abs_mul]
-      have := two_mul_le_add_sq |coeffs.σ s x p j| |coeffs.σ s x q j|
-      rw [sq_abs, sq_abs] at this
-      linarith
-    calc |coeffs.σ s x p j * coeffs.σ s x q j| * |hessian u s y p q|
-        ≤ |coeffs.σ s x p j * coeffs.σ s x q j| * K₂ :=
-          mul_le_mul_of_nonneg_left (hK₂ s y p q) (abs_nonneg _)
-      _ ≤ (coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2 * K₂ :=
-          mul_le_mul_of_nonneg_right hsq hK₂0
-      _ = K₂ * ((coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2) := mul_comm _ _
-  calc |timeDeriv u s y + (∑ p, coeffs.μ s x p * gradient u s y p
-          + (1 / 2) * ∑ p, ∑ q, ∑ j, coeffs.σ s x p j * coeffs.σ s x q j * hessian u s y p q)|
-      ≤ |timeDeriv u s y| + (|∑ p, coeffs.μ s x p * gradient u s y p|
-          + |(1 / 2) * ∑ p, ∑ q, ∑ j,
-              coeffs.σ s x p j * coeffs.σ s x q j * hessian u s y p q|) :=
-        (abs_add_le _ _).trans (add_le_add le_rfl (abs_add_le _ _))
-    _ ≤ K₀ + (K₁ * ∑ p, |coeffs.μ s x p|
-          + (1 / 2) * K₂ * ∑ p, ∑ q, ∑ j, (coeffs.σ s x p j ^ 2 + coeffs.σ s x q j ^ 2) / 2) :=
-        add_le_add (hK₀ s y) (add_le_add h1 h2)
-    _ = _ := by ring
-
-/-- A component of the mixed diffusion integrand is bounded, through the gradient bound, by the
-sum of the absolute entries of the corresponding column of the diffusion matrix. -/
-theorem abs_mixedDiffusionIntegrand_le {σ : ℝ → (Fin n → ℝ) → (Fin n → Fin d → ℝ)} {K₁ : ℝ}
-    (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (s : ℝ) (y x : Fin n → ℝ) (j : Fin d) :
-    |mixedDiffusionIntegrand u σ s y x j| ≤ K₁ * ∑ i, |σ s x i j| := by
-  unfold mixedDiffusionIntegrand
-  rw [Finset.mul_sum]
-  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
-  rw [abs_mul]
-  exact mul_le_mul_of_nonneg_right (hK₁ s y i) (abs_nonneg _)
-
-/-- The mixed jump increment is bounded, through the gradient bound, by `n K₁` times the sum of
-the absolute coordinates of the jump size. -/
-theorem abs_mixedJumpIncrement_le (hu : ContDiff ℝ 2 (Function.uncurry u))
-    {γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ)} {K₁ : ℝ}
-    (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₁0 : 0 ≤ K₁) (s : ℝ) (y x : Fin n → ℝ)
-    (e : E) : |mixedJumpIncrement u γ s y x e| ≤ (n : ℝ) * K₁ * ∑ i, |γ s x e i| := by
-  unfold mixedJumpIncrement
-  refine (abs_sub_le_of_gradient_le hu s (hK₁ s) y (γ s x e)).trans ?_
-  exact mul_le_mul_of_nonneg_left (norm_le_sum_abs _) (mul_nonneg (Nat.cast_nonneg n) hK₁0)
-
-/-- The mixed compensator-drift integrand is bounded, through the Hessian bound, by `n³ K₂`
-times the sum of the squared coordinates of the jump size. -/
-theorem abs_mixedCompensatorDriftIntegrand_le (hu : ContDiff ℝ 2 (Function.uncurry u))
-    {γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ)} {K₂ : ℝ}
-    (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂) (hK₂0 : 0 ≤ K₂) (s : ℝ) (y x : Fin n → ℝ)
-    (e : E) :
-    |mixedCompensatorDriftIntegrand u γ s y x e|
-      ≤ (n : ℝ) ^ 2 * K₂ * ((n : ℝ) * ∑ i, γ s x e i ^ 2) := by
-  unfold mixedCompensatorDriftIntegrand
-  refine (abs_sub_sub_le_of_hessian_le hu s (hK₂ s) y (γ s x e)).trans ?_
-  exact mul_le_mul_of_nonneg_left (norm_sq_le_card_mul_sum_sq _)
-    (mul_nonneg (sq_nonneg _) hK₂0)
-
-/-- The mark cut of an integrand is bounded by the integrand. -/
-theorem abs_markCut_le {Ω : Type u} (A : Set E) (φ : Ω → ℝ → E → ℝ) (ω : Ω) (s : ℝ) (e : E) :
-    |markCut A φ ω s e| ≤ |φ ω s e| := by
-  by_cases h : e ∈ A
-  · simp [markCut, h]
-  · simp [markCut, h]
-
-end MixedBounds
-
-section MixedContinuity
-
-variable {n d : ℕ} {E : Type v} {u : ℝ → (Fin n → ℝ) → ℝ} {z : ℕ → Fin n → ℝ} {w : Fin n → ℝ}
-
-/-- At a fixed time and coefficient state, the mixed drift integrand transports convergence of
-the derivative state. -/
-theorem tendsto_mixedDriftIntegrand_of_tendsto (hu : ContDiff ℝ 2 (Function.uncurry u))
-    (coeffs : JumpDiffusionCoeffs n d E) (s : ℝ) (x : Fin n → ℝ)
-    (h : Tendsto z atTop (𝓝 w)) :
-    Tendsto (fun m => mixedDriftIntegrand u coeffs s (z m) x) atTop
-      (𝓝 (mixedDriftIntegrand u coeffs s w x)) := by
-  unfold mixedDriftIntegrand
-  refine (tendsto_timeDeriv_of_tendsto hu s h).add (Tendsto.add ?_ (tendsto_const_nhds.mul ?_))
-  · exact tendsto_finsetSum _ fun p _ =>
-      tendsto_const_nhds.mul (tendsto_gradient_apply_of_tendsto hu s p h)
-  · exact tendsto_finsetSum _ fun p _ => tendsto_finsetSum _ fun q _ =>
-      tendsto_finsetSum _ fun j _ => tendsto_const_nhds.mul (tendsto_hessian_of_tendsto hu s p q h)
-
-/-- At a fixed time, coefficient state and mark, the mixed jump increment transports convergence
-of the derivative state. -/
-theorem tendsto_mixedJumpIncrement_of_tendsto (hu : ContDiff ℝ 2 (Function.uncurry u))
-    (γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ)) (s : ℝ) (x : Fin n → ℝ) (e : E)
-    (h : Tendsto z atTop (𝓝 w)) :
-    Tendsto (fun m => mixedJumpIncrement u γ s (z m) x e) atTop
-      (𝓝 (mixedJumpIncrement u γ s w x e)) := by
-  unfold mixedJumpIncrement
-  exact (SmallJump.tendsto_comp_of_tendsto hu s (h.add_const _)).sub
-    (SmallJump.tendsto_comp_of_tendsto hu s h)
-
-/-- At a fixed time, coefficient state and mark, the mixed compensator-drift integrand
-transports convergence of the derivative state. -/
-theorem tendsto_mixedCompensatorDriftIntegrand_of_tendsto
-    (hu : ContDiff ℝ 2 (Function.uncurry u)) (γ : ℝ → (Fin n → ℝ) → E → (Fin n → ℝ)) (s : ℝ)
-    (x : Fin n → ℝ) (e : E) (h : Tendsto z atTop (𝓝 w)) :
-    Tendsto (fun m => mixedCompensatorDriftIntegrand u γ s (z m) x e) atTop
-      (𝓝 (mixedCompensatorDriftIntegrand u γ s w x e)) := by
-  unfold mixedCompensatorDriftIntegrand
-  refine ((SmallJump.tendsto_comp_of_tendsto hu s (h.add_const _)).sub
-    (SmallJump.tendsto_comp_of_tendsto hu s h)).sub ?_
-  exact tendsto_finsetSum _ fun i _ =>
-    tendsto_const_nhds.mul (tendsto_gradient_apply_of_tendsto hu s i h)
-
-end MixedContinuity
-
-section Progressive
-
-variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
-
-/-- A finite sum of progressively measurable real processes is progressively measurable. -/
-theorem progressivelyMeasurable_finset_sum {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {ι : Type*}
-    (s : Finset ι) {H : ι → Ω → ℝ → ℝ} (h : ∀ i ∈ s, ProgressivelyMeasurable ℱ (H i)) :
-    ProgressivelyMeasurable ℱ fun ω t => ∑ i ∈ s, H i ω t := by
-  intro t
-  have key : (fun p : Ω × ℝ => (Set.Iic t).indicator (fun r => ∑ i ∈ s, H i p.1 r) p.2)
-      = fun p : Ω × ℝ => ∑ i ∈ s, (Set.Iic t).indicator (H i p.1) p.2 := by
-    funext p
-    by_cases hp : p.2 ∈ Set.Iic t
-    · simp only [Set.indicator_of_mem hp]
-    · simp only [Set.indicator_of_notMem hp, Finset.sum_const_zero]
-  rw [key]
-  exact Finset.stronglyMeasurable_fun_sum
-    (f := fun i (p : Ω × ℝ) => (Set.Iic t).indicator (H i p.1) p.2) s fun i hi => h i hi t
-
-/-- The triple of the time, a progressively measurable state and the jump coefficient along a
-path is a marked progressively measurable process. -/
-theorem markedProgressivelyMeasurable_time_state_jump {n d : ℕ}
-    {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {coeffs : JumpDiffusionCoeffs n d E}
-    {Xp Y : ℝ → Ω → (Fin n → ℝ)}
-    (hY : ∀ i, ProgressivelyMeasurable ℱ fun ω s => Y s ω i)
-    (hγ : ∀ i, MarkedProgressivelyMeasurable ℱ (SmallJump.pathJumpCoeff coeffs Xp i)) :
-    MarkedProgressivelyMeasurable ℱ fun ω s e =>
-      ((s, Y s ω, coeffs.γ s (Xp s ω) e) : ℝ × (Fin n → ℝ) × (Fin n → ℝ)) := by
-  intro t
-  letI : MeasurableSpace Ω := ℱ t
-  have heq : (fun p : Ω × ℝ × E => (Set.Iic t).indicator
-        (fun s => ((s, Y s p.1, coeffs.γ s (Xp s p.1) p.2.2) :
-          ℝ × (Fin n → ℝ) × (Fin n → ℝ))) p.2.1)
-      = fun p : Ω × ℝ × E => ((Set.Iic t).indicator (fun s => s) p.2.1,
-          fun i => (Set.Iic t).indicator (fun s => Y s p.1 i) p.2.1,
-          fun i => (Set.Iic t).indicator (fun s => coeffs.γ s (Xp s p.1) p.2.2 i) p.2.1) := by
-    funext p
-    by_cases hp : p.2.1 ∈ Set.Iic t
-    · simp only [Set.indicator_of_mem hp]
-    · simp only [Set.indicator_of_notMem hp]
-      rfl
-  rw [heq]
-  refine Measurable.stronglyMeasurable ?_
-  refine Measurable.prodMk ?_ (Measurable.prodMk ?_ ?_)
-  · exact (measurable_id.indicator measurableSet_Iic).comp measurable_snd.fst
-  · refine measurable_pi_lambda _ fun i => ?_
-    exact ((hY i t).measurable).comp (measurable_fst.prodMk measurable_snd.fst)
-  · refine measurable_pi_lambda _ fun i => ?_
-    exact (hγ i t).measurable
-
-end Progressive
 
 section DominatedAe
 
@@ -532,6 +227,27 @@ theorem truncPath_rightContinuous
     exact (truncPath_of_nonneg S hℱ0 hnull0 G m (ht.trans (le_of_lt (Set.mem_Ioi.mp hs)))
       ω).symm
 
+/-- Every coordinate of every path of the truncated path has a left limit at every time, when
+the big-jump paths are càdlàg on the good set. -/
+theorem truncPath_leftLim
+    (hGp : ∀ ω ∈ G, ∀ m : ℕ, ∀ t : ℝ, 0 ≤ t →
+      Tendsto (fun s => bigJumpPath S (measurableSet_smallMarks ν m) hℱ0 hnull0 s ω) (𝓝[>] t)
+          (𝓝 (bigJumpPath S (measurableSet_smallMarks ν m) hℱ0 hnull0 t ω))
+        ∧ ∀ i : Fin n, ∃ L : ℝ,
+          Tendsto (fun s => bigJumpPath S (measurableSet_smallMarks ν m) hℱ0 hnull0 s ω i)
+            (𝓝[<] t) (𝓝 L))
+    (m : ℕ) (ω : Ω) (t : ℝ) (i : Fin n) :
+    ∃ L : ℝ, Tendsto (fun s => truncPath S hℱ0 hnull0 G m s ω i) (𝓝[<] t) (𝓝 L) := by
+  rcases le_or_gt t 0 with ht | ht
+  · refine ⟨0, tendsto_const_nhds.congr' ?_⟩
+    filter_upwards [self_mem_nhdsWithin] with s hs
+    rw [truncPath_of_neg S hℱ0 hnull0 G m (lt_of_lt_of_le (Set.mem_Iio.mp hs) ht)]
+    rfl
+  · obtain ⟨L, hL⟩ := (repairOn_cadlag (fun ω hω t ht => hGp ω hω m t ht) ω t ht.le).2 i
+    refine ⟨L, hL.congr' ?_⟩
+    filter_upwards [Ioo_mem_nhdsLT ht] with s hs
+    rw [truncPath_of_nonneg S hℱ0 hnull0 G m hs.1.le]
+
 /-- The truncated path is adapted to the right-continuous filtration of the SDE data, when the
 good set belongs to it at every nonnegative time. -/
 theorem measurable_rightCont_truncPath (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
@@ -574,11 +290,12 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 
 open LevyStochCalc.Ito.IntegralLimit in
 /-- **The Itô–Lévy formula at bounded derivatives.** For a jump diffusion with SDE data `S`
-whose right-continuous filtration satisfies the usual conditions at time zero, whose path has
-left limits at every time and whose drift along the path is progressively measurable, and a `C²`
-state function with bounded time derivative, gradient and Hessian, the canonical residual of the
-Itô–Lévy formula is the compensated jump integral plus the compensator-drift integral, every
-stochastic integral being taken over the filtration of `S`.
+whose right-continuous filtration satisfies the usual conditions at time zero and carries a
+cross witness for every Brownian coordinate, whose path has left limits at every time and whose
+drift along the path is progressively measurable, and a `C²` state function with bounded time
+derivative, gradient and Hessian, the canonical residual of the Itô–Lévy formula is the
+compensated jump integral plus the compensator-drift integral, every stochastic integral being
+taken over the filtration of `S`.
 
 The admissibility of the derived integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the solution
 is still taken as a hypothesis; deriving it from the bounded derivatives and the SDE data is a
@@ -600,6 +317,10 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     [S.ℱ.IsRightContinuous]
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t)
     (hnull0 : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
+    -- (8'') The cross orthogonality of the Brownian coordinates over the filtration of the SDE
+    -- data, which the vector Itô formula between the arrival times consumes; the tree supplies
+    -- it for the augmented natural filtration of `W`, not for an arbitrary `S.ℱ`.
+    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W S.ℱ j)
     -- (3) The structure calls its solution adapted but carries no such field.
     (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
     -- (3') Statement change: `cadlag_paths` holds almost surely and only on `[0, ∞)`, while the
@@ -992,10 +713,14 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   -- The finite-activity splitting of the truncated path at level `m`, from the hypotheses of
   -- this theorem alone. This is the step `[OB-1]` starts from: the truncated path is a
   -- continuous vector Itô process plus the sum of the jumps carried by the big marks.
-  have hsplit : ∀ m : ℕ, ∃ V : ℝ → Ω → Fin n → ℝ, ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-      xs m t ω i = V t ω i
-        + JumpSplitting.jumpSumLeftAt (coeffs.markCutγ (smallMarks ν m)ᶜ) N X.X
-            (smallMarks ν m)ᶜ t ω i := by
+  have hsplit : ∀ m : ℕ, ∃ V : ℝ → Ω → Fin n → ℝ,
+      LevyStochCalc.Brownian.Ito.IsVectorItoVersion W S.ℱ S.isBrownian
+        (fun i j ω s => coeffs.σ s (X.X s ω) i j) S.σ_meas S.σ_prog S.σ_sq (fun _ => x₀)
+        (JumpSplitting.continuousDriftLeftAt coeffs ν X.X (smallMarks ν m)ᶜ) V
+      ∧ ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+        xs m t ω i = V t ω i
+          + JumpSplitting.jumpSumLeftAt (coeffs.markCutγ (smallMarks ν m)ᶜ) N X.X
+              (smallMarks ν m)ᶜ t ω i := by
     intro m
     obtain ⟨V, hV⟩ := JumpSplitting.exists_continuousPart S (A := (smallMarks ν m)ᶜ)
       (measure_compl_smallMarks_ne_top ν m) hℱ0' hnull0 hμm hμp hμq hγmL hγpL hγqL
@@ -1004,21 +729,62 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
         = JumpSplitting.continuousDriftLeftAt coeffs ν X.X (smallMarks ν m)ᶜ :=
       JumpSplitting.continuousDriftLeftAt_congr_of_eqOn coeffs _ X.X (hA m).compl rfl
         fun _ _ e he => Set.indicator_of_mem he _
-    rw [← hdrift] at hV
-    refine ⟨V, ?_⟩
+    have hV' := hV
+    rw [← hdrift] at hV'
+    refine ⟨V, hV, ?_⟩
     filter_upwards [ae_forall_bigJumpPath_eq_add_jumpSumLeftAt S (hA m) hℱ0 hnull0
       (measure_compl_smallMarks_ne_top ν m) hμm hμq hγmL hγpL hγqL hXadapt
-      (fun ω t _ j => hXleft ω t j) hγmeas V hV, hGae] with ω hω hωG
+      (fun ω t _ j => hXleft ω t j) hγmeas V hV', hGae] with ω hω hωG
     intro t ht i
     simp only [hxs_def]
     rw [truncPath_of_nonneg S hℱ0 hnull0 G m ht, repairOn_of_mem hωG]
     exact hω t ht i
-  -- Obligation 1' (the finite-activity identity at each level, in the mixed form).
+  -- Obligation 1' (the finite-activity identity at each level, in the mixed form), from the
+  -- finite-activity identity along the truncated path, with the two stochastic integrals
+  -- transported from the filtration of the SDE data to its right-continuous regularisation.
   have hstep : ∀ m, ∀ᵐ ω ∂P,
       u T (xs m T ω) - u 0 (xs m 0 ω) - Dr m ω - Bro m ω = Cmp m ω + Cd m ω := by
-    -- The splitting `hsplit` above is the C2 input; the remaining steps C3–C11 (the mixed
-    -- Itô formula between the jumps of `xs m` and the telescoping over them) are open.
-    sorry -- [OB-1: finite-activity identity at level m, mixed form — B4-C2..C11]
+    intro m
+    obtain ⟨V, hV, hVsplit⟩ := hsplit m
+    have hrc : S.ℱ.rightCont = S.ℱ := MeasureTheory.Filtration.IsRightContinuous.eq
+    have hBp' : ∀ j : Fin d, Probability.ProgressivelyMeasurable S.ℱ
+        fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j :=
+      fun j => hrc ▸ hBp m j
+    have hCp' : Probability.MarkedProgressivelyMeasurable S.ℱ (markCut (smallMarks ν m)ᶜ
+        fun ω s e => mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e) :=
+      hrc ▸ hCp m
+    have hxs_ad' : ∀ t : ℝ, Measurable[S.ℱ t] (xs m t) := fun t => hrc ▸ hxs_ad m t
+    have hxs_left : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
+        ∃ L : ℝ, Tendsto (fun s => xs m s ω j) (𝓝[<] t) (𝓝 L) :=
+      fun ω t j => truncPath_leftLim S hℱ0 hnull0 G (fun ω hω m t ht => hGp ω hω m t ht) m ω t j
+    have hmain := itoLevy_finiteActivity_mixed S hℱ0' hnull0 𝒲 hXadapt hXleft hμm hμp hμq hγmeas
+      u hu hK₀ hK₁ hK₂ T hT (hA m).compl (measure_compl_smallMarks_ne_top ν m) (xs m) (hxs_m m)
+      (hxs_rc m) hxs_ad' hxs_left V hV hVsplit (hBm m) hBp' (hBq m) (hCm m) hCp' (hCq m)
+    have hchan : ∀ j : Fin d,
+        stochasticIntegralBrownian (W.W j) S.ℱ (S.isBrownian j)
+            (fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j)
+            (hBm m j) (hBp' j) (hBq m j) T
+          =ᵐ[P] stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
+            (fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j)
+            (hBm m j) (hBp m j) (hBq m j) T :=
+      fun j => stochasticIntegralBrownian_congr_filtration (W.W j) S.ℱ S.ℱ.rightCont
+        (S.isBrownian j) (h𝒢W j) hle _ (hBm m j) (hBp' j) (hBp m j) (hBq m j) T
+    have hC : stochasticIntegral N S.ℱ S.isPoisson
+          (markCut (smallMarks ν m)ᶜ
+            fun ω s e => mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e)
+          (hCm m) hCp' (hCq m) T
+        =ᵐ[P] Cmp m :=
+      stochasticIntegral_congr_filtration N S.ℱ S.ℱ.rightCont S.isPoisson h𝒢N hle _
+        (hCm m) hCp' (hCp m) (hCq m) T
+    filter_upwards [hmain, MeasureTheory.ae_all_iff.mpr hchan, hC] with ω h1 h2 h3
+    have hB : MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
+          (fun s ω => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω))
+          (hBm m) hBp' (hBq m) T ω = Bro m ω := by
+      simp only [hBro_def]
+      rw [multidimStochasticIntegral_eq_sum, multidimStochasticIntegral_eq_sum]
+      exact Finset.sum_congr rfl fun j _ => h2 j
+    rw [hB, h3] at h1
+    exact h1
   -- The endpoints.
   have hend : ∀ᵐ ω ∂P, Tendsto (fun i => u T (xs (φ i) T ω) - u 0 (xs (φ i) 0 ω)) atTop
       (𝓝 (u T (X.X T ω) - u 0 (X.X 0 ω))) := by

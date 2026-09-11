@@ -154,7 +154,9 @@ theorem itoFormula_between_generalShift
     (hfC : ContDiff ℝ 2 f) (hf : ∀ z, HasFDerivAt f (f' z) z)
     (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ K₂ : ℝ} (hK₁ : ∀ (p : Fin n) (z : Fin n → ℝ), |coordDeriv f' p z| ≤ K₁)
-    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ), |coordDeriv₂ f'' p q z| ≤ K₂)
+    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ) (ω : Ω) (s : ℝ),
+      |coordDeriv₂ f'' p q z| * |∑ k : Fin d, H p k ω s * H q k ω s|
+        ≤ K₂ * |∑ k : Fin d, H p k ω s * H q k ω s|)
     {T : ℝ} (hT : 0 < T)
     {c : Ω → Fin n → ℝ} (hc : Measurable c)
     {cm : ℕ → Ω → Fin n → ℝ} (hcm : ∀ m, Measurable (cm m))
@@ -318,8 +320,8 @@ theorem itoFormula_between_generalShift
           - Probability.stopped σ (fun ω s => coordDeriv₂ f'' p q (X s ω + c ω)
               * ∑ k : Fin d, H p k ω s * H q k ω s) ω s) ∂volume)) := by
     filter_upwards [hQint] with ω hω p q
-    refine tendsto_setIntegral_stopped_sub_shift (continuous_coordDeriv₂ hf''c p q)
-      (hK₂ p q) (hlim ω) (hω p q) fun m => ?_
+    refine tendsto_setIntegral_stopped_sub_shift_of_mul (continuous_coordDeriv₂ hf''c p q)
+      (fun z s => hK₂ p q z ω s) (hlim ω) (hω p q) fun m => ?_
     exact (Measurable.of_uncurry_left
       (measurable_uncurry_stopped_sub hσ hτ (hmQm m p q))).aestronglyMeasurable
   refine ae_eq_of_tendsto_comp_of_forall_ae_eq ms hbase ?_ ?_

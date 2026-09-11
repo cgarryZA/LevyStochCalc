@@ -308,6 +308,9 @@ import LevyStochCalc.Ito.JumpFormulaMixedDictionary
 import LevyStochCalc.Ito.JumpFormulaChainStopped
 import LevyStochCalc.Ito.ItoFormulaMeasurableShift
 import LevyStochCalc.Ito.TruncatedContinuousPart
+import LevyStochCalc.Ito.ItoLevyMixedBounds
+import LevyStochCalc.Ito.FiniteActivityMixedPrelims
+import LevyStochCalc.Ito.FiniteActivityMixed
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01

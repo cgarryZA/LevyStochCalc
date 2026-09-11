@@ -10,11 +10,3 @@
 # The seven `sorry`s in it are those obligations, each carrying its own local context; see the
 # comments at each one in Ito/JumpFormulaAssembled.lean.
 LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
-
-# The Itô–Lévy formula for a state function with bounded first and second derivatives (milestone
-# M16, Epic B4). Its five limit obligations are discharged; the remaining `sorry` is the
-# finite-activity identity along the truncated paths, in the mixed form — the derivatives read at
-# the truncated path, the coefficients along the original one. See the `[OB-1]` comment in
-# Ito/ItoLevyBoundedDerivs.lean. This theorem is NARROWER than the axiom it is a step towards:
-# it does not close cited axiom 16, which stays open for a general C² state function.
-LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_boundedDerivs

@@ -2856,6 +2856,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_uncurry_truncPath
 #print axioms LevyStochCalc.Ito.JumpFormula.truncPath_rightContinuous
 #print axioms LevyStochCalc.Ito.JumpFormula.measurable_rightCont_truncPath
+#print axioms LevyStochCalc.Ito.JumpFormula.truncPath_leftLim
+-- OB-1 (2026-09-10): the finite-activity identity along the truncated path, in the mixed form,
+-- and the pieces it is assembled from.
+#print axioms LevyStochCalc.Brownian.Ito.tendsto_setIntegral_stopped_sub_shift_of_mul
+#print axioms LevyStochCalc.Ito.JumpFormula.jumpSumLeftAt_markCutγ_eq_jumpSumAt_leftLimPath
+#print axioms LevyStochCalc.Ito.JumpFormula.leftLim_timeAugProcess_eq_cons
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_stoppingTime_eval_untopA
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_of_splitDrift_and_jumpSum_mixed_ae
+#print axioms LevyStochCalc.Ito.JumpFormula.contDiff_timeAugFun
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_coordDeriv_timeAug_le
+#print axioms LevyStochCalc.Ito.JumpFormula.abs_coordDeriv₂_timeAug_mul_le
+#print axioms LevyStochCalc.Ito.JumpFormula.stochasticIntegralBrownian_sum_univ
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_finiteActivity_mixed
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_boundedDerivs
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====

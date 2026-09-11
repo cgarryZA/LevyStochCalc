@@ -218,7 +218,9 @@ theorem itoFormula_between_gridShift
     (hfC : ContDiff ℝ 2 f) (hf : ∀ z, HasFDerivAt f (f' z) z)
     (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ K₂ : ℝ} (hK₁ : ∀ (p : Fin n) (z : Fin n → ℝ), |coordDeriv f' p z| ≤ K₁)
-    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ), |coordDeriv₂ f'' p q z| ≤ K₂)
+    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ) (ω : Ω) (s : ℝ),
+      |coordDeriv₂ f'' p q z| * |∑ k : Fin d, H p k ω s * H q k ω s|
+        ≤ K₂ * |∑ k : Fin d, H p k ω s * H q k ω s|)
     {T : ℝ} (hT : 0 < T)
     {c : Ω → Fin n → ℝ} (hc : Measurable c)
     (hbint : ∀ᵐ ω ∂P, ∀ p : Fin n, MeasureTheory.IntegrableOn
@@ -363,7 +365,7 @@ theorem itoFormula_between_gridShift
     refine tendsto_setIntegral_stopped_sub_gridStop hσ hτ (hmQ p q)
       (fun ω s => ∑ k : Fin d, H p k ω s * H q k ω s) K₂ (fun ω s => ?_) hT (hω p q)
     rw [abs_mul]
-    exact mul_le_mul_of_nonneg_right (hK₂ p q _) (abs_nonneg _)
+    exact hK₂ p q _ ω s
   obtain ⟨ms, hmsge, hSI⟩ := exists_seq_ae_tendsto_stochInt_of_tendsto_energy
     (fun i : Fin n × Fin d => W.W i.2) ℱ' (fun i => hcoord i.2)
     (fun m i ω s => Probability.stopped (gridStop τ T m)

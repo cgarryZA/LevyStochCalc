@@ -385,6 +385,40 @@ literature integral forms.
   step must remove them again); the telescoped assembly over the arrival times; and the
   dictionary between #16's integrand vocabulary and the Itô machinery's. These are tracked
   leaf-by-leaf as B3a-1d, B3a-2, B3a-3 and B4-0 in `../Dissertation/WORK_BREAKDOWN.md`.
+* **Progress (2026-09-10, OB-1) — milestone M16 is assembled with no `sorry`; the axiom is
+  still live.** `Ito/ItoLevyBoundedDerivs.lean`'s `itoLevyFormula_jumpResidual_of_boundedDerivs`
+  now has a complete proof and leaves `tools/sorry_baseline.txt`; the finite-activity identity
+  along each truncated path, in the mixed form, is `Ito/FiniteActivityMixed.lean`'s
+  `itoLevy_finiteActivity_mixed`. It telescopes Itô's formula for the *time-augmented* continuous
+  part between consecutive capped arrival times (`itoFormula_between_measurableShift` with the
+  shift `y(σ_k) − V(σ_k)`, which is known at `σ_k` because both paths are progressive, then
+  `itoFormula_chain`), reads the increments across the arrival times as the atom sum of the
+  mixed jump increment at the left limits (`sum_range_jumpTerm_eq_sum_atomEnum_of_shift` in
+  dimension `n + 1`, with `leftLim_timeAugProcess_eq_cons`), identifies that atom sum with the
+  pathwise form of the compensated integral of the left-limit integrand (its zero extension is
+  marked predictable by `MarkedPredictable.comp_measurable`; the point-evaluated integrand of the
+  statement has the same compensated integral by `compensatedIntegral_congr_of_countable_ne`,
+  the two paths being càdlàg), and closes with the mixed dictionary in its almost-every-time
+  form (`itoLevy_of_splitDrift_and_jumpSum_mixed_ae`). Two interface changes were needed, both
+  recorded here rather than hidden: (i) the five shift formulas (`ItoFormulaGeneralShift`,
+  `ItoFormulaGridShift`, `ItoFormulaGridShiftClosed`, `ItoFormulaMeasurableShift`) now ask the
+  Hessian bound only against the quadratic covariation density,
+  `|∂ₚ∂_q f z| · |∑ₖ H p k H q k| ≤ K₂ · |∑ₖ H p k H q k|`, because the time-augmented
+  representative of `u` has unbounded `∂ₜ²u` and `∂ₜ∇u` which never meet the diffusion (its time
+  row is zero); the old bound implies the new one in one line, and the conclusions are unchanged;
+  (ii) **M16 takes one more hypothesis**, `𝒲 : ∀ j, CrossWitness W S.ℱ j` — the cross
+  orthogonality of the Brownian coordinates over the filtration of the SDE data, which the vector
+  Itô formula between the arrival times consumes. The tree supplies such a witness for the
+  augmented natural filtration of `W` (`crossWitnessAugNatural`) and the Lévy driver carries a
+  driver-level one, but nothing supplies it for an arbitrary `S.ℱ`; per-coordinate
+  `IsBrownianFiltration` does not imply it without Lévy's characterisation. So the `SolvesOn`
+  consumer must still discharge `𝒲` (ticket B4-C12); until then M16 is applicable only where a
+  witness is at hand. Everything else in M16's statement is as approved: bounded `∂ₜu`, `∇u`,
+  `Hess u`, usual conditions on `S.ℱ`, the SDE data at `S.ℱ`, no `L⁴`, and the four admissibility
+  hypotheses on the derived integrands. **M16 remains narrower than this axiom** (bounded
+  derivatives; the axiom asks none), so #16 stays live: Stage 2 (removing the derivative bounds)
+  is the open L-group, and the papers' own Itô applications are Epic D. `#print axioms` on the
+  finite-activity identity and on M16 lists only the three standard axioms.
 
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 

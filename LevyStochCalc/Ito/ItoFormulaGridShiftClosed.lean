@@ -172,7 +172,9 @@ theorem itoFormula_between_gridShift_of_simpleShift
     (hfC : ContDiff ℝ 2 f) (hf : ∀ z, HasFDerivAt f (f' z) z)
     (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
     {K₁ K₂ : ℝ} (hK₁ : ∀ (p : Fin n) (z : Fin n → ℝ), |coordDeriv f' p z| ≤ K₁)
-    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ), |coordDeriv₂ f'' p q z| ≤ K₂)
+    (hK₂ : ∀ (p q : Fin n) (z : Fin n → ℝ) (ω : Ω) (s : ℝ),
+      |coordDeriv₂ f'' p q z| * |∑ k : Fin d, H p k ω s * H q k ω s|
+        ≤ K₂ * |∑ k : Fin d, H p k ω s * H q k ω s|)
     {T : ℝ} (hT : 0 < T)
     {c : Ω → Fin n → ℝ} (hc : Measurable[hσ.measurableSpace] c)
     {Vs : Finset (Fin n → ℝ)} (hcVs : ∀ ω, c ω ∈ Vs)
@@ -329,12 +331,11 @@ theorem itoFormula_between_gridShift_of_simpleShift
       (Set.Ioc (0 : ℝ) T) volume := by
     intro v
     filter_upwards [hQint] with ω hω p q
-    have hK₂0 : (0 : ℝ) ≤ K₂ := le_trans (abs_nonneg _) (hK₂ p q 0)
     refine MeasureTheory.Integrable.mono ((hω p q).const_mul K₂)
       (Measurable.of_uncurry_left (hmQ v p q)).aestronglyMeasurable ?_
     filter_upwards with s
-    simp only [Real.norm_eq_abs, abs_mul, abs_of_nonneg hK₂0]
-    exact mul_le_mul_of_nonneg_right (hK₂ p q _) (abs_nonneg _)
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul]
+    exact (hK₂ p q _ ω s).trans (mul_le_mul_of_nonneg_right (le_abs_self K₂) (abs_nonneg _))
   refine itoFormula_between_gridShift W ℱ' hcoord hXm hXc hHm hHs hbm hσ hτ hσ0 hτ0 hfC hf hf'
     hK₁ hK₂ hT hcm hbint hQint hmSc hpSc hqSc hmSm hpSm hqSm fun m => ?_
   refine itoFormula_between_gridStop_of_gridStopTrunc W ℱ' hcoord hT m (hmSt m) (hpSt m)
