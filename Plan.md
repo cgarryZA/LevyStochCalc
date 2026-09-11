@@ -34,6 +34,24 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   takes no cross witness (2026-09-11, B4-C12) and is callable from the solution data
   (2026-09-11, B4-C13); the locality of the compensated integral at a stopping time, the
   Stage-2 transfer tool, is proved in `Ito/CompensatedLocality.lean` (2026-09-11, B4-L4).
+  Its everywhere-left-limit hypothesis is discharged rather than assumed since 2026-09-11:
+  `itoLevyFormula_jumpResidual_of_sdeData` transports the identity through the càdlàg
+  representative (`Ito/ItoLevyBoundedDerivsSolution.lean`), leaving the three derivative bounds
+  as the only genuine narrowing against #16 (`tools/cited_axioms.md`, statement audit).
+  **Stage 2 (B4-L5) route, refined 2026-09-11.** Apply M16 to `cutoffFun₂ u R` and transfer on
+  the event the path stays in the ball of radius `R` up to `T` (`openExitTime`,
+  `boundedPathSet`): endpoints and the drift integral by `driftIntegrand_cutoffFun₂`
+  (`Ito/CutoffPathAgreement.lean`, B4-L2), the Brownian term by
+  `stochasticIntegralBrownian_congr_of_le` (B4-L3). The jump terms do **not** transfer
+  separately — `u(x + γ)` leaves the ball for large marks — but their *sum* does, at a mark set
+  `A` of finite intensity: `stochasticIntegral_ae_eq_pathwise`
+  (`Poisson/PathwiseIdentity.lean`) writes the compensated integral as the atom sum against
+  `N` minus the intensity integral, so the sum of the compensated and compensator-drift terms
+  reads `u` only at the realised path values `X_{s−}` and `X_{s−} + γ(s, X_{s−}, e)` and at
+  `∇u(s, X_{s−})`. The open obligation is the jump relation at an atom,
+  `X_s = X_{s−} + γ(s, X_{s−}, e)`, which the telescope of
+  `ae_exists_atomEnum_sum_range_jumpTermLeft` encodes but does not state; then the mark-level
+  limit (B4-K5/K6) and the exhaustion in `R`.
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
