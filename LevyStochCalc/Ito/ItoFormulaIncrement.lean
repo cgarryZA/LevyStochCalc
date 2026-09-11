@@ -178,7 +178,6 @@ theorem itoFormula_between
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -251,9 +250,9 @@ theorem itoFormula_between
         : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
     fun p k => energy_lt_top_of_abs_le
       (fun ω s => Probability.abs_stopped_le σ _ ω s) (hqG p k)
-  have hτres := itoFormula_stopped_general W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0
+  have hτres := itoFormula_stopped_general W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0
     hfC hf hf' hmSτ hpSτ hqSτ hT
-  have hσres := itoFormula_stopped_general W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hσ0
+  have hσres := itoFormula_stopped_general W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hσ hσ0
     hfC hf hf' hmSσ hpSσ hqSσ hT
   have hsub : ∀ᵐ ω ∂P, ∀ (p : Fin n) (k : Fin d),
       stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)
@@ -365,7 +364,6 @@ theorem itoFormula_stopped_general_shift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -398,7 +396,7 @@ theorem itoFormula_stopped_general_shift
         + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
             Probability.stopped τ (fun ω s => coordDeriv₂ f'' p q (X s ω + c)
               * ∑ k : Fin d, H p k ω s * H q k ω s) ω s ∂volume :=
-  itoFormula_stopped_general W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0
+  itoFormula_stopped_general W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0
     (f := fun z => f (z + c)) (f' := fun z => f' (z + c)) (f'' := fun z => f'' (z + c))
     (contDiff_shiftArg hfC c) (fun z => hasFDerivAt_shiftArg hf c z)
     (fun z => hasFDerivAt_shiftArg hf' c z) hmg hpg hqg hT
@@ -414,7 +412,6 @@ theorem itoFormula_between_shift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -467,7 +464,7 @@ theorem itoFormula_between_shift
                 * ∑ k : Fin d, H p k ω s * H q k ω s) ω s
               - Probability.stopped σ (fun ω s => coordDeriv₂ f'' p q (X s ω + c)
                   * ∑ k : Fin d, H p k ω s * H q k ω s) ω s) ∂volume :=
-  itoFormula_between W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
+  itoFormula_between W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
     (f := fun z => f (z + c)) (f' := fun z => f' (z + c)) (f'' := fun z => f'' (z + c))
     (contDiff_shiftArg hfC c) (fun z => hasFDerivAt_shiftArg hf c z)
     (fun z => hasFDerivAt_shiftArg hf' c z) hmG hpG hqG hmD hqD hmQ hT hQint

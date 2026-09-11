@@ -155,7 +155,6 @@ theorem itoFormula_between_gridShift_of_simpleShift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -340,7 +339,7 @@ theorem itoFormula_between_gridShift_of_simpleShift
     hK₁ hK₂ hT hcm hbint hQint hmSc hpSc hqSc hmSm hpSm hqSm fun m => ?_
   refine itoFormula_between_gridStop_of_gridStopTrunc W ℱ' hcoord hT m (hmSt m) (hpSt m)
     (hqSt m) (hmSm m) (hpSm m) (hqSm m) ?_
-  exact itoFormula_between_simpleShift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq
+  exact itoFormula_between_simpleShift W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq
     (isStoppingTime_gridStopTrunc hσ T m) (isStoppingTime_gridStopTrunc hτ T m)
     (gridStopTrunc_mono hστ T m) (zero_le_gridStopTrunc hσ0 T m) (zero_le_gridStopTrunc hτ0 T m)
     hfC hf hf' hmG hpG hqG hmD hqD hmQ hT hQintv hcVs (gridPt_filter_nonneg hT m)

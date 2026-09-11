@@ -21,7 +21,12 @@ concurrency:
 jobs:
   build-and-lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 2026-09-11: 60 minutes was not enough for a cold runner — the run for
+    # 3b07027 missed both caches and was cancelled while still compiling
+    # Mathlib, so lint and the import contract never ran. The Mathlib olean
+    # cache is now restored with `lake exe cache get` before the build, the
+    # limit is raised, and the build/audit transcripts are kept as artifacts.
+    timeout-minutes: 240
 
     steps:
       - uses: actions/checkout@v4
@@ -55,11 +60,37 @@ jobs:
       - name: Lean version
         run: lean --version
 
+      # Mathlib ships prebuilt oleans for its pinned commit; fetching them
+      # turns a multi-hour cold build into a build of this library and its
+      # two source dependencies only. `|| true`: a cache miss must not fail
+      # the job, it only makes the build slower.
+      - name: Restore the Mathlib olean cache
+        run: lake exe cache get || true
+
       - name: lake build
-        run: lake build
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build_output.txt
 
       - name: tools/lint.sh
-        run: bash tools/lint.sh
+        shell: bash
+        run: |
+          set -o pipefail
+          bash tools/lint.sh 2>&1 | tee lint_output.txt
+
+      # Keep the transcripts whether or not the steps above passed, so a red
+      # run can be diagnosed from the artifact instead of re-run.
+      - name: Upload build and audit transcripts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-and-audit-output
+          path: |
+            build_output.txt
+            lint_output.txt
+            audit_output.txt
+          if-no-files-found: ignore
 
       # Red-team 3rd-audit HIGH #6 fix (2026-05-27): verify the dissertation-
       # import contract from `tools/import_contract.md` resolves on master.

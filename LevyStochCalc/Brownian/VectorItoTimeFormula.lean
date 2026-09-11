@@ -57,7 +57,6 @@ derivatives, and
 almost surely. -/
 theorem IsVectorItoVersion.itoFormulaTime
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hX₀ : ∀ q : Fin n, Measurable fun ω => X₀ ω q)
     (hbm : ∀ q, Measurable (Function.uncurry (bdrift q))) {B : ℝ} (hB0 : 0 ≤ B)
     (hB : ∀ (q : Fin n) (ω : Ω) (s : ℝ), |bdrift q ω s| ≤ B)
@@ -110,7 +109,7 @@ theorem IsVectorItoVersion.itoFormulaTime
     rw [stochasticIntegralBrownian_congr_fun (W.W k) ℱ (hcoord k) heq (hmgA 0 k) (hpgA 0 k)
       (hqgA 0 k) measurable_const (Probability.progressivelyMeasurable_const ℱ (0 : ℝ)) hq0 T]
     exact stochasticIntegralBrownian_ae_zero (W.W k) ℱ (hcoord k) _ _ _ T
-  have hform := (h.timeAug).itoFormula_of_contDiff hC0 (abs_timeAugDiffusion_le H hC0 hCH) 𝒲 hX₀'
+  have hform := (h.timeAug).itoFormula_of_contDiff hC0 (abs_timeAugDiffusion_le H hC0 hCH) hX₀'
     (measurable_timeAugDrift bdrift hbm) (le_trans hB0 (le_max_left B 1))
     (abs_timeAugDrift_le bdrift hB) (measurable_timeAugDiffusion_add H hHm)
     (progressivelyMeasurable_timeAugDiffusion_add H ℱ hHp)

@@ -64,7 +64,6 @@ open LevyStochCalc.Brownian.Multidim
 
 variable {d : ℕ} (W : Multidim.MultidimBrownianMotion P d)
   (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ)
-  (𝒲 : ∀ k : Fin d, MultidimBrownianMotion.CrossWitness W ℱ k)
   {H K : Ω → ℝ → ℝ} (hHm : Measurable (Function.uncurry H))
   (hHp : Probability.ProgressivelyMeasurable ℱ H)
   (hHs : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -130,13 +129,12 @@ theorem memLp_two_crossIncrement (i j : Fin d) {a b : ℝ} (ha : 0 ≤ a) (hab :
     (integrable_sq_crossIncrement_and_le W hcoord hHm hHp hHs hKm hKp hKs hCH0 hCH hCK0 hCK
       i j ha hab).1
 
-include 𝒲 in
 /-- The cross increment is conditionally centred at the left endpoint of its cell. -/
 theorem condExp_crossIncrement {i j : Fin d} (hij : i ≠ j) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) :
     P[crossIncrement W hcoord hHm hHp hHs hKm hKp hKs i j a b | ℱ a] =ᵐ[P] 0 :=
-  condExp_mul_cross_increment_eq_zero W hcoord 𝒲 hHm hHp hHs hKm hKp hKs hij ha hab
+  condExp_mul_cross_increment_eq_zero W hcoord hHm hHp hHs hKm hKp hKs hij ha hab
 
-include 𝒲 hCH0 hCH hCK0 hCK in
+include hCH0 hCH hCK0 hCK in
 /-- **Second moment of a weighted sum of cross increments.** The cross increments are martingale
 differences for the weights at the left endpoints, so the weighted sum's second moment is
 controlled by the sum of the squared cell lengths. -/
@@ -180,7 +178,7 @@ theorem integral_sq_weighted_crossSum_le {i j : Fin d} (hij : i ≠ j)
     have hfun : Y k
         = g k * crossIncrement W hcoord hHm hHp hHs hKm hKp hKs i j (t k) (t (k + 1)) := rfl
     rw [hfun]
-    filter_upwards [hkey, condExp_crossIncrement W hcoord 𝒲 hHm hHp hHs hKm hKp hKs hij
+    filter_upwards [hkey, condExp_crossIncrement W hcoord hHm hHp hHs hKm hKp hKs hij
       (ht0 k) (ht k)] with ω hω hω'
     rw [hω, Pi.mul_apply, hω', Pi.zero_apply, mul_zero]
   rw [LevyStochCalc.Probability.integral_sq_sum_of_condExp_eq_zero 𝒢 h𝒢le h𝒢mono Y hYmem

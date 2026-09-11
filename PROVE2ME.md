@@ -22,9 +22,11 @@ has shrunk to a single node:
 - **1 live cited axiom** — #16 `itoLevyFormula_jumpResidual_canonical_axiom`
   (`grep -c "^### [0-9]" tools/cited_axioms.md` = 1). It is the only `axiom` declaration in
   the repository, at `LevyStochCalc/Ito/JumpFormula.lean:189`.
-- **No `sorry`** — `tools/sorry_baseline.txt` is empty, no `#print axioms` report names
-  `sorryAx`, and `sorry`/`admit` occur in the sources only as words inside docstrings. The
-  Picard-chain wrap-up that carried the last `sorry` was discharged and deleted on 2026-09-07.
+- **One `sorry`-carrying declaration** — `tools/sorry_baseline.txt` lists exactly one name,
+  the canonical assembly `itoLevyFormula_jumpResidual_canonical` (seven `sorry` blocks, the
+  Stage-2 obligations for general `u`); no other `#print axioms` report names `sorryAx`, and
+  `sorry`/`admit` occur elsewhere in the sources only as words inside docstrings. That
+  declaration is not an upload candidate until it is proved.
 - **#16 is the whole of the pinned dissertation surface's axiom debt.** Exactly one
   dissertation declaration depends on it, `Dissertation.Continuous.itoLevyFormula` (through
   the library's `itoLevyFormula`); apart from #16 and its two consumers in

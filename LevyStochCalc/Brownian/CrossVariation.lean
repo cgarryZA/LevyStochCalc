@@ -226,7 +226,6 @@ open LevyStochCalc.Brownian.Multidim
 
 variable {d : ℕ} (W : Multidim.MultidimBrownianMotion P d)
   (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ)
-  (𝒲 : ∀ k : Fin d, MultidimBrownianMotion.CrossWitness W ℱ k)
   {H K : Ω → ℝ → ℝ} (hHm : Measurable (Function.uncurry H))
   (hHp : Probability.ProgressivelyMeasurable ℱ H)
   (hHs : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -236,7 +235,6 @@ variable {d : ℕ} (W : Multidim.MultidimBrownianMotion P d)
   (hKs : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
     (‖K ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
 
-include 𝒲 in
 /-- **The cross-variation pairs to zero against a weight known at the left endpoint.** For
 distinct coordinates, the product of the increments of the two Itô integrals over a cell is
 orthogonal to every bounded weight measurable at the cell's left endpoint. -/
@@ -254,7 +252,7 @@ theorem integral_mul_cross_increment_eq_zero {i j : Fin d} (hij : i ≠ j) {a b 
   obtain ⟨G', hGm', hGp', hGs', h2⟩ := exists_pullout_mul_sub_stochasticIntegralBrownian
     (W.W j) (hcoord j) K hKm hKp hKs ha hab (Z := fun _ => (1 : ℝ)) measurable_const hone
     stronglyMeasurable_const (le_refl b)
-  have hcross := MultidimBrownianMotion.integral_stochasticIntegral_mul_eq_zero W hij hcoord 𝒲
+  have hcross := MultidimBrownianMotion.integral_stochasticIntegral_mul_eq_zero W hij hcoord
     hGm hGp hGs hGm' hGp' hGs' ht
   simp only [stochasticIntegral] at hcross
   refine Eq.trans ?_ hcross
@@ -264,7 +262,6 @@ theorem integral_mul_cross_increment_eq_zero {i j : Fin d} (hij : i ≠ j) {a b 
   rw [← e1, ← e2]
   ring
 
-include 𝒲 in
 /-- **The cross-variation is conditionally centred at the left endpoint.** The product of the
 increments of the Itô integrals against two distinct coordinates has vanishing conditional
 expectation at the left endpoint of the cell. -/
@@ -299,7 +296,7 @@ theorem condExp_mul_cross_increment_eq_zero {i j : Fin d} (hij : i ≠ j) {a b :
   have hbd : ∀ ω : Ω, |s.indicator (fun _ : Ω => (1 : ℝ)) ω| ≤ 1 := by
     intro ω
     by_cases hω : ω ∈ s <;> simp [Set.indicator_of_mem, Set.indicator_of_notMem, hω]
-  have hkey := integral_mul_cross_increment_eq_zero W hcoord 𝒲 hHm hHp hHs hKm hKp hKs hij
+  have hkey := integral_mul_cross_increment_eq_zero W hcoord hHm hHp hHs hKm hKp hKs hij
     ha hab (Z := s.indicator fun _ => (1 : ℝ))
     ((measurable_const : Measurable fun _ : Ω => (1 : ℝ)).indicator (ℱ.le a s hs)) hbd hind
   refine (Eq.trans ?_ hkey).symm

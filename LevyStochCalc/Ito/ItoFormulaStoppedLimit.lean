@@ -385,7 +385,6 @@ theorem itoFormula_stopped_general
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -455,7 +454,7 @@ theorem itoFormula_stopped_general
     have hthis := hqg p k
     rw [← hG p k] at hthis
     exact hthis
-  have hres := itoFormula_of_unbounded W ℱ' hcoord hstop 𝒲 hℱ0 hnull hX₀
+  have hres := itoFormula_of_unbounded W ℱ' hcoord hstop hℱ0 hnull hX₀
     (fun p => Probability.measurable_uncurry_stopped hτ (hbm p))
     (fun p => Probability.ProgressivelyMeasurable.stopped hτ (hbp p))
     (fun p T' hT' => energy_lt_top_of_abs_le

@@ -66,7 +66,8 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 - `Plan.md` — the roadmap (start here).
 - `tools/cited_axioms.md` — the per-axiom ledger: every cited result, its status, the
   declaration that carries it now, and the paper reference. Authoritative for counts.
-- `tools/sorry_baseline.txt` — currently-deferred theorems (empty).
+- `tools/sorry_baseline.txt` — declarations still carrying `sorry` (one: the canonical assembly
+  `itoLevyFormula_jumpResidual_canonical`, seven Stage-2 obligations).
 - `_audit.lean` — `#print axioms` budget check (input to `tools/lint.sh`).
 
 ## Prove2Me (planned; nothing uploaded yet)
@@ -81,8 +82,10 @@ collaborative Lean platform Anthropic's FLT formalization was assembled on. The
   platform listed them on 2026-09-05). Imports never cross environments, so any upload is
   re-verified against the environment it targets; see `PROVE2ME.md`.
 - **The payload is the debt, not the library.** That debt is one node: cited axiom #16,
-  `itoLevyFormula_jumpResidual_canonical_axiom` (`tools/sorry_baseline.txt` is empty; there is
-  no `sorry` to publish). It already carries a precise literature citation in
+  `itoLevyFormula_jumpResidual_canonical_axiom`. (`tools/sorry_baseline.txt` holds one further
+  open node, the canonical assembly `itoLevyFormula_jumpResidual_canonical` with seven `sorry`
+  obligations; it is Stage-2 work, not an upload candidate.) The axiom already carries a
+  precise literature citation in
   `tools/cited_axioms.md`; publishing it makes the boundary machine-visible instead of
   ledger-visible. The four statements retired as unsound in 2026-09 (#9, #10, #13a, #15) are
   *not* upload candidates until they are restated (`Plan.md` A6, A7, B5).

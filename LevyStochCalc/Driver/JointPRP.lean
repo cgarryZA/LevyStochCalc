@@ -41,8 +41,7 @@ theorem exists_jointIntegral_augFiltration [Nonempty E] (D : LevyDriver.{u, v, w
       Z =ᵐ[P] jointIntegral (fun k => D.isBrownianFiltration_aug k)
         D.isPoissonFiltration_aug G K := by
   refine exists_jointIntegral_of_mean_zero (fun k => D.isBrownianFiltration_aug k)
-    D.isPoissonFiltration_aug (fun k => (D.coordCrossWitness k).aug)
-    (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
+    D.isPoissonFiltration_aug (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
   intro r hr2 hrm hr0 hrB hrN
   have hperp : ∀ i : Fin d, PerpItoIntegrals (D.W.W i) (Brownian.augFiltration D.filtration P)
       (D.isBrownianFiltration_aug i) fun ω => ((r ω : ℝ) : ℂ) := by

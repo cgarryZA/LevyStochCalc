@@ -36,8 +36,8 @@ theorem exists_vectorIntegral_augFiltration (W : MultidimBrownianMotion P d) {T 
     (hZ0 : ∫ ω, Z ω ∂P = 0) :
     ∃ G : ∀ _ : Fin d, HorizonIntegrand P (augFiltration W.naturalFiltration P) T,
       Z =ᵐ[P] vectorIntegral W (isBrownianFiltration_augNatural W) G := by
-  refine exists_vectorIntegral_of_mean_zero W (isBrownianFiltration_augNatural W)
-    (crossWitnessAugNatural W) hT ?_ hZ2 hZm hZ0
+  refine exists_vectorIntegral_of_mean_zero W (isBrownianFiltration_augNatural W) hT ?_ hZ2 hZm
+    hZ0
   intro r hr2 hrm hr0 hrperp
   obtain ⟨y, hym, hyae⟩ := hrm
   have hy2 : MemLp y 2 P := hr2.ae_eq hyae

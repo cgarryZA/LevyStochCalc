@@ -1031,7 +1031,6 @@ theorem itoFormula_of_unbounded_coeff
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -1141,7 +1140,7 @@ theorem itoFormula_of_unbounded_coeff
               coordDeriv₂ f'' p q (Xj (ns i) s ω)
                 * ∑ k : Fin d, clampCoeff H (ns i) p k ω s
                     * clampCoeff H (ns i) q k ω s ∂volume := fun i =>
-    (hXj (ns i)).itoFormula (Nat.cast_nonneg (ns i)) (abs_clampCoeff_le H (ns i)) 𝒲 hX₀'
+    (hXj (ns i)).itoFormula (Nat.cast_nonneg (ns i)) (abs_clampCoeff_le H (ns i)) hX₀'
       (fun p => measurable_clampDrift hbm (ns i) p) (Nat.cast_nonneg (ns i))
       (abs_clampDrift_le bdrift (ns i)) (hma i) (hpa i) (hqa i) hf hf' hf'bd hK₂0 hf''bd
       hf''c hf''unif (hmY i) (hpY i) (hqY i) hT
@@ -1210,7 +1209,6 @@ theorem itoFormula_of_unbounded
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -1239,7 +1237,7 @@ theorem itoFormula_of_unbounded
             coordDeriv₂ f'' p q (X s ω) * ∑ k : Fin d, H p k ω s * H q k ω s ∂volume :=
   h.itoFormula_localise hfC hf hf' hmg hpg hqg hT
     (fun _g _g' _g'' _K₁ _K₂ hgf hgf' hK₁ hK₂0 hK₂ hg'c hg''c hunif hmG hpG hqG =>
-      itoFormula_of_unbounded_coeff W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hgf hgf'
+      itoFormula_of_unbounded_coeff W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hgf hgf'
         (le_trans (norm_nonneg _) (hK₁ 0)) hK₁ hK₂0 hK₂ hg'c hg''c hunif hmG hpG hqG hT)
 
 end Limits

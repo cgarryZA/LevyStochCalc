@@ -929,11 +929,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.exitTime_mono
 #print axioms LevyStochCalc.Probability.exists_lt_exitTime
 -- ===== Orthogonality across Brownian coordinates (A4b-iii-7, 2026-09-08) =====
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossFiltration
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossFiltration_apply
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_crossFiltration
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.naturalFiltration_le_crossFiltration
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.measurable_increment_crossFiltration
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.indepFun_comp_coord
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.memLp_two_increment_of_le
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_increment_mul_increment_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid_succ_sub
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid_mono
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid_lt_succ
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.le_affineGrid
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.affineGrid_nonneg
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_crossSum_sq
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_mul_increment_eq_zero
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_mul_increment_mul_increment_eq_crossSum
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_mul_increment_mul_increment_eq_zero
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_cross_increment_eq_zero_of_le
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.integral_cross_increment_eq_zero
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.min_eq_or_lt_min
@@ -955,10 +964,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.aestronglyMeasurable_vectorIntegral
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_vectorIntegral_of_mean_zero
 -- ===== The cross witness and the augmented filtration (A4b-iii-9a, 2026-09-08) =====
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.CrossWitness
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossWitnessNatural
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.CrossWitness.aug
-#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.crossWitnessAugNatural
 #print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.isBrownianFiltration_augNatural
 -- ===== The perp bridge and the multidim Brownian PRP (A4b-iii-9b, 2026-09-08) =====
 #print axioms LevyStochCalc.Brownian.Ito.clipHorizonIntegrand
@@ -1554,10 +1559,6 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_simpleIntegral_mul_markStep_eq_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_stochasticIntegral_mul_compensated_eq_zero
 -- ===== The joint range and its decomposition (A4d-v-b, 2026-09-09) =====
-#print axioms LevyStochCalc.Driver.LevyDriver.coordCrossFiltration
-#print axioms LevyStochCalc.Driver.LevyDriver.crossFiltration_le_iSup_sigmaBrownian
-#print axioms LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_coordCross
-#print axioms LevyStochCalc.Driver.LevyDriver.coordCrossWitness
 #print axioms LevyStochCalc.Driver.LevyDriver.jointRange
 #print axioms LevyStochCalc.Driver.LevyDriver.inner_itoRange_compensatedRange
 #print axioms LevyStochCalc.Driver.LevyDriver.orthogonalFamily_jointRange

@@ -406,16 +406,24 @@ literature integral forms.
   `|∂ₚ∂_q f z| · |∑ₖ H p k H q k| ≤ K₂ · |∑ₖ H p k H q k|`, because the time-augmented
   representative of `u` has unbounded `∂ₜ²u` and `∂ₜ∇u` which never meet the diffusion (its time
   row is zero); the old bound implies the new one in one line, and the conclusions are unchanged;
-  (ii) **M16 takes one more hypothesis**, `𝒲 : ∀ j, CrossWitness W S.ℱ j` — the cross
-  orthogonality of the Brownian coordinates over the filtration of the SDE data, which the vector
-  Itô formula between the arrival times consumes. The tree supplies such a witness for the
-  augmented natural filtration of `W` (`crossWitnessAugNatural`) and the Lévy driver carries a
-  driver-level one, but nothing supplies it for an arbitrary `S.ℱ`; per-coordinate
-  `IsBrownianFiltration` does not imply it without Lévy's characterisation. So the `SolvesOn`
-  consumer must still discharge `𝒲` (ticket B4-C12); until then M16 is applicable only where a
-  witness is at hand. Everything else in M16's statement is as approved: bounded `∂ₜu`, `∇u`,
-  `Hess u`, usual conditions on `S.ℱ`, the SDE data at `S.ℱ`, no `L⁴`, and the four admissibility
-  hypotheses on the derived integrands. **M16 remains narrower than this axiom** (bounded
+  (ii) the vector Itô formula between the arrival times used to consume a `CrossWitness`
+  (an enlarged filtration for which the coordinate stays Brownian while the other coordinates'
+  increments are known), and on 2026-09-10 M16 carried one as an extra hypothesis. **Removed
+  2026-09-11 (B4-C12).** `Brownian/CrossOrthogonality.lean` now proves the cross orthogonality
+  `E[Z (Wⁱ_b − Wⁱ_a)(Wʲ_b − Wʲ_a)] = 0`, for a bounded `ℱ_a`-measurable `Z`, from the
+  per-coordinate Brownian property of `ℱ` and the independence of the coordinates alone
+  (`integral_mul_increment_mul_increment_eq_zero`: the product of the two increments telescopes
+  along a uniform grid of `[a, b]`, the cell terms with a past factor are killed by conditioning,
+  and the cell-wise cross sum has second moment `(b − a)²/m` by `W.components_independent`), and
+  the witness binder is gone from the whole chain — `integral_cross_increment_eq_zero`,
+  `CrossVariation`, `CrossVariationSum`, `VectorItoQuadVarRiemann`, `VectorItoFormula`, the
+  Itô/shift theorems, `PRPMultidimRange`, the driver's joint range,
+  `itoLevy_finiteActivity_mixed` and M16 — and the `CrossWitness` structure is deleted. The
+  2026-09-10 note that per-coordinate `IsBrownianFiltration` "does not imply it without Lévy's
+  characterisation" was wrong. M16's statement is again exactly the approved one: bounded
+  `∂ₜu`, `∇u`, `Hess u`, usual conditions on `S.ℱ`, the SDE data at `S.ℱ`, no `L⁴`, and the four
+  admissibility hypotheses on the derived integrands (their discharge from the solution data is
+  ticket B4-C13). **M16 remains narrower than this axiom** (bounded
   derivatives; the axiom asks none), so #16 stays live: Stage 2 (removing the derivative bounds)
   is the open L-group, and the papers' own Itô applications are Epic D. `#print axioms` on the
   finite-activity identity and on M16 lists only the three standard axioms.

@@ -514,7 +514,6 @@ include hC0 hCH in
 No bound is placed on the derivatives of `f`. -/
 theorem IsVectorItoVersion.itoFormula_of_contDiff
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
     (hbm : ∀ p, Measurable (Function.uncurry (bdrift p))) {B : ℝ} (hB0 : 0 ≤ B)
     (hB : ∀ (p : Fin n) (ω : Ω) (s : ℝ), |bdrift p ω s| ≤ B)
@@ -545,7 +544,7 @@ theorem IsVectorItoVersion.itoFormula_of_contDiff
             coordDeriv₂ f'' p q (X s ω) * ∑ j : Fin d, H p j ω s * H q j ω s ∂volume :=
   h.itoFormula_localise hfC hf hf' hmg hpg hqg hT
     (fun _g _g' _g'' _K₁ _K₂ hgf hgf' hK₁ hK₂0 hK₂ _hg'c hg''c hunif hmG hpG hqG =>
-      h.itoFormula hC0 hCH 𝒲 hX₀ hbm hB0 hB hma hpa hqa hgf hgf' hK₁ hK₂0 hK₂ hg''c hunif
+      h.itoFormula hC0 hCH hX₀ hbm hB0 hB hma hpa hqa hgf hgf' hK₁ hK₂0 hK₂ hg''c hunif
         hmG hpG hqG hT)
 
 end Formula

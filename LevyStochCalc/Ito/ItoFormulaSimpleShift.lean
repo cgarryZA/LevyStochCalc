@@ -517,7 +517,6 @@ theorem itoFormula_between_simpleShift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -614,7 +613,7 @@ theorem itoFormula_between_simpleShift
                     * ∑ k : Fin d, H p k ω s * H q k ω s) ω s) ∂volume := by
     rw [Filter.eventually_all_finset]
     intro v _
-    exact itoFormula_between_shift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
+    exact itoFormula_between_shift W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hσ0 hτ0
       hfC hf hf' v (hmG v) (hpG v) (hqG v) (hmD v) (hqD v) (hmQ v) hT (hQint v)
   have hitocells : ∀ (p : Fin n) (k : Fin d), ∀ᵐ ω ∂P,
       stochasticIntegralBrownian (W.W k) ℱ' (hcoord k)

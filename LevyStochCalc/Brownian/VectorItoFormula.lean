@@ -105,7 +105,6 @@ include hC0 hCH in
 /-- **The `L¹` defect of Itô's formula for a vector Itô process on a uniform grid.** -/
 theorem IsVectorItoVersion.integral_abs_vectorItoFormula_le
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
     (hbm : ∀ p, Measurable (Function.uncurry (bdrift p))) {B : ℝ} (hB0 : 0 ≤ B)
     (hB : ∀ (p : Fin n) (ω : Ω) (s : ℝ), |bdrift p ω s| ≤ B)
@@ -232,7 +231,7 @@ theorem IsVectorItoVersion.integral_abs_vectorItoFormula_le
     rw [← ENNReal.ofReal_mul (by positivity), ← ENNReal.ofReal_mul (by positivity)]
   -- (4) the weighted quadratic variations
   have hZ4 := fun p q : Fin n =>
-    h.integral_abs_quadVarRiemann_sub_le hC0 hCH 𝒲 hbm hB0 hB p q (hma p q) (hpa p q) (hqa p q)
+    h.integral_abs_quadVarRiemann_sub_le hC0 hCH hbm hB0 hB p q (hma p q) (hpa p q) (hqa p q)
       (continuous_coordDeriv₂ hf''c p q) hK₂0 (abs_coordDeriv₂_le hf''bd p q) hA0 hK0
       (abs_coordDeriv₂_sub_le_affine hf''aff p q) hT hm0
   have e2 : (m : ℝ) * (K₂ * (B * (T / (m : ℝ))) ^ 2) = K₂ * B ^ 2 * T * (T / (m : ℝ)) := by
@@ -365,7 +364,6 @@ with bounded derivatives and uniformly continuous second derivative,
 almost surely. -/
 theorem IsVectorItoVersion.itoFormula
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hX₀ : ∀ p : Fin n, Measurable fun ω => X₀ ω p)
     (hbm : ∀ p, Measurable (Function.uncurry (bdrift p))) {B : ℝ} (hB0 : 0 ≤ B)
     (hB : ∀ (p : Fin n) (ω : Ω) (s : ℝ), |bdrift p ω s| ≤ B)
@@ -415,7 +413,7 @@ theorem IsVectorItoVersion.itoFormula
       rw [div_mul_cancel₀ _ (ne_of_gt hδ0)] at h2
       linarith
   obtain ⟨K₁ε, hK₁ε0, haff1⟩ := haff 1 one_pos
-  obtain ⟨hZint, -⟩ := h.integral_abs_vectorItoFormula_le hC0 hCH 𝒲 hX₀ hbm hB0 hB hma hpa hqa
+  obtain ⟨hZint, -⟩ := h.integral_abs_vectorItoFormula_le hC0 hCH hX₀ hbm hB0 hB hma hpa hqa
     hf hf' hf'bd hK₂0 hf''bd zero_le_one hK₁ε0 hf''c haff1 hmg hpg hqg hT one_ne_zero
   have hkey : ∀ ε : ℝ, 0 < ε →
       ∫ ω, |f (X T ω) - f (X 0 ω)
@@ -431,7 +429,7 @@ theorem IsVectorItoVersion.itoFormula
     intro ε hε
     obtain ⟨Kε, hKε0, haffε⟩ := haff ε hε
     have hgrid := fun (m : ℕ) (hm0 : m ≠ 0) =>
-      h.integral_abs_vectorItoFormula_le hC0 hCH 𝒲 hX₀ hbm hB0 hB hma hpa hqa hf hf' hf'bd
+      h.integral_abs_vectorItoFormula_le hC0 hCH hX₀ hbm hB0 hB hma hpa hqa hf hf' hf'bd
         hK₂0 hf''bd hε.le hKε0 hf''c haffε hmg hpg hqg hT hm0
     exact ge_of_tendsto (tendsto_vectorItoGridError (n : ℝ) (d : ℝ) B C T ε Kε K₂)
       ((Filter.eventually_gt_atTop 0).mono fun m hmpos => (hgrid m hmpos.ne').2)

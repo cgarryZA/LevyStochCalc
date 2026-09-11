@@ -91,7 +91,6 @@ theorem itoFormula_stopped_shift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -126,7 +125,7 @@ theorem itoFormula_stopped_shift
         + 1 / 2 * ∑ p : Fin n, ∑ q : Fin n, ∫ s in Set.Ioc (0 : ℝ) T,
             Probability.stopped τ (fun ω s => coordDeriv₂ f'' p q (X s ω + c)
               * ∑ k : Fin d, H p k ω s * H q k ω s) ω s ∂volume :=
-  itoFormula_stopped W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0 J hJ0 hτJ
+  itoFormula_stopped W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hτ hτ0 J hJ0 hτJ
     (f := fun z => f (z + c)) (f' := fun z => f' (z + c)) (f'' := fun z => f'' (z + c))
     (contDiff_shiftArg hfC c) (fun z => hasFDerivAt_shiftArg hf c z)
     (fun z => hasFDerivAt_shiftArg hf' c z) hmg hpg hqg hT

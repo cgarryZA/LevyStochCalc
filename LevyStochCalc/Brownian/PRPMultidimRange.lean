@@ -52,9 +52,7 @@ section Range
 
 variable (W : MultidimBrownianMotion P d) {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
   (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ)
-  (𝒲 : ∀ k : Fin d, CrossWitness W ℱ k)
 
-include 𝒲 in
 /-- The `L²` ranges of the Itô integrals against distinct coordinates are orthogonal. -/
 theorem orthogonalFamily_itoRange (hT : 0 < T) :
     OrthogonalFamily ℝ
@@ -65,7 +63,7 @@ theorem orthogonalFamily_itoRange (hT : 0 < T) :
   obtain ⟨G, hG⟩ := u.2
   obtain ⟨K, hK⟩ := v.2
   have hcross : ∫ ω, G.integral (W.W i) (hcoord i) ω * K.integral (W.W j) (hcoord j) ω ∂P = 0 :=
-    integral_stochasticIntegral_mul_eq_zero W hij hcoord 𝒲 G.measurable_uncurry G.progressive
+    integral_stochasticIntegral_mul_eq_zero W hij hcoord G.measurable_uncurry G.progressive
       G.sq_int_global K.measurable_uncurry K.progressive K.sq_int_global hT.le
   change (inner ℝ ((u : Lp ℝ 2 P)) ((v : Lp ℝ 2 P)) : ℝ) = 0
   rw [MeasureTheory.L2.inner_def, ← hcross]
@@ -74,7 +72,6 @@ theorem orthogonalFamily_itoRange (hT : 0 < T) :
   rw [RCLike.inner_apply, e1, e2]
   simp [mul_comm]
 
-include 𝒲 in
 /-- The range of the multidimensional Itô integral is closed in `L²`. -/
 theorem isClosed_iSup_itoRange (hT : 0 < T) :
     IsClosed ((⨆ i : Fin d, itoRange (W.W i) (hcoord i) hT :
@@ -82,7 +79,7 @@ theorem isClosed_iSup_itoRange (hT : 0 < T) :
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
   haveI : ∀ i : Fin d, CompleteSpace (itoRange (W.W i) (hcoord i) hT) := fun i =>
     (isClosed_itoRange (W.W i) (hcoord i) hT).completeSpace_coe
-  exact isClosed_iSup_of_orthogonalFamily (orthogonalFamily_itoRange W hcoord 𝒲 hT)
+  exact isClosed_iSup_of_orthogonalFamily (orthogonalFamily_itoRange W hcoord hT)
 
 /-- The multidimensional Itô integral of a family of admissible integrands. -/
 noncomputable def vectorIntegral (G : ∀ _ : Fin d, HorizonIntegrand P ℱ T) : Ω → ℝ :=
@@ -128,7 +125,6 @@ theorem aestronglyMeasurable_vectorIntegral (G : ∀ _ : Fin d, HorizonIntegrand
   rw [hgoal]
   exact key Finset.univ
 
-include 𝒲 in
 /-- **The representation half of the multidimensional Brownian predictable representation
 property.** If the only square-integrable weight of mean zero, measurable before `T` and
 orthogonal to every coordinate Itô integral, is the zero weight, then every square-integrable
@@ -146,7 +142,7 @@ theorem exists_vectorIntegral_of_mean_zero (hT : 0 < T)
   set V : Fin d → Submodule ℝ (Lp ℝ 2 P) := fun i =>
     itoRange (W.W i) (hcoord i) hT with hVdef
   haveI hcl : IsClosed ((⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)) : Set (Lp ℝ 2 P)) :=
-    isClosed_iSup_itoRange W hcoord 𝒲 hT
+    isClosed_iSup_itoRange W hcoord hT
   haveI : CompleteSpace (⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)) := hcl.completeSpace_coe
   haveI : ∀ i : Fin d, CompleteSpace (V i) := fun i =>
     (isClosed_itoRange (W.W i) (hcoord i) hT).completeSpace_coe
@@ -154,7 +150,7 @@ theorem exists_vectorIntegral_of_mean_zero (hT : 0 < T)
     (⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)).exists_add_mem_mem_orthogonal (hZ2.toLp Z)
   -- decompose `y` along the coordinates
   have hproj : ∑ i, (V i).starProjection y = y :=
-    (orthogonalFamily_itoRange W hcoord 𝒲 hT).sum_projection_of_mem_iSup y hy
+    (orthogonalFamily_itoRange W hcoord hT).sum_projection_of_mem_iSup y hy
   have hcomp : ∀ i : Fin d, ∃ G : HorizonIntegrand P ℱ T,
       (((V i).starProjection y : Lp ℝ 2 P) : Ω → ℝ)
         =ᵐ[P] G.integral (W.W i) (hcoord i) :=

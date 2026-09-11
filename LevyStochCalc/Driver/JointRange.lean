@@ -30,48 +30,6 @@ namespace LevyDriver
 
 open Brownian.Ito Brownian.Multidim.MultidimBrownianMotion Poisson.Compensated
 
-section Coordinate
-
-variable (D : LevyDriver.{u, v, w} P d ν)
-
-/-- The past of one coordinate, joined with the whole paths of the other coordinates and of the
-Poisson random measure. -/
-noncomputable def coordCrossFiltration (k : Fin d) : Filtration ℝ ‹MeasurableSpace Ω› where
-  seq s := crossFiltration D.W k s ⊔ sigmaPoisson D.N
-  mono' _ _ hst := sup_le_sup_right ((crossFiltration D.W k).mono hst) _
-  le' s := sup_le ((crossFiltration D.W k).le s) (sigmaPoisson_le _)
-
-theorem crossFiltration_le_iSup_sigmaBrownian (k : Fin d) (s : ℝ) :
-    crossFiltration D.W k s ≤ ⨆ i, Brownian.sigmaBrownian (D.W.W i) := by
-  rw [crossFiltration_apply]
-  exact sup_le ((Brownian.naturalFiltration_le_sigmaBrownian (D.W.W k) s).trans
-      (le_iSup (fun i => Brownian.sigmaBrownian (D.W.W i)) k))
-    (iSup₂_le fun i _ => le_iSup (fun j => Brownian.sigmaBrownian (D.W.W j)) i)
-
-/-- Each coordinate is a Brownian motion for its own enlargement. -/
-theorem isBrownianFiltration_coordCross (k : Fin d) :
-    Brownian.IsBrownianFiltration (D.W.W k) (D.coordCrossFiltration k) :=
-  (isBrownianFiltration_crossFiltration D.W k).of_le_sup
-    (fun t => ((isBrownianFiltration_crossFiltration D.W k).measurable t).mono le_sup_left le_rfl)
-    (m := fun _ => sigmaPoisson D.N) (fun _ => sigmaPoisson_le _) (fun _ => le_rfl)
-    (fun s t _ _ => indep_of_indep_of_le_right D.indep.symm
-      (sup_le (D.crossFiltration_le_iSup_sigmaBrownian k s)
-        ((Brownian.comap_increment_le_sigmaBrownian (D.W.W k) s t).trans
-          (le_iSup (fun i => Brownian.sigmaBrownian (D.W.W i)) k))))
-
-/-- The joint filtration is witnessed at each coordinate. -/
-noncomputable def coordCrossWitness (k : Fin d) : Brownian.Multidim.MultidimBrownianMotion.CrossWitness D.W D.filtration k where
-  larger := D.coordCrossFiltration k
-  brownian := D.isBrownianFiltration_coordCross k
-  le s := by
-    rw [filtration_apply]
-    exact sup_le ((naturalFiltration_le_crossFiltration D.W k s).trans le_sup_left)
-      ((naturalFiltration_le_sigmaPoisson D.N s).trans le_sup_right)
-  increment _ hij s p q := (measurable_increment_crossFiltration D.W hij s p q).mono
-    le_sup_left le_rfl
-
-end Coordinate
-
 section Range
 
 variable {D : LevyDriver.{u, v, w} P d ν} {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
@@ -100,15 +58,14 @@ theorem inner_itoRange_compensatedRange (𝒲 : LevyDriver.CrossWitness D ℱ) (
   simp [mul_comm]
 
 /-- The two ranges and the coordinate ranges form an orthogonal family. -/
-theorem orthogonalFamily_jointRange (𝒲B : ∀ k : Fin d, Brownian.Multidim.MultidimBrownianMotion.CrossWitness D.W ℱ k)
-    (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T) :
+theorem orthogonalFamily_jointRange (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T) :
     OrthogonalFamily ℝ (fun i => (jointRange hcoord hℱN hT i : Submodule ℝ (Lp ℝ 2 P)))
       (fun i => (jointRange hcoord hℱN hT i).subtypeₗᵢ) := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
   intro i j hij u v
   match i, j, u, v with
   | some i, some j, u, v =>
-      exact orthogonalFamily_itoRange D.W hcoord 𝒲B hT (fun h => hij (by rw [h])) u v
+      exact orthogonalFamily_itoRange D.W hcoord hT (fun h => hij (by rw [h])) u v
   | some i, none, u, v => exact inner_itoRange_compensatedRange hcoord hℱN 𝒲 hT i u v
   | none, some j, u, v =>
       rw [real_inner_comm]
@@ -116,8 +73,7 @@ theorem orthogonalFamily_jointRange (𝒲B : ∀ k : Fin d, Brownian.Multidim.Mu
   | none, none, _, _ => exact absurd rfl hij
 
 /-- The joint range is closed in `L²`. -/
-theorem isClosed_iSup_jointRange (𝒲B : ∀ k : Fin d, Brownian.Multidim.MultidimBrownianMotion.CrossWitness D.W ℱ k)
-    (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T) :
+theorem isClosed_iSup_jointRange (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T) :
     IsClosed ((⨆ i : Option (Fin d), jointRange hcoord hℱN hT i :
       Submodule ℝ (Lp ℝ 2 P)) : Set (Lp ℝ 2 P)) := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
@@ -126,7 +82,7 @@ theorem isClosed_iSup_jointRange (𝒲B : ∀ k : Fin d, Brownian.Multidim.Multi
     match i with
     | some i => exact (isClosed_itoRange (D.W.W i) (hcoord i) hT).completeSpace_coe
     | none => exact (isClosed_compensatedRange D.N hℱN hT).completeSpace_coe
-  exact isClosed_iSup_of_orthogonalFamily (orthogonalFamily_jointRange hcoord hℱN 𝒲B 𝒲 hT)
+  exact isClosed_iSup_of_orthogonalFamily (orthogonalFamily_jointRange hcoord hℱN 𝒲 hT)
 
 /-- The joint integral of coordinate integrands and a marked integrand. -/
 noncomputable def jointIntegral (G : ∀ _ : Fin d, HorizonIntegrand P ℱ T)
@@ -157,8 +113,7 @@ theorem aestronglyMeasurable_jointIntegral (G : ∀ _ : Fin d, HorizonIntegrand 
 square-integrable weight of mean zero, measurable before `T` and orthogonal to every coordinate
 Itô integral and to every compensated integral, is the zero weight, then every square-integrable
 weight of mean zero that is measurable before `T` is a joint integral. -/
-theorem exists_jointIntegral_of_mean_zero (𝒲B : ∀ k : Fin d, Brownian.Multidim.MultidimBrownianMotion.CrossWitness D.W ℱ k)
-    (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T)
+theorem exists_jointIntegral_of_mean_zero (𝒲 : LevyDriver.CrossWitness D ℱ) (hT : 0 < T)
     (hsep : ∀ r : Ω → ℝ, MemLp r 2 P → AEStronglyMeasurable[ℱ T] r P → (∫ ω, r ω ∂P = 0) →
       (∀ (i : Fin d) (G : HorizonIntegrand P ℱ T),
         ∫ ω, r ω * G.integral (D.W.W i) (hcoord i) ω ∂P = 0) →
@@ -171,7 +126,7 @@ theorem exists_jointIntegral_of_mean_zero (𝒲B : ∀ k : Fin d, Brownian.Multi
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
   set V : Option (Fin d) → Submodule ℝ (Lp ℝ 2 P) := jointRange hcoord hℱN hT with hVdef
   haveI hcl : IsClosed ((⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)) : Set (Lp ℝ 2 P)) :=
-    isClosed_iSup_jointRange hcoord hℱN 𝒲B 𝒲 hT
+    isClosed_iSup_jointRange hcoord hℱN 𝒲 hT
   haveI : CompleteSpace (⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)) := hcl.completeSpace_coe
   haveI : ∀ i : Option (Fin d), CompleteSpace (V i) := by
     intro i
@@ -181,7 +136,7 @@ theorem exists_jointIntegral_of_mean_zero (𝒲B : ∀ k : Fin d, Brownian.Multi
   obtain ⟨y, hy, z, hz, hyz⟩ :=
     (⨆ i, V i : Submodule ℝ (Lp ℝ 2 P)).exists_add_mem_mem_orthogonal (hZ2.toLp Z)
   have hproj : ∑ i, (V i).starProjection y = y :=
-    (orthogonalFamily_jointRange hcoord hℱN 𝒲B 𝒲 hT).sum_projection_of_mem_iSup y hy
+    (orthogonalFamily_jointRange hcoord hℱN 𝒲 hT).sum_projection_of_mem_iSup y hy
   have hcompB : ∀ i : Fin d, ∃ G : HorizonIntegrand P ℱ T,
       (((V (some i)).starProjection y : Lp ℝ 2 P) : Ω → ℝ)
         =ᵐ[P] G.integral (D.W.W i) (hcoord i) :=

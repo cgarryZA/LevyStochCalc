@@ -335,7 +335,7 @@ include hC0 hCH in
 /-- **The cross terms off the diagonal in the Brownian index sum to `O(m^{-1/2})`.** -/
 theorem IsVectorItoVersion.integral_abs_sum_offDiagCross_le
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j) (p q : Fin n)
+    (p q : Fin n)
     {k l : Fin d} (hkl : k ≠ l)
     {φ : (Fin n → ℝ) → ℝ} (hφc : Continuous φ) {Kφ : ℝ} (hKφ0 : 0 ≤ Kφ)
     (hφbd : ∀ x, |φ x| ≤ Kφ) {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
@@ -370,7 +370,7 @@ theorem IsVectorItoVersion.integral_abs_sum_offDiagCross_le
     rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul, abs_of_nonneg hKφ0]
     exact mul_le_mul_of_nonneg_right (hφbd _) (abs_nonneg _)
   have hSmem := memLp_finsetSum (Finset.range m) fun i _ => hYmem i
-  have hbound := integral_sq_weighted_crossSum_le W hcoord 𝒲 (hHm p k) (hHp p k) (hHs p k)
+  have hbound := integral_sq_weighted_crossSum_le W hcoord (hHm p k) (hHp p k) (hHs p k)
     (hHm q l) (hHp q l) (hHs q l) hC0 (hCH p k) hC0 (hCH q l) hkl (unifGrid T m) h0 hgrid
     (fun i ω => φ (X (unifGrid T m i) ω)) hg hKφ0 (fun i ω => hφbd _) m
   rw [sum_unifGrid_sq_diff hT hm0] at hbound
@@ -589,7 +589,6 @@ product of the increments of two coordinates, weighted by a bounded Lipschitz `�
 summands of the bound. -/
 theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hbm : ∀ m, Measurable (Function.uncurry (bdrift m))) {B : ℝ} (hB0 : 0 ≤ B)
     (hB : ∀ (m : Fin n) (ω : Ω) (s : ℝ), |bdrift m ω s| ≤ B) (p q : Fin n)
     (hma : ∀ k : Fin d, Measurable (Function.uncurry fun ω s => H p k ω s + H q k ω s))
@@ -660,7 +659,7 @@ theorem IsVectorItoVersion.integral_abs_quadVarRiemann_sub_le
                   (hHs q l) k l (unifGrid T m i) (unifGrid T m (i + 1)) ω| ∂P
           ≤ Real.sqrt (Kφ ^ 2 * ((6 + gaussianFourthMoment) * (C ^ 4 + C ^ 4) / 2)
             * (T ^ 2 / (m : ℝ))) := fun k l hl =>
-    h.integral_abs_sum_offDiagCross_le hC0 hCH 𝒲 p q ((Finset.mem_erase.mp hl).1.symm)
+    h.integral_abs_sum_offDiagCross_le hC0 hCH p q ((Finset.mem_erase.mp hl).1.symm)
       hφc hKφ0 hφbd hT hm0
   obtain ⟨i6, b6⟩ := h.integral_abs_frozenRiemann_sub_le hC0 hCH hbm hB0 hB
     (fun ω s => ∑ k : Fin d, H p k ω s * H q k ω s) hwm hA0 hA hφc hφbd hMφ0 hL0 hφaff hT hm0

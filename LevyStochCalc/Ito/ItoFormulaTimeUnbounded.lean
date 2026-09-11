@@ -96,7 +96,6 @@ coordinate `0`, `∂₀f` is the time derivative and `∂_{q+1}f` the space deri
 almost surely. -/
 theorem IsVectorItoVersion.itoFormulaTime_of_unbounded
     (h : IsVectorItoVersion W ℱ hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W ℱ j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
     (hX₀ : ∀ q : Fin n, Measurable[ℱ 0] fun ω => X₀ ω q)
@@ -144,7 +143,7 @@ theorem IsVectorItoVersion.itoFormulaTime_of_unbounded
     rw [stochasticIntegralBrownian_congr_fun (W.W k) ℱ (hcoord k) heq (hmgA 0 k) (hpgA 0 k)
       (hqgA 0 k) measurable_const (Probability.progressivelyMeasurable_const ℱ (0 : ℝ)) hq0 T]
     exact stochasticIntegralBrownian_ae_zero (W.W k) ℱ (hcoord k) _ _ _ T
-  have hform := itoFormula_of_unbounded W ℱ hcoord (h.timeAug) 𝒲 hℱ0 hnull
+  have hform := itoFormula_of_unbounded W ℱ hcoord (h.timeAug) hℱ0 hnull
     (measurable_timeAugInit hX₀) (measurable_timeAugDrift bdrift hbm)
     (progressivelyMeasurable_timeAugDrift bdrift ℱ hbp) (sq_timeAugDrift bdrift hbq)
     hfC hf hf' hmgA hpgA hqgA hT

@@ -26,8 +26,13 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   the natural filtration of a *single* driver, so `JumpDiffusion.is_solution` and the PRP/BSDEJ
   statements (#13a, #13b, #9, #10) are faithful only for uncoupled coefficients — the
   common-filtration generalization **X2** below now precedes A5–A7.
-- **Zero `sorry` (2026-09-07)**: `tools/sorry_baseline.txt` is empty. The Picard chain is
-  complete — `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
+- **`sorry` status (2026-09-11)**: `tools/sorry_baseline.txt` holds exactly one declaration,
+  the canonical assembly `itoLevyFormula_jumpResidual_canonical`
+  (`Ito/JumpFormulaAssembled.lean`, seven `sorry` blocks — the Stage-2 obligations for general
+  `u`), a separate open node from the one live axiom #16. The bounded-derivative milestone M16
+  (`itoLevyFormula_jumpResidual_of_boundedDerivs`) is proved with no `sorry` (2026-09-10) and
+  takes no cross witness (2026-09-11, B4-C12). The Picard chain is complete since 2026-09-07 —
+  `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
   window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two
   statement audits landed with it (uniqueness is relative to the filtration; the drift integral
   in `is_solution` needed parenthesising) — see `tools/cited_axioms.md` #12.

@@ -130,7 +130,6 @@ theorem itoLevy_finiteActivity_mixed
     (S : SdeData X)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t)
     (hnull0 : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W S.ℱ j)
     (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
     (hXleft : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
       ∃ L : ℝ, Tendsto (fun s => X.X s ω j) (𝓝[<] t) (𝓝 L))
@@ -414,7 +413,7 @@ theorem itoLevy_finiteActivity_mixed
     energy_stopped_sub_lt_top (hσ k) (hσ (k + 1)) (hmVun k p j) (hqVun k p j)
   have hX₀ : ∀ p : Fin (n + 1), Measurable[S.ℱ 0] fun ω => timeAugInit (fun _ : Ω => x₀) ω p :=
     fun p => measurable_const
-  have hcont := fun k : ℕ => itoFormula_between_measurableShift W S.ℱ S.isBrownian hV' 𝒲 hℱ0
+  have hcont := fun k : ℕ => itoFormula_between_measurableShift W S.ℱ S.isBrownian hV' hℱ0
     hnull0 hX₀ hb'm hb'p hb'q (hσ k) (hσ (k + 1)) (hmono k) (hσ0 k) (hσ0 (k + 1)) hfC hf hf'
     hK₁' hK₂' hT (hc' k) (hmV k) (hpV k) (hqV k)
   have hchain := fun m : ℕ => itoFormula_chain W S.ℱ S.isBrownian hσ hmono hmG hpG hqG hmD hqD

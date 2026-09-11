@@ -244,7 +244,6 @@ theorem itoFormula_between_boundedShift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -352,7 +351,7 @@ theorem itoFormula_between_boundedShift
     ae_integrableOn_Ioc_sum_mul hHm fun p k => hHs p k T hT
   exact itoFormula_between_generalShift W ℱ' hcoord hXm hHm hHs hbm hσ hτ hfC hf hf' hK₁ hK₂ hT
     hcmeas hcmm hlim hbint hQint hmSc hpSc hqSc hmScm hpScm hqScm fun m =>
-      itoFormula_between_gridShift_of_simpleShift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq
+      itoFormula_between_gridShift_of_simpleShift W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq
         hσ hτ hστ hσ0 hτ0 hfC hf hf' hK₁ hK₂ hT (hcmσ m) (hcmVs m) (hmScm m) (hpScm m) (hqScm m)
 
 /-- **Itô's formula for the increment of a path between two stopping times of unrestricted range,
@@ -365,7 +364,6 @@ theorem itoFormula_between_measurableShift
       (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {bdrift : Fin n → Ω → ℝ → ℝ} {X : ℝ → Ω → Fin n → ℝ}
     (h : IsVectorItoVersion W ℱ' hcoord H hHm hHp hHs X₀ bdrift X)
-    (𝒲 : ∀ j : Fin d, Multidim.MultidimBrownianMotion.CrossWitness W ℱ' j)
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ' 0 ≤ ℱ' t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ' 0] s)
     (hX₀ : ∀ p : Fin n, Measurable[ℱ' 0] fun ω => X₀ ω p)
@@ -512,7 +510,7 @@ theorem itoFormula_between_measurableShift
     ae_integrableOn_Ioc_sum_mul hHm fun p k => hHs p k T hT
   exact itoFormula_between_generalShift W ℱ' hcoord hXm hHm hHs hbm hσ hτ hfC hf hf' hK₁ hK₂ hT
     hcmeas hcmm hlim hbint hQint hmSc hpSc hqSc hmScm hpScm hqScm fun m =>
-      itoFormula_between_boundedShift W ℱ' hcoord h 𝒲 hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hστ
+      itoFormula_between_boundedShift W ℱ' hcoord h hℱ0 hnull hX₀ hbm hbp hbq hσ hτ hστ
         hσ0 hτ0 hfC hf hf' hK₁ hK₂ hT (hcmσ m) (hcmb m) (hmScm m) (hpScm m) (hqScm m)
 
 end MeasurableShift

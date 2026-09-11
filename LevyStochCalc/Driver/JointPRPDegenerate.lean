@@ -70,8 +70,7 @@ theorem exists_jointIntegral_augFiltration_of_dim_zero (D : LevyDriver.{u, v, w}
     change Probability.aug (D.filtration (max T 0)) ‹MeasurableSpace Ω› P = _
     rw [max_eq_left hT.le, filtration_apply, naturalFiltration_brownian_eq_bot, bot_sup_eq]
   refine exists_jointIntegral_of_mean_zero (fun k => D.isBrownianFiltration_aug k)
-    D.isPoissonFiltration_aug (fun k => (D.coordCrossWitness k).aug)
-    (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
+    D.isPoissonFiltration_aug (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
   intro r hr2 hrm hr0 _ hrN
   exact Poisson.ae_eq_zero_of_integral_mul_compensated_eq_zero D.N D.isPoissonFiltration_aug hT
     (le_of_eq hfe) hr2 hrm hr0 hrN
@@ -91,8 +90,7 @@ theorem exists_jointIntegral_augFiltration_of_isEmpty [IsEmpty E] (D : LevyDrive
     change Probability.aug (D.filtration (max T 0)) ‹MeasurableSpace Ω› P = _
     rw [max_eq_left hT.le, filtration_apply, naturalFiltration_poisson_eq_bot, sup_bot_eq]
   refine exists_jointIntegral_of_mean_zero (fun k => D.isBrownianFiltration_aug k)
-    D.isPoissonFiltration_aug (fun k => (D.coordCrossWitness k).aug)
-    (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
+    D.isPoissonFiltration_aug (LevyDriver.crossWitness D).aug hT ?_ hZ2 hZm hZ0
   intro r hr2 hrm hr0 hrB _
   obtain ⟨r₁, hr₁m, hrr₁⟩ := hrm
   rw [hfe] at hr₁m

@@ -290,12 +290,11 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 
 open LevyStochCalc.Ito.IntegralLimit in
 /-- **The Itô–Lévy formula at bounded derivatives.** For a jump diffusion with SDE data `S`
-whose right-continuous filtration satisfies the usual conditions at time zero and carries a
-cross witness for every Brownian coordinate, whose path has left limits at every time and whose
-drift along the path is progressively measurable, and a `C²` state function with bounded time
-derivative, gradient and Hessian, the canonical residual of the Itô–Lévy formula is the
-compensated jump integral plus the compensator-drift integral, every stochastic integral being
-taken over the filtration of `S`.
+whose right-continuous filtration satisfies the usual conditions at time zero, whose path has
+left limits at every time and whose drift along the path is progressively measurable, and a
+`C²` state function with bounded time derivative, gradient and Hessian, the canonical residual
+of the Itô–Lévy formula is the compensated jump integral plus the compensator-drift integral,
+every stochastic integral being taken over the filtration of `S`.
 
 The admissibility of the derived integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the solution
 is still taken as a hypothesis; deriving it from the bounded derivatives and the SDE data is a
@@ -317,10 +316,6 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     [S.ℱ.IsRightContinuous]
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ.rightCont 0 ≤ S.ℱ.rightCont t)
     (hnull0 : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
-    -- (8'') The cross orthogonality of the Brownian coordinates over the filtration of the SDE
-    -- data, which the vector Itô formula between the arrival times consumes; the tree supplies
-    -- it for the augmented natural filtration of `W`, not for an arbitrary `S.ℱ`.
-    (𝒲 : ∀ j : Fin d, MultidimBrownianMotion.CrossWitness W S.ℱ j)
     -- (3) The structure calls its solution adapted but carries no such field.
     (hXadapt : ∀ t : ℝ, Measurable[S.ℱ t] (X.X t))
     -- (3') Statement change: `cadlag_paths` holds almost surely and only on `[0, ∞)`, while the
@@ -757,7 +752,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     have hxs_left : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
         ∃ L : ℝ, Tendsto (fun s => xs m s ω j) (𝓝[<] t) (𝓝 L) :=
       fun ω t j => truncPath_leftLim S hℱ0 hnull0 G (fun ω hω m t ht => hGp ω hω m t ht) m ω t j
-    have hmain := itoLevy_finiteActivity_mixed S hℱ0' hnull0 𝒲 hXadapt hXleft hμm hμp hμq hγmeas
+    have hmain := itoLevy_finiteActivity_mixed S hℱ0' hnull0 hXadapt hXleft hμm hμp hμq hγmeas
       u hu hK₀ hK₁ hK₂ T hT (hA m).compl (measure_compl_smallMarks_ne_top ν m) (xs m) (hxs_m m)
       (hxs_rc m) hxs_ad' hxs_left V hV hVsplit (hBm m) hBp' (hBq m) (hCm m) hCp' (hCq m)
     have hchan : ∀ j : Fin d,
