@@ -2872,5 +2872,32 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevy_finiteActivity_mixed
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_boundedDerivs
 
+-- ===== M16 from the solution data (B4-C13, 2026-09-11) =====
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_of_nonneg
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_of_neg
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_eq_of_mem
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_uncurry_cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_rightContinuous
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_leftLim
+#print axioms LevyStochCalc.Ito.JumpFormula.cadlagRep_cadlag
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_of_progressivelyMeasurable
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_cadlagRep_zero
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_forall_cadlagRep_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_iSup_cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.solvesOn_cadlagRep
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_diffusionIntegrand_path
+#print axioms LevyStochCalc.Ito.JumpFormula.progressivelyMeasurable_diffusionIntegrand_path
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_sq_diffusionIntegrand_path_lt_top
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_jumpIncrement_path
+#print axioms LevyStochCalc.Ito.JumpFormula.markedProgressivelyMeasurable_jumpIncrement_path
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_sq_jumpIncrement_path_lt_top
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_integrableOn_drift_path
+#print axioms LevyStochCalc.Ito.JumpFormula.measurable_compensatorDriftIntegrand_path
+#print axioms LevyStochCalc.Ito.JumpFormula.ae_lintegral_compensatorDriftIntegrand_lt_top
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_solvesOn
+
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

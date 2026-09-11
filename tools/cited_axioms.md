@@ -423,7 +423,38 @@ literature integral forms.
   characterisation" was wrong. M16's statement is again exactly the approved one: bounded
   `∂ₜu`, `∇u`, `Hess u`, usual conditions on `S.ℱ`, the SDE data at `S.ℱ`, no `L⁴`, and the four
   admissibility hypotheses on the derived integrands (their discharge from the solution data is
-  ticket B4-C13). **M16 remains narrower than this axiom** (bounded
+  ticket B4-C13).
+* **Progress (2026-09-11, B4-C13) — M16 is callable from the solution data.**
+  `Ito/ItoLevyBoundedDerivsSolution.lean`'s `itoLevyFormula_jumpResidual_of_solvesOn` takes
+  regular Lipschitz coefficients, a right-continuous filtration containing the null sets at time
+  zero (the hypotheses of `exists_globalSolution`), a `C²` state function with bounded `∂ₜu`,
+  `∇u`, `Hess u` and a horizon, and returns a jump diffusion solving the equation on every window
+  relative to that filtration, with progressively measurable coordinates and càdlàg paths at
+  every sample point and every time, together with M16's conclusion along it — every
+  admissibility input of the two stochastic integrals in the conclusion is a proved lemma of
+  that file, not a hypothesis. The inputs are produced as follows: the solution of
+  `exists_globalSolution` is replaced by its representative `cadlagRep G X` on a measurable full
+  set `G` where the paths are càdlàg (the constant zero path off `G`, the zero state before time
+  zero), which has left limits at every sample point and every time (`cadlagRep_leftLim`), is
+  adapted because `G` lies in the initial σ-algebra and progressively measurable because it is
+  right-continuous everywhere (`progressivelyMeasurable_cadlagRep`), and solves the same window
+  equations because the Picard step reads its input only on the class of `P ⊗ ds`
+  (`solvesOn_cadlagRep`, from `picardStep_congr_ae` at positive times and
+  `ae_picardStep_zero` at time zero); adaptedness is the evaluation of progressive
+  measurability (`measurable_of_progressivelyMeasurable`); the drift along the path is
+  progressively measurable and of finite energy by composition with the progressive state and
+  the linear-growth bound (`progressivelyMeasurable_comp_state`,
+  `lintegral_sq_mu_lt_top_of_energy`); `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the path are jointly
+  measurable, (marked) progressively measurable and of finite energy by composing the continuous
+  gradient with the progressive state and by the gradient bound
+  (`measurable_diffusionIntegrand_path`, `progressivelyMeasurable_diffusionIntegrand_path`,
+  `lintegral_sq_diffusionIntegrand_path_lt_top`, `measurable_jumpIncrement_path`,
+  `markedProgressivelyMeasurable_jumpIncrement_path`, `lintegral_sq_jumpIncrement_path_lt_top`);
+  the drift is integrable on the window almost surely (`ae_integrableOn_drift_path`) and the
+  compensator-drift integrand is integrable over the marks and the window almost surely by the
+  bounded-Hessian Taylor remainder and the jump energy
+  (`ae_lintegral_compensatorDriftIntegrand_lt_top`). **M16 is still narrower than this axiom**
+  (bounded derivatives); the axiom remains live. **M16 remains narrower than this axiom** (bounded
   derivatives; the axiom asks none), so #16 stays live: Stage 2 (removing the derivative bounds)
   is the open L-group, and the papers' own Itô applications are Epic D. `#print axioms` on the
   finite-activity identity and on M16 lists only the three standard axioms.

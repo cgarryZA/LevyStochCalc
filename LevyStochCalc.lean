@@ -312,6 +312,7 @@ import LevyStochCalc.Ito.ItoLevyMixedBounds
 import LevyStochCalc.Ito.FiniteActivityMixedPrelims
 import LevyStochCalc.Ito.FiniteActivityMixed
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
 import LevyStochCalc.BSDEJ.Definition
@@ -336,6 +337,8 @@ to discharge the four cited continuous-time axioms of the main dissertation
   citation flagged by red-team 1st audit P11 + 2nd audit P10)
 
 Each layer below targets one cited result (or builds machinery used by the next layer).
-Every module is complete: `tools/sorry_baseline.txt` is empty and the only `axiom`
-declaration is cited axiom #16 (`Ito/JumpFormula.lean`, `tools/cited_axioms.md`).
+The only `axiom` declaration is cited axiom #16 (`Ito/JumpFormula.lean`,
+`tools/cited_axioms.md`); the only declaration carrying `sorry` is the canonical assembly
+`itoLevyFormula_jumpResidual_canonical` (`Ito/JumpFormulaAssembled.lean`, listed in
+`tools/sorry_baseline.txt`).
 -/
