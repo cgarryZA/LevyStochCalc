@@ -34,10 +34,10 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   takes no cross witness (2026-09-11, B4-C12) and is callable from the solution data
   (2026-09-11, B4-C13); the locality of the compensated integral at a stopping time, the
   Stage-2 transfer tool, is proved in `Ito/CompensatedLocality.lean` (2026-09-11, B4-L4).
-  The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]` and
-  `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the `L²` hypotheses alone —
-  are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise formula with local integrals
-  stays open (Epic D).
+  The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
+  `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
+  `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
+  formula with local integrals stays open (Epic D).
   The Picard chain is complete since 2026-09-07 —
   `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` builds the solution window by
   window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two

@@ -2968,6 +2968,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.SecondMoment.mul_setIntegral_eq
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_eq_expand
 #print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_eq_of_isItoLevyProcess
+#print axioms LevyStochCalc.Ito.SecondMoment.toReal_lintegral_lintegral_eq
+#print axioms LevyStochCalc.Ito.SecondMoment.integrableOn_toReal_lintegral
+#print axioms LevyStochCalc.Ito.SecondMoment.setIntegral_mul_exp_mul
+#print axioms LevyStochCalc.Ito.SecondMoment.setIntegral_exp_mul_setIntegral
+#print axioms LevyStochCalc.Ito.SecondMoment.exp_mul_eq_add_setIntegral
+#print axioms LevyStochCalc.Ito.SecondMoment.measurable_uncurry_sq_diffusion
+#print axioms LevyStochCalc.Ito.SecondMoment.measurable_uncurry_lintegral_sq_jump
+#print axioms LevyStochCalc.Ito.SecondMoment.integrableOn_integral_mul_drift
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_add_setIntegral
+#print axioms LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
