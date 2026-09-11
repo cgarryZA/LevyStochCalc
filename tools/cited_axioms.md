@@ -482,6 +482,22 @@ literature integral forms.
     integrability from the same. All of these were already proved as standalone lemmas and were
     being applied at the call site; `itoLevyFormula_jumpResidual_of_sdeData` moves them inside
     the theorem, so they are no longer public assumptions.
+  - **path-regularity bridge, now derived (2026-09-11)** — left limits of the path at every
+    sample point and every time. `JumpDiffusion.cadlag_paths` supplies them only almost surely,
+    and M16 asked for them everywhere. `itoLevyFormula_jumpResidual_of_sdeData` now takes the
+    càdlàg representative on a measurable full set (`cadlagRep`), which has left limits
+    everywhere and carries SDE data at the same filtration (`solvesOn_of_eqn`,
+    `solvesOn_cadlagRep`, `SdeData.ofSolvesOn`), and transports the four terms of the formula
+    back to the original path — the two stochastic integrals through the difference isometry
+    (`multidimIntegral_congr_ae`, `compensatedIntegral_congr_ae`), the two Lebesgue integrals
+    pointwise on the full set. The left-limit-carrying form survives as
+    `itoLevyFormula_jumpResidual_of_sdeData_of_leftLim`.
+  - **traded, not derived** — the coefficient hypotheses `IsRegular` and `IsLipschitz`. The
+    axiom assumes the derived-integrand admissibility bundles directly and says nothing about
+    the coefficients; the repaired theorem assumes the coefficients are regular and Lipschitz
+    and derives the bundles. Neither implies the other, so this is an exchange of hypotheses,
+    not a discharge — it is the standing setting of the well-posedness development
+    (Applebaum 6.2.9), which is where a solution comes from at all.
   - **genuine narrowing, still open** — the three derivative bounds `hK₀`, `hK₁`, `hK₂`. Only
     these separate M16 from the general statement; removing them is Stage 2 and is what closes
     this axiom. A Stage-2 theorem that kept any of the bridges as hypotheses would **not**
