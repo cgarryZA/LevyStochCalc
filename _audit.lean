@@ -3012,6 +3012,7 @@ import LevyStochCalc
 
 -- ===== The left-limit jump sum as a step function (B4-L5a, 2026-09-11) =====
 #print axioms LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter
+#print axioms LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub
 #print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma

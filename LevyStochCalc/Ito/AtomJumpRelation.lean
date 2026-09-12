@@ -19,6 +19,8 @@ left-limit jump sum over the window as a step function of the arrival times.
 
 * `LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter` — the integral over an initial
   segment of the window is the sum over the atoms whose time has been reached.
+* `LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub` — the jump side
+  of the Itô–Lévy formula at finite activity reads the integrand only at the atoms.
 * `LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le` — the left limit of a step
   function with finitely many steps drops the steps at the point itself.
 * `LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum` — the left-limit
@@ -66,6 +68,41 @@ theorem setIntegral_Ioc_prod_eq_sum_filter {μ : Measure (ℝ × E)} {A : Set E}
     rw [if_neg hj, Set.indicator_of_notMem hp]
 
 end Restriction
+
+section JumpSide
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+
+/-- **The jump side of the Itô–Lévy formula at finite activity.** The compensated integral of a
+predictable integrand carried by a window of finite intensity, plus the intensity integral of
+that integrand minus a correction, is the integral of the integrand against the random measure
+minus the intensity integral of the correction. The integrand itself cancels, so only its values
+at the atoms of the window and the correction survive. -/
+theorem stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub
+    (N : PoissonRandomMeasure P ν) (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱ : IsPoissonFiltration N ℱ) (φ ψ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
+    (h_sq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    {A : Set E} (hA : MeasurableSet A) (hφpred : Probability.MarkedPredictable ℱ ν φ)
+    (hAν : ν A ≠ ⊤) (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0) {T : ℝ} (hT : 0 < T)
+    (hφint : ∀ᵐ ω ∂P, IntegrableOn (fun q : ℝ × E => φ ω q.1 q.2)
+      (Set.Ioc (0 : ℝ) T ×ˢ A) (referenceIntensity ν))
+    (hψint : ∀ᵐ ω ∂P, IntegrableOn (fun q : ℝ × E => ψ ω q.1 q.2)
+      (Set.Ioc (0 : ℝ) T ×ˢ A) (referenceIntensity ν)) :
+    ∀ᵐ ω ∂P,
+      Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
+          + ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, (φ ω q.1 q.2 - ψ ω q.1 q.2) ∂(referenceIntensity ν)
+        = (∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(N.N ω))
+          - ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, ψ ω q.1 q.2 ∂(referenceIntensity ν) := by
+  filter_upwards [Compensated.stochasticIntegral_ae_eq_pathwise N ℱ hℱ φ h_meas h_progMeas h_sq
+    hA hφpred hAν hsupp hT, hφint, hψint] with ω hpath hφω hψω
+  rw [hpath, integral_sub hφω hψω]
+  ring
+
+end JumpSide
 
 end LevyStochCalc.Poisson
 
