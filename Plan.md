@@ -48,10 +48,16 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   (`Poisson/PathwiseIdentity.lean`) writes the compensated integral as the atom sum against
   `N` minus the intensity integral, so the sum of the compensated and compensator-drift terms
   reads `u` only at the realised path values `X_{s−}` and `X_{s−} + γ(s, X_{s−}, e)` and at
-  `∇u(s, X_{s−})`. The open obligation is the jump relation at an atom,
-  `X_s = X_{s−} + γ(s, X_{s−}, e)`, which the telescope of
-  `ae_exists_atomEnum_sum_range_jumpTermLeft` encodes but does not state; then the mark-level
-  limit (B4-K5/K6) and the exhaustion in `R`.
+  `∇u(s, X_{s−})`. `Ito/AtomJumpRelation.lean` closes the three pieces that needed
+  (2026-09-11/12, B4-L5a/b/c): the jump sum over the window is a step function of the arrival
+  times (`ae_exists_atomEnum_jumpSumLeftAt_eq_sum`); a path that is a continuous process plus
+  that jump sum jumps at each arrival time by exactly `γ(s, X_{s−}, e)`
+  (`ae_exists_atomEnum_jump_eq_gamma`), so the shifted state reached at an atom is again a path
+  value; and the compensated integral plus the compensator-drift term cancels the integrand's
+  own intensity integral, leaving the atom values and the first-order correction
+  (`stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub`). What is left for B4-L5: assemble
+  these into the jump-side equality at a fixed mark level, then the mark-level limit (B4-K5/K6)
+  and the exhaustion in `R`.
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
