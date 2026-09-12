@@ -3010,6 +3010,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
 #print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
+-- ===== The cut-off transfer on the jump side (B4-L5d, 2026-09-12) =====
+#print axioms LevyStochCalc.Ito.CutoffPath.norm_leftLimPathAt_le_of_boundedPath
+#print axioms LevyStochCalc.Ito.CutoffPath.abs_le_of_mem_Ioc
+#print axioms LevyStochCalc.Ito.CutoffPath.gradient_cutoffFun₂_leftLim_eq_of_boundedPath
+#print axioms LevyStochCalc.Ito.CutoffPath.jumpIncrement_cutoffFun₂_eq_of_boundedPath
+#print axioms LevyStochCalc.Ito.CutoffPath.ae_setIntegral_jumpIncrement_cutoffFun₂_eq
+
 -- ===== The left-limit jump sum as a step function (B4-L5a, 2026-09-11) =====
 #print axioms LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter
 #print axioms LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub

@@ -155,6 +155,8 @@ theorem ae_exists_atomEnum_jumpSumLeftAt_eq_sum
     (Xp : ℝ → Ω → Fin n → ℝ) (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) (T : ℝ) :
     ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
       (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
+      (∀ g : ℝ × E → ℝ,
+        ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) ∧
       ∀ t ≤ T, ∀ i : Fin n,
         jumpSumLeftAt coeffs N Xp A t ω i
           = ∑ j ∈ Finset.univ.filter fun j => θ j ≤ t,
@@ -163,7 +165,7 @@ theorem ae_exists_atomEnum_jumpSumLeftAt_eq_sum
   filter_upwards [LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum N A hA hAν T]
     with ω hω
   obtain ⟨K, θ, ε, hmono, -, hmem, hsum⟩ := hω
-  refine ⟨K, θ, ε, hmono, hmem, fun t ht i => ?_⟩
+  refine ⟨K, θ, ε, hmono, hmem, hsum, fun t ht i => ?_⟩
   exact LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter hA hmem hsum ht
     fun q => coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2 i
 
@@ -180,14 +182,16 @@ theorem ae_exists_atomEnum_jump_eq_gamma
       Xp t ω i = V t ω i + jumpSumLeftAt coeffs N Xp A t ω i) :
     ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
       (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
+      (∀ g : ℝ × E → ℝ,
+        ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) ∧
       ∀ j : Fin K,
         Xp (θ j) ω
           = leftLimPathAt Xp (θ j) ω + coeffs.γ (θ j) (leftLimPathAt Xp (θ j) ω) (ε j) := by
   classical
   filter_upwards [ae_exists_atomEnum_jumpSumLeftAt_eq_sum coeffs N Xp A hA hAν T, hVc, hsplit]
     with ω hstep hVω hsp
-  obtain ⟨K, θ, ε, hmono, hmem, hsum⟩ := hstep
-  refine ⟨K, θ, ε, hmono, hmem, fun j => ?_⟩
+  obtain ⟨K, θ, ε, hmono, hmem, hg, hsum⟩ := hstep
+  refine ⟨K, θ, ε, hmono, hmem, hg, fun j => ?_⟩
   -- the left limit of the path at the arrival time: the continuous part plus the earlier steps
   have hlim : ∀ i : Fin n, Tendsto (fun t => Xp t ω i) (𝓝[<] (θ j))
       (𝓝 (V (θ j) ω i + ∑ k ∈ Finset.univ.filter fun k => θ k < θ j,
