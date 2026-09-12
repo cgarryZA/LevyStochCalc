@@ -55,9 +55,14 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   (`ae_exists_atomEnum_jump_eq_gamma`), so the shifted state reached at an atom is again a path
   value; and the compensated integral plus the compensator-drift term cancels the integrand's
   own intensity integral, leaving the atom values and the first-order correction
-  (`stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub`). What is left for B4-L5: assemble
-  these into the jump-side equality at a fixed mark level, then the mark-level limit (B4-K5/K6)
-  and the exhaustion in `R`.
+  (`stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub`); and hence the cut-off transfers on
+  the jump side along a confined path (`Ito/CutoffPathAgreement.lean`,
+  `ae_setIntegral_jumpIncrement_cutoffFun₂_eq` for the atom values and
+  `gradient_cutoffFun₂_leftLim_eq_of_boundedPath` for the first-order term), with no bound on the
+  jump coefficient. What is left for B4-L5 is assembly: the jump-side equality at a fixed mark
+  level, the point-value/left-limit and iterated/reference-intensity conversions
+  (`Ito/JumpIntegrandLeftLim.lean`, `Ito/JumpSplitting.integral_window_eq_and_integrableOn`),
+  then the mark-level limit (B4-K5/K6) and the exhaustion in `R`.
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
