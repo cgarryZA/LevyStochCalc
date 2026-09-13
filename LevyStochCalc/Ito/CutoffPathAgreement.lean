@@ -34,8 +34,11 @@ hypothesis shape of `stochasticIntegralBrownian_congr_of_lt`.
   exited by the end of it.
 * `diffusionIntegrand_cutoffFun₂_eq_of_lt` — the agreement in the form the strict locality
   transfer consumes.
-* `stochasticIntegralBrownian_cutoffFun₂_eq_of_le` — the Brownian term of the cut-off and of the
-  function itself agree almost surely on the event that the path has not left the ball.
+* `stochasticIntegralBrownian_cutoffFun₂_eq_of_le`, `multidimIntegral_cutoffFun₂_eq_of_mem` —
+  the Brownian term of the cut-off and of the function itself agree almost surely on the event
+  that the path has not left the ball, componentwise and in the vector form.
+* `ae_continuousSide_cutoffFun₂_eq` — the whole continuous side, endpoints and drift integral
+  included, agrees on that event.
 * `norm_leftLimPathAt_le_of_boundedPath`,
   `gradient_cutoffFun₂_leftLim_eq_of_boundedPath` — a confined path has its left limits in the
   ball, where the gradient of the cut-off is that of the function.
@@ -179,6 +182,101 @@ theorem stochasticIntegralBrownian_cutoffFun₂_eq_of_le
     hstop hm₁ hp₁ hq₁ hm₂ hp₂ hq₂ hagree hT
   filter_upwards [hmain] with ω hω hle
   exact hω (le_min hle le_rfl)
+
+/-- **The multidimensional Brownian term transfers between a state function and its cut-off** on
+the event that the path stays in the ball over the window. -/
+theorem multidimIntegral_cutoffFun₂_eq_of_mem
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    {Xp : ℝ → Ω → Fin n → ℝ} {coeffs : Setting.JumpDiffusionCoeffs n d E}
+    (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ}
+    (hm : 0 < m) (hTm : T < 3 * (m : ℝ)) (hT : 0 < T)
+    (hadapt : Adapted ℱ Xp)
+    (hright : ∀ (ω : Ω) (s : ℝ),
+      Filter.Tendsto (fun r => Xp r ω) (nhdsWithin s (Set.Ioi s)) (nhds (Xp s ω)))
+    (hm₁ : ∀ j : Fin d, Measurable (Function.uncurry fun ω s =>
+      diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j))
+    (hp₁ : ∀ j : Fin d, Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j)
+    (hq₁ : ∀ (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤)
+    (hm₂ : ∀ j : Fin d, Measurable (Function.uncurry fun ω s =>
+      diffusionIntegrand u coeffs.σ s (Xp s ω) j))
+    (hp₂ : ∀ j : Fin d, Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      diffusionIntegrand u coeffs.σ s (Xp s ω) j)
+    (hq₂ : ∀ (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖diffusionIntegrand u coeffs.σ s (Xp s ω) j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
+      LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+          (fun s ω => diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω))
+          hm₁ hp₁ hq₁ T ω
+        = LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+            (fun s ω => diffusionIntegrand u coeffs.σ s (Xp s ω)) hm₂ hp₂ hq₂ T ω := by
+  have hcomp : ∀ j : Fin d, ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
+      LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian (W.W j) ℱ (hℱW j)
+          (fun ω s => diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j)
+          (hm₁ j) (hp₁ j) (hq₁ j) T ω
+        = LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian (W.W j) ℱ (hℱW j)
+            (fun ω s => diffusionIntegrand u coeffs.σ s (Xp s ω) j)
+            (hm₂ j) (hp₂ j) (hq₂ j) T ω := by
+    intro j
+    filter_upwards [stochasticIntegralBrownian_cutoffFun₂_eq_of_le (W.W j) ℱ (hℱW j) u hm hTm hT
+      hadapt hright j (hm₁ j) (hp₁ j) (hq₁ j) (hm₂ j) (hp₂ j) (hq₂ j)] with ω hω hb
+    exact hω (boundedPathSet_subset_le_openExitTime Xp T m hb)
+  filter_upwards [MeasureTheory.ae_all_iff.mpr hcomp] with ω hω hb
+  simp only [LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral]
+  exact Finset.sum_congr rfl fun j _ => hω j hb
+
+/-- **The whole continuous side of the Itô–Lévy formula transfers between a state function and
+its cut-off** on the event that the path stays in the ball over the window: the two endpoint
+values, the drift integral and the Brownian term. -/
+theorem ae_continuousSide_cutoffFun₂_eq
+    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) [ℱ.IsRightContinuous]
+    (hℱW : ∀ j : Fin d, LevyStochCalc.Brownian.IsBrownianFiltration (W.W j) ℱ)
+    {Xp : ℝ → Ω → Fin n → ℝ} {coeffs : Setting.JumpDiffusionCoeffs n d E}
+    (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ}
+    (hm : 0 < m) (hTm : T < 3 * (m : ℝ)) (hT : 0 < T)
+    (hadapt : Adapted ℱ Xp)
+    (hright : ∀ (ω : Ω) (s : ℝ),
+      Filter.Tendsto (fun r => Xp r ω) (nhdsWithin s (Set.Ioi s)) (nhds (Xp s ω)))
+    (hm₁ : ∀ j : Fin d, Measurable (Function.uncurry fun ω s =>
+      diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j))
+    (hp₁ : ∀ j : Fin d, Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j)
+    (hq₁ : ∀ (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω) j‖₊ : ℝ≥0∞) ^ 2
+        ∂volume ∂P < ⊤)
+    (hm₂ : ∀ j : Fin d, Measurable (Function.uncurry fun ω s =>
+      diffusionIntegrand u coeffs.σ s (Xp s ω) j))
+    (hp₂ : ∀ j : Fin d, Probability.ProgressivelyMeasurable ℱ fun ω s =>
+      diffusionIntegrand u coeffs.σ s (Xp s ω) j)
+    (hq₂ : ∀ (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖diffusionIntegrand u coeffs.σ s (Xp s ω) j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤) :
+    ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
+      (cutoffFun₂ u (2 * (m : ℝ)) T (Xp T ω) - cutoffFun₂ u (2 * (m : ℝ)) 0 (Xp 0 ω)
+          - (∫ s in Set.Icc (0 : ℝ) T,
+              JumpFormula.driftIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs s (Xp s ω))
+          - LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+              (fun s ω => diffusionIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.σ s (Xp s ω))
+              hm₁ hp₁ hq₁ T ω)
+        = u T (Xp T ω) - u 0 (Xp 0 ω)
+          - (∫ s in Set.Icc (0 : ℝ) T, JumpFormula.driftIntegrand u coeffs s (Xp s ω))
+          - LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral W ℱ hℱW
+              (fun s ω => diffusionIntegrand u coeffs.σ s (Xp s ω)) hm₂ hp₂ hq₂ T ω := by
+  filter_upwards [multidimIntegral_cutoffFun₂_eq_of_mem W ℱ hℱW u hm hTm hT hadapt hright
+    hm₁ hp₁ hq₁ hm₂ hp₂ hq₂] with ω hbro hb
+  have hend : ∀ s ∈ Set.Icc (0 : ℝ) T,
+      cutoffFun₂ u (2 * (m : ℝ)) s (Xp s ω) = u s (Xp s ω) :=
+    fun s hs => (integrands_cutoffFun₂_eq_of_boundedPath (coeffs := coeffs) u hm hTm hb hs).2.2.1
+  have hdr : (∫ s in Set.Icc (0 : ℝ) T,
+        JumpFormula.driftIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs s (Xp s ω))
+      = ∫ s in Set.Icc (0 : ℝ) T, JumpFormula.driftIntegrand u coeffs s (Xp s ω) :=
+    setIntegral_congr_fun measurableSet_Icc fun s hs =>
+      (integrands_cutoffFun₂_eq_of_boundedPath u hm hTm hb hs).1
+  rw [hdr, hbro hb, hend T ⟨hT.le, le_rfl⟩, hend 0 ⟨le_rfl, hT.le⟩]
 
 end BrownianTransfer
 

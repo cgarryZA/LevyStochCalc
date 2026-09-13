@@ -19,7 +19,7 @@ bounds hold for free.
 
 ## Main statements
 
-* `exists_bound_on_box` — on `[0, T] × closedBall 0 R` the time derivative, every gradient entry
+* `exists_bound_on_box` — on `[a, b] × closedBall 0 R` the time derivative, every gradient entry
   and every Hessian entry of a `C²` function are bounded by one constant.
 -/
 
@@ -44,14 +44,14 @@ theorem continuous_sum_abs_hessian (hu : ContDiff ℝ 2 (Function.uncurry u)) :
 
 /-- **On a compact time–space box the three derivative families of a `C²` function are
 bounded by one constant.** -/
-theorem exists_bound_on_box (hu : ContDiff ℝ 2 (Function.uncurry u)) (T R : ℝ) :
+theorem exists_bound_on_box (hu : ContDiff ℝ 2 (Function.uncurry u)) (a b R : ℝ) :
     ∃ K : ℝ, 0 ≤ K ∧
-      (∀ s x, s ∈ Set.Icc (0 : ℝ) T → ‖x‖ ≤ R → |timeDeriv u s x| ≤ K) ∧
-      (∀ s x, s ∈ Set.Icc (0 : ℝ) T → ‖x‖ ≤ R → ∀ i, |gradient u s x i| ≤ K) ∧
-      (∀ s x, s ∈ Set.Icc (0 : ℝ) T → ‖x‖ ≤ R → ∀ i j, |hessian u s x i j| ≤ K) := by
+      (∀ s x, s ∈ Set.Icc a b → ‖x‖ ≤ R → |timeDeriv u s x| ≤ K) ∧
+      (∀ s x, s ∈ Set.Icc a b → ‖x‖ ≤ R → ∀ i, |gradient u s x i| ≤ K) ∧
+      (∀ s x, s ∈ Set.Icc a b → ‖x‖ ≤ R → ∀ i j, |hessian u s x i j| ≤ K) := by
   classical
   set B : Set (ℝ × (Fin n → ℝ)) :=
-    Set.Icc (0 : ℝ) T ×ˢ Metric.closedBall (0 : Fin n → ℝ) R with hBdef
+    Set.Icc a b ×ˢ Metric.closedBall (0 : Fin n → ℝ) R with hBdef
   have hBc : IsCompact B := isCompact_Icc.prod (isCompact_closedBall _ _)
   obtain ⟨M₀, hM₀⟩ := hBc.exists_bound_of_continuousOn (continuous_timeDeriv hu).continuousOn
   obtain ⟨M₁, hM₁⟩ :=

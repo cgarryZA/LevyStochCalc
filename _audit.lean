@@ -3010,6 +3010,15 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
 #print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
+-- ===== Global cut-off derivative bounds, continuous-side transfer (B4-L5e, 2026-09-13) =====
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.cutoffFun₂_eq_zero_of_lt
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeDeriv_cutoffFun₂_eq_zero
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.gradient_cutoffFun₂_eq_zero
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.hessian_cutoffFun₂_eq_zero
+#print axioms LevyStochCalc.Ito.JumpFormulaCutoff.exists_globalBound_cutoffFun₂
+#print axioms LevyStochCalc.Ito.CutoffPath.multidimIntegral_cutoffFun₂_eq_of_mem
+#print axioms LevyStochCalc.Ito.CutoffPath.ae_continuousSide_cutoffFun₂_eq
+
 -- ===== The cut-off transfer on the jump side (B4-L5d, 2026-09-12) =====
 #print axioms LevyStochCalc.Ito.CutoffPath.norm_leftLimPathAt_le_of_boundedPath
 #print axioms LevyStochCalc.Ito.CutoffPath.abs_le_of_mem_Ioc
