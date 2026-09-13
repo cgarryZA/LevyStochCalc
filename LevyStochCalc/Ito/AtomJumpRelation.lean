@@ -22,7 +22,8 @@ left-limit jump sum over the window as a step function of the arrival times.
 * `LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub` — the jump side
   of the Itô–Lévy formula at finite activity reads the integrand only at the atoms.
 * `LevyStochCalc.Poisson.stochasticIntegral_eq_neg_setIntegral_of_atoms_zero` — an integrand
-  vanishing at every atom of the window has compensated integral minus its compensator.
+  vanishing at every atom of the window has compensated integral minus its compensator, on the
+  set of sample points where the vanishing holds.
 * `LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le` — the left limit of a step
   function with finitely many steps drops the steps at the point itself.
 * `LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum` — the left-limit
@@ -114,13 +115,15 @@ theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero
     (h_sq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     {A : Set E} (hA : MeasurableSet A) (hφpred : Probability.MarkedPredictable ℱ ν φ)
-    (hAν : ν A ≠ ⊤) (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0) {T : ℝ} (hT : 0 < T)
-    (hatoms : ∀ᵐ ω ∂P, ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(N.N ω) = 0) :
-    ∀ᵐ ω ∂P, Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
-      = -∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(referenceIntensity ν) := by
+    (hAν : ν A ≠ ⊤) (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0) {T : ℝ} (hT : 0 < T) (G : Set Ω)
+    (hatoms : ∀ᵐ ω ∂P, ω ∈ G →
+      ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(N.N ω) = 0) :
+    ∀ᵐ ω ∂P, ω ∈ G →
+      Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
+        = -∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(referenceIntensity ν) := by
   filter_upwards [Compensated.stochasticIntegral_ae_eq_pathwise N ℱ hℱ φ h_meas h_progMeas h_sq
-    hA hφpred hAν hsupp hT, hatoms] with ω hpath hzero
-  rw [hpath, hzero, zero_sub]
+    hA hφpred hAν hsupp hT, hatoms] with ω hpath hzero hG
+  rw [hpath, hzero hG, zero_sub]
 
 end JumpSide
 

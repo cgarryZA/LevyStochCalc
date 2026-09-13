@@ -19,7 +19,11 @@ to the compensator, so the identity survives at infinite activity.
 ## Main statements
 
 * `stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning` — the identity for an integrand
-  vanishing at the atoms of every window built from the spanning sets of the mark measure.
+  vanishing at the atoms of every window built from the spanning sets of the mark measure. Both
+  the vanishing and the integrability of the compensator are asked only on a set of sample
+  points, and the conclusion holds there: an integrand that is square integrable against the
+  intensity need not be integrable against it, so the compensator converges only where the
+  hypothesis puts it.
 -/
 
 open Filter MeasureTheory ProbabilityTheory Topology
@@ -60,20 +64,21 @@ theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
     (h_sq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (hφpred : Probability.MarkedPredictable ℱ ν φ)
-    (hφ0 : ∀ (ω : Ω) (s : ℝ) (e : E), s ≤ 0 → φ ω s e = 0) {T : ℝ} (hT : 0 < T)
-    (hint : ∀ᵐ ω ∂P, IntegrableOn (fun q : ℝ × E => φ ω q.1 q.2)
+    (hφ0 : ∀ (ω : Ω) (s : ℝ) (e : E), s ≤ 0 → φ ω s e = 0) {T : ℝ} (hT : 0 < T) (G : Set Ω)
+    (hint : ∀ᵐ ω ∂P, ω ∈ G → IntegrableOn (fun q : ℝ × E => φ ω q.1 q.2)
       (Set.Ioc (0 : ℝ) T ×ˢ (Set.univ : Set E)) (referenceIntensity ν))
-    (hatoms : ∀ᵐ ω ∂P, ∀ j : ℕ,
+    (hatoms : ∀ᵐ ω ∂P, ω ∈ G → ∀ j : ℕ,
       ∫ q in Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν j, φ ω q.1 q.2 ∂(N.N ω) = 0) :
-    ∀ᵐ ω ∂P, Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
-      = -∫ q in Set.Ioc (0 : ℝ) T ×ˢ (Set.univ : Set E), φ ω q.1 q.2
-          ∂(referenceIntensity ν) := by
+    ∀ᵐ ω ∂P, ω ∈ G →
+      Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
+        = -∫ q in Set.Ioc (0 : ℝ) T ×ˢ (Set.univ : Set E), φ ω q.1 q.2
+            ∂(referenceIntensity ν) := by
   classical
   set A : ℕ → Set E := fun j => (spanningSets ν j)ᶜ with hAdef
   have hA : ∀ j, MeasurableSet (A j) := fun j => (measurableSet_spanningSets ν j).compl
   have hAc : ∀ j, (A j)ᶜ = spanningSets ν j := fun j => compl_compl _
   -- the identity at each finite-intensity level
-  have hlevel : ∀ j : ℕ, ∀ᵐ ω ∂P,
+  have hlevel : ∀ j : ℕ, ∀ᵐ ω ∂P, ω ∈ G →
       Compensated.stochasticIntegral N ℱ hℱ (markCut (A j)ᶜ φ)
           (measurable_markCut h_meas (hA j).compl)
           (h_progMeas.indicator_mark (hA j).compl)
@@ -87,22 +92,22 @@ theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
     have hsupp : ∀ ω s e, e ∉ (A j)ᶜ → markCut (A j)ᶜ φ ω s e = 0 := by
       intro ω s e he
       rw [markCut_apply, Set.indicator_of_notMem he]
-    have hzero : ∀ᵐ ω ∂P,
+    have hzero : ∀ᵐ ω ∂P, ω ∈ G →
         ∫ q in Set.Ioc (0 : ℝ) T ×ˢ (A j)ᶜ, markCut (A j)ᶜ φ ω q.1 q.2 ∂(N.N ω) = 0 := by
-      filter_upwards [hatoms] with ω hω
+      filter_upwards [hatoms] with ω hω hG
       have hcongr : ∫ q in Set.Ioc (0 : ℝ) T ×ˢ (A j)ᶜ, markCut (A j)ᶜ φ ω q.1 q.2 ∂(N.N ω)
           = ∫ q in Set.Ioc (0 : ℝ) T ×ˢ (A j)ᶜ, φ ω q.1 q.2 ∂(N.N ω) := by
         refine setIntegral_congr_fun (measurableSet_Ioc.prod (hA j).compl) fun q hq => ?_
         rw [markCut_apply, Set.indicator_of_mem hq.2]
       rw [hcongr, hAc j]
-      exact hω j
+      exact hω hG j
     have hmain := stochasticIntegral_eq_neg_setIntegral_of_atoms_zero N ℱ hℱ (markCut (A j)ᶜ φ)
       (measurable_markCut h_meas (hA j).compl) (h_progMeas.indicator_mark (hA j).compl)
       (fun T' hT' => sq_markCut h_sq (A j)ᶜ T' hT') (hA j).compl
       (LevyStochCalc.Ito.JumpFormula.markedPredictable_markCut hφpred hφ0 (hA j).compl)
-      hAνj hsupp hT hzero
-    filter_upwards [hmain] with ω hω
-    rw [hω, hAc j]
+      hAνj hsupp hT G hzero
+    filter_upwards [hmain] with ω hω hG
+    rw [hω hG, hAc j]
     congr 1
     refine setIntegral_congr_fun (measurableSet_Ioc.prod (measurableSet_spanningSets ν j))
       fun q hq => ?_
@@ -119,18 +124,18 @@ theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
   have hmono : Monotone fun m : ℕ => Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν (k m) := by
     intro a b hab
     exact Set.prod_mono_right (monotone_spanningSets ν (hk.monotone hab))
-  have hcomp : ∀ᵐ ω ∂P, Tendsto
+  have hcomp : ∀ᵐ ω ∂P, ω ∈ G → Tendsto
       (fun m => ∫ q in Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν (k m), φ ω q.1 q.2
         ∂(referenceIntensity ν)) atTop
       (𝓝 (∫ q in Set.Ioc (0 : ℝ) T ×ˢ (Set.univ : Set E), φ ω q.1 q.2
         ∂(referenceIntensity ν))) := by
-    filter_upwards [hint] with ω hω
+    filter_upwards [hint] with ω hω hG
     have := MeasureTheory.tendsto_setIntegral_of_monotone
       (μ := referenceIntensity ν) (f := fun q : ℝ × E => φ ω q.1 q.2)
       (fun m => measurableSet_Ioc.prod (measurableSet_spanningSets ν (k m))) hmono
-      (by rwa [hunion])
+      (by rw [hunion]; exact hω hG)
     rwa [hunion] at this
-  filter_upwards [hlim, hcomp, MeasureTheory.ae_all_iff.mpr hlevel] with ω hω hcω hlω
+  filter_upwards [hlim, hcomp, MeasureTheory.ae_all_iff.mpr hlevel] with ω hω hcω hlω hG
   refine tendsto_nhds_unique hω ?_
   have : (fun m => Compensated.stochasticIntegral N ℱ hℱ (markCut (A (k m))ᶜ φ)
       (measurable_markCut h_meas (hA (k m)).compl)
@@ -139,8 +144,8 @@ theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
       = fun m => -∫ q in Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν (k m), φ ω q.1 q.2
           ∂(referenceIntensity ν) := by
     funext m
-    exact hlω (k m)
+    exact hlω (k m) hG
   rw [this]
-  exact hcω.neg
+  exact (hcω hG).neg
 
 end LevyStochCalc.Ito.JumpSide
