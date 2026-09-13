@@ -34,6 +34,9 @@ is the zero extension of the mark cut.
 * `LevyStochCalc.Ito.JumpSplitting.measurable_predictableSigma_leftLimPathAtPos` — the left
   limits of an adapted path having left limits at the positive times, cut to those times, are
   predictable.
+* `LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_comp_leftLimPathAt` — the zero
+  extension of a jointly measurable function of the time, the left limits and the mark is marked
+  predictable.
 * `LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt`,
   `LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_jumpCoeff_leftLimPath` — the
   zero extension of the jump coefficient read at the left limits of an adapted path, or of the
@@ -142,6 +145,29 @@ theorem measurable_predictableSigma_leftLimPathAtPos (Xp : ℝ → Ω → Fin n 
       rw [hzero]
       simp [leftLimPathAtPos, hs]
 
+/-- **The zero extension of a jointly measurable function of the time, the left limits of an
+adapted path having left limits at the positive times, and the mark, is marked predictable.** -/
+theorem markedPredictable_zeroExtPos_comp_leftLimPathAt (Xp : ℝ → Ω → Fin n → ℝ)
+    (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (hXadapt : ∀ t : ℝ, Measurable[ℱ t] (Xp t))
+    (hleft : ∀ (ω : Ω) (t : ℝ), 0 < t → ∀ j : Fin n,
+      ∃ L : ℝ, Tendsto (fun s => Xp s ω j) (𝓝[<] t) (𝓝 L))
+    {F : ℝ → (Fin n → ℝ) → E → ℝ}
+    (hF : Measurable fun q : ℝ × (Fin n → ℝ) × E => F q.1 q.2.1 q.2.2) :
+    MarkedPredictable ℱ ν (zeroExtPos fun ω s e => F s (leftLimPathAt Xp s ω) e) := by
+  classical
+  have h := markedPredictable_ite_of_predictable (ν := ν)
+    (measurable_predictableSigma_leftLimPathAtPos Xp ℱ hXadapt hleft) (f := F) hF
+  have hrw : (fun (ω : Ω) (s : ℝ) (e : E) =>
+      if 0 < s then F s (leftLimPathAtPos Xp s ω) e else 0)
+      = zeroExtPos fun ω s e => F s (leftLimPathAt Xp s ω) e := by
+    funext ω s e
+    by_cases hs : (0 : ℝ) < s
+    · rw [if_pos hs, zeroExtPos_of_pos _ ω hs e]
+      simp only [leftLimPathAtPos, if_pos hs]
+    · rw [if_neg hs, zeroExtPos_of_nonpos _ ω (not_lt.mp hs) e]
+  rwa [hrw] at h
+
 /-- **The zero extension of the jump coefficient of a coefficient bundle, read at the left limits
 of an adapted path having left limits at the positive times, is marked predictable.** -/
 theorem markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt (Xp : ℝ → Ω → Fin n → ℝ)
@@ -150,20 +176,9 @@ theorem markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt (Xp : ℝ → Ω �
     (hleft : ∀ (ω : Ω) (t : ℝ), 0 < t → ∀ j : Fin n,
       ∃ L : ℝ, Tendsto (fun s => Xp s ω j) (𝓝[<] t) (𝓝 L))
     (hγ : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2 i) :
-    MarkedPredictable ℱ ν (zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) := by
-  classical
-  have h := markedPredictable_ite_of_predictable (ν := ν)
-    (measurable_predictableSigma_leftLimPathAtPos Xp ℱ hXadapt hleft)
-    (f := fun s x e => coeffs.γ s x e i) hγ
-  have hrw : (fun (ω : Ω) (s : ℝ) (e : E) =>
-      if 0 < s then coeffs.γ s (leftLimPathAtPos Xp s ω) e i else 0)
-      = zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i := by
-    funext ω s e
-    by_cases hs : (0 : ℝ) < s
-    · rw [if_pos hs, zeroExtPos_of_pos _ ω hs e]
-      simp only [leftLimPathAtPos, if_pos hs]
-    · rw [if_neg hs, zeroExtPos_of_nonpos _ ω (not_lt.mp hs) e]
-  rwa [hrw] at h
+    MarkedPredictable ℱ ν (zeroExtPos fun ω s e => coeffs.γ s (leftLimPathAt Xp s ω) e i) :=
+  markedPredictable_zeroExtPos_comp_leftLimPathAt Xp ℱ hXadapt hleft
+    (F := fun s x e => coeffs.γ s x e i) hγ
 
 variable {P : Measure Ω} [IsProbabilityMeasure P]
   {W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d}

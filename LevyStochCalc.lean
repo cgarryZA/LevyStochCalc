@@ -296,6 +296,7 @@ import LevyStochCalc.Ito.CutoffPathAgreement
 import LevyStochCalc.Ito.AtomJumpRelation
 import LevyStochCalc.Ito.CutoffGlobalBounds
 import LevyStochCalc.Ito.JumpSideCompensator
+import LevyStochCalc.Ito.CutoffJumpTransfer
 import LevyStochCalc.Ito.CadlagExitTime
 import LevyStochCalc.Ito.JumpFormulaAssembled
 import LevyStochCalc.Ito.JumpCoefficientPredictable

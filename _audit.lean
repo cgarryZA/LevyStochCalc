@@ -3010,6 +3010,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
 #print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
+-- ===== The jump-side cut-off transfer (B4-L5h, 2026-09-13) =====
+#print axioms LevyStochCalc.Ito.CutoffPath.measurable_stateIncr
+#print axioms LevyStochCalc.Ito.CutoffPath.measurable_jumpIncrLeft
+#print axioms LevyStochCalc.Ito.CutoffPath.markedProgressivelyMeasurable_jumpIncrLeft
+#print axioms LevyStochCalc.Ito.CutoffPath.markedPredictable_zeroExtPos_jumpIncrLeft
+#print axioms LevyStochCalc.Ito.CutoffPath.ae_jumpSide_cutoffFun₂_eq
+#print axioms LevyStochCalc.Ito.JumpSplitting.markedPredictable_zeroExtPos_comp_leftLimPathAt
+
 -- ===== The jump side at infinite activity (B4-L5g, 2026-09-13) =====
 #print axioms LevyStochCalc.Ito.JumpSide.ae_eventually_mem_spanningSets
 #print axioms LevyStochCalc.Ito.JumpSide.stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
