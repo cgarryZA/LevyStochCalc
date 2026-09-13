@@ -21,6 +21,8 @@ left-limit jump sum over the window as a step function of the arrival times.
   segment of the window is the sum over the atoms whose time has been reached.
 * `LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub` — the jump side
   of the Itô–Lévy formula at finite activity reads the integrand only at the atoms.
+* `LevyStochCalc.Poisson.stochasticIntegral_eq_neg_setIntegral_of_atoms_zero` — an integrand
+  vanishing at every atom of the window has compensated integral minus its compensator.
 * `LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le` — the left limit of a step
   function with finitely many steps drops the steps at the point itself.
 * `LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum` — the left-limit
@@ -101,6 +103,24 @@ theorem stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub
     hA hφpred hAν hsupp hT, hφint, hψint] with ω hpath hφω hψω
   rw [hpath, integral_sub hφω hψω]
   ring
+
+/-- **A predictable integrand vanishing at the atoms of a window of finite intensity has
+compensated integral minus its compensator.** -/
+theorem stochasticIntegral_eq_neg_setIntegral_of_atoms_zero
+    (N : PoissonRandomMeasure P ν) (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
+    (hℱ : IsPoissonFiltration N ℱ) (φ : Ω → ℝ → E → ℝ)
+    (h_meas : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)
+    (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
+    (h_sq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+      (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
+    {A : Set E} (hA : MeasurableSet A) (hφpred : Probability.MarkedPredictable ℱ ν φ)
+    (hAν : ν A ≠ ⊤) (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0) {T : ℝ} (hT : 0 < T)
+    (hatoms : ∀ᵐ ω ∂P, ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(N.N ω) = 0) :
+    ∀ᵐ ω ∂P, Compensated.stochasticIntegral N ℱ hℱ φ h_meas h_progMeas h_sq T ω
+      = -∫ q in Set.Ioc (0 : ℝ) T ×ˢ A, φ ω q.1 q.2 ∂(referenceIntensity ν) := by
+  filter_upwards [Compensated.stochasticIntegral_ae_eq_pathwise N ℱ hℱ φ h_meas h_progMeas h_sq
+    hA hφpred hAν hsupp hT, hatoms] with ω hpath hzero
+  rw [hpath, hzero, zero_sub]
 
 end JumpSide
 

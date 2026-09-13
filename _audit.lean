@@ -3025,10 +3025,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.CutoffPath.gradient_cutoffFun₂_leftLim_eq_of_boundedPath
 #print axioms LevyStochCalc.Ito.CutoffPath.jumpIncrement_cutoffFun₂_eq_of_boundedPath
 #print axioms LevyStochCalc.Ito.CutoffPath.ae_setIntegral_jumpIncrement_cutoffFun₂_eq
+#print axioms LevyStochCalc.Ito.CutoffPath.ae_setIntegral_jumpIncrement_sub_eq_zero
+#print axioms LevyStochCalc.Ito.CutoffPath.cutoffFun₂_leftLim_eq_of_boundedPath
+#print axioms LevyStochCalc.Ito.CutoffPath.jumpIncrement_sub_eq_compensatorDrift_sub_of_boundedPath
 
 -- ===== The left-limit jump sum as a step function (B4-L5a, 2026-09-11) =====
 #print axioms LevyStochCalc.Poisson.setIntegral_Ioc_prod_eq_sum_filter
 #print axioms LevyStochCalc.Poisson.stochasticIntegral_add_setIntegral_sub_eq_pathwise_sub
+#print axioms LevyStochCalc.Poisson.stochasticIntegral_eq_neg_setIntegral_of_atoms_zero
 #print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma

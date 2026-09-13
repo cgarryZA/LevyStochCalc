@@ -42,10 +42,14 @@ hypothesis shape of `stochasticIntegralBrownian_congr_of_lt`.
 * `norm_leftLimPathAt_le_of_boundedPath`,
   `gradient_cutoffFun₂_leftLim_eq_of_boundedPath` — a confined path has its left limits in the
   ball, where the gradient of the cut-off is that of the function.
+* `cutoffFun₂_leftLim_eq_of_boundedPath`,
+  `jumpIncrement_sub_eq_compensatorDrift_sub_of_boundedPath` — the cut-off changes the jump
+  increment and the compensator-drift integrand by the same amount at the left limits.
 * `jumpIncrement_cutoffFun₂_eq_of_boundedPath`,
-  `ae_setIntegral_jumpIncrement_cutoffFun₂_eq` — the jump increment agrees with its cut-off at
-  every atom of a window of finite intensity, because the state reached by the jump is a value of
-  the path; hence the two integrals against the random measure agree.
+  `ae_setIntegral_jumpIncrement_cutoffFun₂_eq`, `ae_setIntegral_jumpIncrement_sub_eq_zero` — the
+  jump increment agrees with its cut-off at every atom of a window of finite intensity, because
+  the state reached by the jump is a value of the path; hence the two integrals against the
+  random measure agree and their difference integrates to zero.
 -/
 
 open MeasureTheory Filter Topology
@@ -314,6 +318,41 @@ theorem gradient_cutoffFun₂_leftLim_eq_of_boundedPath {Xp : ℝ → Ω → Fin
   rw [hrad]
   exact lt_of_le_of_lt (norm_leftLimPathAt_le_of_boundedPath hb hθ hleft) (by linarith)
 
+/-- The cut-off agrees with the function at the left limits of a path confined to the ball. -/
+theorem cutoffFun₂_leftLim_eq_of_boundedPath {Xp : ℝ → Ω → Fin n → ℝ}
+    (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ)) {ω : Ω}
+    (hb : ω ∈ Brownian.Ito.boundedPathSet Xp T m) {θ : ℝ} (hθ : θ ∈ Set.Ioc (0 : ℝ) T)
+    (hleft : ∀ i : Fin n, ∃ L : ℝ, Tendsto (fun s => Xp s ω i) (𝓝[<] θ) (𝓝 L)) :
+    cutoffFun₂ u (2 * (m : ℝ)) θ (leftLimPathAt Xp θ ω) = u θ (leftLimPathAt Xp θ ω) := by
+  have hm' : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
+  have hR : (0 : ℝ) < 2 * (m : ℝ) := by linarith
+  have hrad : 3 * (2 * (m : ℝ)) / 2 = 3 * (m : ℝ) := by ring
+  refine cutoffFun₂_eq hR (abs_le_of_mem_Ioc hTm hθ) ?_
+  rw [hrad]
+  exact le_trans (norm_leftLimPathAt_le_of_boundedPath hb hθ hleft) (by linarith)
+
+/-- **The cut-off changes the jump increment and the compensator-drift integrand by the same
+amount**, at the left limits of a path confined to the ball: both differences are the value of
+the difference of the two state functions at the state reached by the jump, because the
+difference and its gradient vanish at the left limit itself. -/
+theorem jumpIncrement_sub_eq_compensatorDrift_sub_of_boundedPath {Xp : ℝ → Ω → Fin n → ℝ}
+    {coeffs : Setting.JumpDiffusionCoeffs n d E} (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ}
+    (hm : 0 < m) (hTm : T < 3 * (m : ℝ)) {ω : Ω}
+    (hb : ω ∈ Brownian.Ito.boundedPathSet Xp T m) {θ : ℝ} (hθ : θ ∈ Set.Ioc (0 : ℝ) T)
+    (hleft : ∀ i : Fin n, ∃ L : ℝ, Tendsto (fun s => Xp s ω i) (𝓝[<] θ) (𝓝 L)) (e : E) :
+    (cutoffFun₂ u (2 * (m : ℝ)) θ
+          (leftLimPathAt Xp θ ω + coeffs.γ θ (leftLimPathAt Xp θ ω) e)
+        - cutoffFun₂ u (2 * (m : ℝ)) θ (leftLimPathAt Xp θ ω))
+        - (u θ (leftLimPathAt Xp θ ω + coeffs.γ θ (leftLimPathAt Xp θ ω) e)
+          - u θ (leftLimPathAt Xp θ ω))
+      = JumpFormula.compensatorDriftIntegrand (cutoffFun₂ u (2 * (m : ℝ))) coeffs.γ θ
+            (leftLimPathAt Xp θ ω) e
+        - JumpFormula.compensatorDriftIntegrand u coeffs.γ θ (leftLimPathAt Xp θ ω) e := by
+  have hval := cutoffFun₂_leftLim_eq_of_boundedPath u hm hTm hb hθ hleft
+  have hgrad := gradient_cutoffFun₂_leftLim_eq_of_boundedPath u hm hTm hb hθ hleft
+  simp only [JumpFormula.compensatorDriftIntegrand, hval, hgrad]
+  ring
+
 /-- **The jump increment agrees with its cut-off at an atom of the window, along a path confined
 to the ball.** The state reached by the jump is the value of the path at the arrival time, so the
 cut-off is inactive at the shifted point as well as at the base point, and no bound on the jump
@@ -377,6 +416,36 @@ theorem ae_setIntegral_jumpIncrement_cutoffFun₂_eq
   refine Finset.sum_congr rfl fun j _ => ?_
   exact jumpIncrement_cutoffFun₂_eq_of_boundedPath u hm hTm hb (hmem j).1
     (fun i => hlω (θ j) i) (hjump j)
+
+/-- **The difference of the cut-off's jump increment and the function's integrates to zero
+against the random measure** on the event that the path stays in the ball: every atom
+contributes zero. -/
+theorem ae_setIntegral_jumpIncrement_sub_eq_zero
+    (coeffs : Setting.JumpDiffusionCoeffs n d E)
+    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (Xp : ℝ → Ω → Fin n → ℝ)
+    (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ))
+    (V : ℝ → Ω → Fin n → ℝ) (hVc : ∀ᵐ ω ∂P, Continuous fun t => V t ω)
+    (hsplit : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
+      Xp t ω i = V t ω i + jumpSumLeftAt coeffs N Xp A t ω i)
+    (hleft : ∀ᵐ ω ∂P, ∀ (t : ℝ) (i : Fin n),
+      ∃ L : ℝ, Tendsto (fun s => Xp s ω i) (𝓝[<] t) (𝓝 L)) :
+    ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
+      ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
+          ((cutoffFun₂ u (2 * (m : ℝ)) q.1
+                (leftLimPathAt Xp q.1 ω + coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2)
+              - cutoffFun₂ u (2 * (m : ℝ)) q.1 (leftLimPathAt Xp q.1 ω))
+            - (u q.1 (leftLimPathAt Xp q.1 ω + coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2)
+              - u q.1 (leftLimPathAt Xp q.1 ω))) ∂(N.N ω) = 0 := by
+  filter_upwards [ae_exists_atomEnum_jump_eq_gamma coeffs N Xp A hA hAν T V hVc hsplit, hleft]
+    with ω hω hlω hb
+  obtain ⟨K, θ, ε, -, hmem, hg, hjump⟩ := hω
+  rw [hg]
+  refine Finset.sum_eq_zero fun j _ => ?_
+  rw [jumpIncrement_cutoffFun₂_eq_of_boundedPath u hm hTm hb (hmem j).1
+    (fun i => hlω (θ j) i) (hjump j)]
+  exact sub_self _
+
 
 end JumpTransfer
 
