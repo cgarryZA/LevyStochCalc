@@ -3010,6 +3010,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Stability.integral_sub_mul_self_le_of_lipschitz
 #print axioms LevyStochCalc.Ito.Stability.ae_eq_of_lipschitz_of_ae_eq_initial
 
+-- ===== The jump side at infinite activity (B4-L5g, 2026-09-13) =====
+#print axioms LevyStochCalc.Ito.JumpSide.ae_eventually_mem_spanningSets
+#print axioms LevyStochCalc.Ito.JumpSide.stochasticIntegral_eq_neg_setIntegral_of_atoms_zero_spanning
+
 -- ===== Global cut-off derivative bounds, continuous-side transfer (B4-L5e, 2026-09-13) =====
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.cutoffFun₂_eq_zero_of_lt
 #print axioms LevyStochCalc.Ito.JumpFormulaCutoff.timeDeriv_cutoffFun₂_eq_zero
