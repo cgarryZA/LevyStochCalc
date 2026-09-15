@@ -636,8 +636,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       (2026-09-15) — every hypothesis of `exists_unique_solvesBSDEJ` is discharged for the generator
       `f(s, y, z, u) = y`, terminal datum `W_1`, horizon `1`, `ν = δ₁` on a driver from
       `LevyDriver.exists`, and every solution has `Y_1 =ᵐ W_1`, not a.e. zero, so the conclusion is
-      not the zero triple. Still open: a witness that the realised path of the Itô–Lévy example is
-      not a.e. zero, and a witness with `Z ≠ 0`.
+      not the zero triple; `examples/NonvacuityBSDEJZ.lean` (2026-09-15) — for `f = 0`, `ξ = W_1`,
+      `T = 1` the explicit triple (a continuous modification of `W`, `Z = 1_{(0,1]}`, `U = 0`) is a
+      `SolvesBSDEJ`, its `Z` has energy `1`, and by uniqueness every solution's `Z` has energy `1`
+      (`stochasticIntegralBrownian_one` in `Brownian/ItoIncrement.lean` is the new brick). Still
+      open: the explicit solution `Y = e^{1−t} W_t`, `Z = e^{1−s}` of the `f = y` equation (nonzero
+      generator and nonzero `Z` together), and a witness that the realised path of the Itô–Lévy
+      example is not a.e. zero.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 

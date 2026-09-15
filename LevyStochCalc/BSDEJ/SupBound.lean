@@ -27,6 +27,7 @@ time integral of the generator.
 * `lintegral_biSup_sq_const_add_add_add_lt_top` — a sum of a constant and three processes of
   finite `S²` seminorm has finite `S²` seminorm.
 * `lintegral_biSup_sq_setIntegral_le` — the `S²` seminorm of a time integral, by Cauchy–Schwarz.
+* `lintegral_biSup_sq_const_mul` — the `S²` seminorm of a scalar multiple of a process.
 -/
 
 open MeasureTheory
@@ -213,5 +214,23 @@ theorem lintegral_biSup_sq_setIntegral_le (g : Ω → ℝ → ℝ) (T : ℝ)
     _ = ENNReal.ofReal T
           * ∫⁻ ω, (∫⁻ s in Set.Icc (0 : ℝ) T, (‖g ω s‖₊ : ℝ≥0∞) ^ 2) ∂μ :=
         lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
+
+/-! ### Scalar multiples -/
+
+/-- The squared supremum over `[0, T]` of a scalar multiple of a process is the squared norm of
+the scalar times the squared supremum of the process. -/
+theorem biSup_sq_const_mul (c : ℝ) (M : ℝ → Ω → ℝ) (T : ℝ) (ω : Ω) :
+    ⨆ t ∈ Set.Icc (0 : ℝ) T, (‖c * M t ω‖₊ : ℝ≥0∞) ^ 2
+      = (‖c‖₊ : ℝ≥0∞) ^ 2 * ⨆ t ∈ Set.Icc (0 : ℝ) T, (‖M t ω‖₊ : ℝ≥0∞) ^ 2 := by
+  simp only [nnnorm_mul, ENNReal.coe_mul, mul_pow, ENNReal.mul_iSup]
+
+/-- The `S²` seminorm of a scalar multiple of a process is the squared norm of the scalar times
+the `S²` seminorm of the process. -/
+theorem lintegral_biSup_sq_const_mul (c : ℝ) (M : ℝ → Ω → ℝ) (T : ℝ) :
+    ∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖c * M t ω‖₊ : ℝ≥0∞) ^ 2) ∂μ
+      = (‖c‖₊ : ℝ≥0∞) ^ 2
+        * ∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖M t ω‖₊ : ℝ≥0∞) ^ 2) ∂μ := by
+  rw [← lintegral_const_mul' _ _ (ENNReal.pow_ne_top ENNReal.coe_ne_top)]
+  exact lintegral_congr fun ω => biSup_sq_const_mul c M T ω
 
 end LevyStochCalc.BSDEJ.SupBound

@@ -117,6 +117,56 @@ theorem stochasticIntegralBrownian_indIoc {a b : ℝ} (ha : 0 ≤ a) (hab : a < 
     exact hkey.trans
       (Filter.Eventually.of_forall fun ω => stepIoc_integralAgainst ha' hab W.W t ω)
 
+include hℱ in
+/-- The Itô integral of the constant integrand `1` at a time `t ≥ 0` is the Brownian value at
+`t`. -/
+theorem stochasticIntegralBrownian_one
+    (hm : Measurable (Function.uncurry fun (_ : Ω) (_ : ℝ) => (1 : ℝ)))
+    (hp : Probability.ProgressivelyMeasurable ℱ fun (_ : Ω) (_ : ℝ) => (1 : ℝ))
+    (hq : ∀ T, 0 < T → ∫⁻ _ω : Ω, ∫⁻ _s in Set.Icc (0 : ℝ) T,
+      (‖(1 : ℝ)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    {t : ℝ} (ht : 0 ≤ t) :
+    stochasticIntegralBrownian W ℱ hℱ (fun _ _ => (1 : ℝ)) hm hp hq t =ᵐ[P] W.W t := by
+  rcases eq_or_lt_of_le ht with rfl | ht'
+  · filter_upwards [stochasticIntegralBrownian_ae_zero_of_nonpos W ℱ hℱ
+      (fun _ _ => (1 : ℝ)) hm hp hq (le_refl (0 : ℝ)), W.initial_zero] with ω h1 h2
+    simp [h1, h2]
+  · have hmul : (fun (_ : Ω) (s : ℝ) =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * (1 : ℝ)) = indIoc Ω 0 t := by
+      funext _ _
+      simp [indIoc]
+    have hm' : Measurable (Function.uncurry (indIoc Ω 0 t)) := measurable_uncurry_indIoc 0 t
+    have hp' : Probability.ProgressivelyMeasurable ℱ (indIoc Ω 0 t) :=
+      progressivelyMeasurable_indIoc₀ ℱ ht'
+    have hq' : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖indIoc Ω 0 t ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
+      fun T hT => lintegral_sq_indIoc_lt_top P 0 t T hT
+    have him : Measurable (Function.uncurry fun (_ : Ω) (s : ℝ) =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * (1 : ℝ)) := by
+      rw [hmul]; exact hm'
+    have hip : Probability.ProgressivelyMeasurable ℱ (fun (_ : Ω) (s : ℝ) =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * (1 : ℝ)) := by
+      rw [hmul]; exact hp'
+    have hiq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
+        (‖(Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * (1 : ℝ)‖₊ : ℝ≥0∞) ^ 2
+          ∂volume ∂P < ⊤ := by
+      intro T hT
+      simpa [indIoc] using hq' T hT
+    have hkey := stochasticIntegralBrownian_indicator_Ioc W ℱ hℱ (fun _ _ => (1 : ℝ)) hm hp hq
+      (a := 0) (b := t) le_rfl ht' him hip hiq ht'
+    rw [min_self, min_eq_left ht'.le] at hkey
+    have hI : stochasticIntegralBrownian W ℱ hℱ (fun (_ : Ω) (s : ℝ) =>
+        (Set.Ioc (0 : ℝ) t).indicator (fun _ => (1 : ℝ)) s * (1 : ℝ)) him hip hiq t
+        =ᵐ[P] fun ω => W.W t ω - W.W 0 ω := by
+      rw [stochasticIntegralBrownian_congr_fun W ℱ hℱ hmul him hip hiq hm' hp' hq' t]
+      have h := stochasticIntegralBrownian_indIoc W ℱ hℱ (a := 0) (b := t) le_rfl ht'
+        hm' hp' hq' ht'.le
+      rwa [min_self, min_eq_left ht'.le] at h
+    filter_upwards [hkey, hI, stochasticIntegralBrownian_ae_zero_of_nonpos W ℱ hℱ
+      (fun _ _ => (1 : ℝ)) hm hp hq (le_refl (0 : ℝ)), W.initial_zero] with ω h1 h2 h3 h4
+    simp only [Pi.zero_apply] at h3
+    linarith [h1, h2, h3, h4]
+
 end Indicator
 
 end LevyStochCalc.Brownian.Ito
