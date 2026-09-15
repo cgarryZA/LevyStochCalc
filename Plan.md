@@ -623,7 +623,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 
 ## Phase C — Non-vacuity artifact (`GOAL.md` §B)
 
-- [ ] **C1** Add `examples/Nonvacuity.lean`: per cited result + pinned symbol, an
+- [x] **C1** Add `examples/Nonvacuity.lean`: per cited result + pinned symbol, an
       `example` discharging the hypotheses on a concrete non-degenerate model
       (non-zero-variance BM, non-zero Itô integral, the intended BSDEJ solution),
       so non-vacuity is CI-checked, not promised. Start with the now-closed
