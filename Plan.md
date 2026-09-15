@@ -737,13 +737,19 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       Applebaum, Jacod–Shiryaev, Delong, Bouchard–Elie); for each of the 14 cited statements
       check quantifier order (`∀∃` vs `∃∀`) and that every hypothesis is used. Record every
       discrepancy as a ledger finding and fix or restate. (wave 14, audit in progress)
-- [ ] **C′2** Tie the BM layer to the mathlib predicates at the pin
+- [x] **C′2** Tie the BM layer to the mathlib predicates at the pin
       (`ProbabilityTheory.IsPreBrownianReal`, `IsBrownianReal`, `IsGaussianProcess`,
       `HasIndepIncrements` — all present in Mathlib `81a5d257`): the converse direction
       `BrownianMotion.ofIsPreBrownianReal` exists (`Brownian/Existence.lean`); the forward
-      direction `BrownianMotion.isBrownianReal : IsBrownianReal (fun t : ℝ≥0 => W.W t) P` with
-      `hasIndepIncrements` and `isGaussianProcess` is wave 14 (`Brownian/MathlibBridge.lean`).
-      This is also `D1`.
+      direction is `Brownian/MathlibBridge.lean` (2026-09-15): `BrownianMotion.hasLaw_eval`
+      (`W_t ∼ 𝒩(0, t)`), `hasIndepIncrements` (mutual independence of the increments along any
+      monotone tuple, from the σ-algebra field through the chain criterion
+      `iIndep_of_indep_biSup_lt`), `isPreBrownianReal` (via Mathlib's
+      `HasIndepIncrements.isPreBrownianReal_of_hasLaw`), `isBrownianReal`, `isGaussianProcess`,
+      and the round trip `ofIsPreBrownianReal_w_ae_eq` (the rebuilt motion has paths
+      `r ↦ W_r − W_0`, equal to `W_r` almost surely at `r ≥ 0`; it needs everywhere-continuous
+      paths because `ofIsPreBrownianReal` does). Index set `ℝ≥0` on the Mathlib side. **Done**;
+      this is also `D1`.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
@@ -754,8 +760,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
       File splits keep every pinned symbol in its module of record (no forwarding stubs).
-- [ ] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
-      `HasIndepIncrements`, `IsGaussianProcess`) — see C′2.
+- [x] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
+      `HasIndepIncrements`, `IsGaussianProcess`) — see C′2 (`Brownian/MathlibBridge.lean`).
 - [ ] **D2** Per closed, general result, in mathlib-readiness order (smallest
       `Basic.lean` `eLpNorm` helpers first; then BM/KC pieces — coordinate on
       Zulip; then PointProcess → StochasticIntegral → SDE → BSDE): re-home to

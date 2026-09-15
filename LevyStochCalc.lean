@@ -130,6 +130,7 @@ import LevyStochCalc.Poisson.L2Isometry
 -- Layer 1.5: Brownian motion (existence via RemyDegenne/brownian-motion)
 import LevyStochCalc.Brownian.Construction
 import LevyStochCalc.Brownian.Existence
+import LevyStochCalc.Brownian.MathlibBridge
 import LevyStochCalc.Brownian.Continuity
 import LevyStochCalc.Brownian.Martingale
 import LevyStochCalc.Brownian.Filtered
