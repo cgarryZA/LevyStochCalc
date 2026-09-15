@@ -130,6 +130,17 @@ structure SolvesBSDEJ (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν)
             D.isPoissonFiltration_aug (fun ω' s e => U s ω' e) U_meas U_prog
             (marked_sq_int_global_of_vanishing U_vanish U_sq) t ω)
 
+/-- The value process of a solution agrees with the terminal datum almost surely at the horizon. -/
+theorem SolvesBSDEJ.Y_terminal {D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν}
+    {f : ℝ → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ} {ξ : Ω → ℝ} {T : ℝ} {Y : ℝ → Ω → ℝ}
+    {Z : ℝ → Ω → (Fin d → ℝ)} {U : ℝ → Ω → E → ℝ}
+    (h : SolvesBSDEJ D f ξ T Y Z U) (hT : 0 ≤ T) : Y T =ᵐ[P] ξ := by
+  filter_upwards [h.eqn T ⟨hT, le_rfl⟩] with ω hω
+  have hint : ∫ s in Set.Icc T T, f s (Y s ω) (Z s ω) (U s ω) = 0 :=
+    MeasureTheory.setIntegral_measure_zero _ (by simp)
+  rw [hω, hint]
+  ring
+
 /-- The `BSDEJData` of a generator that does not read the forward process, with the forward
 dimension `n = 1` and the terminal condition the evaluation `x ↦ x 0`. -/
 def bsdejDataOfGenerator (f : ℝ → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ)

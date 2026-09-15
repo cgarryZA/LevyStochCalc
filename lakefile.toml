@@ -43,4 +43,4 @@ name = "LevyStochCalc"
 [[lean_lib]]
 name = "LevyStochCalcExamples"
 srcDir = "examples"
-roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy"]
+roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy", "NonvacuityBSDEJ"]

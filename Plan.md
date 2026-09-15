@@ -623,8 +623,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       the drivers' natural filtrations); `examples/NonvacuityItoLevy.lean` — every hypothesis of
       `itoLevyFormula_general` is discharged for `μ = 0`, `σ = 1`, `γ = e`, `ν = δ₁`, `u = x²`
       (whose gradient is provably unbounded, `not_bddAbove_gradient_uSq`) on a solution built by
-      `exists_globalSolution` over a driver from `LevyDriver.exists`. Still open: a witness that the
-      realised path is not a.e. zero, and a non-degenerate `IsBSDEJSolution` witness (A6).
+      `exists_globalSolution` over a driver from `LevyDriver.exists`; `examples/NonvacuityBSDEJ.lean`
+      (2026-09-15) — every hypothesis of `exists_unique_solvesBSDEJ` is discharged for the generator
+      `f(s, y, z, u) = y`, terminal datum `W_1`, horizon `1`, `ν = δ₁` on a driver from
+      `LevyDriver.exists`, and every solution has `Y_1 =ᵐ W_1`, not a.e. zero, so the conclusion is
+      not the zero triple. Still open: a witness that the realised path of the Itô–Lévy example is
+      not a.e. zero, and a witness with `Z ≠ 0`.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
