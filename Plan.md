@@ -660,11 +660,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       partly (the σ-algebra symbols of `Driver/VectorIncrement.lean` and `Brownian/MultidimFiltered.lean`,
       the compensated-box lemmas, `jointIntegral`, the PRP, `BSDEJData`/`IsBSDEJSolution`,
       `Existence.Lipschitz`, `conditionalTimeAverage_U`), and 11 of the 14 cited theorems are reached
-      only through wrappers, never applied by name. **The one structural gap**: every BSDEJ witness
-      has `U ≡ 0`, because no terminal datum or generator reads the jump mark; a model with a
-      jump-dependent terminal datum (the compensated count of a mark set, so that `U = 1_A` and
-      the marked energy is `ν(A)`) is the next item. The `GOAL.md` §1.B boxes stay open until every
-      pinned symbol has a witness.
+      only through wrappers, never applied by name. **The structural gap, closed the same day**: the
+      four earlier BSDEJ witnesses all had `U ≡ 0` (no terminal datum or generator read the jump
+      mark); `examples/NonvacuityBSDEJJump.lean` takes the terminal datum `ξ = J_1`, the compensated
+      integral of the window indicator, so the solution is the càdlàg version of `J`, `Z = 0`,
+      `U = 1_{(0,1]}` with marked energy `1`, and by uniqueness every solution's `U` has marked
+      energy `1`. The `GOAL.md` §1.B boxes stay open until every pinned symbol has a witness.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
