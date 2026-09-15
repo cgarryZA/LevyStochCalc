@@ -7,6 +7,7 @@ import LevyStochCalc.BSDEJ.PicardContraction
 import LevyStochCalc.BSDEJ.GeneratorModification
 import LevyStochCalc.BSDEJ.DriftModification
 import LevyStochCalc.Probability.ProgressiveCadlag
+import LevyStochCalc.Probability.MarkedProgressiveSlice
 
 /-!
 # Uniqueness of solutions of a backward equation with jumps
@@ -44,13 +45,6 @@ variable {Ω : Type u} [mΩ : MeasurableSpace Ω] {E : Type v} [MeasurableSpace 
   {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {d : ℕ}
 
 /-! ### Auxiliary facts -/
-
-/-- Marked progressive measurability is monotone in the filtration. -/
-theorem markedProgressivelyMeasurable_mono {F : Type*} [TopologicalSpace F] [Zero F]
-    {ℱ 𝒢 : Filtration ℝ mΩ} {φ : Ω → ℝ → E → F}
-    (h : Probability.MarkedProgressivelyMeasurable ℱ φ) (hle : ∀ t, ℱ t ≤ 𝒢 t) :
-    Probability.MarkedProgressivelyMeasurable 𝒢 φ := fun t =>
-  (h t).mono (sup_le_sup (MeasurableSpace.comap_mono (hle t)) le_rfl)
 
 /-- A finite extended nonnegative real bounded by a quarter of itself is zero. -/
 theorem eq_zero_of_le_inv_four_mul {w : ℝ≥0∞} (hw : w ≠ ⊤) (hle : w ≤ 4⁻¹ * w) : w = 0 := by
@@ -181,7 +175,7 @@ theorem exists_drift_of_solvesBSDEJ {D : LevyStochCalc.Driver.LevyDriver.{u, v, 
     Generator.exists_progressive_generator_modification (P := P) (ν := ν) D.N
       (augJoint D).rightCont hf hlip hT hf0 h.Y_meas hYp hYe h.Z_meas
       (fun i => (h.Z_prog i).mono fun t => (augJoint D).le_rightCont t) h.Z_sq h.U_meas
-      (markedProgressivelyMeasurable_mono h.U_prog fun t => (augJoint D).le_rightCont t)
+      (h.U_prog.mono fun t => (augJoint D).le_rightCont t)
       (marked_sq_int_global_of_vanishing h.U_vanish h.U_sq)
   obtain ⟨b', hb'm, hb'p, hb'z, hb'q, hb'ae⟩ :=
     Generator.exists_progressive_modification_of_rightCont (ℱ := augJoint D) hbm hbp hbz hbq

@@ -10,7 +10,8 @@ import LevyStochCalc.Probability.Progressive
 
 For a marked process `φ : Ω → ℝ → E → F` that is `MarkedProgressivelyMeasurable` for a
 filtration `ℱ`, each mark `e : E` gives a slice `(ω, s) ↦ φ ω s e` which is
-`ProgressivelyMeasurable` for `ℱ`.
+`ProgressivelyMeasurable` for `ℱ`, and `MarkedProgressivelyMeasurable.mono` transfers marked
+progressive measurability along an inclusion of filtrations.
 
 Composing with `ProgressivelyMeasurable.isStronglyProgressive` and the inclusion
 `ℱ ≤ ℱ.rightCont` transfers both the scalar and the mark-sliced statements to
@@ -39,6 +40,12 @@ theorem MarkedProgressivelyMeasurable.slice (h : MarkedProgressivelyMeasurable �
   have hg : Measurable fun p : Ω × ℝ => (p.1, p.2, e) :=
     measurable_fst.prodMk (measurable_snd.prodMk measurable_const)
   exact (h t).comp_measurable hg
+
+/-- Marked progressive measurability is monotone in the filtration. -/
+theorem MarkedProgressivelyMeasurable.mono {𝒢 : Filtration ℝ mΩ}
+    (h : MarkedProgressivelyMeasurable ℱ φ) (hle : ∀ t, ℱ t ≤ 𝒢 t) :
+    MarkedProgressivelyMeasurable 𝒢 φ := fun t =>
+  (h t).mono (sup_le_sup (MeasurableSpace.comap_mono (hle t)) le_rfl)
 
 end Slice
 
