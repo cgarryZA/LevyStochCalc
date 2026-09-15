@@ -79,6 +79,8 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   **Z1a and M1 done 2026-09-15**: the axiom is deleted (`Open #16`), and the jump relation at
   the arrival times is a theorem for a solution (`Ito/JumpSplittingRemainder.lean`,
   `ae_exists_atomEnum_jump_eq_gamma_of_sdeData`); `hsplit` is gone from the Stage-2 chain.
+  **M2 (first half) done 2026-09-15**: `itoLevyFormula_jumpResidual_of_sdeData` takes joint
+  measurability of the coefficients and the drift energy instead of `IsRegular`/`IsLipschitz`.
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise

@@ -229,18 +229,43 @@ theorem lintegral_iSup_cadlagRep (hG0 : P Gᶜ = 0) (T' : ℝ) :
   filter_upwards [ae_forall_cadlagRep_eq (P := P) hG0] with ω hω
   exact iSup_congr fun t => by rw [hω t t.2.1]
 
+omit [IsProbabilityMeasure P] in
+/-- A function of the time and the state has the same window energy along the representative as
+along the original path. -/
+theorem lintegral_sq_comp_cadlagRep (hG0 : P Gᶜ = 0) (f : ℝ → (Fin n → ℝ) → ℝ) (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f s (cadlagRep G X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖f s (X s ω)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
+  refine lintegral_congr_ae ?_
+  filter_upwards [ae_forall_cadlagRep_eq (P := P) hG0] with ω hω
+  exact setLIntegral_congr_fun measurableSet_Icc fun s hs => by rw [hω s hs.1]
+
+omit [IsProbabilityMeasure P] in
+/-- A marked function of the time and the state has the same window energy along the
+representative as along the original path. -/
+theorem lintegral_sq_marked_comp_cadlagRep {E : Type*} [MeasurableSpace E] {ν : Measure E}
+    (hG0 : P Gᶜ = 0) (g : ℝ → (Fin n → ℝ) → E → ℝ) (T : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
+        (‖g s (cadlagRep G X s ω) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
+      = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (‖g s (X s ω) e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P := by
+  refine lintegral_congr_ae ?_
+  filter_upwards [ae_forall_cadlagRep_eq (P := P) hG0] with ω hω
+  exact setLIntegral_congr_fun measurableSet_Icc fun s hs => by rw [hω s hs.1]
+
 /-- The representative solves the equation on every window, relative to the same filtration. -/
 theorem solvesOn_cadlagRep (hGm : MeasurableSet G) (hG0 : P Gᶜ = 0)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s)
-    (hReg : coeffs.IsRegular ν) {L : ℝ} (hLip : coeffs.IsLipschitz ν L)
+    (hσmeas : Measurable (Function.uncurry coeffs.σ))
+    (hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
+    (hσq : ∀ (i : Fin n) (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.σ s (X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+    (hγq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+      (‖coeffs.γ s (X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (hXm : Measurable (Function.uncurry X))
     (hXa : ∀ i : Fin n, ProgressivelyMeasurable ℱ fun ω s => X s ω i)
     (hX0 : ∀ᵐ ω ∂P, X 0 ω = x₀)
     (hGp : ∀ ω ∈ G, ∀ t : ℝ, 0 ≤ t →
       Tendsto (fun s => X s ω) (𝓝[>] t) (𝓝 (X t ω))
         ∧ ∀ i : Fin n, ∃ L : ℝ, Tendsto (fun s => X s ω i) (𝓝[<] t) (𝓝 L))
-    (hXS : ∀ T' : ℝ, 0 < T' →
-      ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T', ∑ i, (‖X (t : ℝ) ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤)
     (hXsol : ∀ T : ℝ, SolvesOn W N ℱ hℱW hℱN coeffs x₀ X T) (T : ℝ) :
     SolvesOn W N ℱ hℱW hℱN coeffs x₀ (cadlagRep G X) T := by
   have hG : MeasurableSet[ℱ 0] G := by
@@ -249,34 +274,34 @@ theorem solvesOn_cadlagRep (hGm : MeasurableSet G) (hG0 : P Gᶜ = 0)
   have hYm : Measurable (Function.uncurry (cadlagRep G X)) := measurable_uncurry_cadlagRep hGm hXm
   have hYa : ∀ i : Fin n, ProgressivelyMeasurable ℱ fun ω s => cadlagRep G X s ω i :=
     fun i => progressivelyMeasurable_cadlagRep hGp hG hXad i
-  have hYS : ∀ T' : ℝ, 0 < T' →
-      ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T', ∑ i, (‖cadlagRep G X (t : ℝ) ω i‖₊ : ℝ≥0∞) ^ 2) ∂P
-        < ⊤ := fun T' hT' => by
-    rw [lintegral_iSup_cadlagRep hG0]
-    exact hXS T' hT'
-  have hYsq := fun b => lintegral_lintegral_sq_lt_top_of_supL2 hYS b
   have hσm : ∀ i : Fin n, ∀ j : Fin d,
       Measurable (Function.uncurry fun ω s => coeffs.σ s (cadlagRep G X s ω) i j) :=
-    fun i j => measurable_sigma_comp_state coeffs hReg hYm i j
+    fun i j => ((measurable_pi_apply j).comp ((measurable_pi_apply i).comp hσmeas)).comp
+      (measurable_snd.prodMk (hYm.comp (measurable_snd.prodMk measurable_fst)))
   have hσp : ∀ i : Fin n, ∀ j : Fin d,
       ProgressivelyMeasurable ℱ fun ω s => coeffs.σ s (cadlagRep G X s ω) i j :=
     fun i j => progressivelyMeasurable_comp_state hYa (f := fun s x => coeffs.σ s x i j)
-      ((measurable_pi_apply j).comp ((measurable_pi_apply i).comp hReg.2.1))
+      ((measurable_pi_apply j).comp ((measurable_pi_apply i).comp hσmeas))
   have hσq : ∀ i : Fin n, ∀ j : Fin d, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
         (‖coeffs.σ s (cadlagRep G X s ω) i j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
-    fun i j T' hT' => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip hYm hYsq i j hT'
+    fun i j T' hT' => (lintegral_sq_comp_cadlagRep hG0 (fun s x => coeffs.σ s x i j) T').trans_lt
+      (hσq i j T' hT')
   have hγm : ∀ i : Fin n,
       Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (cadlagRep G X p.2.1 p.1) p.2.2 i :=
-    fun i => measurable_gamma_comp_state coeffs hReg hYm i
+    fun i => ((measurable_pi_apply i).comp hγmeas).comp
+      ((measurable_fst.comp measurable_snd).prodMk
+        ((hYm.comp ((measurable_fst.comp measurable_snd).prodMk measurable_fst)).prodMk
+          (measurable_snd.comp measurable_snd)))
   have hγp : ∀ i : Fin n,
       MarkedProgressivelyMeasurable ℱ fun ω s e => coeffs.γ s (cadlagRep G X s ω) e i :=
     fun i => markedProgressivelyMeasurable_comp_state hYa (g := fun s x e => coeffs.γ s x e i)
-      ((measurable_pi_apply i).comp hReg.2.2.1)
+      ((measurable_pi_apply i).comp hγmeas)
   have hγq : ∀ i : Fin n, ∀ T' : ℝ, 0 < T' →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
         (‖coeffs.γ s (cadlagRep G X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ :=
-    fun i T' hT' => lintegral_sq_gamma_lt_top_of_energy coeffs hReg hLip hYm hYsq i hT'
+    fun i T' hT' => (lintegral_sq_marked_comp_cadlagRep hG0 (fun s x e => coeffs.γ s x e i)
+      T').trans_lt (hγq i T' hT')
   refine ⟨hσm, hσp, hσq, hγm, hγp, hγq, fun t ht => ?_⟩
   rcases ht.1.lt_or_eq with ht0 | ht0
   · -- at a positive time, the step reads the two paths on `[0, t]`, where they agree a.s.
@@ -579,8 +604,8 @@ theorem itoLevyFormula_jumpResidual_of_solvesOn [ℱ.IsRightContinuous]
       rw [hYdef, lintegral_iSup_cadlagRep hG0]
       exact hXS T' hT'
   have hYsol : ∀ T' : ℝ, SolvesOn W N ℱ hℱW hℱN coeffs x₀ Y T' := fun T' =>
-    solvesOn_cadlagRep W N ℱ hℱW hℱN coeffs hGm hG0 hnull hReg hLip hXm hXa₀ hX0 hGp hXS
-      hXsol T'
+    solvesOn_cadlagRep W N ℱ hℱW hℱN coeffs hGm hG0 hnull hReg.2.1 hReg.2.2.1 (hXsol 0).h_σ_sq
+      (hXsol 0).h_γ_sq hXm hXa₀ hX0 hGp hXsol T'
   let X : JumpDiffusion W N coeffs x₀ :=
     jumpDiffusionOfSolvesOn W N ℱ hℱW hℱN coeffs x₀ hYm hY0
       (Eventually.of_forall fun ω t _ => hYcad ω t) hYS hYsol
@@ -649,13 +674,14 @@ theorem multidimIntegral_congr_ae (Z₁ Z₂ : ℝ → Ω → (Fin d → ℝ))
 
 /-- **The Itô–Lévy formula at bounded derivatives, for a solution with left limits everywhere.**
 For a jump diffusion carrying SDE data at a filtration satisfying the usual conditions, with
-regular Lipschitz coefficients and left limits along every path, a `C²` state function with
+jointly measurable coefficients, a drift of finite energy along the path and left limits along
+every path, a `C²` state function with
 bounded time derivative, gradient and Hessian satisfies the Itô–Lévy formula relative to that
 filtration.
 
 Every admissibility input of the two stochastic integrals, the adaptedness of the path, the
 drift's measurability, progressive measurability and energy, and the integrability of the drift
-and of the compensator drift are derived from the SDE data and the coefficient regularity, not
+and of the compensator drift are derived from the SDE data and the measurability of the coefficients, not
 assumed. -/
 theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
     (X : JumpDiffusion W N coeffs x₀) (S : LevyStochCalc.Ito.BigJump.SdeData X)
@@ -664,7 +690,11 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
     (hXleft : ∀ (ω : Ω) (t : ℝ) (j : Fin n),
       ∃ L : ℝ, Tendsto (fun s => X.X s ω j) (𝓝[<] t) (𝓝 L))
-    (hReg : coeffs.IsRegular ν) {L : ℝ} (hLip : coeffs.IsLipschitz ν L)
+    (hμmeas : Measurable (Function.uncurry coeffs.μ))
+    (hσmeas : Measurable (Function.uncurry coeffs.σ))
+    (hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
+    (hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (u : ℝ → (Fin n → ℝ) → ℝ) (hu : ContDiff ℝ 2 (Function.uncurry u))
     {K₀ K₁ K₂ : ℝ} (hK₀ : ∀ s x, |timeDeriv u s x| ≤ K₀)
     (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂)
@@ -674,14 +704,14 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
         - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         - MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
             (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-            (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 X.measurable_path j)
-            (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+            (fun j => measurable_diffusionIntegrand_path hu hσmeas X.measurable_path j)
+            (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas S.X_prog j)
             (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁
               S.σ_meas S.σ_sq j hT') T ω)
       = LevyStochCalc.Poisson.Compensated.stochasticIntegral N S.ℱ S.isPoisson
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-          (measurable_jumpIncrement_path hu hReg.2.2.1 X.measurable_path)
-          (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+          (measurable_jumpIncrement_path hu hγmeas X.measurable_path)
+          (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas S.X_prog)
           (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT') T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
@@ -691,30 +721,27 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
     rw [hrc]
     exact hℱ0 t ht
   have hXm : Measurable (Function.uncurry X.X) := X.measurable_path
-  have hXsq := fun b => lintegral_lintegral_sq_lt_top_of_supL2 X.sup_L2 b
   have hμm : ∀ i : Fin n, Measurable (Function.uncurry fun ω s => coeffs.μ s (X.X s ω) i) :=
-    fun i => measurable_mu_comp_state coeffs hReg hXm i
+    fun i => ((measurable_pi_apply i).comp hμmeas).comp
+      (measurable_snd.prodMk (hXm.comp (measurable_snd.prodMk measurable_fst)))
   have hμp : ∀ i : Fin n,
       ProgressivelyMeasurable S.ℱ fun ω s => coeffs.μ s (X.X s ω) i :=
     fun i => progressivelyMeasurable_comp_state S.X_prog (f := fun s x => coeffs.μ s x i)
-      ((measurable_pi_apply i).comp hReg.1)
-  have hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
-    fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hXm hXsq i hT'
+      ((measurable_pi_apply i).comp hμmeas)
   exact itoLevyFormula_jumpResidual_of_boundedDerivs W N coeffs x₀ X S hℱ0' hnull
     (fun t => measurable_of_progressivelyMeasurable S.ℱ S.X_prog t) hXleft
-    hμm hμp hμq hReg.2.2.1 u hu hK₀ hK₁ hK₂ T hT (ae_integrableOn_drift_path hμm hμq T)
-    (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 hXm j)
-    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+    hμm hμp hμq hγmeas u hu hK₀ hK₁ hK₂ T hT (ae_integrableOn_drift_path hμm hμq T)
+    (fun j => measurable_diffusionIntegrand_path hu hσmeas hXm j)
+    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas S.X_prog j)
     (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁ S.σ_meas S.σ_sq j hT')
-    (measurable_jumpIncrement_path hu hReg.2.2.1 hXm)
-    (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+    (measurable_jumpIncrement_path hu hγmeas hXm)
+    (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas S.X_prog)
     (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT')
-    (ae_lintegral_compensatorDriftIntegrand_lt_top hu hK₂ hReg.2.2.1 hXm S.γ_meas S.γ_sq hT)
+    (ae_lintegral_compensatorDriftIntegrand_lt_top hu hK₂ hγmeas hXm S.γ_meas S.γ_sq hT)
 
 /-- **The Itô–Lévy formula at bounded derivatives, for a given solution.** For a jump diffusion
-carrying SDE data at a filtration satisfying the usual conditions, with regular Lipschitz
-coefficients, a `C²` state function with bounded time derivative, gradient and Hessian satisfies
+carrying SDE data at a filtration satisfying the usual conditions, with jointly measurable
+coefficients and a drift of finite energy along the path, a `C²` state function with bounded time derivative, gradient and Hessian satisfies
 the Itô–Lévy formula relative to that filtration.
 
 Every admissibility input of the two stochastic integrals, the adaptedness of the path, the
@@ -728,7 +755,11 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
     [S.ℱ.IsRightContinuous]
     (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t)
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
-    (hReg : coeffs.IsRegular ν) {L : ℝ} (hLip : coeffs.IsLipschitz ν L)
+    (hμmeas : Measurable (Function.uncurry coeffs.μ))
+    (hσmeas : Measurable (Function.uncurry coeffs.σ))
+    (hγmeas : Measurable fun q : ℝ × (Fin n → ℝ) × E => coeffs.γ q.1 q.2.1 q.2.2)
+    (hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (u : ℝ → (Fin n → ℝ) → ℝ) (hu : ContDiff ℝ 2 (Function.uncurry u))
     {K₀ K₁ K₂ : ℝ} (hK₀ : ∀ s x, |timeDeriv u s x| ≤ K₀)
     (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂)
@@ -738,14 +769,14 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
         - (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
         - MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
             (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-            (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 X.measurable_path j)
-            (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+            (fun j => measurable_diffusionIntegrand_path hu hσmeas X.measurable_path j)
+            (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas S.X_prog j)
             (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁
               S.σ_meas S.σ_sq j hT') T ω)
       = LevyStochCalc.Poisson.Compensated.stochasticIntegral N S.ℱ S.isPoisson
           (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-          (measurable_jumpIncrement_path hu hReg.2.2.1 X.measurable_path)
-          (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+          (measurable_jumpIncrement_path hu hγmeas X.measurable_path)
+          (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas S.X_prog)
           (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT') T ω
         + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
             compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
@@ -776,8 +807,8 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
       rw [hYdef, lintegral_iSup_cadlagRep hG0]
       exact X.sup_L2 T' hT'
   have hYsol : ∀ T' : ℝ, SolvesOn W N S.ℱ S.isBrownian S.isPoisson coeffs x₀ Y T' := fun T' =>
-    solvesOn_cadlagRep W N S.ℱ S.isBrownian S.isPoisson coeffs hGm hG0 hnull hReg hLip hXm
-      S.X_prog X.initial_value hGp X.sup_L2 hXsol T'
+    solvesOn_cadlagRep W N S.ℱ S.isBrownian S.isPoisson coeffs hGm hG0 hnull hσmeas hγmeas
+      S.σ_sq S.γ_sq hXm S.X_prog X.initial_value hGp hXsol T'
   have hpe : ∀ᵐ ω ∂P, ∀ s : ℝ, 0 ≤ s → Y s ω = X.X s ω :=
     ae_forall_cadlagRep_eq (P := P) hG0
   have hYX : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), Y s ω = X.X s ω := by
@@ -792,17 +823,19 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
     LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn XY S.ℱ S.isBrownian S.isPoisson hYa hYsol
   haveI : SY.ℱ.IsRightContinuous := ‹S.ℱ.IsRightContinuous›
   have hmain := itoLevyFormula_jumpResidual_of_sdeData_of_leftLim W N coeffs x₀ XY SY
-    hℱ0 hnull (fun ω t j => (hYcad ω t).2 j) hReg hLip u hu hK₀ hK₁ hK₂ T hT
+    hℱ0 hnull (fun ω t j => (hYcad ω t).2 j) hμmeas hσmeas hγmeas
+    (fun i T' hT' => (lintegral_sq_comp_cadlagRep hG0 (fun s x => coeffs.μ s x i) T').trans_lt
+      (hμq i T' hT')) u hu hK₀ hK₁ hK₂ T hT
   -- the four terms read the path only up to a null set
   have hBro := multidimIntegral_congr_ae W S.ℱ S.isBrownian
     (fun s ω => diffusionIntegrand u coeffs.σ s (Y s ω))
     (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-    (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 hYm j)
-    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 hYa j)
+    (fun j => measurable_diffusionIntegrand_path hu hσmeas hYm j)
+    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas hYa j)
     (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁
       (hYsol 0).h_σ_meas (hYsol 0).h_σ_sq j hT')
-    (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 X.measurable_path j)
-    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+    (fun j => measurable_diffusionIntegrand_path hu hσmeas X.measurable_path j)
+    (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas S.X_prog j)
     (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁ S.σ_meas S.σ_sq j hT')
     hT (by
       filter_upwards [hYX] with ω hω
@@ -811,12 +844,12 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
   have hCmp := compensatedIntegral_congr_ae N S.ℱ S.isPoisson
     (fun ω' s e => u s (Y s ω' + coeffs.γ s (Y s ω') e) - u s (Y s ω'))
     (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-    (measurable_jumpIncrement_path hu hReg.2.2.1 hYm)
-    (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 hYa)
+    (measurable_jumpIncrement_path hu hγmeas hYm)
+    (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas hYa)
     (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ (hYsol 0).h_γ_meas
       (hYsol 0).h_γ_sq hT')
-    (measurable_jumpIncrement_path hu hReg.2.2.1 X.measurable_path)
-    (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+    (measurable_jumpIncrement_path hu hγmeas X.measurable_path)
+    (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas S.X_prog)
     (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT')
     hT (by
       filter_upwards [hYX] with ω hω
@@ -867,7 +900,9 @@ theorem itoLevyFormula_of_boundedDerivs (x₀ : Fin n → ℝ)
               T ω
           + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
               compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
-  filter_upwards [itoLevyFormula_jumpResidual_of_sdeData W N coeffs x₀ X S hℱ0 hnull hReg hLip
+  filter_upwards [itoLevyFormula_jumpResidual_of_sdeData W N coeffs x₀ X S hℱ0 hnull hReg.1
+    hReg.2.1 hReg.2.2.1 (fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
+      X.measurable_path (fun b => lintegral_lintegral_sq_lt_top_of_supL2 X.sup_L2 b) i hT')
     u hu hK₀ hK₁ hK₂ T hT] with ω hω
   linarith
 

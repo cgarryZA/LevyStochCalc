@@ -661,6 +661,20 @@ literature integral forms.
   declarations. **Still open**: M2 (the hypothesis trade and the convention transfers) and M3
   (the assembly); this entry stays open.
 
+* **M2, first half (2026-09-15) — the Lipschitz and growth conditions are gone from the
+  bounded-derivative chain.** `Ito/ItoLevyBoundedDerivsSolution.lean`:
+  `itoLevyFormula_jumpResidual_of_sdeData_of_leftLim` and `itoLevyFormula_jumpResidual_of_sdeData`
+  now take the joint measurability of `μ`, `σ`, `γ` and the window energy of `μ` along the path
+  (`hμmeas`, `hσmeas`, `hγmeas`, `hμq`) in place of `IsRegular` and `IsLipschitz`; the energies of
+  `σ` and `γ` along the path are the `SdeData` fields, and along the càdlàg representative they are
+  the same numbers (`lintegral_sq_comp_cadlagRep`, `lintegral_sq_marked_comp_cadlagRep`), so
+  `solvesOn_cadlagRep` takes the energies along the original path instead of deriving them from
+  a growth bound. `itoLevyFormula_of_boundedDerivs`, the four-term form the dissertation forwards,
+  keeps its signature (`IsRegular`, `IsLipschitz`) as a corollary: those hypotheses are now consumed
+  only to produce the drift energy. What separates the traded theorem from the target is the three
+  derivative bounds alone. The second half of M2 — the point-value/left-limit and
+  iterated/reference-intensity transfers of the `u`-hypotheses — is done inside M3.
+
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.
