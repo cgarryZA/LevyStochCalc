@@ -632,6 +632,35 @@ literature integral forms.
   forwarder of the bounded-derivative theorem. No proved result lost support. **This does not close #16**: the target
   statement above is unproved, and the entry stays open until M1–M4 deliver it.
 
+* **M1 (2026-09-15) — gap G is closed: the jump relation at the arrival times is a theorem for
+  a solution, and `hsplit` is gone.** `Ito/JumpSplittingRemainder.lean`. A path satisfying the
+  equation is, at every nonnegative time, the vector Itô process with drift
+  `continuousDriftLeftAt`, plus the left-limit jump sum over a mark set of finite intensity, plus
+  the compensated integral of the left-limit jump coefficient cut to the complement of that set —
+  the *remainder* (`eq_vectorItoProcess_add_jumpSumLeftAt_add_remainder_of_path`,
+  `ae_forall_eq_add_jumpSumLeftAt_add_remainder_of_path`): no support restriction on `γ`; the
+  remainder carries the jumps outside the set and is càdlàg, being a compensated integral. Across
+  an arrival time the path jumps by the jump coefficient at its left limit plus the jump of the
+  remainder (`ae_exists_atomEnum_jump_eq_gamma_add_remainder`). Along a subsequence of the
+  spanning sets of `ν`, the remainders of a finite family of integrands are almost surely
+  eventually smaller than any bound at every time of `[0, T]`
+  (`ae_exists_seq_forall_abs_stochasticIntegral_markCut_spanningSets_compl_lt`): Doob's `L²`
+  maximal inequality for the càdlàg martingale (`Probability/DoobContinuous.lean`) against the
+  Itô–Lévy isometry, whose right side is the energy of the cut integrand and tends to zero by the
+  small-jump limit of `Ito/StochasticIntegralLimit.lean`. Hence, for a jump diffusion with SDE
+  data under the usual conditions whose drift and left-limit jump coefficient are admissible with
+  marked predictable zero extension, the increment across each arrival time carrying a mark of a
+  spanning set is exactly the jump coefficient at the left limit
+  (`ae_exists_atomEnum_jump_eq_gamma_of_sdeData`): an arrival of the smaller set is an arrival of
+  every larger one, the relation with remainder holds at every level of the subsequence, and the
+  remainder's jump is bounded by twice its uniform bound, so the discrepancy lies below every
+  positive number. `ae_setIntegral_jumpIncrement_cutoffFun₂_eq`,
+  `ae_setIntegral_jumpIncrement_sub_eq_zero` and `ae_jumpSide_cutoffFun₂_eq` now take that
+  arrival-time relation as hypothesis in place of `hsplit`; nothing in the Stage-2 chain assumes a
+  continuous remainder any more. `#print axioms` lists the three standard axioms for all six
+  declarations. **Still open**: M2 (the hypothesis trade and the convention transfers) and M3
+  (the assembly); this entry stays open.
+
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.

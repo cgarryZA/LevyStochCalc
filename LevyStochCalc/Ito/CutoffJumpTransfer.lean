@@ -162,10 +162,13 @@ theorem ae_jumpSide_cutoffFun₂_eq
       IntegrableOn (fun q : ℝ × E => compensatorDriftIntegrand u
           coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2)
         (Set.Ioc (0 : ℝ) T ×ˢ (Set.univ : Set E)) (referenceIntensity ν))
-    (hsplit : ∀ j : ℕ, ∃ V : ℝ → Ω → Fin n → ℝ,
-      (∀ᵐ ω ∂P, Continuous fun t => V t ω) ∧
-      ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-        Xp t ω i = V t ω i + jumpSumLeftAt coeffs N Xp (spanningSets ν j) t ω i) :
+    (hjump : ∀ j : ℕ, ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
+      (∀ k, θ k ∈ Set.Ioc (0 : ℝ) T ∧ ε k ∈ spanningSets ν j) ∧
+      (∀ g : ℝ × E → ℝ, ∫ p in Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν j, g p ∂(N.N ω)
+        = ∑ k : Fin K, g (θ k, ε k)) ∧
+      ∀ k : Fin K,
+        Xp (θ k) ω
+          = leftLimPathAt Xp (θ k) ω + coeffs.γ (θ k) (leftLimPathAt Xp (θ k) ω) (ε k)) :
     ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
       Compensated.stochasticIntegral N ℱ hℱN
             (jumpIncrLeft (cutoffFun₂ u (2 * (m : ℝ))) coeffs Xp) hmv hpv hqv T ω
@@ -201,9 +204,8 @@ theorem ae_jumpSide_cutoffFun₂_eq
         ∫ q in Set.Ioc (0 : ℝ) T ×ˢ spanningSets ν j, zeroExtPos Ψ ω q.1 q.2
           ∂(N.N ω) = 0 := by
       refine MeasureTheory.ae_all_iff.mpr fun j => ?_
-      obtain ⟨V, hVc, hsp⟩ := hsplit j
       filter_upwards [ae_setIntegral_jumpIncrement_sub_eq_zero coeffs N Xp (spanningSets ν j)
-        (measurableSet_spanningSets ν j) (measure_spanningSets_lt_top ν j).ne u hm hTm V hVc hsp
+        (measurableSet_spanningSets ν j) (measure_spanningSets_lt_top ν j).ne u hm hTm (hjump j)
         (Filter.Eventually.of_forall fun ω t i => hXleft ω t i)]
         with ω hω hG
       refine Eq.trans ?_ (hω hG)

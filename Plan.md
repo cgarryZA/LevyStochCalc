@@ -76,6 +76,9 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   `integral_window_eq_and_integrableOn`), M3 (assembly and exhaustion in `m`), M4 (close-out).
   The target statement with every hypothesis exposed is `tools/cited_axioms.md`, entry 16,
   "Stage-2 status (2026-09-15)".
+  **Z1a and M1 done 2026-09-15**: the axiom is deleted (`Open #16`), and the jump relation at
+  the arrival times is a theorem for a solution (`Ito/JumpSplittingRemainder.lean`,
+  `ae_exists_atomEnum_jump_eq_gamma_of_sdeData`); `hsplit` is gone from the Stage-2 chain.
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise

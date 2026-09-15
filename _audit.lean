@@ -3043,6 +3043,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_nhdsLT_sum_filter_le
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jumpSumLeftAt_eq_sum
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma
+-- M1 (2026-09-15): the jump relation at the arrival times of a solution, with no continuity of
+-- the remainder and no support restriction on the jump coefficient (Ito/JumpSplittingRemainder.lean)
+#print axioms LevyStochCalc.Ito.JumpSplitting.eq_vectorItoProcess_add_jumpSumLeftAt_add_remainder_of_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_forall_eq_add_jumpSumLeftAt_add_remainder_of_path
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma_add_remainder
+#print axioms LevyStochCalc.Ito.JumpSplitting.tendsto_lintegral_sq_stochasticIntegral_markCut_spanningSets_compl
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_seq_forall_abs_stochasticIntegral_markCut_spanningSets_compl_lt
+#print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma_of_sdeData
 
 -- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical

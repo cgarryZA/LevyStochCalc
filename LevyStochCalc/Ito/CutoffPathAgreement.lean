@@ -396,9 +396,13 @@ theorem ae_setIntegral_jumpIncrement_cutoffFun₂_eq
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (Xp : ℝ → Ω → Fin n → ℝ)
     (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ))
-    (V : ℝ → Ω → Fin n → ℝ) (hVc : ∀ᵐ ω ∂P, Continuous fun t => V t ω)
-    (hsplit : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-      Xp t ω i = V t ω i + jumpSumLeftAt coeffs N Xp A t ω i)
+    (hjump : ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
+      (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
+      (∀ g : ℝ × E → ℝ,
+        ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) ∧
+      ∀ j : Fin K,
+        Xp (θ j) ω
+          = leftLimPathAt Xp (θ j) ω + coeffs.γ (θ j) (leftLimPathAt Xp (θ j) ω) (ε j))
     (hleft : ∀ᵐ ω ∂P, ∀ (t : ℝ) (i : Fin n),
       ∃ L : ℝ, Tendsto (fun s => Xp s ω i) (𝓝[<] t) (𝓝 L)) :
     ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
@@ -409,8 +413,7 @@ theorem ae_setIntegral_jumpIncrement_cutoffFun₂_eq
         = ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
             (u q.1 (leftLimPathAt Xp q.1 ω + coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2)
               - u q.1 (leftLimPathAt Xp q.1 ω)) ∂(N.N ω) := by
-  filter_upwards [ae_exists_atomEnum_jump_eq_gamma coeffs N Xp A hA hAν T V hVc hsplit, hleft]
-    with ω hω hlω hb
+  filter_upwards [hjump, hleft] with ω hω hlω hb
   obtain ⟨K, θ, ε, -, hmem, hg, hjump⟩ := hω
   rw [hg, hg]
   refine Finset.sum_congr rfl fun j _ => ?_
@@ -425,9 +428,13 @@ theorem ae_setIntegral_jumpIncrement_sub_eq_zero
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (Xp : ℝ → Ω → Fin n → ℝ)
     (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ))
-    (V : ℝ → Ω → Fin n → ℝ) (hVc : ∀ᵐ ω ∂P, Continuous fun t => V t ω)
-    (hsplit : ∀ᵐ ω ∂P, ∀ t : ℝ, 0 ≤ t → ∀ i : Fin n,
-      Xp t ω i = V t ω i + jumpSumLeftAt coeffs N Xp A t ω i)
+    (hjump : ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
+      (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
+      (∀ g : ℝ × E → ℝ,
+        ∫ p in Set.Ioc (0 : ℝ) T ×ˢ A, g p ∂(N.N ω) = ∑ j : Fin K, g (θ j, ε j)) ∧
+      ∀ j : Fin K,
+        Xp (θ j) ω
+          = leftLimPathAt Xp (θ j) ω + coeffs.γ (θ j) (leftLimPathAt Xp (θ j) ω) (ε j))
     (hleft : ∀ᵐ ω ∂P, ∀ (t : ℝ) (i : Fin n),
       ∃ L : ℝ, Tendsto (fun s => Xp s ω i) (𝓝[<] t) (𝓝 L)) :
     ∀ᵐ ω ∂P, ω ∈ Brownian.Ito.boundedPathSet Xp T m →
@@ -437,8 +444,7 @@ theorem ae_setIntegral_jumpIncrement_sub_eq_zero
               - cutoffFun₂ u (2 * (m : ℝ)) q.1 (leftLimPathAt Xp q.1 ω))
             - (u q.1 (leftLimPathAt Xp q.1 ω + coeffs.γ q.1 (leftLimPathAt Xp q.1 ω) q.2)
               - u q.1 (leftLimPathAt Xp q.1 ω))) ∂(N.N ω) = 0 := by
-  filter_upwards [ae_exists_atomEnum_jump_eq_gamma coeffs N Xp A hA hAν T V hVc hsplit, hleft]
-    with ω hω hlω hb
+  filter_upwards [hjump, hleft] with ω hω hlω hb
   obtain ⟨K, θ, ε, -, hmem, hg, hjump⟩ := hω
   rw [hg]
   refine Finset.sum_eq_zero fun j _ => ?_

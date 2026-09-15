@@ -294,6 +294,7 @@ import LevyStochCalc.Ito.JumpSplittingPath
 import LevyStochCalc.Ito.JumpFormulaCutoff
 import LevyStochCalc.Ito.CutoffPathAgreement
 import LevyStochCalc.Ito.AtomJumpRelation
+import LevyStochCalc.Ito.JumpSplittingRemainder
 import LevyStochCalc.Ito.CutoffGlobalBounds
 import LevyStochCalc.Ito.JumpSideCompensator
 import LevyStochCalc.Ito.CutoffJumpTransfer
