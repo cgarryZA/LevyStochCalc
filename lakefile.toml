@@ -44,4 +44,4 @@ name = "LevyStochCalc"
 name = "LevyStochCalcExamples"
 srcDir = "examples"
 roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy", "NonvacuityBSDEJ",
-  "NonvacuityBSDEJZ", "NonvacuityBSDEJExp", "NonvacuityItoLevyPath"]
+  "NonvacuityBSDEJZ", "NonvacuityBSDEJExp", "NonvacuityItoLevyPath", "NonvacuityBSDEJRate"]

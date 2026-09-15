@@ -558,8 +558,9 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       Reachable now: A7′ — for a generator not reading `X` and a solution with deterministic
       Lipschitz `Z = h(s)`, the rate `E∫|Z − Z̄^π|² ≤ (K δ)² T`; the deterministic half is
       `energy_sub_conditionalTimeAverage_le_of_lipschitz` (`BSDEJ/CellAverageRate.lean`,
-      2026-09-15), the transfer to solutions through uniqueness waits on the explicit `f = y`
-      solution of C1. Also reachable: the qualitative `E∫|Z − Z̄^π|² → 0` for every solution.
+      2026-09-15) and the transfer to every solution of the `f = y` equation is
+      `energy_sub_cellAverage_le_of_solvesBSDEJ` (`examples/NonvacuityBSDEJRate.lean`, same day;
+      pathwise cell average, no stochastic content beyond uniqueness). Also reachable: the qualitative `E∫|Z − Z̄^π|² → 0` for every solution.
       Record in `tools/cited_axioms.md`, `Retired #10`, replacement plan.
 
 ## Phase B — Close the 7 off-critical-path axioms (breadth)
@@ -649,8 +650,14 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `examples/NonvacuityItoLevyPath.lean` (2026-09-15) — every path solving the Itô–Lévy example's
       equation from `0` has second moment `2` at time `1` (the expectation form of the quadratic Itô
       formula, with the driver's cross witness carried to the augmented right-continuation of the
-      joint filtration), so it is not a.e. zero there. Still open: the transfer of the A7′
-      cell-average rate to every solution of the `f = y` equation.
+      joint filtration), so it is not a.e. zero there; `examples/NonvacuityBSDEJRate.lean`
+      (2026-09-15) — the A7′ cell-average rate `(e δ)²` for every solution of the `f = y` equation
+      and every strictly monotone partition of `[0, 1]` of mesh `δ`, exhibited on the uniform
+      partitions (`(e/M)²`). **C1 is closed for the headline results**: the drivers, the integrals,
+      the Itô–Lévy formula, BSDEJ existence and uniqueness and A7′ each have a witness with
+      satisfiable hypotheses and a non-degenerate conclusion. Not yet done: one witness per pinned
+      symbol of `tools/import_contract.md` (41 symbols); the `GOAL.md` §1.B boxes stay open until
+      that is complete.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
