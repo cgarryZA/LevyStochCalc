@@ -39,6 +39,9 @@ MODULES=(
   "LevyStochCalc/Brownian/Martingale.lean"
   "LevyStochCalc/Poisson/L2Isometry.lean"
   "LevyStochCalc/Poisson/Compensated.lean"
+  "LevyStochCalc/Driver/PredictableRepresentation.lean"
+  "LevyStochCalc/Driver/VectorIncrement.lean"
+  "LevyStochCalc/Poisson/CompensatedIsometry.lean"
 )
 
 # Imports = module paths converted to `LevyStochCalc.<...>` form.
@@ -56,6 +59,9 @@ IMPORTS=(
   "LevyStochCalc.Brownian.Martingale"
   "LevyStochCalc.Poisson.L2Isometry"
   "LevyStochCalc.Poisson.Compensated"
+  "LevyStochCalc.Driver.PredictableRepresentation"
+  "LevyStochCalc.Driver.VectorIncrement"
+  "LevyStochCalc.Poisson.CompensatedIsometry"
 )
 
 # 2. Pinned symbols — fully-qualified names (must `#check` cleanly via the
@@ -84,6 +90,27 @@ SYMBOLS=(
   "LevyStochCalc.BSDEJ.Existence.Lipschitz"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_U"
+  # Driver (2026-09-15)
+  "LevyStochCalc.Driver.LevyDriver"
+  "LevyStochCalc.Driver.LevyDriver.filtration"
+  "LevyStochCalc.Driver.LevyDriver.isBrownianFiltration"
+  "LevyStochCalc.Driver.LevyDriver.isPoissonFiltration"
+  "LevyStochCalc.Driver.LevyDriver.jointIntegral"
+  "LevyStochCalc.Driver.LevyDriver.exists_predictable_jointIntegral"
+  "LevyStochCalc.Driver.LevyDriver.incrementSigma"
+  "LevyStochCalc.Driver.LevyDriver.regionSigma"
+  "LevyStochCalc.Driver.LevyDriver.indep_stepSigma"
+  # Consumed by Dissertation/CoupledFBSDEJ/LevyGridDrivers.lean (2026-09-15)
+  "LevyStochCalc.Brownian.sigmaBrownian"
+  "LevyStochCalc.Brownian.indep_iSup_sigmaBrownian_ne"
+  "LevyStochCalc.Brownian.comap_increment_le_sigmaBrownian"
+  "LevyStochCalc.Brownian.BrownianMotion.increment_gaussian"
+  "LevyStochCalc.Poisson.referenceIntensity"
+  "LevyStochCalc.Poisson.PoissonRandomMeasure.indep_iSup_comap_of_disjoint"
+  "LevyStochCalc.Poisson.Compensated.compensated_mean_zero"
+  "LevyStochCalc.Poisson.Compensated.compensated_second_moment"
+  "LevyStochCalc.Poisson.Compensated.compensated_sq_integrable"
+  "LevyStochCalc.Probability.comap_pi_eq_iSup"
 )
 
 # Step A: file-existence check (fast).

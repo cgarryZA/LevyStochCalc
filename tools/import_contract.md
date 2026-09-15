@@ -15,7 +15,7 @@ ever genuinely relocated (e.g. Phase 4 upstreaming into mathlib's
 `ProbabilityTheory` namespace), the fix is to update the consumer's import in the
 dissertation repo, not to leave a stub behind here.
 
-## 1. Pinned modules (13)
+## 1. Pinned modules (16)
 
 | # | Module path                              | File                                           | Used by                                                       |
 |---|------------------------------------------|------------------------------------------------|---------------------------------------------------------------|
@@ -32,6 +32,9 @@ dissertation repo, not to leave a stub behind here.
 | 11 | `LevyStochCalc.Poisson.L2Isometry`       | `LevyStochCalc/Poisson/L2Isometry.lean`        | `Dissertation/Continuous.lean`, `Continuous/LevyStochCalcBridge.lean` |
 | 12 | `LevyStochCalc.Poisson.Compensated`      | `LevyStochCalc/Poisson/Compensated.lean`       | `Dissertation/Continuous.lean`, `Continuous/LevyStochCalcBridge.lean` |
 | 13 | `LevyStochCalc.Ito.ItoLevyFormulaGeneral` | `LevyStochCalc/Ito/ItoLevyFormulaGeneral.lean` | `Dissertation/Continuous.lean` (`itoLevyFormula`) |
+| 14 | `LevyStochCalc.Driver.PredictableRepresentation` | `LevyStochCalc/Driver/PredictableRepresentation.lean` | `Dissertation/Continuous.lean` (WP Lemma A.1 forwarder) |
+| 15 | `LevyStochCalc.Driver.VectorIncrement` | `LevyStochCalc/Driver/VectorIncrement.lean` | `Dissertation/CoupledFBSDEJ/LevyGridDrivers.lean` |
+| 16 | `LevyStochCalc.Poisson.CompensatedIsometry` | `LevyStochCalc/Poisson/CompensatedIsometry.lean` | `Dissertation/CoupledFBSDEJ/LevyGridDrivers.lean` |
 
 ## 2. Pinned symbols
 
@@ -76,6 +79,35 @@ remain reachable under the listed namespace prefix.
 | `Existence.Lipschitz`                                       | `BSDEJ/Existence.lean`                    |
 | `PathRegularity.conditionalTimeAverage_Z`                   | `BSDEJ/PathRegularity.lean`               |
 | `PathRegularity.conditionalTimeAverage_U`                   | `BSDEJ/PathRegularity.lean`               |
+
+### `LevyStochCalc.Driver` (added 2026-09-15; the joint predictable representation and the driver increments)
+
+| Symbol                                                      | Defined in                                |
+|-------------------------------------------------------------|-------------------------------------------|
+| `LevyDriver`                                                | `Driver/Joint.lean`                       |
+| `LevyDriver.filtration`                                     | `Driver/Joint.lean`                       |
+| `LevyDriver.isBrownianFiltration`                           | `Driver/Joint.lean`                       |
+| `LevyDriver.isPoissonFiltration`                            | `Driver/Joint.lean`                       |
+| `LevyDriver.jointIntegral`                                  | `Driver/JointRange.lean`                  |
+| `LevyDriver.exists_predictable_jointIntegral`               | `Driver/PredictableRepresentation.lean`   |
+| `LevyDriver.incrementSigma`                                 | `Driver/VectorIncrement.lean`             |
+| `LevyDriver.regionSigma`                                    | `Driver/VectorIncrement.lean`             |
+| `LevyDriver.indep_stepSigma`                                | `Driver/VectorIncrement.lean`             |
+
+### `LevyStochCalc.Brownian`, `LevyStochCalc.Poisson`, `LevyStochCalc.Probability` (added 2026-09-15; consumed by `CoupledFBSDEJ/LevyGridDrivers.lean`)
+
+| Symbol                                                      | Defined in                                |
+|-------------------------------------------------------------|-------------------------------------------|
+| `Brownian.sigmaBrownian`                                    | `Brownian/MultidimFiltered.lean`          |
+| `Brownian.indep_iSup_sigmaBrownian_ne`                      | `Brownian/MultidimFiltered.lean`          |
+| `Brownian.comap_increment_le_sigmaBrownian`                 | `Brownian/MultidimFiltered.lean`          |
+| `Brownian.BrownianMotion.increment_gaussian`                | `Brownian/Construction.lean`              |
+| `Poisson.referenceIntensity`                                | `Poisson/RandomMeasure.lean`              |
+| `Poisson.PoissonRandomMeasure.indep_iSup_comap_of_disjoint` | `Poisson/IndependentScattering.lean`      |
+| `Poisson.Compensated.compensated_mean_zero`                 | `Poisson/CompensatedIsometry.lean`        |
+| `Poisson.Compensated.compensated_second_moment`             | `Poisson/CompensatedIsometry.lean`        |
+| `Poisson.Compensated.compensated_sq_integrable`             | `Poisson/CompensatedIsometry.lean`        |
+| `Probability.comap_pi_eq_iSup`                              | `Probability/ComapTuple.lean`             |
 
 ## 3. Refactor protocol
 

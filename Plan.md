@@ -517,6 +517,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       filtration carries both driver properties — see `tools/cited_axioms.md`, Retired #14,
       statement audit), so the `sorry` was undischargeable as stated. All four now take
       `(ℱ, hℱW, hℱN)`. What remains for A6 is the analytic chain itself.
+      **A6 planned 2026-09-15** (`../Dissertation/WORK_BREAKDOWN.md`, "Epic A6", 21 leaves): over
+      `Brownian.augFiltration D.filtration P` via the joint PRP and the weighted second-moment
+      identity (no Itô formula, no Grönwall); two statement defects to fix first — `Lipschitz`'s
+      `.toReal` (D1) and the product-σ-algebra `f_measurable` field, which forces `f` constant
+      in `u` for atomless `ν` (D2) — and a driver-pinned `SolvesBSDEJ` for uniqueness (D4).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were
@@ -588,6 +593,15 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       (non-zero-variance BM, non-zero Itô integral, the intended BSDEJ solution),
       so non-vacuity is CI-checked, not promised. Start with the now-closed
       results (KC: the `brownian_continuous_modification` instantiation).
+      **Partly done 2026-09-15** (`LevyStochCalcExamples` roots): `examples/NonvacuityDrivers.lean`
+      — a Brownian motion has second moment `t` at time `t > 0` and is not a.e. zero, a Poisson
+      random measure has mean `T ν(A)` on a box and is not a.e. zero, the Brownian integral of `1`
+      and the compensated integral of a mark indicator have second moments `T` and `T ν(A)` (also at
+      the drivers' natural filtrations); `examples/NonvacuityItoLevy.lean` — every hypothesis of
+      `itoLevyFormula_general` is discharged for `μ = 0`, `σ = 1`, `γ = e`, `ν = δ₁`, `u = x²`
+      (whose gradient is provably unbounded, `not_bddAbove_gradient_uSq`) on a solution built by
+      `exists_globalSolution` over a driver from `LevyDriver.exists`. Still open: a witness that the
+      realised path is not a.e. zero, and a non-degenerate `IsBSDEJSolution` witness (A6).
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 

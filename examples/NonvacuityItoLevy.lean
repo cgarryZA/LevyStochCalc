@@ -1,0 +1,349 @@
+/-
+Copyright (c) 2026 Christian Garry. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Garry
+-/
+import LevyStochCalc
+
+/-!
+# A jump diffusion satisfying the hypotheses of the Itô–Lévy formula
+
+The scalar jump diffusion `dX_t = dW_t + ∫_ℝ e Ñ(dt, de)` with `X_0 = 0`, driven by a
+one-dimensional Brownian motion and a Poisson random measure of intensity `dt ⊗ δ_1` on
+`[0, ∞) × ℝ`, together with the state function `u(t, x) = x₀²` on the horizon `[0, 1]`.
+
+The coefficients `μ = 0`, `σ = 1`, `γ(s, x, e) = e` are regular and Lipschitz with constant
+`0`, so the SDE has a solution, and `u` is `C²` with gradient `∇u(s, x) = 2x₀`, diffusion
+integrand `(∇u)ᵀσ = 2x₀`, jump increment `u(x + e) − u(x) = 2ex₀ + e²` and compensator drift
+`u(x + e) − u(x) − e∇u(x) = e²`. The derived energies are finite because the solution has a
+finite `S²` norm on every window, and the compensator drift is the constant `1`.
+
+The gradient of `u` is unbounded, so `u` lies outside the range of the Itô–Lévy formula for a
+state function with bounded first and second derivatives.
+-/
+
+open MeasureTheory ProbabilityTheory
+open scoped NNReal ENNReal
+
+namespace LevyStochCalc.Examples.Nonvacuity
+
+open LevyStochCalc.Ito.Setting LevyStochCalc.Ito.JumpFormula
+
+/-! ### The model -/
+
+/-- The jump intensity: the unit mass at the mark `1`, a finite nonzero measure on `ℝ`. -/
+noncomputable def jumpIntensity : Measure ℝ := Measure.dirac 1
+
+instance : IsProbabilityMeasure jumpIntensity := by
+  unfold jumpIntensity
+  infer_instance
+
+/-- The intensity carries unit mass, so the Poisson part of the driver is not degenerate. -/
+theorem jumpIntensity_univ : jumpIntensity Set.univ = 1 := measure_univ
+
+/-- The coefficients of the scalar jump diffusion `dX_t = dW_t + ∫_ℝ e Ñ(dt, de)`: zero drift,
+unit diffusion matrix, and a jump of size equal to the mark. -/
+noncomputable def coeffs : JumpDiffusionCoeffs 1 1 ℝ where
+  μ := fun _ _ => 0
+  σ := fun _ _ _ _ => 1
+  γ := fun _ _ e => fun _ => e
+
+/-- The diffusion matrix is the identity, so the Brownian part of the driver is not
+degenerate. -/
+theorem coeffs_sigma_apply (s : ℝ) (x : Fin 1 → ℝ) (i j : Fin 1) : coeffs.σ s x i j = 1 := rfl
+
+/-- A jump of the mark's size. -/
+theorem coeffs_gamma_apply (s : ℝ) (x : Fin 1 → ℝ) (e : ℝ) (i : Fin 1) :
+    coeffs.γ s x e i = e := rfl
+
+/-- The state function `u(t, x) = x₀²`, independent of time. -/
+noncomputable def uSq : ℝ → (Fin 1 → ℝ) → ℝ := fun _ x => (x 0) ^ 2
+
+/-! ### Regularity of the coefficients -/
+
+theorem measurable_uncurry_mu : Measurable (Function.uncurry coeffs.μ) :=
+  measurable_const
+
+theorem measurable_uncurry_sigma : Measurable (Function.uncurry coeffs.σ) :=
+  measurable_const
+
+theorem measurable_gamma :
+    Measurable fun q : ℝ × (Fin 1 → ℝ) × ℝ => coeffs.γ q.1 q.2.1 q.2.2 := by
+  simp only [coeffs]
+  exact measurable_pi_lambda _ fun _ => measurable_snd.snd
+
+/-- The coefficients are regular in the time and mark variables. -/
+theorem coeffs_isRegular : coeffs.IsRegular jumpIntensity := by
+  refine ⟨measurable_uncurry_mu, measurable_uncurry_sigma, measurable_gamma, ?_, ?_, ?_⟩
+  · intro T _
+    simp [coeffs]
+  · intro T _
+    simp only [coeffs, Fin.sum_univ_one, nnnorm_one, ENNReal.coe_one, one_pow,
+      setLIntegral_one, Real.volume_Icc]
+    exact ENNReal.ofReal_lt_top
+  · intro T _
+    have hinner : ∀ s : ℝ, ∫⁻ e, (‖coeffs.γ s 0 e‖₊ : ℝ≥0∞) ^ 2 ∂jumpIntensity
+        = (‖(fun _ : Fin 1 => (1 : ℝ))‖₊ : ℝ≥0∞) ^ 2 := by
+      intro s
+      simp only [jumpIntensity, coeffs]
+      exact lintegral_dirac _ _
+    simp only [hinner, setLIntegral_const, Real.volume_Icc]
+    exact ENNReal.mul_lt_top (by simp) ENNReal.ofReal_lt_top
+
+/-- The coefficients are Lipschitz in the state variable with constant `0`. -/
+theorem coeffs_isLipschitz : coeffs.IsLipschitz jumpIntensity 0 := by
+  refine ⟨le_rfl, ?_, ?_, ?_⟩
+  · intro s x₁ x₂
+    simp [coeffs]
+  · intro s x₁ x₂
+    simp [coeffs]
+  · intro s x₁ x₂
+    simp [coeffs]
+
+/-! ### The derivatives of `u(t, x) = x₀²` -/
+
+theorem contDiff_uSq : ContDiff ℝ 2 (Function.uncurry uSq) := by
+  have h : ContDiff ℝ 2 fun p : ℝ × (Fin 1 → ℝ) => p.2 0 :=
+    contDiff_pi.mp (contDiff_snd : ContDiff ℝ 2 fun p : ℝ × (Fin 1 → ℝ) => p.2) 0
+  exact h.pow 2
+
+theorem hasFDerivAt_uSq (x : Fin 1 → ℝ) :
+    HasFDerivAt (fun y : Fin 1 → ℝ => (y 0) ^ 2)
+      ((2 * x 0) • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin 1 => ℝ) 0) x := by
+  have h := ((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin 1 => ℝ) 0).hasFDerivAt
+    (x := x)).pow 2
+  simpa using h
+
+/-- The gradient of `u(t, x) = x₀²` is `2x₀`. -/
+theorem gradient_uSq (s : ℝ) (x : Fin 1 → ℝ) (i : Fin 1) :
+    gradient uSq s x i = 2 * x 0 := by
+  have hi : i = 0 := Subsingleton.elim i 0
+  subst hi
+  show fderiv ℝ (uSq s) x (Pi.single 0 1) = 2 * x 0
+  have huf : uSq s = fun y : Fin 1 → ℝ => (y 0) ^ 2 := rfl
+  rw [huf, (hasFDerivAt_uSq x).fderiv]
+  simp
+
+/-- The diffusion integrand `(∇u)ᵀσ` of `u(t, x) = x₀²` is `2x₀`. -/
+theorem diffusionIntegrand_uSq (s : ℝ) (x : Fin 1 → ℝ) (j : Fin 1) :
+    diffusionIntegrand uSq coeffs.σ s x j = 2 * x 0 := by
+  show ∑ i : Fin 1, gradient uSq s x i * coeffs.σ s x i j = 2 * x 0
+  simp [gradient_uSq, coeffs]
+
+/-- The jump increment of `u(t, x) = x₀²` at a mark `e` is `2ex₀ + e²`. -/
+theorem jumpIncrement_uSq (s : ℝ) (x : Fin 1 → ℝ) (e : ℝ) :
+    uSq s (x + coeffs.γ s x e) - uSq s x = 2 * e * x 0 + e ^ 2 := by
+  simp only [uSq, coeffs, Pi.add_apply]
+  ring
+
+/-- The compensator-drift integrand of `u(t, x) = x₀²` at a mark `e` is `e²`. -/
+theorem compensatorDriftIntegrand_uSq (s : ℝ) (x : Fin 1 → ℝ) (e : ℝ) :
+    compensatorDriftIntegrand uSq coeffs.γ s x e = e ^ 2 := by
+  show uSq s (x + coeffs.γ s x e) - uSq s x
+      - ∑ i : Fin 1, coeffs.γ s x e i * gradient uSq s x i = e ^ 2
+  rw [jumpIncrement_uSq]
+  simp only [coeffs, gradient_uSq, Fin.sum_univ_one]
+  ring
+
+/-- The gradient of `u(t, x) = x₀²` is unbounded. -/
+theorem not_bddAbove_gradient_uSq :
+    ¬ ∃ K : ℝ, ∀ (s : ℝ) (x : Fin 1 → ℝ) (i : Fin 1), |gradient uSq s x i| ≤ K := by
+  rintro ⟨K, hK⟩
+  have h := hK 0 (fun _ => |K| + 1) 0
+  rw [gradient_uSq] at h
+  have h1 : |K| + 1 ≤ |2 * (|K| + 1)| := by
+    rw [abs_of_nonneg (by positivity : (0 : ℝ) ≤ 2 * (|K| + 1))]
+    linarith [abs_nonneg K]
+  have h2 : K ≤ |K| := le_abs_self K
+  linarith
+
+/-! ### Finite energy along an `S²`-bounded path -/
+
+section Energy
+
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
+
+/-- A scalar function of at most quadratic growth, evaluated along a scalar path with a finite
+`S²` norm on every window, has finite time-integrated `L²` energy on every window. -/
+theorem lintegral_sq_comp_lt_top {Z : ℝ → Ω → (Fin 1 → ℝ)}
+    (hS : ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T', ∑ i, (‖Z (t : ℝ) ω i‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤)
+    (g : ℝ → ℝ) (A B : ℝ≥0) (hg : ∀ y : ℝ, ‖g y‖₊ ^ 2 ≤ A * ‖y‖₊ ^ 2 + B) (T' : ℝ) :
+    ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', (‖g (Z s ω 0)‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+  have hen : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    simpa only [Fin.sum_univ_one] using
+      LevyStochCalc.Ito.Picard.lintegral_lintegral_sq_lt_top_of_supL2 hS T'
+  have hbound : ∀ (ω : Ω) (s : ℝ), (‖g (Z s ω 0)‖₊ : ℝ≥0∞) ^ 2
+      ≤ (A : ℝ≥0∞) * (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 + (B : ℝ≥0∞) := by
+    intro ω s
+    exact_mod_cast ENNReal.coe_le_coe.mpr (hg (Z s ω 0))
+  have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      ((A : ℝ≥0∞) * (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 + (B : ℝ≥0∞)) ∂volume
+      = (A : ℝ≥0∞) * (∫⁻ s in Set.Icc (0 : ℝ) T', (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 ∂volume)
+        + (B : ℝ≥0∞) * volume (Set.Icc (0 : ℝ) T') := by
+    intro ω
+    rw [lintegral_add_right' _ aemeasurable_const, lintegral_const_mul' _ _ ENNReal.coe_ne_top,
+      setLIntegral_const]
+  have houter : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      ((A : ℝ≥0∞) * (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 + (B : ℝ≥0∞)) ∂volume ∂P
+      = (A : ℝ≥0∞) * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖Z s ω 0‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
+        + (B : ℝ≥0∞) * volume (Set.Icc (0 : ℝ) T') := by
+    simp_rw [hinner]
+    rw [lintegral_add_right' _ aemeasurable_const, lintegral_const_mul' _ _ ENNReal.coe_ne_top,
+      lintegral_const, measure_univ, mul_one]
+  refine lt_of_le_of_lt (lintegral_mono fun ω => lintegral_mono fun s => hbound ω s) ?_
+  rw [houter]
+  refine ENNReal.add_lt_top.mpr ⟨ENNReal.mul_lt_top ENNReal.coe_lt_top hen, ?_⟩
+  exact ENNReal.mul_lt_top ENNReal.coe_lt_top
+    (by rw [Real.volume_Icc]; exact ENNReal.ofReal_lt_top)
+
+end Energy
+
+/-- `y ↦ 2y` has at most quadratic growth. -/
+theorem nnnorm_two_mul_sq_le (y : ℝ) : ‖2 * y‖₊ ^ 2 ≤ 4 * ‖y‖₊ ^ 2 + 0 := by
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  have h1 : ‖2 * y‖ ^ 2 = 4 * y ^ 2 := by rw [Real.norm_eq_abs, sq_abs]; ring
+  have h2 : ‖y‖ ^ 2 = y ^ 2 := by rw [Real.norm_eq_abs, sq_abs]
+  rw [h1, h2]
+  norm_num
+
+/-- `y ↦ 2y + 1` has at most quadratic growth. -/
+theorem nnnorm_two_mul_add_one_sq_le (y : ℝ) : ‖2 * y + 1‖₊ ^ 2 ≤ 8 * ‖y‖₊ ^ 2 + 2 := by
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  have h1 : ‖2 * y + 1‖ ^ 2 = (2 * y + 1) ^ 2 := by rw [Real.norm_eq_abs, sq_abs]
+  have h2 : ‖y‖ ^ 2 = y ^ 2 := by rw [Real.norm_eq_abs, sq_abs]
+  rw [h1, h2]
+  nlinarith [sq_nonneg (2 * y - 1)]
+
+/-! ### The witness -/
+
+open LevyStochCalc.Brownian.Multidim (MultidimBrownianMotion)
+open LevyStochCalc.Poisson (PoissonRandomMeasure)
+open LevyStochCalc.Ito.BigJump (SdeData)
+
+/-- **The hypotheses of the Itô–Lévy formula are satisfied by a jump diffusion with both a
+Brownian and a jump component and a state function with unbounded gradient.** On some
+probability space there are a one-dimensional Brownian motion `W`, a Poisson random measure `N`
+with intensity `δ₁`, the solution `X` of `dX_t = dW_t + ∫_ℝ e Ñ(dt, de)` started at `0`, and SDE
+data for `X` at a filtration satisfying the usual conditions, for which every hypothesis of
+`LevyStochCalc.Ito.JumpFormula.itoLevyFormula_general` holds at the horizon `T = 1` and the
+state function `u(t, x) = x₀²`, and the four-term identity holds almost surely. -/
+theorem itoLevyFormula_general_nonvacuous :
+    ∃ (Ω : Type) (_ : MeasurableSpace Ω) (P : Measure Ω) (_ : IsProbabilityMeasure P)
+      (W : MultidimBrownianMotion P 1) (N : PoissonRandomMeasure P jumpIntensity)
+      (X : JumpDiffusion W N coeffs (0 : Fin 1 → ℝ)) (S : SdeData X)
+      (_ : S.ℱ.IsRightContinuous)
+      (_hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t)
+      (_hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
+      (_hμmeas : Measurable (Function.uncurry coeffs.μ))
+      (hσmeas : Measurable (Function.uncurry coeffs.σ))
+      (hγmeas : Measurable fun q : ℝ × (Fin 1 → ℝ) × ℝ => coeffs.γ q.1 q.2.1 q.2.2)
+      (_hμq : ∀ (i : Fin 1) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (hu : ContDiff ℝ 2 (Function.uncurry uSq))
+      (_hT : (0 : ℝ) < 1)
+      (h_sigmaGrad_sq : ∀ j : Fin 1, ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+          (‖diffusionIntegrand uSq coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
+      (h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
+        ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+          (‖uSq s (X.X s ω + coeffs.γ s (X.X s ω) e) - uSq s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2
+            ∂jumpIntensity ∂volume ∂P < ⊤)
+      (_h_compDrift_int : ∀ᵐ ω ∂P, ∫⁻ s in Set.Icc (0 : ℝ) 1, ∫⁻ e,
+        (‖compensatorDriftIntegrand uSq coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞)
+          ∂jumpIntensity ∂volume < ⊤),
+      ∀ᵐ ω ∂P,
+        uSq 1 (X.X 1 ω) - uSq 0 (X.X 0 ω)
+          = (∫ s in Set.Icc (0 : ℝ) 1, driftIntegrand uSq coeffs s (X.X s ω))
+            + MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
+                (fun s ω => diffusionIntegrand uSq coeffs.σ s (X.X s ω))
+                (fun j => measurable_diffusionIntegrand_path hu hσmeas X.measurable_path j)
+                (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hσmeas S.X_prog j)
+                h_sigmaGrad_sq 1 ω
+            + LevyStochCalc.Poisson.Compensated.stochasticIntegral N S.ℱ S.isPoisson
+                (fun ω' s e => uSq s (X.X s ω' + coeffs.γ s (X.X s ω') e) - uSq s (X.X s ω'))
+                (measurable_jumpIncrement_path hu hγmeas X.measurable_path)
+                (markedProgressivelyMeasurable_jumpIncrement_path hu hγmeas S.X_prog)
+                h_jumpInt_sq 1 ω
+            + ∫ s in Set.Icc (0 : ℝ) 1, ∫ e,
+                compensatorDriftIntegrand uSq coeffs.γ s (X.X s ω) e ∂jumpIntensity := by
+  classical
+  obtain ⟨Ω, _, P, _, ⟨D⟩⟩ := LevyStochCalc.Driver.LevyDriver.exists 1 ℝ jumpIntensity
+  set ℱ : Filtration ℝ ‹MeasurableSpace Ω› :=
+    LevyStochCalc.Brownian.augFiltration D.filtration.rightCont P with hFdef
+  haveI hFrc : ℱ.IsRightContinuous := by
+    rw [hFdef]
+    exact LevyStochCalc.Brownian.isRightContinuous_augFiltration D.filtration P
+  have hℱW : ∀ j : Fin 1, LevyStochCalc.Brownian.IsBrownianFiltration (D.W.W j) ℱ := fun j => by
+    rw [hFdef]
+    exact LevyStochCalc.Brownian.isBrownianFiltration_augFiltration
+      (D.isBrownianFiltration j).rightCont
+  have hℱN : LevyStochCalc.Poisson.IsPoissonFiltration D.N ℱ := by
+    rw [hFdef]
+    exact LevyStochCalc.Poisson.isPoissonFiltration_augFiltration D.isPoissonFiltration.rightCont
+  have hℱ0 : ∀ t : ℝ, t ≤ 0 → ℱ 0 ≤ ℱ t := fun t ht =>
+    le_of_eq (LevyStochCalc.Brownian.augFiltration_of_nonpos D.filtration.rightCont P ht).symm
+  have hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s :=
+    fun s hs h0 =>
+      LevyStochCalc.Brownian.measurableSet_augFiltration_of_null D.filtration.rightCont P hs h0
+  obtain ⟨Xp, hXm, hXa, hX0, hXcad, hXS, hXsol⟩ :=
+    LevyStochCalc.Ito.Picard.exists_globalSolution D.W D.N ℱ hℱW hℱN coeffs hℱ0 hnull
+      coeffs_isRegular coeffs_isLipschitz (0 : Fin 1 → ℝ)
+  let X : JumpDiffusion D.W D.N coeffs (0 : Fin 1 → ℝ) :=
+    LevyStochCalc.Ito.Picard.jumpDiffusionOfSolvesOn D.W D.N ℱ hℱW hℱN coeffs 0 hXm hX0 hXcad
+      hXS hXsol
+  let S : SdeData X := SdeData.ofSolvesOn X ℱ hℱW hℱN hXa hXsol
+  haveI hSrc : S.ℱ.IsRightContinuous := hFrc
+  have hμq : ∀ (i : Fin 1) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+      (‖coeffs.μ s (X.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    intro i T' _
+    simp [coeffs]
+  have h_sigmaGrad_sq : ∀ j : Fin 1, ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
+        (‖diffusionIntegrand uSq coeffs.σ s (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ := by
+    intro j T' _
+    simp_rw [diffusionIntegrand_uSq]
+    exact lintegral_sq_comp_lt_top X.sup_L2 (fun y => 2 * y) 4 0 nnnorm_two_mul_sq_le T'
+  have h_jumpInt_sq : ∀ T' : ℝ, 0 < T' →
+      ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
+        (‖uSq s (X.X s ω + coeffs.γ s (X.X s ω) e) - uSq s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2
+          ∂jumpIntensity ∂volume ∂P < ⊤ := by
+    intro T' _
+    have hrw : ∀ (s : ℝ) (ω : Ω), ∫⁻ e,
+        (‖uSq s (X.X s ω + coeffs.γ s (X.X s ω) e) - uSq s (X.X s ω)‖₊ : ℝ≥0∞) ^ 2
+          ∂jumpIntensity = (‖2 * X.X s ω 0 + 1‖₊ : ℝ≥0∞) ^ 2 := by
+      intro s ω
+      simp only [jumpIntensity]
+      rw [lintegral_dirac]
+      rw [jumpIncrement_uSq]
+      norm_num
+    simp_rw [hrw]
+    exact lintegral_sq_comp_lt_top X.sup_L2 (fun y => 2 * y + 1) 8 2
+      nnnorm_two_mul_add_one_sq_le T'
+  have h_compDrift_int : ∀ᵐ ω ∂P, ∫⁻ s in Set.Icc (0 : ℝ) 1, ∫⁻ e,
+      (‖compensatorDriftIntegrand uSq coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞)
+        ∂jumpIntensity ∂volume < ⊤ := by
+    refine Filter.Eventually.of_forall fun ω => ?_
+    have hrw : ∀ s : ℝ, ∫⁻ e,
+        (‖compensatorDriftIntegrand uSq coeffs.γ s (X.X s ω) e‖₊ : ℝ≥0∞) ∂jumpIntensity = 1 := by
+      intro s
+      simp only [jumpIntensity, compensatorDriftIntegrand_uSq]
+      rw [lintegral_dirac]
+      norm_num
+    simp_rw [hrw]
+    rw [setLIntegral_one, Real.volume_Icc]
+    exact ENNReal.ofReal_lt_top
+  have hmain := itoLevyFormula_general (W := D.W) (N := D.N) (coeffs := coeffs)
+    (0 : Fin 1 → ℝ) X S hℱ0 hnull measurable_uncurry_mu measurable_uncurry_sigma
+    measurable_gamma hμq uSq contDiff_uSq 1 one_pos h_sigmaGrad_sq h_jumpInt_sq h_compDrift_int
+  exact ⟨Ω, inferInstance, P, inferInstance, D.W, D.N, X, S, hSrc, hℱ0, hnull,
+    measurable_uncurry_mu, measurable_uncurry_sigma, measurable_gamma, hμq, contDiff_uSq,
+    one_pos, h_sigmaGrad_sq, h_jumpInt_sq, h_compDrift_int, hmain⟩
+
+end LevyStochCalc.Examples.Nonvacuity
+
+#print axioms LevyStochCalc.Examples.Nonvacuity.itoLevyFormula_general_nonvacuous
