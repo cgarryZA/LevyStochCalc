@@ -46,4 +46,4 @@ srcDir = "examples"
 roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy", "NonvacuityBSDEJ",
   "NonvacuityBSDEJZ", "NonvacuityBSDEJExp", "NonvacuityItoLevyPath", "NonvacuityBSDEJRate",
   "NonvacuityBSDEJJump", "NonvacuityBSDEJData", "NonvacuityContract",
-  "NonvacuityScattering", "NonvacuityTwoCoordinates"]
+  "NonvacuityScattering", "NonvacuityTwoCoordinates", "NonvacuityPRP"]
