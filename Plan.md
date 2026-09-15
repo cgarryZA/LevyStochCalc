@@ -655,9 +655,16 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       and every strictly monotone partition of `[0, 1]` of mesh `δ`, exhibited on the uniform
       partitions (`(e/M)²`). **C1 is closed for the headline results**: the drivers, the integrals,
       the Itô–Lévy formula, BSDEJ existence and uniqueness and A7′ each have a witness with
-      satisfiable hypotheses and a non-degenerate conclusion. Not yet done: one witness per pinned
-      symbol of `tools/import_contract.md` (41 symbols); the `GOAL.md` §1.B boxes stay open until
-      that is complete.
+      satisfiable hypotheses and a non-degenerate conclusion. **Inventory 2026-09-15** (scratch
+      `nonvacuity_inventory.md`): 20 of the 41 pinned symbols are covered, 21 are not or only
+      partly (the σ-algebra symbols of `Driver/VectorIncrement.lean` and `Brownian/MultidimFiltered.lean`,
+      the compensated-box lemmas, `jointIntegral`, the PRP, `BSDEJData`/`IsBSDEJSolution`,
+      `Existence.Lipschitz`, `conditionalTimeAverage_U`), and 11 of the 14 cited theorems are reached
+      only through wrappers, never applied by name. **The one structural gap**: every BSDEJ witness
+      has `U ≡ 0`, because no terminal datum or generator reads the jump mark; a model with a
+      jump-dependent terminal datum (the compensated count of a mark set, so that `U = 1_A` and
+      the marked energy is `ν(A)`) is the next item. The `GOAL.md` §1.B boxes stay open until every
+      pinned symbol has a witness.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
