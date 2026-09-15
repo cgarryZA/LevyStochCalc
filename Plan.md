@@ -551,6 +551,14 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were
       deleted. **A7** becomes: after A6, state and prove Bouchard–Elie path regularity with its
       regularity hypotheses (Lipschitz `g`, Lipschitz jump diffusion `X`).
+      **Scoped 2026-09-15 — deferred.** The cited proof is Malliavin-based and every literature
+      route needs a differentiable dependence on the state; blockers: a generator reading the
+      forward process (L), a flow `X^{t,x}` with the Markov property (XL), the flow derivative or
+      a Malliavin calculus (XL), and the scheme error the dissertation actually consumes (XL).
+      Reachable now: A7′ — for a generator not reading `X` and a solution with deterministic
+      Lipschitz `Z = h(s)`, the rate `E∫|Z − Z̄^π|² ≤ Lip(h)² T |π|²/12` (with C1), and the
+      qualitative `E∫|Z − Z̄^π|² → 0` for every solution. Record in `tools/cited_axioms.md`,
+      `Retired #10`, replacement plan.
 
 ## Phase B — Close the 7 off-critical-path axioms (breadth)
 
