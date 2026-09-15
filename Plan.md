@@ -682,9 +682,28 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       the 41 pinned symbols now occur in a concrete-model witness; the five without one are
       `indep_iSup_sigmaBrownian_ne` (needs `d = 2`), `comap_pi_eq_iSup`,
       `indep_iSup_comap_of_disjoint`, `exists_predictable_jointIntegral` and
-      `conditionalTimeAverage_U` (wave 12, in progress). Of the cited theorems, #1, #2, #5, #6,
-      #9, #16, #17, #18 are applied by name; #3, #4, #12, #13b, #14 are still reached only through
-      wrappers. The `GOAL.md` §1.B boxes stay open until every pinned symbol has a witness.
+      `conditionalTimeAverage_U` — **all five closed by wave 12 (2026-09-15)**:
+      `examples/NonvacuityScattering.lean` applies `indep_iSup_comap_of_disjoint` to the windows
+      `(0, 1] × ℝ` and `(1, 2] × ℝ` (both count σ-algebras non-trivial, each count vanishing
+      with probability exactly `exp (-1)`, joint vanishing with probability `exp (-1) ^ 2`);
+      `examples/NonvacuityTwoCoordinates.lean` applies `indep_iSup_sigmaBrownian_ne` at `d = 2`
+      and `comap_pi_eq_iSup` to the pair of unit increments (both coordinate σ-algebras
+      non-trivial; the pair σ-algebra is the join and is not contained in either increment's,
+      via "a σ-algebra independent of itself carries only events of probability 0 or 1");
+      `examples/NonvacuityPRP.lean` applies `exists_predictable_jointIntegral` to `W_1` (any
+      representing joint integral has second moment `1` and a representing pair of nonzero Itô
+      energy or nonzero marked energy; the quantitative split Itô energy `1`, marked energy `0` is
+      not claimed); `BSDEJ/CellAverageRateMarked.lean` (new library file) gives the cell-average
+      rate `(K δ)² T ∫ φ² dν` for a separated marked integrand `h s · φ e`, and
+      `examples/NonvacuityBSDEJRateU.lean` instantiates `conditionalTimeAverage_U` on the jump
+      model: the cell average of the window indicator is the indicator itself (marked energy `1`,
+      averaging error `0`), every solution's jump integrand differs from it by marked energy `0`
+      and, at the mark `1` carried by `δ₁`, has the same cell averages almost surely; the separated
+      rate is exhibited as an upper bound `(e / M)²` (its left side is not shown nonzero).
+      **Count**: all 41 pinned symbols now occur in a concrete-model witness. Of the cited theorems,
+      #1, #2, #5, #6, #9, #16, #17, #18 are applied by name; #3, #4, #12, #13b, #14 are still
+      reached only through wrappers, so the `GOAL.md` §1.B boxes stay open until each of those
+      five has an `example` discharging its own hypotheses on a non-degenerate model (wave 13).
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
