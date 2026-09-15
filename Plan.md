@@ -736,7 +736,57 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       and `conditionalTimeAverage_Z/U` against the cited definitions (Karatzas–Shreve,
       Applebaum, Jacod–Shiryaev, Delong, Bouchard–Elie); for each of the 14 cited statements
       check quantifier order (`∀∃` vs `∃∀`) and that every hypothesis is used. Record every
-      discrepancy as a ledger finding and fix or restate. (wave 14, audit in progress)
+      discrepancy as a ledger finding and fix or restate. **Audit done 2026-09-15** (scratch
+      `audit_w14_faithfulness.md`; no unsoundness; findings are prose-over-artifact gaps, dead
+      hypotheses and stated weakenings). Register and disposition:
+      - F1 `BSDEJ/Definition.lean` — `filtration_eq_canonical`'s conclusion is `∃ Filt, Filt =
+        ℱ.rightCont` (a shape guard, not a statement about the solution) and the module docstring
+        claims the filtration is pinned to `σ(W, N)` (it is any driver filtration). → docstrings
+        (wave 15).
+      - F2 `Ito/Setting.lean` — `is_solution` docstring says `∀ᵐ ω, ∀ t`; binder is `∀ t, ∀ᵐ ω`.
+        → docstring (wave 15); the pathwise form needs a càdlàg Brownian leg (open).
+      - F3 #5/#6 — the unified-existence conclusions never name `W`/`N`; only the docstring says
+        `F` is the canonical integral. The pinned forms (`itoIsometry_diff_*`, `isometry_*`) do
+        name it. → docstrings (wave 15); the statements are consumed downstream and stay.
+      - F4 #13b — `condExp_to_PRP_martingale_form` contains no representation (Doob
+        regularisation + Blumenthal); the name and module header over-promise; `_hT` unused.
+        → docstring/header (wave 15), `_hT` removed (wave 15); the name stays (consumed by name in
+        the ledger and examples) — a rename is a Phase D decision.
+      - F5 `JumpDiffusion` has no adaptedness field; `exists_unique`'s docstring says "adapted".
+        → docstring (wave 15); adaptedness of `X` as a field is open (structural).
+      - F6 `BSDEJData` docstring claims the slice-measurability fields exclude the junk Bochner
+        integral; they do not (the composite in `u` need not be measurable; the repair is
+        `GeneratorModification`). → docstring (wave 15).
+      - F7 `martingale_stochasticIntegral`/`quadVar_stochasticIntegral` (both sides) conclude
+        `∃ F : Filtration, …` while their docstrings name `ℱ.rightCont`; the pinned lemmas
+        `martingale_rightCont_*` exist. → docstrings point to the pinned lemmas (wave 15).
+      - F8 `IsPoissonFiltration.indep` is single-strip, weaker than "past ⟂ future"; the joint
+        form is recovered only from `LevyDriver.indep`. → recorded; structural (open).
+      - F9 `PoissonRandomMeasure.integer_valued` is `∀ B, ∀ᵐ ω` and atomicity is not a field;
+        `Poisson/Atomic.lean` repairs it on finite windows under `CountablyGenerated`. →
+        docstring (wave 15); structural (open).
+      - F10 `itoLevyFormula_general` is a single-time identity `∀ T, ∀ᵐ ω`, not pathwise. →
+        recorded (docstring is honest); pathwise form open.
+      - F11 uniqueness is modification, not indistinguishability; `Y_cadlag` permits the upgrade
+        on `[0, T]`. → new theorem (wave 15).
+      - F12 `conditionalTimeAverage_Z/U` are pathwise cell averages (docstring says so); the
+        pinned names suggest conditional projections. → rename requires a contract change in
+        both repositories: open decision, not done unilaterally.
+      - F13 dead binders: `[StandardBorelSpace E]` on #2 and `LevyDriver.exists`, `_h_finite` on
+        `poissonRandomMeasure_finite_exists`, `_hT` on #13b, the inert SDE data of the two
+        `picardFixedPoint` shims. → removed with callers updated (wave 15).
+      - F14 `BrownianMotion.increment_independent` is derivable from
+        `joint_increment_independent` (redundant field). → Phase D structural simplification.
+      - F15 over-assumptions: `Y_cadlag`/`Z_vanish`/`U_vanish`/`HorizonIntegrand.vanishing` for
+        every `ω`; `hu : ContDiff ℝ 2` jointly (C² in `t`, the literature needs C^{1,2}). →
+        recorded; each is a widening of the hypothesis class, open.
+      - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
+        measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
+      Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
+      `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
+      integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
+      filtration and integrals), #1, #4, #12/#14 (relative to the fixed filtration), #17, #18,
+      the terminal-time PRP.
 - [x] **C′2** Tie the BM layer to the mathlib predicates at the pin
       (`ProbabilityTheory.IsPreBrownianReal`, `IsBrownianReal`, `IsGaussianProcess`,
       `HasIndepIncrements` — all present in Mathlib `81a5d257`): the converse direction
