@@ -25,6 +25,7 @@ section Telescope
 
 variable {α : Type*} [DecidableEq α] {K : Type*} [LinearOrder K] {M : Type*} [CommRing M]
 
+omit [DecidableEq α] in
 open scoped Classical in
 /-- **A product over a key-ordered finite set telescopes.** -/
 theorem prod_sub_one_eq_sum (key : α → K) (z : α → M) :
@@ -311,7 +312,7 @@ theorem restrict_eq_sum_dirac_of_subset {α : Type*} [MeasurableSpace α]
   have h1 : (μ.restrict R) A = (μ.restrict B) (A ∩ R) := by
     rw [Measure.restrict_apply hA, Measure.restrict_apply (hA.inter hRm),
       Set.inter_eq_left.mpr (Set.inter_subset_right.trans hRB)]
-  rw [h1, hs, Measure.coe_finset_sum, Finset.sum_apply, Measure.coe_finset_sum,
+  rw [h1, hs, Measure.coe_finsetSum, Finset.sum_apply, Measure.coe_finsetSum,
     Finset.sum_apply]
   refine Finset.sum_congr rfl fun p _ => ?_
   rw [Measure.smul_apply, Measure.smul_apply, Measure.dirac_apply' _ (hA.inter hRm),

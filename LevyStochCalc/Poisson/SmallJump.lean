@@ -60,6 +60,7 @@ theorem enorm_sq_markCut (A : Set E) (φ : Ω → ℝ → E → ℝ) (ω : Ω) (
       = A.indicator (fun _ => (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2) e := by
   by_cases hp : e ∈ A <;> simp [markCut, hp]
 
+omit [IsProbabilityMeasure P] [SigmaFinite ν] in
 theorem sq_markCut {φ : Ω → ℝ → E → ℝ}
     (h_sq : ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤) (A : Set E) (T : ℝ) (hT : 0 < T) :
@@ -181,7 +182,7 @@ theorem tendsto_lintegral_sq_stochasticIntegral_markCut
         exact tendsto_const_nhds
       · obtain ⟨m₀, hm₀⟩ : ∃ m₀, e ∉ A m₀ := by
           by_contra hcon
-          push_neg at hcon
+          push Not at hcon
           exact he (Set.mem_iInter.mpr fun m => hcon m)
         refine tendsto_atTop_of_eventually_const (i₀ := m₀) fun m hm => ?_
         rw [Set.indicator_of_notMem (fun hmem => hm₀ (hanti hm hmem)),

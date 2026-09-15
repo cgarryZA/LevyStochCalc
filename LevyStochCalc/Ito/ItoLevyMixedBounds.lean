@@ -86,6 +86,7 @@ section Energies
 variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
   {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
 
+omit [IsProbabilityMeasure P] in
 /-- The energy of a finite sum of jointly measurable kernels over a window is the sum of the
 energies. -/
 theorem lintegral_window_sum {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ → ℝ≥0∞}
@@ -98,6 +99,7 @@ theorem lintegral_window_sum {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ �
   simp_rw [h1]
   exact lintegral_finsetSum _ fun i _ => (hf i).lintegral_prod_right'
 
+omit [IsProbabilityMeasure P] in
 /-- The marked energy of a finite sum of jointly measurable kernels over a window is the sum of
 the marked energies. -/
 theorem lintegral_window_mark_sum {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ → E → ℝ≥0∞}

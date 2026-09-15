@@ -355,7 +355,7 @@ theorem bigJumpPath_ae_initial : ∀ᵐ ω ∂P, bigJumpPath S hA hℱ0 hnull0 0
   filter_upwards [X.initial_value, MeasureTheory.ae_all_iff.mpr
     fun i : Fin n => cutJumpIntegral_ae_zero S hA hℱ0 hnull0 i (le_refl (0 : ℝ))] with ω h0 hc
   funext i
-  show X.X 0 ω i - cutJumpIntegral S hA hℱ0 hnull0 i 0 ω = x₀ i
+  change X.X 0 ω i - cutJumpIntegral S hA hℱ0 hnull0 i 0 ω = x₀ i
   rw [hc i, h0]
   simp
 
@@ -431,7 +431,7 @@ theorem isItoLevyProcess_bigJumpPath (i : Fin n) :
   filter_upwards [S.sde t ht, cutJumpIntegral_ae_eq S hA hℱ0 hnull0 i t,
     stochasticIntegral_markCut_add_compl N S.ℱ S.isPoisson (pathJumpCoeff coeffs X.X i)
       (S.γ_meas i) (S.γ_prog i) (S.γ_sq i) hA t] with ω h1 h2 h3
-  show X.X t ω i - cutJumpIntegral S hA hℱ0 hnull0 i t ω = _
+  change X.X t ω i - cutJumpIntegral S hA hℱ0 hnull0 i t ω = _
   rw [h1 i, h2, h3, hcg]
   ring
 

@@ -33,7 +33,8 @@ variable (𝒢 : ℕ → MeasurableSpace Ω) (h𝒢le : ∀ k, 𝒢 k ≤ mΩ) (
   (hYmeas : ∀ k, StronglyMeasurable[𝒢 (k + 1)] (Y k))
   (hYcond : ∀ k, P[Y k | 𝒢 k] =ᵐ[P] 0)
 
-include h𝒢mono hY hYmeas in
+include hY in
+omit [IsProbabilityMeasure P] in
 /-- A partial sum of martingale differences lies in `L²`. -/
 theorem memLp_sum_range (n : ℕ) : MemLp (fun ω => ∑ i ∈ Finset.range n, Y i ω) 2 P :=
   memLp_finsetSum _ fun i _ => hY i
@@ -55,7 +56,7 @@ theorem integral_sum_mul_of_condExp_eq_zero (n : ℕ) :
       ⟨by rw [MeasureTheory.trim_measurableSet_eq (h𝒢le n) MeasurableSet.univ]
           exact measure_lt_top P Set.univ⟩
     infer_instance
-  have hSmem := memLp_sum_range 𝒢 h𝒢mono Y hY hYmeas n
+  have hSmem := memLp_sum_range Y hY n
   have hSmeas := stronglyMeasurable_sum_range 𝒢 h𝒢mono Y hYmeas n
   have hprod : Integrable
       ((fun ω => ∑ i ∈ Finset.range n, Y i ω) * Y n) P := hSmem.integrable_mul (hY n)
@@ -79,7 +80,7 @@ theorem integral_sq_sum_of_condExp_eq_zero (n : ℕ) :
   induction n with
   | zero => simp
   | succ n ih =>
-    have hSmem := memLp_sum_range 𝒢 h𝒢mono Y hY hYmeas n
+    have hSmem := memLp_sum_range Y hY n
     have hSint : Integrable (fun ω => (∑ i ∈ Finset.range n, Y i ω) ^ 2) P := by
       have hfun : (fun ω => (∑ i ∈ Finset.range n, Y i ω) ^ 2)
           = (fun ω => ∑ i ∈ Finset.range n, Y i ω)

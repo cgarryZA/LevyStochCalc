@@ -64,10 +64,12 @@ theorem progressivelyMeasurable_clampDrift {b : Fin n → Ω → ℝ → ℝ}
   Probability.ProgressivelyMeasurable.comp_continuous (continuous_clampAt (j : ℝ))
     (clampAt_zero (Nat.cast_nonneg j)) (hp p)
 
+omit [MeasurableSpace Ω] in
 theorem abs_clampCoeff_le (H : Fin n → Fin d → Ω → ℝ → ℝ) (j : ℕ)
     (p : Fin n) (k : Fin d) (ω : Ω) (s : ℝ) : |clampCoeff H j p k ω s| ≤ (j : ℝ) :=
   abs_clampAt_le (Nat.cast_nonneg j) _
 
+omit [MeasurableSpace Ω] in
 theorem abs_clampDrift_le (b : Fin n → Ω → ℝ → ℝ) (j : ℕ) (p : Fin n) (ω : Ω) (s : ℝ) :
     |clampDrift b j p ω s| ≤ (j : ℝ) :=
   abs_clampAt_le (Nat.cast_nonneg j) _
@@ -134,7 +136,7 @@ theorem tendsto_energy_window_clamp {H : Fin n → Fin d → Ω → ℝ → ℝ}
       have hsum : Filter.Tendsto (fun j : ℕ => ∑ k : Fin d, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖clampCoeff H j p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
           Filter.atTop (𝓝 0) := by
-        have := tendsto_finset_sum (Finset.univ : Finset (Fin d))
+        have := tendsto_finsetSum (Finset.univ : Finset (Fin d))
           (fun k _ => hdiff p k)
         simpa using this
       have hc := ENNReal.Tendsto.const_mul (a := 2 * (d : ℝ≥0∞)) hsum
@@ -142,7 +144,7 @@ theorem tendsto_energy_window_clamp {H : Fin n → Fin d → Ω → ℝ → ℝ}
       rw [mul_zero] at hc
       exact hc.congr fun j => by rw [mul_assoc]
     simpa using h1.add h2
-  have := tendsto_finset_sum (Finset.univ : Finset (Fin n)) (fun p _ => hterm p)
+  have := tendsto_finsetSum (Finset.univ : Finset (Fin n)) (fun p _ => hterm p)
   simpa using this
 
 section ClampProcess
@@ -206,7 +208,7 @@ theorem lintegral_window_sq_norm_clampProcess_sub_le
     {b : Fin n → Ω → ℝ → ℝ} (hbm : ∀ p, Measurable (Function.uncurry (b p)))
     (hbq : ∀ (p : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    (j : ℕ) {T : ℝ} (hT : 0 < T) :
+    (j : ℕ) {T : ℝ} :
     ∫⁻ s in Set.Icc (0 : ℝ) T, (∫⁻ ω,
         (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
@@ -297,7 +299,7 @@ theorem lintegral_window_sq_norm_version_clamp_sub_le
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
       (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
       X₀ (clampDrift b j) Xj)
-    {T : ℝ} (hT : 0 < T) :
+    {T : ℝ} :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
         (‖Xj s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
       ≤ ENNReal.ofReal T * clampMesh P H b T j := by
@@ -323,7 +325,7 @@ theorem ae_tsum_ne_top_of_lintegral_summable {α : Type*} [MeasurableSpace α]
   have h1 : ∫⁻ a, ∑' i : ℕ, g i a ∂μ ≠ ⊤ := by
     rw [MeasureTheory.lintegral_tsum fun i => (hg i).aemeasurable]
     exact hsum
-  filter_upwards [MeasureTheory.ae_lt_top (Measurable.ennreal_tsum hg) h1] with a ha
+  filter_upwards [MeasureTheory.ae_lt_top (Measurable.tsum hg) h1] with a ha
   exact ha.ne
 
 /-- If the integrals of a sequence of nonnegative functions are summable, the functions tend to
@@ -443,7 +445,7 @@ theorem ae_ae_tendsto_version_clamp
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
       (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
       X₀ (clampDrift b j) (Xj j))
-    {T : ℝ} (hT : 0 < T) {ns : ℕ → ℕ}
+    {T : ℝ} {ns : ℕ → ℕ}
     (hns : ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i) :
     ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
       Filter.Tendsto (fun i => Xj (ns i) s ω) Filter.atTop (𝓝 (X s ω)) := by
@@ -460,7 +462,7 @@ theorem ae_ae_tendsto_version_clamp
       (lt_top_iff_ne_top.mpr (tsum_geometric_inv_two_mul_ne_top (ENNReal.ofReal T)
         ENNReal.ofReal_ne_top)))
     refine (lintegral_window_sq_norm_version_clamp_sub_le W ℱ' hcoord hX₀ hbm hbq hX
-      (hXj (ns i)) hT).trans ?_
+      (hXj (ns i))).trans ?_
     exact mul_le_mul' le_rfl (hns i).le
   filter_upwards [ae_tsum_ne_top_of_lintegral_summable (μ := P) hmeasi hsum] with ω hω
   have hmeasω : ∀ i : ℕ, Measurable fun s : ℝ => (‖Xj (ns i) s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 := by
@@ -569,6 +571,7 @@ theorem tendsto_clampAt_comp {ns : ℕ → ℕ} (hge : ∀ i, i ≤ ns i) (x : �
   have hle : (N : ℝ) ≤ ((ns i : ℕ) : ℝ) := by exact_mod_cast le_trans hi (hge i)
   linarith [hN]
 
+omit [IsProbabilityMeasure P] in
 /-- For almost every path, an integrand with finite energy is square integrable on the window. -/
 theorem ae_memLp_two_window {G : Ω → ℝ → ℝ} (hmG : Measurable (Function.uncurry G)) {T : ℝ}
     (hqG : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -588,7 +591,6 @@ theorem ae_tendsto_drift_clamp
       (‖b p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     {X : ℝ → Ω → Fin n → ℝ} {Y : ℕ → ℝ → Ω → Fin n → ℝ}
     (hYm : ∀ i, Measurable (Function.uncurry fun ω s => Y i s ω))
-    (hXm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) => X s ω))
     {ns : ℕ → ℕ} (hge : ∀ i, i ≤ ns i)
     (hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
       Filter.Tendsto (fun i => Y i s ω) Filter.atTop (𝓝 (X s ω))) :
@@ -785,7 +787,7 @@ theorem tendsto_energy_coordDeriv_diff
 omit [IsProbabilityMeasure P] in
 /-- Additivity of the window energy. -/
 theorem lintegral_window_add {f g : Ω → ℝ → ℝ≥0∞}
-    (hf : Measurable (Function.uncurry f)) (hg : Measurable (Function.uncurry g)) (T : ℝ) :
+    (hf : Measurable (Function.uncurry f)) (T : ℝ) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (f ω s + g ω s) ∂volume ∂P
       = (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume ∂P)
         + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, g ω s ∂volume ∂P := by
@@ -799,7 +801,7 @@ theorem lintegral_window_add {f g : Ω → ℝ → ℝ≥0∞}
 omit [IsProbabilityMeasure P] in
 /-- Constants come out of the window energy. -/
 theorem lintegral_window_const_mul {f : Ω → ℝ → ℝ≥0∞}
-    (hf : Measurable (Function.uncurry f)) {c : ℝ≥0∞} (hc : c ≠ ⊤) (T : ℝ) :
+    {c : ℝ≥0∞} (hc : c ≠ ⊤) (T : ℝ) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, c * f ω s ∂volume ∂P
       = c * ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, f ω s ∂volume ∂P := by
   have hinner : ∀ ω : Ω, ∫⁻ s in Set.Icc (0 : ℝ) T, c * f ω s ∂volume
@@ -904,17 +906,20 @@ theorem tendsto_energy_diffusionIntegrand_clamp
               * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2) :=
           ((((measurable_clampCoeff hm (ns i) p k).sub
             (hm p k)).nnnorm).coe_nnreal_ennreal).pow_const 2 |>.const_mul _
-        have hBm : Measurable (Function.uncurry fun (ω : Ω) (s : ℝ) =>
-            (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω)) * H p k ω s‖₊ : ℝ≥0∞) ^ 2) :=
-          (((((continuous_coordDeriv hf'c p).measurable.comp (hYm i)).sub
-            ((continuous_coordDeriv hf'c p).measurable.comp hXm)).mul
-              (hm p k)).nnnorm).coe_nnreal_ennreal.pow_const 2
-        rw [lintegral_window_add (hAm.const_mul _) (hBm.const_mul _) T,
-          lintegral_window_const_mul hAm (by simp) T,
-          lintegral_window_const_mul hBm (by simp) T,
+        rw [lintegral_window_add
+            (g := fun ω s => 2 * (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω))
+                * H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+            (hAm.const_mul _) T,
           lintegral_window_const_mul
-            (((((measurable_clampCoeff hm (ns i) p k).sub
-              (hm p k)).nnnorm).coe_nnreal_ennreal).pow_const 2)
+            (f := fun ω s => ENNReal.ofReal (K₁ ^ 2)
+                * (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+            (by simp) T,
+          lintegral_window_const_mul
+            (f := fun ω s => (‖(coordDeriv f' p (Y i s ω) - coordDeriv f' p (X s ω))
+                * H p k ω s‖₊ : ℝ≥0∞) ^ 2)
+            (by simp) T,
+          lintegral_window_const_mul
+            (f := fun ω s => (‖clampCoeff H (ns i) p k ω s - H p k ω s‖₊ : ℝ≥0∞) ^ 2)
             (by simp : ENNReal.ofReal (K₁ ^ 2) ≠ ⊤) T]
 
 variable (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ')
@@ -1089,7 +1094,7 @@ theorem itoFormula_of_unbounded_coeff
     fun i => (hXj (ns i)).measurable_uncurry
   have hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
       Filter.Tendsto (fun i => Xj (ns i) s ω) Filter.atTop (𝓝 (X s ω)) :=
-    ae_ae_tendsto_version_clamp W ℱ' hcoord hX₀' hbm hbq h hXj hT hns
+    ae_ae_tendsto_version_clamp W ℱ' hcoord hX₀' hbm hbq h hXj hns
   -- the integrands along the clamped versions
   have hmY : ∀ (i : ℕ) (p : Fin n) (k : Fin d), Measurable (Function.uncurry
       fun ω s => coordDeriv f' p (Xj (ns i) s ω) * clampCoeff H (ns i) p k ω s) :=
@@ -1156,7 +1161,7 @@ theorem itoFormula_of_unbounded_coeff
     MeasureTheory.ae_all_iff.mpr fun j => version_ae_eq_zero W ℱ' hcoord (hXj j)
   have hzeroX : X 0 =ᵐ[P] X₀ := version_ae_eq_zero W ℱ' hcoord h
   have hdrift := ae_tendsto_drift_clamp hf'c hf'bd hbm (fun p => hbq p T hT) hYm
-    h.measurable_uncurry hge hae
+    hge hae
   have hqv := ae_tendsto_quadVar_clamp hf''c hK₂0 hf''bd hHm (fun p k => hHs p k T hT) hYm
     hge hae
   filter_upwards [MeasureTheory.ae_all_iff.mpr hform, hTlim, hzeroj, hzeroX, hdrift, hqv, hSI]

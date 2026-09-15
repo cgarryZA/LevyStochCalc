@@ -819,9 +819,9 @@ lemma kc_ae_nbhd_holder
   have hcdy : (c : ℝ) ∈ dyadicRationals := intCast_mem_dyadicRationals c
   -- `t` lies within `1/2` of `c`.
   have htlo : (c : ℝ) - 1 / 2 ≤ t := by
-    have := Int.floor_le (t + 1 / 2); push_cast at this ⊢; linarith
+    have := Int.floor_le (t + 1 / 2); linarith
   have hthi : t < (c : ℝ) + 1 / 2 := by
-    have := Int.lt_floor_add_one (t + 1 / 2); push_cast at this ⊢; linarith
+    have := Int.lt_floor_add_one (t + 1 / 2); linarith
   refine ⟨2 * (KL + K₀),
     min (min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) / 2) (1 / 2), ?_, by positivity, ?_⟩
   · have : (0 : ℝ) < min ((1 / 2 : ℝ) ^ NL) ((1 / 2 : ℝ) ^ N₀) := by positivity
@@ -939,12 +939,10 @@ lemma kolmogorov_modification_ae_eq
     by_cases hδ_top : δ = ⊤
     · subst hδ_top
       simp_rw [top_le_iff]
-      have h_edist_ne_top : ∀ n ω,
-          edist (X (u n) ω) (X t ω) ≠ ⊤ := fun n ω => edist_ne_top _ _
       have h_set_empty : ∀ n,
           {ω | edist (X (u n) ω) (X t ω) = ⊤} = ∅ := by
         intro n; ext ω
-        simp [h_edist_ne_top n ω]
+        simp
       simp_rw [h_set_empty]
       simp
     -- Now δ ≠ ⊤. Step D: edist (u n) t → 0 from u n → t.

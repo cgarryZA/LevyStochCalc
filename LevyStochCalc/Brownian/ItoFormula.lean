@@ -123,7 +123,7 @@ theorem lintegral_sq_sum_unifGrid_sub_le
   refine le_trans (lintegral_sq_stochasticIntegral_mul_sub_le W ℱ hℱ H
     (fun ω s => (SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω) g _ _ _
     hmg hpg hqg hC0 hCH hT) ?_
-  refine mul_le_mul_left' ?_ _
+  refine mul_le_mul_right ?_ _
   refine lintegral_sq_sub_le_of_bound
     (fun ω s => (SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω) g hε0 hT.le ?_
   intro ω s hs

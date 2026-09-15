@@ -54,6 +54,7 @@ theorem sq_add3_le_sixteen_mul (a b c : ℝ≥0∞) : (a + b + c) ^ 2 ≤ 16 * (
 
 /-! ### The drift component -/
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The drift component is dominated over the window by its own total variation there. -/
 theorem iSup_dyadicRunMax_drift_le
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
@@ -88,6 +89,7 @@ theorem iSup_dyadicRunMax_drift_le
       by rw [Real.norm_eq_abs, abs_of_nonneg hnn]]
   exact hnorm
 
+omit [MeasurableSpace E] in
 /-- The drift dominator is square integrable. -/
 theorem lintegral_sq_drift_bound_lt_top
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
@@ -147,6 +149,7 @@ theorem lintegral_sq_iSup_jump_le
   refine le_trans (lintegral_iSup_dyadicRunMax_sq_le hmart hT') ?_
   rw [lintegral_sq_picardStep_jump_eq N ℱ hℱN coeffs X h_meas h_progMeas h_sq i hT']
 
+omit [MeasurableSpace E] in
 /-- Doob's inequality for one Brownian coordinate of the Picard step. -/
 theorem lintegral_sq_iSup_brownian_coord_le
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
@@ -175,6 +178,7 @@ theorem lintegral_sq_iSup_brownian_coord_le
 
 /-! ### The whole step -/
 
+omit [MeasurableSpace E] in
 /-- Slice measurability of one Brownian coordinate's integral. -/
 theorem measurable_brownianIntegral_slice
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
@@ -234,7 +238,7 @@ theorem lintegral_sq_iSup_diffusion_lt_top
           (sq_sum_le_card_sq_mul Finset.univ _)
     _ = (Finset.univ.card : ℝ≥0∞) ^ 2
           * ∑ j : Fin d, ∫⁻ ω, (⨆ m, (‖dyadicRunMax (g j) T' m ω‖₊ : ℝ≥0∞)) ^ 2 ∂P := by
-        rw [lintegral_const_mul' _ _ (by simp), lintegral_finset_sum _ fun j _ => hsupm j]
+        rw [lintegral_const_mul' _ _ (by simp), lintegral_finsetSum _ fun j _ => hsupm j]
     _ < ⊤ := by
         refine ENNReal.mul_lt_top (by simp) (ENNReal.sum_lt_top.mpr fun j _ => ?_)
         refine lt_of_le_of_lt (lintegral_sq_iSup_brownian_coord_le W ℱ hℱW coeffs X
@@ -391,7 +395,7 @@ theorem lintegral_sq_iSup_picardSelfMapRaw_lt_top
         rw [enorm_dyadicRunMax, enorm_dyadicRunMax]
         exact iSup_congr fun k => by rw [congrFun (hω (m, (k : ℕ))) i]
     _ = ∑ i, ∫⁻ ω, (⨆ m, (‖dyadicRunMax (fun t ω => St t ω i) T' m ω‖₊ : ℝ≥0∞)) ^ 2 ∂P :=
-        lintegral_finset_sum _ fun i _ =>
+        lintegral_finsetSum _ fun i _ =>
           (Measurable.iSup fun m => measurable_enorm_dyadicRunMax (hStm i) T' m).pow_const 2
     _ < ⊤ := ENNReal.sum_lt_top.mpr fun i _ => hstep i
 

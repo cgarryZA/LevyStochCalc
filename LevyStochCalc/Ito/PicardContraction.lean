@@ -82,6 +82,7 @@ theorem measurable_lintegral_sq {Z : ℝ → Ω → (Fin n → ℝ)}
   (measurable_uncurry_sq hZm).lintegral_prod_right'
     (ν := volume.restrict (Set.Icc (0 : ℝ) b))
 
+omit [IsProbabilityMeasure P] in
 /-- The energy of the difference of two path maps of finite energy is finite. -/
 theorem lintegral_sq_sub_lt_top_of_energy {Z₁ Z₂ : ℝ → Ω → (Fin n → ℝ)}
     (hm₁ : Measurable (Function.uncurry Z₁)) (hm₂ : Measurable (Function.uncurry Z₂))
@@ -357,7 +358,7 @@ theorem exists_bieleckiWeight_rate_lt_one (L : ℝ) (hT : 0 < T) :
 
 /-! ### Bielecki bookkeeping for the fixed point -/
 
-omit [ℱ'.IsRightContinuous] in
+omit [IsProbabilityMeasure P] [ℱ'.IsRightContinuous] in
 /-- Slice measurability suffices for the Bielecki subadditivity hypothesis. -/
 theorem bieleckiNorm_inner_aemeasurable_of_slice {Y : ℝ → Ω → (Fin n → ℝ)}
     (h : ∀ (t : ℝ) (i : Fin n), Measurable fun ω => Y t ω i) (t : ℝ) :
@@ -421,6 +422,7 @@ theorem bieleckiNorm_lt_top_of_approx (β T : ℝ) {A Z : ℝ → Ω → (Fin n 
 
 /-! ### The step against a raw state process -/
 
+omit [ℱ'.IsRightContinuous] in
 /-- **The Picard step contracts between a process of the space and a raw state process.** -/
 theorem bieleckiNorm_picardStepOnStop_sub_rawStop_le {L : ℝ}
     (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
@@ -544,6 +546,7 @@ theorem bieleckiNorm_picardLimit_lt_top {β : ℝ} (hβ : 0 < β) (hT : 0 < T)
     (fun t i => measurable_slice_of_uncurry X₀.measurable_path t i)
     (fun t i => measurable_slice_of_uncurry hYm t i) hbase hd
 
+omit [ℱ'.IsRightContinuous] in
 /-- Slice measurability of the Picard step along a raw state process. -/
 theorem measurable_picardStepOnRawStop_slice
     {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
@@ -735,6 +738,7 @@ theorem picardSelfMapRaw_picardLimit_ae_eq {β : ℝ} (hβ : 0 < β) (hT : 0 < T
 
 /-! ### The step respects almost sure equality of its input -/
 
+omit [ℱ'.IsRightContinuous] in
 /-- **The Picard step contracts between two raw state processes.** -/
 theorem bieleckiNorm_picardStepOnRawStop_diff_le
     {Z₁ : ℝ → Ω → (Fin n → ℝ)} (h₁m : Measurable (Function.uncurry Z₁))
@@ -804,7 +808,7 @@ theorem bieleckiNorm_eq_zero_of_ae (β T : ℝ) {Z : ℝ → Ω → (Fin n → �
     filter_upwards [h t ht] with ω hω
     simp [hω]
   rw [lintegral_congr_ae hz]
-  simp [ENNReal.zero_rpow_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+  simp
 
 /-- **The Picard step respects almost sure equality of its input.** -/
 theorem picardStepOnRawStop_congr_ae

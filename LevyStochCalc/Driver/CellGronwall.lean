@@ -186,11 +186,14 @@ theorem cellPairing_eq_halves (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     cellPart_eq_cellHalf_im N w hBm hZ2 hVm hVb Real.continuous_sin Real.abs_sin_le_one hXs,
     cellPart_eq_cellHalf_im N w hBm hZ2 hVm hVb Real.continuous_cos Real.abs_cos_le_one hXs,
     cellPart_eq_cellHalf_re N w hBm hZ2 hVm hVb Real.continuous_sin Real.abs_sin_le_one hXs]
-  refine Complex.ext ?_ ?_ <;>
-    simp only [Complex.add_re, Complex.add_im, Complex.ofReal_re, Complex.ofReal_im,
-      Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im, zero_mul, one_mul,
-      mul_zero, zero_add, add_zero, zero_sub, sub_zero] <;>
+  refine Complex.ext ?_ ?_
+  · simp only [Complex.add_re, Complex.ofReal_re, Complex.ofReal_im,
+      Complex.mul_re, Complex.I_re, Complex.I_im, zero_mul, one_mul,
+      mul_zero, add_zero, zero_sub, sub_zero]
     ring
+  · simp only [Complex.add_im, Complex.ofReal_re, Complex.ofReal_im,
+      Complex.mul_im, Complex.I_re, Complex.I_im, zero_mul, one_mul,
+      mul_zero, zero_add]
 
 variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
 
@@ -320,7 +323,7 @@ theorem aestronglyMeasurable_cellHalf {ℱ : Filtration ℝ ‹MeasurableSpace �
   have hspos : 0 < s := lt_of_le_of_ne hs.1 (Ne.symm hs0)
   refine integral_congr_ae ?_
   filter_upwards [ae_charStrictPred_eq_charAt N w hBm hT hbT hBsub he₀ hspos] with ω hω
-  show ((Z ω * V ω * g (l * X s ω) : ℝ) : ℂ) * charStrictPred N w Bfam A T e₀ s ω
+  change ((Z ω * V ω * g (l * X s ω) : ℝ) : ℂ) * charStrictPred N w Bfam A T e₀ s ω
       = ((Z ω * V ω * g (l * X s ω) : ℝ) : ℂ) * charAt N w Bfam s ω
   rw [hω]
 
@@ -842,7 +845,7 @@ theorem norm_cellPairing_le
     rw [← MeasureTheory.integral_const_mul]
     refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun s => norm_nonneg _)
       (hUn.const_mul _) (Filter.Eventually.of_forall fun s => ?_)
-    show ‖(cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s‖
+    change ‖(cellDrift l a b s : ℂ) * cellPairing N w Bfam Z V l X s‖
         ≤ l ^ 2 / 2 * ‖cellPairing N w Bfam Z V l X s‖
     rw [norm_mul, Complex.norm_real, Real.norm_eq_abs]
     exact mul_le_mul_of_nonneg_right (abs_cellDrift_le l a b s) (norm_nonneg _)
@@ -857,7 +860,7 @@ theorem norm_cellPairing_le
           2 * ‖cellPairing N w Bfam Z V l X q.1‖ ∂(referenceIntensity ν) := by
       refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun q => norm_nonneg _)
         (hWn.const_mul 2) (Filter.Eventually.of_forall fun q => ?_)
-      show ‖markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1‖
+      change ‖markFactor w Bfam q * cellPairing N w Bfam Z V l X q.1‖
           ≤ 2 * ‖cellPairing N w Bfam Z V l X q.1‖
       rw [norm_mul]
       exact mul_le_mul_of_nonneg_right (norm_markFactor_le w Bfam q) (norm_nonneg _)

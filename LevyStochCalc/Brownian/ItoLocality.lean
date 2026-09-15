@@ -263,7 +263,7 @@ theorem eventually_gridStop_lt {t : ℝ} (ht : 0 < t) (ω : Ω) {s : ℝ} (hs : 
     linarith
   have hjn : j ≤ n := by
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     have : t ≤ gridPt t n j := by
       rw [gridPt, le_div_iff₀ hnpos]
       have : (n : ℝ) ≤ (j : ℝ) := by exact_mod_cast hcon.le

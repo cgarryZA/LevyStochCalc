@@ -39,13 +39,14 @@ theorem simpleIntegral_combineBM (W : Multidim.MultidimBrownianMotion P d) {c : 
         = ∑ i, c i * (G.ξ k ω * ((W.W i).W (min (G.partition k.succ) t) ω
             - (W.W i).W (min (G.partition k.castSucc) t) ω)) := by
     intro k
-    show G.ξ k ω * (Multidim.MultidimBrownianMotion.combine W c _ ω
+    change G.ξ k ω * (Multidim.MultidimBrownianMotion.combine W c _ ω
       - Multidim.MultidimBrownianMotion.combine W c _ ω) = _
     rw [Multidim.MultidimBrownianMotion.combine_sub, Finset.mul_sum]
     exact Finset.sum_congr rfl fun i _ => by ring
   rw [Finset.sum_congr rfl fun k _ => hstep k, Finset.sum_comm]
   exact Finset.sum_congr rfl fun i _ => (Finset.mul_sum _ _ _).symm
 
+omit [IsProbabilityMeasure P] in
 /-- Two `L²` limits of one sequence agree almost everywhere. -/
 theorem ae_eq_of_tendsto_eLpNorm {f g : Ω → ℝ} {F : ℕ → Ω → ℝ}
     (hFm : ∀ n, AEStronglyMeasurable (F n) P)

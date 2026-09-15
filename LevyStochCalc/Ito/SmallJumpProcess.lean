@@ -130,7 +130,7 @@ marks. -/
 theorem bigJumpProcess_sub (m : ℕ) (t : ℝ) (ω : Ω) (i : Fin n) :
     bigJumpProcess G hA hℱ0 hnull0 m t ω i - Xp t ω i
       = -smallJumpIntegral G hA hℱ0 hnull0 m i t ω := by
-  show Xp t ω i - smallJumpIntegral G hA hℱ0 hnull0 m i t ω - Xp t ω i = _
+  change Xp t ω i - smallJumpIntegral G hA hℱ0 hnull0 m i t ω - Xp t ω i = _
   ring
 
 /-- A coordinate of a jointly measurable path at a fixed time is measurable. -/
@@ -521,7 +521,7 @@ theorem exists_seq_ae_tendsto_drift_bigJumpProcess (hanti : Antitone A)
   exact LevyStochCalc.Brownian.Ito.ae_tendsto_drift_clamp hf'c hf'bd hbm hbq
     (Y := fun k => bigJumpProcess G hA hℱ0 hnull0 (ms k)) (X := Xp)
     (fun k => measurable_uncurry_bigJumpProcess_pi G hA hℱ0 hnull0 (ms k))
-    (G.measurable_path.comp measurable_swap) hms hae
+    hms hae
 
 /-- **The quadratic-variation integrals along the big-jump processes, with the diffusion matrix
 clamped at the levels of the subsequence, converge to the quadratic-variation integral along the

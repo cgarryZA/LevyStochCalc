@@ -116,7 +116,7 @@ theorem tendsto_setIntegral_of_dominated_ae
       hg.mono' (hFmeas m) (hbound m)
     rw [integral_prod _ hint]
     refine integral_congr_ae (Eventually.of_forall fun s => ?_)
-    show ∫ e, F m (s, e) ∂ν = ∫ e in (A m)ᶜ, fs m s e ∂ν
+    change ∫ e, F m (s, e) ∂ν = ∫ e in (A m)ᶜ, fs m s e ∂ν
     have hfun : (fun e => F m (s, e)) = ((A m)ᶜ).indicator (fun e => fs m s e) := by
       funext e
       by_cases he : e ∈ (A m)ᶜ
@@ -193,11 +193,11 @@ theorem measurable_uncurry_truncPath (hGm : MeasurableSet G) (m : ℕ) :
           (repairOn G (bigJumpPath S (measurableSet_smallMarks ν m) hℱ0 hnull0))) := by
     funext q
     by_cases hq : 0 ≤ q.1
-    · show truncPath S hℱ0 hnull0 G m q.1 q.2 = _
+    · change truncPath S hℱ0 hnull0 G m q.1 q.2 = _
       rw [truncPath_of_nonneg S hℱ0 hnull0 G m hq,
         Set.indicator_of_mem (show q ∈ {q : ℝ × Ω | 0 ≤ q.1} from hq)]
       rfl
-    · show truncPath S hℱ0 hnull0 G m q.1 q.2 = _
+    · change truncPath S hℱ0 hnull0 G m q.1 q.2 = _
       rw [truncPath_of_neg S hℱ0 hnull0 G m (not_le.mp hq),
         Set.indicator_of_notMem (show q ∉ {q : ℝ × Ω | 0 ≤ q.1} from hq)]
   rw [heq]
@@ -432,7 +432,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   have hBm : ∀ m (j : Fin d), Measurable (Function.uncurry
       fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j) := by
     intro m j
-    show Measurable fun p : Ω × ℝ =>
+    change Measurable fun p : Ω × ℝ =>
       ∑ i, gradient u p.2 (xs m p.2 p.1) i * coeffs.σ p.2 (X.X p.2 p.1) i j
     refine Finset.measurable_sum _ fun i _ => Measurable.mul ?_ (S.σ_meas i j)
     exact (continuous_gradient_uncurry hu i).measurable.comp
@@ -440,7 +440,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   have hBp : ∀ m (j : Fin d), Probability.ProgressivelyMeasurable S.ℱ.rightCont
       fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j := by
     intro m j
-    show Probability.ProgressivelyMeasurable S.ℱ.rightCont
+    change Probability.ProgressivelyMeasurable S.ℱ.rightCont
       fun ω s => ∑ i, gradient u s (xs m s ω) i * coeffs.σ s (X.X s ω) i j
     refine progressivelyMeasurable_finset_sum _ fun i _ =>
       Probability.ProgressivelyMeasurable.mul ?_ ((S.σ_prog i j).mono hle)
@@ -461,7 +461,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
       (hxs_m m).comp (measurable_snd.fst.prodMk measurable_fst)
     have hγ : Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 :=
       measurable_pi_lambda _ fun i => S.γ_meas i
-    show Measurable fun p : Ω × ℝ × E =>
+    change Measurable fun p : Ω × ℝ × E =>
       u p.2.1 (xs m p.2.1 p.1 + coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2) - u p.2.1 (xs m p.2.1 p.1)
     exact (hu.continuous.measurable.comp (measurable_snd.fst.prodMk (hy.add hγ))).sub
       (hu.continuous.measurable.comp (measurable_snd.fst.prodMk hy))
@@ -575,11 +575,11 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
       (fun ω s => max K₁ 0 * ∑ i, |coeffs.σ s (X.X s ω) i j|)
       (fun k => hBm (ms k) j) (fun k => hBp (ms k) j) (fun k => hBq (ms k) j)
       (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) ?_ hT ?_ ?_ ?_
-    · show Measurable fun p : Ω × ℝ => max K₁ 0 * ∑ i, |coeffs.σ p.2 (X.X p.2 p.1) i j|
+    · change Measurable fun p : Ω × ℝ => max K₁ 0 * ∑ i, |coeffs.σ p.2 (X.X p.2 p.1) i j|
       exact measurable_const.mul (Finset.measurable_sum _ fun i _ => (S.σ_meas i j).abs)
     · filter_upwards [hpath'] with ω hω
       filter_upwards [hω] with s hs
-      show Tendsto (fun k => ∑ i, gradient u s (xs (ms k) s ω) i * coeffs.σ s (X.X s ω) i j)
+      change Tendsto (fun k => ∑ i, gradient u s (xs (ms k) s ω) i * coeffs.σ s (X.X s ω) i j)
         atTop (𝓝 (∑ i, gradient u s (X.X s ω) i * coeffs.σ s (X.X s ω) i j))
       exact tendsto_sum_gradient_mul_of_tendsto hu s (fun i => coeffs.σ s (X.X s ω) i j) hs
     · intro k
@@ -815,7 +815,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     · intro i
       refine Measurable.aestronglyMeasurable ?_
       have hy : Measurable fun s => xs (φ i) s ω := (hxs_m (φ i)).of_uncurry_right
-      show Measurable fun s => timeDeriv u s (xs (φ i) s ω)
+      change Measurable fun s => timeDeriv u s (xs (φ i) s ω)
         + ((∑ p, coeffs.μ s (X.X s ω) p * gradient u s (xs (φ i) s ω) p)
           + (1 / 2) * ∑ p, ∑ q, ∑ j, coeffs.σ s (X.X s ω) p j * coeffs.σ s (X.X s ω) q j
             * hessian u s (xs (φ i) s ω) p q)
@@ -888,7 +888,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
       refine Measurable.aestronglyMeasurable ?_
       have hy : Measurable fun p : ℝ × E => xs (φ i) p.1 ω :=
         ((hxs_m (φ i)).of_uncurry_right).comp measurable_fst
-      show Measurable fun p : ℝ × E =>
+      change Measurable fun p : ℝ × E =>
         u p.1 (xs (φ i) p.1 ω + coeffs.γ p.1 (X.X p.1 ω) p.2) - u p.1 (xs (φ i) p.1 ω)
           - ∑ l, coeffs.γ p.1 (X.X p.1 ω) p.2 l * gradient u p.1 (xs (φ i) p.1 ω) l
       refine Measurable.sub (Measurable.sub ?_ ?_) ?_

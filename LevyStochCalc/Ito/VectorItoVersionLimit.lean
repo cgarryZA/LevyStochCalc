@@ -336,7 +336,7 @@ theorem exists_isVectorItoVersion_of_unbounded
       simp [hGdef]
     rw [hGeq]
     refine MeasurableSet.iInter fun m => ?_
-    exact (Measurable.ennreal_tsum fun i => hSm m i) (measurableSet_singleton _).compl
+    exact (Measurable.tsum fun i => hSm m i) (measurableSet_singleton _).compl
   have hGnull : P Gᶜ = 0 := by
     have h1 : ∀ᵐ ω ∂P, ω ∈ G := by
       filter_upwards [hae] with ω hω

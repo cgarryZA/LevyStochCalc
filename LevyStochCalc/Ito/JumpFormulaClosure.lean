@@ -271,7 +271,7 @@ theorem markedPredictable_markCut {φ : Ω → ℝ → E → ℝ} (hφ : MarkedP
           Set.indicator_of_notMem this, hφ0 p.1 p.2.1 p.2.2 hle]
     · have : p ∉ S := by simp [hSdef, hmem]
       simp [LevyStochCalc.Poisson.Compensated.markCut, hmem, Set.indicator_of_notMem this]
-  show Measurable[markedPredictableSigma ℱ ν] _
+  change Measurable[markedPredictableSigma ℱ ν] _
   rw [heq]
   exact hφ.indicator hS
 

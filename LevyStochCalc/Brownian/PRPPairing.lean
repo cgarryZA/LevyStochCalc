@@ -38,6 +38,7 @@ section Pairing
 
 variable {P : Measure Ω} [IsProbabilityMeasure P]
 
+omit [IsProbabilityMeasure P] in
 /-- An integrable weight times a bounded function is integrable. -/
 theorem integrable_mul_of_bounded {Z : Ω → ℂ} (hZ : Integrable Z P) {F : Ω → ℂ}
     (hFm : AEStronglyMeasurable F P) {c : ℝ} (hFb : ∀ ω, ‖F ω‖ ≤ c) :
@@ -92,7 +93,7 @@ theorem ae_eq_zero_of_isItoVersion_indIoc (ha : 0 ≤ a) (hab : a < b)
   have hb0 : (0 : ℝ) ≤ b := le_trans ha hab.le
   filter_upwards [h1, h2] with ω hω1 hω2
   rw [hω1]
-  show (0 : ℝ) + (∫ _s in Set.Icc (0 : ℝ) 0, (0 : ℝ) ∂volume)
+  change (0 : ℝ) + (∫ _s in Set.Icc (0 : ℝ) 0, (0 : ℝ) ∂volume)
       + stochasticIntegralBrownian W ℱ hℱ (indIoc Ω a b) hm hp hq 0 ω = 0
   rw [hω2]
   simp [min_eq_right hb0, min_eq_right ha]
@@ -107,7 +108,7 @@ theorem ae_eq_increment_of_isItoVersion_indIoc (ha : 0 ≤ a) (hab : a < b)
   have h2 := stochasticIntegralBrownian_indIoc W ℱ hℱ ha hab hm hp hq hb0.le
   filter_upwards [h1, h2] with ω hω1 hω2
   rw [hω1]
-  show (0 : ℝ) + (∫ _s in Set.Icc (0 : ℝ) b, (0 : ℝ) ∂volume)
+  change (0 : ℝ) + (∫ _s in Set.Icc (0 : ℝ) b, (0 : ℝ) ∂volume)
       + stochasticIntegralBrownian W ℱ hℱ (indIoc Ω a b) hm hp hq b ω = _
   rw [hω2]
   simp [min_self, min_eq_left hab.le]
@@ -430,6 +431,7 @@ theorem norm_pairing_le_setIntegral_norm {a b : ℝ} {X : ℝ → Ω → ℝ}
     abs_of_nonneg (by positivity : (0 : ℝ) ≤ l ^ 2 / 2)]
   exact mul_le_mul_of_nonneg_left hbound (by positivity)
 
+omit [IsProbabilityMeasure P] in
 /-- The pairing vanishes at time zero when the weight has mean zero. -/
 theorem pairing_zero_time {X : ℝ → Ω → ℝ} (hX0 : X 0 =ᵐ[P] fun _ => (0 : ℝ))
     {Y : Ω → ℂ} (hY0 : ∫ ω, Y ω ∂P = 0) (g : ℝ → ℝ) :

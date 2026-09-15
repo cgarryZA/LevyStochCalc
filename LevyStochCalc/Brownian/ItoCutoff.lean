@@ -112,11 +112,11 @@ noncomputable def hessVec (g : (Fin n → ℝ) → ℝ) (z : Fin n → ℝ) : Fi
 
 theorem continuous_gradVec {f : (Fin n → ℝ) → ℝ} (hf : ContDiff ℝ 2 f) (k : ℝ) :
     Continuous (gradVec (cutoffFun f k)) :=
-  continuous_pi fun p => (continuous_fderiv_cutoffFun hf k).clm_apply continuous_const
+  continuous_pi fun _ => (continuous_fderiv_cutoffFun hf k).clm_apply continuous_const
 
 theorem continuous_hessVec {f : (Fin n → ℝ) → ℝ} (hf : ContDiff ℝ 2 f) (k : ℝ) :
     Continuous (hessVec (cutoffFun f k)) :=
-  continuous_pi fun pq =>
+  continuous_pi fun _ =>
     ((continuous_fderiv_fderiv_cutoffFun hf k).clm_apply continuous_const).clm_apply
       continuous_const
 
@@ -271,6 +271,7 @@ theorem sq_enorm_le_of_abs_le {c : ℝ} (hc : 0 ≤ c) {u v : ℝ} (h : |u| ≤ 
         rw [ENNReal.coe_mul, mul_pow, ← ENNReal.coe_pow, ← Real.toNNReal_pow hc]
         rfl
 
+omit [IsProbabilityMeasure P] in
 /-- The energy of an integrand dominated by a multiple of another one is finite whenever the
 dominating integrand's is. -/
 theorem energy_lt_top_of_abs_le_mul {K G : Ω → ℝ → ℝ} {c : ℝ} (hc : 0 ≤ c)

@@ -33,6 +33,7 @@ noncomputable def charMark (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) (t : 
   (((⋃ j, truncFam Bfam t j).indicator (fun _ => (1 : ℝ)) q : ℝ) : ℂ)
     * (Complex.exp (Complex.I * (simpleMark w (truncFam Bfam t) q : ℂ)) - 1)
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charIntegrand_truncFam_eq (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     (Bfam : ι → Set (ℝ × E)) (A : Set E) (T t : ℝ) (ω : Ω) (q : ℝ × E) :
     charIntegrand N w (truncFam Bfam t) A T ω q.1 q.2
@@ -41,6 +42,7 @@ theorem charIntegrand_truncFam_eq (N : PoissonRandomMeasure P ν) (w : ι → �
   simp only [charIntegrand, charMark, Prod.mk.eta]
   ring
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem norm_charMark_le (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) (t : ℝ) (q : ℝ × E) :
     ‖charMark w Bfam t q‖ ≤ 2 := by
   rw [charMark, norm_mul]
@@ -127,7 +129,7 @@ theorem integral_mul_charCompensator (N : PoissonRandomMeasure P ν)
         * ((r ω : ℂ) * Complex.exp
             (Complex.I * (predStrict N w (truncFam Bfam t) A T ω q.1 q.2 : ℂ))) := by
       intro ω
-      show (r ω : ℂ) * charIntegrand N w (truncFam Bfam t) A T ω q.1 q.2 = _
+      change (r ω : ℂ) * charIntegrand N w (truncFam Bfam t) A T ω q.1 q.2 = _
       rw [charIntegrand_truncFam_eq]
       ring
     simp_rw [hfac]

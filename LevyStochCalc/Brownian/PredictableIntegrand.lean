@@ -50,7 +50,7 @@ theorem predictable_indicator_Ioc {K : Ω → ℝ → ℝ} (hK : Predictable ℱ
     by_cases hp : p.1 ∈ Set.Ioc (0 : ℝ) T
     · rw [Set.indicator_of_mem hp, Set.indicator_of_mem (Set.mk_mem_prod hp (Set.mem_univ _))]
     · rw [Set.indicator_of_notMem hp, Set.indicator_of_notMem fun h => hp h.1]
-  show StronglyMeasurable[predictableSigma ℱ]
+  change StronglyMeasurable[predictableSigma ℱ]
     fun p : ℝ × Ω => (Set.Ioc (0 : ℝ) T).indicator (fun _ => K p.2 p.1) p.1
   rw [hrw]
   exact hK.indicator hset

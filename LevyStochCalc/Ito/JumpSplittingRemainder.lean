@@ -408,7 +408,8 @@ theorem tendsto_lintegral_sq_stochasticIntegral_markCut_spanningSets_compl {T : 
     fun a b hab => Set.compl_subset_compl.mpr (monotone_spanningSets ν hab)
   have hnull : ν (⋂ m, (spanningSets ν m)ᶜ) = 0 := by
     rw [← Set.compl_iUnion, iUnion_spanningSets, Set.compl_univ, measure_empty]
-  have h := LevyStochCalc.Ito.IntegralLimit.tendsto_lintegral_sq_stochasticIntegral_markCut_compl_of_antitone
+  have h :=
+    IntegralLimit.tendsto_lintegral_sq_stochasticIntegral_markCut_compl_of_antitone
     N ℱ hℱ φ h_meas h_progMeas h_sq (fun m => (spanningSets ν m)ᶜ)
     (fun m => (measurableSet_spanningSets ν m).compl) hanti hnull hT
   refine h.congr fun m => lintegral_congr_ae ?_
@@ -428,7 +429,7 @@ subsequence.** Along a subsequence of the spanning sets of the intensity, the co
 integrals of each integrand of the family cut to their complements are almost surely eventually
 smaller than any given bound at every time of `[0, T]`. -/
 theorem ae_exists_seq_forall_abs_stochasticIntegral_markCut_spanningSets_compl_lt
-    {ι : Type*} [Fintype ι] (φ : ι → Ω → ℝ → E → ℝ)
+    {ι : Type*} [Finite ι] (φ : ι → Ω → ℝ → E → ℝ)
     (hm : ∀ i, Measurable fun p : Ω × ℝ × E => φ i p.1 p.2.1 p.2.2)
     (hp : ∀ i, Probability.MarkedProgressivelyMeasurable ℱ (φ i))
     (hq : ∀ i, ∀ T : ℝ, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
@@ -441,6 +442,7 @@ theorem ae_exists_seq_forall_abs_stochasticIntegral_markCut_spanningSets_compl_l
           ((hp i).indicator_mark (measurableSet_spanningSets ν (ks m)).compl)
           (fun T' hT' => sq_markCut (hq i) (spanningSets ν (ks m))ᶜ T' hT') t ω| < δ := by
   classical
+  haveI : Fintype ι := Fintype.ofFinite ι
   set R : ℕ → ι → ℝ → Ω → ℝ := fun m i t ω =>
     stochasticIntegral N ℱ hℱ (markCut (spanningSets ν m)ᶜ (φ i))
       (measurable_markCut (hm i) (measurableSet_spanningSets ν m).compl)

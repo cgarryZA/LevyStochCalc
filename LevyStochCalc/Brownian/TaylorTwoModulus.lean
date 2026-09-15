@@ -26,7 +26,7 @@ modulus at scale `A`) in one statement.
 namespace LevyStochCalc
 
 /-- **First-order Taylor against an oscillation bound.** -/
-theorem abs_sub_taylor_one_le_modulus {f f' : ℝ → ℝ} {M : ℝ} (hM0 : 0 ≤ M)
+theorem abs_sub_taylor_one_le_modulus {f f' : ℝ → ℝ} {M : ℝ}
     (hf : ∀ x, HasDerivAt f (f' x) x) {x y : ℝ}
     (hM : ∀ w ∈ Set.uIcc x y, |f' w - f' x| ≤ M) :
     |f y - f x - f' x * (y - x)| ≤ M * |y - x| := by
@@ -58,7 +58,7 @@ theorem abs_sub_taylor_two_le_modulus {f f' f'' : ℝ → ℝ} {M : ℝ} (hM0 : 
   have hstep1 : ∀ w ∈ Set.uIcc x y, |f' w - f' x - f'' x * (w - x)| ≤ M * |y - x| := by
     intro w hw
     have hsub : Set.uIcc x w ⊆ Set.uIcc x y := Set.uIcc_subset_uIcc Set.left_mem_uIcc hw
-    have hloc := abs_sub_taylor_one_le_modulus (f := f') (f' := f'') hM0 hf'
+    have hloc := abs_sub_taylor_one_le_modulus (f := f') (f' := f'') hf'
       (x := x) (y := w) (fun u hu => hM u (hsub hu))
     exact hloc.trans (mul_le_mul_of_nonneg_left (abs_sub_le_of_mem_uIcc hw) hM0)
   have hF : ∀ w ∈ Set.uIcc x y, HasDerivWithinAt

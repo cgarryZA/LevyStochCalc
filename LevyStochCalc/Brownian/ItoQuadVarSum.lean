@@ -384,7 +384,7 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] (W : LevyStochCalc.Brownian.B
     (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
   {C : ℝ} (hC0 : 0 ≤ C) (hCH : ∀ ω s, |H ω s| ≤ C)
 
-include hℱ hC0 hCH in
+include hℱ in
 /-- The compensated square increment across a grid cell is measurable for the σ-algebra at the
 right endpoint. -/
 theorem stronglyMeasurable_quadVarIncrement {a b : ℝ} (hab : a ≤ b) :
@@ -438,7 +438,7 @@ theorem integral_sq_weighted_quadVarSum_le
   have hYmeas : ∀ k, @MeasureTheory.StronglyMeasurable Ω ℝ _ (𝒢 (k + 1)) (Y k) := by
     intro k
     exact ((hg k).mono (h𝒢mono (Nat.le_succ k))).mul
-      (stronglyMeasurable_quadVarIncrement W ℱ hℱ H hm hp hq hC0 hCH (ht k).le)
+      (stronglyMeasurable_quadVarIncrement W ℱ hℱ H hm hp hq (ht k).le)
   have hYcond : ∀ k, P[Y k | 𝒢 k] =ᵐ[P] 0 := by
     intro k
     have hprod : Integrable (g k * quadVarIncrement W ℱ hℱ H hm hp hq (t k) (t (k + 1))) P :=

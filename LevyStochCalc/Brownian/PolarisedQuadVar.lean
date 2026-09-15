@@ -82,7 +82,7 @@ variable {C : ℝ} (hC0 : 0 ≤ C) (hCH₁ : ∀ ω s, |H₁ ω s| ≤ C) (hCH�
 
 include hC0 hCH₁ hCH₂ hm₁ hm₂ in
 /-- The compensator of the sum expands by the binomial identity. -/
-theorem compensator_add_sq_eq {t : ℝ} (ht : 0 ≤ t) (ω : Ω) :
+theorem compensator_add_sq_eq {t : ℝ} (ω : Ω) :
     ∫ u in Set.Icc (0 : ℝ) t, (H₁ ω u + H₂ ω u) ^ 2 ∂volume
       = (∫ u in Set.Icc (0 : ℝ) t, (H₁ ω u) ^ 2 ∂volume)
         + 2 * (∫ u in Set.Icc (0 : ℝ) t, H₁ ω u * H₂ ω u ∂volume)
@@ -102,7 +102,7 @@ theorem compensator_add_sq_eq {t : ℝ} (ht : 0 ≤ t) (ω : Ω) :
   have hi₁₂ : IntegrableOn (fun u => 2 * (H₁ ω u * H₂ ω u)) (Set.Icc (0 : ℝ) t) volume := by
     refine integrableOn_of_bounded_of_measurable (B := 2 * C ^ 2)
       ((measurable_const).mul (hm₁'.mul hm₂')) (fun u => ?_) hfin
-    show |2 * (H₁ ω u * H₂ ω u)| ≤ 2 * C ^ 2
+    change |2 * (H₁ ω u * H₂ ω u)| ≤ 2 * C ^ 2
     have habs : |2 * (H₁ ω u * H₂ ω u)| = 2 * (|H₁ ω u| * |H₂ ω u|) := by
       rw [abs_mul, abs_mul, abs_two]
     rw [habs]
@@ -133,8 +133,8 @@ theorem smul_two_polarQuadVarIncrement_ae {a b : ℝ} (ha : 0 ≤ a) (hab : a �
     stochasticIntegralBrownian_add_ae_of_nonneg W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂
       hma hpa hqa ha] with ω eb ea
   simp only [Pi.smul_apply, smul_eq_mul, polarQuadVarIncrement, quadVarIncrement]
-  rw [eb, ea, compensator_add_sq_eq H₁ H₂ hm₁ hm₂ hC0 hCH₁ hCH₂ hb ω,
-    compensator_add_sq_eq H₁ H₂ hm₁ hm₂ hC0 hCH₁ hCH₂ ha ω]
+  rw [eb, ea, compensator_add_sq_eq H₁ H₂ hm₁ hm₂ hC0 hCH₁ hCH₂ ω,
+    compensator_add_sq_eq H₁ H₂ hm₁ hm₂ hC0 hCH₁ hCH₂ ω]
   ring
 
 include hℱ hma hpa hqa hC0 hCH₁ hCH₂ in

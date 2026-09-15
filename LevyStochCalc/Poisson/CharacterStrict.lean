@@ -28,6 +28,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 
 section Slice
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- A fixed time slice carries no reference intensity. -/
 theorem referenceIntensity_inter_singleton {B : Set (ℝ × E)} (hB : MeasurableSet B) (s : ℝ) :
     referenceIntensity ν (B ∩ {s} ×ˢ Set.univ) = 0 := by
@@ -41,6 +42,7 @@ theorem ae_count_time_singleton_eq_zero (N : PoissonRandomMeasure P ν) {B : Set
     (hB.inter ((measurableSet_singleton s).prod MeasurableSet.univ))
     (referenceIntensity_inter_singleton hB s)
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem inter_Ioc_prod_eq_union {B : Set (ℝ × E)} {s : ℝ} (hs : 0 < s) :
     B ∩ Set.Ioc (0 : ℝ) s ×ˢ Set.univ
       = B ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ ∪ B ∩ {s} ×ˢ Set.univ := by

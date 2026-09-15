@@ -408,7 +408,7 @@ theorem markedPredictable_ite_of_predictable [SigmaFinite ν] {n : ℕ} {Λ : �
       ext p
       simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_setOf_eq, Set.mem_prod,
         Set.mem_univ, true_and, and_true, Set.mem_Ioi]
-    show MeasurableSet[markedPredictableSigma ℱ ν] (_ ∩ _)
+    change MeasurableSet[markedPredictableSigma ℱ ν] (_ ∩ _)
     rw [hrw]
     exact measurableSet_markedPredictableSigma_univ_prod_pos (hD.prod MeasurableSet.univ)
   have h2 : Measurable[traceSigma (markedPredictableSigma ℱ ν) hpos]
@@ -420,7 +420,7 @@ theorem markedPredictable_ite_of_predictable [SigmaFinite ν] {n : ℕ} {Λ : �
       ext p
       simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_setOf_eq, Set.mem_prod,
         Set.mem_univ, true_and, and_true, Set.mem_Ioi]
-    show MeasurableSet[markedPredictableSigma ℱ ν] (_ ∩ _)
+    change MeasurableSet[markedPredictableSigma ℱ ν] (_ ∩ _)
     rw [hrw]
     exact measurableSet_markedPredictableSigma_univ_prod_pos (MeasurableSet.univ.prod hD)
   have h3 : Measurable[traceSigma (markedPredictableSigma ℱ ν) hpos]
@@ -433,7 +433,7 @@ theorem markedPredictable_ite_of_predictable [SigmaFinite ν] {n : ℕ} {Λ : �
   have hkey : MeasurableSet[markedPredictableSigma ℱ ν]
       (((fun p : Ω × ℝ × E => f p.2.1 (Λ p.2.1 p.1) p.2.2) ⁻¹' U)
         ∩ {p : Ω × ℝ × E | 0 < p.2.1}) := hcomp hU
-  show MeasurableSet[markedPredictableSigma ℱ ν]
+  change MeasurableSet[markedPredictableSigma ℱ ν]
     ((fun p : Ω × ℝ × E => if 0 < p.2.1 then f p.2.1 (Λ p.2.1 p.1) p.2.2 else 0) ⁻¹' U)
   by_cases h0 : (0 : ℝ) ∈ U
   · have hrw : (fun p : Ω × ℝ × E =>

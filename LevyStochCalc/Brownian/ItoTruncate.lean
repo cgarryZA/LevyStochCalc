@@ -67,7 +67,7 @@ theorem abs_clampAt_sub_le {j : ℝ} (hj : 0 ≤ j) (x : ℝ) : |clampAt j x - x
     linarith
   · rcases le_or_gt x j with hx' | hx'
     · rw [min_eq_right hx', max_eq_right hx.le]
-      simpa using abs_nonneg x
+      simp
     · rw [min_eq_left hx'.le, max_eq_right (by linarith : -j ≤ j),
         abs_of_nonpos (by linarith : j - x ≤ 0), abs_of_nonneg (by linarith : (0 : ℝ) ≤ x)]
       linarith

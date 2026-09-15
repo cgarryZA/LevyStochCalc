@@ -39,6 +39,7 @@ section CellSums
 
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
+omit [IsProbabilityMeasure P] in
 /-- **`L¹` bound for a weighted sum of cell terms.** With weights bounded by `Kw` and cell terms
 whose first absolute moments are all at most `ρ`, the weighted sum has first absolute moment at
 most `N·Kw·ρ`. -/
@@ -85,6 +86,7 @@ theorem sum_unifGrid_sq_diff {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠ 0) :
   rw [Finset.sum_congr rfl hterm, Finset.sum_const, Finset.card_range, nsmul_eq_mul]
   field_simp
 
+omit [IsProbabilityMeasure P] in
 /-- The first absolute moment of a sum is at most the sum of the bounds. -/
 theorem integral_abs_add_le {f g : Ω → ℝ} (hf : Integrable f P) (hg : Integrable g P)
     {a b : ℝ} (ha : ∫ ω, |f ω| ∂P ≤ a) (hb : ∫ ω, |g ω| ∂P ≤ b) :
@@ -95,6 +97,7 @@ theorem integral_abs_add_le {f g : Ω → ℝ} (hf : Integrable f P) (hg : Integ
     _ = (∫ ω, |f ω| ∂P) + ∫ ω, |g ω| ∂P := MeasureTheory.integral_add hf.abs hg.abs
     _ ≤ a + b := add_le_add ha hb
 
+omit [IsProbabilityMeasure P] in
 /-- The first absolute moment of a finite sum is at most the sum of the bounds. -/
 theorem integral_abs_finsetSum_le {ι : Type*} (s : Finset ι) (F : ι → Ω → ℝ)
     (hF : ∀ j ∈ s, Integrable (F j) P) (c : ι → ℝ) (hc : ∀ j ∈ s, ∫ ω, |F j ω| ∂P ≤ c j) :
@@ -424,7 +427,7 @@ theorem vectorItoMartingale_prod_eq (p q : Fin n) {u v : ℝ} (hu : 0 ≤ u) (hu
     refine setIntegral_Icc_sub_Icc (B := C ^ 2)
       ((Measurable.of_uncurry_left (hHm p k)).mul (Measurable.of_uncurry_left (hHm q k)))
       (fun s => ?_) hu huv
-    show |H p k ω s * H q k ω s| ≤ C ^ 2
+    change |H p k ω s * H q k ω s| ≤ C ^ 2
     rw [abs_mul, pow_two]
     exact mul_le_mul (hCH p k ω s) (hCH q k ω s) (abs_nonneg _) hC0
   have key : ∀ k : Fin d,
@@ -529,7 +532,7 @@ theorem IsVectorItoVersion.quadVarRiemann_decomp_ae
     refine integrableOn_of_bounded_of_measurable (B := C ^ 2)
       ((Measurable.of_uncurry_left (hHm p k)).mul (Measurable.of_uncurry_left (hHm q k)))
       (fun s => ?_) (measure_Ioc_lt_top).ne
-    show |H p k ω s * H q k ω s| ≤ C ^ 2
+    change |H p k ω s * H q k ω s| ≤ C ^ 2
     rw [abs_mul, pow_two]
     exact mul_le_mul (hCH p k ω s) (hCH q k ω s) (abs_nonneg _) hC0
   have hterm : ∀ i ∈ Finset.range m, φ (X (unifGrid T m i) ω)

@@ -176,6 +176,7 @@ theorem window_energy_stageDefect_ne_top (hsupp : ∀ ω s e, e ∉ A → φ ω 
     (lt_of_lt_of_le (master_err N ℱ hℱ φ h_meas h_progMeas h_sq n) le_top).ne
     (window_energy_stageDefect_le N ℱ hℱ φ h_meas h_progMeas h_sq hA hsupp n hT)
 
+omit [IsProbabilityMeasure P] in
 include h_meas h_sq in
 /-- The energy of the integrand over a window of the reference intensity is finite. -/
 theorem window_energy_ne_top {T : ℝ} (hT : 0 < T) :

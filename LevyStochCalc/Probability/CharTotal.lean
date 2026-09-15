@@ -28,6 +28,7 @@ variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [Measurabl
   [BorelSpace V] [CompleteSpace V] [SecondCountableTopology V]
 
 
+omit [BorelSpace V] [CompleteSpace V] [SecondCountableTopology V] in
 /-- The characteristic function of a density-weighted measure. -/
 theorem charFun_withDensity_ofReal {μ : Measure V} {u : V → ℝ} (hu : AEMeasurable u μ) (w : V) :
     charFun (μ.withDensity fun v => ENNReal.ofReal (u v)) w
@@ -36,6 +37,7 @@ theorem charFun_withDensity_ofReal {μ : Measure V} {u : V → ℝ} (hu : AEMeas
   exact integral_withDensity_eq_integral_smul₀ (f := fun v => Real.toNNReal (u v))
     hu.real_toNNReal _
 
+omit [CompleteSpace V] [SecondCountableTopology V] in
 /-- A character is bounded and continuous, so it multiplies an integrable function into an
 integrable one. -/
 theorem integrable_char_smul {μ : Measure V} {z : V → ℝ} (hz : Integrable z μ) (w : V) :
@@ -49,6 +51,7 @@ theorem integrable_char_smul {μ : Measure V} {z : V → ℝ} (hz : Integrable z
     (Filter.Eventually.of_forall fun v => ?_)
   simp [Complex.norm_exp_ofReal_mul_I]
 
+omit [CompleteSpace V] [SecondCountableTopology V] in
 /-- A character multiplies an integrable complex function into an integrable one. -/
 theorem integrable_char_mul {μ : Measure V} {g : V → ℂ} (hg : Integrable g μ) (w : V) :
     Integrable (fun v => Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I) * g v) μ := by
@@ -59,8 +62,9 @@ theorem integrable_char_mul {μ : Measure V} {g : V → ℂ} (hg : Integrable g 
   refine Integrable.mono' hg.norm
     (hcont.aestronglyMeasurable.mul hg.aestronglyMeasurable)
     (Filter.Eventually.of_forall fun v => ?_)
-  simp [norm_mul, Complex.norm_exp_ofReal_mul_I]
+  simp [Complex.norm_exp_ofReal_mul_I]
 
+omit [CompleteSpace V] [SecondCountableTopology V] in
 /-- A character composed with a measurable map multiplies an integrable function into an
 integrable one. -/
 theorem integrable_charComp_smul {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {X : Ω → V}
@@ -95,7 +99,7 @@ theorem integrable_toNNReal_coe {α : Type*} [MeasurableSpace α] {μ : Measure 
   rcases le_total 0 (z v) with hv | hv
   · rw [max_eq_left hv, abs_of_nonneg hv]
   · rw [max_eq_right hv]
-    simpa using abs_nonneg (z v)
+    simp
 
 /-- **Characters separate integrable densities.** An integrable real function integrating to zero
 against every character vanishes almost everywhere. -/
@@ -157,7 +161,7 @@ theorem ae_eq_zero_of_integral_char_smul_eq_zero {μ : Measure V} [IsFiniteMeasu
       exact h1.ne' hv
   simpa using hz
 
-omit [CompleteSpace V] [SecondCountableTopology V] in
+omit [MeasurableSpace V] [BorelSpace V] [CompleteSpace V] [SecondCountableTopology V] in
 /-- A character at `-w` is the conjugate of the character at `w`. -/
 theorem char_neg (v w : V) :
     Complex.exp ((⟪v, -w⟫ : ℝ) * Complex.I)
@@ -223,6 +227,7 @@ theorem ae_eq_zero_of_integral_char_mul_eq_zero {μ : Measure V} [IsFiniteMeasur
 
 /-! ### Totality in `L²` -/
 
+omit [CompleteSpace V] [SecondCountableTopology V] in
 /-- A character is bounded, hence in `L²` of a finite measure. -/
 theorem memLp_char (μ : Measure V) [IsFiniteMeasure μ] (w : V) :
     MemLp (fun v => Complex.exp ((⟪v, w⟫ : ℝ) * Complex.I)) 2 μ := by
@@ -308,6 +313,7 @@ section Comap
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
+omit [CompleteSpace V] [SecondCountableTopology V] in
 /-- The characteristic function of a density-weighted law of `X`. -/
 theorem charFun_map_withDensity_ofReal {P : Measure Ω} {X : Ω → V} (hX : Measurable X)
     {u : Ω → ℝ} (hu : AEMeasurable u P) (w : V) :
@@ -366,6 +372,8 @@ end Comap
 
 /-! ### Real and imaginary parts against a unimodular conjugation-closed family -/
 
+omit [InnerProductSpace ℝ V] [MeasurableSpace V] [BorelSpace V] [CompleteSpace V]
+  [SecondCountableTopology V] in
 /-- If a family of unimodular functions is closed under conjugation as `w ↦ -w`, then a function
 integrating to zero against all of them does so with its real and imaginary parts separately. -/
 theorem integral_smul_re_im_eq_zero {α : Type*} [MeasurableSpace α] {μ : Measure α}

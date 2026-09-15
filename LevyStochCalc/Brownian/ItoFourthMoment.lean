@@ -566,7 +566,7 @@ private theorem integral_xi_even_le {c : ℝ} (i : Fin G.N)
         integral_mono hint (integrable_const _) hpow
     _ = c ^ (2 * m) := by simp
 
-include hC0 hC in
+include hC in
 /-- A bounded coefficient has second moment at most `C²`. -/
 private theorem integral_xi_sq_le (i : Fin G.N) : ∫ ω, (G.ξ i ω) ^ 2 ∂P ≤ C ^ 2 := by
   simpa using G.integral_xi_even_le (P := P) i (hC i) 1
@@ -601,7 +601,7 @@ theorem integral_partialSum_sq_le : ∀ (k : ℕ) (hk : k ≤ G.N),
         = G.partition (⟨n + 1, Nat.lt_succ_of_le hk⟩ : Fin (G.N + 1)) := rfl
     rw [G.integral_partialSum_sq_succ W ℱ hℱ h_adapt hC0 hC hn]
     have h1 := ih hn.le
-    have h2 := G.integral_xi_sq_le (P := P) hC0 hC ⟨n, hn⟩
+    have h2 := G.integral_xi_sq_le (P := P) hC ⟨n, hn⟩
     have h3 := mul_le_mul_of_nonneg_right h2 hΔ0
     rw [he1, he2] at h3 hΔ0 ⊢
     linarith

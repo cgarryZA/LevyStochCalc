@@ -37,8 +37,10 @@ def WindowSet (E : Type v) [MeasurableSpace E] (ν : Measure E) (T : ℝ) : Type
 
 instance : CoeOut (WindowSet E ν T) (Set (ℝ × E)) := ⟨Subtype.val⟩
 
+omit [SigmaFinite ν] in
 theorem WindowSet.measurableSet (D : WindowSet E ν T) : MeasurableSet (D : Set (ℝ × E)) := D.2.1
 
+omit [SigmaFinite ν] in
 theorem WindowSet.subset_Iic (D : WindowSet E ν T) :
     (D : Set (ℝ × E)) ⊆ Set.Iic T ×ˢ Set.univ := by
   obtain ⟨A, -, -, hsub⟩ := D.2.2

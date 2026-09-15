@@ -150,7 +150,7 @@ theorem sum_single_eq (x : Fin n → ℝ) : ∑ p, (x p) • (Pi.single p 1 : Fi
     funext i
     by_cases hi : i = p
     · subst hi; simp
-    · simp [Pi.single_apply, hi]
+    · simp [hi]
   simp only [h]
   exact Finset.univ_sum_single x
 
@@ -183,13 +183,13 @@ theorem norm_le_sum_abs_apply₂ (A : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) 
     conv_lhs => rw [← sum_single_eq x]
     rw [map_sum]
     simp only [_root_.sum_apply]
-    exact Finset.sum_congr rfl fun p _ => by rw [map_smul]; simp [mul_comm]
+    exact Finset.sum_congr rfl fun p _ => by rw [map_smul]; simp
   have hy : ∀ p : Fin n, A (Pi.single p 1) y
       = ∑ q, y q * (A (Pi.single p 1) (Pi.single q 1)) := by
     intro p
     conv_lhs => rw [← sum_single_eq y]
     rw [map_sum]
-    exact Finset.sum_congr rfl fun q _ => by rw [map_smul]; simp [mul_comm]
+    exact Finset.sum_congr rfl fun q _ => by rw [map_smul]; simp
   have hxnn : (0 : ℝ) ≤ ‖x‖ := norm_nonneg x
   have hynn : (0 : ℝ) ≤ ‖y‖ := norm_nonneg y
   rw [Real.norm_eq_abs, hx]

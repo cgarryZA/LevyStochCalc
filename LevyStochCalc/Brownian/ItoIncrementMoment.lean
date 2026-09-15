@@ -102,12 +102,12 @@ theorem SimplePredictable.varClock_le_Ioc {T : ℝ} (H : SimplePredictable Ω T)
     have hidx0 : (⟨min j H.N, Nat.lt_succ_of_le (min_le_right j H.N)⟩ : Fin (H.N + 1))
         = (⟨j, hj⟩ : Fin H.N).castSucc := by
       apply Fin.ext
-      show min j H.N = j
+      change min j H.N = j
       omega
     have hidx1 : (⟨min (j + 1) H.N, Nat.lt_succ_of_le (min_le_right (j + 1) H.N)⟩
           : Fin (H.N + 1)) = (⟨j, hj⟩ : Fin H.N).succ := by
       apply Fin.ext
-      show min (j + 1) H.N = j + 1
+      change min (j + 1) H.N = j + 1
       omega
     refine ⟨?_, ?_⟩
     · simp only [hFdef]

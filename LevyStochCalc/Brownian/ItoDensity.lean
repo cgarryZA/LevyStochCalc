@@ -478,7 +478,7 @@ lemma dyadicAvg_shifted_brownian_adapted
       rw [h_ti_def]
       congr 1
       ext
-      simp only [Fin.val_succ, Fin.coe_castSucc]
+      simp only [Fin.val_succ, Fin.val_castSucc]
       omega
     -- The average over `(t_{i-1}, t_i] ⊆ (-∞, t_i]` is `ℱ t_i`-measurable.
     have h_int_step : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ t_i)

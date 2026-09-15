@@ -373,6 +373,8 @@ theorem stopped_sub_congr {Ω : Type u} {σ τ : Ω → WithTop ℝ} (hστ : �
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P] {n d : ℕ}
 
 set_option maxHeartbeats 1000000 in
+-- the localisation case split against the shifted, translated coefficients elaborates a large
+-- number of nested `nlinarith`/`linarith` goals and needs more than the default budget.
 /-- **Itô's formula for the increment of a path between two ordered stopping times, for a twice
 continuously differentiable function translated by a random vector.** Neither the derivatives of
 the function nor the translation carry a global bound: the family of events on which the

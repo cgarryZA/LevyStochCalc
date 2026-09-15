@@ -211,7 +211,7 @@ theorem progressivelyMeasurable_weight_mul_stopped_sub
       * (Probability.stopped τ K ω s - Probability.stopped σ K ω s),
       (progressivelyMeasurable_mul_indIoc ℱ ha hat hVb hVm hVa).mul hpD, ?_⟩
     intro ω s hs
-    show V ω * (Probability.stopped τ K ω s - Probability.stopped σ K ω s)
+    change V ω * (Probability.stopped τ K ω s - Probability.stopped σ K ω s)
       = V ω * indIoc Ω a t ω s
         * (Probability.stopped τ K ω s - Probability.stopped σ K ω s)
     rcases le_or_gt s a with h1 | h1

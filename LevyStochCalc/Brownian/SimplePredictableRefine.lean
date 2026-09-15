@@ -1298,7 +1298,7 @@ lemma SimplePredictable.appendInterval_eval
     = ∑ i : Fin H.N,
         if H.partition i.castSucc < s ∧ s ≤ H.partition i.succ then H.ξ i ω else 0
   rw [Fin.sum_univ_castSucc]
-  simp only [Fin.snoc_last, Pi.zero_apply, ite_self, add_zero]
+  simp only [Fin.snoc_last, ite_self, add_zero]
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [appendInterval_succ_castSucc]
   simp only [Fin.snoc_castSucc]
@@ -1318,7 +1318,7 @@ lemma SimplePredictable.appendInterval_simpleIntegral
     = ∑ i : Fin H.N, H.ξ i ω
         * (W.W (min (H.partition i.succ) t) ω - W.W (min (H.partition i.castSucc) t) ω)
   rw [Fin.sum_univ_castSucc]
-  simp only [Fin.snoc_last, Pi.zero_apply, zero_mul, add_zero]
+  simp only [Fin.snoc_last, zero_mul, add_zero]
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [appendInterval_succ_castSucc]
   simp only [Fin.snoc_castSucc]

@@ -37,7 +37,7 @@ theorem comap_prod_eq_sup {𝓨 𝓩 : Type*} [MeasurableSpace 𝓨] [Measurable
     (g : Ω → 𝓨) (h : Ω → 𝓩) :
     MeasurableSpace.comap (fun ω => (g ω, h ω)) inferInstance
       = MeasurableSpace.comap g inferInstance ⊔ MeasurableSpace.comap h inferInstance := by
-  show MeasurableSpace.comap (fun ω => (g ω, h ω))
+  change MeasurableSpace.comap (fun ω => (g ω, h ω))
       (MeasurableSpace.comap Prod.fst inferInstance ⊔ MeasurableSpace.comap Prod.snd inferInstance)
     = _
   rw [MeasurableSpace.comap_sup, MeasurableSpace.comap_comp, MeasurableSpace.comap_comp]

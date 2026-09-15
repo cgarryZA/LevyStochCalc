@@ -295,7 +295,7 @@ theorem exists_strictMono_enum_jumpTime (hA : MeasurableSet A) {T : ℝ} (hT : 0
     constructor
     · rintro ⟨i, hi, hsT⟩
       refine ⟨i, ?_, ?_⟩
-      · show jumpTime N A i ω ≤ (T : WithTop ℝ)
+      · change jumpTime N A i ω ≤ (T : WithTop ℝ)
         rw [hi]
         exact_mod_cast hsT
       · rw [jumpTime] at hi

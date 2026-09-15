@@ -66,7 +66,7 @@ lemma simpleIntegral_term_adapted_compensated
         h_rect_meas).ennreal_toReal).sub measurable_const).stronglyMeasurable
     exact (h_adapt_i.mono (ℱ.mono ht_pre)).mul h_comp
   · -- `t < tᵢ`: the time-rectangle is empty, so the term is `0`.
-    push_neg at ht_pre
+    push Not at ht_pre
     have h_min_pre : min (φ.partition i.castSucc) t = t := min_eq_right (le_of_lt ht_pre)
     have h_min_post : min (φ.partition i.succ) t = t :=
       min_eq_right (le_of_lt (lt_trans ht_pre hpre_lt_post))
@@ -363,7 +363,7 @@ lemma simpleIntegral_term_condExp_compensated
     have hnew_zero : P[fun ω => N.compensated newset ω | ℱ.seq s] =ᵐ[P] fun _ => (0 : ℝ) := by
       refine compensated_condExp_Ioc_eq_zero N ℱ hℱ hs_nn hbs_le_bt (fun hlt => ?_) hAmeas hAfin
       have hps_gt : s < φ.partition i.succ := by
-        by_contra hle; push_neg at hle
+        by_contra hle; push Not at hle
         rw [hbs, hbt, min_eq_left hle, min_eq_left (hle.trans hst)] at hlt
         exact lt_irrefl _ hlt
       rw [hbs]; exact (min_eq_right hps_gt.le).ge
@@ -372,7 +372,7 @@ lemma simpleIntegral_term_condExp_compensated
     simp only [Pi.add_apply, Pi.mul_apply] at hp ⊢
     rw [hp, hz]; ring
   · -- Case B
-    push_neg at hpc_s
+    push Not at hpc_s
     have h_rect_s_empty : φ.timeRect i s = ∅ := by
       rw [SimplePredictable.timeRect, min_eq_right hpc_s.le,
         min_eq_right (hpc_s.le.trans hpc_lt_ps.le), Set.Ioc_self, Set.empty_prod]
@@ -396,7 +396,7 @@ lemma simpleIntegral_term_condExp_compensated
       refine compensated_condExp_Ioc_eq_zero N ℱ hℱ hpc_nn
         (min_le_min hpc_lt_ps.le (le_refl t)) (fun hlt => ?_) hAmeas hAfin
       have hpct : φ.partition i.castSucc ≤ t := by
-        by_contra h; push_neg at h
+        by_contra h; push Not at h
         rw [min_eq_right h.le, min_eq_right (h.le.trans hpc_lt_ps.le)] at hlt
         exact lt_irrefl _ hlt
       exact le_min (le_refl _) hpct
@@ -690,7 +690,7 @@ lemma timeRect_subset
   by_cases hpc_s : φ.partition i.castSucc ≤ s
   · rw [min_eq_left (hpc_s.trans hst)]
     rwa [min_eq_left hpc_s] at hlo
-  · push_neg at hpc_s
+  · push Not at hpc_s
     exfalso
     have hps : φ.partition i.castSucc < φ.partition i.succ :=
       φ.partition_strictMono Fin.castSucc_lt_succ
@@ -723,12 +723,13 @@ lemma simpleIntegral_sub_eq_increment_ae
       rw [SimplePredictable.timeRect]; exact measurableSet_Ioc.prod (φ.A_measurable i)
     have hmeas_d : MeasurableSet (φ.timeRect i t \ φ.timeRect i s) := hmeas_t.diff hmeas_s
     have hunion : φ.timeRect i s ∪ (φ.timeRect i t \ φ.timeRect i s) = φ.timeRect i t :=
-      Set.union_diff_cancel hsub
+      Set.union_sdiff_cancel hsub
     have hdisj : Disjoint (φ.timeRect i s) (φ.timeRect i t \ φ.timeRect i s) :=
       Set.disjoint_left.mpr (fun x hx hxd => hxd.2 hx)
     have hfin_d : LevyStochCalc.Poisson.referenceIntensity ν
         (φ.timeRect i t \ φ.timeRect i s) ≠ ⊤ :=
-      ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t) (measure_mono Set.diff_subset)
+      ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t)
+        (measure_mono Set.sdiff_subset)
     have h := compensated_union_ae N hmeas_s hmeas_d hdisj
       (referenceIntensity_timeRect_ne_top φ i s) hfin_d
     rwa [hunion] at h
@@ -746,7 +747,7 @@ lemma simpleIntegral_sub_eq_increment_ae
 lemma Ioc_diff_Ioc_left_eq {a c B : ℝ} (hac : a ≤ c) :
     Set.Ioc a B \ Set.Ioc a c = Set.Ioc c B := by
   ext x
-  simp only [Set.mem_diff, Set.mem_Ioc, not_and, not_le]
+  simp only [Set.mem_sdiff, Set.mem_Ioc, not_and, not_le]
   constructor
   · rintro ⟨⟨hax, hxB⟩, h2⟩
     exact ⟨h2 hax, hxB⟩
@@ -760,7 +761,7 @@ This is the compensated analogue of the Brownian clamped increment
 box lets the future-increment independence (`joint_past_future_independent`) apply. -/
 lemma timeRect_sdiff_eq_box
     {ν : Measure E} [SigmaFinite ν] {T : ℝ}
-    (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (φ : SimplePredictable Ω E ν T) (i : Fin φ.N) {s t : ℝ} (hst : s ≤ t) :
     φ.timeRect i t \ φ.timeRect i s
       = Set.Ioc (max s (min (φ.partition i.castSucc) t))
           (max s (min (φ.partition i.succ) t)) ×ˢ φ.A i := by
@@ -769,8 +770,8 @@ lemma timeRect_sdiff_eq_box
     rwa [φ.partition_zero] at this
   have hpc_ps : φ.partition i.castSucc < φ.partition i.succ :=
     φ.partition_strictMono Fin.castSucc_lt_succ
-  rw [SimplePredictable.timeRect, SimplePredictable.timeRect, Set.prod_diff_prod,
-    Set.diff_self, Set.prod_empty, Set.empty_union]
+  rw [SimplePredictable.timeRect, SimplePredictable.timeRect, Set.prod_sdiff_prod,
+    Set.sdiff_self, Set.prod_empty, Set.empty_union]
   congr 1
   set pc := φ.partition i.castSucc
   set ps := φ.partition i.succ
@@ -780,13 +781,13 @@ lemma timeRect_sdiff_eq_box
     by_cases hsps : s ≤ ps
     · rw [min_eq_right hsps, max_eq_right (le_min hsps hst),
       Ioc_diff_Ioc_left_eq hpc_s]
-    · push_neg at hsps
+    · push Not at hsps
       rw [min_eq_left hsps.le, min_eq_left (hsps.le.trans hst), max_eq_left hsps.le,
-        Set.diff_self, Set.Ioc_self]
+        Set.sdiff_self, Set.Ioc_self]
   · -- `s < tᵢ`: the `s`-rectangle is empty; clamps reduce to the `t`-rectangle.
-    push_neg at hpc_s
+    push Not at hpc_s
     rw [min_eq_right hpc_s.le, min_eq_right (hpc_s.le.trans hpc_ps.le),
-      Set.Ioc_self, Set.diff_empty,
+      Set.Ioc_self, Set.sdiff_empty,
       max_eq_right (le_min hpc_s.le hst),
       max_eq_right (le_min (hpc_s.trans hpc_ps).le hst)]
 
@@ -857,13 +858,13 @@ lemma diagonal_increment_sq
   have ha_nn : 0 ≤ a := hs.trans (le_max_left _ _)
   -- genuine ⟹ pc ≤ t ⟹ pc ≤ a.
   have hpc_le_t : pc ≤ t := by
-    by_contra h; push_neg at h
+    by_contra h; push Not at h
     have hps_gt : pc < ps := φ.partition_strictMono Fin.castSucc_lt_succ
     rw [ha_def, hb_def, min_eq_right h.le, min_eq_right (h.le.trans hps_gt.le)] at h_genuine
     exact lt_irrefl _ h_genuine
   have hpc_le_a : pc ≤ a := by rw [ha_def, min_eq_left hpc_le_t]; exact le_max_right _ _
   have hbox : φ.timeRect i t \ φ.timeRect i s = Set.Ioc a b ×ˢ φ.A i :=
-    timeRect_sdiff_eq_box φ i hs hst
+    timeRect_sdiff_eq_box φ i hst
   have hbox_meas : MeasurableSet (Set.Ioc a b ×ˢ φ.A i) := measurableSet_Ioc.prod (φ.A_measurable i)
   have hbox_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ φ.A i) ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top (φ.A_finite i)
@@ -917,7 +918,7 @@ lemma offDiagonal_increment_zero
   set bj := max s (min psj t) with hbj_def
   have haj_nn : 0 ≤ aj := hs.trans (le_max_left _ _)
   have hpcj_le_t : pcj ≤ t := by
-    by_contra h; push_neg at h
+    by_contra h; push Not at h
     have hps_gt : pcj < psj := φ.partition_strictMono Fin.castSucc_lt_succ
     rw [haj_def, hbj_def, min_eq_right h.le, min_eq_right (h.le.trans hps_gt.le)] at h_genuine_j
     exact lt_irrefl _ h_genuine_j
@@ -926,7 +927,7 @@ lemma offDiagonal_increment_zero
   have hpsi_le_pcj : φ.partition i.succ ≤ pcj :=
     φ.partition_strictMono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
   have hboxj : φ.timeRect j t \ φ.timeRect j s = Set.Ioc aj bj ×ˢ φ.A j :=
-    timeRect_sdiff_eq_box φ j hs hst
+    timeRect_sdiff_eq_box φ j hst
   have hboxj_meas : MeasurableSet (Set.Ioc aj bj ×ˢ φ.A j) :=
     measurableSet_Ioc.prod (φ.A_measurable j)
   have hboxj_fin : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc aj bj ×ˢ φ.A j) ≠ ⊤ :=
@@ -1032,11 +1033,11 @@ lemma simpleIntegral_sub_sq_weighted
     (measurableSet_Ioc.prod (φ.A_measurable i)).diff (measurableSet_Ioc.prod (φ.A_measurable i))
   have hRf : ∀ i : Fin φ.N,
       LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t \ φ.timeRect i s) ≠ ⊤ := fun i =>
-    ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t) (measure_mono Set.diff_subset)
+    ne_top_of_le_ne_top (referenceIntensity_timeRect_ne_top φ i t) (measure_mono Set.sdiff_subset)
   have hRbox : ∀ k : Fin φ.N, φ.timeRect k t \ φ.timeRect k s
       = Set.Ioc (max s (min (φ.partition k.castSucc) t))
           (max s (min (φ.partition k.succ) t)) ×ˢ φ.A k :=
-    fun k => timeRect_sdiff_eq_box φ k hs hst
+    fun k => timeRect_sdiff_eq_box φ k hst
   have h_a_le_b : ∀ k : Fin φ.N,
       max s (min (φ.partition k.castSucc) t) ≤ max s (min (φ.partition k.succ) t) :=
     fun k => max_le_max (le_refl s)
@@ -1285,7 +1286,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     have hrect : φ.timeRect i u = ∅ := by
       rw [SimplePredictable.timeRect, min_eq_right hu.le,
         min_eq_right (hu.le.trans hps.le), Set.Ioc_self, Set.empty_prod]
-    show (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i u)).toReal = 0
+    change (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i u)).toReal = 0
     rw [hrect]; simp
   -- `A u = ∑ᵢ c i u · ξᵢ²` for `u ≥ 0`; `A u = 0` for `u < 0`.
   have hA_clamped : ∀ u : ℝ, 0 ≤ u → ∀ ω,
@@ -1320,7 +1321,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono (ℱ.mono hpc)).mul ((h_adapt i).mono
             (ℱ.mono hpc))
         exact hξ2.const_mul _
-      · push_neg at hpc
+      · push Not at hpc
         rw [show (fun ω => c i u * (φ.ξ i ω) ^ 2) = fun _ => (0 : ℝ) from by
           funext ω; rw [hc_zero i u hpc, zero_mul]]
         exact stronglyMeasurable_const
@@ -1335,7 +1336,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
     have hsub := timeRect_subset φ i hst
     have hmeas_s : MeasurableSet (φ.timeRect i s) := measurableSet_Ioc.prod (φ.A_measurable i)
     have hfin_s := referenceIntensity_timeRect_ne_top φ i s
-    show (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t)).toReal
+    change (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t)).toReal
         - (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i s)).toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i t \ φ.timeRect i s)).toReal
     rw [MeasureTheory.measure_sdiff hsub hmeas_s.nullMeasurableSet hfin_s,
@@ -1459,7 +1460,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
         have hrect : φ.timeRect i 0 = ∅ := by
           rw [SimplePredictable.timeRect, min_eq_right hpc_nn, min_eq_right hps_nn,
             Set.Ioc_self, Set.empty_prod]
-        show (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i 0)).toReal = 0
+        change (LevyStochCalc.Poisson.referenceIntensity ν (φ.timeRect i 0)).toReal = 0
         rw [hrect]; simp
       have hN0 : (fun ω => (simpleIntegral N φ 0 ω) ^ 2
           - ∫ u in Set.Icc (0 : ℝ) (0 : ℝ), ∫ e, (φ.eval u e ω) ^ 2 ∂ν ∂volume) =ᵐ[P] 0 := by

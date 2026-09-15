@@ -1408,7 +1408,7 @@ lemma simpleIntegral_sq_bochner_clamped
 Clamped companion of `lintegral_eval_sq`: each level-set contributes the length
 of `(pᵢ, pᵢ₊₁] ∩ [0,t]`. -/
 lemma lintegral_eval_sq_clamped {T : ℝ} (H : SimplePredictable Ω T) (ω : Ω)
-    {t : ℝ} (ht_nn : 0 ≤ t) :
+    {t : ℝ} :
     ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H.eval s ω‖₊ : ℝ≥0∞) ^ 2 ∂volume
       = ∑ i : Fin H.N,
         ENNReal.ofReal (min (H.partition i.succ) t - min (H.partition i.castSucc) t)
@@ -1518,7 +1518,7 @@ lemma simpleIntegral_intermediate_isometry
         = fun ω => ∑ i : Fin H.N,
             ENNReal.ofReal (min (H.partition i.succ) t - min (H.partition i.castSucc) t)
               * (‖H.ξ i ω‖₊ : ℝ≥0∞) ^ 2 from
-    funext (fun ω => lintegral_eval_sq_clamped H ω ht_nn)]
+    funext (fun ω => lintegral_eval_sq_clamped H ω)]
   rw [MeasureTheory.lintegral_finsetSum _ (fun i _ => (hξsqmeas i).const_mul _)]
   rw [ENNReal.ofReal_sum_of_nonneg (fun i _ => mul_nonneg
     (sub_nonneg.mpr (h_a_le_b i)) (MeasureTheory.integral_nonneg (fun ω => sq_nonneg _)))]
@@ -1594,6 +1594,7 @@ lemma simpleIntegral_intermediate_diff_isometry
   refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
   rw [SimplePredictable.eval_sub_on_common H₁ H₂ h_eq s ω]
 
+omit [MeasurableSpace Ω] in
 /-- **L¹-limit of martingales is a martingale.** If each `M n` is an
 `ℱ`-martingale and `M n t → F t` in `L¹(μ)` for every `t` (with `F` adapted and
 integrable), then `F` is an `ℱ`-martingale. The conditional expectation is an
@@ -1640,7 +1641,7 @@ lemma martingale_of_tendsto_eLpNorm_one
             rw [MeasureTheory.eLpNorm_congr_ae h_sub]
             calc MeasureTheory.eLpNorm (μ[F t - M n t | ℱ s]) 1 μ
                 ≤ MeasureTheory.eLpNorm (F t - M n t) 1 μ :=
-                  MeasureTheory.eLpNorm_one_condExp_le_eLpNorm (F t - M n t)
+                  MeasureTheory.eLpNorm_condExp_le_eLpNorm (F t - M n t) (le_refl 1)
               _ = MeasureTheory.eLpNorm (M n t - F t) 1 μ := by
                   rw [show F t - M n t = -(M n t - F t) from by ring,
                       MeasureTheory.eLpNorm_neg]
@@ -1763,7 +1764,8 @@ lemma tendsto_setLIntegral_Ioc_prod_zero
         MeasureTheory.setLIntegral_prod _ (hφ.aemeasurable.restrict),
         MeasureTheory.Measure.restrict_univ]
     simpa using h_fin
-  have h_meas_to_zero : Filter.Tendsto (fun r => (P.prod volume) ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r))
+  have h_meas_to_zero : Filter.Tendsto
+      (fun r => (P.prod volume) ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r))
       (nhdsWithin s₀ (Set.Ioi s₀)) (nhds 0) := by
     have hval : (fun r => (P.prod volume) ((Set.univ : Set Ω) ×ˢ Set.Ioc s₀ r))
         = fun r => ENNReal.ofReal (r - s₀) := by
@@ -2112,8 +2114,7 @@ lemma integral_factor_increment_sq
       (hab : a < b)
     {g : Ω → ℝ}
     (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (ℱ a) g)
-    {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
+      (ℱ a) g) :
     ∫ ω, g ω * (W.W b ω - W.W a ω) ^ 2 ∂P = (∫ ω, g ω ∂P) * (b - a) := by
   set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
   have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
@@ -2157,8 +2158,7 @@ lemma integral_factor_increment_eq_zero
       (hab : a < b)
     {g : Ω → ℝ}
     (hg_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
-      (ℱ a) g)
-    {C : ℝ} (hg_bdd : ∀ ω, |g ω| ≤ C) :
+      (ℱ a) g) :
     ∫ ω, g ω * (W.W b ω - W.W a ω) ∂P = 0 := by
   set ΔW : Ω → ℝ := fun ω => W.W b ω - W.W a ω with hΔW
   have hΔW_meas : Measurable ΔW := (W.measurable_eval b).sub (W.measurable_eval a)
@@ -2172,7 +2172,8 @@ lemma integral_factor_increment_eq_zero
     rw [ProbabilityTheory.Indep_iff] at h_indep_F
     exact h_indep_F u v (hg_comap_le u hu) hv
   rw [show (fun ω => g ω * (W.W b ω - W.W a ω)) = g * ΔW from rfl,
-    h_indep_g_ΔW.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable hΔW_meas.aestronglyMeasurable,
+    h_indep_g_ΔW.integral_mul_eq_mul_integral hg_m.aestronglyMeasurable
+      hΔW_meas.aestronglyMeasurable,
     brownian_incr_mean W ha hab, mul_zero]
 
 /-- **Weighted off-diagonal vanishing.** For two increments with the second
@@ -2312,7 +2313,7 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
     intro i hlt
     by_cases hpt : H.partition i.castSucc ≤ t
     · rw [min_eq_left hpt]; exact le_max_right _ _
-    · push_neg at hpt
+    · push Not at hpt
       exfalso
       have h1 : min (H.partition i.castSucc) t = t := min_eq_right (le_of_lt hpt)
       have h2 : min (H.partition i.succ) t = t :=
@@ -2373,21 +2374,11 @@ lemma simpleIntegral_sub_sq_bochner_clamped_weighted
     · rw [show (fun ω => g ω * (term i ω * term i ω)) = fun _ => (0 : ℝ) from by
         funext ω; simp only [hterm]; rw [← hi_eq]; ring, MeasureTheory.integral_zero,
         ← hi_eq, sub_self, zero_mul]
-    · obtain ⟨Mi, hMi⟩ := H.ξ_bounded i
-      have hg2 : @MeasureTheory.StronglyMeasurable Ω ℝ _
+    · have hg2 : @MeasureTheory.StronglyMeasurable Ω ℝ _
           (ℱ.seq (max s (min (H.partition i.castSucc) t))) (fun ω => g ω * (H.ξ i ω) ^ 2) := by
         refine (hg.mono (ℱ.mono (le_max_left s (min (H.partition i.castSucc) t)))).mul ?_
         simpa [pow_two, Pi.mul_def] using (h_ξ_cl i hi_lt).mul (h_ξ_cl i hi_lt)
-      have hbdd2 : ∀ ω, |g ω * (H.ξ i ω) ^ 2| ≤ Cg * Mi ^ 2 := fun ω => by
-        have h2 : (H.ξ i ω) ^ 2 ≤ Mi ^ 2 :=
-          sq_le_sq' (neg_le_of_abs_le (hMi ω)) (le_of_abs_le (hMi ω))
-        calc |g ω * (H.ξ i ω) ^ 2|
-            = |g ω| * (H.ξ i ω) ^ 2 := by
-              rw [abs_mul, abs_of_nonneg (sq_nonneg (H.ξ i ω))]
-          _ ≤ Cg * Mi ^ 2 :=
-              mul_le_mul (hg_bdd ω) h2 (sq_nonneg _) (le_trans (abs_nonneg _) (hg_bdd ω))
       have hdiag := integral_factor_increment_sq W ℱ hℱ (h_cl_nn _) hi_lt hg2
-        (C := Cg * Mi ^ 2) hbdd2
       rw [show (fun ω => g ω * (term i ω * term i ω))
             = fun ω => (g ω * (H.ξ i ω) ^ 2)
                 * (W.W (max s (min (H.partition i.succ) t)) ω
@@ -2407,7 +2398,7 @@ companion of `lintegral_eval_sq_clamped`, obtained from it by
 `integral_eq_lintegral_of_nonneg_ae` and `ENNReal.toReal`. The simple-level
 quadratic-variation compensator `A_t = ∫_{[0,t]} (eval)²` in closed sum form. -/
 lemma setIntegral_eval_sq_Icc_clamped {T : ℝ} (G : SimplePredictable Ω T) (ω : Ω)
-    {t : ℝ} (ht : 0 ≤ t) :
+    {t : ℝ} :
     ∫ u in Set.Icc (0 : ℝ) t, (G.eval u ω) ^ 2 ∂volume
       = ∑ i : Fin G.N,
         (min (G.partition i.succ) t - min (G.partition i.castSucc) t) * (G.ξ i ω) ^ 2 := by
@@ -2427,7 +2418,7 @@ lemma setIntegral_eval_sq_Icc_clamped {T : ℝ} (G : SimplePredictable Ω T) (ω
         (h_eval_meas.pow_const 2).aestronglyMeasurable]
   rw [show (fun u => ENNReal.ofReal ((G.eval u ω) ^ 2))
         = fun u => (‖G.eval u ω‖₊ : ℝ≥0∞) ^ 2 from funext (fun u => (h_norm_sq _).symm),
-    lintegral_eval_sq_clamped G ω ht,
+    lintegral_eval_sq_clamped G ω,
     show (fun i : Fin G.N => ENNReal.ofReal (min (G.partition i.succ) t
           - min (G.partition i.castSucc) t) * (‖G.ξ i ω‖₊ : ℝ≥0∞) ^ 2)
         = fun i => ENNReal.ofReal ((min (G.partition i.succ) t
@@ -2493,11 +2484,11 @@ lemma martingale_simpleIntegral_sq_sub_compensator
   have hAint : ∀ u, MeasureTheory.Integrable
       (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume) P := by
     intro u
-    rcases le_or_gt 0 u with hu | hu
+    rcases le_or_gt 0 u with _ | hu
     · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume)
           = fun ω => ∑ i : Fin G.N,
               (min (G.partition i.succ) u - min (G.partition i.castSucc) u) * (G.ξ i ω) ^ 2 :=
-        funext (fun ω => setIntegral_eval_sq_Icc_clamped G ω hu)
+        funext (fun ω => setIntegral_eval_sq_Icc_clamped G ω)
       rw [heq]
       exact MeasureTheory.integrable_finsetSum _ (fun i _ => (hξ2int i).const_mul _)
     · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume)
@@ -2508,11 +2499,11 @@ lemma martingale_simpleIntegral_sq_sub_compensator
   have hA_adapt : ∀ u, @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u)
       (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume) := by
     intro u
-    rcases le_or_gt 0 u with hu | hu
+    rcases le_or_gt 0 u with _ | hu
     · have heq : (fun ω => ∫ v in Set.Icc (0 : ℝ) u, (G.eval v ω) ^ 2 ∂volume)
           = fun ω => ∑ i : Fin G.N,
               (min (G.partition i.succ) u - min (G.partition i.castSucc) u) * (G.ξ i ω) ^ 2 :=
-        funext (fun ω => setIntegral_eval_sq_Icc_clamped G ω hu)
+        funext (fun ω => setIntegral_eval_sq_Icc_clamped G ω)
       rw [heq]
       refine Finset.stronglyMeasurable_fun_sum _ (fun i _ => ?_)
       by_cases hc : G.partition i.castSucc < u
@@ -2520,7 +2511,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
         have hξ2 : @MeasureTheory.StronglyMeasurable Ω ℝ _ (ℱ.seq u) (fun ω => (G.ξ i ω) ^ 2) := by
           simpa [pow_two, Pi.mul_def] using ((h_adapt i).mono hle).mul ((h_adapt i).mono hle)
         exact hξ2.const_mul _
-      · push_neg at hc
+      · push Not at hc
         have hcoef : min (G.partition i.succ) u - min (G.partition i.castSucc) u = 0 := by
           rw [min_eq_right hc, min_eq_right
             (le_trans hc (le_of_lt (G.partition_strictMono Fin.castSucc_lt_succ)))]; ring
@@ -2624,8 +2615,8 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           = ∑ i : Fin G.N, (max s (min (G.partition i.succ) t)
               - max s (min (G.partition i.castSucc) t)) * (G.ξ i ω) ^ 2 := by
         intro ω
-        rw [setIntegral_eval_sq_Icc_clamped G ω (le_trans hs hst),
-          setIntegral_eval_sq_Icc_clamped G ω hs, ← Finset.sum_sub_distrib]
+        rw [setIntegral_eval_sq_Icc_clamped G ω,
+          setIntegral_eval_sq_Icc_clamped G ω, ← Finset.sum_sub_distrib]
         refine Finset.sum_congr rfl (fun i _ => ?_)
         rw [← sub_mul]; congr 1
         rw [hclamp s t hst (G.partition i.succ), hclamp s t hst (G.partition i.castSucc)]; ring
@@ -2658,7 +2649,7 @@ lemma martingale_simpleIntegral_sq_sub_compensator
           - ∫ u in Set.Icc (0 : ℝ) (0 : ℝ), (G.eval u ω) ^ 2 ∂volume) =ᵐ[P] 0 := by
         filter_upwards with ω
         rw [simpleIntegral_eq_zero_of_nonpos W G (le_refl 0) ω,
-          setIntegral_eval_sq_Icc_clamped G ω (le_refl 0)]
+          setIntegral_eval_sq_Icc_clamped G ω]
         have : ∀ i : Fin G.N, (min (G.partition i.succ) (0 : ℝ)
             - min (G.partition i.castSucc) (0 : ℝ)) * (G.ξ i ω) ^ 2 = 0 := by
           intro i
@@ -2912,7 +2903,7 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
     rw [hε_top]; exact lt_top_iff_ne_top.mpr (edist_ne_top _ _)
   · set δ : ℝ≥0∞ := ε ^ (2 : ℝ) / 4 with hδ
     have hε2_ne_top : ε ^ (2 : ℝ) ≠ ⊤ := by
-      simp [ENNReal.rpow_eq_top_iff, hε_top]
+      simp [hε_top]
     have hδ_pos : 0 < δ := by
       rw [hδ]; exact ENNReal.div_pos (ENNReal.rpow_pos hε hε_top).ne' (by norm_num)
     have htend := masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global ht_nn
@@ -2974,7 +2965,7 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
                 (‖H ω s - (masterApprox ℱ H h_meas h_progMeas
                   h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
                   ∂volume ∂P)
-          < 2 * (δ + δ) := by gcongr <;> first | exact hsum | simp
+          < 2 * (δ + δ) := by gcongr; first | exact hsum | simp
         _ = ε ^ (2 : ℝ) := by
             have h4 : (2 : ℝ≥0∞) * (δ + δ) = 4 * δ := by ring
             rw [h4, hδ, ENNReal.mul_div_cancel (show (4 : ℝ≥0∞) ≠ 0 by norm_num)
@@ -3474,7 +3465,8 @@ lemma compensatorH_memLp_prod {t : ℝ} (ht : 0 < t) :
       (P.prod (volume.restrict (Set.Icc (0 : ℝ) t))) := by
   refine ⟨h_meas.aestronglyMeasurable, ?_⟩
   rw [MeasureTheory.eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top
-    (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤), show (2 : ℝ≥0∞).toReal = 2 from by simp]
+    (by norm_num : (2 : ℝ≥0∞) ≠ 0) (by simp : (2 : ℝ≥0∞) ≠ ⊤),
+    show (2 : ℝ≥0∞).toReal = 2 from by simp]
   have hbridge : ∫⁻ p : Ω × ℝ, (‖H p.1 p.2‖ₑ) ^ (2 : ℝ)
         ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) t)))
       = ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t, (‖H ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P := by
@@ -3686,7 +3678,8 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
             - (F t ω) ^ 2) P :=
         (((Finset.measurable_sum _ (fun i _ =>
           ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).mul
-            ((W.measurable_eval _).sub (W.measurable_eval _)))).pow_const 2).aestronglyMeasurable).sub
+            ((W.measurable_eval _).sub (W.measurable_eval _)))).pow_const
+              2).aestronglyMeasurable).sub
           ((stochasticIntegralBrownian_memLp W ℱ hℱ H h_meas h_progMeas
             h_sq_int_global t).1.aemeasurable.pow_const 2).aestronglyMeasurable
       have hAn_meas : Measurable (fun ω => ∫ u in Set.Icc (0 : ℝ) t,
@@ -3699,7 +3692,7 @@ lemma martingale_quadVar_stochasticIntegralBrownian :
                       i.castSucc) t)
                   * ((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ i ω) ^ 2 from
           funext (fun ω => setIntegral_eval_sq_Icc_clamped
-            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) ω ht)]
+            (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n) ω)]
         exact Finset.measurable_sum _ (fun i _ => measurable_const.mul
           (((masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).ξ_measurable i).pow_const 2))
       have hYaesm : MeasureTheory.AEStronglyMeasurable
@@ -3899,7 +3892,7 @@ theorem itoIsometry_brownian_unified_existence
     martingale_rightCont_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global,
     martingale_rightCont_quadVar_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas
       h_sq_int_global,
-    fun T hT => isometry_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global hT⟩
+    fun _ hT => isometry_stochasticIntegralBrownian W ℱ hℱ H h_meas h_progMeas h_sq_int_global hT⟩
 
 /-- **`L²`-convergence ⇒ convergence of the squared mass.** If `gₙ → g` in `L²(μ)`
 (with `‖g‖₂ < ⊤`), then `∫⁻ ‖gₙ‖₊² → ∫⁻ ‖g‖₊²`. The `L²`-norm is continuous under

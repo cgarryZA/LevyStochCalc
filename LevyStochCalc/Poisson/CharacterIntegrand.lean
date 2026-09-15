@@ -126,6 +126,7 @@ theorem charIm_eq_zero (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} {A : Set 
     (he : (s, e) ∉ Set.Ioc (0 : ℝ) T ×ˢ A) : charIm N w Bfam A T ω s e = 0 := by
   rw [charIm, charIntegrand_eq_zero N w hBsub ω he, Complex.zero_im]
 
+omit [SigmaFinite ν] in
 /-- A bounded integrand carried by a window of finite mark measure has finite energy. -/
 theorem lintegral_sq_of_bounded {φ : Ω → ℝ → E → ℝ} {A : Set E} (hA : MeasurableSet A)
     (hAν : ν A ≠ ⊤) (hbd : ∀ ω s e, ‖φ ω s e‖ ≤ 2) (hsupp : ∀ ω s e, e ∉ A → φ ω s e = 0)
@@ -223,6 +224,7 @@ theorem ae_char_sub_one_eq_setIntegral (N : PoissonRandomMeasure P ν) (w : ι �
 
 variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem measurable_charRe (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
     (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
@@ -231,6 +233,7 @@ theorem measurable_charRe (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltr
   (markedPredictable_charRe N hℱ w hBm hA hAν hBsub).mono
     (Probability.markedPredictableSigma_le ℱ ν) le_rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem measurable_charIm (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
     (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
@@ -239,6 +242,7 @@ theorem measurable_charIm (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltr
   (markedPredictable_charIm N hℱ w hBm hA hAν hBsub).mono
     (Probability.markedPredictableSigma_le ℱ ν) le_rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The complex integral splits into its real and imaginary parts. -/
 theorem setIntegral_complex_split {μ : Measure (ℝ × E)} {g : ℝ × E → ℂ} {W : Set (ℝ × E)}
     (hg : IntegrableOn g W μ) :
@@ -248,6 +252,7 @@ theorem setIntegral_complex_split {μ : Measure (ℝ × E)} {g : ℝ × E → �
   have h2 : ∫ q in W, (g q).im ∂μ = (∫ q in W, g q ∂μ).im := integral_im hg
   rw [h1, h2, Complex.re_add_im]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The chain rule's integrand is integrable over the window against any finite measure. -/
 theorem integrableOn_charIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
@@ -263,10 +268,12 @@ theorem integrableOn_charIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPoi
   exact Filter.Eventually.of_forall fun q => norm_charIntegrand_le N w Bfam A T ω q.1 q.2
 
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charIntegrand_re (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
     (charIntegrand N w Bfam A T ω s e).re = charRe N w Bfam A T ω s e := rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charIntegrand_im (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     (Bfam : ι → Set (ℝ × E)) (A : Set E) (T : ℝ) (ω : Ω) (s : ℝ) (e : E) :
     (charIntegrand N w Bfam A T ω s e).im = charIm N w Bfam A T ω s e := rfl

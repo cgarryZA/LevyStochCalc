@@ -64,7 +64,7 @@ theorem markedPredictable_indicator_Ioc {ψ : Ω → ℝ → E → ℝ} (hψ : M
     · rw [Set.indicator_of_mem hp, Set.indicator_of_mem
         (Set.mk_mem_prod (Set.mem_univ _) (Set.mk_mem_prod hp (Set.mem_univ _)))]
     · rw [Set.indicator_of_notMem hp, Set.indicator_of_notMem fun h => hp h.2.1]
-  show Measurable[markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E =>
+  change Measurable[markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E =>
     (Set.Ioc (0 : ℝ) T).indicator (fun _ => ψ p.1 p.2.1 p.2.2) p.2.1
   rw [hrw]
   exact hψ.indicator hset

@@ -49,6 +49,7 @@ theorem progressivelyMeasurable_const (ℱ : Filtration ℝ ‹MeasurableSpace �
   exact Measurable.stronglyMeasurable
     ((measurable_const.indicator measurableSet_Iic).comp measurable_snd)
 
+omit [IsProbabilityMeasure P] in
 /-- An integrand dominated by twice the sum of two finite energies has finite energy. -/
 theorem energy_ne_top_of_bound {H₁ H₂ K : Ω → ℝ → ℝ}
     (hbound : ∀ ω s, (‖K ω s‖₊ : ℝ≥0∞) ^ 2
@@ -82,7 +83,7 @@ theorem energy_add_ne_top {H₁ H₂ : Ω → ℝ → ℝ}
     (hm₁ : Measurable (Function.uncurry H₁)) (hm₂ : Measurable (Function.uncurry H₂))
     (h1 : energy P T H₁ ≠ ⊤) (h2 : energy P T H₂ ≠ ⊤) :
     energy P T (fun ω s => H₁ ω s + H₂ ω s) ≠ ⊤ :=
-  energy_ne_top_of_bound (fun ω s => sq_nnnorm_add_le_two_mul _ _) hm₁ hm₂ h1 h2
+  energy_ne_top_of_bound (fun _ _ => sq_nnnorm_add_le_two_mul _ _) hm₁ hm₂ h1 h2
 
 /-- The energy of a scalar multiple is finite when the energy is. -/
 theorem energy_const_mul_ne_top {H : Ω → ℝ → ℝ} (hm : Measurable (Function.uncurry H))
@@ -269,7 +270,7 @@ theorem isClosed_itoRange (hT : 0 < T) :
     rw [energy_eq_edist_sq W hℱ hT (hG m) (hG n)]
     refine lt_of_lt_of_le (ENNReal.pow_lt_pow_left (by norm_num) (hN m hm n hn)) ?_
     calc (min ε 1) ^ 2 = min ε 1 * min ε 1 := sq _
-      _ ≤ min ε 1 * 1 := mul_le_mul_left' (min_le_right ε 1) _
+      _ ≤ min ε 1 * 1 := mul_le_mul_right (min_le_right ε 1) _
       _ = min ε 1 := mul_one _
       _ ≤ ε := min_le_left ε 1
   obtain ⟨K, hKm, hKp, hKz, hKfin, hKtend⟩ :=

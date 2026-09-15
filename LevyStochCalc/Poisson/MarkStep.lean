@@ -134,7 +134,7 @@ lemma eval_eq_fin (s : ℝ) (e : E) (ω : Ω) :
 lemma compensated_Ioc_self (a : ℝ) (B : Set E) (ω : Ω) :
     N.compensated (Set.Ioc a a ×ˢ B) ω = 0 := by
   rw [Set.Ioc_self, Set.empty_prod]
-  show (N.N ω ∅).toReal - (referenceIntensity ν ∅).toReal = 0
+  change (N.N ω ∅).toReal - (referenceIntensity ν ∅).toReal = 0
   simp
 
 /-- Past the horizon, the integral up to `t` is the integral over the whole horizon. -/
@@ -322,7 +322,7 @@ noncomputable def incr (s t : ℝ) (hs : 0 < s) (hst : s < t) : TimeGrid where
     have hpa : g.p (g.startIndex s) ≤ s := g.p_startIndex_le hs.le
     rcases Nat.eq_zero_or_pos i with h0 | hpos
     · subst h0
-      show (0 : ℝ) < min (max (g.p (g.startIndex s + (0 + 1 - 1))) s) t
+      change (0 : ℝ) < min (max (g.p (g.startIndex s + (0 + 1 - 1))) s) t
       rw [show 0 + 1 - 1 = 0 by rfl, add_zero, max_eq_right hpa, min_eq_left hst.le]
       exact hs
     · have hi' : g.startIndex s + (i - 1) < g.clampIndex t := by omega
@@ -344,12 +344,12 @@ noncomputable def incr (s t : ℝ) (hs : 0 < s) (hst : s < t) : TimeGrid where
 
 lemma incr_p_succ (s t : ℝ) (hs : 0 < s) (hst : s < t) (j : ℕ) :
     (g.incr s t hs hst).p (j + 1) = min (max (g.p (g.startIndex s + j)) s) t := by
-  show (if j + 1 = 0 then (0 : ℝ) else min (max (g.p (g.startIndex s + (j + 1 - 1))) s) t) = _
+  change (if j + 1 = 0 then (0 : ℝ) else min (max (g.p (g.startIndex s + (j + 1 - 1))) s) t) = _
   rw [if_neg (Nat.succ_ne_zero j), Nat.add_sub_cancel]
 
 lemma incr_horizon_le (s t : ℝ) (hs : 0 < s) (hst : s < t) :
     (g.incr s t hs hst).horizon ≤ t := by
-  show (g.incr s t hs hst).p (g.clampIndex t - g.startIndex s + 1) ≤ t
+  change (g.incr s t hs hst).p (g.clampIndex t - g.startIndex s + 1) ≤ t
   rw [incr_p_succ]
   exact min_le_right _ _
 
@@ -388,7 +388,7 @@ lemma integral_eq_full_clamp (N : PoissonRandomMeasure P ν) (G : MarkStep Ω E 
   rw [Finset.mem_range] at hi hni
   have hti := g.le_p_of_clampIndex_le (not_lt.1 hni) hi
   refine Finset.sum_eq_zero fun k _ => ?_
-  show G.ξ i k ω * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω = 0
+  change G.ξ i k ω * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω = 0
   rw [min_eq_right hti, min_eq_right (hti.trans (g.p_mono (Nat.le_succ i) hi)),
     compensated_Ioc_self, mul_zero]
 
@@ -435,7 +435,7 @@ lemma Adapted.clamp (hG : G.Adapted ℱ) (t : ℝ) (ht : 0 ≤ t) :
     (G.clamp t ht).Adapted ℱ := by
   intro i hi k
   have h := hG i (g.lt_of_lt_clampIndex hi).1 k
-  show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p i) t)) (G.ξ i k)
+  change @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p i) t)) (G.ξ i k)
   rwa [min_eq_left (g.lt_of_lt_clampIndex hi).2.le]
 
 /-- The `L²` isometry of the compensated integral up to any time `t ≥ 0`. -/
@@ -568,7 +568,7 @@ lemma integral_append (t : ℝ) (ω : Ω) :
   unfold integral
   rw [← Finset.sum_add_distrib]
   refine Finset.sum_congr rfl fun i _ => ?_
-  show ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
+  change ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
       * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t)
         ×ˢ Fin.append G.B G'.B k) ω = _
   rw [Fin.sum_univ_add]
@@ -578,7 +578,7 @@ lemma full_append (ω : Ω) : (G.append G').full N ω = G.full N ω + G'.full N 
   unfold full
   rw [← Finset.sum_add_distrib]
   refine Finset.sum_congr rfl fun i _ => ?_
-  show ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
+  change ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
       * N.compensated (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ Fin.append G.B G'.B k) ω = _
   rw [Fin.sum_univ_add]
   simp only [Fin.append_left, Fin.append_right]
@@ -590,7 +590,7 @@ lemma eval_append (s : ℝ) (e : E) (ω : Ω) :
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [← mul_add]
   congr 1
-  show ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
+  change ∑ k : Fin (G.K + G'.K), Fin.append (G.ξ i) (G'.ξ i) k ω
       * (Fin.append G.B G'.B k).indicator (fun _ => (1 : ℝ)) e = _
   rw [Fin.sum_univ_add]
   simp only [Fin.append_left, Fin.append_right]
@@ -599,11 +599,11 @@ lemma Adapted.append {G G' : MarkStep Ω E ν g}
     (hG : G.Adapted ℱ) (hG' : G'.Adapted ℱ) : (G.append G').Adapted ℱ := by
   intro i hi k
   refine Fin.addCases (fun k => ?_) (fun k => ?_) k
-  · show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
+  · change @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
       (Fin.append (G.ξ i) (G'.ξ i) (Fin.castAdd _ k))
     rw [Fin.append_left]
     exact hG i hi k
-  · show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
+  · change @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
       (Fin.append (G.ξ i) (G'.ξ i) (Fin.natAdd _ k))
     rw [Fin.append_right]
     exact hG' i hi k
@@ -614,7 +614,7 @@ lemma integral_neg (t : ℝ) (ω : Ω) : G.neg.integral N t ω = -G.integral N t
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [← Finset.sum_neg_distrib]
   refine Finset.sum_congr rfl fun k _ => ?_
-  show -G.ξ i k ω * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω
+  change -G.ξ i k ω * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω
     = -(G.ξ i k ω * N.compensated (Set.Ioc (min (g.p i) t) (min (g.p (i + 1)) t) ×ˢ G.B k) ω)
   exact neg_mul _ _
 
@@ -624,7 +624,7 @@ lemma full_neg (ω : Ω) : G.neg.full N ω = -G.full N ω := by
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [← Finset.sum_neg_distrib]
   refine Finset.sum_congr rfl fun k _ => ?_
-  show -G.ξ i k ω * N.compensated (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ω
+  change -G.ξ i k ω * N.compensated (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ω
     = -(G.ξ i k ω * N.compensated (Set.Ioc (g.p i) (g.p (i + 1)) ×ˢ G.B k) ω)
   exact neg_mul _ _
 
@@ -635,7 +635,7 @@ lemma eval_neg (s : ℝ) (e : E) (ω : Ω) : G.neg.eval s e ω = -G.eval s e ω 
   rw [← mul_neg, ← Finset.sum_neg_distrib]
   congr 1
   refine Finset.sum_congr rfl fun k _ => ?_
-  show -G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e
+  change -G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e
     = -(G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e)
   exact neg_mul _ _
 
@@ -707,7 +707,7 @@ lemma Adapted.weight {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ)
     {a : ℕ} (hwa : @StronglyMeasurable Ω ℝ _ (ℱ (g.p a)) w) :
     (G.weight w hw hwm a).Adapted ℱ := by
   intro i hi k
-  show @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
+  change @StronglyMeasurable Ω ℝ _ (ℱ (g.p i))
     (fun ω => if a ≤ i then w ω * G.ξ i k ω else 0)
   by_cases h : a ≤ i
   · simp only [h, if_true]
@@ -742,7 +742,7 @@ lemma full_weight_clamp {a b : ℕ} (hab : a ≤ b) (hb : b ≤ g.N₀) (ω : Ω
   have hN : (g.clamp (g.p b) (g.p_nonneg hb)).N₀ = b := g.clampIndex_p hb
   unfold full
   rw [hN]
-  show ∑ i ∈ Finset.range b, ∑ k, (if a ≤ i then w ω * G.ξ i k ω else 0)
+  change ∑ i ∈ Finset.range b, ∑ k, (if a ≤ i then w ω * G.ξ i k ω else 0)
       * N.compensated (Set.Ioc (min (g.p i) (g.p b)) (min (g.p (i + 1)) (g.p b)) ×ˢ G.B k) ω
     = _
   set F : ℕ → ℝ := fun i => ∑ k, G.ξ i k ω
@@ -788,7 +788,7 @@ lemma eval_weight_clamp {a b : ℕ} (hab : a ≤ b) (hb : b ≤ g.N₀) (s : ℝ
     rw [hN]
     refine Finset.sum_congr rfl fun i hi => ?_
     rw [Finset.mem_range] at hi
-    show (Set.Ioc (min (g.p i) (g.p b)) (min (g.p (i + 1)) (g.p b))).indicator
+    change (Set.Ioc (min (g.p i) (g.p b)) (min (g.p (i + 1)) (g.p b))).indicator
         (fun _ => (1 : ℝ)) s * _ = _
     rw [min_eq_left (g.p_mono hi.le hb), min_eq_left (g.p_mono hi hb)]
     rfl
@@ -832,7 +832,7 @@ theorem integral_weight_increment_sq (hG : G.Adapted ℱ) {w : Ω → ℝ}
           (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
   have hb0 := g.p_nonneg hb
   have hwa' : @StronglyMeasurable Ω ℝ _ (ℱ ((g.clamp (g.p b) hb0).p a)) w := by
-    show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p a) (g.p b))) w
+    change @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p a) (g.p b))) w
     rwa [min_eq_left (g.p_mono hab hb)]
   have key := ((G.clamp (g.p b) hb0).weight w hw hwm a).integral_full_sq N hℱ
     ((hG.clamp (g.p b) hb0).weight hw hwm hwa') (g.clamp_horizon_le (g.p b) hb0)
@@ -861,7 +861,7 @@ lemma full_weight_zero (ω : Ω) : (G.weight w hw hwm 0).full N ω = w ω * G.fu
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [Finset.mul_sum]
   refine Finset.sum_congr rfl fun k _ => ?_
-  show (if 0 ≤ i then w ω * G.ξ i k ω else 0) * _ = _
+  change (if 0 ≤ i then w ω * G.ξ i k ω else 0) * _ = _
   rw [if_pos (Nat.zero_le i), mul_assoc]
   rfl
 
@@ -871,7 +871,7 @@ lemma eval_weight_zero (s : ℝ) (e : E) (ω : Ω) :
   unfold eval
   rw [Finset.mul_sum]
   refine Finset.sum_congr rfl fun i _ => ?_
-  show (Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) s
+  change (Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) s
       * ∑ k : Fin G.K, (if 0 ≤ i then w ω * G.ξ i k ω else 0)
         * (G.B k).indicator (fun _ => (1 : ℝ)) e
     = w ω * ((Set.Ioc (g.p i) (g.p (i + 1))).indicator (fun _ => (1 : ℝ)) s
@@ -891,7 +891,7 @@ theorem integral_weight_zero_sq (hG : G.Adapted ℱ) {t : ℝ} (ht : 0 ≤ t)
       = ∫ ω, (w ω) ^ 2 * (∫ e, ∫ s in Set.Icc (0 : ℝ) t,
           (G.eval s e ω) ^ 2 ∂volume ∂ν) ∂P := by
   have hwa' : @StronglyMeasurable Ω ℝ _ (ℱ ((g.clamp t ht).p 0)) w := by
-    show @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p 0) t)) w
+    change @StronglyMeasurable Ω ℝ _ (ℱ (min (g.p 0) t)) w
     rwa [g.p_zero, min_eq_left ht]
   have key := ((G.clamp t ht).weight w hw hwm 0).integral_full_sq N hℱ
     ((hG.clamp t ht).weight hw hwm hwa') (g.clamp_horizon_le t ht)
@@ -1022,7 +1022,7 @@ def dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ
 
 lemma dyadic_p_restrict {ℓ d : ℕ} {T' : ℝ} (hT' : 0 < T') (hd : d ≤ ℓ) (h : T = T' * 2 ^ d)
     (i : ℕ) : (TimeGrid.dyadic T' hT' (ℓ - d)).p i = (TimeGrid.dyadic T hT ℓ).p i := by
-  show (i : ℝ) * T' / ((2 ^ (ℓ - d) : ℕ) : ℝ) = (i : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ)
+  change (i : ℝ) * T' / ((2 ^ (ℓ - d) : ℕ) : ℝ) = (i : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ)
   have h2 : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
   push_cast
   rw [h2, h]
@@ -1030,7 +1030,7 @@ lemma dyadic_p_restrict {ℓ d : ℕ} {T' : ℝ} (hT' : 0 < T') (hd : d ≤ ℓ)
 
 lemma dyadic_p_pow {ℓ d : ℕ} {T' : ℝ} (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) :
     (TimeGrid.dyadic T hT ℓ).p (2 ^ (ℓ - d)) = T' := by
-  show ((2 ^ (ℓ - d) : ℕ) : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ) = T'
+  change ((2 ^ (ℓ - d) : ℕ) : ℝ) * T / ((2 ^ ℓ : ℕ) : ℝ) = T'
   have h2 : (2 : ℝ) ^ ℓ = 2 ^ d * 2 ^ (ℓ - d) := by rw [← pow_add, Nat.add_sub_cancel' hd]
   push_cast
   rw [h2, h]
@@ -1044,7 +1044,7 @@ lemma full_dyadicRestrict {ℓ d : ℕ} (G : MarkStep Ω E ν (TimeGrid.dyadic T
     rw [G.integral_p_eq N _ (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))]
     unfold full
     refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun k _ => ?_
-    show G.ξ i k ω * N.compensated (Set.Ioc
+    change G.ξ i k ω * N.compensated (Set.Ioc
         ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)
         ((TimeGrid.dyadic T' hT' (ℓ - d)).p (i + 1)) ×ˢ G.B k) ω = _
     rw [dyadic_p_restrict (hT := hT) hT' hd h, dyadic_p_restrict (hT := hT) hT' hd h]
@@ -1070,7 +1070,7 @@ lemma Adapted.dyadicRestrict {ℓ d : ℕ}
     {G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ)} (hG : G.Adapted ℱ) {T' : ℝ} (hT' : 0 < T')
     (hd : d ≤ ℓ) (h : T = T' * 2 ^ d) : (G.dyadicRestrict hT' hd h).Adapted ℱ := by
   intro i hi k
-  show @StronglyMeasurable Ω ℝ _ (ℱ ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)) (G.ξ i k)
+  change @StronglyMeasurable Ω ℝ _ (ℱ ((TimeGrid.dyadic T' hT' (ℓ - d)).p i)) (G.ξ i k)
   rw [dyadic_p_restrict (hT := hT) hT' hd h]
   exact hG i (lt_of_lt_of_le hi (Nat.pow_le_pow_right two_pos (Nat.sub_le ℓ d))) k
 
@@ -1119,7 +1119,7 @@ lemma Adapted.incr {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ)
   intro i hi k
   rcases Nat.eq_zero_or_pos i with h0 | hpos
   · subst h0
-    show @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p 0))
+    change @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p 0))
       (fun ω => if (0 : ℕ) = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (0 - 1)) k ω)
     simp only [if_true]
     exact stronglyMeasurable_const
@@ -1127,7 +1127,7 @@ lemma Adapted.incr {G : MarkStep Ω E ν g} (hG : G.Adapted ℱ)
     have hi' : j + 1 < g.clampIndex t - g.startIndex s + 1 := hi
     have hj : g.startIndex s + j < g.clampIndex t := by omega
     have hlt := g.lt_of_lt_clampIndex hj
-    show @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p (j + 1)))
+    change @StronglyMeasurable Ω ℝ _ (ℱ ((g.incr s t hs hst).p (j + 1)))
       (fun ω => if j + 1 = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (j + 1 - 1)) k ω)
     simp only [Nat.succ_ne_zero, if_false, Nat.add_sub_cancel]
     rw [g.incr_p_succ]
@@ -1151,7 +1151,7 @@ lemma eval_incr_eq (σ : ℝ) (e : E) (ω : Ω) :
           (min (max (g.p (g.startIndex s + (j + 1))) s) t)).indicator (fun _ => (1 : ℝ)) σ
         * ∑ k, (w ω * G.ξ (g.startIndex s + j) k ω) * (G.B k).indicator (fun _ => (1 : ℝ)) e := by
   unfold eval
-  show ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
+  change ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
       (Set.Ioc ((g.incr s t hs hst).p i) ((g.incr s t hs hst).p (i + 1))).indicator
         (fun _ => (1 : ℝ)) σ
       * ∑ k, (if i = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (i - 1)) k ω)
@@ -1232,7 +1232,7 @@ lemma full_incr_eq (ω : Ω) :
           * N.compensated (Set.Ioc (min (max (g.p (g.startIndex s + j)) s) t)
             (min (max (g.p (g.startIndex s + (j + 1))) s) t) ×ˢ G.B k) ω := by
   unfold full
-  show ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
+  change ∑ i ∈ Finset.range (g.clampIndex t - g.startIndex s + 1),
       ∑ k, (if i = 0 then (0 : ℝ) else w ω * G.ξ (g.startIndex s + (i - 1)) k ω)
         * N.compensated (Set.Ioc ((g.incr s t hs hst).p i) ((g.incr s t hs hst).p (i + 1))
           ×ˢ G.B k) ω = _

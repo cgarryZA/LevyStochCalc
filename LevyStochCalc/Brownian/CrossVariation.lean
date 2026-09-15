@@ -56,7 +56,7 @@ theorem twoCell_eval {a b : ℝ} (ha : 0 < a) (hab : a < b) (Z : Ω → ℝ) (hZ
     {M : ℝ} (hZb : ∀ ω, |Z ω| ≤ M) (s : ℝ) (ω : Ω) :
     (twoCell ha hab Z hZm hZb).eval s ω = if a < s ∧ s ≤ b then Z ω else 0 := by
   classical
-  show (∑ i : Fin 2, if (![0, a, b] : Fin 3 → ℝ) i.castSucc < s
+  change (∑ i : Fin 2, if (![0, a, b] : Fin 3 → ℝ) i.castSucc < s
         ∧ s ≤ (![0, a, b] : Fin 3 → ℝ) i.succ
       then (![fun _ : Ω => (0 : ℝ), Z] : Fin 2 → Ω → ℝ) i ω else 0)
     = if a < s ∧ s ≤ b then Z ω else 0
@@ -73,16 +73,16 @@ theorem twoCell_adapted {a b : ℝ} (ha : 0 < a) (hab : a < b) {Z : Ω → ℝ} 
         ((twoCell ha hab Z hZm hZb).ξ i) := by
   intro i
   fin_cases i
-  · show StronglyMeasurable[ℱ 0] fun _ : Ω => (0 : ℝ)
+  · change StronglyMeasurable[ℱ 0] fun _ : Ω => (0 : ℝ)
     exact stronglyMeasurable_const
-  · show StronglyMeasurable[ℱ a] Z
+  · change StronglyMeasurable[ℱ a] Z
     exact hZa
 
 theorem twoCell_integralAgainst {a b : ℝ} (ha : 0 < a) (hab : a < b) (Z : Ω → ℝ)
     (hZm : Measurable Z) {M : ℝ} (hZb : ∀ ω, |Z ω| ≤ M) (Y : ℝ → Ω → ℝ) (t : ℝ) (ω : Ω) :
     (twoCell ha hab Z hZm hZb).integralAgainst Y t ω
       = Z ω * (Y (min b t) ω - Y (min a t) ω) := by
-  show (∑ i : Fin 2, (![fun _ : Ω => (0 : ℝ), Z] : Fin 2 → Ω → ℝ) i ω
+  change (∑ i : Fin 2, (![fun _ : Ω => (0 : ℝ), Z] : Fin 2 → Ω → ℝ) i ω
       * (Y (min ((![0, a, b] : Fin 3 → ℝ) i.succ) t) ω
         - Y (min ((![0, a, b] : Fin 3 → ℝ) i.castSucc) t) ω))
     = Z ω * (Y (min b t) ω - Y (min a t) ω)
@@ -114,7 +114,7 @@ theorem oneCell_eval {b : ℝ} (hb : 0 < b) (Z : Ω → ℝ) (hZm : Measurable Z
     {M : ℝ} (hZb : ∀ ω, |Z ω| ≤ M) (s : ℝ) (ω : Ω) :
     (oneCell hb Z hZm hZb).eval s ω = if 0 < s ∧ s ≤ b then Z ω else 0 := by
   classical
-  show (∑ i : Fin 1, if (![0, b] : Fin 2 → ℝ) i.castSucc < s
+  change (∑ i : Fin 1, if (![0, b] : Fin 2 → ℝ) i.castSucc < s
         ∧ s ≤ (![0, b] : Fin 2 → ℝ) i.succ
       then (![Z] : Fin 1 → Ω → ℝ) i ω else 0)
     = if 0 < s ∧ s ≤ b then Z ω else 0
@@ -128,14 +128,14 @@ theorem oneCell_adapted {b : ℝ} (hb : 0 < b) {Z : Ω → ℝ} (hZm : Measurabl
         ((oneCell hb Z hZm hZb).ξ i) := by
   intro i
   fin_cases i
-  show StronglyMeasurable[ℱ 0] Z
+  change StronglyMeasurable[ℱ 0] Z
   exact hZ0
 
 theorem oneCell_integralAgainst {b : ℝ} (hb : 0 < b) (Z : Ω → ℝ)
     (hZm : Measurable Z) {M : ℝ} (hZb : ∀ ω, |Z ω| ≤ M) (Y : ℝ → Ω → ℝ) (t : ℝ) (ω : Ω) :
     (oneCell hb Z hZm hZb).integralAgainst Y t ω
       = Z ω * (Y (min b t) ω - Y (min 0 t) ω) := by
-  show (∑ i : Fin 1, (![Z] : Fin 1 → Ω → ℝ) i ω
+  change (∑ i : Fin 1, (![Z] : Fin 1 → Ω → ℝ) i ω
       * (Y (min ((![0, b] : Fin 2 → ℝ) i.succ) t) ω
         - Y (min ((![0, b] : Fin 2 → ℝ) i.castSucc) t) ω))
     = Z ω * (Y (min b t) ω - Y (min 0 t) ω)

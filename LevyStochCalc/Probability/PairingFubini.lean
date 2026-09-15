@@ -70,7 +70,7 @@ theorem integral_mul_setIntegral_swap {S : Set Y} (hSfin : μ S ≠ ⊤)
   have hG : Integrable (Function.uncurry fun ω y => Z ω * V ω * F ω y)
       (P.prod (μ.restrict S)) := by
     refine (integrable_prod_iff hGm).mpr ⟨Filter.Eventually.of_forall fun ω => ?_, ?_⟩
-    · show Integrable (fun y => Z ω * V ω * F ω y) (μ.restrict S)
+    · change Integrable (fun y => Z ω * V ω * F ω y) (μ.restrict S)
       refine Integrable.mono' (integrable_const (|Z ω * V ω| * MF))
         (((hFω ω).aestronglyMeasurable).const_mul _)
         (Filter.Eventually.of_forall fun y => ?_)
@@ -84,7 +84,7 @@ theorem integral_mul_setIntegral_swap {S : Set Y} (hSfin : μ S ≠ ⊤)
           ≤ ∫ _, MF * Mv * ‖Z ω‖ ∂(μ.restrict S) := by
             refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun y => norm_nonneg _)
               (integrable_const _) (Filter.Eventually.of_forall fun y => ?_)
-            show ‖Z ω * V ω * F ω y‖ ≤ MF * Mv * ‖Z ω‖
+            change ‖Z ω * V ω * F ω y‖ ≤ MF * Mv * ‖Z ω‖
             calc ‖Z ω * V ω * F ω y‖ = |Z ω * V ω| * |F ω y| := by
                   rw [Real.norm_eq_abs, abs_mul]
               _ ≤ Mv * |Z ω| * MF :=
@@ -95,7 +95,7 @@ theorem integral_mul_setIntegral_swap {S : Set Y} (hSfin : μ S ≠ ⊤)
   have hL : ∫ ω, Z ω * V ω * (∫ y in S, F ω y ∂μ) ∂P
       = ∫ ω, ∫ y, Z ω * V ω * F ω y ∂(μ.restrict S) ∂P := by
     refine integral_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
-    show Z ω * V ω * (∫ y in S, F ω y ∂μ) = ∫ y in S, Z ω * V ω * F ω y ∂μ
+    change Z ω * V ω * (∫ y in S, F ω y ∂μ) = ∫ y in S, Z ω * V ω * F ω y ∂μ
     rw [MeasureTheory.integral_const_mul]
   rw [hL, integral_integral_swap hG]
 

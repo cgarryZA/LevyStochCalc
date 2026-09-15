@@ -21,12 +21,14 @@ namespace LevyStochCalc.Probability
 variable {Ω ι : Type*} [DecidableEq ι] {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
   [IsProbabilityMeasure μ]
 
+omit [DecidableEq ι] in
 /-- The generating π-systems of the two joins are independent. -/
 theorem indepSets_piiUnionInter_of_blocks {m a b : ι → MeasurableSpace Ω}
     (ha : ∀ i, a i ≤ m i) (hb : ∀ i, b i ≤ m i)
     (hm : iIndep m μ) (hab : ∀ i, Indep (a i) (b i) μ) :
     IndepSets (piiUnionInter (fun i => {t | MeasurableSet[a i] t}) Set.univ)
       (piiUnionInter (fun i => {t | MeasurableSet[b i] t}) Set.univ) μ := by
+  classical
   rw [IndepSets_iff]
   rintro A B ⟨sa, -, fa, hfa, rfl⟩ ⟨sb, -, fb, hfb, rfl⟩
   have hfa'a : ∀ i, MeasurableSet[a i] (if i ∈ sa then fa i else Set.univ) := by
@@ -97,6 +99,7 @@ theorem indepSets_piiUnionInter_of_blocks {m a b : ι → MeasurableSpace Ω}
   refine Finset.prod_congr rfl fun i _ => ?_
   exact (Indep_iff _ _ _).mp (hab i) _ _ (hfa'a i) (hfb'b i)
 
+omit [DecidableEq ι] in
 /-- **Independence of two joins from blockwise independence.** -/
 theorem indep_iSup_of_indep_blocks {m a b : ι → MeasurableSpace Ω}
     (ha : ∀ i, a i ≤ m i) (hb : ∀ i, b i ≤ m i) (hle : ∀ i, m i ≤ mΩ)

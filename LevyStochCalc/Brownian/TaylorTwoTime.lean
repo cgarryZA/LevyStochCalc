@@ -20,7 +20,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 theorem clm_apply_prod (L : (ℝ × F) →L[ℝ] ℝ) (a : ℝ) (b : F) :
     L (a, b) = a * L (1, 0) + L (0, b) := by
   have hsplit : ((a, b) : ℝ × F) = a • ((1 : ℝ), (0 : F)) + ((0 : ℝ), b) := by
-    simp [Prod.ext_iff]
+    simp
   rw [hsplit, map_add, map_smul, smul_eq_mul]
 
 /-- A continuous bilinear form on a product splits into its four blocks. -/
@@ -28,14 +28,15 @@ theorem clm_apply_prod₂ (L : (ℝ × F) →L[ℝ] (ℝ × F) →L[ℝ] ℝ) (a
     L (a, b) (a, b)
       = a * a * L (1, 0) (1, 0) + a * L (1, 0) (0, b) + a * L (0, b) (1, 0) + L (0, b) (0, b) := by
   have hsplit : ((a, b) : ℝ × F) = a • ((1 : ℝ), (0 : F)) + ((0 : ℝ), b) := by
-    simp [Prod.ext_iff]
+    simp
   have houter : L (a, b) = a • L (1, 0) + L (0, b) := by
     rw [hsplit, map_add, map_smul]
   rw [houter]
-  simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
+  simp only [add_apply, smul_apply, smul_eq_mul]
   rw [clm_apply_prod (L (1, 0)) a b, clm_apply_prod (L (0, b)) a b]
   ring
 
+omit [NormedSpace ℝ F] in
 /-- The product norm is dominated by the sum of the two norms. -/
 theorem norm_prod_le_add (a : ℝ) (b : F) : ‖((a, b) : ℝ × F)‖ ≤ |a| + ‖b‖ := by
   rw [Prod.norm_def, Real.norm_eq_abs]

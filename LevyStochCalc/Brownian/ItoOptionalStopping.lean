@@ -98,10 +98,10 @@ theorem abs_cutTerm_le {H : Ω → ℝ → ℝ} (c t : ℝ) (ω : Ω) (s : ℝ) 
   calc |cutTerm τ H c t ω s| = |hitInd τ c ω| * |indIoc Ω c t ω s| * |H ω s| := by
         rw [cutTerm, abs_mul, abs_mul]
     _ ≤ 1 * 1 * |H ω s| := by
-        gcongr <;> positivity
+        gcongr
     _ = |H ω s| := by ring
 
-omit [IsProbabilityMeasure P] in
+omit [MeasurableSpace Ω] [IsProbabilityMeasure P] in
 theorem abs_stopped_le' {H : Ω → ℝ → ℝ} (ω : Ω) (s : ℝ) :
     |Probability.stopped τ H ω s| ≤ |H ω s| := Probability.abs_stopped_le τ H ω s
 
@@ -133,7 +133,7 @@ theorem abs_indTerm_le {H : Ω → ℝ → ℝ} (c t : ℝ) (ω : Ω) (s : ℝ) 
     |indTerm H c t ω s| ≤ |H ω s| := by
   have h2 : |indIoc Ω c t ω s| ≤ 1 := indIoc_le_one c t ω s
   calc |indTerm H c t ω s| = |indIoc Ω c t ω s| * |H ω s| := by rw [indTerm, abs_mul]
-    _ ≤ 1 * |H ω s| := by gcongr <;> positivity
+    _ ≤ 1 * |H ω s| := by gcongr
     _ = |H ω s| := by ring
 
 omit [IsProbabilityMeasure P] in
@@ -174,7 +174,7 @@ theorem stopped_eq_sub_sum (H : Ω → ℝ → ℝ) {t : ℝ} (J : Finset ℝ)
           exact fun hmem => absurd hmem.1 (not_lt.mpr hsc)
         rw [h1, h2]
         ring
-      · push_neg at hsc
+      · push Not at hsc
         have h1 : Probability.stopped τ H ω s = 0 := by
           rw [Probability.stopped, if_neg]
           rw [hc₀]

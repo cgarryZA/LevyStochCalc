@@ -64,7 +64,7 @@ theorem dyadicLeft_le_succ {s : ℝ} (hs : 0 < s) (n : ℕ) :
   have hkey : 2 * ⌈y⌉₊ ≤ ⌈2 * y⌉₊ + 1 := by
     have h1 : (⌈y⌉₊ : ℝ) < y + 1 := Nat.ceil_lt_add_one hy0.le
     have h2 : (2 : ℝ) * y ≤ (⌈2 * y⌉₊ : ℝ) := Nat.le_ceil _
-    have : (2 * ⌈y⌉₊ : ℝ) < (⌈2 * y⌉₊ : ℝ) + 2 := by push_cast; linarith
+    have : (2 * ⌈y⌉₊ : ℝ) < (⌈2 * y⌉₊ : ℝ) + 2 := by linarith
     have hn : (2 * ⌈y⌉₊ : ℕ) < ⌈2 * y⌉₊ + 2 := by exact_mod_cast this
     omega
   rw [dyadicLeft, dyadicLeft, hyy, div_le_div_iff₀ hpow (by positivity)]

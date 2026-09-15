@@ -32,7 +32,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
   (ℱ' : Filtration ℝ ‹MeasurableSpace Ω›)
   (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ')
 
-omit [IsProbabilityMeasure P] in
+omit [MeasurableSpace Ω] [IsProbabilityMeasure P] in
 /-- A function of the stopped path against a stopped integrand is the stopped product. -/
 theorem stopped_comp_eq {X : ℝ → Ω → Fin n → ℝ} (τ : Ω → WithTop ℝ)
     (g : (Fin n → ℝ) → ℝ) (K : Ω → ℝ → ℝ) :
@@ -44,7 +44,7 @@ theorem stopped_comp_eq {X : ℝ → Ω → Fin n → ℝ} (τ : Ω → WithTop 
   · rw [if_pos hle, if_pos hle, clipTime_of_le hle]
   · rw [if_neg hle, if_neg hle, mul_zero]
 
-omit [IsProbabilityMeasure P] in
+omit [MeasurableSpace Ω] [IsProbabilityMeasure P] in
 /-- A function of the stopped path against a sum of products of stopped integrands is the
 stopped product. -/
 theorem stopped_comp₂_eq {X : ℝ → Ω → Fin n → ℝ} (τ : Ω → WithTop ℝ)

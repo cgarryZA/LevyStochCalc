@@ -387,6 +387,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
   {E : Type v} [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E]
   [MeasurableSingletonClass E] {ν : Measure E} [SigmaFinite ν] {n d : ℕ}
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- **The cut-off does not change the jump integral against the random measure, on the event the
 path stays in the ball.** At finite activity that integral is the sum over the atoms of the
 window, and at each atom both the base point and the state reached by the jump are values of the
@@ -394,7 +395,7 @@ path, hence in the ball. -/
 theorem ae_setIntegral_jumpIncrement_cutoffFun₂_eq
     (coeffs : Setting.JumpDiffusionCoeffs n d E)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (Xp : ℝ → Ω → Fin n → ℝ)
-    (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (A : Set E)
     (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ))
     (hjump : ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
       (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧
@@ -420,6 +421,7 @@ theorem ae_setIntegral_jumpIncrement_cutoffFun₂_eq
   exact jumpIncrement_cutoffFun₂_eq_of_boundedPath u hm hTm hb (hmem j).1
     (fun i => hlω (θ j) i) (hjump j)
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- **The difference of the cut-off's jump increment and the function's integrates to zero
 against the random measure** on the event that the path stays in the ball: every atom
 contributes zero. -/

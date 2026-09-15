@@ -119,7 +119,7 @@ theorem gradient_uSq (s : ℝ) (x : Fin 1 → ℝ) (i : Fin 1) :
     gradient uSq s x i = 2 * x 0 := by
   have hi : i = 0 := Subsingleton.elim i 0
   subst hi
-  show fderiv ℝ (uSq s) x (Pi.single 0 1) = 2 * x 0
+  change fderiv ℝ (uSq s) x (Pi.single 0 1) = 2 * x 0
   have huf : uSq s = fun y : Fin 1 → ℝ => (y 0) ^ 2 := rfl
   rw [huf, (hasFDerivAt_uSq x).fderiv]
   simp
@@ -127,7 +127,7 @@ theorem gradient_uSq (s : ℝ) (x : Fin 1 → ℝ) (i : Fin 1) :
 /-- The diffusion integrand `(∇u)ᵀσ` of `u(t, x) = x₀²` is `2x₀`. -/
 theorem diffusionIntegrand_uSq (s : ℝ) (x : Fin 1 → ℝ) (j : Fin 1) :
     diffusionIntegrand uSq coeffs.σ s x j = 2 * x 0 := by
-  show ∑ i : Fin 1, gradient uSq s x i * coeffs.σ s x i j = 2 * x 0
+  change ∑ i : Fin 1, gradient uSq s x i * coeffs.σ s x i j = 2 * x 0
   simp [gradient_uSq, coeffs]
 
 /-- The jump increment of `u(t, x) = x₀²` at a mark `e` is `2ex₀ + e²`. -/
@@ -139,7 +139,7 @@ theorem jumpIncrement_uSq (s : ℝ) (x : Fin 1 → ℝ) (e : ℝ) :
 /-- The compensator-drift integrand of `u(t, x) = x₀²` at a mark `e` is `e²`. -/
 theorem compensatorDriftIntegrand_uSq (s : ℝ) (x : Fin 1 → ℝ) (e : ℝ) :
     compensatorDriftIntegrand uSq coeffs.γ s x e = e ^ 2 := by
-  show uSq s (x + coeffs.γ s x e) - uSq s x
+  change uSq s (x + coeffs.γ s x e) - uSq s x
       - ∑ i : Fin 1, coeffs.γ s x e i * gradient uSq s x i = e ^ 2
   rw [jumpIncrement_uSq]
   simp only [coeffs, gradient_uSq, Fin.sum_univ_one]

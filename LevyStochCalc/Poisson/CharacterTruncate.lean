@@ -32,15 +32,20 @@ section Truncate
 def truncFam (Bfam : ι → Set (ℝ × E)) (t : ℝ) : ι → Set (ℝ × E) :=
   fun j => Bfam j ∩ Set.Ioc (0 : ℝ) t ×ˢ Set.univ
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] [Fintype ι] in
 theorem measurableSet_truncFam {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))
     (t : ℝ) (j : ι) : MeasurableSet (truncFam Bfam t j) :=
   (hBm j).inter (measurableSet_Ioc.prod MeasurableSet.univ)
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+  [Fintype ι] in
 theorem truncFam_subset {Bfam : ι → Set (ℝ × E)} {A : Set E} {T : ℝ}
     (hBsub : ∀ j, Bfam j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A) (t : ℝ) (j : ι) :
     truncFam Bfam t j ⊆ Set.Ioc (0 : ℝ) T ×ˢ A :=
   Set.inter_subset_left.trans (hBsub j)
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+  [Fintype ι] in
 theorem truncFam_inter_Ioc {Bfam : ι → Set (ℝ × E)} {t T : ℝ} (htT : t ≤ T) (j : ι) :
     truncFam Bfam t j ∩ Set.Ioc (0 : ℝ) T ×ˢ Set.univ = Bfam j ∩ Set.Ioc (0 : ℝ) t ×ˢ Set.univ := by
   ext p
@@ -51,6 +56,8 @@ theorem truncFam_inter_Ioc {Bfam : ι → Set (ℝ × E)} {t T : ℝ} (htT : t �
   · rintro ⟨hB, h0, ht⟩
     exact ⟨⟨hB, h0, ht⟩, h0, ht.trans htT⟩
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+  [Fintype ι] in
 theorem truncFam_inter_Ioo {Bfam : ι → Set (ℝ × E)} {s t : ℝ} (hst : s ≤ t) (j : ι) :
     truncFam Bfam t j ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ = Bfam j ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ := by
   ext p
@@ -62,10 +69,13 @@ theorem truncFam_inter_Ioo {Bfam : ι → Set (ℝ × E)} {s t : ℝ} (hst : s �
   · rintro ⟨hB, h0, hs⟩
     exact ⟨⟨hB, h0, hs.le.trans hst⟩, h0, hs⟩
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
+  [Fintype ι] in
 theorem iUnion_truncFam (Bfam : ι → Set (ℝ × E)) (t : ℝ) :
     ⋃ j, truncFam Bfam t j = (⋃ j, Bfam j) ∩ Set.Ioc (0 : ℝ) t ×ˢ Set.univ := by
   simp only [truncFam, Set.iUnion_inter]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- On `(0, t]` the simple mark of the cut family is that of the family. -/
 theorem simpleMark_truncFam (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {t : ℝ} {p : ℝ × E}
     (hp : p.1 ∈ Set.Ioc (0 : ℝ) t) :

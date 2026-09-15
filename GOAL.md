@@ -23,10 +23,14 @@ checks true. Each lists how to verify it.
 - [x] **Zero `sorry`/`admit`/`sorryAx`.** `tools/sorry_baseline.txt` is empty;
       `grep -rn '\bsorry\b\|\badmit\b' LevyStochCalc/` finds only prose. (Checked
       2026-09-15: the baseline is empty and the grep finds one docstring word.)
-- [ ] **Zero custom axioms.** `#print axioms` over the *entire public API*
+- [x] **Zero custom axioms.** `#print axioms` over the *entire public API*
       (extend `_audit.lean` to cover every exported decl) prints only
       `propext`, `Classical.choice`, `Quot.sound`. `tools/cited_axioms.md` lists
       no live `axiom` (it becomes a provenance/history note, not a budget).
+      (Checked 2026-09-15: `tools/gen_audit_names.lean` enumerates every theorem,
+      definition and opaque of the `LevyStochCalc.*` modules — 3847 names, private
+      and compiler-generated names excluded — and `_audit.lean` covers all of them;
+      `tools/lint.sh` reports the three standard axioms for every one.)
 - [ ] **No trust escapes.** No `native_decide`, `@[implemented_by]`, `@[extern]`,
       `opaque`, `unsafe`, `partial def`, or `set_option … (kernel|debug).*` in
       load-bearing math. `Float` never appears in a statement.

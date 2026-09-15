@@ -38,7 +38,7 @@ noncomputable def charReIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPois
   toFun := charRe N w Bfam A T
   measurable_uncurry := measurable_charRe N hℱ w hBm hA hAν hBsub
   progressive := (markedPredictable_charRe N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
-  vanishing := fun ω s e hs =>
+  vanishing := fun ω _ _ hs =>
     charRe_eq_zero N w hBsub ω fun hmem => hs ⟨hmem.1.1.le, hmem.1.2⟩
   energy_ne_top := (sq_charRe N w hA hAν hBsub T).ne
 
@@ -51,7 +51,7 @@ noncomputable def charImIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPois
   toFun := charIm N w Bfam A T
   measurable_uncurry := measurable_charIm N hℱ w hBm hA hAν hBsub
   progressive := (markedPredictable_charIm N hℱ w hBm hA hAν hBsub).markedProgressivelyMeasurable
-  vanishing := fun ω s e hs =>
+  vanishing := fun ω _ _ hs =>
     charIm_eq_zero N w hBsub ω fun hmem => hs ⟨hmem.1.1.le, hmem.1.2⟩
   energy_ne_top := (sq_charIm N w hA hAν hBsub T).ne
 

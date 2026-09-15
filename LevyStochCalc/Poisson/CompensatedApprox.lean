@@ -236,7 +236,7 @@ theorem exists_markStep_close {T : ℝ} (hT : 0 < T)
           exact measurable_const }
   have hG : G.Adapted ℱ := by
     intro i hi k
-    show @StronglyMeasurable Ω ℝ _ (ℱ ((TimeGrid.dyadic T hT ℓ).p i))
+    change @StronglyMeasurable Ω ℝ _ (ℱ ((TimeGrid.dyadic T hT ℓ).p i))
       (if h : i < 2 ^ ℓ then ξ ⟨i, h⟩ k else 0)
     rw [dif_pos (show i < 2 ^ ℓ from hi)]
     exact hξa ⟨i, hi⟩ k
@@ -247,7 +247,7 @@ theorem exists_markStep_close {T : ℝ} (hT : 0 < T)
     intro s e ω
     rw [MarkStep.eval_eq_fin]
     refine Finset.sum_congr rfl fun i _ => ?_
-    show (Set.Ioc (dyadicPartition T ℓ i.castSucc) (dyadicPartition T ℓ i.succ)).indicator
+    change (Set.Ioc (dyadicPartition T ℓ i.castSucc) (dyadicPartition T ℓ i.succ)).indicator
         (fun _ => (1 : ℝ)) s
       * ∑ k, (if h : (i : ℕ) < 2 ^ ℓ then ξ ⟨i, h⟩ k else 0) ω
           * (B k).indicator (fun _ => (1 : ℝ)) e = _
@@ -336,7 +336,7 @@ lemma master_level_add {n n' : ℕ} (h : n ≤ n') :
   | refl => simp
   | @step m h ih =>
     have h1 := master_level_succ N ℱ hℱ φ h_meas h_progMeas h_sq_int_global m
-    show _ + (m + 1 - n) ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (m + 1)).1
+    change _ + (m + 1 - n) ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (m + 1)).1
     omega
 
 lemma master_adapted (n : ℕ) :
@@ -511,7 +511,7 @@ lemma stageIntegral_sub_sq_le {n n' : ℕ} (h : n ≤ n') {t : ℝ} (ht : t ≤ 
   have h0 : 0 ≤ ∫ ω, (M (stageHorizon n) ω - M t ω) ^ 2 ∂P :=
     integral_nonneg fun ω => sq_nonneg _
   have hle : ∫ ω, (M t ω) ^ 2 ∂P ≤ ∫ ω, (M (stageHorizon n) ω) ^ 2 ∂P := by linarith
-  show ∫⁻ ω, (‖M t ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ ∫⁻ ω, (‖M (stageHorizon n) ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+  change ∫⁻ ω, (‖M t ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ ∫⁻ ω, (‖M (stageHorizon n) ω‖₊ : ℝ≥0∞) ^ 2 ∂P
   rw [lintegral_sq_eq_ofReal_integral (hL2 t),
     lintegral_sq_eq_ofReal_integral (hL2 (stageHorizon n))]
   exact ENNReal.ofReal_le_ofReal hle

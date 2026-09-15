@@ -52,7 +52,7 @@ theorem exists_predictable_jointIntegral (D : LevyDriver.{u, v, w} P d ν) {T : 
       (G' i).integral (D.W.W i) (D.isBrownianFiltration_aug i) ω
         = (G i).integral (D.W.W i) (D.isBrownianFiltration_aug i) ω := ae_all_iff.mpr hG'int
   filter_upwards [hall, hK'int] with ω h1 h2
-  show vectorIntegral D.W (fun k => D.isBrownianFiltration_aug k) G ω
+  change vectorIntegral D.W (fun k => D.isBrownianFiltration_aug k) G ω
       + K.integral D.N D.isPoissonFiltration_aug ω
     = vectorIntegral D.W (fun k => D.isBrownianFiltration_aug k) G' ω
       + K'.integral D.N D.isPoissonFiltration_aug ω

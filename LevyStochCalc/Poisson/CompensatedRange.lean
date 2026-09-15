@@ -263,7 +263,7 @@ theorem isClosed_compensatedRange (hT : 0 < T) :
     rw [markedEnergy_eq_edist_sq N hℱ hT (hG m) (hG n)]
     refine lt_of_lt_of_le (ENNReal.pow_lt_pow_left (by norm_num) (hN₀ m hm n hn)) ?_
     calc (min ε 1) ^ 2 = min ε 1 * min ε 1 := sq _
-      _ ≤ min ε 1 * 1 := by gcongr <;> exact min_le_right ε 1
+      _ ≤ min ε 1 * 1 := by gcongr; exact min_le_right ε 1
       _ = min ε 1 := mul_one _
       _ ≤ ε := min_le_left ε 1
   obtain ⟨K, hKm, hKp, hKz, hKfin, hKtend⟩ :=

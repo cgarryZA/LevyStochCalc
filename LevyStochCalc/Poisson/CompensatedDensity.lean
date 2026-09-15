@@ -45,7 +45,7 @@ private lemma truncation_pointwise_tendsto (x : ℝ) :
   have h_clip : max (-(M : ℝ)) (min (M : ℝ) x) = x := by
     rw [min_eq_right (le_trans (le_abs_self x) hMx)]
     exact max_eq_right (by linarith [neg_abs_le x])
-  show (0 : ℝ≥0∞) = (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2
+  change (0 : ℝ≥0∞) = (‖x - max (-(M : ℝ)) (min (M : ℝ) x)‖₊ : ℝ≥0∞) ^ 2
   rw [h_clip, sub_self]; simp
 
 /-- **Pointwise truncation dominated** by the value's square. -/
@@ -241,7 +241,7 @@ lemma mark_truncation_L2_converges
         filter_upwards [Filter.eventually_gt_atTop m] with N hN
         have heS : e ∈ S N := by
           rw [hS]; exact Set.mem_biUnion (Finset.mem_range.mpr hN) hm
-        show (0 : ℝ≥0∞) = F N ω s e
+        change (0 : ℝ≥0∞) = F N ω s e
         simp only [hF, Set.indicator_of_mem heS, sub_self]; simp
 
 /-! ### Dyadic time-discretisation (mark carried as a parameter)
@@ -314,6 +314,7 @@ lemma dyadicAvg_shifted_measurable
   · simp only [h, ↓reduceDIte]; exact measurable_const
   · simp only [h, ↓reduceDIte]; exact dyadicAvg_measurable T φ h_meas n _
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The dyadic average inherits the integrand's uniform bound: `|dyadicAvg| ≤ M`
 (the average of values bounded by `M` over an interval of length `T/2ⁿ`). -/
 lemma dyadicAvg_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
@@ -411,6 +412,7 @@ private lemma closedBall_eq_Icc (a b : ℝ) :
     exact ⟨by linarith [this.1], by linarith [this.2]⟩
   · intro ⟨h1, h2⟩; rw [abs_le]; exact ⟨by linarith, by linarith⟩
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- **Closed-ball ↔ dyadic-interval bridge:** the dyadic average equals the
 Mathlib closed-ball set-average of `φ(ω, ·, e)`, connecting to the Lebesgue
 differentiation theorem (`IsUnifLocDoublingMeasure.ae_tendsto_average`). -/
@@ -463,6 +465,7 @@ noncomputable def dyadicEval
     if dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ
     then dyadicAvg T φ n i ω e else 0
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- For `s ∈ (0, T]`, `dyadicEval` collapses to the dyadic average at the index of `s`. -/
 lemma dyadicEval_eq_dyadicAvg_at_index
     {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (hs : 0 < s ∧ s ≤ T)
@@ -540,7 +543,7 @@ lemma dyadicEval_ae_tendsto_per_param
       dyadicPartition T n (dyadicIndex n T hT x hx).castSucc) / 2 with hδ
   have hδ_eq : ∀ n, δ n = T / (2 * (2 ^ n : ℕ)) := by
     intro n
-    show (dyadicPartition T n (dyadicIndex n T hT x hx).succ -
+    change (dyadicPartition T n (dyadicIndex n T hT x hx).succ -
       dyadicPartition T n (dyadicIndex n T hT x hx).castSucc) / 2 = _
     rw [dyadicPartition_diff]; ring
   have hδ_pos : ∀ n, 0 < δ n := fun n => by rw [hδ_eq]; positivity
@@ -591,6 +594,7 @@ lemma dyadicEval_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
   · rw [not_exists] at h
     rw [Finset.sum_eq_zero (fun i _ => if_neg (h i)), abs_zero]; exact hM_nn
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- `s ↦ dyadicEval T φ n s ω e` is measurable (finite sum of interval-indicators
 times constants). -/
 lemma dyadicEval_measurable_in_time {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (ω : Ω) (e : E) :
@@ -644,6 +648,7 @@ lemma dyadicEval_inner_L2_tendsto
       (ENNReal.continuous_pow 2).comp (ENNReal.continuous_coe.comp continuous_nnnorm)
     simpa [Function.comp_def] using (hg.tendsto 0).comp hdiff
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- If `φ(ω, ·, e)` vanishes identically in time, so does its dyadic eval. -/
 lemma dyadicEval_eq_zero {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (ω : Ω) (e : E)
     (h0 : ∀ u, φ ω u e = 0) : dyadicEval T φ n s ω e = 0 := by
@@ -678,6 +683,7 @@ lemma dyadicEval_measurable_triple
     (by fun_prop : Measurable fun p : Ω × ℝ × E => ((p.1, p.2.2) : Ω × E))
 
 set_option maxHeartbeats 1000000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **`L²` convergence of the dyadic eval (finite-mark-support).** For a bounded
 jointly-measurable `φ` vanishing off a finite-`ν`-mass mark set `S`, the (unshifted)
 dyadic eval converges to `φ` in `L²(P ⊗ ds ⊗ ν)`. Tonelli swap `s ↔ e`, then nested
@@ -809,6 +815,7 @@ noncomputable def dyadicEvalShifted
     if dyadicPartition T n i.castSucc < s ∧ s ≤ dyadicPartition T n i.succ
     then dyadicAvg_shifted T φ n i ω e else 0
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- For `s ∈ (0, T]`, the shifted eval collapses to the shifted average at the index of `s`. -/
 lemma dyadicEvalShifted_eq_at_index
     {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (hs : 0 < s ∧ s ≤ T)
@@ -922,7 +929,7 @@ lemma dyadicEvalShifted_ae_tendsto_per_param
     (dyadicPartition T n (jp n).succ - dyadicPartition T n (jp n).castSucc) / 2 with hδ
   have hδ_eq : ∀ n, δ n = T / (2 * (2 ^ n : ℕ)) := by
     intro n; rw [hδ]
-    show (dyadicPartition T n (jp n).succ - dyadicPartition T n (jp n).castSucc) / 2 = _
+    change (dyadicPartition T n (jp n).succ - dyadicPartition T n (jp n).castSucc) / 2 = _
     rw [dyadicPartition_diff]; ring
   have hδ_pos : ∀ n, 0 < δ n := fun n => by rw [hδ_eq]; positivity
   have hδ0 : Filter.Tendsto δ Filter.atTop (nhds 0) := by
@@ -967,7 +974,7 @@ lemma dyadicEvalShifted_ae_tendsto_per_param
       unfold dyadicPartition; rw [Fin.val_succ]; push_cast at h2 ⊢; linarith [h2]
     rw [hib] at hdiff_i
     rw [Metric.mem_closedBall, Real.dist_eq]
-    show |x - (a + b) / 2| ≤ 3 * ((b - a) / 2)
+    change |x - (a + b) / 2| ≤ 3 * ((b - a) / 2)
     rw [abs_le]
     constructor <;> linarith [hlo, hx_hi_part, hdiff_i, hdiff_j, hba]
   -- bridge: shifted eval = closed-ball average centred at `wₙ` (definitional).
@@ -976,10 +983,11 @@ lemma dyadicEvalShifted_ae_tendsto_per_param
     filter_upwards [hev1] with n hn1
     have hival : (dyadicIndex n T hT x hx).val ≠ 0 := by omega
     rw [dyadicEvalShifted_eq_at_index hT φ n x hx ω e, dyadicAvg_shifted, dif_neg hival]
-    show dyadicAvg T φ n (jp n) ω e = _
+    change dyadicAvg T φ n (jp n) ω e = _
     rw [dyadicAvg_eq_average_closedBall hT φ n (jp n) ω e]
   exact Filter.Tendsto.congr' (hbridge.mono (fun n h => h.symm)) (h_leb_x w δ hδ_nhds hxball)
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- If `φ(ω, ·, e)` vanishes identically in time, so does its shifted dyadic eval. -/
 lemma dyadicEvalShifted_eq_zero {T : ℝ} (φ : Ω → ℝ → E → ℝ) (n : ℕ) (s : ℝ) (ω : Ω) (e : E)
     (h0 : ∀ u, φ ω u e = 0) : dyadicEvalShifted T φ n s ω e = 0 := by
@@ -1056,6 +1064,7 @@ lemma dyadicEvalShifted_inner_L2_tendsto
     simpa [Function.comp_def] using (hg.tendsto 0).comp hdiff
 
 set_option maxHeartbeats 1000000 in
+-- maxHeartbeats: typechecker budget for proof-heavy goal below.
 /-- **`L²` convergence of the adapted (shifted) eval (finite-mark-support).** -/
 lemma dyadicEvalShifted_L2_tendsto
     {P : Measure Ω} [IsProbabilityMeasure P]
@@ -1329,7 +1338,7 @@ lemma rectApprox_indicator (μ : Measure (Ω × E)) [IsFiniteMeasure μ]
     -- `μ((⋃F) \ Sₙ) → 0`, so the `L²` tail is eventually `< ε/2`.
     have hdiff_tend : Filter.Tendsto (fun N => μ ((⋃ i, F i) \ S N)) Filter.atTop (nhds 0) := by
       have hrw : ∀ N, μ ((⋃ i, F i) \ S N) = μ (⋃ i, F i) - μ (S N) := fun N =>
-        measure_diff (hSsub N) (hSmeas N).nullMeasurableSet (measure_ne_top _ _)
+        measure_sdiff (hSsub N) (hSmeas N).nullMeasurableSet (measure_ne_top _ _)
       simp_rw [hrw]
       rw [show (0 : ℝ≥0∞) = μ (⋃ i, F i) - μ (⋃ i, F i) from (tsub_self _).symm]
       exact ENNReal.Tendsto.sub tendsto_const_nhds
@@ -1450,6 +1459,7 @@ lemma rectSimple_L2_tendsto (μ : Measure (Ω × E)) [IsFiniteMeasure μ] {f : �
   exact ⟨g, hg, tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
     ENNReal.tendsto_inv_nat_nhds_zero (fun _ => zero_le) hgerr⟩
 
+omit [MeasurableSpace Ω] in
 /-- **Trim–product iterated-lintegral bridge.** For a sub-σ-algebra `m ≤ m₀` on `Ω`
 and an `m ⊗ E`-measurable `F : Ω × E → ℝ≥0∞`, the integral against the product
 `(P.trim hm) ⊗ ν` equals the iterated integral against `ν` then `P`. (Tonelli on the
@@ -1478,7 +1488,7 @@ lemma IsRectSimple.eq_finSum {g : Ω × E → ℝ} (hg : IsRectSimple g) :
     fun k => (hL (L.get k) (List.get_mem L k)).2, ?_⟩
   intro ω e
   rw [hgeq]
-  show (L.map (fun t => t.1 * (t.2.1 ×ˢ t.2.2).indicator (fun _ => (1 : ℝ)) (ω, e))).sum = _
+  change (L.map (fun t => t.1 * (t.2.1 ×ˢ t.2.2).indicator (fun _ => (1 : ℝ)) (ω, e))).sum = _
   rw [← List.ofFn_getElem_eq_map L
         (fun t => t.1 * (t.2.1 ×ˢ t.2.2).indicator (fun _ => (1 : ℝ)) (ω, e)),
       Fin.sum_ofFn]
@@ -1488,9 +1498,10 @@ lemma IsRectSimple.eq_finSum {g : Ω × E → ℝ} (hg : IsRectSimple g) :
         = ((L[(k : ℕ)]).2.1).indicator (fun _ => (1 : ℝ)) ω
           * ((L[(k : ℕ)]).2.2).indicator (fun _ => (1 : ℝ)) e from by
     by_cases hω : ω ∈ (L[(k : ℕ)]).2.1 <;> by_cases he : e ∈ (L[(k : ℕ)]).2.2 <;>
-      simp [Set.indicator_apply, Set.mem_prod, hω, he]]
+      simp [Set.mem_prod, hω, he]]
   ring
 
+omit [MeasurableSpace Ω] in
 /-- **Adapted mark-discretisation (per-time-piece).** A bounded `h : Ω → E → ℝ` that
 is `m ⊗ E`-measurable (for a sub-σ-algebra `m ≤ m₀`) and supported on marks in a
 finite-measure set `S` is approximated in `L²(P ⊗ ν)` by a finite mark-simple function
@@ -1531,7 +1542,7 @@ lemma exists_markSimple_adapted_within
   -- tolerance `ε' = √δ`, so `ε'² = δ`.
   set ε' : ℝ≥0∞ := δ ^ (1 / 2 : ℝ) with hε'
   have hε'0 : ε' ≠ 0 := by
-    rw [hε', Ne, ENNReal.rpow_eq_zero_iff]; push_neg
+    rw [hε', Ne, ENNReal.rpow_eq_zero_iff]; push Not
     exact ⟨fun h0 => absurd h0 hδ, fun _ => by norm_num⟩
   obtain ⟨g, hg_rs, hg_err⟩ :=
     @rectSimple_dense_L2 Ω m E _ μ _ f hmem ε' hε'0
@@ -1607,7 +1618,7 @@ measurability of `φ`, the coefficient `(ω, e) ↦ dyadicAvg_shifted T φ n i �
 out the time variable from the `ℱ_{pᵢ} ⊗ Borel ⊗ E`-measurable integrand `φ`.) -/
 lemma dyadicAvg_shifted_adapted_prod
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) (φ : Ω → ℝ → E → ℝ)
     (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
     (n : ℕ) (i : Fin (2 ^ n)) :
@@ -1663,7 +1674,7 @@ lemma sq_nnnorm_disjoint_indicator_sum
       Finset.sum_eq_single i₀ (fun j _ hj => Set.indicator_of_notMem (huniq j hj) _)
         (fun h => absurd (Finset.mem_univ _) h),
       Set.indicator_of_mem hi₀]
-  · push_neg at hex
+  · push Not at hex
     rw [Finset.sum_eq_zero (fun i _ => by rw [Set.indicator_of_notMem (hex i), zero_mul]),
       Finset.sum_eq_zero (fun i _ => Set.indicator_of_notMem (hex i) _)]
     simp
@@ -1804,7 +1815,7 @@ lemma exists_markEval_close_dyadic
         = fun e => ∑ i : Fin (2 ^ n), (Set.Ioc (p i.castSucc) (p i.succ)).indicator
             (fun _ => (‖d i ω e - mk i ω e‖₊ : ℝ≥0∞) ^ 2) s
         from funext (fun e => hcollapse s ω e)]
-    rw [MeasureTheory.lintegral_finset_sum _ (fun i _ => by
+    rw [MeasureTheory.lintegral_finsetSum _ (fun i _ => by
       by_cases hsi : s ∈ Set.Ioc (p i.castSucc) (p i.succ)
       · simp only [Set.indicator_of_mem hsi]; exact hgi_meas i ω
       · simp only [Set.indicator_of_notMem hsi]; exact measurable_const)]
@@ -1819,7 +1830,7 @@ lemma exists_markEval_close_dyadic
       = ∑ i : Fin (2 ^ n),
           volume (Set.Ioc (p i.castSucc) (p i.succ) ∩ Set.Icc (0 : ℝ) T) * W i ω := by
     intro ω
-    rw [MeasureTheory.lintegral_finset_sum _ (fun i _ =>
+    rw [MeasureTheory.lintegral_finsetSum _ (fun i _ =>
       (measurable_const.indicator measurableSet_Ioc))]
     refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [MeasureTheory.lintegral_indicator measurableSet_Ioc,
@@ -1837,19 +1848,19 @@ lemma exists_markEval_close_dyadic
         exact h_e s ω
     _ = ∑ i : Fin (2 ^ n),
           volume (Set.Ioc (p i.castSucc) (p i.succ) ∩ Set.Icc (0 : ℝ) T) * ∫⁻ ω, W i ω ∂P := by
-        rw [MeasureTheory.lintegral_finset_sum _
+        rw [MeasureTheory.lintegral_finsetSum _
           (fun i _ => (hW_meas i).const_mul _)]
         exact Finset.sum_congr rfl (fun i _ => by
           rw [MeasureTheory.lintegral_const_mul _ (hW_meas i)])
     _ ≤ ∑ i : Fin (2 ^ n),
           volume (Set.Ioc (p i.castSucc) (p i.succ) ∩ Set.Icc (0 : ℝ) T) * δ := by
         refine Finset.sum_le_sum (fun i _ => ?_)
-        exact mul_le_mul_left' (hci_err i) _
+        exact mul_le_mul_right (hci_err i) _
     _ = (∑ i : Fin (2 ^ n),
           volume (Set.Ioc (p i.castSucc) (p i.succ) ∩ Set.Icc (0 : ℝ) T)) * δ := by
         rw [Finset.sum_mul]
     _ ≤ ENNReal.ofReal T * δ := by
-        refine mul_le_mul_right' ?_ δ
+        refine mul_le_mul_left ?_ δ
         calc ∑ i : Fin (2 ^ n),
               volume (Set.Ioc (p i.castSucc) (p i.succ) ∩ Set.Icc (0 : ℝ) T)
             ≤ ∑ i : Fin (2 ^ n), volume (Set.Ioc (p i.castSucc) (p i.succ)) :=
@@ -2112,7 +2123,7 @@ lemma compensated_cross_disjoint_zero
   -- `N(·,B)` and `N(·,B')` are independent.
   have hidx : ProbabilityTheory.IndepFun (fun ω => N.N ω B) (fun ω => N.N ω B') P := by
     have h01 : (ULift.up (0 : Fin 2)) ≠ ULift.up (1 : Fin 2) := by
-      simp [ULift.up_inj]
+      simp
     have h := (N.independent_disjoint G hmeas hpair).indepFun h01
     simpa [hG] using h
   -- `Ñ(B) = (·.toReal − ν̂(B).toReal) ∘ N(·,B)`, so independence is preserved.
@@ -2188,18 +2199,18 @@ lemma compensated_inter_add_diff_ae
   have hint_ne : N.N ω (B ∩ C) ≠ ⊤ :=
     ne_top_of_le_ne_top hBfin (measure_mono Set.inter_subset_left)
   have hdiff_ne : N.N ω (B \ C) ≠ ⊤ :=
-    ne_top_of_le_ne_top hBfin (measure_mono Set.diff_subset)
+    ne_top_of_le_ne_top hBfin (measure_mono Set.sdiff_subset)
   have hrefint : LevyStochCalc.Poisson.referenceIntensity ν (B ∩ C) ≠ ⊤ :=
     ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
   have hrefdiff : LevyStochCalc.Poisson.referenceIntensity ν (B \ C) ≠ ⊤ :=
-    ne_top_of_le_ne_top hfin (measure_mono Set.diff_subset)
+    ne_top_of_le_ne_top hfin (measure_mono Set.sdiff_subset)
   simp only [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
   rw [show N.N ω B = N.N ω (B ∩ C) + N.N ω (B \ C) from
-        (measure_inter_add_diff (μ := N.N ω) B hC).symm,
+        (measure_inter_add_sdiff (μ := N.N ω) B hC).symm,
       show LevyStochCalc.Poisson.referenceIntensity ν B
           = LevyStochCalc.Poisson.referenceIntensity ν (B ∩ C)
             + LevyStochCalc.Poisson.referenceIntensity ν (B \ C) from
-        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hC).symm,
+        (measure_inter_add_sdiff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hC).symm,
       ENNReal.toReal_add hint_ne hdiff_ne, ENNReal.toReal_add hrefint hrefdiff]
   ring
 
@@ -2254,9 +2265,9 @@ lemma compensated_cross_covariance
   have hDmeas : MeasurableSet D := hB'.diff hB
   have hdisj : Disjoint C D := disjoint_sdiff_sdiff
   have hCf : LevyStochCalc.Poisson.referenceIntensity ν C ≠ ⊤ :=
-    ne_top_of_le_ne_top hfin (measure_mono Set.diff_subset)
+    ne_top_of_le_ne_top hfin (measure_mono Set.sdiff_subset)
   have hDf : LevyStochCalc.Poisson.referenceIntensity ν D ≠ ⊤ :=
-    ne_top_of_le_ne_top hfin' (measure_mono Set.diff_subset)
+    ne_top_of_le_ne_top hfin' (measure_mono Set.sdiff_subset)
   have hrefint : LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B') ≠ ⊤ :=
     ne_top_of_le_ne_top hfin (measure_mono Set.inter_subset_left)
   -- a.e. `Ñ(B) − Ñ(B') = Ñ(C) − Ñ(D)`.
@@ -2268,7 +2279,7 @@ lemma compensated_cross_covariance
   have hsq_ae : (fun ω => (N.compensated B ω - N.compensated B' ω) ^ 2)
       =ᵐ[P] (fun ω => (N.compensated C ω - N.compensated D ω) ^ 2) :=
     hsub_ae.mono (fun ω h => by
-      show (N.compensated B ω - N.compensated B' ω) ^ 2
+      change (N.compensated B ω - N.compensated B' ω) ^ 2
         = (N.compensated C ω - N.compensated D ω) ^ 2
       rw [show N.compensated B ω - N.compensated B' ω
             = N.compensated C ω - N.compensated D ω from h])
@@ -2285,7 +2296,7 @@ lemma compensated_cross_covariance
     rw [show LevyStochCalc.Poisson.referenceIntensity ν B
           = LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')
             + LevyStochCalc.Poisson.referenceIntensity ν C from
-        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hB').symm,
+        (measure_inter_add_sdiff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B hB').symm,
       ENNReal.toReal_add hrefint hCf]
   have hrefB' : (LevyStochCalc.Poisson.referenceIntensity ν B').toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν (B ∩ B')).toReal
@@ -2293,7 +2304,7 @@ lemma compensated_cross_covariance
     rw [show LevyStochCalc.Poisson.referenceIntensity ν B'
           = LevyStochCalc.Poisson.referenceIntensity ν (B' ∩ B)
             + LevyStochCalc.Poisson.referenceIntensity ν D from
-        (measure_inter_add_diff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B' hB).symm,
+        (measure_inter_add_sdiff (μ := LevyStochCalc.Poisson.referenceIntensity ν) B' hB).symm,
       Set.inter_comm B' B, ENNReal.toReal_add hrefint hDf]
   rw [hexp] at hsq_eq
   linarith [hsq_eq, hrefB, hrefB']
@@ -2433,7 +2444,7 @@ lemma weighted_box_cross_timeordered_zero
     {ν : Measure E} [SigmaFinite ν]
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsPoissonFiltration N ℱ)
-    {a b c d : ℝ} (hc : 0 ≤ c) (hab : a < b) (hbc : b ≤ c) (hcd : c < d)
+    {a b c d : ℝ} (hc : 0 ≤ c) (hbc : b ≤ c) (hcd : c < d)
     {A A' : Set E} (hA : MeasurableSet A) (hA' : MeasurableSet A') (hA'f : ν A' ≠ ⊤)
     {g : Ω → ℝ} (hg : @MeasureTheory.StronglyMeasurable Ω ℝ _
       (ℱ c) g) :
@@ -2552,8 +2563,8 @@ lemma weighted_box_cross_sametime
     referenceIntensity_Ioc_prod_ne_top hAf
   have hA'f' : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A') ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top hA'f
-  have hmcf : ν (A \ A') ≠ ⊤ := ne_top_of_le_ne_top hAf (measure_mono Set.diff_subset)
-  have hmdf : ν (A' \ A) ≠ ⊤ := ne_top_of_le_ne_top hA'f (measure_mono Set.diff_subset)
+  have hmcf : ν (A \ A') ≠ ⊤ := ne_top_of_le_ne_top hAf (measure_mono Set.sdiff_subset)
+  have hmdf : ν (A' \ A) ≠ ⊤ := ne_top_of_le_ne_top hA'f (measure_mono Set.sdiff_subset)
   have hmif : LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A')) ≠ ⊤ :=
     referenceIntensity_Ioc_prod_ne_top (ne_top_of_le_ne_top hAf (measure_mono
       Set.inter_subset_left))
@@ -2563,9 +2574,9 @@ lemma weighted_box_cross_sametime
     referenceIntensity_Ioc_prod_ne_top hmdf
   -- box set identities.
   have hBdiff : Set.Ioc a b ×ˢ A \ Set.Ioc a b ×ˢ A' = Set.Ioc a b ×ˢ (A \ A') := by
-    ext ⟨x, e⟩; simp only [Set.mem_diff, Set.mem_prod]; tauto
+    ext ⟨x, e⟩; simp only [Set.mem_sdiff, Set.mem_prod]; tauto
   have hBa'diff : Set.Ioc a b ×ˢ A' \ Set.Ioc a b ×ˢ A = Set.Ioc a b ×ˢ (A' \ A) := by
-    ext ⟨x, e⟩; simp only [Set.mem_diff, Set.mem_prod]; tauto
+    ext ⟨x, e⟩; simp only [Set.mem_sdiff, Set.mem_prod]; tauto
   have hBinter : Set.Ioc a b ×ˢ A ∩ Set.Ioc a b ×ˢ A' = Set.Ioc a b ×ˢ (A ∩ A') := by
     ext ⟨x, e⟩; simp only [Set.mem_inter_iff, Set.mem_prod]; tauto
   -- a.e. `Ñ(R) − Ñ(R') = Ñ((a,b]×(A∖A')) − Ñ((a,b]×(A'∖A))`.
@@ -2587,7 +2598,7 @@ lemma weighted_box_cross_sametime
       =ᵐ[P] (fun ω => g ω * (N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
         - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω) ^ 2) :=
     hsub_ae.mono (fun ω h => by
-      show g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
+      change g ω * (N.compensated (Set.Ioc a b ×ˢ A) ω
           - N.compensated (Set.Ioc a b ×ˢ A') ω) ^ 2
         = g ω * (N.compensated (Set.Ioc a b ×ˢ (A \ A')) ω
           - N.compensated (Set.Ioc a b ×ˢ (A' \ A)) ω) ^ 2
@@ -2641,7 +2652,7 @@ lemma weighted_box_cross_sametime
     rw [show LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A)
           = LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A ∩ Set.Ioc a b ×ˢ A')
             + LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A \ Set.Ioc a b ×ˢ A')
-          from (measure_inter_add_diff _ hA'm).symm,
+          from (measure_inter_add_sdiff _ hA'm).symm,
       hBinter, hBdiff, ENNReal.toReal_add hmif hmcf']
   have hrefBa' : (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A')).toReal
       = (LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ (A ∩ A'))).toReal
@@ -2649,7 +2660,7 @@ lemma weighted_box_cross_sametime
     rw [show LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A')
           = LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A' ∩ Set.Ioc a b ×ˢ A)
             + LevyStochCalc.Poisson.referenceIntensity ν (Set.Ioc a b ×ˢ A' \ Set.Ioc a b ×ˢ A)
-          from (measure_inter_add_diff _ hAm).symm,
+          from (measure_inter_add_sdiff _ hAm).symm,
       Set.inter_comm (Set.Ioc a b ×ˢ A') (Set.Ioc a b ×ˢ A), hBinter, hBa'diff,
       ENNReal.toReal_add hmif hmdf']
   have key := hsq_eq.symm.trans hexp
@@ -2743,7 +2754,7 @@ lemma crossSum_disjointMark_zero
   · -- i < j: time-ordered (`pᵢ₊₁ ≤ pⱼ`).
     have hbc : p i.succ ≤ p j.castSucc :=
       hpmono.monotone (Fin.succ_le_castSucc_iff.mpr hij)
-    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) (hlt i) hbc (hlt j)
+    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) hbc (hlt j)
       (hAm i) (hA'm j) (hA'f j)
       (((h_adapt i).mono (ℱ.mono ((hlt i).le.trans hbc))).mul (h_adapt' j))
   · -- i = j: same interval, disjoint marks.
@@ -2765,7 +2776,7 @@ lemma crossSum_disjointMark_zero
             * (N.compensated (Set.Ioc (p j.castSucc) (p j.succ) ×ˢ A' j) ω
               * N.compensated (Set.Ioc (p i.castSucc) (p i.succ) ×ˢ A i) ω) from
       funext (fun ω => by ring)]
-    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) (hlt j) hbc (hlt i)
+    exact weighted_box_cross_timeordered_zero N ℱ hℱ (hpnn _) hbc (hlt i)
       (hA'm j) (hAm i) (hAf i)
       ((h_adapt i).mul ((h_adapt' j).mono (ℱ.mono ((hlt j).le.trans hbc))))
 
@@ -2962,7 +2973,7 @@ lemma markSum_cross_timeordered
         = fun ω => (ξ k ω * ζ l ω)
           * (N.compensated (Set.Ioc a b ×ˢ B k) ω
             * N.compensated (Set.Ioc c d ×ˢ B l) ω) from funext (fun ω => by ring)]
-  exact weighted_box_cross_timeordered_zero N ℱ hℱ hc hab hbc hcd (hBm k) (hBm l) (hBf l) hgadapt
+  exact weighted_box_cross_timeordered_zero N ℱ hℱ hc hbc hcd (hBm k) (hBm l) (hBf l) hgadapt
 
 /-- **Overlapping-mark step-integral isometry (sum form).** For a shared partition `p`,
 arbitrary marks `B`, adapted bounded coeffs `ξ`,
@@ -3130,7 +3141,7 @@ lemma timeIndicator_sq_integral
     refine Finset.sum_congr rfl (fun i _ => ?_)
     rw [Finset.sum_eq_single i]
     · by_cases hs : s ∈ Set.Ioc (p i.castSucc) (p i.succ) <;>
-      simp [Set.indicator_of_mem, Set.indicator_of_notMem, hs] <;> ring
+      simp [Set.indicator_of_mem, Set.indicator_of_notMem, hs]; ring
     · intro i' _ hi'
       have hdisj : Disjoint (Set.Ioc (p i.castSucc) (p i.succ))
           (Set.Ioc (p i'.castSucc) (p i'.succ)) := by
@@ -3204,7 +3215,7 @@ lemma eval_sq_integral
       MeasureTheory.integrable_finsetSum _ (fun k' _ => ?_))
     exact ((MeasureTheory.integrable_indicator_iff (hinterm k k')).mpr
       (MeasureTheory.integrableOn_const (hinterf k k'))).const_mul _
-  rw [MeasureTheory.integral_finset_sum _ (fun i _ => hint_e i)]
+  rw [MeasureTheory.integral_finsetSum _ (fun i _ => hint_e i)]
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [MeasureTheory.integral_const_mul, mark_sq_integral B hBm hBf (fun k => c i k)]
 
@@ -3378,6 +3389,7 @@ Mathlib has only the discrete *tail* maximal inequality (`maximal_ineq`), the
 layer-cake formula, and conditional Jensen. The continuous-time Doob `L²` maximal
 inequality and the càdlàg regularization are built here from those pieces. -/
 
+omit [MeasurableSpace Ω] in
 /-- **`‖M‖` is a submartingale.** For a real martingale `M`, `fun i ω => ‖M i ω‖` is a
 submartingale: `‖Mᵢ‖ = ‖E[Mⱼ|ℱᵢ]‖ ≤ E[‖Mⱼ‖ ∣ ℱᵢ]` a.e. (conditional Jensen,
 `norm_condExp_le`). -/
@@ -3392,6 +3404,7 @@ lemma martingale_norm_submartingale
     with ω h1 h2
   rw [h1]; exact h2
 
+omit [MeasurableSpace Ω] in
 /-- **`L¹`-tail Doob maximal inequality.** For a real martingale `M` on a finite measure,
 `μ{ supₖ≤N ‖Mₖ‖ ≥ ε } ≤ E[‖M_N‖] / ε`. From `maximal_ineq` applied to the submartingale
 `‖M‖`, bounding the set-integral by the full integral. -/
@@ -3419,7 +3432,7 @@ measurability/finiteness/bounds/adaptedness. This converts each step approximant
 the rectangular `markSumProcess` form the isometry consumes (overlapping marks fine). -/
 lemma exists_sharedMark_blockDiag
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ)
     {Ki : Fin N₀ → ℕ} (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
     (hBim : ∀ i k, MeasurableSet (Bi i k)) (hBif : ∀ i k, ν (Bi i k) ≠ ⊤)
@@ -3628,7 +3641,7 @@ lemma compensated_Ioc_telescope
   | zero =>
     refine Filter.Eventually.of_forall (fun ω => ?_)
     simp only [Finset.range_zero, Finset.sum_empty, Set.Ioc_self, Set.empty_prod]
-    show N.compensated ∅ ω = 0
+    change N.compensated ∅ ω = 0
     simp [LevyStochCalc.Poisson.PoissonRandomMeasure.compensated]
   | succ m ih =>
     have hsplit := compensated_Ioc_split N (hmono (Nat.zero_le m))
@@ -3668,7 +3681,7 @@ lemma dyadicCoarse_combine {n m : ℕ} (hnm : n ≤ m) (i : Fin (2 ^ n)) (j : Fi
     dyadicCoarse n m hnm (finCongr (show 2 ^ n * 2 ^ (m - n) = 2 ^ m from by
       rw [← pow_add, Nat.add_sub_cancel' hnm]) (finProdFinEquiv (i, j))) = i := by
   apply Fin.ext
-  show (finCongr _ (finProdFinEquiv (i, j)) : Fin (2 ^ m)).val / 2 ^ (m - n) = i.val
+  change (finCongr _ (finProdFinEquiv (i, j)) : Fin (2 ^ m)).val / 2 ^ (m - n) = i.val
   rw [dyadic_combine_val hnm, Nat.mul_add_div (by positivity),
     Nat.div_eq_of_lt j.isLt, add_zero]
 
@@ -3862,7 +3875,7 @@ lemma dyadic_coarse_point_le {T : ℝ} (hT : 0 < T) {n m : ℕ} (hnm : n ≤ m) 
 `ℱ_{p^m_{i'}}`-measurable (it is `ℱ_{p^n_{coarse i'}}`-measurable and `ℱ` is monotone). -/
 lemma dyadic_refine_adapted
     {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
+    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) {T : ℝ} (hT : 0 < T) {n m : ℕ}
     (hnm : n ≤ m) {Ki : Fin (2 ^ n) → ℕ} (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
     (hcia : ∀ i k, @MeasureTheory.StronglyMeasurable Ω ℝ _
@@ -3874,6 +3887,7 @@ lemma dyadic_refine_adapted
   (hcia (dyadicCoarse n m hnm i') k₀).mono
     (ℱ.mono (dyadic_coarse_point_le hT hnm i'))
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- **Step-eval refinement.** The level-`n` step eval equals (pointwise) the level-`m`
 step eval whose fine pieces inherit their coarse piece's marks and coefficients. (Sum
 `dyadic_indicator_refine` over the coarse pieces via `dyadic_sum_split`.) -/
@@ -3903,7 +3917,7 @@ lemma compensated_memLp
     (hfin : LevyStochCalc.Poisson.referenceIntensity ν B ≠ ⊤) :
     MeasureTheory.MemLp (fun ω => N.compensated B ω) 2 P := by
   have hmeas : Measurable (fun ω => N.compensated B ω) := by
-    show Measurable (fun ω => (N.N ω B).toReal
+    change Measurable (fun ω => (N.N ω B).toReal
       - (LevyStochCalc.Poisson.referenceIntensity ν B).toReal)
     exact ((N.measurable_eval hB).ennreal_toReal).sub_const _
   exact (MeasureTheory.memLp_two_iff_integrable_sq hmeas.aestronglyMeasurable).mpr
@@ -3985,7 +3999,7 @@ lemma triple_ofReal_integral_eq_lintegral
   have hg1_nonneg : ∀ ω e, 0 ≤ g1 ω e := fun ω e =>
     MeasureTheory.integral_nonneg (fun s => sq_nonneg _)
   have hg1_supp : ∀ ω e, e ∉ S → g1 ω e = 0 := fun ω e he => by
-    show ∫ s in Set.Icc (0 : ℝ) T, (h ω s e) ^ 2 ∂volume = 0
+    change ∫ s in Set.Icc (0 : ℝ) T, (h ω s e) ^ 2 ∂volume = 0
     have hz : ∀ s, (h ω s e) ^ 2 = 0 := fun s => by rw [hsupp ω s e he]; ring
     simp only [hz, integral_zero]
   have hg1_bound : ∀ ω e, g1 ω e ≤ C ^ 2 * vT := fun ω e => by
@@ -4047,6 +4061,7 @@ lemma triple_ofReal_integral_eq_lintegral
   rw [show ((h ω s e) ^ 2) = ‖h ω s e‖ ^ 2 from by rw [Real.norm_eq_abs, sq_abs],
     ENNReal.ofReal_pow (norm_nonneg _), ofReal_norm, enorm_eq_nnnorm]
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The mark-step eval is uniformly bounded (finite sum of bounded-coeff × indicators). -/
 lemma markEval_bounded {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}
     (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
@@ -4063,6 +4078,7 @@ lemma markEval_bounded {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ 
   exact (mul_le_of_le_one_right (abs_nonneg _) (by rw [Set.indicator_apply]; split_ifs <;>
     simp)).trans ((hcib i k).choose_spec ω)
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The mark-step eval vanishes for marks outside the (shared) support set `S`. -/
 lemma markEval_supp {N₀ : ℕ} (p : Fin (N₀ + 1) → ℝ) {Ki : Fin N₀ → ℕ}
     (Bi : ∀ i, Fin (Ki i) → Set E) (ci : ∀ i, Fin (Ki i) → Ω → ℝ)
@@ -4325,7 +4341,7 @@ theorem compensated_eulerSum_L2_limit
     have hsq : MeasureTheory.eLpNorm (I m - I n) 2 P ^ (2 : ℝ) < ε ^ (2 : ℝ) := by
       rw [eLpNorm_two_rpow_eq_lintegral_sq]
       have hle : ∫⁻ ω, (‖(I m - I n) ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n := by
-        show ∫⁻ ω, (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n
+        change ∫⁻ ω, (‖I m ω - I n ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ 2 * Aφ m + 2 * Aφ n
         rcases le_total m n with hmn | hnm
         · exact eulerStepIntegral_cauchy_le N ℱ hℱ hT φ h_meas hS hSfin hmn (Bi m) (Bi n) (ci m)
             (ci n)
@@ -4399,7 +4415,7 @@ lemma minIoc_subset {a b : ℝ} (hab : a ≤ b) {s s' : ℝ} (hss : s ≤ s') :
   · rw [min_eq_right hsa] at hx1
     rw [min_eq_right (hsa.trans hab)] at hx2
     exact absurd (hx1.trans_le hx2) (lt_irrefl s)
-  · push_neg at hsa
+  · push Not at hsa
     refine ⟨?_, hx2.trans (min_le_min (le_refl b) hss)⟩
     rw [min_eq_left (hsa.le.trans hss)]
     rwa [min_eq_left hsa.le] at hx1
@@ -4412,7 +4428,7 @@ lemma minIoc_subset_Ioc {a b : ℝ} (hab : a ≤ b) (s : ℝ) :
   · rw [min_eq_right hsa] at hx1
     rw [min_eq_right (hsa.trans hab)] at hx2
     exact absurd (hx1.trans_le hx2) (lt_irrefl s)
-  · push_neg at hsa
+  · push Not at hsa
     rw [min_eq_left hsa.le] at hx1
     exact ⟨hx1, hx2.trans (min_le_left b s)⟩
 

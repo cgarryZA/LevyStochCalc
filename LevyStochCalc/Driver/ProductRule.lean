@@ -103,6 +103,7 @@ theorem sum_mul_setIntegral_eq_integral_leftFreeze (ω : Ω) {b : ℝ → ℝ} (
   · intro k _
     exact (hbint.const_mul (Y (dyadicPartition t n k.castSucc) ω)).indicator measurableSet_Ioc
 
+omit [MeasurableSpace E] in
 /-- The frozen drift integrals converge to the integral of the left limits against the
 drift. -/
 theorem tendsto_integral_leftFreeze_mul (ω : Ω) {b : ℝ → ℝ} (hbm : Measurable b) {B : ℝ}
@@ -195,6 +196,7 @@ section Wrapper
 variable [MeasurableSingletonClass E] [MeasurableSpace.CountablyGenerated E] {P : Measure Ω}
   [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] (N : Poisson.PoissonRandomMeasure P ν)
 
+omit [MeasurableSpace.CountablyGenerated E] in
 /-- On a window carrying finitely many atoms, the integral over the times in `(0, s]` is the
 jump sum of the masses times the values. -/
 theorem setIntegral_Ioc_eq_jumpSum {R : Set (ℝ × E)} {ω : Ω} {S : Finset (ℝ × E)}
@@ -206,6 +208,7 @@ theorem setIntegral_Ioc_eq_jumpSum {R : Set (ℝ × E)} {ω : Ω} {S : Finset (�
   rw [Set.inter_comm, ← Measure.restrict_restrict (measurableSet_Ioc.prod MeasurableSet.univ)]
   exact setIntegral_Ioc_of_eq_sum_dirac hS g s
 
+omit [MeasurableSpace.CountablyGenerated E] in
 /-- The strict-past version. -/
 theorem setIntegral_Ioo_eq_jumpSumStrict {R : Set (ℝ × E)} {ω : Ω} {S : Finset (ℝ × E)}
     [IsFiniteMeasure ((N.N ω).restrict R)]
@@ -216,7 +219,7 @@ theorem setIntegral_Ioo_eq_jumpSumStrict {R : Set (ℝ × E)} {ω : Ω} {S : Fin
   rw [Set.inter_comm, ← Measure.restrict_restrict (measurableSet_Ioo.prod MeasurableSet.univ)]
   exact setIntegral_Ioo_of_eq_sum_dirac hS g s
 
-omit [MeasurableSingletonClass E] [SigmaFinite ν] in
+omit [MeasurableSingletonClass E] [IsProbabilityMeasure P] [SigmaFinite ν] in
 /-- Convergence of the squared `L²` distances to zero is convergence of the `L²` seminorms. -/
 theorem tendsto_eLpNorm_two_of_tendsto_lintegral_sq {f : ℕ → Ω → ℝ} {g : Ω → ℝ}
     (h : Tendsto (fun n => ∫⁻ ω, (‖f n ω - g ω‖₊ : ℝ≥0∞) ^ 2 ∂P) atTop (𝓝 0)) :

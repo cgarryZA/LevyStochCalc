@@ -164,7 +164,7 @@ theorem markedPredictable_of_measurable_window {T : ℝ} {A : Set E} (hA : Measu
       · rintro (hp | hp)
         · exact hp.2.1
         · have hw : p.2 ∉ Set.Ioc (0 : ℝ) T ×ˢ A := fun hmem => hp ⟨Set.mem_univ _, hmem⟩
-          show f p.2 ∈ U
+          change f p.2 ∈ U
           rw [hsupp p.2 hw]
           exact h0
     rw [hset]
@@ -200,7 +200,7 @@ theorem markedPredictable_rectIndicator {F : Type w} [MeasurableSpace F] [Zero F
   have huniv : MeasurableSet[markedPredictableSigma ℱ ν]
       ((Set.univ : Set Ω) ×ˢ (Set.Ioc r q ×ˢ A)) :=
     MeasurableSpace.measurableSet_generateFrom ⟨r, q, _, _, hr, MeasurableSet.univ, hA, hAν, rfl⟩
-  show MeasurableSet[markedPredictableSigma ℱ ν]
+  change MeasurableSet[markedPredictableSigma ℱ ν]
     ((fun p : Ω × ℝ × E => (Set.Ioc r q ×ˢ A).indicator (fun _ : ℝ × E => c p.1) p.2) ⁻¹' U)
   by_cases h0 : (0 : F) ∈ U
   · have hset : (fun p : Ω × ℝ × E =>

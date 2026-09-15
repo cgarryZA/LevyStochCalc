@@ -80,7 +80,8 @@ compensated integral of a mark-step integrand have zero pairing, at any pair of 
 theorem integral_simpleIntegral_mul_markStep_eq_zero (𝒲 : CrossWitness D ℱ) {i : Fin d}
     {TH : ℝ} (H : Brownian.Ito.SimplePredictable Ω TH)
     (hH : ∀ a : Fin H.N, StronglyMeasurable[ℱ (H.partition a.castSucc)] (H.ξ a))
-    {g : Poisson.Compensated.TimeGrid} (G : Poisson.Compensated.MarkStep Ω E ν g) (hG : G.Adapted ℱ) (t t' : ℝ) :
+    {g : Poisson.Compensated.TimeGrid} (G : Poisson.Compensated.MarkStep Ω E ν g)
+    (hG : G.Adapted ℱ) (t t' : ℝ) :
     ∫ ω, Brownian.Ito.simpleIntegral (D.W.W i) H t ω * G.integral D.N t' ω ∂P = 0 := by
   have hHnn : ∀ a : Fin H.N, 0 ≤ H.partition a.castSucc := fun a => by
     have h := H.partition_strictMono.monotone (Fin.zero_le a.castSucc)

@@ -126,7 +126,7 @@ theorem integral_clip (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltratio
     G.measurable_uncurry (G.clip hTR).progressive G.progressive (G.clip hTR).sq_int_global
     G.sq_int_global hT (by
       intro ω s e hs
-      show (Set.Icc (0 : ℝ) T).indicator (fun _ => G.toFun ω s e) s = G.toFun ω s e
+      change (Set.Icc (0 : ℝ) T).indicator (fun _ => G.toFun ω s e) s = G.toFun ω s e
       exact Set.indicator_of_mem hs _)
 
 end MarkedHorizonIntegrand
@@ -209,7 +209,7 @@ theorem integral_mul_integral_eq_zero (N : PoissonRandomMeasure P ν)
     integrable_mul_of_memLp_two hz2 ((hMLp R).sub (hMLp T))
   have hrw : (fun ω => z ω * M R ω)
       = fun ω => z ω * M T ω + z ω * (M R ω - M T ω) := by funext ω; ring
-  show ∫ ω, z ω * M R ω ∂P = 0
+  change ∫ ω, z ω * M R ω ∂P = 0
   rw [show (∫ ω, z ω * M R ω ∂P)
       = ∫ ω, (z ω * M T ω + z ω * (M R ω - M T ω)) ∂P from by rw [hrw],
     integral_add hint1 hint2, hclipzero, hincr, add_zero]

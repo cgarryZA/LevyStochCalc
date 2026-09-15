@@ -63,7 +63,8 @@ noncomputable def crossWitness (D : LevyDriver.{u, v, w} P d ν) : CrossWitness 
   brownianLarger := D.crossBrownianFiltration
   brownian_le := D.filtration_le_crossBrownian
   isBrownian := D.isBrownianFiltration_crossBrownian
-  stronglyMeasurable_compensated := fun s _ hB => D.stronglyMeasurable_compensated_crossBrownian s hB
+  stronglyMeasurable_compensated := fun s _ hB =>
+    D.stronglyMeasurable_compensated_crossBrownian s hB
 
 /-- Augmenting by the null sets preserves a witness. -/
 noncomputable def CrossWitness.aug {D : LevyDriver.{u, v, w} P d ν}
@@ -99,7 +100,7 @@ theorem integral_cross_term_eq_zero_of_le (𝒲 : CrossWitness D ℱ) {i : Fin d
   have hfin : Poisson.referenceIntensity ν (Set.Ioc r v ×ˢ A) ≠ ⊤ :=
     Poisson.Compensated.referenceIntensity_Ioc_prod_ne_top hAν
   have hNm : Measurable fun ω => D.N.compensated (Set.Ioc r v ×ˢ A) ω := by
-    show Measurable fun ω => (D.N.N ω (Set.Ioc r v ×ˢ A)).toReal
+    change Measurable fun ω => (D.N.N ω (Set.Ioc r v ×ˢ A)).toReal
       - (Poisson.referenceIntensity ν (Set.Ioc r v ×ˢ A)).toReal
     exact ((D.N.measurable_eval hBmeas).ennreal_toReal).sub_const _
   have hN2 : MemLp (fun ω => D.N.compensated (Set.Ioc r v ×ˢ A) ω) 2 P :=
@@ -148,7 +149,7 @@ theorem integral_cross_term_eq_zero_of_ge (𝒲 : CrossWitness D ℱ) {i : Fin d
       * (η ω * D.N.compensated (Set.Ioc r v ×ˢ A) ω) ∂P = 0 := by
   have hBmeas : MeasurableSet (Set.Ioc r v ×ˢ A) := measurableSet_Ioc.prod hA
   have hNm : Measurable fun ω => D.N.compensated (Set.Ioc r v ×ˢ A) ω := by
-    show Measurable fun ω => (D.N.N ω (Set.Ioc r v ×ˢ A)).toReal
+    change Measurable fun ω => (D.N.N ω (Set.Ioc r v ×ˢ A)).toReal
       - (Poisson.referenceIntensity ν (Set.Ioc r v ×ˢ A)).toReal
     exact ((D.N.measurable_eval hBmeas).ennreal_toReal).sub_const _
   have hYsm : StronglyMeasurable[𝒲.brownianLarger p]

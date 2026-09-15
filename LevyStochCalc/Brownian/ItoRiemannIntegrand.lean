@@ -118,7 +118,7 @@ theorem lintegral_sq_stochasticIntegral_mul_sub_le
       = (‖u ω s - v ω s‖₊ : ℝ≥0∞) ^ 2 * (‖H ω s‖₊ : ℝ≥0∞) ^ 2 := by
     rw [nnnorm_mul, ENNReal.coe_mul, mul_pow]
   rw [hnn, mul_comm (ENNReal.ofReal (C ^ 2))]
-  refine mul_le_mul_left' ?_ _
+  refine mul_le_mul_right ?_ _
   have h1 : (‖H ω s‖₊ : ℝ≥0∞) ≤ ENNReal.ofReal C := by
     rw [ENNReal.ofReal_eq_coe_nnreal hC0]
     refine ENNReal.coe_le_coe.mpr ?_

@@ -77,7 +77,7 @@ noncomputable def BrownianMotion.ofIsPreBrownianReal {X : ℝ≥0 → Ω → ℝ
       fin_cases i <;> simp [Real.toNNReal_le_toNNReal, hus, hst.le]
     have h := (hX.hasIndepIncrements 3 _ hmono).indepFun (i := 0) (j := 2) (by decide)
     rw [realTime_sub]
-    show IndepFun (fun ω => X (Real.toNNReal u) ω - X 0 ω)
+    change IndepFun (fun ω => X (Real.toNNReal u) ω - X 0 ω)
       (fun ω => X (Real.toNNReal t) ω - X (Real.toNNReal s) ω) P
     simpa using h
   continuous_paths := ae_of_all _ (continuous_realTime hcont)
@@ -118,7 +118,8 @@ theorem BrownianMotion.exists :
       (_ : IsProbabilityMeasure P), Nonempty (BrownianMotion P) := by
   let e : ULift.{u} (ℝ≥0 → ℝ) ≃ᵐ (ℝ≥0 → ℝ) := MeasurableEquiv.ulift
   let P : Measure (ULift.{u} (ℝ≥0 → ℝ)) := gaussianLimit.map e.symm
-  have hP : IsProbabilityMeasure P := Measure.isProbabilityMeasure_map e.symm.measurable.aemeasurable
+  have hP : IsProbabilityMeasure P :=
+    Measure.isProbabilityMeasure_map e.symm.measurable.aemeasurable
   have hdown : HasLaw e gaussianLimit P :=
     ⟨e.measurable.aemeasurable, by simp [P, Measure.map_map e.measurable e.symm.measurable]⟩
   refine ⟨ULift.{u} (ℝ≥0 → ℝ), inferInstance, P, hP, ⟨?_⟩⟩

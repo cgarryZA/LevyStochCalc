@@ -142,7 +142,7 @@ has that limit as its left limit there. -/
 theorem leftLimPath_eq_of_tendsto {X : Setting.JumpDiffusion W N coeffs x₀} {ω : Ω} {t : ℝ}
     {L : Fin n → ℝ} (hL : ∀ i : Fin n, Tendsto (fun s => X.X s ω i) (𝓝[<] t) (𝓝 (L i))) :
     leftLimPath X t ω = L := by
-  show Function.leftLim (fun r => X.X r ω) t = L
+  change Function.leftLim (fun r => X.X r ω) t = L
   exact leftLim_eq_of_tendsto (tendsto_pi_nhds.mpr hL)
 
 /-- A path with left limits in each coordinate at a given time converges there to its left

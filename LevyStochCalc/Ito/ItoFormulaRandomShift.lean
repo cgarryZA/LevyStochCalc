@@ -345,7 +345,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
 /-- Along a family of integrands indexed by finitely many Brownian channels whose energy distance
 to a limiting family vanishes, the Itô integrals converge almost surely along a common
 subsequence. -/
-theorem exists_seq_ae_tendsto_stochInt_of_tendsto_energy {ι : Type*} [Fintype ι]
+theorem exists_seq_ae_tendsto_stochInt_of_tendsto_energy {ι : Type*} [Finite ι]
     (W : ι → LevyStochCalc.Brownian.BrownianMotion P)
     (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : ∀ i, IsBrownianFiltration (W i) ℱ)
     (G : ℕ → ι → Ω → ℝ → ℝ) (G₀ : ι → Ω → ℝ → ℝ)
@@ -365,6 +365,7 @@ theorem exists_seq_ae_tendsto_stochInt_of_tendsto_energy {ι : Type*} [Fintype �
         (hmG (ms m) i) (hpG (ms m) i) (hqG (ms m) i) T ω)
       Filter.atTop (nhds (stochasticIntegralBrownian (W i) ℱ (hℱ i) (G₀ i)
         (hmG₀ i) (hpG₀ i) (hqG₀ i) T ω)) := by
+  letI : Fintype ι := Fintype.ofFinite ι
   refine exists_seq_ae_tendsto_of_tendsto_lintegral (μ := P) (ι := ι)
     (u := fun m i ω => stochasticIntegralBrownian (W i) ℱ (hℱ i) (G m i)
       (hmG m i) (hpG m i) (hqG m i) T ω)

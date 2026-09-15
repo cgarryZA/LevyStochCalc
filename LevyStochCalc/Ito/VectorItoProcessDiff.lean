@@ -37,6 +37,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
   (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)
   (hcoord : ∀ k : Fin d, IsBrownianFiltration (W.W k) ℱ)
 
+omit [IsProbabilityMeasure P] in
 /-- A path with finite energy on a window is integrable there, almost surely. -/
 theorem ae_integrableOn_of_energy_lt_top {b : Ω → ℝ → ℝ}
     (hbm : Measurable (Function.uncurry b)) {t : ℝ}

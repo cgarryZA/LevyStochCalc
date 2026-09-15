@@ -74,7 +74,7 @@ theorem dyadicTime_mem_Icc {T : ℝ} (hT : 0 ≤ T) (n k : ℕ) :
     dyadicTime T n k ∈ Set.Icc (0 : ℝ) T :=
   ⟨dyadicTime_nonneg hT n k, dyadicTime_le n k⟩
 
-@[simp] theorem dyadicTime_top {T : ℝ} (hT : 0 ≤ T) (n : ℕ) :
+@[simp] theorem dyadicTime_top {T : ℝ} (n : ℕ) :
     dyadicTime T n (2 ^ n) = T := by
   have h : ((2 ^ n : ℕ) : ℝ) * T / 2 ^ n = T := by
     push_cast
@@ -119,7 +119,7 @@ theorem enorm_dyadicRunMax (M : ℝ → Ω → ℝ) (T : ℝ) (n : ℕ) (ω : Ω
     refine le_iSup_of_le ⟨k, Finset.mem_range.mp hk⟩ (le_of_eq ?_)
     rw [dyadicRunMax, hkeq]
     congr 1
-    exact NNReal.eq (by simp [Real.norm_eq_abs, abs_abs])
+    exact NNReal.eq (by simp [Real.norm_eq_abs])
   · refine iSup_le fun k => ?_
     refine ENNReal.coe_le_coe.mpr ?_
     refine NNReal.coe_le_coe.mp ?_
@@ -161,7 +161,7 @@ theorem dyadicIndex_le {T t : ℝ} (hT : 0 < T) (ht : t ≤ T) (n : ℕ) :
   push_cast
   nlinarith [pow_pos (by norm_num : (0 : ℝ) < 2) n]
 
-theorem le_dyadicTime_dyadicIndex {T t : ℝ} (hT : 0 < T) (ht : 0 ≤ t) (htT : t ≤ T) (n : ℕ) :
+theorem le_dyadicTime_dyadicIndex {T t : ℝ} (hT : 0 < T) (htT : t ≤ T) (n : ℕ) :
     t ≤ dyadicTime T n (dyadicIndex T t n) := by
   have hpow : (0 : ℝ) < 2 ^ n := pow_pos (by norm_num) n
   have hceil : t * 2 ^ n / T ≤ (dyadicIndex T t n : ℝ) := Nat.le_ceil _
@@ -188,10 +188,10 @@ theorem tendsto_dyadicTime_dyadicIndex {T t : ℝ} (hT : 0 < T) (ht : 0 ≤ t) (
     Filter.Tendsto (fun n => dyadicTime T n (dyadicIndex T t n)) Filter.atTop
       (nhdsWithin t (Set.Ici t)) := by
   refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ ?_
-    (Filter.Eventually.of_forall fun n => le_dyadicTime_dyadicIndex hT ht htT n)
+    (Filter.Eventually.of_forall fun n => le_dyadicTime_dyadicIndex hT htT n)
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
     (g := fun _ : ℕ => t) (h := fun n => t + T / 2 ^ n) tendsto_const_nhds ?_
-    (fun n => le_dyadicTime_dyadicIndex hT ht htT n)
+    (fun n => le_dyadicTime_dyadicIndex hT htT n)
     (fun n => dyadicTime_dyadicIndex_le_add hT ht n)
   have hhalf : Filter.Tendsto (fun n : ℕ => ((1 : ℝ) / 2) ^ n) Filter.atTop (nhds 0) :=
     tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num) (by norm_num)
@@ -256,7 +256,7 @@ theorem iSup_sq_of_monotone {a : ℕ → ℝ≥0∞} (ha : Monotone a) :
 /-- The `L²` seminorm as a `lintegral`. -/
 theorem eLpNorm_two_eq {μ : Measure Ω} (f : Ω → ℝ) :
     eLpNorm f 2 μ = (∫⁻ ω, (‖f ω‖₊ : ℝ≥0∞) ^ 2 ∂μ) ^ ((1 : ℝ) / 2) := by
-  rw [eLpNorm_eq_lintegral_rpow_enorm (by norm_num) (by norm_num)]
+  rw [eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num)]
   simp only [ENNReal.toReal_ofNat]
   congr 1
   refine lintegral_congr fun ω => ?_
@@ -276,7 +276,7 @@ theorem lintegral_sq_dyadicRunMax_le {μ : Measure Ω} [IsFiniteMeasure μ]
     simp
   have hc : ENNReal.ofReal ((2 : ℝ) / (2 - 1)) = (2 : ℝ≥0∞) := by
     norm_num
-  rw [hp, hc, dyadicTime_top hT n] at hdoob
+  rw [hp, hc, dyadicTime_top n] at hdoob
   have hlhs : eLpNorm (fun ω => (Finset.range (2 ^ n + 1)).sup' Finset.nonempty_range_add_one
       fun k => ‖M (dyadicTime T n k) ω‖) 2 μ = eLpNorm (dyadicRunMax M T n) 2 μ := rfl
   rw [hlhs, eLpNorm_two_eq, eLpNorm_two_eq] at hdoob
@@ -392,7 +392,7 @@ theorem enorm_dyadicRunMax_sum_le {ι : Type*} (s : Finset ι) (A : ι → ℝ �
   refine iSup_le fun k => ?_
   have hpt : (‖∑ j ∈ s, A j (dyadicTime T n (k : ℕ)) ω‖₊ : ℝ≥0∞)
       ≤ ∑ j ∈ s, (‖A j (dyadicTime T n (k : ℕ)) ω‖₊ : ℝ≥0∞) := by
-    rw [← ENNReal.coe_finset_sum]
+    rw [← ENNReal.ofNNReal_finsetSum]
     exact ENNReal.coe_le_coe.mpr (nnnorm_sum_le _ _)
   refine le_trans hpt (Finset.sum_le_sum fun j _ => ?_)
   rw [enorm_dyadicRunMax]

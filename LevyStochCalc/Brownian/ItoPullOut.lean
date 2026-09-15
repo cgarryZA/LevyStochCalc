@@ -71,7 +71,7 @@ theorem stepIocMul_eval {a b : ℝ} (ha : 0 < a) (hab : a < b) {V : Ω → ℝ}
             ∧ s ≤ (![0, a, b] : Fin 3 → ℝ) i.succ
           then (![fun _ => (0 : ℝ), V] : Fin 2 → Ω → ℝ) i ω else 0 := rfl
   rw [hrw, Fin.sum_univ_two]
-  show _ = V ω * (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s
+  change _ = V ω * (Set.Ioc a b).indicator (fun _ => (1 : ℝ)) s
   by_cases h : a < s ∧ s ≤ b
   · rw [Set.indicator_of_mem (Set.mem_Ioc.mpr h)]
     simp [h]
@@ -91,7 +91,7 @@ theorem stepIocMul₀_eval {b : ℝ} (hb : 0 < b) {V : Ω → ℝ}
             ∧ s ≤ (![0, b] : Fin 2 → ℝ) i.succ
           then (![V] : Fin 1 → Ω → ℝ) i ω else 0 := rfl
   rw [hrw, Fin.sum_univ_one]
-  show _ = V ω * (Set.Ioc 0 b).indicator (fun _ => (1 : ℝ)) s
+  change _ = V ω * (Set.Ioc 0 b).indicator (fun _ => (1 : ℝ)) s
   by_cases h : (0 : ℝ) < s ∧ s ≤ b
   · rw [Set.indicator_of_mem (Set.mem_Ioc.mpr h)]
     simp [h]

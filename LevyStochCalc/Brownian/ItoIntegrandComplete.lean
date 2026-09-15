@@ -41,6 +41,7 @@ theorem eLpNorm_sq_eq_lintegral {α : Type*} [MeasurableSpace α] (μ : Measure 
   norm_num
   rfl
 
+omit [IsProbabilityMeasure P] in
 /-- The energy is the square of the `L²`-seminorm on the product space. -/
 theorem energy_eq_eLpNorm_sq {H : Ω → ℝ → ℝ} (hm : Measurable (Function.uncurry H)) (T : ℝ) :
     energy P T H = eLpNorm (fun p : Ω × ℝ => H p.1 p.2) 2 (energyMeasure P T) ^ 2 := by
@@ -83,6 +84,7 @@ theorem progressivelyMeasurable_indicator_Icc {ℱ : Filtration ℝ ‹Measurabl
   rw [key]
   exact (hp t).indicator (measurable_snd measurableSet_Icc)
 
+omit [IsProbabilityMeasure P] in
 /-- An integrand vanishing off the horizon has no more energy on any other horizon. -/
 theorem energy_le_of_vanishing {H : Ω → ℝ → ℝ} {T : ℝ}
     (hz : ∀ ω s, s ∉ Set.Icc (0 : ℝ) T → H ω s = 0) (T' : ℝ) :

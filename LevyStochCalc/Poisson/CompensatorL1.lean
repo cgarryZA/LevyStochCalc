@@ -95,6 +95,7 @@ theorem eLpNorm_two_eq_rpow (f : Ω → ℝ) :
   norm_num
 
 
+omit [IsProbabilityMeasure P] in
 /-- Two functions with a common `L¹` approximating sequence agree almost everywhere. -/
 theorem ae_eq_of_tendsto_lintegral_enorm {Y Z : Ω → ℝ} {X : ℕ → Ω → ℝ}
     (hY : AEStronglyMeasurable Y P) (hZ : AEStronglyMeasurable Z P)

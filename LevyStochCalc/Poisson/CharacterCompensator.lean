@@ -33,12 +33,14 @@ noncomputable def charCompensator (N : PoissonRandomMeasure P ν) (w : ι → �
   ∫ q in Set.Ioc (0 : ℝ) T ×ˢ A,
     charIntegrand N w (truncFam Bfam t) A T ω q.1 q.2 ∂(referenceIntensity ν)
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem norm_charAt_sub_one_le (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     (Bfam : ι → Set (ℝ × E)) (t : ℝ) (ω : Ω) : ‖charAt N w Bfam t ω - 1‖ ≤ 2 := by
   refine (norm_sub_le _ _).trans ?_
   rw [charAt, Complex.norm_exp_I_mul_ofReal, norm_one]
   norm_num
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem measurable_charAt (N : PoissonRandomMeasure P ν) (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) (t : ℝ) : Measurable (charAt N w Bfam t) := by
   unfold charAt

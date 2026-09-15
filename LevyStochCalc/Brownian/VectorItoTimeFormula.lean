@@ -48,8 +48,8 @@ variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasu
 
 include hC0 hCH in
 /-- **Itô's formula for a time-dependent, twice continuously differentiable function of a vector
-Itô process.** With the time coordinate carried as coordinate `0`, `∂₀f` is the time derivative and `∂_{q+1}f` the space
-derivatives, and
+Itô process.** With the time coordinate carried as coordinate `0`, `∂₀f` is the time derivative
+and `∂_{q+1}f` the space derivatives, and
 
   `f(T, X_T) − f(0, X_0) = ∫_0^T ∂₀f ds + ∑_q ∫_0^T ∂_q f b^q ds
       + ∑_{q,k} ∫_0^T ∂_q f H^{q,k} dWᵏ + ½ ∑_{q,q'} ∫_0^T ∂²_{qq'}f (∑ₖ H^{q,k}H^{q',k}) ds`

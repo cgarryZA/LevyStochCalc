@@ -50,7 +50,7 @@ lemma integral_eval_sq_le : ∃ C : ℝ, 0 ≤ C ∧ ∀ u ω, ∫ e, (G.eval u 
         by_cases he : e ∈ ⋃ k, G.B k
         · rw [Set.indicator_of_mem he]
         · rw [Set.indicator_of_notMem he]
-          show (G.eval u e ω) ^ 2 = 0
+          change (G.eval u e ω) ^ 2 = 0
           rw [G.eval_support ω u e he]
           ring
     _ ≤ ∫ _ in ⋃ k, G.B k, C ^ 2 ∂ν := by
@@ -147,7 +147,7 @@ lemma integral_integral_eval_sq_swap {S : Set ℝ} (hSfin : volume S ≠ ⊤) (�
     rw [Measure.prod_prod, Measure.restrict_apply_univ]
     exact ENNReal.mul_ne_top G.measure_iUnion_B_ne_top hSfin
   refine hind.mono' hmeas.aestronglyMeasurable (Filter.Eventually.of_forall fun q => ?_)
-  show ‖(G.eval q.2 q.1 ω) ^ 2‖ ≤ _
+  change ‖(G.eval q.2 q.1 ω) ^ 2‖ ≤ _
   by_cases hq : q.1 ∈ ⋃ k, G.B k
   · rw [Set.indicator_of_mem (Set.mem_prod.2 ⟨hq, Set.mem_univ _⟩), Real.norm_eq_abs,
     abs_of_nonneg (sq_nonneg _)]
@@ -200,7 +200,7 @@ lemma compensator_stronglyMeasurable (hG : G.Adapted ℱ) (t : ℝ) :
       unfold eval
       refine Finset.sum_congr rfl fun i hi => ?_
       rw [Finset.mem_range] at hi
-      show _ * ∑ k : Fin G.K, (if i < (g.clamp t ht).N₀ then G.ξ i k ω else 0)
+      change _ * ∑ k : Fin G.K, (if i < (g.clamp t ht).N₀ then G.ξ i k ω else 0)
           * (G.B k).indicator (fun _ => (1 : ℝ)) e
         = _ * ∑ k : Fin G.K, G.ξ i k ω * (G.B k).indicator (fun _ => (1 : ℝ)) e
       simp only [hi, if_true]

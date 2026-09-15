@@ -90,6 +90,7 @@ section Complete
 
 variable {T : ℝ} {φ : ℕ → Ω → ℝ → E → ℝ}
 
+omit [IsProbabilityMeasure P] in
 /-- An energy-Cauchy sequence of marked integrands has an `L²`-limit on the product space. -/
 theorem exists_markedEnergy_limit
     (hm : ∀ n, Measurable fun p : Ω × ℝ × E => φ n p.1 p.2.1 p.2.2)

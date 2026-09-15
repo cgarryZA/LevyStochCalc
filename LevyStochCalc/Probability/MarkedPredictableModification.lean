@@ -49,7 +49,7 @@ theorem markedPredictable_markStepEval {g : TimeGrid} (G : MarkStep Ω E ν g)
     · rw [Set.indicator_of_notMem hs, zero_mul]
       refine (Finset.sum_eq_zero fun k _ => ?_).symm
       exact Set.indicator_of_notMem (fun hp => hs hp.1) _
-  show Measurable[markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E => G.eval p.2.1 p.2.2 p.1
+  change Measurable[markedPredictableSigma ℱ ν] fun p : Ω × ℝ × E => G.eval p.2.1 p.2.2 p.1
   rw [hrw]
   refine Finset.measurable_sum _ fun i hi => Finset.measurable_sum _ fun k _ => ?_
   exact markedPredictable_rectIndicator (g.p_nonneg (Finset.mem_range.mp hi).le)

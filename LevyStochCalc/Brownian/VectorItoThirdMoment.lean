@@ -38,6 +38,7 @@ section GenericThird
 
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
+omit [IsProbabilityMeasure P] in
 /-- The third absolute moment of a finite sum is at most the squared number of summands times the
 sum of the third absolute moments. -/
 theorem integral_abs_sum_pow_three_le {ι : Type*} [Fintype ι] {f : ι → Ω → ℝ}

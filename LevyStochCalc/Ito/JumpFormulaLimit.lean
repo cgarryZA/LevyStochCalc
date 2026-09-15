@@ -164,7 +164,7 @@ theorem tendsto_setIntegral_of_dominated
       hg.mono' (hFmeas m) (hbound m)
     rw [integral_prod _ hint]
     refine integral_congr_ae (Eventually.of_forall fun s => ?_)
-    show ∫ e, F m (s, e) ∂ν = ∫ e in (A m)ᶜ, fs m s e ∂ν
+    change ∫ e, F m (s, e) ∂ν = ∫ e in (A m)ᶜ, fs m s e ∂ν
     have hfun : (fun e => F m (s, e)) = ((A m)ᶜ).indicator (fun e => fs m s e) := by
       funext e
       by_cases he : e ∈ (A m)ᶜ
@@ -298,13 +298,13 @@ theorem tendsto_setIntegral_firstOrder
           gradient u s (xs m s) i * ∫ e in (A m)ᶜ, γ s (xs m s) e i ∂ν := by
     intro m
     refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
-    show (∫ e in (A m)ᶜ, (∑ i : Fin n, γ s (xs m s) e i * gradient u s (xs m s) i) ∂ν) = _
+    change (∫ e in (A m)ᶜ, (∑ i : Fin n, γ s (xs m s) e i * gradient u s (xs m s) i) ∂ν) = _
     exact setIntegral_firstOrder_eq _ s (xs m s) (hγs m s hs)
   have hRHS : (∫ s in Set.Icc (0 : ℝ) T, ∫ e, firstOrderIntegrand u γ s (x s) e ∂ν)
       = ∫ s in Set.Icc (0 : ℝ) T, ∑ i : Fin n,
           gradient u s (x s) i * ∫ e, γ s (x s) e i ∂ν := by
     refine setIntegral_congr_fun measurableSet_Icc fun s hs => ?_
-    show (∫ e, (∑ i : Fin n, γ s (x s) e i * gradient u s (x s) i) ∂ν) = _
+    change (∫ e, (∑ i : Fin n, γ s (x s) e i * gradient u s (x s) i) ∂ν) = _
     have h := setIntegral_firstOrder_eq (u := u) (γ := γ) Set.univ s (x s)
       (fun i => integrableOn_univ.mpr (hγ s hs i))
     simpa only [setIntegral_univ] using h

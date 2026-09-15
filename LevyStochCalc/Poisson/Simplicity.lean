@@ -61,7 +61,7 @@ theorem measure_two_le_count_le (N : PoissonRandomMeasure.{u, v, w} P ν) {B : S
   have hms : MeasurableSet {x : ℝ≥0∞ | 2 ≤ x} := measurableSet_le measurable_const measurable_id
   have hpre : ((↑) : ℕ → ℝ≥0∞) ⁻¹' {x : ℝ≥0∞ | 2 ≤ x} = {n : ℕ | 2 ≤ n} := by
     ext n
-    simp [Set.mem_preimage, Set.mem_setOf_eq, Nat.ofNat_le_cast]
+    simp [Set.mem_setOf_eq, Nat.ofNat_le_cast]
   have hlaw := N.poisson_law hB hfin
   have hpush : P {ω | 2 ≤ N.N ω B}
       = ProbabilityTheory.poissonMeasure (referenceIntensity ν B).toNNReal {n : ℕ | 2 ≤ n} := by
@@ -166,7 +166,7 @@ theorem exists_iSup_setLIntegral_timeSlab_le {f : ℝ → ℝ≥0∞} (hf : Meas
     refine ⟨M, ?_⟩
     rw [tsub_le_iff_right]
     calc ∫⁻ x, f x ≤ ((∫⁻ x, f x) - ε / 2) + ε / 2 := le_tsub_add
-      _ ≤ (∫⁻ x, g M x) + ε / 2 := by gcongr <;> exact hMlt.le
+      _ ≤ (∫⁻ x, g M x) + ε / 2 := by gcongr
       _ = ε / 2 + ∫⁻ x, g M x := add_comm _ _
   obtain ⟨n, hn⟩ : ∃ n : ℕ, (M : ℝ≥0∞) * ENNReal.ofReal ((1 / 2 : ℝ) ^ n) ≤ ε / 2 := by
     have hreal : Tendsto (fun n : ℕ => (1 / 2 : ℝ) ^ n) atTop (𝓝 0) :=

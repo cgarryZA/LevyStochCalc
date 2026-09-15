@@ -56,6 +56,7 @@ theorem measurable_energyDensity (hm : Measurable (Function.uncurry H₁)) (T : 
     (((measurable_nnnorm.comp hm).coe_nnreal_ennreal).pow_const 2)
   exact hf.lintegral_prod_right'
 
+omit [IsProbabilityMeasure P] in
 /-- **The parallelogram law for the energies.** -/
 theorem lintegral_energy_parallelogram (hm₁ : Measurable (Function.uncurry H₁))
     (hm₂ : Measurable (Function.uncurry H₂)) (T : ℝ) :
@@ -97,6 +98,7 @@ theorem lintegral_energy_parallelogram (hm₁ : Measurable (Function.uncurry H�
     ← lintegral_add_left (e1.const_mul 2)]
   exact lintegral_congr fun ω => hinner ω
 
+omit [IsProbabilityMeasure P] in
 /-- An integrand dominated by twice the sum of two square-integrable energies is itself
 square integrable. -/
 theorem lintegral_energy_lt_top_of_bound {K : Ω → ℝ → ℝ}
@@ -148,6 +150,7 @@ theorem sq_nnnorm_add_le_two_mul (x y : ℝ) :
     ← ENNReal.ofReal_add (sq_nonneg _) (sq_nonneg _), ← ENNReal.ofReal_mul (by norm_num)]
   exact ENNReal.ofReal_le_ofReal (by nlinarith [sq_nonneg (x - y)])
 
+omit [IsProbabilityMeasure P] in
 /-- Scaling an integrand scales its energy by the square of the scalar. -/
 theorem lintegral_energy_const_mul {H : Ω → ℝ → ℝ} (hm : Measurable (Function.uncurry H))
     (c T : ℝ) :
@@ -177,6 +180,7 @@ end Energy
 
 section Parallelogram
 
+omit [IsProbabilityMeasure P] in
 /-- **A parallelogram of squared distances forces additivity.** If the squared `L²`-distances
 among `u`, `v` and `w` are those of the sides and diagonals of a parallelogram, then `w` is the
 sum of `u` and `v`. -/
@@ -291,6 +295,7 @@ end Additivity
 
 section Scaling
 
+omit [IsProbabilityMeasure P] in
 /-- **Squared distances of a scalar multiple force the scalar relation.** -/
 theorem ae_eq_const_mul_of_sq_distances {x y : Ω → ℝ} (hx : MemLp x 2 P) (hy : MemLp y 2 P)
     {c : ℝ} {X Y Z : ℝ≥0∞}

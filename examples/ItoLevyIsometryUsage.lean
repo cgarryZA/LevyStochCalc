@@ -19,9 +19,10 @@ end-to-end public-API usage examples.
 
 These are `example` blocks rather than `theorem`s — they only need to
 TYPECHECK against the public signature; the proofs are `by exact ...`
-forwards. No sorryAx is introduced (the wrappers themselves use the
-Tier 1 cited axioms via their `noncomputable def stochasticIntegral`
-chain).
+forwards. The isometry is taken at the Poisson random measure's natural
+filtration, for which it is a Poisson random measure
+(`isPoissonFiltration_natural`). The former path-regularity example was
+removed with the retired statement #10 (2026-09-06).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -45,7 +46,7 @@ replace the main dissertation's
 `Dissertation.Continuous.itoLevyIsometry` axiom. Given:
 - a Poisson random measure `N` with σ-finite intensity `ν`,
 - a `Ω → ℝ → E → ℝ` integrand `φ` with joint Ω×ℝ×E measurability,
-- progressive measurability with respect to `N`'s natural filtration,
+- marked progressive measurability with respect to `N`'s natural filtration,
 - and a global L²-bound across all horizons `T > 0`,
 
 we get the L² isometry
@@ -58,22 +59,22 @@ example
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
     (φ : Ω → ℝ → E → ℝ)
     (h_meas : Measurable (fun (p : Ω × ℝ × E) => φ p.1 p.2.1 p.2.2))
-    (h_progMeas : ∀ t : ℝ,
-      @MeasureTheory.StronglyMeasurable (Ω × ℝ × E) ℝ _
-        (@Prod.instMeasurableSpace Ω (ℝ × E)
-          ((LevyStochCalc.Poisson.naturalFiltration N).seq t)
-          inferInstance)
-        (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
+    (h_progMeas : LevyStochCalc.Probability.MarkedProgressivelyMeasurable
+      (LevyStochCalc.Poisson.naturalFiltration N) φ)
     (h_sq_int_global : ∀ T : ℝ, 0 < T →
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖φ ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤)
     (T : ℝ) (hT : 0 < T) :
-    ∫⁻ ω, (‖LevyStochCalc.Poisson.Compensated.stochasticIntegral N φ
+    ∫⁻ ω, (‖LevyStochCalc.Poisson.Compensated.stochasticIntegral N
+            (LevyStochCalc.Poisson.naturalFiltration N)
+            (LevyStochCalc.Poisson.isPoissonFiltration_natural N) φ
             h_meas h_progMeas h_sq_int_global T ω‖₊
         : ℝ≥0∞) ^ 2 ∂P =
       ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         ((‖φ ω s e‖₊ : ℝ≥0∞)) ^ 2 ∂ν ∂volume ∂P :=
-  LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry N φ
+  LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry N
+    (LevyStochCalc.Poisson.naturalFiltration N)
+    (LevyStochCalc.Poisson.isPoissonFiltration_natural N) φ
     h_meas h_progMeas h_sq_int_global T hT
 
 end ItoLevyIsometry
@@ -115,70 +116,5 @@ example
 
 end BSDEJSolutionPredicate
 
-section BSDEJPathRegularityLinearRate
-
-variable {Ω : Type u} [MeasurableSpace Ω]
-variable {E : Type v} [MeasurableSpace E]
-variable {P : Measure Ω} [IsProbabilityMeasure P]
-variable {ν : Measure E} [SigmaFinite ν]
-
-/-- **BSDEJ path regularity (linear-rate corollary) — caller-side typechecking example.**
-
-Demonstrates the call-site shape for `bsdej_path_regularity_linear_rate`.
-Given:
-- a multidim Brownian motion `W` and a Poisson random measure `N`,
-- a `BSDEJData` quadruple `(f, g, ...)` together with the forward
-  process `X` and the BSDEJ horizon `T > 0`,
-- a Lipschitz constant `L` for the driver,
-- and `L²` integrability of the terminal condition `g(X_T)`,
-
-we obtain a single positive real constant `C` such that for every
-partition of `[0, T]` and every BSDEJ solution triple `(Y, Z, U)`, the
-combined L²-time modulus + projection errors are bounded by
-`C · Δt`, where `Δt = max_n (t_{n+1} − t_n)`.
-
-This is the public-API entry point for downstream chapters that need
-the BET 2008 linear-in-`Δt` rate (`ψ(h) := C · h`), notably the
-`discrete_to_continuous_convergence_sq` headline of the main
-dissertation's discrete-to-continuous chapter (parked 2026-05-04 in
-`D:/Dissertation/Dissertation/BSDE/Discrete/DiscretizationConvergence.lean`).
-
-The body uses `bsdej_path_regularity_linear_rate` verbatim. -/
-example
-    {n d : ℕ}
-    (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
-    (X : ℝ → Ω → (Fin n → ℝ))
-    (hX_meas : Measurable (Function.uncurry X))
-    (T : ℝ) (hT : 0 < T)
-    {L : ℝ} (hL : LevyStochCalc.BSDEJ.Existence.Lipschitz bsdej ν L)
-    (hξ_sq_int : ∫⁻ ω, (‖bsdej.g (X T ω)‖₊ : ℝ≥0∞) ^ 2 ∂P < ⊤) :
-    ∃ C : ℝ, 0 < C ∧
-      ∀ (M : ℕ) (_hM : 0 < M) (partition : Fin (M + 1) → ℝ)
-        (_h_part_mono : StrictMono partition)
-        (_h_part_start : partition 0 = 0)
-        (_h_part_end : partition (Fin.last M) = T)
-        (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ)
-        (_h_solution :
-          LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution W N bsdej X Y Z U T),
-        let Δt : ℝ := ⨆ n : Fin M,
-          partition n.succ - partition n.castSucc
-        (⨆ n : Fin M, ∫⁻ ω,
-            ⨆ t ∈ Set.Icc (partition n.castSucc) (partition n.succ),
-              (‖Y t ω - Y (partition n.castSucc) ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
-          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-              ∑ i, (‖Z s ω i -
-                LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z
-                  partition Z s ω i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P)
-          + (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
-              (‖U s ω e -
-                LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_U
-                  partition U s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
-          ≤ ENNReal.ofReal (C * Δt) :=
-  LevyStochCalc.BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate
-    W N bsdej X hX_meas T hT (L := L) hL hξ_sq_int
-
-end BSDEJPathRegularityLinearRate
 
 end LevyStochCalc.Examples

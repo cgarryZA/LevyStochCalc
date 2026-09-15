@@ -36,6 +36,7 @@ theorem measurable_simpleMark (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
   refine Finset.measurable_sum _ fun j _ => ?_
   exact (measurable_const.indicator (hBm j)).const_mul (w j)
 
+omit [MeasurableSpace E] in
 theorem simpleMark_eq_zero (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} {D : Set (ℝ × E)}
     (hBsub : ∀ j, Bfam j ⊆ D) {p : ℝ × E} (hp : p ∉ D) : simpleMark w Bfam p = 0 := by
   classical
