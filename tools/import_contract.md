@@ -15,7 +15,7 @@ ever genuinely relocated (e.g. Phase 4 upstreaming into mathlib's
 `ProbabilityTheory` namespace), the fix is to update the consumer's import in the
 dissertation repo, not to leave a stub behind here.
 
-## 1. Pinned modules (16)
+## 1. Pinned modules (17)
 
 | # | Module path                              | File                                           | Used by                                                       |
 |---|------------------------------------------|------------------------------------------------|---------------------------------------------------------------|
@@ -35,6 +35,7 @@ dissertation repo, not to leave a stub behind here.
 | 14 | `LevyStochCalc.Driver.PredictableRepresentation` | `LevyStochCalc/Driver/PredictableRepresentation.lean` | `Dissertation/Continuous.lean` (WP Lemma A.1 forwarder) |
 | 15 | `LevyStochCalc.Driver.VectorIncrement` | `LevyStochCalc/Driver/VectorIncrement.lean` | `Dissertation/CoupledFBSDEJ/LevyGridDrivers.lean` |
 | 16 | `LevyStochCalc.Poisson.CompensatedIsometry` | `LevyStochCalc/Poisson/CompensatedIsometry.lean` | `Dissertation/CoupledFBSDEJ/LevyGridDrivers.lean` |
+| 17 | `LevyStochCalc.BSDEJ.ExistenceUniqueness` | `LevyStochCalc/BSDEJ/ExistenceUniqueness.lean` | `Dissertation/Continuous.lean` (Cu01 forwarder, 2026-09-15) |
 
 ## 2. Pinned symbols
 
@@ -77,6 +78,9 @@ remain reachable under the listed namespace prefix.
 | `Definition.BSDEJData`                                      | `BSDEJ/Definition.lean`                   |
 | `Definition.IsBSDEJSolution`                                | `BSDEJ/Definition.lean`                   |
 | `Existence.Lipschitz`                                       | `BSDEJ/Existence.lean`                    |
+| `Solves.augJoint`                                           | `BSDEJ/Solves.lean` (2026-09-15)          |
+| `Solves.SolvesBSDEJ`                                        | `BSDEJ/Solves.lean` (2026-09-15)          |
+| `Solves.exists_unique_solvesBSDEJ`                          | `BSDEJ/ExistenceUniqueness.lean` (2026-09-15) |
 | `PathRegularity.conditionalTimeAverage_Z`                   | `BSDEJ/PathRegularity.lean`               |
 | `PathRegularity.conditionalTimeAverage_U`                   | `BSDEJ/PathRegularity.lean`               |
 

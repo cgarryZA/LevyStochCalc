@@ -42,6 +42,7 @@ MODULES=(
   "LevyStochCalc/Driver/PredictableRepresentation.lean"
   "LevyStochCalc/Driver/VectorIncrement.lean"
   "LevyStochCalc/Poisson/CompensatedIsometry.lean"
+  "LevyStochCalc/BSDEJ/ExistenceUniqueness.lean"
 )
 
 # Imports = module paths converted to `LevyStochCalc.<...>` form.
@@ -62,6 +63,7 @@ IMPORTS=(
   "LevyStochCalc.Driver.PredictableRepresentation"
   "LevyStochCalc.Driver.VectorIncrement"
   "LevyStochCalc.Poisson.CompensatedIsometry"
+  "LevyStochCalc.BSDEJ.ExistenceUniqueness"
 )
 
 # 2. Pinned symbols — fully-qualified names (must `#check` cleanly via the
@@ -90,6 +92,9 @@ SYMBOLS=(
   "LevyStochCalc.BSDEJ.Existence.Lipschitz"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_Z"
   "LevyStochCalc.BSDEJ.PathRegularity.conditionalTimeAverage_U"
+  "LevyStochCalc.BSDEJ.Solves.augJoint"
+  "LevyStochCalc.BSDEJ.Solves.SolvesBSDEJ"
+  "LevyStochCalc.BSDEJ.Solves.exists_unique_solvesBSDEJ"
   # Driver (2026-09-15)
   "LevyStochCalc.Driver.LevyDriver"
   "LevyStochCalc.Driver.LevyDriver.filtration"

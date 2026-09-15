@@ -6,20 +6,21 @@ Authors: Christian Garry
 import LevyStochCalc.BSDEJ.MartingaleRepresentation
 
 /-!
-# The Picard map of a BSDEJ
+# The Lipschitz condition on the generator of a BSDEJ
 
-`picardMap` is the iteration map of the Picard scheme for a backward SDE with jumps and
-`Lipschitz` the Lipschitz condition on its generator (Tang & Li 1994; Becherer 2006).
+`Lipschitz` is the Lipschitz condition on the generator of a backward SDE with jumps (Tang & Li
+1994; Becherer 2006), stated in `ℝ≥0∞`, and `abs_sub_le_of_lipschitz` is its real form.
 
-Existence and uniqueness of the solution is not stated here. Its previous formulation
+Existence and uniqueness of the solution are not stated here. The previous formulation
 `continuousBSDEJ_exists_unique` (cited result #9) quantified over an arbitrary measurable
 forward process `X` and asked for a solution in the class `IsBSDEJSolution`, whose integrands
 were then adapted to the natural filtration of a single driver; a terminal condition `g(X_T)`
 independent of `(W, N)` has no adapted solution, and `ξ = W_T · Ñ_T` none in that class, so the
-statement was refutable and was retired on 2026-09-06. The `L²` integrals and
-`IsBSDEJSolution` now take a common filtration `ℱ` with `IsBrownianFiltration` and
-`IsPoissonFiltration` hypotheses; restating existence and uniqueness over the joint filtration
-of `(W, N)` is `Plan.md`'s work package A6.
+statement was refutable and was retired on 2026-09-06. The statement over the augmented joint
+filtration of a Lévy driver is `BSDEJ.Solves.exists_unique_solvesBSDEJ`
+(`BSDEJ/ExistenceUniqueness.lean`), with the solution class `BSDEJ.Solves.SolvesBSDEJ`
+(`BSDEJ/Solves.lean`) and the Picard scheme of `BSDEJ/PicardStep.lean`,
+`BSDEJ/PicardIterates.lean` and `BSDEJ/PicardLimit.lean`.
 
 ## Source
 
@@ -36,30 +37,9 @@ namespace LevyStochCalc.BSDEJ.Existence
 
 universe u v
 
-section PicardMap
+section Lipschitz
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
-
-/-- The Picard iteration map `Φ` for a BSDEJ, as the identity on `(Y, Z, U)`.
-
-The substantive map sends `(Y', Z', U')` to `(Y, Z, U)` with
-`Y_t = 𝔼[g(X_T) + ∫_t^T f(s, X_{s-}, Y'_{s-}, Z'_s, U'_s) ds | ℱ_t]` and `(Z, U)` read off the
-martingale representation of `M_t = Y_t + ∫_0^t f`; its fixed point is the BSDEJ solution. -/
-noncomputable def picardMap
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
-    {n d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (_bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
-    (_X : ℝ → Ω → (Fin n → ℝ))
-    (_T : ℝ)
-    (_input :
-      (ℝ → Ω → ℝ) × (ℝ → Ω → (Fin d → ℝ)) × (ℝ → Ω → E → ℝ)) :
-    (ℝ → Ω → ℝ) × (ℝ → Ω → (Fin d → ℝ)) × (ℝ → Ω → E → ℝ) :=
-  -- Placeholder: identity on input. Substantive Picard map (Tang-Li 1994 / Becherer 2006)
-  -- requires the conditional expectation + martingale representation machinery.
-  _input
 
 /-- Lipschitz condition on the BSDEJ generator `f`: uniformly in `(s, x)`, the increment of `f`
 is bounded by `L` times the sum of `|y₁ - y₂|`, the supremum norm `‖z₁ - z₂‖` on `Fin d → ℝ`
@@ -102,12 +82,6 @@ theorem abs_sub_le_of_lipschitz {n d : ℕ}
     ENNReal.toReal_ofReal (Real.sqrt_nonneg _), coe_nnnorm, coe_nnnorm, coe_nnnorm,
     Real.norm_eq_abs, Real.norm_eq_abs] at hmono
 
-end PicardMap
-
-section Existence
-variable {Ω : Type u} [MeasurableSpace Ω]
-variable {E : Type v} [MeasurableSpace E]
-
-end Existence
+end Lipschitz
 
 end LevyStochCalc.BSDEJ.Existence

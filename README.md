@@ -39,10 +39,15 @@ proves; nothing in this README overrides it. Its current state:
   existence (#9), BSDEJ path regularity (#10), the predictable representation property (#13a)
   and the continuous-semimartingale Itô formula (#15). The first three were refutable as
   written and the fourth trivially satisfiable; the declarations were deleted on 2026-09-06.
-  The BSDEJ layer therefore states the solution predicate and the Picard map, but **not**
-  existence, path regularity or the PRP. Now that the integrals are stated over a common
-  filtration (`Plan.md` X2), those three return as statements to prove — `Plan.md` A6, A7 and
-  B5 — with the hypotheses the literature assumes; #15's content is #16's.
+  Of these, BSDEJ existence and uniqueness returned on 2026-09-15 as the theorem
+  `BSDEJ.Solves.exists_unique_solvesBSDEJ` (`BSDEJ/ExistenceUniqueness.lean`, ledger entry
+  `Resolved #9`): over the augmented joint filtration of a Lévy driver, for a generator Lipschitz
+  in `(y, z, u)` with the `L²(ν)` distance in the jump variable and a square integrable terminal
+  datum, by the Picard scheme (`BSDEJ/PicardStep.lean` … `BSDEJ/PicardLimit.lean`) and the
+  contraction in an exponentially weighted norm (`BSDEJ/PicardContraction.lean`), with the bridge
+  `isBSDEJSolution_of_solvesBSDEJ` back to the earlier predicate. Path regularity (#10) and the
+  single-driver PRP (#13a) remain statements to prove — `Plan.md` A7 and B5 — with the hypotheses
+  the literature assumes; #15's content is #16's.
 
 A `#print axioms` report of `{propext, Classical.choice, Quot.sound}` certifies the logical
 trust base only. It is not evidence that a Lean statement is a faithful rendering of the result

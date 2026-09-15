@@ -535,9 +535,16 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       field), L14 locality after the horizon and the Itô–Lévy structure of the frozen output
       (`BSDEJ/PicardItoLevy.lean`), L13e the step with a drift progressive for the right-continuous
       filtration, L17 the contraction of factor `1/4` in the weighted norm
-      (`BSDEJ/PicardContraction.lean`). Open: L10c (a modification of the drift progressive for
-      the filtration itself, by Lebesgue differentiation from the left — the contraction needs
-      it), L18 (uniqueness), L19–L21 (iterates, limit, assembly, bridge).
+      (`BSDEJ/PicardContraction.lean`). **Closed 2026-09-15** (L10c, L18–L21): the modification
+      progressive for the filtration itself (`BSDEJ/DriftModification.lean`, Lebesgue
+      differentiation from the left), uniqueness (`BSDEJ/Uniqueness.lean`, `SolvesBSDEJ.unique`),
+      the iterates and their geometric Cauchy bound (`BSDEJ/PicardIterates.lean`), the limit and
+      the fixed point (`BSDEJ/PicardLimit.lean`, `exists_solvesBSDEJ`), the headline
+      `exists_unique_solvesBSDEJ` (`BSDEJ/ExistenceUniqueness.lean`) and the bridge
+      `isBSDEJSolution_of_solvesBSDEJ` (`BSDEJ/Bridge.lean`; proving it exposed and fixed finding
+      D3, the mis-parenthesised equation conjunct of `IsBSDEJSolution`). Ledger entry
+      `Resolved #9`. Not done: a non-vacuity witness with `f ≠ 0` (`GOAL.md` §1.B), the
+      forward-coupled generator (A7's business).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were

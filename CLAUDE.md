@@ -28,9 +28,11 @@ re-deriving counts here. No cited axiom is live and the repository has no `axiom
 the last one, #16 (the Itô–Lévy formula), was deleted on 2026-09-15 as unprovable as stated, and
 the general formula it stood for is the theorem `itoLevyFormula_general`
 (`Ito/ItoLevyFormulaGeneral.lean`, ledger entry `Resolved #16`) of the same day. Of the other
-entries, nine are theorems, four were retired as unsound statements, and the others were deleted
-or re-derived; the ledger's index says which. Two upstream `lake require`s at the shared Mathlib
-pin are load-bearing: `RemyDegenne/brownian-motion` discharges Brownian existence (#1) and
+entries, nine are theorems, four were retired as unsound statements — one of them, #9 (BSDEJ
+existence and uniqueness), restated over the augmented joint filtration of a Lévy driver and proved
+on 2026-09-15 as `BSDEJ.Solves.exists_unique_solvesBSDEJ` (`BSDEJ/ExistenceUniqueness.lean`, ledger
+entry `Resolved #9`) — and the others were deleted or re-derived; the ledger's index says which.
+Two upstream `lake require`s at the shared Mathlib pin are load-bearing: `RemyDegenne/brownian-motion` discharges Brownian existence (#1) and
 supplies the càdlàg regularisation behind #6 and #13b; `raphaelrrcoelho/formal-mathfin`
 supplies Doob's `L²` maximal inequality (`Probability/DoobContinuous.lean`) and an Itô–Lévy
 isometry bridge (`Poisson/MathFinBridge.lean`) that #6 did not need in the end. Mathlib still
@@ -48,7 +50,7 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 # and: D:/Dissertation `lake build`
 ```
 
-- **Import contract** (`tools/import_contract.md`): 16 modules + 38 symbols under
+- **Import contract** (`tools/import_contract.md`): 17 modules + 41 symbols under
   `LevyStochCalc.*` must keep resolving from their pinned path. On in-tree
   splits, keep pinned symbols in the module of record (no forwarding stubs); a
   deliberate relocation updates the dissertation's import. Don't rename public
