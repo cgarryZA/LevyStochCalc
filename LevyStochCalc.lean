@@ -346,6 +346,7 @@ import LevyStochCalc.BSDEJ.YoungLipschitz
 import LevyStochCalc.BSDEJ.CadlagLegs
 import LevyStochCalc.BSDEJ.DriftLeg
 import LevyStochCalc.BSDEJ.PicardTerminal
+import LevyStochCalc.BSDEJ.PicardStep
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity

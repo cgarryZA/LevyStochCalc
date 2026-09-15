@@ -81,7 +81,8 @@ by `D` over the augmented joint filtration `augJoint D`:
 `Y_t = ξ + ∫_t^T f(s, Y_s, Z_s, U_s) ds − ∫_t^T Z_s dW_s − ∫_t^T ∫_E U_s(e) Ñ(ds, de)`
 
 almost surely at each `t ∈ [0, T]`, with the two stochastic integrals the canonical ones for
-`augJoint D`, `Y` càdlàg and adapted to `(augJoint D).rightCont`, and `Z`, `U` progressive with
+`augJoint D`, `Y` càdlàg, adapted to `(augJoint D).rightCont` and of finite `S²` seminorm on the
+horizon, and `Z`, `U` progressive with
 finite energy on `[0, T]` and vanishing off it. -/
 structure SolvesBSDEJ (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν)
     (f : ℝ → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ) (ξ : Ω → ℝ) (T : ℝ)
@@ -112,6 +113,8 @@ structure SolvesBSDEJ (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν)
   Y_cadlag : ∀ ω : Ω, ∀ t : ℝ,
     Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Ioi t)) (nhds (Y t ω))
       ∧ ∃ L : ℝ, Filter.Tendsto (fun s => Y s ω) (nhdsWithin t (Set.Iio t)) (nhds L)
+  /-- The running supremum of `Y` on the horizon is square integrable. -/
+  Y_sup : ∫⁻ ω, (⨆ t ∈ Set.Icc (0 : ℝ) T, (‖Y t ω‖₊ : ℝ≥0∞) ^ 2) ∂P < ⊤
   /-- The backward equation, almost surely at each time of the horizon. -/
   eqn : ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P,
     Y t ω = ξ ω + (∫ s in Set.Icc t T, f s (Y s ω) (Z s ω) (U s ω))
