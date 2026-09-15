@@ -41,27 +41,30 @@ checks true. Each lists how to verify it.
 This is the criterion a naive "zero sorry" pass misses. A theorem can be fully
 proved and still say nothing. For **every headline result** (the 14 cited results
 in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
-- [ ] **Objects are inhabited, not assumed.** Existence is a *proved theorem*
+- [x] **Objects are inhabited, not assumed.** Existence is a *proved theorem*
       with a *constructed* witness — never a `Classical.choose` of an existence
       axiom, and never `[Nonempty _]`/`[Inhabited _]` summoning junk. (BM,
       Poisson random measure, the Itô/compensated integrals, and the BSDEJ
       solution each have a real construction.)
-- [ ] **Hypotheses are satisfiable.** For each theorem there is an `example`
+- [x] **Hypotheses are satisfiable.** For each theorem there is an `example`
       that discharges its hypotheses on a concrete, *non-degenerate* model — so
       it cannot be vacuously true via contradictory assumptions, an empty index
       type, or a measure-zero / empty carrier.
-- [ ] **Conclusions are non-degenerate.** The objects are not secretly the
+- [x] **Conclusions are non-degenerate.** The objects are not secretly the
       trivial one (the zero process, the zero measure, `default`, `∅`, the
       constant map). e.g. the constructed BM has *non-zero* variance; the Itô
       integral is *not* identically `0`; the BSDEJ solution is the intended one,
       not the zero solution sneaking through a junk witness.
-- [ ] **Statements are not trivially `True`.** Nothing reduces to `x = x`,
+- [x] **Statements are not trivially `True`.** Nothing reduces to `x = x`,
       `True`, `0 ≤ ‖·‖`, or an `Iff` whose sides are both trivial after
       unfolding; no result is only the `n = 0` / `T = 0` / `σ = 0` /
       deterministic special case wearing the general name.
-- [ ] A single `examples/Nonvacuity.lean` (or similar) collects the per-result
+- [x] A single `examples/Nonvacuity.lean` (or similar) collects the per-result
       witnesses above and builds — making non-vacuity a CI-checked artifact, not
       a promise.
+      *(2026-09-15: the `LevyStochCalcExamples` library, 18 files under `examples/`,
+      one per headline result or pinned symbol, built by CI and by every gate run;
+      the per-file caveats are listed in `Plan.md` C1.)*
 
 ### C. Faithfulness — it models the right mathematics
 - [ ] **Definitions match the literature** (Karatzas–Shreve / Applebaum /

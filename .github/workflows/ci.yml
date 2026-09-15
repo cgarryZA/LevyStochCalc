@@ -101,3 +101,9 @@ jobs:
       # silent contract breakage on `master`.
       - name: tools/verify_import_contract.sh
         run: bash tools/verify_import_contract.sh
+
+      # GOAL.md §1.B: the non-vacuity witnesses (`examples/`, one file per headline result or
+      # pinned symbol, each applying the theorem by name to a concrete non-degenerate model and
+      # exhibiting a non-degenerate conclusion) are a CI-checked artifact, not a promise.
+      - name: lake build LevyStochCalcExamples
+        run: lake build LevyStochCalcExamples

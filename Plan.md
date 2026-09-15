@@ -702,8 +702,31 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       rate is exhibited as an upper bound `(e / M)²` (its left side is not shown nonzero).
       **Count**: all 41 pinned symbols now occur in a concrete-model witness. Of the cited theorems,
       #1, #2, #5, #6, #9, #16, #17, #18 are applied by name; #3, #4, #12, #13b, #14 are still
-      reached only through wrappers, so the `GOAL.md` §1.B boxes stay open until each of those
-      five has an `example` discharging its own hypotheses on a non-degenerate model (wave 13).
+      reached only through wrappers — **all five closed by wave 13 (2026-09-15)**:
+      `examples/NonvacuityBrownianCited.lean` applies `kolmogorovChentsov_modification` (#3) to a
+      Brownian motion with exponents `(4, 2)` and the constant `𝔼[Z⁴]` (the library's
+      `gaussianFourthMoment`, shown positive; the closed form `3` is not in Mathlib at this pin
+      and is not claimed) — the modification has second moment `1` at time `1`; and
+      `brownian_martingale_rightCont` (#4), with `(naturalFiltration W).rightCont 1 ≠ ⊥` and the
+      martingale non-constant (`W_0 = 0`, `𝔼 W_1² = 1`); the continuity conclusion of #3 is also a
+      structure field of `BrownianMotion`, so the load-bearing content of that witness is the
+      Kolmogorov condition itself. `examples/NonvacuityJumpDiffusionCited.lean` applies
+      `picardFixedPoint_jumpDiffusion_exists_unique` (#14) and `JumpDiffusion.exists_unique` (#12)
+      to the Itô–Lévy model over the augmented right-continuation of the joint filtration: the
+      solution has second moment `2` at time `1` and every competitor solving on all horizons
+      is not almost surely `0` there. `examples/NonvacuityMartingaleForm.lean` applies
+      `condExp_to_PRP_martingale_form` (#13b) to `W_1`: a càdlàg martingale with `M_0 = 0`,
+      `M_1 = W_1`, `M_1 ≠ M_0` almost surely, `𝔼 M_1² = 1`. **Status of `GOAL.md` §1.B
+      (2026-09-15)**: every one of the 14 cited results and 41 pinned symbols has a witness in
+      the `LevyStochCalcExamples` library (18 files, built by CI and by every gate run), each
+      applying the result by name on a concrete model (`d ∈ {1, 2}`, `ν = δ₁`, finite activity)
+      with a non-degenerate conclusion; the five boxes are ticked on that basis, with the
+      standing caveats: the models are finite-activity; the KC constant is `𝔼[Z⁴]`, not `3`;
+      the representing pair of `W_1` has nonzero energy but its Itô/marked split is not shown;
+      the separated marked cell-average rate is an upper bound whose left side is not shown
+      nonzero; cell averages of a solution's jump integrand agree with the window indicator only
+      at the mark carried by `δ₁`; `D.filtration 0` is trivial modulo null sets and no witness
+      claims otherwise.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 

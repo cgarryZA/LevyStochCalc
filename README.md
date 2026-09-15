@@ -129,12 +129,15 @@ library doesn't claim.
   approximants beneath it, `Poisson/CompensatedApprox.lean`) — so it is `noncomputable` and its
   API is the `choose_spec` lemmas. A numerical extraction layer would have to wrap it in a
   separate computable approximation.
-* **Non-vacuity is not yet a CI artifact.** `GOAL.md` §1.B asks for an
-  `examples/Nonvacuity.lean` collecting, per headline result, an `example` that discharges its
-  hypotheses on a concrete non-degenerate model. It is not written. The satisfiability that
-  *is* established is the filtration hypothesis of the integrals
-  (`Driver.exists_isBrownianFiltration_and_isPoissonFiltration`); whether the SDE, the
-  Itô-Lévy formula's hypotheses or a BSDEJ have solutions is separate and open.
+* **Non-vacuity witnesses are the `LevyStochCalcExamples` library** (`examples/`, 18 files,
+  built by CI and by every local gate run). For each of the 14 cited results and the 41 pinned
+  symbols of `tools/import_contract.md` a file applies the theorem by name to a concrete model
+  (`d ∈ {1, 2}`, mark intensity `δ₁`, drivers from `LevyDriver.exists`) and exhibits a
+  non-degenerate conclusion (a specific nonzero moment, a σ-algebra other than `⊥`, a solution
+  that is not almost surely `0`). The models are finite-activity; the caveats each file states
+  (the Kolmogorov constant is `𝔼[Z⁴]` rather than the literal `3`, the representing pair of
+  `W_1` has nonzero energy but its Itô/marked split is not claimed, the separated cell-average
+  rate is an upper bound) are listed in `Plan.md` C1.
 
 ## Lint
 
