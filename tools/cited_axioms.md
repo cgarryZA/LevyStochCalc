@@ -525,6 +525,82 @@ literature integral forms.
   file lists the three standard axioms. This supplies the compensated transfer that Stage 2
   (general `u`, the L-group) needs; Stage 2 itself stays open and the axiom stays live.
 
+* **Stage-2 status (2026-09-15) — one genuine gap in the Stage-2 route, the target restated
+  with every hypothesis exposed, and the close-out re-planned.** The cut-off machinery of
+  B4-L5a–h is in the tree and audited over the three standard axioms: the cut-off
+  `cutoffFun₂ u (2m)` has globally bounded `∂ₜ`, `∇`, `Hess` (`Ito/CutoffGlobalBounds.lean`,
+  `exists_globalBound_cutoffFun₂`), so M16 applies to it; the whole continuous side transfers on
+  `boundedPathSet X T m` (`Ito/CutoffPathAgreement.lean`, `ae_continuousSide_cutoffFun₂_eq`); and
+  the jump side transfers as a sum, in the left-limit reference-intensity form
+  (`Ito/CutoffJumpTransfer.lean`, `ae_jumpSide_cutoffFun₂_eq`, on `Ito/AtomJumpRelation.lean`,
+  `Ito/JumpSideCompensator.lean`). The exit-time overshoot question does not arise: the transfer
+  is at the fixed time `T` on the event that the path stays in the closed ball of radius `m` over
+  `[0, T]`, on which `T ≤ openExitTime` (`boundedPathSet_subset_le_openExitTime`), and almost
+  every path lies in one such event (`ae_exists_mem_boundedPathSet`); nothing is stopped at the
+  exit.
+  - **Gap G (found 2026-09-14).** `ae_jumpSide_cutoffFun₂_eq` takes `hsplit`: at every level `j`
+    of `spanningSets ν`, `X = V + jumpSumLeftAt coeffs N X (spanningSets ν j)` a.s. with `V` a.s.
+    continuous. It was taken expecting the splitting lemma
+    `ae_forall_eq_add_jumpSumLeftAt_of_path` (`Ito/JumpSplittingPath.lean`) to discharge it. It
+    cannot: that lemma needs `γ` supported in the mark set (`hsupp`), so it applies to the
+    truncated path with coefficient `markCut A γ` — which is how Stage 1 used it — and not to
+    `X`, whose remainder `X − J_A` still carries the jumps outside `A` and is not continuous.
+    What `hsplit` buys is the jump relation at the atoms of a finite-intensity mark set,
+    `X_θ = X_{θ−} + γ(θ, X_{θ−}, ε)` a.s. at every atom `(θ, ε)` with `ε ∈ spanningSets ν j`
+    (`ae_exists_atomEnum_jump_eq_gamma`, `ae_setIntegral_jumpIncrement_sub_eq_zero`). For a
+    solution of the SDE this is standard — the compensated small-jump integral has a càdlàg
+    version whose jump at a big-jump atom is zero — but it is **not in the tree**: it needs the
+    càdlàg modification of the small-jump compensated integral
+    (`Poisson/CompensatedCadlagMod.lean`) and Doob's `L²` maximal inequality
+    (`Probability/DoobContinuous.lean`) to control the small-jump remainder uniformly in time
+    along the truncation `markCut (spanningSets ν k)ᶜ γ`, `k → ∞`. The note of 2026-09-13
+    (`../Dissertation/WORK_BREAKDOWN.md`, "no missing mathematics is known") was wrong. Every
+    lemma conditioned on `hsplit` compiles over the three standard axioms and **none of them is
+    a proof of the jump relation for `X`**; they are conditional until `hsplit` is proved and
+    removed from their statements.
+  - **The target (the statement that closes this entry; nothing narrower does).** For
+    `X : JumpDiffusion W N coeffs x₀` with SDE data `S : SdeData X` (the equation, the
+    coefficient bundles and `X_prog` at one filtration `S.ℱ` — corrections 3 and 8), the usual
+    conditions on `S.ℱ` (`[S.ℱ.IsRightContinuous]`, `hℱ0`, `hnull` — a version convention), the
+    mark space countably generated with measurable singletons (correction 1), the coefficients
+    jointly Borel measurable (corrections 5 and 6: `Measurable (uncurry μ)`,
+    `Measurable (uncurry σ)`, `Measurable fun q => γ q.1 q.2.1 q.2.2`), the drift of finite
+    window energy along the path (correction 5, `hμq`), `u` jointly `C²`, `T > 0`, and the
+    three admissibility inputs this axiom itself assumes — `h_sigmaGrad_sq`, `h_jumpInt_sq`
+    (finite window energy of `(∇u)ᵀσ(s, X_s)` and of `u(s, X_s + γ) − u(s, X_s)`) and
+    `h_compDrift_int` — the conclusion is this axiom's four-term identity with both stochastic
+    integrals at `S.ℱ`, their joint and progressive measurability derived
+    (`measurable_diffusionIntegrand_path`, `progressivelyMeasurable_diffusionIntegrand_path`,
+    `measurable_jumpIncrement_path`, `markedProgressivelyMeasurable_jumpIncrement_path`) and the
+    drift's window integrability derived from `hμq`. **No** global bound on `∂ₜu`, `∇u`,
+    `Hess u`; **no** bound on the jump sizes `‖γ‖` (correction 7 is withdrawn from the target;
+    it is not the cited theorem's hypothesis); **no** `IsLipschitz` and **no** growth bound on
+    the coefficients (of `IsRegular` only the three measurability conjuncts survive); **no**
+    moment assumption beyond `JumpDiffusion.sup_L2` and the energies above. A theorem carrying
+    any of those is a milestone, not the closure.
+  - **Distance from the current milestone.** `itoLevyFormula_jumpResidual_of_sdeData` differs
+    from the target in the three derivative bounds *and* in `hReg`/`hLip`, which it uses only to
+    derive the window energies of `μ`, `σ`, `γ` along the path
+    (`lintegral_sq_mu_lt_top_of_energy` and siblings) and inside `solvesOn_cadlagRep`; those
+    energies are `SdeData.σ_sq`/`γ_sq` and `hμq` directly, so this is a hypothesis trade (M2),
+    not new mathematics. The 2026-09-13 report that only the three bounds separated M16 from
+    the axiom understated this.
+  - **Close-out order (decision 2026-09-15).** *Z1a, next:* delete the axiom now — it cannot be
+    proved as stated, its `ℱ` being unrelated to the solution's — and replace its two consumers
+    and the Dissertation forwarder by the bounded-derivative theorem under a name that says so,
+    with the `SdeData` hypotheses and the three bounds exposed; empty
+    `tools/axiom_allowlist.txt`; re-head this entry as **open** (neither a live axiom nor
+    proved) until the target is a theorem. Deleting an unprovable axiom is clean-up, not the
+    closure. *M1:* the jump relation at the atoms for a solution, then `hsplit` deleted from
+    `ae_jumpSide_cutoffFun₂_eq` and its dependents. *M2:* the trade above, and the point-value ↔
+    left-limit and iterated ↔ reference-intensity transfers of the `u`-hypotheses
+    (`Ito/JumpIntegrandLeftLim.lean`, `integral_window_eq_and_integrableOn`). *M3:* the assembly
+    — M16 at the cut-off, the two transfers, the conventions, exhaustion in `m`
+    (`ae_exists_mem_boundedPathSet`). *M4 = B4-Z1b/Z2:* delete the seven-`sorry`
+    `Ito/JumpFormulaAssembled.lean`, re-point `itoLevyFormula` and Cu03 at the target, ledger
+    and Dissertation close-out. Progress reports name the obligation discharged, not line or
+    commit counts.
+
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.

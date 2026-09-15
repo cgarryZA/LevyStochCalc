@@ -59,10 +59,22 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   the jump side along a confined path (`Ito/CutoffPathAgreement.lean`,
   `ae_setIntegral_jumpIncrement_cutoffFun₂_eq` for the atom values and
   `gradient_cutoffFun₂_leftLim_eq_of_boundedPath` for the first-order term), with no bound on the
-  jump coefficient. What is left for B4-L5 is assembly: the jump-side equality at a fixed mark
-  level, the point-value/left-limit and iterated/reference-intensity conversions
-  (`Ito/JumpIntegrandLeftLim.lean`, `Ito/JumpSplitting.integral_window_eq_and_integrableOn`),
-  then the mark-level limit (B4-K5/K6) and the exhaustion in `R`.
+  jump coefficient. **Correction (2026-09-15): B4-L5 is not assembly only.**
+  `ae_jumpSide_cutoffFun₂_eq` (`Ito/CutoffJumpTransfer.lean`, B4-L5h) is conditional on
+  `hsplit`: at every level `j` of `spanningSets ν`, `X` is a continuous process plus the
+  left-limit jump sum over that level. The splitting lemma
+  (`ae_forall_eq_add_jumpSumLeftAt_of_path`) discharges that only for the truncated path — it
+  needs `γ` supported in the mark set — and not for `X`, whose remainder carries the jumps
+  outside the level. Behind `hsplit` is the jump relation `X_θ = X_{θ−} + γ(θ, X_{θ−}, ε)` at
+  the atoms of a finite-intensity mark set, which is **unproved for `X`** (gap G; route:
+  `Poisson/CompensatedCadlagMod.lean` + `Probability/DoobContinuous.lean`). Order of work:
+  Z1a (delete the unprovable axiom, re-point its consumers at the bounded-derivative theorem
+  under a name that says so, keep #16 open), M1 (gap G, remove `hsplit`), M2 (trade
+  `hReg`/`hLip` for the `SdeData` energies; the point-value/left-limit and
+  iterated/reference-intensity transfers, `Ito/JumpIntegrandLeftLim.lean`,
+  `integral_window_eq_and_integrableOn`), M3 (assembly and exhaustion in `m`), M4 (close-out).
+  The target statement with every hypothesis exposed is `tools/cited_axioms.md`, entry 16,
+  "Stage-2 status (2026-09-15)".
   The papers' quadratic and bilinear Itô formulas in expectation form — `𝔼[X_T²]`, its
   `e^{βT}`-weighted form and `𝔼[X_T Y_T]` for Itô–Lévy processes over a Lévy driver under the
   `L²` hypotheses alone — are `Ito/SecondMoment.lean` (2026-09-11, D-Itô-E); the pathwise
