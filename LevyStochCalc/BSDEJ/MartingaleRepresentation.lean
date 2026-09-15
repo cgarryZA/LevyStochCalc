@@ -18,12 +18,11 @@ Karatzas–Shreve I.3.13, and Blumenthal's 0-1 law for the joint filtration). Th
 `LevyDriver.cadlagCondExp`, built in `Driver/CadlagMartingale.lean`.
 
 The predictable representation property itself (Jacod 1975; Jacod–Shiryaev III.4.34) is not
-stated here. Its previous formulation `jacodYor_PRP_martingale_axiom` (#13a) asked for
-representing integrands adapted to the natural filtration of a single driver — the class the
-`L²` integrals of this library were then built on — while the martingale was one of the joint
-filtration; the martingale `W_t · Ñ_t` is not representable in that class, so the statement was
-refutable and was retired on 2026-09-06 together with the derived `jacodYor_representation`.
-The integrals now take a common filtration `ℱ` with `IsBrownianFiltration` and
+stated here. The formulation `jacodYor_PRP_martingale_axiom`, asking for integrands adapted to
+the natural filtration of a single driver — the class the `L²` integrals of this library were
+then built on — while the martingale is one of the joint filtration, is refutable: the
+martingale `W_t · Ñ_t` is not representable in that class (`tools/cited_axioms.md`,
+`Retired #13a`). The integrals now take a common filtration `ℱ` with `IsBrownianFiltration` and
 `IsPoissonFiltration` hypotheses; restating the property over the joint filtration of an
 independent pair `(W, N)` is `Plan.md`'s work package B5, whose single-driver halves are
 `Brownian/PRPMultidimAssembly.lean` and `Poisson/PredictableRepresentation.lean`.

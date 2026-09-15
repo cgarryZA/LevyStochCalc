@@ -11,16 +11,15 @@ import LevyStochCalc.BSDEJ.MartingaleRepresentation
 `Lipschitz` is the Lipschitz condition on the generator of a backward SDE with jumps (Tang & Li
 1994; Becherer 2006), stated in `ℝ≥0∞`, and `abs_sub_le_of_lipschitz` is its real form.
 
-Existence and uniqueness of the solution are not stated here. The previous formulation
-`continuousBSDEJ_exists_unique` (cited result #9) quantified over an arbitrary measurable
-forward process `X` and asked for a solution in the class `IsBSDEJSolution`, whose integrands
-were then adapted to the natural filtration of a single driver; a terminal condition `g(X_T)`
-independent of `(W, N)` has no adapted solution, and `ξ = W_T · Ñ_T` none in that class, so the
-statement was refutable and was retired on 2026-09-06. The statement over the augmented joint
-filtration of a Lévy driver is `BSDEJ.Solves.exists_unique_solvesBSDEJ`
-(`BSDEJ/ExistenceUniqueness.lean`), with the solution class `BSDEJ.Solves.SolvesBSDEJ`
-(`BSDEJ/Solves.lean`) and the Picard scheme of `BSDEJ/PicardStep.lean`,
-`BSDEJ/PicardIterates.lean` and `BSDEJ/PicardLimit.lean`.
+Existence and uniqueness of the solution are not stated here. The formulation
+`continuousBSDEJ_exists_unique`, quantifying over an arbitrary measurable forward process `X`
+and asking for a solution in the class `IsBSDEJSolution` whose integrands are adapted to the
+natural filtration of a single driver, is refutable: a terminal condition `g(X_T)` independent
+of `(W, N)` has no adapted solution, and `ξ = W_T · Ñ_T` none in that class
+(`tools/cited_axioms.md`, `Retired #9`). The statement over the augmented joint filtration of a
+Lévy driver is `BSDEJ.Solves.exists_unique_solvesBSDEJ` (`BSDEJ/ExistenceUniqueness.lean`), with
+the solution class `BSDEJ.Solves.SolvesBSDEJ` (`BSDEJ/Solves.lean`) and the Picard scheme of
+`BSDEJ/PicardStep.lean`, `BSDEJ/PicardIterates.lean` and `BSDEJ/PicardLimit.lean`.
 
 ## Source
 

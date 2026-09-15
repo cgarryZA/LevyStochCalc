@@ -31,10 +31,11 @@ This module holds the integrand vocabulary of the formula: `gradient`, `hessian`
 formula itself is `itoLevyFormula_of_boundedDerivs` in `Ito/ItoLevyBoundedDerivsSolution.lean`:
 the four-term identity for a state function with bounded first and second derivatives, relative
 to the filtration of the solution's SDE data. The general statement, with no bound on the
-derivatives, is open (`tools/cited_axioms.md`, entry 16). Until 2026-09-15 this module declared
-the cited axiom `itoLevyFormula_jumpResidual_canonical_axiom` and derived `itoLevyFormula` from
-it; the axiom asserted the formula at an arbitrary filtration unrelated to the one the solution
-solves against, so it could not be proved, and it was deleted rather than kept.
+derivatives, is the theorem `itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`), built
+on the bounded-derivative case above. The formulation
+`itoLevyFormula_jumpResidual_canonical_axiom`, asserting the identity at an arbitrary
+filtration unrelated to the one the solution solves against, cannot be proved as stated
+(`tools/cited_axioms.md`, `Resolved #16`).
 -/
 
 open MeasureTheory ProbabilityTheory

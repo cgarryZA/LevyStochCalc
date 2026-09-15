@@ -19,16 +19,14 @@ projection is the orthogonal projection onto the smaller space of adapted cell-c
 processes, so its projection error dominates the pathwise one, and a rate for it transfers
 to these averages, not conversely.
 
-The path-regularity bound itself is not stated here. Its previous formulation
-`bsdej_path_regularity` (cited result #10) asserted the rate `C · Δt` for every measurable
-terminal function `g` and every measurable forward process `X`; for `ξ = 1_{W_T > 0}` the
-projection error of `Z` decays like `Δt^{1/2}` only (Geiss, Geiss & Gobet 2012), so the
-statement was refutable and was retired on 2026-09-06 together with its corollaries
-`bsdej_path_regularity_linear_rate` and `bsdej_U_L2_regularity_linear_rate`. Restating it,
-with the regularity hypotheses of Bouchard & Elie (a Lipschitz `g` and a jump diffusion `X`
-with Lipschitz coefficients), over the common filtration the `L²` integrals now take is
-`Plan.md`'s work package A7; its proof in the literature rests on Malliavin calculus, which
-this library does not have (`tools/cited_axioms.md`, `Retired #10`).
+The path-regularity bound itself is not stated here. The formulation `bsdej_path_regularity`,
+asserting the rate `C · Δt` for every measurable terminal function `g` and every measurable
+forward process `X`, is refutable: for `ξ = 1_{W_T > 0}` the projection error of `Z` decays
+like `Δt^{1/2}` only (Geiss, Geiss & Gobet 2012) (`tools/cited_axioms.md`, `Retired #10`).
+Restating it, with the regularity hypotheses of Bouchard & Elie (a Lipschitz `g` and a jump
+diffusion `X` with Lipschitz coefficients), over the common filtration the `L²` integrals now
+take is `Plan.md`'s work package A7; its proof in the literature rests on Malliavin calculus,
+which this library does not have.
 
 ## Source
 

@@ -180,7 +180,7 @@ Thin forwarder over `exists_jumpDiffusion_unique_of_solvesOn` in `Ito/PicardWell
 which builds the solution by Picard iteration on the Bielecki-weighted process space over each
 window and glues the windows.
 
-**Statement audit (2026-09-07)**: the filtration is a parameter, and both the produced solution
+The filtration is a parameter, and both the produced solution
 and the competitor are asked to satisfy the integral equation relative to it. The `is_solution`
 field of `JumpDiffusion` quantifies the filtration existentially, so two `JumpDiffusion`s can
 carry incomparable Brownian filtrations; the `L²` Itô isometry — which is what the Gronwall step
@@ -257,7 +257,7 @@ any solution of the equation relative to the same `ℱ` agrees with it a.s. at e
 University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S. *Stochastic Differential
 Equations and Diffusion Processes*, North-Holland, 1989, Chapter IV.
 
-**Statement audit (2026-09-07)**: uniqueness is relative to the filtration, and the usual
+Uniqueness is relative to the filtration, and the usual
 conditions on `ℱ` are hypotheses — see the note on
 `LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`. -/
 theorem exists_unique
