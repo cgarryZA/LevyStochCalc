@@ -4,5 +4,4 @@
 # is compared by tools/check_docs.sh with the live-axiom count in tools/cited_axioms.md. An entry
 # no audited declaration uses fails the lint: delete it in the commit that discharges the axiom.
 # An entry here records a cited, unproved hypothesis in the trust base; it is not a proof.
-# cited axiom #16 (LevyStochCalc/Ito/JumpFormula.lean), see tools/cited_axioms.md
-LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom
+# (empty since 2026-09-15: no cited axiom is live; see tools/cited_axioms.md)

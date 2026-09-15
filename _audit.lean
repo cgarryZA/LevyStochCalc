@@ -494,14 +494,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- Itô-Lévy formula axioms + derived theorems:
--- 2026-05-26: Tier 1 #16 narrowed to the canonical-`R` form
--- (`itoLevyFormula_jumpResidual_canonical_axiom`); the previous
--- universal-`R` form (`itoLevyFormula_jumpResidual_axiom`) is now a
--- derived THEOREM forwarding over the narrower axiom by per-ω algebra.
-#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom
-#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom
-#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula
+-- Itô–Lévy formula: the bounded-derivative theorem. The cited axiom #16 and its two derived
+-- forms were deleted 2026-09-15; the general statement is open (tools/cited_axioms.md, entry 16).
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_of_boundedDerivs
 
 -- ===== Layer 3 (+ 3a): BSDEJ =====
 -- 2026-09-06: the cited results #9 (`continuousBSDEJ_exists_unique`), #10

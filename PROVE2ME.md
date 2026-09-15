@@ -19,19 +19,21 @@ is a LevyStochCalc problem (Jacod–Yor PRP + Itô–Lévy isometry from real in
 `GOAL.md` §1.A already demands what Prove2Me would make publicly checkable. That axiom debt
 has shrunk to a single node:
 
-- **1 live cited axiom** — #16 `itoLevyFormula_jumpResidual_canonical_axiom`
-  (`grep -c "^### [0-9]" tools/cited_axioms.md` = 1). It is the only `axiom` declaration in
-  the repository, at `LevyStochCalc/Ito/JumpFormula.lean:189`.
+- **0 live cited axioms** (`grep -c "^### [0-9]" tools/cited_axioms.md` = 0) and no `axiom`
+  declaration in the repository since 2026-09-15: #16
+  `itoLevyFormula_jumpResidual_canonical_axiom` was deleted as unprovable as stated. The
+  general Itô–Lévy formula is an open statement (ledger entry `Open #16`, which records the
+  target with every hypothesis); its bounded-derivative case is the theorem
+  `itoLevyFormula_of_boundedDerivs`.
 - **One `sorry`-carrying declaration** — `tools/sorry_baseline.txt` lists exactly one name,
   the canonical assembly `itoLevyFormula_jumpResidual_canonical` (seven `sorry` blocks, the
   Stage-2 obligations for general `u`); no other `#print axioms` report names `sorryAx`, and
   `sorry`/`admit` occur elsewhere in the sources only as words inside docstrings. That
   declaration is not an upload candidate until it is proved.
-- **#16 is the whole of the pinned dissertation surface's axiom debt.** Exactly one
-  dissertation declaration depends on it, `Dissertation.Continuous.itoLevyFormula` (through
-  the library's `itoLevyFormula`); apart from #16 and its two consumers in
-  `Ito/JumpFormula.lean`, every declaration in either repository's audit is on the three
-  standard axioms. The other entries that once gated that surface — #5, #6, #9, #10, #15 —
+- **The pinned dissertation surface has no axiom debt.** Since 2026-09-15 the dissertation
+  forwarder (Cu03) forwards the bounded-derivative theorem, and every declaration in either
+  repository's audit is on the three standard axioms. The open node is the general statement of
+  entry `Open #16`, which is not an axiom in either tree. The other entries that once gated that surface — #5, #6, #9, #10, #15 —
   are theorems or retired.
 
 The `BackwardStepStochasticInputs` boundary is a different kind of debt. Since A5-1
@@ -111,14 +113,14 @@ at the pin actually committed, and the upload re-verified at the environment it 
 
 ## 3. What to upload, in what order
 
-Not the library. The payload is **one Open theorem — cited axiom #16 — plus the definitions
-its statement needs**. That is a small `submit-definition` / `submit-problem` batch, not the
+Not the library. The payload is **one Open theorem — the general Itô–Lévy formula of ledger entry
+`Open #16`, no longer an `axiom` in the tree — plus the definitions its statement needs**. That is a small `submit-definition` / `submit-problem` batch, not the
 full-project transplant playbook, and a fundamentally smaller job than the Dissertation's
 Stage 3–6. The earlier plan for a ten-node decomposition DAG is moot: nine of those nodes are
 now theorems and four were retired as unsound statements (§1).
 
-1. **The definitional closure of #16's statement**, as `submit-definition` nodes. Read off
-   `Ito/JumpFormula.lean:189`: the driver structures `Brownian.Multidim.MultidimBrownianMotion`
+1. **The definitional closure of the target statement**, as `submit-definition` nodes. Read off
+   the target in `tools/cited_axioms.md` (`Open #16`) and `Ito/ItoLevyBoundedDerivsSolution.lean`: the driver structures `Brownian.Multidim.MultidimBrownianMotion`
    and `Poisson.PoissonRandomMeasure`; the filtration predicates `IsBrownianFiltration` and
    `IsPoissonFiltration`; `Ito.Setting.JumpDiffusionCoeffs` and `JumpDiffusion`; the two
    `stochasticIntegral`s, hence their constructions (`stochasticIntegralBrownian`, the
@@ -127,11 +129,13 @@ now theorems and four were retired as unsound statements (§1).
    `driftIntegrand`, `compensatorDriftIntegrand`). This closure is the expensive part: the
    integrals are built, not assumed, so their definitions drag in the `L²` constructions
    behind them. Nothing here is an Open node; it is what the Open node is *about*.
-2. **#16 itself as an Open theorem** — `itoLevyFormula_jumpResidual_canonical_axiom`, with
+2. **The general statement as an Open theorem** — the target of entry `Open #16` (the deleted
+   axiom's own statement was at an arbitrary filtration and is not the upload), with
    the `source` field "Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009,
    Theorem 4.4.10 and Theorem 4.4.7 step (II)". Its statement was audited on 2026-09-06 (two
    missing hypotheses added, `tools/cited_axioms.md` entry #16) and restated over a common
-   filtration under X2-3; upload the statement as it stands in the file, not an earlier form.
+   filtration under X2-3; upload the target statement of the ledger entry, not the deleted axiom's
+   form.
 3. **Nothing else.** The retired statements #9, #10, #13a, #15 are not candidates until they
    are restated (`Plan.md` A6, A7, B5) — uploading a statement that was deleted as refutable
    would publish the defect permanently. The theorems (#1–#6, #11–#14, #13b, #17, #18) are

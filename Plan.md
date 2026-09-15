@@ -8,7 +8,8 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 
 ## Where we stand (verified 2026-06-16)
 
-- **1 custom axiom** remains — #16 (was 13; **#5 and #17 closed 2026-06-17**, **#1
+- **0 custom axioms** remain — #16 deleted 2026-09-15 as unprovable as stated, its general
+  statement **open** (`tools/cited_axioms.md`, `Open #16`) (was 13; **#5 and #17 closed 2026-06-17**, **#1
   closed 2026-09-05** via `RemyDegenne/brownian-motion`, **#4, #6, #18, #2 and #13b closed
   2026-09-06**,
   **#15 retired 2026-09-06** as a vacuous statement, **#9, #10, #13a retired 2026-09-06 as
@@ -29,7 +30,7 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
 - **`sorry` status (2026-09-11)**: `tools/sorry_baseline.txt` holds exactly one declaration,
   the canonical assembly `itoLevyFormula_jumpResidual_canonical`
   (`Ito/JumpFormulaAssembled.lean`, seven `sorry` blocks — the Stage-2 obligations for general
-  `u`), a separate open node from the one live axiom #16. The bounded-derivative milestone M16
+  `u`), a separate open node from the open entry #16. The bounded-derivative milestone M16
   (`itoLevyFormula_jumpResidual_of_boundedDerivs`) is proved with no `sorry` (2026-09-10) and
   takes no cross witness (2026-09-11, B4-C12) and is callable from the solution data
   (2026-09-11, B4-C13); the locality of the compensated integral at a stopping time, the
@@ -88,7 +89,9 @@ old plan + the detailed per-phase notes. This v2 plan closes the remaining
   window, glues the windows along `⌈t⌉₊`, and populates every field of `JumpDiffusion`. Two
   statement audits landed with it (uniqueness is relative to the filtration; the drift integral
   in `is_solution` needed parenthesising) — see `tools/cited_axioms.md` #12.
-- **One live cited axiom left**: `itoLevyFormula_jumpResidual_canonical_axiom` (#16).
+- **No live cited axiom** since 2026-09-15: #16 was deleted (unprovable as stated); the general
+  Itô–Lévy formula is the open target of `tools/cited_axioms.md` entry `Open #16`, and its
+  bounded-derivative case is proved (`itoLevyFormula_of_boundedDerivs`).
 - **6 of the 13 axioms gate the pinned dissertation surface** (the 21
   `import_contract.md` symbols), traced via `#print axioms`:
   **#5** `itoIsometry_brownian_unified_existence`,
@@ -488,7 +491,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
             `naturalFiltration N`, the right filtration for the Poisson-only isometry), import
             contract re-verified (12 modules + 19 symbols), ledgers updated in both repos.
 - [ ] **A5 / #16** `itoLevyFormula_jumpResidual_canonical_axiom` — Itô–Lévy jump
-      residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2.
+      residual (Applebaum 4.4.10 + 4.4.7), on A2/A4 and X2. Axiom deleted 2026-09-15 (Z1a);
+      the general statement stays open — M1–M4 per `tools/cited_axioms.md` entry `Open #16`.
 - [x] **A6-0 / #9 statement audit** — RETIRED 2026-09-06 (refutable: arbitrary non-adapted
       `X`; single-driver integrand class); the axiom and the dissertation forwarder Cu01 were
       deleted. **A6** becomes: after X2, state and prove BSDEJ existence/uniqueness over the

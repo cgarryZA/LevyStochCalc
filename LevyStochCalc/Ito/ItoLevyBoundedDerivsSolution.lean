@@ -52,6 +52,9 @@ integrals depend only on the class of their integrand.
   SDE data, with the left limits derived as well: the almost-sure càdlàg paths of a jump
   diffusion give a representative with left limits everywhere, which carries SDE data at the same
   filtration, and each term of the formula reads the path only up to a null set.
+* `itoLevyFormula_of_boundedDerivs` — the same statement in its four-term form,
+  `u(T, X_T) − u(0, X_0) = drift + Brownian + compensated + compensator-drift`, the shape the
+  dissertation forwards.
 * `itoLevyFormula_jumpResidual_of_solvesOn` — the formula for a jump diffusion solving the
   equation relative to the given filtration, every admissibility input being one of the lemmas
   above.
@@ -831,6 +834,42 @@ theorem itoLevyFormula_jumpResidual_of_sdeData (x₀ : Fin n → ℝ)
       congrArg (fun x => ∫ e, compensatorDriftIntegrand u coeffs.γ s x e ∂ν) (hag s hs.1)
   rw [← hdr, ← hbro, ← hcmp, ← hcd, ← hag T hT.le, ← hag 0 le_rfl]
   exact hω
+
+/-- The Itô–Lévy formula for a jump diffusion and a jointly `C²` state function with bounded
+first and second derivatives, relative to the filtration of the solution's SDE data:
+`u(T, X_T) − u(0, X_0)` is the drift integral of `∂ₜu + 𝓛u`, plus the Brownian integral of
+`(∇u)ᵀσ`, plus the compensated-Poisson integral of `u(x + γ) − u(x)`, plus the compensator-drift
+integral of `u(x + γ) − u(x) − γᵀ∇u`, all along the path. -/
+theorem itoLevyFormula_of_boundedDerivs (x₀ : Fin n → ℝ)
+    (X : JumpDiffusion W N coeffs x₀) (S : LevyStochCalc.Ito.BigJump.SdeData X)
+    [S.ℱ.IsRightContinuous]
+    (hℱ0 : ∀ t : ℝ, t ≤ 0 → S.ℱ 0 ≤ S.ℱ t)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[S.ℱ 0] s)
+    (hReg : coeffs.IsRegular ν) {L : ℝ} (hLip : coeffs.IsLipschitz ν L)
+    (u : ℝ → (Fin n → ℝ) → ℝ) (hu : ContDiff ℝ 2 (Function.uncurry u))
+    {K₀ K₁ K₂ : ℝ} (hK₀ : ∀ s x, |timeDeriv u s x| ≤ K₀)
+    (hK₁ : ∀ s x i, |gradient u s x i| ≤ K₁) (hK₂ : ∀ s x i j, |hessian u s x i j| ≤ K₂)
+    (T : ℝ) (hT : 0 < T) :
+    ∀ᵐ ω ∂P,
+      u T (X.X T ω) - u 0 (X.X 0 ω)
+        = (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))
+          + MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
+              (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
+              (fun j => measurable_diffusionIntegrand_path hu hReg.2.1 X.measurable_path j)
+              (fun j => progressivelyMeasurable_diffusionIntegrand_path hu hReg.2.1 S.X_prog j)
+              (fun j _ hT' => lintegral_sq_diffusionIntegrand_path_lt_top hK₁
+                S.σ_meas S.σ_sq j hT') T ω
+          + LevyStochCalc.Poisson.Compensated.stochasticIntegral N S.ℱ S.isPoisson
+              (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
+              (measurable_jumpIncrement_path hu hReg.2.2.1 X.measurable_path)
+              (markedProgressivelyMeasurable_jumpIncrement_path hu hReg.2.2.1 S.X_prog)
+              (fun _ hT' => lintegral_sq_jumpIncrement_path_lt_top hu hK₁ S.γ_meas S.γ_sq hT')
+              T ω
+          + ∫ s in Set.Icc (0 : ℝ) T, ∫ e,
+              compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
+  filter_upwards [itoLevyFormula_jumpResidual_of_sdeData W N coeffs x₀ X S hℱ0 hnull hReg hLip
+    u hu hK₀ hK₁ hK₂ T hT] with ω hω
+  linarith
 
 end Main
 

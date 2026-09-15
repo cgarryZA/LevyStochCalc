@@ -11,7 +11,7 @@ import LevyStochCalc
 This file demonstrates how a downstream client (e.g. the main
 `Dissertation/Continuous.lean` axiom site, or a finance library
 implementing Föllmer-Schweizer quadratic hedging in a Lévy market)
-calls the project's headline I02 axiom and its sister Cu03 axiom.
+calls the project's headline I02 result and its sister Cu03 (both theorems now).
 
 P10 F4 fix (red-team 2nd audit, 2026-05-23): closes the
 "library ships ZERO examples or tests" gap by providing minimal

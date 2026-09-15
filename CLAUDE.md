@@ -24,9 +24,10 @@ integrals, the Itô–Lévy formula, BSDEs with jumps). It is the substrate the 
 dissertation (`D:/Dissertation`) imports for its continuous-time foundations.
 
 `tools/cited_axioms.md` is the per-axiom ledger of record — read it there rather than
-re-deriving counts here. One cited axiom is live (#16, the Itô–Lévy formula's jump residual,
-`Ito/JumpFormula.lean`), and it is the only `axiom` declaration in the repository. Of the rest,
-nine are theorems, four were retired as unsound statements, and the others were deleted or
+re-deriving counts here. No cited axiom is live and the repository has no `axiom` declaration:
+the last one, #16 (the Itô–Lévy formula), was deleted on 2026-09-15 as unprovable as stated, and
+the general formula it stood for is an **open** target (ledger entry `Open #16`) whose
+bounded-derivative case is a theorem. Of the other entries, nine are theorems, four were retired as unsound statements, and the others were deleted or
 re-derived; the ledger's index says which. Two upstream `lake require`s at the shared Mathlib
 pin are load-bearing: `RemyDegenne/brownian-motion` discharges Brownian existence (#1) and
 supplies the càdlàg regularisation behind #6 and #13b; `raphaelrrcoelho/formal-mathfin`
@@ -46,7 +47,7 @@ bash tools/verify_import_contract.sh  # dissertation import contract
 # and: D:/Dissertation `lake build`
 ```
 
-- **Import contract** (`tools/import_contract.md`): 12 modules + 19 symbols under
+- **Import contract** (`tools/import_contract.md`): 13 modules + 19 symbols under
   `LevyStochCalc.*` must keep resolving from their pinned path. On in-tree
   splits, keep pinned symbols in the module of record (no forwarding stubs); a
   deliberate relocation updates the dissertation's import. Don't rename public
@@ -81,10 +82,11 @@ collaborative Lean platform Anthropic's FLT formalization was assembled on. The
   matches **no** Prove2Me environment (nearest: `c5ea003` behind, `0df444a` ahead, as the
   platform listed them on 2026-09-05). Imports never cross environments, so any upload is
   re-verified against the environment it targets; see `PROVE2ME.md`.
-- **The payload is the debt, not the library.** That debt is one node: cited axiom #16,
-  `itoLevyFormula_jumpResidual_canonical_axiom`. (`tools/sorry_baseline.txt` holds one further
+- **The payload is the debt, not the library.** That debt is one node: the general Itô–Lévy
+  formula, ledger entry `Open #16` (the `axiom` that carried it was deleted 2026-09-15 as
+  unprovable as stated; the target statement is in the entry). (`tools/sorry_baseline.txt` holds one further
   open node, the canonical assembly `itoLevyFormula_jumpResidual_canonical` with seven `sorry`
-  obligations; it is Stage-2 work, not an upload candidate.) The axiom already carries a
+  obligations; it is Stage-2 work, not an upload candidate.) The entry already carries a
   precise literature citation in
   `tools/cited_axioms.md`; publishing it makes the boundary machine-visible instead of
   ledger-visible. The four statements retired as unsound in 2026-09 (#9, #10, #13a, #15) are

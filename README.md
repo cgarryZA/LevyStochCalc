@@ -19,16 +19,19 @@ foundations.
 `tools/cited_axioms.md` is the ledger of record for every result this library cites rather than
 proves; nothing in this README overrides it. Its current state:
 
-* **One cited axiom is live** — entry #16,
-  `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` (Applebaum 2009 Thm 4.4.10 +
-  Thm 4.4.7 step II, the canonical-`R` form). It is the only `axiom` declaration in the
-  repository, at `LevyStochCalc/Ito/JumpFormula.lean:189`. Three declarations in the library
-  depend on it — itself, `itoLevyFormula_jumpResidual_axiom` and `itoLevyFormula` — and one
-  downstream, the dissertation forwarder `Dissertation.Continuous.itoLevyFormula`.
+* **No cited axiom is live, and there is no `axiom` declaration in the repository** (since
+  2026-09-15). The last entry, #16 `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom`
+  (Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step II), was deleted because its statement could not
+  be proved: it asserted the formula at an arbitrary filtration unrelated to the solution's.
+  The result it stood for — the Itô–Lévy formula for a `C²` function of a jump diffusion with
+  no bound on the derivatives — is **open** (ledger entry `Open #16`, which states the target
+  with every hypothesis). Its bounded-derivative case is the theorem
+  `Ito.JumpFormula.itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`),
+  on the three standard axioms, and the dissertation forwards that theorem.
 * **One `sorry`-carrying declaration.** `tools/sorry_baseline.txt` lists exactly one name, the
   canonical assembly `itoLevyFormula_jumpResidual_canonical` (`Ito/JumpFormulaAssembled.lean`,
   seven `sorry` blocks — the Stage-2 obligations of the small-jump truncation for general `u`);
-  it is a separate open node from the live axiom above. No other `#print axioms` report names
+  it is a separate open node from entry #16. No other `#print axioms` report names
   `sorryAx`, and `sorry`/`admit` occur elsewhere in the `.lean` sources only as words inside
   docstrings and comments. The bounded-derivative milestone
   `itoLevyFormula_jumpResidual_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivs.lean`) is proved
@@ -77,14 +80,15 @@ LevyStochCalc/
 ├── Driver/            — the joint Lévy driver (W, N): existence, germ
 │                        independence, the càdlàg conditional-expectation martingale
 ├── Ito/               — the jump-diffusion setting, the Itô-Lévy formula
-│                        (JumpFormula.lean holds the one live cited axiom),
+│                        (JumpFormula.lean holds the integrand vocabulary; the
+│                        formula at bounded derivatives is ItoLevyBoundedDerivsSolution.lean),
 │                        and the Picard well-posedness chain
 └── BSDEJ/             — the BSDEJ data and solution predicate, the Picard map,
                          interval time-averages, the conditional-expectation
                          bridge to the PRP
 ```
 
-Module-level detail is in each file's docstring; `tools/import_contract.md` lists the 12
+Module-level detail is in each file's docstring; `tools/import_contract.md` lists the 13
 modules and 19 symbols the dissertation pins.
 
 ## Scope (deliberate omissions)

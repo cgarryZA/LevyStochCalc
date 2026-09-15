@@ -15,7 +15,7 @@ ever genuinely relocated (e.g. Phase 4 upstreaming into mathlib's
 `ProbabilityTheory` namespace), the fix is to update the consumer's import in the
 dissertation repo, not to leave a stub behind here.
 
-## 1. Pinned modules (12)
+## 1. Pinned modules (13)
 
 | # | Module path                              | File                                           | Used by                                                       |
 |---|------------------------------------------|------------------------------------------------|---------------------------------------------------------------|
@@ -31,6 +31,7 @@ dissertation repo, not to leave a stub behind here.
 | 10 | `LevyStochCalc.Brownian.Martingale`      | `LevyStochCalc/Brownian/Martingale.lean`       | `Dissertation/Continuous.lean` (`naturalFiltration`)          |
 | 11 | `LevyStochCalc.Poisson.L2Isometry`       | `LevyStochCalc/Poisson/L2Isometry.lean`        | `Dissertation/Continuous.lean`, `Continuous/LevyStochCalcBridge.lean` |
 | 12 | `LevyStochCalc.Poisson.Compensated`      | `LevyStochCalc/Poisson/Compensated.lean`       | `Dissertation/Continuous.lean`, `Continuous/LevyStochCalcBridge.lean` |
+| 13 | `LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution` | `LevyStochCalc/Ito/ItoLevyBoundedDerivsSolution.lean` | `Dissertation/Continuous.lean` (`itoLevyFormula_of_boundedDerivs`) |
 
 ## 2. Pinned symbols
 
@@ -64,7 +65,7 @@ remain reachable under the listed namespace prefix.
 | `JumpFormula.diffusionIntegrand`                            | `Ito/JumpFormula.lean`                    |
 | `JumpFormula.compensatorDriftIntegrand`                     | `Ito/JumpFormula.lean`                    |
 | `JumpFormula.driftIntegrand`                                | `Ito/JumpFormula.lean`                    |
-| `JumpFormula.itoLevyFormula`                                | `Ito/JumpFormula.lean` (cited axiom)      |
+| `JumpFormula.itoLevyFormula_of_boundedDerivs`               | `Ito/ItoLevyBoundedDerivsSolution.lean` (a theorem over the three standard axioms; the bounded-derivative case — the general Itô–Lévy formula is open, `tools/cited_axioms.md` entry 16; until 2026-09-15 this row was `JumpFormula.itoLevyFormula` over cited axiom #16) |
 
 ### `LevyStochCalc.BSDEJ`
 
