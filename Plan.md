@@ -528,8 +528,10 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       filtration at `t = 0`, the everywhere-càdlàg vector Brownian integral, both legs vanishing
       at `t ≤ 0`. **Waves 3–5 (same day):** L08 integrand dictionary, L09 `S²` bound, L10a the
       generator along a mark-step integrand (Carathéodory), L11 its energy bound, L15 the backward
-      weighted inequality, L16 Young + Lipschitz and the factor `1/4`. Open: L10b (progressive
-      modification of the generator along a process), L12–L14 (Picard step), L17 (contraction),
+      weighted inequality, L16 Young + Lipschitz and the factor `1/4`, L10b the progressive
+      modification of the generator along a process (`BSDEJ/GeneratorModification.lean`), L12 and
+      L13a–c the terminal datum, the càdlàg legs and the drift leg of a Picard step. Open: L13d
+      (assembly into `PicardOutput`), L14 (Itô–Lévy structure of the output), L17 (contraction),
       L18 (uniqueness), L19–L21 (limit, assembly, bridge).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
