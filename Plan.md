@@ -665,7 +665,26 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       mark); `examples/NonvacuityBSDEJJump.lean` takes the terminal datum `ξ = J_1`, the compensated
       integral of the window indicator, so the solution is the càdlàg version of `J`, `Z = 0`,
       `U = 1_{(0,1]}` with marked energy `1`, and by uniqueness every solution's `U` has marked
-      energy `1`. The `GOAL.md` §1.B boxes stay open until every pinned symbol has a witness.
+      energy `1`. **Contract-symbol witnesses (2026-09-15)**: `examples/NonvacuityBSDEJData.lean` —
+      the concrete `BSDEJData` of the `f = y` equation with its `Existence.Lipschitz` proof, the
+      `IsBSDEJSolution` of the bridge on the `f = 0`, `ξ = W_1` model, and the driver's
+      `jointIntegral` on each leg with a nonzero conclusion; `examples/NonvacuityContract.lean` —
+      the unit increment has law `𝒩(0, 1)` and is positive with probability exactly `1/2`, so
+      `sigmaBrownian`, the increment σ-algebra and `incrementSigma` are not `⊥`
+      (`comap_increment_le_sigmaBrownian` applied); a region of intensity `Λ` is missed with
+      probability exactly `exp (-Λ)`, so `regionSigma` and the step σ-algebra are not `⊥` and
+      `indep_stepSigma` is applied to the unit step against `D.filtration 0` (which is trivial
+      modulo null sets — the file does not claim otherwise); `compensated_mean_zero`,
+      `compensated_second_moment`, `compensated_sq_integrable` applied to the compensated count on
+      `(0, 1] × ℝ`; `BrownianMotion.exists`, `exists_of_sigmaFinite`,
+      `itoIsometry_brownian_unified_existence`, `itoIsometry_compensated_unified_existence`,
+      `itoIsometry_diff_brownian`, `itoIsometry_diff_compensated` applied by name. **Count**: 36 of
+      the 41 pinned symbols now occur in a concrete-model witness; the five without one are
+      `indep_iSup_sigmaBrownian_ne` (needs `d = 2`), `comap_pi_eq_iSup`,
+      `indep_iSup_comap_of_disjoint`, `exists_predictable_jointIntegral` and
+      `conditionalTimeAverage_U` (wave 12, in progress). Of the cited theorems, #1, #2, #5, #6,
+      #9, #16, #17, #18 are applied by name; #3, #4, #12, #13b, #14 are still reached only through
+      wrappers. The `GOAL.md` §1.B boxes stay open until every pinned symbol has a witness.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
