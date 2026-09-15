@@ -84,7 +84,7 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       `Mathlib/Probability/<Area>/…` shape and are registered.
 
 ### E. Dissertation never regresses (see §3 for priority)
-- [ ] `tools/verify_import_contract.sh` passes; the dissertation at
+- [x] `tools/verify_import_contract.sh` passes; the dissertation at
       `D:/Dissertation` builds against this repo. Pinned symbols keep resolving
       from their pinned path (kept in place on in-tree splits — no forwarding
       stubs); a deliberate relocation updates the dissertation's import instead.

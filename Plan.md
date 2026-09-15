@@ -728,10 +728,34 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       at the mark carried by `δ₁`; `D.filtration 0` is trivial modulo null sets and no witness
       claims otherwise.
 
+## Phase C′ — Faithfulness (`GOAL.md` §C)
+
+- [ ] **C′1** Faithfulness audit (report first, fixes second): compare `BrownianMotion`,
+      `MultidimBrownianMotion`, `PoissonRandomMeasure`, `LevyDriver`, `IsBrownianFiltration`,
+      `IsPoissonFiltration`, the two `L²` integrals, `JumpDiffusion`/`SolvesOn`, `SolvesBSDEJ`
+      and `conditionalTimeAverage_Z/U` against the cited definitions (Karatzas–Shreve,
+      Applebaum, Jacod–Shiryaev, Delong, Bouchard–Elie); for each of the 14 cited statements
+      check quantifier order (`∀∃` vs `∃∀`) and that every hypothesis is used. Record every
+      discrepancy as a ledger finding and fix or restate. (wave 14, audit in progress)
+- [ ] **C′2** Tie the BM layer to the mathlib predicates at the pin
+      (`ProbabilityTheory.IsPreBrownianReal`, `IsBrownianReal`, `IsGaussianProcess`,
+      `HasIndepIncrements` — all present in Mathlib `81a5d257`): the converse direction
+      `BrownianMotion.ofIsPreBrownianReal` exists (`Brownian/Existence.lean`); the forward
+      direction `BrownianMotion.isBrownianReal : IsBrownianReal (fun t : ℝ≥0 => W.W t) P` with
+      `hasIndepIncrements` and `isGaussianProcess` is wave 14 (`Brownian/MathlibBridge.lean`).
+      This is also `D1`.
+
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
+- [ ] **D0** Inventory (2026-09-15): 340 library files, 38 over 600 lines (largest
+      `Poisson/CompensatedDensity.lean` 4471, `Brownian/ItoL2Completion.lean` 4252,
+      `Ito/Picard.lean` 2919, `Brownian/ItoDensity.lean` 2550, `Ito/SecondMoment.lean` 2053);
+      no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
+      (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
+      `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
+      File splits keep every pinned symbol in its module of record (no forwarding stubs).
 - [ ] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
-      `HasIndepIncrements`, `IsGaussianProcess`); track the Degenne BM project.
+      `HasIndepIncrements`, `IsGaussianProcess`) — see C′2.
 - [ ] **D2** Per closed, general result, in mathlib-readiness order (smallest
       `Basic.lean` `eLpNorm` helpers first; then BM/KC pieces — coordinate on
       Zulip; then PointProcess → StochasticIntegral → SDE → BSDE): re-home to
