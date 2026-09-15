@@ -844,6 +844,7 @@ lemma dyadicEvalShifted_eq_at_index
       linarith [h_i_fires.1]
   · intro h_not; exact absurd (Finset.mem_univ i) h_not
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The shifted eval is bounded by `max M 0` (at most one indicator fires; each shifted
 average is bounded by `max M 0`). -/
 lemma dyadicEvalShifted_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)

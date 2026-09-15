@@ -234,6 +234,7 @@ theorem progressivelyMeasurable_stopped_sub_chain_of_progressivelyMeasurable
             (fun ω s => coordDeriv f' p (V s ω + c k ω) * H p j ω s) ω s :=
   fun k p j => progressivelyMeasurable_stopped_sub (hchain k) (hchain (k + 1)) (hpV k p j)
 
+omit [IsProbabilityMeasure P] in
 /-- An integrand of finite energy on every bounded window has increments of finite energy
 between the members of a chain of stopping times. -/
 theorem energy_stopped_sub_chain_lt_top

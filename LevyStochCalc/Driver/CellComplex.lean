@@ -75,6 +75,7 @@ theorem integrable_cellFactor (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
       le_of_eq (norm_cellFactor N w Bfam l X s ω))).congr
     (Filter.Eventually.of_forall fun ω => mul_comm _ _)
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The complex pairing is the pairing against the real part plus `i` times the pairing against
 the imaginary part. -/
 theorem cellPairingC_eq_parts (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}

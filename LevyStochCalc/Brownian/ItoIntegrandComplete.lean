@@ -110,6 +110,7 @@ section Complete
 
 variable {T : ℝ} {H : ℕ → Ω → ℝ → ℝ}
 
+omit [IsProbabilityMeasure P] in
 /-- An energy-Cauchy sequence of integrands has an `L²`-limit on the product space. -/
 theorem exists_energy_limit (hm : ∀ n, Measurable (Function.uncurry (H n)))
     (hfin : ∀ n, energy P T (H n) ≠ ⊤)
@@ -159,6 +160,7 @@ theorem exists_energy_limit (hm : ∀ n, Measurable (Function.uncurry (H n)))
 noncomputable def limsupIntegrand (H : ℕ → Ω → ℝ → ℝ) (ns : ℕ → ℕ) : Ω → ℝ → ℝ :=
   fun ω s => limsup (fun i => H (ns i) ω s) atTop
 
+omit [IsProbabilityMeasure P] in
 /-- **Completeness of the admissible integrands.** An energy-Cauchy sequence of jointly and
 progressively measurable integrands vanishing off the horizon has an admissible limit. -/
 theorem exists_progressive_energy_limit (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)

@@ -67,6 +67,7 @@ theorem charMark_eq_zero (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {t : �
     exact absurd hle (not_le.mpr hq)
   simp [charMark, Set.indicator_of_notMem hnot]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- **Fubini for the compensator.** Pairing an integrable weight with the compensator of the
 character at `t` is the integral over the window of the mark times the pairing of the weight
 with the character at that time. -/

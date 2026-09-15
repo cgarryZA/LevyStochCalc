@@ -3190,7 +3190,7 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
       refine lintegral_congr (fun ω =>
         MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_))
       rw [Pi.sub_apply, hGp, hHp, ← nnnorm_neg]
-      congr 1; ring
+      congr 1; ring_nf
     have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
         Filter.atTop (nhds 0) := by
       simp_rw [hsq]
@@ -4063,7 +4063,7 @@ theorem isometry_diff_stochasticIntegralBrownian
       refine MeasureTheory.setLIntegral_congr_fun measurableSet_Icc (fun s _ => ?_)
       rw [show (‖H ω s - (masterApprox ℱ H hm hp hs n).eval s ω‖₊ : ℝ≥0∞)
           = ‖(masterApprox ℱ H hm hp hs n).eval s ω - H ω s‖₊ from by
-        rw [← nnnorm_neg]; congr 1; ring]
+        rw [← nnnorm_neg]; congr 1; ring_nf]
     have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
     rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
     refine h3.congr (fun n => ?_)

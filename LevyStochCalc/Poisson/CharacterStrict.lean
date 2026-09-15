@@ -59,6 +59,7 @@ theorem inter_Ioc_prod_eq_union {B : Set (ℝ × E)} {s : ℝ} (hs : 0 < s) :
     · exact ⟨hB, h0, h.le⟩
     · exact ⟨hB, h ▸ hs, h.le⟩
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The counts up to `s` and strictly before `s` agree almost surely. -/
 theorem ae_count_Ioc_eq_count_Ioo (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
     (hB : MeasurableSet B) {s : ℝ} (hs : 0 < s) :
@@ -82,6 +83,7 @@ noncomputable def charStrict (N : PoissonRandomMeasure P ν) (w : ι → ℝ) (B
   Complex.exp (Complex.I *
     ((∑ j, w j * (N.N ω (Bfam j ∩ Set.Ioo (0 : ℝ) s ×ˢ Set.univ)).toReal : ℝ) : ℂ))
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The character at `s` is almost surely the character of the strict past. -/
 theorem ae_charAt_eq_charStrict (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {s : ℝ} (hs : 0 < s) :
@@ -92,6 +94,7 @@ theorem ae_charAt_eq_charStrict (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
   filter_upwards [h] with ω hω
   simp only [charAt, charStrict, hω]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The chain rule's predictable exponential is the strict-past character. -/
 theorem exp_predStrict_truncFam (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     (Bfam : ι → Set (ℝ × E)) {A : Set E} {T s t : ℝ} (hs : 0 < s) (hst : s ≤ t) (htT : t ≤ T)
@@ -101,6 +104,7 @@ theorem exp_predStrict_truncFam (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
   rw [predStrict_truncFam N w Bfam hs hst htT he ω]
   rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- Pairing the weight with the predictable exponential at `(s, e)` is pairing it with the
 character at `s`. -/
 theorem integral_mul_exp_predStrict (N : PoissonRandomMeasure P ν) {r : Ω → ℝ} (w : ι → ℝ)

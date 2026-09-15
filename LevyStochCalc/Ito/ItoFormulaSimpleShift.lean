@@ -243,6 +243,7 @@ section WeightEnergy
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
   {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {σ τ : Ω → WithTop ℝ}
 
+omit [IsProbabilityMeasure P] in
 /-- A weight bounded by one times the increment of an integrand between two stopping times has
 finite energy on every bounded window. -/
 theorem energy_weight_mul_stopped_sub_lt_top

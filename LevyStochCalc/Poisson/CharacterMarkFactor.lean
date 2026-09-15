@@ -77,6 +77,7 @@ theorem measurable_markFactor (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
   · exact (Complex.measurable_exp.comp (measurable_const.mul
       (Complex.measurable_ofReal.comp (measurable_simpleMark w hBm)))).sub measurable_const
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- Inside the window the exponential of the strict past agrees almost surely with the character
 at that time. -/
 theorem ae_exp_predStrict_eq_charAt (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
@@ -88,6 +89,7 @@ theorem ae_exp_predStrict_eq_charAt (w : ι → ℝ) {Bfam : ι → Set (ℝ × 
   rw [predStrict_eq N w Bfam hs hsT he ω, hω]
   rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- At a positive time the predictable representative of the strict-past character agrees almost
 surely with the character. -/
 theorem ae_charStrictPred_eq_charAt (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
@@ -98,6 +100,7 @@ theorem ae_charStrictPred_eq_charAt (w : ι → ℝ) {Bfam : ι → Set (ℝ × 
   filter_upwards [ae_charAt_eq_charStrict N w hBm hs] with ω hω
   rw [charStrictPred_eq N w hT hbT hBsub he₀ s ω, hω]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- Inside the window the pairing against the chain rule's integrand is the mark factor times the
 pairing against the character at that time. -/
 theorem integral_mul_charIntegrand {r : Ω → ℝ} (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}

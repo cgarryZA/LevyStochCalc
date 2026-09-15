@@ -363,7 +363,7 @@ theorem progressivelyMeasurable_diffusionIntegrand_path {ℱ : Filtration ℝ �
   · exact (continuous_gradient_uncurry hu i).measurable
   · exact (measurable_pi_apply j).comp ((measurable_pi_apply i).comp hσ)
 
-omit [MeasurableSpace E] [SigmaFinite ν] in
+omit [MeasurableSpace E] [IsProbabilityMeasure P] [SigmaFinite ν] in
 /-- The diffusion integrand `(∇u)ᵀσ` of a state function with a bounded gradient has finite
 energy on every window on which the diffusion coefficient along the path has. -/
 theorem lintegral_sq_diffusionIntegrand_path_lt_top {K₁ : ℝ}
@@ -413,6 +413,7 @@ theorem markedProgressivelyMeasurable_jumpIncrement_path {ℱ : Filtration ℝ �
   exact (hu'.comp (measurable_fst.prodMk (measurable_snd.fst.add hγ))).sub
     (hu'.comp (measurable_fst.prodMk measurable_snd.fst))
 
+omit [IsProbabilityMeasure P] in
 /-- The jump increment `u(x + γ) − u(x)` of a state function with a bounded gradient has finite
 energy on every window on which the jump coefficient along the path has. -/
 theorem lintegral_sq_jumpIncrement_path_lt_top (hu : ContDiff ℝ 2 (Function.uncurry u)) {K₁ : ℝ}

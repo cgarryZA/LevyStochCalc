@@ -80,6 +80,7 @@ theorem aestronglyMeasurable_of_pairing_exp {f : Ω → ℝ → ℝ}
   filter_upwards [ae_restrict_mem measurableSet_Icc, h0] with s hs hs0
   exact hu s (lt_of_le_of_ne hs.1 hs0.symm) hs.2
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The pairing is, at every positive time up to `T`, a pairing against the predictable
 exponential of the chain rule, hence measurable in the time. -/
 theorem aestronglyMeasurable_charPairing (N : PoissonRandomMeasure P ν)
@@ -103,6 +104,7 @@ theorem aestronglyMeasurable_charPairing (N : PoissonRandomMeasure P ν)
     (f := fun ω s => predStrict N w (truncFam Bfam T) A T ω s e₀) hf hr1
     (fun s hs hsT => integral_mul_exp_predStrict N w hBm hs hsT le_rfl he₀)
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem integrableOn_norm_charPairing (N : PoissonRandomMeasure P ν)
     (hℱ : IsPoissonFiltration N ℱ) {r : Ω → ℝ} (hr1 : Integrable r P) (w : ι → ℝ)
     {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}

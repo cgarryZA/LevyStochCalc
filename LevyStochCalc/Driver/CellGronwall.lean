@@ -141,6 +141,7 @@ theorem integrable_weight (hZ2 : MemLp Z 2 P) (hVm : Measurable V) (hVb : ∀ ω
       (hgc.measurable.comp (measurable_const.mul hXs)).aestronglyMeasurable
       (fun _ => hgb _)) hVm hVb
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The real cell pairings are the real and imaginary parts of the complex half. -/
 theorem cellPart_eq_cellHalf_re (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) (hZ2 : MemLp Z 2 P) (hVm : Measurable V)
@@ -158,6 +159,7 @@ theorem cellPart_eq_cellHalf_re (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
   simp only [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero]
   ring
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The real cell pairings are the real and imaginary parts of the complex half. -/
 theorem cellPart_eq_cellHalf_im (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) (hZ2 : MemLp Z 2 P) (hVm : Measurable V)
@@ -175,6 +177,7 @@ theorem cellPart_eq_cellHalf_im (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
   simp only [Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, zero_mul, add_zero]
   ring
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The complex pairing is the cosine half plus `i` times the sine half. -/
 theorem cellPairing_eq_halves (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) (hZ2 : MemLp Z 2 P) (hVm : Measurable V)
@@ -198,6 +201,7 @@ theorem cellPairing_eq_halves (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
 
 variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- Inside the window the pairing against the real part of the chain rule's integrand is the real
 part of the mark factor times the half. -/
 theorem integral_mul_charRe_eq (hℱ : IsPoissonFiltration N ℱ) (w : ι → ℝ)
@@ -233,6 +237,7 @@ theorem integral_mul_charRe_eq (hℱ : IsPoissonFiltration N ℱ) (w : ι → �
   rw [hstep, hre, integral_mul_charIntegrand N w hBm hs hsT he]
   rfl
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- Inside the window the pairing against the imaginary part of the chain rule's integrand is the
 imaginary part of the mark factor times the half. -/
 theorem integral_mul_charIm_eq (hℱ : IsPoissonFiltration N ℱ) (w : ι → ℝ)
@@ -287,6 +292,7 @@ theorem norm_cellHalf_le (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) (hZ1 : 
   rw [MeasureTheory.integral_const_mul] at h
   exact h
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The pairing is a measurable function of the time: at every positive time it is the pairing
 against the predictable representative of the strict-past character. -/
 theorem aestronglyMeasurable_cellHalf {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
@@ -328,6 +334,7 @@ theorem aestronglyMeasurable_cellHalf {ℱ : Filtration ℝ ‹MeasurableSpace �
       = ((Z ω * V ω * g (l * X s ω) : ℝ) : ℂ) * charAt N w Bfam s ω
   rw [hω]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The pairing is integrable over a window of times. -/
 theorem integrableOn_cellHalf {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
     (hℱ : IsPoissonFiltration N ℱ) (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
@@ -908,6 +915,7 @@ theorem cellPairing_zero (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {Z V : 
   rw [integral_congr_ae h]
   exact integral_ofReal
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The pairing is bounded uniformly in the time. -/
 theorem norm_cellPairing_bound (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) {Z V : Ω → ℝ} (hZ2 : MemLp Z 2 P)

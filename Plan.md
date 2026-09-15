@@ -526,8 +526,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `BSDEJ/Definition.lean`, degeneracy theorem `BSDEJ/GeneratorDegeneracy.lean`), `SolvesBSDEJ`
       (`BSDEJ/Solves.lean`), marked-progressive slices, usual conditions for the augmented joint
       filtration at `t = 0`, the everywhere-càdlàg vector Brownian integral, both legs vanishing
-      at `t ≤ 0`. Open: L08–L21 (integrand dictionary, `S²` bound, generator measurability,
-      Picard step, contraction, uniqueness, limit, assembly and bridge).
+      at `t ≤ 0`. **Waves 3–5 (same day):** L08 integrand dictionary, L09 `S²` bound, L10a the
+      generator along a mark-step integrand (Carathéodory), L11 its energy bound, L15 the backward
+      weighted inequality, L16 Young + Lipschitz and the factor `1/4`. Open: L10b (progressive
+      modification of the generator along a process), L12–L14 (Picard step), L17 (contraction),
+      L18 (uniqueness), L19–L21 (limit, assembly, bridge).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were

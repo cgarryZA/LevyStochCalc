@@ -107,7 +107,7 @@ and `b` within `ε / 4` of `c`, then `a` is within `ε` of `c`. -/
 lemma triple_sq_lt_of_lt {T : ℝ} {a b c : Ω → ℝ → E → ℝ}
     (ha : Measurable (fun p : Ω × ℝ × E => a p.1 p.2.1 p.2.2))
     (hb : Measurable (fun p : Ω × ℝ × E => b p.1 p.2.1 p.2.2))
-    (hc : Measurable (fun p : Ω × ℝ × E => c p.1 p.2.1 p.2.2)) {ε : ℝ≥0∞}
+    (_hc : Measurable (fun p : Ω × ℝ × E => c p.1 p.2.1 p.2.2)) {ε : ℝ≥0∞}
     (h1 : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
       (‖a ω s e - b ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ε / 4)
     (h2 : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,

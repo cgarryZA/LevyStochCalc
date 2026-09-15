@@ -328,6 +328,7 @@ import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.ItoLevyFormulaGeneral
 import LevyStochCalc.Ito.CompensatedLocality
 import LevyStochCalc.Ito.SecondMoment
+import LevyStochCalc.Ito.SecondMomentBackward
 import LevyStochCalc.Ito.StabilityEstimate
 
 -- Layer 3 (+ 3a): BSDEJ existence  → Cu01
@@ -338,6 +339,9 @@ import LevyStochCalc.BSDEJ.GeneratorDegeneracy
 import LevyStochCalc.BSDEJ.Solves
 import LevyStochCalc.BSDEJ.Integrands
 import LevyStochCalc.BSDEJ.SupBound
+import LevyStochCalc.BSDEJ.GeneratorEnergy
+import LevyStochCalc.BSDEJ.GeneratorAlongMarkStep
+import LevyStochCalc.BSDEJ.YoungLipschitz
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity
