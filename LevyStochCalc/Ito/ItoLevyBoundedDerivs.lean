@@ -13,6 +13,7 @@ import LevyStochCalc.Ito.SubsequenceBookkeeping
 import LevyStochCalc.Ito.VectorItoProcessDiff
 import LevyStochCalc.Ito.ItoLevyMixedBounds
 import LevyStochCalc.Ito.FiniteActivityMixed
+import LevyStochCalc.Probability.MarkedProgressiveSlice
 
 /-!
 # The Itô–Lévy formula for a jump diffusion at bounded derivatives
@@ -470,7 +471,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     intro m
     have hZ := markedProgressivelyMeasurable_time_state_jump (ℱ := S.ℱ.rightCont)
       (coeffs := coeffs) (Xp := X.X) (Y := xs m) (hxs_prog m)
-      (fun i => markedProgressivelyMeasurable_mono (S.γ_prog i) hle)
+      (fun i => (S.γ_prog i).mono hle)
     have hg : Continuous fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
         u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1 :=
       (hu.continuous.comp (continuous_fst.prodMk (continuous_snd.fst.add continuous_snd.snd))).sub
@@ -513,7 +514,7 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     fun j => (h_sigmaGrad_progMeas j).mono hle
   have hCp𝒢 : Probability.MarkedProgressivelyMeasurable S.ℱ.rightCont
       (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')) :=
-    markedProgressivelyMeasurable_mono h_jumpInt_progMeas hle
+    h_jumpInt_progMeas.mono hle
   have hB_eq : MultidimBrownianMotion.stochasticIntegral W S.ℱ.rightCont h𝒢W
         (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
         h_sigmaGrad_meas hBp𝒢 h_sigmaGrad_sq T

@@ -2404,7 +2404,6 @@ import LevyStochCalc
 -- ===== Change of filtration for the stochastic integrals (A9, 2026-09-10) =====
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_filtration
 #print axioms LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_augFiltration
-#print axioms LevyStochCalc.Poisson.Compensated.markedProgressivelyMeasurable_mono
 #print axioms LevyStochCalc.Poisson.Compensated.MarkStep.Adapted.mono_filtration
 #print axioms LevyStochCalc.Poisson.Compensated.process_congr_filtration
 #print axioms LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_filtration

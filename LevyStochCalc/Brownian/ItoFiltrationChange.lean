@@ -125,12 +125,6 @@ universe v
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
   {E : Type v} [MeasurableSpace E] {ν : Measure E} [SigmaFinite ν]
 
-/-- Marked progressive measurability transfers along an inclusion of filtrations. -/
-theorem markedProgressivelyMeasurable_mono {ℱ 𝒢 : Filtration ℝ ‹MeasurableSpace Ω›}
-    {φ : Ω → ℝ → E → ℝ} (h : Probability.MarkedProgressivelyMeasurable ℱ φ)
-    (hle : ∀ t, ℱ t ≤ 𝒢 t) : Probability.MarkedProgressivelyMeasurable 𝒢 φ := fun t =>
-  (h t).mono (sup_le_sup (MeasurableSpace.comap_mono (hle t)) le_rfl)
-
 /-- Adaptedness of a mark-step integrand transfers along an inclusion of filtrations. -/
 theorem MarkStep.Adapted.mono_filtration {g : TimeGrid}
     {ℱ 𝒢 : Filtration ℝ ‹MeasurableSpace Ω›} {G : MarkStep Ω E ν g}
