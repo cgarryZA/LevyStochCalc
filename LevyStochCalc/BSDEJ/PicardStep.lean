@@ -21,8 +21,8 @@ finite `S²` seminorm. A fixed point of the map, that is a `PicardOutput` whose 
 triples agree, solves the backward equation.
 
 The output is built from the martingale representation of the centred terminal datum
-(`exists_picard_integrands`), the everywhere-càdlàg versions of the two stochastic legs
-(`exists_cadlag_brownianLeg`, `exists_cadlag_poissonLeg`) and the primitive of the drift
+(`exists_picard_integrands_of_rightCont`), the everywhere-càdlàg versions of the two stochastic
+legs (`exists_cadlag_brownianLeg`, `exists_cadlag_poissonLeg`) and the primitive of the drift
 (`driftLeg`), as `Y_t = c + M^W_t + M^N_t − ∫_0^t b_s ds` with `c` the mean of the terminal
 datum.
 
@@ -161,7 +161,7 @@ theorem exists_picardOutput (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d �
     (hξ2 : MemLp ξ 2 P) (hξm : AEStronglyMeasurable[augJoint D T] ξ P)
     (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin d → ℝ)) (U' : ℝ → Ω → E → ℝ)
     {b : Ω → ℝ → ℝ} (hbm : Measurable (Function.uncurry b))
-    (hbp : Probability.ProgressivelyMeasurable (augJoint D) b)
+    (hbp : Probability.ProgressivelyMeasurable (augJoint D).rightCont b)
     (hbz : ∀ ω s, s ∉ Set.Icc (0 : ℝ) T → b ω s = 0)
     (hbq : Brownian.Ito.energy P T b ≠ ⊤)
     (hb : ∀ᵐ p ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) T))),
@@ -170,7 +170,7 @@ theorem exists_picardOutput (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d �
       PicardOutput D f ξ T Y' Z' U' Y Z U := by
   classical
   obtain ⟨Z, U, hZm, hZp, hZv, hZq, hUm, hUp, hUv, hUq, hrep⟩ :=
-    exists_picard_integrands D hT hξ2 hξm hbm hbp hbq
+    exists_picard_integrands_of_rightCont D hT hξ2 hξm hbm hbp hbz hbq
   obtain ⟨MW, hWad, hWme, hWae, hWcd, -, -, hWsup⟩ :=
     exists_cadlag_brownianLeg D T hT.le Z hZm hZp hZv hZq
   obtain ⟨MN, hNad, hNme, hNae, hNcd, -, -, hNsup⟩ :=
@@ -209,7 +209,7 @@ theorem exists_picardOutput (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d �
       Y_cadlag := ?_, eqn := ?_, Y_terminal := ?_, Y_sup := ?_ }⟩
   · exact ((measurable_const.add hWme).add hNme).sub hAme
   · exact fun t => ((measurable_const.add (hWad t)).add (hNad t)).sub
-      (adapted_driftLeg_rightCont hbm hbp hbq
+      (adapted_driftLeg_rightCont_of_rightCont hbm hbp hbz hbq
         (fun _s hs h0 => D.measurableSet_augFiltration_of_null hs h0) t)
   · intro ω t
     obtain ⟨hWr, L₁, hWl⟩ := hWcd ω t

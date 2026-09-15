@@ -530,9 +530,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       generator along a mark-step integrand (Carathéodory), L11 its energy bound, L15 the backward
       weighted inequality, L16 Young + Lipschitz and the factor `1/4`, L10b the progressive
       modification of the generator along a process (`BSDEJ/GeneratorModification.lean`), L12 and
-      L13a–c the terminal datum, the càdlàg legs and the drift leg of a Picard step. Open: L13d
-      (assembly into `PicardOutput`), L14 (Itô–Lévy structure of the output), L17 (contraction),
-      L18 (uniqueness), L19–L21 (limit, assembly, bridge).
+      L13a–d the terminal datum, the càdlàg legs, the drift leg and the assembled Picard step
+      (`BSDEJ/PicardStep.lean`: `PicardOutput`, `exists_picardOutput`; `SolvesBSDEJ` gained the `S²`
+      field), L14 locality after the horizon and the Itô–Lévy structure of the frozen output
+      (`BSDEJ/PicardItoLevy.lean`). Open: L13e (drift progressive for the right-continuous
+      filtration, needed to iterate), L17 (contraction), L18 (uniqueness), L19–L21 (limit,
+      assembly, bridge).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were

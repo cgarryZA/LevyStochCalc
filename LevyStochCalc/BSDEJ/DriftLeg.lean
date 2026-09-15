@@ -32,6 +32,8 @@ globally integrable function, hence continuous.
 * `continuous_driftLeg` — every path of the drift leg is continuous.
 * `stronglyAdapted_driftLeg`, `adapted_driftLeg` — the drift leg is adapted to the filtration of
   the drift.
+* `adapted_driftLeg_of_rightCont` — the drift leg is adapted to the filtration already when the
+  drift is progressive for the right-continuous filtration.
 * `measurable_uncurry_driftLeg` — the drift leg is jointly measurable in time and sample point.
 * `driftLeg_sub_ae` — the drift leg at the horizon splits at an intermediate time.
 * `lintegral_biSup_sq_driftLeg_lt_top` — the drift leg has finite `S²` seminorm.
@@ -189,6 +191,73 @@ theorem adapted_driftLeg_rightCont (hbm : Measurable (Function.uncurry b))
     (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s) :
     Adapted ℱ.rightCont (driftLeg b T) := fun t =>
   (adapted_driftLeg hbm hbp hbq hnull t).mono (ℱ.le_rightCont t) le_rfl
+
+/-- The primitive of a drift over `[0, t]`, cut to the sample points with an integrable drift
+path, is measurable before `t` already when the drift is progressively measurable for the
+right-continuous filtration. -/
+theorem stronglyMeasurable_setIntegral_of_rightCont (hbm : Measurable (Function.uncurry b))
+    (hbp : Probability.ProgressivelyMeasurable ℱ.rightCont b)
+    (hbz : ∀ ω s, s ∉ Set.Icc (0 : ℝ) T → b ω s = 0)
+    (hbq : Brownian.Ito.energy P T b ≠ ⊤)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s) {t : ℝ}
+    (ht : 0 ≤ t) :
+    StronglyMeasurable[ℱ t] fun ω =>
+      (integrablePaths b T).indicator (fun ω => ∫ s in Set.Icc (0 : ℝ) t, b ω s) ω := by
+  have hnullc : P (integrablePaths b T)ᶜ = 0 := ae_iff.mp (ae_mem_integrablePaths hbm hbq)
+  have h0 : MeasurableSet[ℱ 0] (integrablePaths b T)ᶜ :=
+    hnull _ (measurableSet_integrablePaths hbm).compl hnullc
+  have h1 : MeasurableSet[ℱ 0] (integrablePaths b T) := by simpa using h0.compl
+  have hgood : MeasurableSet[ℱ t] (integrablePaths b T) := ℱ.mono ht _ h1
+  have hstep : ∀ n : ℕ, StronglyMeasurable[ℱ t] (driftLeg b T (t - 1 / ((n : ℝ) + 1))) := by
+    intro n
+    have hpos : (0 : ℝ) < 1 / ((n : ℝ) + 1) := by positivity
+    have hle : ℱ.rightCont (t - 1 / ((n : ℝ) + 1)) ≤ ℱ t := by
+      rw [Filtration.rightCont_eq]
+      exact iInf₂_le t (by linarith)
+    exact ((hbp.stronglyMeasurable_setIntegral measurableSet_Icc Set.Icc_subset_Iic_self
+      volume).mono hle).indicator hgood
+  have hc : Filter.Tendsto (fun n : ℕ => t - 1 / ((n : ℝ) + 1)) Filter.atTop (nhds t) := by
+    have h : Filter.Tendsto (fun n : ℕ => 1 / ((n : ℝ) + 1)) Filter.atTop (nhds 0) :=
+      tendsto_one_div_add_atTop_nhds_zero_nat
+    have h2 : Filter.Tendsto (fun n : ℕ => t - 1 / ((n : ℝ) + 1)) Filter.atTop (nhds (t - 0)) :=
+      tendsto_const_nhds.sub h
+    simpa using h2
+  have hlim : Filter.Tendsto (fun n : ℕ => driftLeg b T (t - 1 / ((n : ℝ) + 1)))
+      Filter.atTop (nhds (driftLeg b T t)) := by
+    rw [tendsto_pi_nhds]
+    intro ω
+    exact ((continuous_driftLeg hbz ω).tendsto t).comp hc
+  exact stronglyMeasurable_of_tendsto (m := ℱ t) Filter.atTop hstep hlim
+
+/-- The drift leg of a drift of finite energy that vanishes off the horizon and is
+progressively measurable for the right-continuous filtration is adapted to the filtration
+itself, provided the filtration contains the `P`-null sets at time `0`. -/
+theorem adapted_driftLeg_of_rightCont (hbm : Measurable (Function.uncurry b))
+    (hbp : Probability.ProgressivelyMeasurable ℱ.rightCont b)
+    (hbz : ∀ ω s, s ∉ Set.Icc (0 : ℝ) T → b ω s = 0)
+    (hbq : Brownian.Ito.energy P T b ≠ ⊤)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s) :
+    Adapted ℱ (driftLeg b T) := by
+  intro t
+  rcases le_or_gt 0 t with ht | ht
+  · exact (stronglyMeasurable_setIntegral_of_rightCont hbm hbp hbz hbq hnull ht).measurable
+  · have heq : driftLeg b T t = fun _ => (0 : ℝ) := by
+      funext ω
+      by_cases hω : ω ∈ integrablePaths b T
+      · rw [driftLeg_of_mem hω t, Set.Icc_eq_empty (not_le.mpr ht), setIntegral_empty]
+      · exact driftLeg_of_notMem hω t
+    rw [heq]
+    exact measurable_const
+
+/-- The drift leg of a drift progressively measurable for the right-continuous filtration is
+adapted to that filtration. -/
+theorem adapted_driftLeg_rightCont_of_rightCont (hbm : Measurable (Function.uncurry b))
+    (hbp : Probability.ProgressivelyMeasurable ℱ.rightCont b)
+    (hbz : ∀ ω s, s ∉ Set.Icc (0 : ℝ) T → b ω s = 0)
+    (hbq : Brownian.Ito.energy P T b ≠ ⊤)
+    (hnull : ∀ s : Set Ω, MeasurableSet s → P s = 0 → MeasurableSet[ℱ 0] s) :
+    Adapted ℱ.rightCont (driftLeg b T) := fun t =>
+  (adapted_driftLeg_of_rightCont hbm hbp hbz hbq hnull t).mono (ℱ.le_rightCont t) le_rfl
 
 /-- The drift leg is jointly measurable in the time and the sample point. -/
 theorem measurable_uncurry_driftLeg (hbm : Measurable (Function.uncurry b)) :
