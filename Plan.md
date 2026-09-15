@@ -641,10 +641,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       not the zero triple; `examples/NonvacuityBSDEJZ.lean` (2026-09-15) — for `f = 0`, `ξ = W_1`,
       `T = 1` the explicit triple (a continuous modification of `W`, `Z = 1_{(0,1]}`, `U = 0`) is a
       `SolvesBSDEJ`, its `Z` has energy `1`, and by uniqueness every solution's `Z` has energy `1`
-      (`stochasticIntegralBrownian_one` in `Brownian/ItoIncrement.lean` is the new brick). Still
-      open: the explicit solution `Y = e^{1−t} W_t`, `Z = e^{1−s}` of the `f = y` equation (nonzero
-      generator and nonzero `Z` together), and a witness that the realised path of the Itô–Lévy
-      example is not a.e. zero.
+      (`stochasticIntegralBrownian_one` in `Brownian/ItoIncrement.lean` is the new brick);
+      `examples/NonvacuityBSDEJExp.lean` (2026-09-15) — for the `f = y` equation the explicit triple
+      `Y = e^{1−t} W̃_t`, `Z = e^{1−s} 1_{(0,1]}`, `U = 0` is a `SolvesBSDEJ` (Itô's formula
+      `IsVectorItoVersion.itoFormulaTime` at `augJoint D`), the energy of `Z` is `(e² − 1)/2`, and by
+      uniqueness every solution's `Z` has that energy: nonzero generator and nonzero `Z` together.
+      Still open: a witness that the realised path of the Itô–Lévy example is not a.e. zero, and the
+      transfer of the A7′ cell-average rate to every solution of the `f = y` equation.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
