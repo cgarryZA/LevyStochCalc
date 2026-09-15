@@ -342,6 +342,9 @@ import LevyStochCalc.BSDEJ.SupBound
 import LevyStochCalc.BSDEJ.GeneratorEnergy
 import LevyStochCalc.BSDEJ.GeneratorAlongMarkStep
 import LevyStochCalc.BSDEJ.YoungLipschitz
+import LevyStochCalc.BSDEJ.CadlagLegs
+import LevyStochCalc.BSDEJ.DriftLeg
+import LevyStochCalc.BSDEJ.PicardTerminal
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity
