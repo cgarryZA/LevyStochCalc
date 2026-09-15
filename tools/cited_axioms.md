@@ -17,10 +17,12 @@ checks.
 because its statement could not be proved: it asserted the Itô–Lévy formula at an arbitrary
 filtration unrelated to the one the solution solves against. The result it stood for — the
 Itô–Lévy formula for a `C²` state function of a jump diffusion, with no bound on the
-derivatives — is **open**, recorded under `### Open #16` below with every hypothesis of the
-target statement exposed; its bounded-derivative case is the theorem
-`itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`). Deleting an
-unprovable axiom is clean-up, not the closure of the entry. The count in the heading above and
+derivatives — is the theorem `itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`, later
+the same day), stated at the solution's own filtration; the entry `### Resolved #16` below
+records the statement with every hypothesis exposed and the proof route, and the
+bounded-derivative case `itoLevyFormula_of_boundedDerivs`
+(`Ito/ItoLevyBoundedDerivsSolution.lean`) is the milestone it is built on. Deleting an
+unprovable axiom was clean-up; the theorem is the closure. The count in the heading above and
 the file agree by construction: only a digit-leading `### <n>.` heading marks a live axiom, so
 `grep -c "^### [0-9]" tools/cited_axioms.md == 0`. `### Resolved #N` / `### Retired #N` /
 `### Open #N` headings are kept for traceability and are not counted.
@@ -36,10 +38,11 @@ below distinguishes because they are not equally good news:
   about the derivation, not about grounding: #12 and the surviving #14 name are on the three
   standard axioms; #11 `itoLevyFormula` was deleted with #16 on 2026-09-15 (its statement was
   #16's, at an arbitrary filtration), and the four-term formula the dissertation forwards is now
-  `itoLevyFormula_of_boundedDerivs`, the bounded-derivative case, on the three standard axioms.
-* **Open** (#16) — the `axiom` was deleted on 2026-09-15 as unprovable as stated; the general
-  Itô–Lévy formula it stood for is an unproved target, neither a live axiom nor a proved entry,
-  and nothing narrower than the target statement recorded in its entry closes it.
+  `itoLevyFormula_general`, on the three standard axioms.
+* **Deleted, then proved** (#16) — the `axiom` was deleted on 2026-09-15 as unprovable as
+  stated (an arbitrary filtration unrelated to the solution's); the general Itô–Lévy formula it
+  stood for is the theorem `itoLevyFormula_general` of the same day, at the solution's own
+  filtration, with exactly the hypotheses its entry records as the target and nothing narrower.
 * **Retired as unsound** (#9, #10, #13a, #15) — the *Lean* statement was found refutable or
   trivially satisfiable, and the declaration was deleted rather than weakened or relocated into
   a hypothesis. The cited literature result is not proved and not disproved; with the integrals
@@ -76,8 +79,8 @@ it; the sections after it carry the statement, citation, mathlib status and repl
 * **#10** `BSDEJ.PathRegularity.bsdej_path_regularity` — retired and deleted 2026-09-06 as a
   refutable statement (`7dad5c2`); restated after X2.
 * **#11** `Ito.JumpFormula.itoLevyFormula` — axiom→theorem 2026-05-24 (`8ff0234`), derived
-  from #16 alone; deleted with #16 on 2026-09-15. The four-term formula at bounded derivatives
-  is `Ito.JumpFormula.itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`).
+  from #16 alone; deleted with #16 on 2026-09-15. The four-term formula the dissertation
+  forwards is `Ito.JumpFormula.itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`).
 * **#12** `Ito.Setting.JumpDiffusion.exists_unique` — axiom→theorem 2026-05-26; the chain's last
   `sorry` was closed 2026-09-07 (`ba5e214`) and the theorem is in `Ito/PicardFixedPoint.lean`.
 * **#13** `BSDEJ.MartingaleRepresentation.jacodYor_representation_axiom` — decomposed into #13a +
@@ -91,19 +94,22 @@ it; the sections after it carry the statement, citation, mathlib status and repl
   (`ba5e214`), which also discharged the wrap-up's `sorry`.
 * **#15** `Ito.JumpFormula.itoFormula_continuousSemimartingale_axiom` — retired and deleted
   2026-09-06 as a trivially satisfiable statement (`df95191`); its content is #16's.
-* **#16** `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` — **open**: the axiom
-  was deleted 2026-09-15 (unprovable as stated); the general statement is the target recorded
-  in its entry; the bounded-derivative case is proved (`itoLevyFormula_of_boundedDerivs`).
+* **#16** `Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` — **deleted, then
+  proved** 2026-09-15: the axiom was deleted (unprovable as stated), and the general statement
+  it stood for is the theorem `Ito.JumpFormula.itoLevyFormula_general`
+  (`Ito/ItoLevyFormulaGeneral.lean`), built on the bounded-derivative case
+  `itoLevyFormula_of_boundedDerivs`.
 * **#17** `Brownian.Ito.itoIsometry_diff_brownian` — theorem since 2026-06-17 in
   `Ito/Picard.lean` (`ad63700`).
 * **#18** `Poisson.Compensated.itoIsometry_diff_compensated` — theorem since 2026-09-06 in
   `Poisson/Compensated.lean` (`6ddf8ca`).
 
-`tools/sorry_baseline.txt` holds one declaration, the canonical assembly
-`itoLevyFormula_jumpResidual_canonical` (`Ito/JumpFormulaAssembled.lean`, seven `sorry` blocks),
-and `sorry`/`admit` occur elsewhere in the `.lean` sources only as words in docstrings and
-comments; since 2026-09-15 no `#print axioms` report over `_audit.lean` names an axiom outside
-the three standard ones, and the repository contains no `axiom` declaration. A `#print axioms` report of `{propext, Classical.choice,
+`tools/sorry_baseline.txt` is empty (since 2026-09-15; its last entry, the canonical assembly
+`itoLevyFormula_jumpResidual_canonical` of the deleted `Ito/JumpFormulaAssembled.lean`, was
+superseded by `itoLevyFormula_general`), and `sorry`/`admit` occur in the `.lean` sources only
+as words in docstrings and comments; no `#print axioms` report over `_audit.lean` names
+`sorryAx` or an axiom outside the three standard ones, and the repository contains no `axiom`
+declaration. A `#print axioms` report of `{propext, Classical.choice,
 Quot.sound}` certifies the logical trust base only; it says nothing about whether a statement is
 faithful to the result it cites, which is what the per-entry statement audits below record.
 
@@ -263,7 +269,7 @@ literature integral forms.
 * **Replacement plan**: when Mathlib gains the Itô formula for continuous semimartingales (Karatzas–Shreve 3.3.6), this axiom is replaced by a forwarder that decomposes `X = X^c + X^d` via the Lévy–Itô decomposition and applies the Mathlib theorem to `X^c`.
 * **Statement audit (2026-09-06)**: as written in Lean, the axiom asserts only `∃ R, ∀ᵐ ω, u(T, X_T) − u(0, X_0) = drift + diff_mart + R T ω` with `R` unconstrained, which is satisfied by `R T ω := u(T, X_T ω) − u(0, X_0 ω) − drift − diff_mart` and therefore carries **no** content of Karatzas–Shreve 3.3.6: the Lean statement and the cited result do not match (a prose-vs-artifact gap). It has deliberately **not** been discharged by that trivial witness, since doing so would relocate rather than close the gap. The analytical content of the Itô–Lévy formula lives entirely in #16 (which pins the canonical residual to the jump terms); `itoLevyFormula` needs #15 only to name an `R`. Retired the same day: `itoLevyFormula` is now derived from #16 alone (the canonical-residual identity rearranged), the axiom declaration was deleted from `Ito/JumpFormula.lean`, and no theorem in the library depends on it. The Itô formula for continuous semimartingales (KS 3.3.6) that this entry cited is part of the content of #16 and will be proved there (WP8).
 
-### Open #16: `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` (axiom DELETED 2026-09-15; the general Itô–Lévy formula is an open statement; narrowed 2026-05-26 from the previous monolithic #16)
+### Resolved #16: `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical_axiom` (axiom DELETED 2026-09-15 as unprovable as stated; the general Itô–Lévy formula it stood for is the theorem `itoLevyFormula_general` since 2026-09-15; narrowed 2026-05-26 from the previous monolithic #16)
 
 * **Statement**: For the *canonical* residual `R_canonical T ω := u(T, X_T) − u(0, X_0) − drift − diff_mart` (constructed by direct subtraction from the LHS, with no quantification over arbitrary `R`s), we have `R_canonical T ω = jump_mart_T(ω) + comp_drift_T(ω)` a.s., where `jump_mart_T = Compensated.stochasticIntegral N (u(·+γ) − u along X) T` and `comp_drift_T(ω) = ∫_0^T ∫_E [u(·+γ) − u − γᵀ∇u](s, X_s, e) ν(de) ds`.
 * **Reference**: Applebaum, *Lévy Processes and Stochastic Calculus*, 2nd ed., CUP 2009, **Theorem 4.4.10** (small/large jump decomposition); same source **Theorem 4.4.7** proof **step (II)** for the `ε → 0` limit (page 240); Ikeda–Watanabe **Section II.5**; Cont–Tankov **Proposition 8.18** + Chapter 8.
@@ -675,6 +681,46 @@ literature integral forms.
   derivative bounds alone. The second half of M2 — the point-value/left-limit and
   iterated/reference-intensity transfers of the `u`-hypotheses — is done inside M3.
 
+* **M3 and M4 (2026-09-15) — the general Itô–Lévy formula is a theorem; the entry is resolved.**
+  `Ito/ItoLevyFormulaGeneral.lean`. `itoLevyFormula_general` states, for a jump diffusion `X`
+  carrying `SdeData` at a right-continuous filtration `ℱ` whose time-zero σ-algebra contains the
+  null sets, jointly measurable `μ`, `σ`, `γ`, the window energy of `μ` along the path, a jointly
+  `C²` state function `u`, a horizon `T > 0`, and the three admissibility inputs of the target —
+  the window energies of `(∇u)ᵀσ` and of `u(x + γ) − u(x)` along the path, and the almost-sure
+  integrability of the compensator-drift integrand over `[0, T] × E` — that
+  `u(T, X_T) − u(0, X_0) = drift + Brownian + compensated + compensator-drift` almost surely,
+  both stochastic integrals taken at `ℱ`. No bound on `∂ₜu`, `∇u`, `Hess u`; no Lipschitz or
+  growth condition on the coefficients; no jump-size bound. This is the target recorded under
+  "Stage-2 status" above, hypothesis for hypothesis. Proof: the bounded-derivative formula
+  (`itoLevyFormula_jumpResidual_of_sdeData_of_leftLim`, after M2) at the cut-off
+  `cutoffFun₂ u (2m)`, whose derivatives are globally bounded (`Ito/CutoffGlobalBounds.lean`);
+  on the event `boundedPathSet X T m` that the path stays in the closed ball of radius `m` over
+  `[0, T]`, the endpoints, the drift integral and the Brownian integral of the cut-off agree
+  with those of `u` (`ae_continuousSide_cutoffFun₂_eq`), and the compensated integral plus the
+  compensator drift of the cut-off agree with those of `u` as a sum
+  (`ae_jumpSide_cutoffFun₂_eq`, through the arrival-time jump relation of M1 and the locality of
+  the compensated integral at the exit time); the point-value and left-limit conventions of the
+  jump terms agree because a càdlàg path has countably many jumps
+  (`compensatedIntegral_congr_of_countable_ne`, `setIntegral_congr_of_countable_ne`), and the
+  iterated and reference-intensity forms of the compensator drift agree by Fubini
+  (`integral_window_eq_and_integrableOn`); almost every path stays in some ball of radius
+  exceeding the horizon (`ae_exists_mem_boundedPathSet`), which exhausts `m`. Along a solution
+  with càdlàg paths at every sample point this is
+  `itoLevyFormula_jumpResidual_of_sdeData_general_of_leftLim`; for a general jump diffusion the
+  identity is transported through the càdlàg representative `cadlagRep`
+  (`itoLevyFormula_jumpResidual_of_sdeData_general`), the admissibility inputs being the same
+  numbers along the representative (`lintegral_sq_comp_cadlagRep` and its marked sibling).
+  `#print axioms` on all three lists `{propext, Classical.choice, Quot.sound}`; no `sorryAx`.
+  Close-out (M4): `Ito/JumpFormulaAssembled.lean` (the seven-`sorry` canonical assembly) is
+  deleted and `tools/sorry_baseline.txt` is empty; `tools/import_contract.md` row 67 and the
+  dissertation forwarder Cu03 (`Dissertation.Continuous.itoLevyFormula`) point at
+  `itoLevyFormula_general` with the hypotheses above and no derivative bound;
+  `itoLevyFormula_of_boundedDerivs` stays in the tree as the milestone the proof is built on.
+  What the theorem does not do: it takes the admissibility of the derived integrands as
+  hypotheses (as the deleted axiom did) rather than deriving them from growth conditions on `u`
+  and the coefficients — a growth-condition corollary would be a separate statement — and it is
+  stated at the solution's `SdeData` filtration, not at an arbitrary one (correction 8).
+
 ### Resolved #17: `LevyStochCalc.Brownian.Ito.itoIsometry_diff_brownian` (proved axiom→theorem 2026-06-17)
 
 * **Statement**: For two jointly-measurable, progressively-measurable, square-integrable integrands `H₁, H₂ : Ω → ℝ → ℝ`, the L² norm of the difference of their Brownian Itô integrals at any `T > 0` equals the L² norm of the integrand difference: `𝔼 |∫_0^T H₁ dW − ∫_0^T H₂ dW|² = 𝔼 ∫_0^T |H₁(s) − H₂(s)|² ds`.
@@ -865,8 +911,8 @@ extractors and the then sorry-bodied Picard forwarders.
 | `Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique` | `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`); 3 standard axioms |
 | `Ito.Setting.JumpDiffusion.exists_unique` | `picardFixedPoint_jumpDiffusion_exists_unique`; 3 standard axioms |
 | `BSDEJ.PathRegularity.bsdej_path_regularity_linear_rate` | deleted 2026-09-06 (`7dad5c2`) with the retired #10 |
-| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom` | derived theorem (was Tier 1 axiom #16 prior to 2026-05-26 narrowing); forwards over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` by per-ω algebra (`R = R_canonical` a.s. when both satisfy the continuous-part identity) |
-| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | derived theorem forwarding over Tier 1 #16 `itoLevyFormula_jumpResidual_canonical_axiom` alone (since 2026-09-06; the vacuous #15 was retired); the previous Tier 1 #11 axiom (`itoLevyFormula`) was retired 2026-05-24 |
+| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_axiom` | deleted 2026-09-15 with the axiom #16 it forwarded (Z1a); the formula is `itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`); 3 standard axioms |
+| `LevyStochCalc.Ito.JumpFormula.itoLevyFormula` | deleted 2026-09-15 with the axiom #16 it forwarded (Z1a); the four-term formula is `itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`); 3 standard axioms |
 
 ### Sorry baseline (count: 0)
 

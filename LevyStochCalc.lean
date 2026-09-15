@@ -299,7 +299,6 @@ import LevyStochCalc.Ito.CutoffGlobalBounds
 import LevyStochCalc.Ito.JumpSideCompensator
 import LevyStochCalc.Ito.CutoffJumpTransfer
 import LevyStochCalc.Ito.CadlagExitTime
-import LevyStochCalc.Ito.JumpFormulaAssembled
 import LevyStochCalc.Ito.JumpCoefficientPredictable
 import LevyStochCalc.Ito.JumpFormulaClosure
 import LevyStochCalc.Ito.JumpFormulaMixed
@@ -322,6 +321,7 @@ import LevyStochCalc.Ito.FiniteActivityMixedPrelims
 import LevyStochCalc.Ito.FiniteActivityMixed
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
+import LevyStochCalc.Ito.ItoLevyFormulaGeneral
 import LevyStochCalc.Ito.CompensatedLocality
 import LevyStochCalc.Ito.SecondMoment
 import LevyStochCalc.Ito.StabilityEstimate
@@ -349,8 +349,7 @@ to discharge the four cited continuous-time axioms of the main dissertation
   citation flagged by red-team 1st audit P11 + 2nd audit P10)
 
 Each layer below targets one cited result (or builds machinery used by the next layer).
-The only `axiom` declaration is cited axiom #16 (`Ito/JumpFormula.lean`,
-`tools/cited_axioms.md`); the only declaration carrying `sorry` is the canonical assembly
-`itoLevyFormula_jumpResidual_canonical` (`Ito/JumpFormulaAssembled.lean`, listed in
-`tools/sorry_baseline.txt`).
+The repository declares no `axiom`, and no declaration carries `sorry` (since 2026-09-15;
+the ledger is `tools/cited_axioms.md`). The Itô–Lévy formula the dissertation forwards (Cu03) is
+`itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`).
 -/

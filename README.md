@@ -24,18 +24,17 @@ proves; nothing in this README overrides it. Its current state:
   (Applebaum 2009 Thm 4.4.10 + Thm 4.4.7 step II), was deleted because its statement could not
   be proved: it asserted the formula at an arbitrary filtration unrelated to the solution's.
   The result it stood for — the Itô–Lévy formula for a `C²` function of a jump diffusion with
-  no bound on the derivatives — is **open** (ledger entry `Open #16`, which states the target
-  with every hypothesis). Its bounded-derivative case is the theorem
-  `Ito.JumpFormula.itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`),
-  on the three standard axioms, and the dissertation forwards that theorem.
-* **One `sorry`-carrying declaration.** `tools/sorry_baseline.txt` lists exactly one name, the
-  canonical assembly `itoLevyFormula_jumpResidual_canonical` (`Ito/JumpFormulaAssembled.lean`,
-  seven `sorry` blocks — the Stage-2 obligations of the small-jump truncation for general `u`);
-  it is a separate open node from entry #16. No other `#print axioms` report names
-  `sorryAx`, and `sorry`/`admit` occur elsewhere in the `.lean` sources only as words inside
-  docstrings and comments. The bounded-derivative milestone
-  `itoLevyFormula_jumpResidual_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivs.lean`) is proved
-  without `sorry`.
+  no bound on the derivatives — is the theorem `Ito.JumpFormula.itoLevyFormula_general`
+  (`Ito/ItoLevyFormulaGeneral.lean`, the same day), on the three standard axioms, stated at the
+  solution's own filtration with the hypotheses ledger entry `Resolved #16` records; the
+  dissertation forwards that theorem. Its bounded-derivative case
+  `itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`) is the milestone
+  the proof is built on.
+* **No `sorry`-carrying declaration.** `tools/sorry_baseline.txt` is empty since 2026-09-15
+  (its last entry, the canonical assembly `itoLevyFormula_jumpResidual_canonical`, was deleted
+  with `Ito/JumpFormulaAssembled.lean` when `itoLevyFormula_general` superseded it). No
+  `#print axioms` report names `sorryAx`, and `sorry`/`admit` occur in the `.lean` sources only
+  as words inside docstrings and comments.
 * **Four entries were retired as unsound statements**, not proved and not weakened: BSDEJ
   existence (#9), BSDEJ path regularity (#10), the predictable representation property (#13a)
   and the continuous-semimartingale Itô formula (#15). The first three were refutable as
@@ -136,7 +135,7 @@ library doesn't claim.
 
 `tools/lint.sh` runs `lake build`, then `_audit.lean` (`#print axioms` over every load-bearing
 declaration, written to `audit_output.txt`), and fails on any `sorryAx`-tainted theorem beyond
-`tools/sorry_baseline.txt` (which lists the one declaration above). The script is authoritative for what it enforces;
+`tools/sorry_baseline.txt` (empty). The script is authoritative for what it enforces;
 its hardening — failing on a failed audit run, an axiom allowlist, coverage of every audit
 target, and a documentation-consistency check — is tracked as `X1b`–`X1g` and `X3i` in
 `../Dissertation/RELEASE_READINESS.md`. Wire into pre-commit via:

@@ -681,8 +681,8 @@ filtration.
 
 Every admissibility input of the two stochastic integrals, the adaptedness of the path, the
 drift's measurability, progressive measurability and energy, and the integrability of the drift
-and of the compensator drift are derived from the SDE data and the measurability of the coefficients, not
-assumed. -/
+and of the compensator drift are derived from the SDE data and the measurability of the
+coefficients, not assumed. -/
 theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
     (X : JumpDiffusion W N coeffs x₀) (S : LevyStochCalc.Ito.BigJump.SdeData X)
     [S.ℱ.IsRightContinuous]
@@ -741,8 +741,8 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_of_leftLim (x₀ : Fin n → ℝ)
 
 /-- **The Itô–Lévy formula at bounded derivatives, for a given solution.** For a jump diffusion
 carrying SDE data at a filtration satisfying the usual conditions, with jointly measurable
-coefficients and a drift of finite energy along the path, a `C²` state function with bounded time derivative, gradient and Hessian satisfies
-the Itô–Lévy formula relative to that filtration.
+coefficients and a drift of finite energy along the path, a `C²` state function with bounded time
+derivative, gradient and Hessian satisfies the Itô–Lévy formula relative to that filtration.
 
 Every admissibility input of the two stochastic integrals, the adaptedness of the path, the
 drift's measurability, progressive measurability and energy, the integrability of the drift and

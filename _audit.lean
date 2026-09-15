@@ -494,8 +494,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- Itô–Lévy formula: the bounded-derivative theorem. The cited axiom #16 and its two derived
--- forms were deleted 2026-09-15; the general statement is open (tools/cited_axioms.md, entry 16).
+-- Itô–Lévy formula (tools/cited_axioms.md entry 16, resolved 2026-09-15): the general theorem
+-- the dissertation forwards, its two residual forms, and the bounded-derivative milestone it is
+-- built on. The cited axiom #16 and its two derived forms were deleted the same day.
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_general
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_sdeData_general
+#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_sdeData_general_of_leftLim
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_of_boundedDerivs
 
 -- ===== Layer 3 (+ 3a): BSDEJ =====
@@ -3052,5 +3056,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_seq_forall_abs_stochasticIntegral_markCut_spanningSets_compl_lt
 #print axioms LevyStochCalc.Ito.JumpSplitting.ae_exists_atomEnum_jump_eq_gamma_of_sdeData
 
--- ===== The assembled Itô–Lévy formula (B4, 2026-09-10) — SEVEN OPEN OBLIGATIONS =====
-#print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_canonical
+-- ===== M3 (2026-09-15): the general Itô–Lévy formula (Ito/ItoLevyFormulaGeneral.lean) =====
+-- The three theorems are audited above with the Itô–Lévy block; these are the file's transfers.
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_sq_marked_leftLimPathAt_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.lintegral_sq_leftLimPathAt_eq
+#print axioms LevyStochCalc.Ito.JumpFormula.integrableOn_window_univ_of_lintegral_lt_top

@@ -20,8 +20,9 @@ A criterion is "done" only if it is **mechanically checkable** and currently
 checks true. Each lists how to verify it.
 
 ### A. Soundness — no cheats, no holes
-- [ ] **Zero `sorry`/`admit`/`sorryAx`.** `tools/sorry_baseline.txt` is empty;
-      `grep -rn '\bsorry\b\|\badmit\b' LevyStochCalc/` finds only prose.
+- [x] **Zero `sorry`/`admit`/`sorryAx`.** `tools/sorry_baseline.txt` is empty;
+      `grep -rn '\bsorry\b\|\badmit\b' LevyStochCalc/` finds only prose. (Checked
+      2026-09-15: the baseline is empty and the grep finds one docstring word.)
 - [ ] **Zero custom axioms.** `#print axioms` over the *entire public API*
       (extend `_audit.lean` to cover every exported decl) prints only
       `propext`, `Classical.choice`, `Quot.sound`. `tools/cited_axioms.md` lists
