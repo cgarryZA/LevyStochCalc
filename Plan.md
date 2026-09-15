@@ -556,9 +556,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       forward process (L), a flow `X^{t,x}` with the Markov property (XL), the flow derivative or
       a Malliavin calculus (XL), and the scheme error the dissertation actually consumes (XL).
       Reachable now: A7′ — for a generator not reading `X` and a solution with deterministic
-      Lipschitz `Z = h(s)`, the rate `E∫|Z − Z̄^π|² ≤ Lip(h)² T |π|²/12` (with C1), and the
-      qualitative `E∫|Z − Z̄^π|² → 0` for every solution. Record in `tools/cited_axioms.md`,
-      `Retired #10`, replacement plan.
+      Lipschitz `Z = h(s)`, the rate `E∫|Z − Z̄^π|² ≤ (K δ)² T`; the deterministic half is
+      `energy_sub_conditionalTimeAverage_le_of_lipschitz` (`BSDEJ/CellAverageRate.lean`,
+      2026-09-15), the transfer to solutions through uniqueness waits on the explicit `f = y`
+      solution of C1. Also reachable: the qualitative `E∫|Z − Z̄^π|² → 0` for every solution.
+      Record in `tools/cited_axioms.md`, `Retired #10`, replacement plan.
 
 ## Phase B — Close the 7 off-critical-path axioms (breadth)
 

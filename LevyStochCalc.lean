@@ -359,6 +359,7 @@ import LevyStochCalc.BSDEJ.ExistenceUniqueness
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity
+import LevyStochCalc.BSDEJ.CellAverageRate
 
 /-!
 # LevyStochCalc — root aggregator
