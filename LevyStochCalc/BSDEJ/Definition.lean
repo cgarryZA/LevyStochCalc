@@ -61,8 +61,8 @@ literature one modulo this identification.
 The extractor theorems below (`filtration_eq_canonical`, `Y_cadlag`,
 `Y_adapted_canonical`, `Z_isStronglyProgressive_canonical`,
 `U_isStronglyProgressive_canonical`, `M_W_eq_canonical_brownianIto`,
-`M_N_eq_canonical_compensatedPoisson`) each extract one strengthening of the
-predicate as a public lemma. They double as a compile-time guard: weakening
+`M_N_eq_canonical_compensatedPoisson`, `eqn_canonical`) each extract one strengthening
+of the predicate as a public lemma. They double as a compile-time guard: weakening
 the predicate (relaxing the `Filt` pin, demoting `IsStronglyProgressive` to
 `Adapted`, dropping the canonical-integral pins, or removing `Y`'s càdlàg
 paths) makes them fail to elaborate, breaking the build. -/
@@ -204,8 +204,8 @@ def IsBSDEJSolution
           -- BSDEJ equation at every t, with the same (M_W, M_N):
           (∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P,
             Y t ω = bsdej.g (X T ω)
-              + ∫ s in Set.Icc t T,
-                  bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω)
+              + (∫ s in Set.Icc t T,
+                  bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω))
               - (M_W T ω - M_W t ω) - (M_N T ω - M_N t ω)))
 
 /-! ## Structural regression tests for `IsBSDEJSolution`
@@ -368,6 +368,18 @@ theorem M_N_eq_canonical_compensatedPoisson
           _, M_N, _, _, _, _,
           _, ⟨h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩, _, _, _⟩ := h
   exact ⟨ℱ, hℱN, M_N, h_U_meas, h_U_progMeas, h_U_sq, hM_N_pin⟩
+
+/-- **Regression test #8 (equation shape)**: the equation of a solution reads
+`Y_t = g(X_T) + ∫_t^T f ds − (M_W T − M_W t) − (M_N T − M_N t)`, the two martingale increments
+standing beside the drift integral and not under it. -/
+theorem eqn_canonical
+    (h : IsBSDEJSolution W N bsdej X Y Z U T) :
+    ∃ M_W M_N : ℝ → Ω → ℝ, ∀ t ∈ Set.Icc (0 : ℝ) T, ∀ᵐ ω ∂P,
+      Y t ω = bsdej.g (X T ω)
+        + (∫ s in Set.Icc t T, bsdej.f s (X s ω) (Y s ω) (Z s ω) (U s ω))
+        - (M_W T ω - M_W t ω) - (M_N T ω - M_N t ω) := by
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, M_W, M_N, _, _, _, _, _, _, _, _, heqn⟩ := h
+  exact ⟨M_W, M_N, heqn⟩
 
 end IsBSDEJSolution
 

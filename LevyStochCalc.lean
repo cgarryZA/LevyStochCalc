@@ -353,6 +353,7 @@ import LevyStochCalc.BSDEJ.PicardItoLevy
 import LevyStochCalc.BSDEJ.PicardContraction
 import LevyStochCalc.BSDEJ.Uniqueness
 import LevyStochCalc.BSDEJ.PicardIterates
+import LevyStochCalc.BSDEJ.Bridge
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity
