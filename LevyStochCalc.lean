@@ -28,6 +28,7 @@ import LevyStochCalc.Probability.TrivialSigma
 import LevyStochCalc.Probability.IntegerValuedMeasure
 import LevyStochCalc.Probability.MarkedPredictable
 import LevyStochCalc.Probability.Progressive
+import LevyStochCalc.Probability.MarkedProgressiveSlice
 import LevyStochCalc.Probability.StoppedProgressive
 import LevyStochCalc.Probability.ExitTime
 import LevyStochCalc.Probability.OpenExitTime
@@ -69,6 +70,7 @@ import LevyStochCalc.Poisson.JumpTimes
 import LevyStochCalc.Poisson.JumpTimesEnum
 import LevyStochCalc.Poisson.JumpTimesComplete
 import LevyStochCalc.Poisson.CompensatedCadlagMod
+import LevyStochCalc.Poisson.CompensatedNonpos
 import LevyStochCalc.Poisson.SimplePathwise
 import LevyStochCalc.Poisson.MarkStepPathwise
 import LevyStochCalc.Poisson.PathwiseIdentity
@@ -166,6 +168,7 @@ import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.ValueSigma
 import LevyStochCalc.Driver.GermIndep
+import LevyStochCalc.Driver.AugJointUsualConditions
 import LevyStochCalc.Driver.CadlagMartingale
 import LevyStochCalc.Brownian.ItoSimple
 import LevyStochCalc.Brownian.ItoDensity
@@ -247,6 +250,7 @@ import LevyStochCalc.Ito.Picard
 import LevyStochCalc.Ito.PicardIntegrand
 import LevyStochCalc.Ito.PicardSpace
 import LevyStochCalc.Ito.PicardOutput
+import LevyStochCalc.Brownian.CadlagVectorIntegral
 import LevyStochCalc.Ito.PicardLimit
 import LevyStochCalc.Ito.PicardContraction
 import LevyStochCalc.Ito.PicardSupL2
@@ -330,6 +334,10 @@ import LevyStochCalc.Ito.StabilityEstimate
 import LevyStochCalc.BSDEJ.Definition
 import LevyStochCalc.BSDEJ.MartingaleRepresentation
 import LevyStochCalc.BSDEJ.Existence
+import LevyStochCalc.BSDEJ.GeneratorDegeneracy
+import LevyStochCalc.BSDEJ.Solves
+import LevyStochCalc.BSDEJ.Integrands
+import LevyStochCalc.BSDEJ.SupBound
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity

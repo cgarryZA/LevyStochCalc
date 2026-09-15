@@ -69,6 +69,7 @@ section IncrementEnergy
 
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
+omit [IsProbabilityMeasure P] in
 /-- The increment between the cut-offs of an integrand at two stopping times has finite energy on
 every window carrying finite energy of the integrand. -/
 theorem energy_stopped_sub_lt_top {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
@@ -86,6 +87,7 @@ theorem energy_stopped_sub_lt_top {ℱ : Filtration ℝ ‹MeasurableSpace Ω›
     (energy_lt_top_of_abs_le (fun ω s => Probability.abs_stopped_le τ K ω s) hqK)
     (energy_lt_top_of_abs_le (fun ω s => Probability.abs_stopped_le σ K ω s) hqK)
 
+omit [IsProbabilityMeasure P] in
 /-- A cut-off integrand of finite energy is almost surely integrable on a bounded window. -/
 theorem ae_integrableOn_stopped_Ioc {ℱ : Filtration ℝ ‹MeasurableSpace Ω›}
     {τ : Ω → WithTop ℝ} (hτ : MeasureTheory.IsStoppingTime ℱ τ)

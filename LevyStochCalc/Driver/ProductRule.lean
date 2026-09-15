@@ -129,6 +129,7 @@ theorem tendsto_integral_leftFreeze_mul (ω : Ω) {b : ℝ → ℝ} (hbm : Measu
     filter_upwards [hev] with n hn
     rw [leftFreeze_eval Y hYb hYm ht n hs.1 hs.2, hY, hn, ← hYminus]
 
+omit [MeasurableSpace E] in
 /-- **The pathwise core of the product rule.** At a sample point where the increments of `X` over
 the grid cells split into the drift integrals and the increments of `I`, where `Y` and its left
 limits are the jump sums of finitely many weighted points, and where the frozen elementary

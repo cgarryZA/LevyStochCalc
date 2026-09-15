@@ -75,14 +75,13 @@ theorem abs_clampDrift_le (b : Fin n → Ω → ℝ → ℝ) (j : ℕ) (p : Fin 
   abs_clampAt_le (Nat.cast_nonneg j) _
 
 theorem energy_clampCoeff_lt_top {H : Fin n → Fin d → Ω → ℝ → ℝ}
-    (hm : ∀ p k, Measurable (Function.uncurry (H p k))) (j : ℕ) (p : Fin n) (k : Fin d)
-    (T : ℝ) (hT : 0 < T) :
+    (j : ℕ) (p : Fin n) (k : Fin d) (T : ℝ) (hT : 0 < T) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖clampCoeff H j p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
   energy_lt_top_of_bounded (fun ω s => abs_clampCoeff_le H j p k ω s) T hT
 
 theorem energy_clampDrift_lt_top {b : Fin n → Ω → ℝ → ℝ}
-    (hm : ∀ p, Measurable (Function.uncurry (b p))) (j : ℕ) (p : Fin n) (T : ℝ) (hT : 0 < T) :
+    (j : ℕ) (p : Fin n) (T : ℝ) (hT : 0 < T) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
       (‖clampDrift b j p ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
   energy_lt_top_of_bounded (fun ω s => abs_clampDrift_le b j p ω s) T hT
@@ -169,16 +168,16 @@ theorem lintegral_sq_norm_clampProcess_sub_le
     ∫⁻ ω, (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) t ω
         - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       ≤ clampMesh P H b T j := by
   have hbound := lintegral_sq_norm_vectorItoProcess_sub_le W ℱ' hcoord
     hm hpg hq (fun p k => measurable_clampCoeff hm j p k)
     (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-    (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+    (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
     hX₀ hbm (fun p => measurable_clampDrift hbm j p) ht hbq
-    (fun p T' hT' => energy_clampDrift_lt_top hbm j p T' hT')
+    (fun p T' hT' => energy_clampDrift_lt_top j p T' hT')
   refine hbound.trans ?_
   unfold clampMesh
   refine Finset.sum_le_sum fun p _ => ?_
@@ -213,7 +212,7 @@ theorem lintegral_window_sq_norm_clampProcess_sub_le
         (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) s ω
           - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
       ≤ ENNReal.ofReal T * clampMesh P H b T j := by
@@ -221,14 +220,14 @@ theorem lintegral_window_sq_norm_clampProcess_sub_le
         (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) s ω
           - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
       = ∫⁻ s in Set.Ioc (0 : ℝ) T, (∫⁻ ω,
         (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) s ω
           - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume := by
     exact (MeasureTheory.setLIntegral_congr (MeasureTheory.Ioc_ae_eq_Icc)).symm
@@ -237,7 +236,7 @@ theorem lintegral_window_sq_norm_clampProcess_sub_le
         (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) s ω
           - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P) ∂volume
       ≤ ∫⁻ _s in Set.Ioc (0 : ℝ) T, clampMesh P H b T j ∂volume := by
@@ -264,7 +263,7 @@ theorem lintegral_sq_norm_version_clamp_sub_le
     (hXj : IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       X₀ (clampDrift b j) Xj)
     {T s : ℝ} (hs : 0 < s) (hsT : s ≤ T) :
     ∫⁻ ω, (‖Xj s ω - X s ω‖₊ : ℝ≥0∞) ^ 2 ∂P ≤ clampMesh P H b T j := by
@@ -272,7 +271,7 @@ theorem lintegral_sq_norm_version_clamp_sub_le
       = ∫⁻ ω, (‖vectorItoProcess W ℱ' hcoord (clampCoeff H j)
             (fun p k => measurable_clampCoeff hm j p k)
             (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-            (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+            (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
             X₀ (clampDrift b j) s ω
           - vectorItoProcess W ℱ' hcoord H hm hpg hq X₀ b s ω‖₊ : ℝ≥0∞) ^ 2 ∂P := by
     refine MeasureTheory.lintegral_congr_ae ?_
@@ -297,7 +296,7 @@ theorem lintegral_window_sq_norm_version_clamp_sub_le
     (hXj : IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       X₀ (clampDrift b j) Xj)
     {T : ℝ} :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
@@ -397,13 +396,14 @@ omit [IsProbabilityMeasure P] in
 /-- A finite family of sequences converging in `L²` converges almost everywhere along a common
 subsequence. -/
 theorem exists_seq_ae_tendsto_of_tendsto_lintegral {α : Type*} [MeasurableSpace α]
-    {μ : Measure α} {ι : Type*} [Fintype ι] {u : ℕ → ι → α → ℝ} {v : ι → α → ℝ}
+    {μ : Measure α} {ι : Type*} [Finite ι] {u : ℕ → ι → α → ℝ} {v : ι → α → ℝ}
     (hu : ∀ (i : ℕ) (c : ι), Measurable (u i c)) (hv : ∀ c : ι, Measurable (v c))
     (h : ∀ c : ι, Filter.Tendsto (fun i : ℕ => ∫⁻ a, (‖u i c a - v c a‖₊ : ℝ≥0∞) ^ 2 ∂μ)
       Filter.atTop (𝓝 0)) :
     ∃ ms : ℕ → ℕ, (∀ i : ℕ, i ≤ ms i) ∧
       ∀ᵐ a ∂μ, ∀ c : ι, Filter.Tendsto (fun i : ℕ => u (ms i) c a) Filter.atTop (𝓝 (v c a)) := by
   classical
+  haveI := Fintype.ofFinite ι
   have hsumTendsto : Filter.Tendsto
       (fun i : ℕ => ∑ c : ι, ∫⁻ a, (‖u i c a - v c a‖₊ : ℝ≥0∞) ^ 2 ∂μ)
       Filter.atTop (𝓝 0) := by
@@ -443,7 +443,7 @@ theorem ae_ae_tendsto_version_clamp
     (hXj : ∀ j : ℕ, IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       X₀ (clampDrift b j) (Xj j))
     {T : ℝ} {ns : ℕ → ℕ}
     (hns : ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i) :
@@ -494,7 +494,7 @@ theorem ae_tendsto_version_clamp_at
     (hXj : ∀ j : ℕ, IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       X₀ (clampDrift b j) (Xj j))
     {T : ℝ} {ns : ℕ → ℕ}
     (hns : ∀ i : ℕ, clampMesh P H b T (ns i) < ((2 : ℝ≥0∞)⁻¹) ^ i)
@@ -581,6 +581,7 @@ theorem ae_memLp_two_window {G : Ω → ℝ → ℝ} (hmG : Measurable (Function
   exact LevyStochCalc.Ito.Picard.memLp_two_of_lintegral_sq_lt_top
     (Measurable.of_uncurry_left hmG) hω
 
+omit [IsProbabilityMeasure P] in
 /-- **The drift integrals of the clamped approximation converge, pathwise.** -/
 theorem ae_tendsto_drift_clamp
     {f' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] ℝ} (hf'c : Continuous f')
@@ -625,6 +626,7 @@ theorem ae_tendsto_drift_clamp
     exact ((continuous_coordDeriv hf'c p).continuousAt.tendsto.comp hs).mul
       (tendsto_clampAt_comp hge (b p ω s))
 
+omit [IsProbabilityMeasure P] in
 /-- **The quadratic-variation integrals of the clamped approximation converge, pathwise.** -/
 theorem ae_tendsto_quadVar_clamp
     {f'' : (Fin n → ℝ) → (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) →L[ℝ] ℝ} (hf''c : Continuous f'')
@@ -1079,12 +1081,12 @@ theorem itoFormula_of_unbounded_coeff
       IsVectorItoVersion W ℱ' hcoord (clampCoeff H j)
         (fun p k => measurable_clampCoeff hHm j p k)
         (fun p k => progressivelyMeasurable_clampCoeff hHp j p k)
-        (fun p k T' hT' => energy_clampCoeff_lt_top hHm j p k T' hT')
+        (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
         X₀ (clampDrift bdrift j) Z := fun j =>
     exists_isVectorItoVersion W ℱ' hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hHm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hHp j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hHm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       (Nat.cast_nonneg j) (abs_clampCoeff_le H j) hℱ0 hnull hX₀ (clampDrift bdrift j)
       (fun p => measurable_clampDrift hbm j p)
       (fun p => progressivelyMeasurable_clampDrift hbp j p)

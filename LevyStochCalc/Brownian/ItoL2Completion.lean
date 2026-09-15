@@ -2798,7 +2798,7 @@ private lemma tendsto_master_tol :
 /-- **Per-time eval convergence of the master sequence.** For each `t ≥ 0`,
 `∫⁻∫⁻_{[0,t]}‖H − Gₙ.eval‖² → 0`: eventually (`t ≤ n+1`) it is `≤ ((n:ℝ≥0∞)+1)⁻¹`
 by `Set.Icc` monotonicity + `masterApprox_within`, and that bound tends to `0`. -/
-lemma masterApprox_eval_tendsto {t : ℝ} (ht_nn : 0 ≤ t) :
+lemma masterApprox_eval_tendsto {t : ℝ} :
     Filter.Tendsto (fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
         (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global n).eval s ω‖₊ : ℝ≥0∞) ^ 2
           ∂volume ∂P)
@@ -2906,7 +2906,7 @@ lemma masterLp_cauchySeq {t : ℝ} (ht_nn : 0 ≤ t) :
       simp [hε_top]
     have hδ_pos : 0 < δ := by
       rw [hδ]; exact ENNReal.div_pos (ENNReal.rpow_pos hε hε_top).ne' (by norm_num)
-    have htend := masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global ht_nn
+    have htend := masterApprox_eval_tendsto (t := t) ℱ H h_meas h_progMeas h_sq_int_global
     have hev : ∀ᶠ k in Filter.atTop,
         ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
           (‖H ω s - (masterApprox ℱ H h_meas h_progMeas h_sq_int_global k).eval s ω‖₊ : ℝ≥0∞) ^ 2
@@ -3194,7 +3194,7 @@ lemma masterApprox_evalNorm_tendsto {T : ℝ} (hT : 0 < T) :
     have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
         Filter.atTop (nhds 0) := by
       simp_rw [hsq]
-      exact masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global (le_of_lt hT)
+      exact masterApprox_eval_tendsto (t := T) ℱ H h_meas h_progMeas h_sq_int_global
     have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
     rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
     refine h3.congr (fun n => ?_)
@@ -3554,7 +3554,7 @@ lemma masterApprox_compensator_tendsto_L1 {t : ℝ} (ht : 0 ≤ t) :
       have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm (Gp n - Hp) 2 (P.prod ν) ^ (2 : ℝ))
           Filter.atTop (nhds 0) := by
         simp_rw [hsq]
-        exact masterApprox_eval_tendsto ℱ H h_meas h_progMeas h_sq_int_global ht
+        exact masterApprox_eval_tendsto (t := t) ℱ H h_meas h_progMeas h_sq_int_global
       have h3 := h2.ennrpow_const ((1 : ℝ) / 2)
       rw [ENNReal.zero_rpow_of_pos (by norm_num)] at h3
       refine h3.congr (fun n => ?_)
@@ -4054,7 +4054,7 @@ theorem isometry_diff_stochasticIntegralBrownian
     have h2 : Filter.Tendsto (fun n => MeasureTheory.eLpNorm
         (fun p : Ω × ℝ => (masterApprox ℱ H hm hp hs n).eval p.2 p.1 - H p.1 p.2) 2 (P.prod ν)
         ^ (2 : ℝ)) Filter.atTop (nhds 0) := by
-      have he := masterApprox_eval_tendsto ℱ H hm hp hs ht_nn
+      have he := masterApprox_eval_tendsto (t := T) ℱ H hm hp hs
       refine he.congr (fun n => ?_)
       rw [eLpNorm_sq_eq_lintegral_nnnorm_sq,
         hbridge (fun p : Ω × ℝ => (masterApprox ℱ H hm hp hs n).eval p.2 p.1 - H p.1 p.2)

@@ -58,6 +58,7 @@ theorem norm_charMark_le (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) (t : �
   calc _ ≤ 1 * 2 := mul_le_mul h1 h2 (norm_nonneg _) zero_le_one
     _ = 2 := one_mul 2
 
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charMark_eq_zero (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {t : ℝ} {q : ℝ × E}
     (hq : t < q.1) : charMark w Bfam t q = 0 := by
   have hnot : q ∉ ⋃ j, truncFam Bfam t j := by

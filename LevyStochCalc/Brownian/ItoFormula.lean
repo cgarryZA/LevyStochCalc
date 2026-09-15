@@ -125,7 +125,7 @@ theorem lintegral_sq_sum_unifGrid_sub_le
     hmg hpg hqg hC0 hCH hT) ?_
   refine mul_le_mul_right ?_ _
   refine lintegral_sq_sub_le_of_bound
-    (fun ω s => (SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω) g hε0 hT.le ?_
+    (fun ω s => (SimplePredictable.ofUnifGrid hT hm0 ξ hbdd hmeas).eval s ω) g hε0 ?_
   intro ω s hs
   exact abs_ofUnifGrid_eval_sub_le hT hm0 ξ hbdd hmeas g hξg hmod ω hs
 

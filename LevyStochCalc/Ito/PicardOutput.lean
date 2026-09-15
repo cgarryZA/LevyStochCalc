@@ -983,11 +983,9 @@ noncomputable def picardSelfMapRaw
     (progressivelyMeasurable_mu_rawStop coeffs hReg hZa T)
     (fun i _ hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)
-      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
       (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hb)
     (fun i => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)
-      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
       (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT)
     (fun i j => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)
@@ -1036,11 +1034,9 @@ theorem picardSelfMapRaw_ae_eq
     (progressivelyMeasurable_mu_rawStop coeffs hReg hZa T)
     (fun i _ hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)
-      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
       (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hb)
     (fun i => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)
-      (hZm.comp ((measurable_fst.min measurable_const).prodMk measurable_snd))
       (lintegral_sq_rawStop_lt_top hZm hZb hT.le) i hT)
     (fun i j => lintegral_sq_sigma_lt_top_of_energy coeffs hReg hLip
       (Z := fun s ω => Z (min s T) ω)

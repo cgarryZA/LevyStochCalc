@@ -140,7 +140,7 @@ theorem gridStopTrunc_finiteRange (σ : Ω → WithTop ℝ) {T : ℝ} (hT : 0 < 
     (∃ a ∈ (Finset.range m).image (gridPt T m),
         gridStopTrunc σ T m ω = ((a : ℝ) : WithTop ℝ))
       ∨ gridStopTrunc σ T m ω = ⊤ := by
-  rcases gridStop_finiteRange σ hT hm ω with ⟨a, ha, hae⟩ | hge
+  rcases gridStop_finiteRange σ hm ω with ⟨a, ha, hae⟩ | hge
   · obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp ha
     have hlt : gridStop σ T m ω < ((T : ℝ) : WithTop ℝ) := by
       rw [hae]

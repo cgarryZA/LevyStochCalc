@@ -850,7 +850,7 @@ theorem stochasticIntegral_markedStopped_eq_of_le (hτ : IsStoppingTime ℱ τ) 
         intro c hc
         obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp hc
         exact gridPt_lt_of_lt ht (Finset.mem_range.mp hk))
-      (gridStop_finiteRange τ ht hn)
+      (gridStop_finiteRange τ hn)
     filter_upwards [hid] with ω hω hωA
     rw [hω]
     have hzero : ∀ c ∈ (Finset.range n).image (gridPt t n),

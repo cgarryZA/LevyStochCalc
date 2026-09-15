@@ -78,6 +78,7 @@ theorem energy_ne_top_of_bound {H₁ H₂ K : Ω → ℝ → ℝ}
   exact ENNReal.add_ne_top.mpr
     ⟨ENNReal.mul_ne_top (by simp) h1, ENNReal.mul_ne_top (by simp) h2⟩
 
+omit [IsProbabilityMeasure P] in
 /-- The energy of a sum is finite when both energies are. -/
 theorem energy_add_ne_top {H₁ H₂ : Ω → ℝ → ℝ}
     (hm₁ : Measurable (Function.uncurry H₁)) (hm₂ : Measurable (Function.uncurry H₂))
@@ -85,6 +86,7 @@ theorem energy_add_ne_top {H₁ H₂ : Ω → ℝ → ℝ}
     energy P T (fun ω s => H₁ ω s + H₂ ω s) ≠ ⊤ :=
   energy_ne_top_of_bound (fun _ _ => sq_nnnorm_add_le_two_mul _ _) hm₁ hm₂ h1 h2
 
+omit [IsProbabilityMeasure P] in
 /-- The energy of a scalar multiple is finite when the energy is. -/
 theorem energy_const_mul_ne_top {H : Ω → ℝ → ℝ} (hm : Measurable (Function.uncurry H))
     (h : energy P T H ≠ ⊤) (c : ℝ) :
@@ -98,6 +100,7 @@ namespace HorizonIntegrand
 
 variable {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} {T : ℝ}
 
+omit [IsProbabilityMeasure P] in
 /-- The global square-integrability the Itô integral asks for. -/
 theorem sq_int_global (G : HorizonIntegrand P ℱ T) :
     ∀ T', 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',

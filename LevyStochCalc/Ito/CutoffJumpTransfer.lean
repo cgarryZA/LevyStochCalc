@@ -128,6 +128,7 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
   [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E]
   {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν] {n d : ℕ}
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- **The cut-off leaves the jump side of the Itô–Lévy formula unchanged** on the event that the
 path stays in the ball. The cut-off moves the jump increment and the compensator-drift integrand
 by the same quantity, that quantity vanishes at every atom of the random measure, and an
@@ -205,7 +206,7 @@ theorem ae_jumpSide_cutoffFun₂_eq
           ∂(N.N ω) = 0 := by
       refine MeasureTheory.ae_all_iff.mpr fun j => ?_
       filter_upwards [ae_setIntegral_jumpIncrement_sub_eq_zero coeffs N Xp (spanningSets ν j)
-        (measurableSet_spanningSets ν j) (measure_spanningSets_lt_top ν j).ne u hm hTm (hjump j)
+        u hm hTm (hjump j)
         (Filter.Eventually.of_forall fun ω t i => hXleft ω t i)]
         with ω hω hG
       refine Eq.trans ?_ (hω hG)

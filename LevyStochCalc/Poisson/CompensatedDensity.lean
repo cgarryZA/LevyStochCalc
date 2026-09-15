@@ -343,6 +343,7 @@ lemma dyadicAvg_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
         have hT' : T ≠ 0 := hT.ne'
         push_cast; field_simp
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- The left-shifted dyadic average is bounded by `max M 0` (covering the `i = 0`
 case, which is the constant `0`). -/
 lemma dyadicAvg_shifted_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
@@ -569,6 +570,7 @@ lemma dyadicEval_ae_tendsto_per_param
       dyadicAvg_eq_average_closedBall hT φ n (dyadicIndex n T hT x hx) ω e]
   simp_rw [h_bridge]; exact h_avg
 
+omit [MeasurableSpace Ω] [MeasurableSpace E] in
 /-- `dyadicEval` inherits the bound `M`: at most one partition indicator fires, and each
 dyadic average is bounded by `M`. -/
 lemma dyadicEval_bounded {T : ℝ} (hT : 0 < T) (φ : Ω → ℝ → E → ℝ)
@@ -1881,8 +1883,7 @@ summands. -/
 lemma lintegral_triple_add
     {P : Measure Ω} {ν : Measure E} [SigmaFinite ν] {T : ℝ}
     {u v : Ω → ℝ → E → ℝ≥0∞}
-    (hu : Measurable (fun p : Ω × ℝ × E => u p.1 p.2.1 p.2.2))
-    (hv : Measurable (fun p : Ω × ℝ × E => v p.1 p.2.1 p.2.2)) :
+    (hu : Measurable (fun p : Ω × ℝ × E => u p.1 p.2.1 p.2.2)) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, (u ω s e + v ω s e) ∂ν ∂volume ∂P
       = (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, u ω s e ∂ν ∂volume ∂P)
         + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e, v ω s e ∂ν ∂volume ∂P := by
@@ -1965,10 +1966,6 @@ lemma exists_markEval_L2_tendsto
       (‖φ p.1 p.2.1 p.2.2 - dyadicEvalShifted T φ n p.2.1 p.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) := fun n =>
     (ENNReal.continuous_coe.measurable.comp
       (h_meas.sub (dyadicEvalShifted_measurable_triple φ h_meas n)).nnnorm).pow_const 2
-  have hvm : ∀ n, Measurable (fun p : Ω × ℝ × E =>
-      (‖dyadicEvalShifted T φ n p.2.1 p.1 p.2.2 - mk n p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) := fun n =>
-    (ENNReal.continuous_coe.measurable.comp
-      ((dyadicEvalShifted_measurable_triple φ h_meas n).sub (hmkm n)).nnnorm).pow_const 2
   set A : ℕ → ℝ≥0∞ := fun n => ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
     (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P with hAdef
   have htime : Filter.Tendsto A Filter.atTop (nhds 0) :=
@@ -1995,7 +1992,7 @@ lemma exists_markEval_L2_tendsto
             2 * (‖φ ω s e - dyadicEvalShifted T φ n s ω e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
           + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
             2 * (‖dyadicEvalShifted T φ n s ω e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P :=
-          lintegral_triple_add ((hφm n).const_mul 2) ((hvm n).const_mul 2)
+          lintegral_triple_add ((hφm n).const_mul 2)
       _ = 2 * A n + 2 * (∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
             (‖dyadicEvalShifted T φ n s ω e - mk n ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
           rw [lintegral_triple_const_mul 2 (by norm_num) _,
@@ -4270,10 +4267,7 @@ lemma eulerStepIntegral_cauchy_le
         rw [lintegral_triple_add
           ((ENNReal.continuous_coe.measurable.comp
             ((h_meas.sub (markEval_measurable (dyadicPartition T a) Bia cia hBiam
-              hciam)).nnnorm)).pow_const 2 |>.const_mul 2)
-          ((ENNReal.continuous_coe.measurable.comp
-            ((h_meas.sub (markEval_measurable (dyadicPartition T b) Bib cib hBibm
-              hcibm)).nnnorm)).pow_const 2 |>.const_mul 2),
+              hciam)).nnnorm)).pow_const 2 |>.const_mul 2),
           lintegral_triple_const_mul 2 (by norm_num) _, lintegral_triple_const_mul 2 (by norm_num)
             _]
 

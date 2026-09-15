@@ -522,6 +522,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       identity (no Itô formula, no Grönwall); two statement defects to fix first — `Lipschitz`'s
       `.toReal` (D1) and the product-σ-algebra `f_measurable` field, which forces `f` constant
       in `u` for atomless `ν` (D2) — and a driver-pinned `SolvesBSDEJ` for uniqueness (D4).
+      **Waves 0–1 landed 2026-09-15** (L01–L07): D1 and D2 fixed (`BSDEJ/Existence.lean`,
+      `BSDEJ/Definition.lean`, degeneracy theorem `BSDEJ/GeneratorDegeneracy.lean`), `SolvesBSDEJ`
+      (`BSDEJ/Solves.lean`), marked-progressive slices, usual conditions for the augmented joint
+      filtration at `t = 0`, the everywhere-càdlàg vector Brownian integral, both legs vanishing
+      at `t ≤ 0`. Open: L08–L21 (integrand dictionary, `S²` bound, generator measurability,
+      Picard step, contraction, uniqueness, limit, assembly and bridge).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were

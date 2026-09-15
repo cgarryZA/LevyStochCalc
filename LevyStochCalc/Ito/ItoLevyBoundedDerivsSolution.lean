@@ -467,6 +467,7 @@ theorem measurable_compensatorDriftIntegrand_path (hu : ContDiff ℝ 2 (Function
   · exact (measurable_pi_apply i).comp hγp
   · exact (continuous_gradient_uncurry hu i).measurable.comp hstate
 
+omit [IsProbabilityMeasure P] in
 /-- The compensator-drift integrand of a state function with a bounded Hessian is integrable over
 the marks and a window, almost surely, when the jump coefficient along the path has finite energy
 on that window. -/
@@ -627,7 +628,7 @@ theorem itoLevyFormula_jumpResidual_of_solvesOn [ℱ.IsRightContinuous]
       ((measurable_pi_apply i).comp hReg.1)
   have hμq : ∀ (i : Fin n) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖coeffs.μ s (Y s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
-    fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hYm hYsq i hT'
+    fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hYsq i hT'
   exact itoLevyFormula_jumpResidual_of_boundedDerivs W N coeffs x₀ X S hℱ0' hnull
     (fun t => measurable_of_progressivelyMeasurable ℱ hYa t) (fun ω t j => (hYcad ω t).2 j)
     hμm hμp hμq hReg.2.2.1 u hu hK₀ hK₁ hK₂ T hT (ae_integrableOn_drift_path hμm hμq T)
@@ -902,7 +903,7 @@ theorem itoLevyFormula_of_boundedDerivs (x₀ : Fin n → ℝ)
               compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν := by
   filter_upwards [itoLevyFormula_jumpResidual_of_sdeData W N coeffs x₀ X S hℱ0 hnull hReg.1
     hReg.2.1 hReg.2.2.1 (fun i T' hT' => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
-      X.measurable_path (fun b => lintegral_lintegral_sq_lt_top_of_supL2 X.sup_L2 b) i hT')
+      (fun b => lintegral_lintegral_sq_lt_top_of_supL2 X.sup_L2 b) i hT')
     u hu hK₀ hK₁ hK₂ T hT] with ω hω
   linarith
 

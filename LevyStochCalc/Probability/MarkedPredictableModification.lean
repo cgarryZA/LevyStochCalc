@@ -72,7 +72,7 @@ variable {P : Measure Ω} [IsProbabilityMeasure P]
 /-- **A marked progressive integrand of finite energy agrees with a predictable one almost
 everywhere in time, mark and sample point.** -/
 theorem exists_markedPredictable_ae_eq (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (hℱ : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) {φ : Ω → ℝ → E → ℝ}
+    {φ : Ω → ℝ → E → ℝ}
     (hm : Measurable fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2)
     (hp : MarkedProgressivelyMeasurable ℱ φ) {T : ℝ} (hT : 0 < T)
     (hfin : markedEnergy P ν T φ ≠ ⊤) :
@@ -83,7 +83,7 @@ theorem exists_markedPredictable_ae_eq (N : LevyStochCalc.Poisson.PoissonRandomM
   have hex : ∀ n : ℕ, ∃ ℓ : ℕ, ∃ G : MarkStep Ω E ν (TimeGrid.dyadic T hT ℓ), G.Adapted ℱ ∧
       markedEnergy P ν T (fun ω s e => φ ω s e - G.eval s e ω) < ((n : ℝ≥0∞) + 1)⁻¹ := by
     intro n
-    obtain ⟨ℓ, -, G, hGa, hGe⟩ := exists_markStep_close N ℱ hℱ φ hm hp hT
+    obtain ⟨ℓ, -, G, hGa, hGe⟩ := exists_markStep_close N ℱ φ hm hp hT
       (lt_top_iff_ne_top.mpr hfin) 0 (ε := ((n : ℝ≥0∞) + 1)⁻¹) (ENNReal.inv_pos.mpr (by simp))
     exact ⟨ℓ, G, hGa, hGe⟩
   choose ℓ G hGadapt hGerr using hex
@@ -143,11 +143,11 @@ theorem exists_markedPredictable_ae_eq (N : LevyStochCalc.Poisson.PoissonRandomM
 /-- **An admissible marked horizon integrand has a predictable version.** -/
 theorem exists_markedPredictable_ae_eq_markedHorizonIntegrand
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (hℱ : LevyStochCalc.Poisson.IsPoissonFiltration N ℱ) {T : ℝ} (hT : 0 < T)
+    {T : ℝ} (hT : 0 < T)
     (G : MarkedHorizonIntegrand P ν ℱ T) :
     ∃ ψ : Ω → ℝ → E → ℝ, MarkedPredictable ℱ ν ψ ∧
       (fun p : Ω × ℝ × E => G.toFun p.1 p.2.1 p.2.2)
         =ᵐ[markedEnergyMeasure P ν T] fun p : Ω × ℝ × E => ψ p.1 p.2.1 p.2.2 :=
-  exists_markedPredictable_ae_eq N hℱ G.measurable_uncurry G.progressive hT G.energy_ne_top
+  exists_markedPredictable_ae_eq N G.measurable_uncurry G.progressive hT G.energy_ne_top
 
 end LevyStochCalc.Probability

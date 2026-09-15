@@ -477,7 +477,7 @@ theorem bieleckiNorm_picardStepOnStop_sub_rawStop_le {L : ℝ}
     hdiffm.norm
     (fun i b hb => lintegral_sq_mu_stop_lt_top coeffs hReg hLip X hT.le i hb)
     (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
-      (Z := fun s ω => Z (min s T) ω) hZsm hZe i hb)
+      (Z := fun s ω => Z (min s T) ω) hZe i hb)
     (fun b _ => lintegral_sq_sub_lt_top_of_energy X.stop.measurable_path hZsm hXe hZe b)
     hdiffm hβ hT
 
@@ -792,9 +792,9 @@ theorem bieleckiNorm_picardStepOnRawStop_diff_le
     (measurable_mu_rawStop coeffs hReg h₂m T)
     hdiffm.norm
     (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
-      (Z := fun s ω => Z₁ (min s T) ω) h₁sm h₁e i hb)
+      (Z := fun s ω => Z₁ (min s T) ω) h₁e i hb)
     (fun i b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
-      (Z := fun s ω => Z₂ (min s T) ω) h₂sm h₂e i hb)
+      (Z := fun s ω => Z₂ (min s T) ω) h₂e i hb)
     (fun b _ => lintegral_sq_sub_lt_top_of_energy h₁sm h₂sm h₁e h₂e b)
     hdiffm hβ hT
 
@@ -810,6 +810,7 @@ theorem bieleckiNorm_eq_zero_of_ae (β T : ℝ) {Z : ℝ → Ω → (Fin n → �
   rw [lintegral_congr_ae hz]
   simp
 
+omit [ℱ'.IsRightContinuous] in
 /-- **The Picard step respects almost sure equality of its input.** -/
 theorem picardStepOnRawStop_congr_ae
     {Z₁ : ℝ → Ω → (Fin n → ℝ)} (h₁m : Measurable (Function.uncurry Z₁))

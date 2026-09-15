@@ -38,17 +38,17 @@ section Process
 
 /-- The stage-`n` integral at time `t`, as an element of `L²(P)`. -/
 noncomputable def stageLp (t : ℝ) (n : ℕ) : Lp ℝ 2 P :=
-  (memLp_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t).toLp _
+  (memLp_stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t).toLp _
 
 lemma stageLp_coeFn (t : ℝ) (n : ℕ) :
-    (stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n : Ω → ℝ)
-      =ᵐ[P] fun ω => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω :=
+    (stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n : Ω → ℝ)
+      =ᵐ[P] fun ω => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω :=
   MemLp.coeFn_toLp _
 
 include hℱ in
 /-- The stage integrals at a fixed time form a Cauchy sequence in `L²(P)`. -/
 lemma stageLp_cauchySeq (t : ℝ) :
-    CauchySeq (fun n => stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n) := by
+    CauchySeq (fun n => stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n) := by
   rw [EMetric.cauchySeq_iff]
   intro ε hε
   by_cases hε_top : ε = ⊤
@@ -62,8 +62,8 @@ lemma stageLp_cauchySeq (t : ℝ) :
   refine ⟨max N₀ N₁, fun m hm n hn => ?_⟩
   rw [stageLp, stageLp, Lp.edist_toLp_toLp]
   have hbound : ∀ {a b : ℕ}, a ≤ b → max N₀ N₁ ≤ a →
-      ∫⁻ ω, (‖stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global a t ω
-        - stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global b t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ∫⁻ ω, (‖stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global a t ω
+        - stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global b t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
         < ε ^ (2 : ℝ) := by
     intro a b hab ha
     have hta : t ≤ stageHorizon a := hN₀.trans (stageHorizon_mono ((le_max_left _ _).trans ha))
@@ -82,8 +82,8 @@ lemma stageLp_cauchySeq (t : ℝ) :
       _ = ε ^ (2 : ℝ) := by
           rw [show ε ^ (2 : ℝ) / 4 * 2 + ε ^ (2 : ℝ) / 4 * 2 = 4 * (ε ^ (2 : ℝ) / 4) by ring,
             ENNReal.mul_div_cancel (by norm_num) (by norm_num)]
-  have hsq : eLpNorm (fun ω => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global m t ω
-      - stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω) 2 P ^ (2 : ℝ)
+  have hsq : eLpNorm (fun ω => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global m t ω
+      - stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω) 2 P ^ (2 : ℝ)
       < ε ^ (2 : ℝ) := by
     rw [LevyStochCalc.Brownian.Ito.eLpNorm_sq_eq_lintegral_nnnorm_sq]
     rcases le_total m n with hmn | hnm
@@ -98,17 +98,17 @@ lemma stageLp_cauchySeq (t : ℝ) :
 /-- The `L²` integral process at time `t`, as an element of `L²(P)`: the limit of the stage
 integrals. -/
 noncomputable def processLp (t : ℝ) : Lp ℝ 2 P :=
-  limUnder atTop (fun n => stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n)
+  limUnder atTop (fun n => stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n)
 
 include hℱ in
 lemma stageLp_tendsto (t : ℝ) :
-    Tendsto (fun n => stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n) atTop
-      (𝓝 (processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t)) :=
+    Tendsto (fun n => stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n) atTop
+      (𝓝 (processLp N ℱ φ h_meas h_progMeas h_sq_int_global t)) :=
   (stageLp_cauchySeq N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t).tendsto_limUnder
 
 include hℱ in
 lemma stageLp_mem_lpMeas (t : ℝ) (n : ℕ) :
-    stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n
+    stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n
       ∈ lpMeas ℝ ℝ (ℱ t) 2 P := by
   rw [mem_lpMeas_iff_aestronglyMeasurable]
   refine (((martingale_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).stronglyAdapted
@@ -117,7 +117,7 @@ lemma stageLp_mem_lpMeas (t : ℝ) (n : ℕ) :
 
 include hℱ in
 lemma processLp_mem_lpMeas (t : ℝ) :
-    processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t
+    processLp N ℱ φ h_meas h_progMeas h_sq_int_global t
       ∈ lpMeas ℝ ℝ (ℱ t) 2 P := by
   rw [mem_lpMeas_iff_aestronglyMeasurable]
   have hclosed : IsClosed {f : Lp ℝ 2 P |
@@ -130,7 +130,7 @@ lemma processLp_mem_lpMeas (t : ℝ) :
 include hℱ in
 lemma process_aesm (t : ℝ) :
     AEStronglyMeasurable[ℱ t]
-      (↑↑(processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) P :=
+      (↑↑(processLp N ℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) P :=
   mem_lpMeas_iff_aestronglyMeasurable.mp
     (processLp_mem_lpMeas N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t)
 
@@ -138,12 +138,12 @@ lemma process_aesm (t : ℝ) :
 the `ℱ_t`-measurable representative of the `L²`-limit of the stage integrals. -/
 noncomputable def process (t : ℝ) : Ω → ℝ :=
   (process_aesm N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t).mk
-    (↑↑(processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t))
+    (↑↑(processLp N ℱ φ h_meas h_progMeas h_sq_int_global t))
 
 include hℱ in
 lemma process_ae_eq (t : ℝ) :
     process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t
-      =ᵐ[P] (↑↑(processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) :=
+      =ᵐ[P] (↑↑(processLp N ℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) :=
   (process_aesm N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t).ae_eq_mk.symm
 
 include hℱ in
@@ -158,20 +158,20 @@ lemma process_memLp (t : ℝ) : MemLp (process N ℱ hℱ φ h_meas h_progMeas h
 include hℱ in
 /-- The stage integrals converge to the process in `L²` at every time. -/
 lemma stageIntegral_tendsto_process (t : ℝ) :
-    Tendsto (fun n => eLpNorm (fun ω => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n
+    Tendsto (fun n => eLpNorm (fun ω => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n
       t ω
       - process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) 2 P) atTop (𝓝 0) := by
   haveI : Fact ((1 : ℝ≥0∞) ≤ 2) := ⟨by norm_num⟩
   have h1 := stageLp_tendsto N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t
-  have hmem : MemLp (↑↑(processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) 2 P :=
+  have hmem : MemLp (↑↑(processLp N ℱ φ h_meas h_progMeas h_sq_int_global t) : Ω → ℝ) 2 P :=
     Lp.memLp _
-  rw [← Lp.toLp_coeFn (processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t) hmem] at h1
+  rw [← Lp.toLp_coeFn (processLp N ℱ φ h_meas h_progMeas h_sq_int_global t) hmem] at h1
   have h2 := (Lp.tendsto_Lp_iff_tendsto_eLpNorm
-    (fun n => stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n)
-    (↑↑(processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t)) hmem).mp h1
+    (fun n => stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n)
+    (↑↑(processLp N ℱ φ h_meas h_progMeas h_sq_int_global t)) hmem).mp h1
   refine h2.congr' (Eventually.of_forall fun n => ?_)
   refine eLpNorm_congr_ae ?_
-  filter_upwards [stageLp_coeFn N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n,
+  filter_upwards [stageLp_coeFn N ℱ φ h_meas h_progMeas h_sq_int_global t n,
     process_ae_eq N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t] with ω hω hF
   simp only [Pi.sub_apply]
   rw [hω, hF]
@@ -180,13 +180,13 @@ include hℱ in
 /-- At nonpositive times the process vanishes. -/
 lemma process_ae_zero_of_nonpos {t : ℝ} (ht : t ≤ 0) :
     process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t =ᵐ[P] 0 := by
-  have hst : ∀ n, stageLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n = 0 := by
+  have hst : ∀ n, stageLp N ℱ φ h_meas h_progMeas h_sq_int_global t n = 0 := by
     intro n
     rw [Lp.eq_zero_iff_ae_eq_zero]
-    refine (stageLp_coeFn N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t n).trans
+    refine (stageLp_coeFn N ℱ φ h_meas h_progMeas h_sq_int_global t n).trans
       (Eventually.of_forall fun ω => ?_)
-    exact stageIntegral_eq_zero_of_nonpos N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n ht ω
-  have hlim : processLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t = 0 := by
+    exact stageIntegral_eq_zero_of_nonpos N ℱ φ h_meas h_progMeas h_sq_int_global n ht ω
+  have hlim : processLp N ℱ φ h_meas h_progMeas h_sq_int_global t = 0 := by
     have h := stageLp_tendsto N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t
     simp only [hst] at h
     exact (tendsto_nhds_unique h tendsto_const_nhds)
@@ -199,7 +199,7 @@ include hℱ in
 lemma martingale_process :
     Martingale (process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global) ℱ P := by
   refine LevyStochCalc.Brownian.Ito.martingale_of_tendsto_eLpNorm_one
-    (M := fun n t => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t)
+    (M := fun n t => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t)
     (fun n => martingale_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n)
     (fun n t => (martingale_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).integrable
       t)
@@ -208,7 +208,7 @@ lemma martingale_process :
     (fun t => ?_)
   refine LevyStochCalc.Brownian.Ito.tendsto_eLpNorm_one_of_eLpNorm_two (fun n => ?_)
     (stageIntegral_tendsto_process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t)
-  exact ((memLp_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t).sub
+  exact ((memLp_stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t).sub
     (process_memLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t)).aestronglyMeasurable
 
 end Process
@@ -297,11 +297,11 @@ theorem process_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
   set μt := P.prod (ν.prod (volume.restrict (Set.Icc (0 : ℝ) t))) with hμt
   set g : Ω × E × ℝ → ℝ := fun q => φ q.1 q.2.2 q.2.1 with hg
   set gₙ : ℕ → Ω × E × ℝ → ℝ := fun n q =>
-    (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.eval q.2.2 q.2.1 q.1 with hgₙ
+    (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.eval q.2.2 q.2.1 q.1 with hgₙ
   have hswap : Measurable fun q : Ω × E × ℝ => ((q.1, q.2.2, q.2.1) : Ω × ℝ × E) := by fun_prop
   have hgm : Measurable g := h_meas.comp hswap
   have hgₙm : ∀ n, Measurable (gₙ n) := fun n =>
-    (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.eval_measurable.comp hswap
+    (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.eval_measurable.comp hswap
   have hφsq : Measurable (fun p : Ω × ℝ × E => (‖φ p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) :=
     (ENNReal.continuous_coe.measurable.comp h_meas.nnnorm).pow_const 2
   -- the triple integrals as integrals for `μt`
@@ -309,16 +309,16 @@ theorem process_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
       ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) t, f ω s e ∂volume ∂ν ∂P
         = ∫⁻ q, f q.1 q.2.2 q.2.1 ∂μt := fun f hf => triple_eq_lintegral_prod f hf
   -- 1. the stage integrals
-  have h1 : ∀ n, ∫⁻ ω, (‖stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω‖₊
+  have h1 : ∀ n, ∫⁻ ω, (‖stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω‖₊
       : ℝ≥0∞) ^ 2 ∂P = ∫⁻ q, (‖gₙ n q‖₊ : ℝ≥0∞) ^ 2 ∂μt := by
     intro n
     simp only [stageIntegral]
-    rw [(master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.lintegral_integral_sq_at N hℱ
-      (master_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n) ht]
+    rw [(master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.lintegral_integral_sq_at N hℱ
+      (master_adapted N ℱ φ h_meas h_progMeas h_sq_int_global n) ht]
     exact hlift (fun ω s e =>
-      (‖(master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.eval s e ω‖₊ : ℝ≥0∞) ^ 2)
+      (‖(master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.eval s e ω‖₊ : ℝ≥0∞) ^ 2)
       ((ENNReal.continuous_coe.measurable.comp
-        (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.eval_measurable.nnnorm).pow_const 2)
+        (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.eval_measurable.nnnorm).pow_const 2)
   -- 2. `gₙ → g` in `L²(μt)`
   have h2 : Tendsto (fun n => eLpNorm (gₙ n - g) 2 μt) atTop (𝓝 0) := by
     have hsq : Tendsto (fun n => eLpNorm (gₙ n - g) 2 μt ^ (2 : ℝ)) atTop (𝓝 0) := by
@@ -326,9 +326,9 @@ theorem process_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
         obtain ⟨k, hk⟩ := pow_unbounded_of_one_lt t (one_lt_two : (1 : ℝ) < 2)
         exact ⟨k, hk.le⟩
       have hbound : ∀ n, N₀ ≤ n → eLpNorm (gₙ n - g) 2 μt ^ (2 : ℝ)
-          ≤ stageErr φ P n (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2 := by
+          ≤ stageErr φ P n (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2 := by
         intro n hn
-        set G := (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2 with hG
+        set G := (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2 with hG
         have hdm : Measurable (fun p : Ω × ℝ × E =>
             (‖G.eval p.2.1 p.2.2 p.1 - φ p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) :=
           (ENNReal.continuous_coe.measurable.comp
@@ -353,9 +353,9 @@ theorem process_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
         refine this.congr fun n => ?_
         simp [Function.comp]
       have herr : Tendsto (fun n => stageErr φ P n
-          (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2) atTop (𝓝 0) :=
+          (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2) atTop (𝓝 0) :=
         tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hinv (fun _ => bot_le)
-          (fun n => (master_err N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).le)
+          (fun n => (master_err N ℱ φ h_meas h_progMeas h_sq_int_global n).le)
       exact tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds herr
         (Eventually.of_forall fun _ => bot_le) (eventually_atTop.2 ⟨N₀, hbound⟩)
     have h := hsq.ennrpow_const ((1 : ℝ) / 2)
@@ -375,7 +375,7 @@ theorem process_lintegral_sq {t : ℝ} (ht : 0 ≤ t) :
     (fun n => (hgₙm n).aestronglyMeasurable) hgm.aestronglyMeasurable hgfin h2
   -- 4. the stage integrals converge to the process
   have h4 := LevyStochCalc.Brownian.Ito.tendsto_lintegral_nnnorm_sq_of_eLpNorm
-    (fun n => (memLp_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n
+    (fun n => (memLp_stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n
       t).aestronglyMeasurable)
     (process_memLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t).aestronglyMeasurable
     (process_memLp N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t).eLpNorm_ne_top

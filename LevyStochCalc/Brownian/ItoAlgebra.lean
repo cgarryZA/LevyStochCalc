@@ -279,7 +279,7 @@ theorem stochasticIntegralBrownian_eval_simple {t : ℝ} (ht : 0 ≤ t) :
   have hA : Filter.Tendsto (fun n => ∫⁻ ω,
       (‖simpleIntegral W (masterApprox ℱ (fun ω s => G.eval s ω) hm hp hq n) t ω
         - simpleIntegral W G t ω‖₊ : ℝ≥0∞) ^ 2 ∂P) Filter.atTop (nhds 0) := by
-    refine (masterApprox_eval_tendsto ℱ (fun ω s => G.eval s ω) hm hp hq ht).congr
+    refine (masterApprox_eval_tendsto (t := t) ℱ (fun ω s => G.eval s ω) hm hp hq).congr
       fun n => ?_
     rw [simpleIntegral_diff_isometry_of_adapted W ℱ hℱ _ G
       (masterApprox_adapt ℱ (fun ω s => G.eval s ω) hm hp hq n) h_adapt ht]
@@ -757,7 +757,7 @@ theorem stochasticIntegralBrownian_integralAgainst {t : ℝ} (ht : 0 < t) :
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds ?_
       (Filter.Eventually.of_forall fun n => bot_le) (Filter.Eventually.of_forall hkey)
     have hml := ENNReal.Tendsto.const_mul (a := ENNReal.ofReal B ^ 2)
-      (masterApprox_eval_tendsto ℱ H hm hp hq ht.le) (Or.inr hne)
+      (masterApprox_eval_tendsto (t := t) ℱ H hm hp hq) (Or.inr hne)
     simpa using hml
   -- (e) the product elementary integrals converge to the integral against the `L²` integral
   have hu_nn : ∀ i : Fin G.N, 0 ≤ min (G.partition i.succ) t :=

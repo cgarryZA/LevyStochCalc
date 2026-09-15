@@ -122,9 +122,6 @@ lemma triple_sq_lt_of_lt {T : ℝ} {a b c : Ω → ℝ → E → ℝ}
   have hu : Measurable (fun p : Ω × ℝ × E =>
       (‖a p.1 p.2.1 p.2.2 - b p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) :=
     (ENNReal.continuous_coe.measurable.comp (ha.sub hb).nnnorm).pow_const 2
-  have hv : Measurable (fun p : Ω × ℝ × E =>
-      (‖b p.1 p.2.1 p.2.2 - c p.1 p.2.1 p.2.2‖₊ : ℝ≥0∞) ^ 2) :=
-    (ENNReal.continuous_coe.measurable.comp (hb.sub hc).nnnorm).pow_const 2
   calc ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
         (‖a ω s e - c ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
       ≤ ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
@@ -135,7 +132,7 @@ lemma triple_sq_lt_of_lt {T : ℝ} {a b c : Ω → ℝ → E → ℝ}
           (‖a ω s e - b ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
         + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖b ω s e - c ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
-        rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu hv]
+        rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu]
     _ = ((∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖a ω s e - b ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
         + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
@@ -190,7 +187,7 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite
   (h_meas : Measurable (fun p : Ω × ℝ × E => φ p.1 p.2.1 p.2.2))
   (h_progMeas : Probability.MarkedProgressivelyMeasurable ℱ φ)
 
-include N hℱ h_meas h_progMeas in
+include N h_meas h_progMeas in
 /-- A square-integrable progressively measurable integrand is approximated in `L²` on
 `[0, T]` by adapted mark-step integrands on dyadic grids of arbitrarily high level. -/
 theorem exists_markStep_close {T : ℝ} (hT : 0 < T)
@@ -301,12 +298,12 @@ noncomputable def stageErr (P : Measure Ω) (n : ℕ) {ℓ : ℕ}
   ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) (stageHorizon n), ∫⁻ e,
     (‖φ ω s e - G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P
 
-include N hℱ h_meas h_progMeas h_sq_int_global in
+include N h_meas h_progMeas h_sq_int_global in
 lemma exists_stage (n L₀ : ℕ) :
     ∃ ℓ : ℕ, L₀ ≤ ℓ ∧
       ∃ G : MarkStep Ω E ν (TimeGrid.dyadic (stageHorizon n) (stageHorizon_pos n) ℓ),
         G.Adapted ℱ ∧ stageErr φ P n G < ((n : ℝ≥0∞) + 1)⁻¹ :=
-  exists_markStep_close N ℱ hℱ φ h_meas h_progMeas (stageHorizon_pos n)
+  exists_markStep_close N ℱ φ h_meas h_progMeas (stageHorizon_pos n)
     (h_sq_int_global _ (stageHorizon_pos n)) L₀
     (ENNReal.inv_pos.2 (ENNReal.add_ne_top.2 ⟨ENNReal.natCast_ne_top n, ENNReal.one_ne_top⟩))
 
@@ -315,50 +312,50 @@ dyadic grid of `[0, 2 ^ n]` within `(n + 1)⁻¹` of `φ` in `L²`, the levels i
 least one per stage. -/
 noncomputable def master :
     ∀ n : ℕ, Σ ℓ : ℕ, MarkStep Ω E ν (TimeGrid.dyadic (stageHorizon n) (stageHorizon_pos n) ℓ)
-  | 0 => ⟨Classical.choose (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global 0 0),
+  | 0 => ⟨Classical.choose (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global 0 0),
       Classical.choose
-        (Classical.choose_spec (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2⟩
-  | n + 1 => ⟨Classical.choose (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (n + 1)
+        (Classical.choose_spec (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2⟩
+  | n + 1 => ⟨Classical.choose (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global (n + 1)
         ((master n).1 + 1)),
-      Classical.choose (Classical.choose_spec (exists_stage N ℱ hℱ φ h_meas h_progMeas
+      Classical.choose (Classical.choose_spec (exists_stage N ℱ φ h_meas h_progMeas
         h_sq_int_global (n + 1) ((master n).1 + 1))).2⟩
 
 lemma master_level_succ (n : ℕ) :
-    (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).1 + 1
-      ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (n + 1)).1 :=
-  (Classical.choose_spec (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (n + 1)
-    ((master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).1 + 1))).1
+    (master N ℱ φ h_meas h_progMeas h_sq_int_global n).1 + 1
+      ≤ (master N ℱ φ h_meas h_progMeas h_sq_int_global (n + 1)).1 :=
+  (Classical.choose_spec (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global (n + 1)
+    ((master N ℱ φ h_meas h_progMeas h_sq_int_global n).1 + 1))).1
 
 lemma master_level_add {n n' : ℕ} (h : n ≤ n') :
-    (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).1 + (n' - n)
-      ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').1 := by
+    (master N ℱ φ h_meas h_progMeas h_sq_int_global n).1 + (n' - n)
+      ≤ (master N ℱ φ h_meas h_progMeas h_sq_int_global n').1 := by
   induction h with
   | refl => simp
   | @step m h ih =>
-    have h1 := master_level_succ N ℱ hℱ φ h_meas h_progMeas h_sq_int_global m
-    change _ + (m + 1 - n) ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (m + 1)).1
+    have h1 := master_level_succ N ℱ φ h_meas h_progMeas h_sq_int_global m
+    change _ + (m + 1 - n) ≤ (master N ℱ φ h_meas h_progMeas h_sq_int_global (m + 1)).1
     omega
 
 lemma master_adapted (n : ℕ) :
-    (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.Adapted ℱ := by
+    (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.Adapted ℱ := by
   cases n with
   | zero =>
     exact (Classical.choose_spec (Classical.choose_spec
-      (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2).1
+      (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2).1
   | succ n =>
     exact (Classical.choose_spec (Classical.choose_spec
-      (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (n + 1) _)).2).1
+      (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global (n + 1) _)).2).1
 
 lemma master_err (n : ℕ) :
-    stageErr φ P n (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2 < ((n : ℝ≥0∞) + 1)⁻¹ :=
+    stageErr φ P n (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2 < ((n : ℝ≥0∞) + 1)⁻¹ :=
       by
   cases n with
   | zero =>
     exact (Classical.choose_spec (Classical.choose_spec
-      (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2).2
+      (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global 0 0)).2).2
   | succ n =>
     exact (Classical.choose_spec (Classical.choose_spec
-      (exists_stage N ℱ hℱ φ h_meas h_progMeas h_sq_int_global (n + 1) _)).2).2
+      (exists_stage N ℱ φ h_meas h_progMeas h_sq_int_global (n + 1) _)).2).2
 
 end Master
 
@@ -376,20 +373,20 @@ variable {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite
 
 /-- The compensated integral of the stage-`n` approximant up to time `t`. -/
 noncomputable def stageIntegral (n : ℕ) (t : ℝ) (ω : Ω) : ℝ :=
-  (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2.integral N t ω
+  (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2.integral N t ω
 
 include hℱ in
 lemma martingale_stageIntegral (n : ℕ) :
-    Martingale (fun t => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t)
+    Martingale (fun t => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t)
       ℱ P :=
-  MarkStep.martingale_integral N hℱ _ (master_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n)
+  MarkStep.martingale_integral N hℱ _ (master_adapted N ℱ φ h_meas h_progMeas h_sq_int_global n)
 
 lemma memLp_stageIntegral (n : ℕ) (t : ℝ) :
-    MemLp (fun ω => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω) 2 P :=
+    MemLp (fun ω => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω) 2 P :=
   MarkStep.memLp_integral N _ t
 
 lemma stageIntegral_eq_zero_of_nonpos (n : ℕ) {t : ℝ} (ht : t ≤ 0) (ω : Ω) :
-    stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω = 0 :=
+    stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω = 0 :=
   MarkStep.integral_eq_zero_of_nonpos N _ ht ω
 
 omit [IsProbabilityMeasure P] in
@@ -402,32 +399,33 @@ lemma lintegral_swap_es {T : ℝ} (f : Ω → ℝ → E → ℝ≥0∞)
   exact (hf.comp (by fun_prop :
     Measurable fun q : E × ℝ => ((ω, q.2, q.1) : Ω × ℝ × E))).aemeasurable
 
+include hℱ in
 /-- The `L²` distance between two stages, at the horizon of the earlier stage. -/
 lemma stageIntegral_sub_sq_horizon_le {n n' : ℕ} (h : n ≤ n') :
-    ∫⁻ ω, (‖stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n (stageHorizon n) ω
-        - stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n' (stageHorizon n) ω‖₊
+    ∫⁻ ω, (‖stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n (stageHorizon n) ω
+        - stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n' (stageHorizon n) ω‖₊
           : ℝ≥0∞) ^ 2 ∂P
       ≤ 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n' : ℝ≥0∞) + 1)⁻¹ := by
-  set G := (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).2 with hGdef
-  set G' := (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').2 with hG'def
-  have hG := master_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n
-  have hG' := master_adapted N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n'
-  have hlev := master_level_add N ℱ hℱ φ h_meas h_progMeas h_sq_int_global h
-  have hd : n' - n ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').1 := by omega
-  have hℓ : (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).1
-      ≤ (master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').1 - (n' - n) := by omega
+  set G := (master N ℱ φ h_meas h_progMeas h_sq_int_global n).2 with hGdef
+  set G' := (master N ℱ φ h_meas h_progMeas h_sq_int_global n').2 with hG'def
+  have hG := master_adapted N ℱ φ h_meas h_progMeas h_sq_int_global n
+  have hG' := master_adapted N ℱ φ h_meas h_progMeas h_sq_int_global n'
+  have hlev := master_level_add N ℱ φ h_meas h_progMeas h_sq_int_global h
+  have hd : n' - n ≤ (master N ℱ φ h_meas h_progMeas h_sq_int_global n').1 := by omega
+  have hℓ : (master N ℱ φ h_meas h_progMeas h_sq_int_global n).1
+      ≤ (master N ℱ φ h_meas h_progMeas h_sq_int_global n').1 - (n' - n) := by omega
   have hT := stageHorizon_eq_mul h
   set R := G'.dyadicRestrict (stageHorizon_pos n) hd hT with hRdef
   set Rf := G.dyadicRefine hℓ with hRfdef
   have hR : R.Adapted ℱ := hG'.dyadicRestrict (stageHorizon_pos n) hd hT
   have hRf : Rf.Adapted ℱ := hG.dyadicRefine N hℓ
   have hhor : (TimeGrid.dyadic (stageHorizon n) (stageHorizon_pos n)
-      ((master N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').1 - (n' - n))).horizon
+      ((master N ℱ φ h_meas h_progMeas h_sq_int_global n').1 - (n' - n))).horizon
       = stageHorizon n := TimeGrid.dyadic_horizon _ _ _
-  have e1 : ∀ ω, stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n (stageHorizon n) ω
+  have e1 : ∀ ω, stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n (stageHorizon n) ω
       = G.full N ω := fun ω =>
     G.integral_eq_full_of_horizon_le N (by rw [TimeGrid.dyadic_horizon]) ω
-  have e2 : ∀ ω, stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n' (stageHorizon n) ω
+  have e2 : ∀ ω, stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n' (stageHorizon n) ω
       = R.full N ω := fun ω => (G'.full_dyadicRestrict N (stageHorizon_pos n) hd hT ω).symm
   have e3 : ∀ ω, R.full N ω = R.integral N (stageHorizon n) ω := fun ω =>
     (R.integral_eq_full_of_horizon_le N hhor.le ω).symm
@@ -448,9 +446,6 @@ lemma stageIntegral_sub_sq_horizon_le {n n' : ℕ} (h : n ≤ n') :
   have hu : Measurable (fun p : Ω × ℝ × E =>
       (‖φ p.1 p.2.1 p.2.2 - G.eval p.2.1 p.2.2 p.1‖₊ : ℝ≥0∞) ^ 2) :=
     (ENNReal.continuous_coe.measurable.comp (h_meas.sub G.eval_measurable).nnnorm).pow_const 2
-  have hv : Measurable (fun p : Ω × ℝ × E =>
-      (‖φ p.1 p.2.1 p.2.2 - G'.eval p.2.1 p.2.2 p.1‖₊ : ℝ≥0∞) ^ 2) :=
-    (ENNReal.continuous_coe.measurable.comp (h_meas.sub G'.eval_measurable).nnnorm).pow_const 2
   have hw : Measurable (fun p : Ω × ℝ × E =>
       (‖G.eval p.2.1 p.2.2 p.1 - G'.eval p.2.1 p.2.2 p.1‖₊ : ℝ≥0∞) ^ 2) :=
     (ENNReal.continuous_coe.measurable.comp
@@ -482,30 +477,30 @@ lemma stageIntegral_sub_sq_horizon_le {n n' : ℕ} (h : n ≤ n') :
         lintegral_mono fun ω => lintegral_mono fun s => lintegral_mono fun e => hpt ω s e
     _ = 2 * (stageErr φ P n G + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) (stageHorizon n), ∫⁻ e,
         (‖φ ω s e - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
-        rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu hv]
+        rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu]
         rfl
     _ ≤ 2 * (((n : ℝ≥0∞) + 1)⁻¹ + ((n' : ℝ≥0∞) + 1)⁻¹) := by
         gcongr
-        · exact (master_err N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).le
-        · exact herr'.trans (master_err N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n').le
+        · exact (master_err N ℱ φ h_meas h_progMeas h_sq_int_global n).le
+        · exact herr'.trans (master_err N ℱ φ h_meas h_progMeas h_sq_int_global n').le
     _ = 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n' : ℝ≥0∞) + 1)⁻¹ := mul_add _ _ _
 
 include hℱ in
 /-- The `L²` distance between two stages at any time up to the horizon of the earlier
 stage. -/
 lemma stageIntegral_sub_sq_le {n n' : ℕ} (h : n ≤ n') {t : ℝ} (ht : t ≤ stageHorizon n) :
-    ∫⁻ ω, (‖stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n t ω
-        - stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n' t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+    ∫⁻ ω, (‖stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n t ω
+        - stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n' t ω‖₊ : ℝ≥0∞) ^ 2 ∂P
       ≤ 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n' : ℝ≥0∞) + 1)⁻¹ := by
   refine le_trans ?_ (stageIntegral_sub_sq_horizon_le N ℱ hℱ φ h_meas h_progMeas h_sq_int_global h)
-  set M : ℝ → Ω → ℝ := fun u ω => stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n u ω
-    - stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n' u ω with hMdef
+  set M : ℝ → Ω → ℝ := fun u ω => stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n u ω
+    - stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n' u ω with hMdef
   have hmart : Martingale M ℱ P :=
     (martingale_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n).sub
       (martingale_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n')
   have hL2 : ∀ u, MemLp (M u) 2 P := fun u =>
-    (memLp_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n u).sub
-      (memLp_stageIntegral N ℱ hℱ φ h_meas h_progMeas h_sq_int_global n' u)
+    (memLp_stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n u).sub
+      (memLp_stageIntegral N ℱ φ h_meas h_progMeas h_sq_int_global n' u)
   have key := LevyStochCalc.Brownian.Ito.integral_sq_increment_eq_of_martingale hmart (hL2 t)
     (hL2 (stageHorizon n)) ht
   have h0 : 0 ≤ ∫ ω, (M (stageHorizon n) ω - M t ω) ^ 2 ∂P :=

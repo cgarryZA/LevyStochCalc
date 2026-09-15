@@ -144,7 +144,7 @@ theorem integral_mul_stochasticIntegralBrownian_eq_zero {a b : ℝ} (ha : 0 ≤ 
     {V : Ω → ℝ} (hVm : Measurable V) {Mv : ℝ} (hMv0 : 0 ≤ Mv) (hVb : ∀ ω, |V ω| ≤ Mv)
     (hVa : StronglyMeasurable[ℱ a] V)
     {K : Ω → ℝ → ℝ} (hKm : Measurable (Function.uncurry K))
-    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ} (hKb0 : 0 ≤ Kb)
+    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ}
     (hKbd : ∀ ω s, |K ω s| ≤ Kb)
     (hmg : Measurable (Function.uncurry fun ω s => K ω s * indIoc Ω a b ω s))
     (hpg : Probability.ProgressivelyMeasurable ℱ fun ω s => K ω s * indIoc Ω a b ω s)
@@ -159,7 +159,7 @@ theorem integral_mul_stochasticIntegralBrownian_eq_zero {a b : ℝ} (ha : 0 ≤ 
     rw [Complex.norm_real, Real.norm_eq_abs]; exact hVb ω
   have hVca : StronglyMeasurable[ℱ a] fun ω => ((V ω : ℝ) : ℂ) :=
     Complex.continuous_ofReal.comp_stronglyMeasurable hVa
-  have hc := pairing_ito_eq_zero ha hab hZc hZp hVc hMv0 hVcb hVca hKm hKp hKb0 hKbd hmg hpg
+  have hc := pairing_ito_eq_zero ha hab hZc hZp hVc hMv0 hVcb hVca hKm hKp hKbd hmg hpg
     hqg ht
   set f : Ω → ℝ := fun ω => Z ω * V ω * stochasticIntegralBrownian W ℱ hℱW
     (fun ω s => K ω s * indIoc Ω a b ω s) hmg hpg hqg t ω with hf
@@ -208,7 +208,7 @@ theorem pairing_of_product_rule {T : ℝ} (hT : 0 < T) {a b : ℝ} (ha : 0 ≤ a
     (hGa : ∀ ω s e, s ≤ a → G.toFun ω s e = 0) {Cg : ℝ} (hGb : ∀ ω s e, |G.toFun ω s e| ≤ Cg)
     {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
     {K : Ω → ℝ → ℝ} (hKm : Measurable (Function.uncurry K))
-    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ} (hKb0 : 0 ≤ Kb)
+    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ}
     (hKbd : ∀ ω s, |K ω s| ≤ Kb)
     (hmg : Measurable (Function.uncurry fun ω s => K ω s * indIoc Ω a b ω s))
     (hpg : Probability.ProgressivelyMeasurable ℱ fun ω s => K ω s * indIoc Ω a b ω s)
@@ -264,7 +264,7 @@ theorem pairing_of_product_rule {T : ℝ} (hT : 0 < T) {a b : ℝ} (ha : 0 ≤ a
     linear_combination (Z ω * V ω) * hω
   -- the two pairings that vanish or convert
   have hSIBzero := integral_mul_stochasticIntegralBrownian_eq_zero W hℱW ha hab hZ2 hZito hVm
-    hMv0 hVb hVa hKm hKp hKb0 hKbd hmg hpg hqg ht
+    hMv0 hVb hVa hKm hKp hKbd hmg hpg hqg ht
   have hjumpeq := integral_mul_setIntegral_count N hℱN hT hZ2 hZcomp ha haT hVa hVb G hGpred
     hGa hGb hXc hXa hC0 hXb hA hAν htT
   -- assemble

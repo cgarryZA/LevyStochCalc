@@ -428,7 +428,7 @@ contributes zero. -/
 theorem ae_setIntegral_jumpIncrement_sub_eq_zero
     (coeffs : Setting.JumpDiffusionCoeffs n d E)
     (N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν) (Xp : ℝ → Ω → Fin n → ℝ)
-    (A : Set E) (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (A : Set E)
     (u : ℝ → (Fin n → ℝ) → ℝ) {T : ℝ} {m : ℕ} (hm : 0 < m) (hTm : T < 3 * (m : ℝ))
     (hjump : ∀ᵐ ω ∂P, ∃ (K : ℕ) (θ : Fin K → ℝ) (ε : Fin K → E), StrictMono θ ∧
       (∀ j, θ j ∈ Set.Ioc (0 : ℝ) T ∧ ε j ∈ A) ∧

@@ -248,7 +248,7 @@ theorem abs_ofUnifGrid_eval_sub_le {T : ℝ} (hT : 0 < T) {m : ℕ} (hm0 : m ≠
 /-- **`L²` distance between the grid step weight and the weight.** A uniform pathwise bound on
 `(0, T]` gives an `L²` bound over the window. -/
 theorem lintegral_sq_sub_le_of_bound {P : Measure Ω} [IsProbabilityMeasure P]
-    (u v : Ω → ℝ → ℝ) {ε T : ℝ} (hε0 : 0 ≤ ε) (hT : 0 ≤ T)
+    (u v : Ω → ℝ → ℝ) {ε T : ℝ} (hε0 : 0 ≤ ε)
     (hbound : ∀ (ω : Ω), ∀ s ∈ Set.Ioc (0 : ℝ) T, |u ω s - v ω s| ≤ ε) :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, (‖u ω s - v ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P
       ≤ ENNReal.ofReal (ε ^ 2 * T) := by
@@ -320,7 +320,7 @@ theorem tendsto_riemann_weighted_unifGrid {g h : ℝ → ℝ} (hgc : Continuous 
     have hdist : dist x y < δ := lt_of_le_of_lt (by simpa [Real.dist_eq] using hxy) hmesh
     exact le_of_lt (by simpa [Real.dist_eq] using hδ x hx y hy hdist)
   have hbound := abs_riemann_weighted_sub_integral_le (T := T) (ε := ε) (δ := T / (m : ℝ))
-    (M := M) (Kg := Kg) hM0 hε0.le hgc hh hhM hgb hgmod (unifGrid T m)
+    (M := M) (Kg := Kg) hε0.le hgc hh hhM hgb hgmod (unifGrid T m)
     (unifGrid_zero T m) (unifGrid_self hm0)
     (fun i _ => (unifGrid_lt_succ hT hm0 i).le)
     (fun i _ => le_of_eq (unifGrid_succ_sub hm0 i))

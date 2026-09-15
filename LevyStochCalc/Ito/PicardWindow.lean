@@ -224,8 +224,8 @@ theorem ae_eq_of_solvesOn
     (fun i => measurable_mu_comp_state coeffs hReg hXm i)
     (fun i => measurable_mu_comp_state coeffs hReg hYm i)
     hnorm
-    (fun i b _ => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hXm hXe i (by assumption))
-    (fun i b _ => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hYm hYe i (by assumption))
+    (fun i b _ => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hXe i (by assumption))
+    (fun i b _ => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip hYe i (by assumption))
     (fun b _ => lintegral_sq_sub_lt_top_of_energy hXm hYm hXe hYe b)
     hsubm hβ hT
   have hcongr : bieleckiNorm (P := P) β T (fun t ω i => X t ω i - Y t ω i)

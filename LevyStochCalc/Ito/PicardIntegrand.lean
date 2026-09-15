@@ -469,7 +469,7 @@ theorem lintegral_sq_mu_lt_top_of_energy {n d : ℕ} {P : MeasureTheory.Measure 
     (coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
     (hReg : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular coeffs ν)
     {L : ℝ} (hLip : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz coeffs ν L)
-    {Z : ℝ → Ω → (Fin n → ℝ)} (hZm : Measurable (Function.uncurry Z))
+    {Z : ℝ → Ω → (Fin n → ℝ)}
     (hZsq : ∀ b : ℝ, ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) b,
       ∑ i', (‖Z s ω i'‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
     (i : Fin n) {T' : ℝ} (hT' : 0 < T') :
@@ -538,7 +538,7 @@ theorem lintegral_sq_mu_stop_lt_top {n d : ℕ} {P : MeasureTheory.Measure Ω}
     (i : Fin n) {T' : ℝ} (hT' : 0 < T') :
     ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖coeffs.μ s (Y.stop.X s ω) i‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤ :=
-  lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip Y.stop.measurable_path
+  lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
     (fun b => lt_of_le_of_lt (lintegral_lintegral_sq_stop_le Y hT b)
       (ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.pow_lt_top Y.sup_L2))) i hT'
 

@@ -86,14 +86,20 @@ Bouchard–Elie 2008 SPA 118(1) Thm 2.1; Andersson–Gnoatto–Patacca–Picarel
 2025 arXiv:2211.04349 Thm 2.4). A vector-`Y` generalisation would add a
 dimension `m` and change `g`/`f` to return `Fin m → ℝ`; it is out of scope.
 
-The `f_measurable`/`g_measurable` fields prevent `IsBSDEJSolution` from being
-evaluated on non-measurable drivers, where the Bochner integral would default
-to `0` and make the equation `Y_t = g + 0` trivially solvable:
+The `f_measurable_slice`/`g_measurable` fields prevent `IsBSDEJSolution` from
+being evaluated on non-measurable drivers, where the Bochner integral would
+default to `0` and make the equation `Y_t = g + 0` trivially solvable:
 - `g : (Fin n → ℝ) → ℝ` is Borel-measurable in `x`;
 - `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly
-  measurable in its five arguments for the product σ-algebra on
-  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)` (the `(E → ℝ)` slot carries
-  the product σ-algebra, matching the `Ψ_t = ∫ U_t(z) ν(dz)` channel). -/
+  measurable in `(t, x, y, z)` for the product σ-algebra on
+  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ)`, at each fixed jump variable `u`.
+
+Joint measurability in all five arguments, with the product σ-algebra on the
+`(E → ℝ)` slot, is not asked for: such a function of `u` depends on countably
+many coordinates, and a countable set of marks is `ν`-null whenever `ν` is
+atomless, so a Lipschitz bound in the `L²(ν)` distance of the jump variable
+then forces `f` to be constant in `u`
+(`BSDEJ.GeneratorDegeneracy.f_const_of_measurable_of_lipschitz`). -/
 structure BSDEJData (n d : ℕ) (E : Type v) where
   /-- Generator `f(t, x, y, z, u)`. -/
   f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ
@@ -101,12 +107,12 @@ structure BSDEJData (n d : ℕ) (E : Type v) where
   g : (Fin n → ℝ) → ℝ
   /-- `g` is Borel-measurable. -/
   g_measurable : Measurable g
-  /-- `f` is jointly measurable in `(t, x, y, z, u)`. The 5-arg product
-  σ-algebra is the canonical one on
-  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)`. -/
-  f_measurable : Measurable
-    (fun (p : ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ) × (E → ℝ)) =>
-      f p.1 p.2.1 p.2.2.1 p.2.2.2.1 p.2.2.2.2)
+  /-- At each fixed jump variable `u`, the slice of `f` is jointly measurable
+  in `(t, x, y, z)` for the product σ-algebra on
+  `ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ)`. -/
+  f_measurable_slice : ∀ u : E → ℝ, Measurable
+    (fun (p : ℝ × (Fin n → ℝ) × ℝ × (Fin d → ℝ)) =>
+      f p.1 p.2.1 p.2.2.1 p.2.2.2 u)
 
 /-- Predicate: `(Y, Z, U)` solves the BSDEJ with data `bsdej`, driven by
 `(W, N)` and the forward process `X`, on the time horizon `[0, T]`.

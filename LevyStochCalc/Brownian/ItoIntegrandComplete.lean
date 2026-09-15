@@ -51,6 +51,7 @@ theorem energy_eq_eLpNorm_sq {H : Ω → ℝ → ℝ} (hm : Measurable (Function
   rw [eLpNorm_sq_eq_lintegral, energyMeasure, energy,
     lintegral_prod (fun p : Ω × ℝ => (‖H p.1 p.2‖₊ : ℝ≥0∞) ^ 2) hme]
 
+omit [IsProbabilityMeasure P] in
 /-- An integrand of finite energy is square integrable on the product space. -/
 theorem memLp_of_energy_ne_top {H : Ω → ℝ → ℝ} (hm : Measurable (Function.uncurry H)) {T : ℝ}
     (hfin : energy P T H ≠ ⊤) :

@@ -51,7 +51,7 @@ theorem integral_stochasticIntegral_mul_compensated_eq_zero (𝒲 : CrossWitness
     (Poisson.Compensated.process_memLp D.N ℱ hℱN φ hφm hφp hφs t).ae_eq
       (Poisson.Compensated.stochasticIntegral_ae_eq_process D.N ℱ hℱN φ hφm hφp hφs t).symm
   have hcv : Tendsto (fun n => eLpNorm (fun ω =>
-      Poisson.Compensated.stageIntegral D.N ℱ hℱN φ hφm hφp hφs n t ω
+      Poisson.Compensated.stageIntegral D.N ℱ φ hφm hφp hφs n t ω
         - Poisson.Compensated.stochasticIntegral D.N ℱ hℱN φ hφm hφp hφs t ω) 2 P)
       atTop (nhds 0) := by
     refine Tendsto.congr (fun n => ?_)
@@ -63,14 +63,14 @@ theorem integral_stochasticIntegral_mul_compensated_eq_zero (𝒲 : CrossWitness
   exact Brownian.Multidim.MultidimBrownianMotion.integral_mul_eq_zero_of_tendsto_eLpNorm
     (un := fun n ω => Brownian.Ito.simpleIntegral (D.W.W i)
       (Brownian.Ito.masterApprox ℱ H hHm hHp hHs n) t ω)
-    (vn := fun n ω => Poisson.Compensated.stageIntegral D.N ℱ hℱN φ hφm hφp hφs n t ω)
+    (vn := fun n ω => Poisson.Compensated.stageIntegral D.N ℱ φ hφm hφp hφs n t ω)
     hu hv (fun _ => Brownian.Multidim.MultidimBrownianMotion.memLp_simpleIntegral _ _ t)
-    (fun n => Poisson.Compensated.memLp_stageIntegral D.N ℱ hℱN φ hφm hφp hφs n t)
+    (fun n => Poisson.Compensated.memLp_stageIntegral D.N ℱ φ hφm hφp hφs n t)
     (fun n => integral_simpleIntegral_mul_markStep_eq_zero 𝒲
       (Brownian.Ito.masterApprox ℱ H hHm hHp hHs n)
       (Brownian.Ito.masterApprox_adapt ℱ H hHm hHp hHs n)
-      (Poisson.Compensated.master D.N ℱ hℱN φ hφm hφp hφs n).2
-      (Poisson.Compensated.master_adapted D.N ℱ hℱN φ hφm hφp hφs n) t t)
+      (Poisson.Compensated.master D.N ℱ φ hφm hφp hφs n).2
+      (Poisson.Compensated.master_adapted D.N ℱ φ hφm hφp hφs n) t t)
     (Brownian.Ito.masterApprox_tendsto_L2 (D.W.W i) ℱ (hℱW i) H hHm hHp hHs ht) hcv
 
 end LevyDriver

@@ -42,20 +42,18 @@ theorem lintegral_iSup_sq_norm_clamp_version_sub_le
     {H : Fin n → Fin d → Ω → ℝ → ℝ}
     {hm : ∀ p k, Measurable (Function.uncurry (H p k))}
     {hpg : ∀ p k, Probability.ProgressivelyMeasurable ℱ (H p k)}
-    {hq : ∀ (p : Fin n) (k : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
-      (‖H p k ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤}
     {X₀ : Ω → Fin n → ℝ} {b : Fin n → Ω → ℝ → ℝ}
     (hbm : ∀ p, Measurable (Function.uncurry (b p)))
     {j j' : ℕ} {Xj Xj' : ℝ → Ω → Fin n → ℝ}
     (hXj : IsVectorItoVersion W ℱ hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       X₀ (clampDrift b j) Xj)
     (hXj' : IsVectorItoVersion W ℱ hcoord (clampCoeff H j')
       (fun p k => measurable_clampCoeff hm j' p k)
       (fun p k => progressivelyMeasurable_clampCoeff hpg j' p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hm j' p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j' p k T' hT')
       X₀ (clampDrift b j') Xj')
     {T : ℝ} (hT : 0 < T) :
     ∫⁻ ω, (⨆ t : Set.Icc (0 : ℝ) T, (‖Xj' (t : ℝ) ω - Xj (t : ℝ) ω‖₊ : ℝ≥0∞)) ^ 2 ∂P
@@ -103,8 +101,8 @@ theorem lintegral_iSup_sq_norm_clamp_version_sub_le
   have hgen := lintegral_iSup_sq_norm_version_sub_le W ℱ hcoord
     (hbm₁ := fun p => measurable_clampDrift hbm j p)
     (hbm₂ := fun p => measurable_clampDrift hbm j' p)
-    (hbq₁ := fun p T' hT' => energy_clampDrift_lt_top hbm j p T' hT')
-    (hbq₂ := fun p T' hT' => energy_clampDrift_lt_top hbm j' p T' hT')
+    (hbq₁ := fun p T' hT' => energy_clampDrift_lt_top j p T' hT')
+    (hbq₂ := fun p T' hT' => energy_clampDrift_lt_top j' p T' hT')
     hXj hXj' hT
   refine hgen.trans ?_
   have hmesh : clampMesh P H b T j + clampMesh P H b T j'

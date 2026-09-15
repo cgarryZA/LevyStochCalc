@@ -100,7 +100,7 @@ theorem exists_markedPredictable_markedHorizonIntegrand
     (G : MarkedHorizonIntegrand P ν ℱ T) :
     ∃ G' : MarkedHorizonIntegrand P ν ℱ T, MarkedPredictable ℱ ν G'.toFun ∧
       G'.integral N hℱ =ᵐ[P] G.integral N hℱ := by
-  obtain ⟨ψ, hψpred, hψae⟩ := exists_markedPredictable_ae_eq N hℱ G.measurable_uncurry
+  obtain ⟨ψ, hψpred, hψae⟩ := exists_markedPredictable_ae_eq N G.measurable_uncurry
     G.progressive hT G.energy_ne_top
   set ψ' : Ω → ℝ → E → ℝ :=
     fun ω s e => (Set.Ioc (0 : ℝ) T).indicator (fun _ => ψ ω s e) s with hψ'def

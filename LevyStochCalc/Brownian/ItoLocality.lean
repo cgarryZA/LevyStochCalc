@@ -200,7 +200,7 @@ theorem gridPt_self {t : ℝ} {n : ℕ} (hn : n ≠ 0) : gridPt t n n = t := by
 omit [MeasurableSpace Ω] [IsProbabilityMeasure P] in
 /-- The grid stopping time takes one of the grid values strictly below `t`, or a value at
 least `t`. -/
-theorem gridStop_finiteRange {t : ℝ} (ht : 0 < t) {n : ℕ} (hn : n ≠ 0) (ω : Ω) :
+theorem gridStop_finiteRange {t : ℝ} {n : ℕ} (hn : n ≠ 0) (ω : Ω) :
     (∃ c ∈ (Finset.range n).image (gridPt t n),
         gridStop τ t n ω = ((c : ℝ) : WithTop ℝ))
       ∨ ((t : ℝ) : WithTop ℝ) ≤ gridStop τ t n ω := by
@@ -344,7 +344,7 @@ theorem stochasticIntegralBrownian_stopped_eq_of_le
         intro c hc
         obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp hc
         exact gridPt_lt_of_lt ht (Finset.mem_range.mp hk))
-      (gridStop_finiteRange τ ht hn)
+      (gridStop_finiteRange τ hn)
     filter_upwards [hid] with ω hω hωA
     rw [hω]
     have hzero : ∀ c ∈ (Finset.range n).image (gridPt t n),

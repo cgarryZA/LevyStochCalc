@@ -116,6 +116,7 @@ theorem lintegral_window_mark_sum {ι : Type*} [Fintype ι] {f : ι → Ω → �
   simp_rw [h1, h2]
   exact lintegral_finsetSum _ fun i _ => measurable_markEnergy (hf i) T
 
+omit [IsProbabilityMeasure P] in
 /-- A process dominated by `c` times a sum of `n` processes of finite energy on a window has
 finite energy on that window. -/
 theorem lintegral_window_sq_le_of_abs_le {n : ℕ} {H : Ω → ℝ → ℝ} {a : Fin n → Ω → ℝ → ℝ}
@@ -135,6 +136,7 @@ theorem lintegral_window_sq_le_of_abs_le {n : ℕ} {H : Ω → ℝ → ℝ} {a :
   rw [lintegral_window_sum (f := fun i ω s => (‖a i ω s‖₊ : ℝ≥0∞) ^ 2) hm T]
   exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (ENNReal.sum_lt_top.mpr fun i _ => hq i)
 
+omit [IsProbabilityMeasure P] in
 /-- A marked integrand dominated by `c` times a sum of `n` marked integrands of finite energy on
 a window has finite energy on that window. -/
 theorem lintegral_window_mark_sq_le_of_abs_le {n : ℕ} {φ : Ω → ℝ → E → ℝ}

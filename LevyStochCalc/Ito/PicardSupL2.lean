@@ -200,6 +200,7 @@ theorem measurable_brownianIntegral_slice
     (fun ω' s => coeffs.σ s (X s ω') i j) (h_meas i j) (h_progMeas i j) (h_sq i j)
   exact (hF.stronglyMeasurable t).measurable.mono (F.le t) le_rfl
 
+omit [MeasurableSpace E] in
 /-- The dyadic supremum of the Brownian component, summed over the driving coordinates. -/
 theorem lintegral_sq_iSup_diffusion_lt_top
     (W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
@@ -368,7 +369,7 @@ theorem lintegral_sq_iSup_picardSelfMapRaw_lt_top
         (Z := fun s ω => Z (min s T) ω) hZsm hZe i' hb)
       (measurable_mu_rawStop coeffs hReg hZm T)
       (fun i' b hb => lintegral_sq_mu_lt_top_of_energy coeffs hReg hLip
-        (Z := fun s ω => Z (min s T) ω) hZsm hZe i' hb)
+        (Z := fun s ω => Z (min s T) ω) hZe i' hb)
       i hT'
   -- the modification agrees at all dyadic points simultaneously
   have hae : ∀ᵐ ω ∂P, ∀ p : ℕ × ℕ, Y.X (dyadicTime T' p.1 p.2) ω

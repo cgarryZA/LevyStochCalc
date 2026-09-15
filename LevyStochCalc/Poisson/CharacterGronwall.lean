@@ -34,6 +34,7 @@ noncomputable def charPairing (N : PoissonRandomMeasure P ν) (w : ι → ℝ) (
     (r : Ω → ℝ) (s : ℝ) : ℂ :=
   ∫ ω, (r ω : ℂ) * charAt N w Bfam s ω ∂P
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem integrable_mul_charAt (N : PoissonRandomMeasure P ν) (w : ι → ℝ)
     {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {r : Ω → ℝ}
     (hr1 : Integrable r P) (s : ℝ) :

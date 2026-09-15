@@ -23,7 +23,7 @@ open MeasureTheory
 
 /-- **Riemann-sum error for a continuous weight against a bounded density.** -/
 theorem abs_riemann_weighted_sub_integral_le
-    {T ε δ M Kg : ℝ} (hM0 : 0 ≤ M) (hε0 : 0 ≤ ε)
+    {T ε δ M Kg : ℝ} (hε0 : 0 ≤ ε)
     {g h : ℝ → ℝ} (hgc : Continuous g) (hh : Measurable h)
     (hhM : ∀ s, |h s| ≤ M) (hgb : ∀ s ∈ Set.Icc (0 : ℝ) T, |g s| ≤ Kg)
     (hgmod : ∀ x ∈ Set.Icc (0 : ℝ) T, ∀ y ∈ Set.Icc (0 : ℝ) T, |x - y| ≤ δ → |g x - g y| ≤ ε)

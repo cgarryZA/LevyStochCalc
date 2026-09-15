@@ -101,7 +101,7 @@ theorem pairing_cell_eq_zero
         (fun ω s => g' (X s ω) * indIoc Ω a b ω s) hmg hpg hqg t ω) ?_ ht0 (hito t ht0 hmg hpg hqg)
     exact pairing_ito_eq_zero ha hab hZ2 hZp hVm hMv0 hVb hVa
       (K := fun ω s => g' (X s ω)) (hg'c.measurable.comp hXm)
-      (hX.progressivelyMeasurable_comp hg'c) (abs_nonneg l) (fun ω s => hg'b _)
+      (hX.progressivelyMeasurable_comp hg'c) (fun ω s => hg'b _)
       hmg hpg hqg ht0
   have hcos := key (fun x => Real.cos (l * x)) (fun x => -l * Real.sin (l * x))
     (Real.continuous_cos.comp (continuous_const.mul continuous_id))

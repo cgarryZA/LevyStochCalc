@@ -229,7 +229,7 @@ theorem paired_cell_char
     hXgc hXga zero_le_one hXgb hYm hYb hYmmeas hYmb
     (measurable_trigDriftCell hXbase l hglc)
     (fun ω s => abs_trigDriftCell_le l (fun x => hgb (l * x)) zero_le_one X a b ω s)
-    G hGpred hGa hGb hA hAν hKm hKp (abs_nonneg l) hKbd hmm2 hpm2 hqm2 ht htT hid
+    G hGpred hGa hGb hA hAν hKm hKp hKbd hmm2 hpm2 hqm2 ht htT hid
 
 end Paired
 

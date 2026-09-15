@@ -53,6 +53,7 @@ theorem norm_cellFactor (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) (l : ℝ
   rw [norm_mul, mul_comm Complex.I, Complex.norm_exp_ofReal_mul_I, charAt,
     Complex.norm_exp_I_mul_ofReal, one_mul]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The integrand of the cell pairing against a bounded real factor is integrable. -/
 theorem integrable_cellFactor (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)}
     (hBm : ∀ j, MeasurableSet (Bfam j)) (hZ1 : Integrable Z P) {U : Ω → ℝ}

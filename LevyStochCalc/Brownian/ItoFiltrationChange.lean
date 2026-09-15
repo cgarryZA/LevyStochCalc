@@ -164,23 +164,23 @@ theorem process_congr_filtration
   · exact (process_ae_zero_of_nonpos N ℱ hℱ φ hm hp hq hT).trans
       (process_ae_zero_of_nonpos N 𝒢 h𝒢 φ hm hp' hq hT).symm
   have hbd : ∀ n : ℕ, T ≤ stageHorizon n →
-      ∫⁻ ω, (‖stageIntegral N ℱ hℱ φ hm hp hq n T ω
-          - stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
+      ∫⁻ ω, (‖stageIntegral N ℱ φ hm hp hq n T ω
+          - stageIntegral N 𝒢 φ hm hp' hq n T ω‖₊ : ℝ≥0∞) ^ 2 ∂P
         ≤ 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n : ℝ≥0∞) + 1)⁻¹ := by
     intro n hTn
-    have hmax1 : (master N ℱ hℱ φ hm hp hq n).1
-        ≤ max (master N ℱ hℱ φ hm hp hq n).1 (master N 𝒢 h𝒢 φ hm hp' hq n).1 := le_max_left _ _
-    have hmax2 : (master N 𝒢 h𝒢 φ hm hp' hq n).1
-        ≤ max (master N ℱ hℱ φ hm hp hq n).1 (master N 𝒢 h𝒢 φ hm hp' hq n).1 := le_max_right _ _
-    set G := (master N ℱ hℱ φ hm hp hq n).2 with hGdef
-    set G' := (master N 𝒢 h𝒢 φ hm hp' hq n).2 with hG'def
+    have hmax1 : (master N ℱ φ hm hp hq n).1
+        ≤ max (master N ℱ φ hm hp hq n).1 (master N 𝒢 φ hm hp' hq n).1 := le_max_left _ _
+    have hmax2 : (master N 𝒢 φ hm hp' hq n).1
+        ≤ max (master N ℱ φ hm hp hq n).1 (master N 𝒢 φ hm hp' hq n).1 := le_max_right _ _
+    set G := (master N ℱ φ hm hp hq n).2 with hGdef
+    set G' := (master N 𝒢 φ hm hp' hq n).2 with hG'def
     have hG : G.Adapted 𝒢 :=
-      (master_adapted N ℱ hℱ φ hm hp hq n).mono_filtration hle
-    have hG' : G'.Adapted 𝒢 := master_adapted N 𝒢 h𝒢 φ hm hp' hq n
+      (master_adapted N ℱ φ hm hp hq n).mono_filtration hle
+    have hG' : G'.Adapted 𝒢 := master_adapted N 𝒢 φ hm hp' hq n
     have hRf : (G.dyadicRefine hmax1).Adapted 𝒢 := hG.dyadicRefine N hmax1
     have hRf' : (G'.dyadicRefine hmax2).Adapted 𝒢 := hG'.dyadicRefine N hmax2
-    have e1 : ∀ ω, stageIntegral N ℱ hℱ φ hm hp hq n T ω = G.integral N T ω := fun _ => rfl
-    have e2 : ∀ ω, stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T ω = G'.integral N T ω := fun _ => rfl
+    have e1 : ∀ ω, stageIntegral N ℱ φ hm hp hq n T ω = G.integral N T ω := fun _ => rfl
+    have e2 : ∀ ω, stageIntegral N 𝒢 φ hm hp' hq n T ω = G'.integral N T ω := fun _ => rfl
     have hae : (fun ω => (‖G.integral N T ω - G'.integral N T ω‖₊ : ℝ≥0∞) ^ 2)
         =ᵐ[P] fun ω => (‖(G.dyadicRefine hmax1).integral N T ω
           - (G'.dyadicRefine hmax2).integral N T ω‖₊ : ℝ≥0∞) ^ 2 := by
@@ -201,9 +201,6 @@ theorem process_congr_filtration
     have hu : Measurable (fun p : Ω × ℝ × E =>
         (‖φ p.1 p.2.1 p.2.2 - G.eval p.2.1 p.2.2 p.1‖₊ : ℝ≥0∞) ^ 2) :=
       (ENNReal.continuous_coe.measurable.comp (hm.sub G.eval_measurable).nnnorm).pow_const 2
-    have hv : Measurable (fun p : Ω × ℝ × E =>
-        (‖φ p.1 p.2.1 p.2.2 - G'.eval p.2.1 p.2.2 p.1‖₊ : ℝ≥0∞) ^ 2) :=
-      (ENNReal.continuous_coe.measurable.comp (hm.sub G'.eval_measurable).nnnorm).pow_const 2
     have hpt : ∀ ω s e, (‖G.eval s e ω - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2
         ≤ 2 * ((‖φ ω s e - G.eval s e ω‖₊ : ℝ≥0∞) ^ 2
           + (‖φ ω s e - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2) := by
@@ -215,11 +212,11 @@ theorem process_congr_filtration
     have hresG : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖φ ω s e - G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P ≤ ((n : ℝ≥0∞) + 1)⁻¹ :=
       le_trans (lintegral_mono fun ω => lintegral_mono_set (Set.Icc_subset_Icc_right hTn))
-        (master_err N ℱ hℱ φ hm hp hq n).le
+        (master_err N ℱ φ hm hp hq n).le
     have hresG' : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
           (‖φ ω s e - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P ≤ ((n : ℝ≥0∞) + 1)⁻¹ :=
       le_trans (lintegral_mono fun ω => lintegral_mono_set (Set.Icc_subset_Icc_right hTn))
-        (master_err N 𝒢 h𝒢 φ hm hp' hq n).le
+        (master_err N 𝒢 φ hm hp' hq n).le
     calc ∫⁻ ω, ∫⁻ e, ∫⁻ s in Set.Icc (0 : ℝ) T,
           (‖(G.dyadicRefine hmax1).eval s e ω
             - (G'.dyadicRefine hmax2).eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂ν ∂P
@@ -239,7 +236,7 @@ theorem process_congr_filtration
               (‖φ ω s e - G.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P)
             + ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T, ∫⁻ e,
               (‖φ ω s e - G'.eval s e ω‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P) := by
-          rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu hv]
+          rw [lintegral_triple_const_mul 2 (by norm_num), lintegral_triple_add hu]
       _ ≤ 2 * (((n : ℝ≥0∞) + 1)⁻¹ + ((n : ℝ≥0∞) + 1)⁻¹) := by gcongr
       _ = 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n : ℝ≥0∞) + 1)⁻¹ := mul_add _ _ _
   have hHor : ∀ᶠ n : ℕ in Filter.atTop, T ≤ stageHorizon n := by
@@ -247,8 +244,8 @@ theorem process_congr_filtration
       tendsto_pow_atTop_atTop_of_one_lt (by norm_num)
     exact h2.eventually_ge_atTop T
   have hsq : Filter.Tendsto (fun n : ℕ => ∫⁻ ω,
-      (‖stageIntegral N ℱ hℱ φ hm hp hq n T ω
-        - stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
+      (‖stageIntegral N ℱ φ hm hp hq n T ω
+        - stageIntegral N 𝒢 φ hm hp' hq n T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
       Filter.atTop (nhds 0) := by
     have hlim : Filter.Tendsto
         (fun n : ℕ => 2 * ((n : ℝ≥0∞) + 1)⁻¹ + 2 * ((n : ℝ≥0∞) + 1)⁻¹)
@@ -260,11 +257,11 @@ theorem process_congr_filtration
       (Filter.Eventually.of_forall fun n => bot_le) ?_
     filter_upwards [hHor] with n hn using hbd n hn
   have hcross : Filter.Tendsto (fun n : ℕ => eLpNorm
-      (fun ω => stageIntegral N ℱ hℱ φ hm hp hq n T ω
-        - stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T ω) 2 P) Filter.atTop (nhds 0) := by
+      (fun ω => stageIntegral N ℱ φ hm hp hq n T ω
+        - stageIntegral N 𝒢 φ hm hp' hq n T ω) 2 P) Filter.atTop (nhds 0) := by
     have h2 : Filter.Tendsto (fun n : ℕ => eLpNorm
-        (fun ω => stageIntegral N ℱ hℱ φ hm hp hq n T ω
-          - stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T ω) 2 P ^ (2 : ℝ))
+        (fun ω => stageIntegral N ℱ φ hm hp hq n T ω
+          - stageIntegral N 𝒢 φ hm hp' hq n T ω) 2 P ^ (2 : ℝ))
         Filter.atTop (nhds 0) := by
       refine hsq.congr fun n => ?_
       exact (LevyStochCalc.Brownian.Ito.eLpNorm_two_rpow_eq_lintegral_sq _).symm
@@ -273,22 +270,22 @@ theorem process_congr_filtration
     refine h3.congr fun n => ?_
     rw [← ENNReal.rpow_mul, show (2 : ℝ) * (1 / 2) = 1 from by norm_num, ENNReal.rpow_one]
   have hmix : Filter.Tendsto (fun n : ℕ => eLpNorm
-      (fun ω => stageIntegral N ℱ hℱ φ hm hp hq n T ω
+      (fun ω => stageIntegral N ℱ φ hm hp hq n T ω
         - process N 𝒢 h𝒢 φ hm hp' hq T ω) 2 P) Filter.atTop (nhds 0) := by
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
       (by simpa using hcross.add (stageIntegral_tendsto_process N 𝒢 h𝒢 φ hm hp' hq T))
       (Filter.Eventually.of_forall fun n => bot_le)
       (Filter.Eventually.of_forall fun n => ?_)
     refine le_trans (le_of_eq ?_) (eLpNorm_add_le
-      ((memLp_stageIntegral N ℱ hℱ φ hm hp hq n T).sub
-        (memLp_stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T)).aestronglyMeasurable
-      ((memLp_stageIntegral N 𝒢 h𝒢 φ hm hp' hq n T).sub
+      ((memLp_stageIntegral N ℱ φ hm hp hq n T).sub
+        (memLp_stageIntegral N 𝒢 φ hm hp' hq n T)).aestronglyMeasurable
+      ((memLp_stageIntegral N 𝒢 φ hm hp' hq n T).sub
         (process_memLp N 𝒢 h𝒢 φ hm hp' hq T)).aestronglyMeasurable (by norm_num))
     refine eLpNorm_congr_ae (Filter.Eventually.of_forall fun ω => ?_)
     simp only [Pi.add_apply]
     ring
   exact LevyStochCalc.Brownian.Ito.ae_eq_of_tendsto_eLpNorm
-    (fun n => (memLp_stageIntegral N ℱ hℱ φ hm hp hq n T).aestronglyMeasurable)
+    (fun n => (memLp_stageIntegral N ℱ φ hm hp hq n T).aestronglyMeasurable)
     (process_memLp N ℱ hℱ φ hm hp hq T).aestronglyMeasurable
     (process_memLp N 𝒢 h𝒢 φ hm hp' hq T).aestronglyMeasurable
     (stageIntegral_tendsto_process N ℱ hℱ φ hm hp hq T) hmix

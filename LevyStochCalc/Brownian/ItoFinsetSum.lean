@@ -121,7 +121,7 @@ theorem stochasticIntegralBrownian_sub {H₁ H₂ : Ω → ℝ → ℝ}
 
 include hℱ in
 /-- **The Itô integral of a finite sum of integrands is the sum of their integrals.** -/
-theorem exists_stochasticIntegralBrownian_finsetSum {ι : Type*} [DecidableEq ι]
+theorem exists_stochasticIntegralBrownian_finsetSum {ι : Type*}
     (H : ι → Ω → ℝ → ℝ) (hm : ∀ i, Measurable (Function.uncurry (H i)))
     (hp : ∀ i, Probability.ProgressivelyMeasurable ℱ (H i))
     (hq : ∀ (i : ι) (T : ℝ), 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,

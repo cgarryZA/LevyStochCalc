@@ -928,7 +928,7 @@ noncomputable def _root_.LevyStochCalc.Poisson.Compensated.TimeGrid.dyadic (T : 
 
 lemma _root_.LevyStochCalc.Poisson.Compensated.TimeGrid.dyadic_horizon (T : ℝ) (hT : 0 < T)
     (n : ℕ) : (TimeGrid.dyadic T hT n).horizon = T := by
-  show ((2 ^ n : ℕ) : ℝ) * T / (2 ^ n : ℕ) = T
+  change ((2 ^ n : ℕ) : ℝ) * T / (2 ^ n : ℕ) = T
   field_simp
 
 lemma _root_.LevyStochCalc.Poisson.Compensated.TimeGrid.dyadic_p_castSucc (T : ℝ) (hT : 0 < T)

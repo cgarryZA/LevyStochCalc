@@ -35,6 +35,7 @@ theorem referenceIntensity_inter_singleton {B : Set (ℝ × E)} (hB : Measurable
   rw [referenceIntensity_inter_time hB (measurableSet_singleton s)]
   exact setLIntegral_measure_zero _ _ Real.volume_singleton
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- A Poisson random measure has no point on a fixed time slice. -/
 theorem ae_count_time_singleton_eq_zero (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
     (hB : MeasurableSet B) (s : ℝ) : ∀ᵐ ω ∂P, N.N ω (B ∩ {s} ×ˢ Set.univ) = 0 :=

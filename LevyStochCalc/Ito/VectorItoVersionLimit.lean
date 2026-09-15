@@ -217,12 +217,12 @@ theorem exists_isVectorItoVersion_of_unbounded
       IsVectorItoVersion W ℱ hcoord (clampCoeff H j)
         (fun p k => measurable_clampCoeff hHm j p k)
         (fun p k => progressivelyMeasurable_clampCoeff hHp j p k)
-        (fun p k T' hT' => energy_clampCoeff_lt_top hHm j p k T' hT')
+        (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
         X₀ (clampDrift bdrift j) Z := fun j =>
     exists_isVectorItoVersion W ℱ hcoord (clampCoeff H j)
       (fun p k => measurable_clampCoeff hHm j p k)
       (fun p k => progressivelyMeasurable_clampCoeff hHp j p k)
-      (fun p k T' hT' => energy_clampCoeff_lt_top hHm j p k T' hT')
+      (fun p k T' hT' => energy_clampCoeff_lt_top j p k T' hT')
       (Nat.cast_nonneg j) (abs_clampCoeff_le H j) hℱ0 hnull hX₀ (clampDrift bdrift j)
       (fun p => measurable_clampDrift hbm j p)
       (fun p => progressivelyMeasurable_clampDrift hbp j p)
@@ -268,7 +268,7 @@ theorem exists_isVectorItoVersion_of_unbounded
     intro m i hmi
     have hTpos : (0 : ℝ) < (m : ℝ) + 1 := by positivity
     have hkey := lintegral_iSup_sq_norm_clamp_version_sub_le W ℱ hcoord (H := H)
-      (hm := hHm) (hpg := hHp) (hq := hHs) hbm (hXj (ms i)) (hXj (ms (i + 1))) hTpos
+      (hm := hHm) (hpg := hHp) hbm (hXj (ms i)) (hXj (ms (i + 1))) hTpos
     have hmr : (m : ℝ) ≤ (i : ℝ) := by exact_mod_cast hmi
     have hmle : ((m : ℝ) + 1) ≤ (i : ℝ) + 1 := by linarith
     have hle1 : clampMesh P H bdrift ((m : ℝ) + 1) (ms i) ≤ ((2 : ℝ≥0∞)⁻¹) ^ (2 * i) :=

@@ -55,6 +55,7 @@ noncomputable def charImIntegrand (N : PoissonRandomMeasure P ν) (hℱ : IsPois
     charIm_eq_zero N w hBsub ω fun hmem => hs ⟨hmem.1.1.le, hmem.1.2⟩
   energy_ne_top := (sq_charIm N w hA hAν hBsub T).ne
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charReIntegrand_integral (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
     (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}
@@ -66,6 +67,7 @@ theorem charReIntegrand_integral (N : PoissonRandomMeasure P ν) (hℱ : IsPoiss
         (fun T' _ => sq_charRe N w hA hAν hBsub T') T :=
   Compensated.stochasticIntegral_ae_eq_process N ℱ hℱ _ _ _ _ T
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 theorem charImIntegrand_integral (N : PoissonRandomMeasure P ν) (hℱ : IsPoissonFiltration N ℱ)
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j)) {A : Set E}
     (hA : MeasurableSet A) (hAν : ν A ≠ ⊤) {T : ℝ}

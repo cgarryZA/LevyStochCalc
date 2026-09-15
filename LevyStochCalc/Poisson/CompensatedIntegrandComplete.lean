@@ -165,6 +165,7 @@ theorem markedProgressivelyMeasurable_limsup {ℱ : Filtration ℝ ‹Measurable
 noncomputable def limsupMarkedIntegrand (φ : ℕ → Ω → ℝ → E → ℝ) (ns : ℕ → ℕ) :
     Ω → ℝ → E → ℝ := fun ω s e => limsup (fun i => φ (ns i) ω s e) atTop
 
+omit [IsProbabilityMeasure P] in
 /-- **Completeness of the admissible marked integrands.** An energy-Cauchy sequence of jointly and
 progressively measurable marked integrands vanishing off the horizon has an admissible limit. -/
 theorem exists_marked_progressive_energy_limit (ℱ : Filtration ℝ ‹MeasurableSpace Ω›)

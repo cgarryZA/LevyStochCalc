@@ -86,6 +86,7 @@ section WindowIntegrability
 
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
+omit [IsProbabilityMeasure P] in
 /-- A path of finite energy on a bounded window is almost surely integrable on the corresponding
 half-open window. -/
 theorem ae_integrableOn_Ioc_of_energy {b : Ω → ℝ → ℝ}

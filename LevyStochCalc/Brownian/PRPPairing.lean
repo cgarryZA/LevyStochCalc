@@ -140,7 +140,7 @@ theorem pairing_ito_eq_zero (ha : 0 ≤ a) (hab : a < b)
     {V : Ω → ℂ} (hVm : Measurable V) {Mv : ℝ} (hMv0 : 0 ≤ Mv) (hVb : ∀ ω, ‖V ω‖ ≤ Mv)
     (hVa : @MeasureTheory.StronglyMeasurable Ω ℂ _ (ℱ a) V)
     {K : Ω → ℝ → ℝ} (hKm : Measurable (Function.uncurry K))
-    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ} (hKb0 : 0 ≤ Kb)
+    (hKp : Probability.ProgressivelyMeasurable ℱ K) {Kb : ℝ}
     (hKbd : ∀ ω s, |K ω s| ≤ Kb)
     (hmg : Measurable (Function.uncurry fun ω s => K ω s * indIoc Ω a b ω s))
     (hpg : Probability.ProgressivelyMeasurable ℱ fun ω s => K ω s * indIoc Ω a b ω s)

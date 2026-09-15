@@ -75,7 +75,7 @@ theorem iUnion_truncFam (Bfam : ι → Set (ℝ × E)) (t : ℝ) :
     ⋃ j, truncFam Bfam t j = (⋃ j, Bfam j) ∩ Set.Ioc (0 : ℝ) t ×ˢ Set.univ := by
   simp only [truncFam, Set.iUnion_inter]
 
-omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
+omit [MeasurableSpace E] [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- On `(0, t]` the simple mark of the cut family is that of the family. -/
 theorem simpleMark_truncFam (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {t : ℝ} {p : ℝ × E}
     (hp : p.1 ∈ Set.Ioc (0 : ℝ) t) :
@@ -90,6 +90,7 @@ theorem simpleMark_truncFam (w : ι → ℝ) (Bfam : ι → Set (ℝ × E)) {t :
   · rw [Set.indicator_of_mem (hmem.mpr hB), Set.indicator_of_mem hB]
   · rw [Set.indicator_of_notMem (fun h => hB (hmem.mp h)), Set.indicator_of_notMem hB]
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- On `(0, t]` the strict count of the cut family is the strict-past count of the family. -/
 theorem predStrict_truncFam (N : PoissonRandomMeasure P ν) (w : ι → ℝ) (Bfam : ι → Set (ℝ × E))
     {A : Set E} {T s t : ℝ} (hs : 0 < s) (hst : s ≤ t) (htT : t ≤ T) {e : E} (he : e ∈ A)
@@ -105,6 +106,7 @@ noncomputable def charAt (N : PoissonRandomMeasure P ν) (w : ι → ℝ) (Bfam 
   Complex.exp (Complex.I *
     ((∑ j, w j * (N.N ω (Bfam j ∩ Set.Ioc (0 : ℝ) t ×ˢ Set.univ)).toReal : ℝ) : ℂ))
 
+omit [MeasurableSpace.CountablyGenerated E] [MeasurableSingletonClass E] in
 /-- The window sum of the cut family at the horizon is the exponent of the character at `t`. -/
 theorem ae_windowSum_truncFam (N : PoissonRandomMeasure P ν) {A : Set E} (hAν : ν A ≠ ⊤) {T : ℝ}
     (w : ι → ℝ) {Bfam : ι → Set (ℝ × E)} (hBm : ∀ j, MeasurableSet (Bfam j))

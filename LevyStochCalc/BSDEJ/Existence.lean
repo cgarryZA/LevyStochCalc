@@ -40,11 +40,11 @@ section PicardMap
 variable {Ω : Type u} [MeasurableSpace Ω]
 variable {E : Type v} [MeasurableSpace E]
 
-/-- The Picard iteration map `Φ` for a BSDEJ. Given `(Y', Z', U')`, define
-`(Y, Z, U)` by:
-* `Y_t := 𝔼[g(X_T) + ∫_t^T f(s, X_{s-}, Y'_{s-}, Z'_s, U'_s) ds | ℱ_t]`
-* `(Z, U)`: extracted from the martingale representation of `M_t := Y_t + ∫_0^t f`.
-The fixed point of `Φ` is the BSDEJ solution. -/
+/-- The Picard iteration map `Φ` for a BSDEJ, as the identity on `(Y, Z, U)`.
+
+The substantive map sends `(Y', Z', U')` to `(Y, Z, U)` with
+`Y_t = 𝔼[g(X_T) + ∫_t^T f(s, X_{s-}, Y'_{s-}, Z'_s, U'_s) ds | ℱ_t]` and `(Z, U)` read off the
+martingale representation of `M_t = Y_t + ∫_0^t f`; its fixed point is the BSDEJ solution. -/
 noncomputable def picardMap
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
@@ -61,18 +61,46 @@ noncomputable def picardMap
   -- requires the conditional expectation + martingale representation machinery.
   _input
 
-/-- Lipschitz constant of the BSDEJ generator `f`. Substantive proofs require
-explicit Lipschitz bounds; we package them as a single hypothesis. The norm
-on `Fin d → ℝ` is the Euclidean norm; the norm on `E → ℝ` is the L²(ν) norm
-implicit in the next clause's `∫⁻ e, ...` integrand. -/
+/-- Lipschitz condition on the BSDEJ generator `f`: uniformly in `(s, x)`, the increment of `f`
+is bounded by `L` times the sum of `|y₁ - y₂|`, the supremum norm `‖z₁ - z₂‖` on `Fin d → ℝ`
+and the `L²(ν)` distance `(∫ ‖u₁ - u₂‖² dν)^{1/2}` of the jump variables.
+
+The inequality is stated in `ℝ≥0∞`, so it also constrains pairs `u₁, u₂` whose difference is not
+square integrable for `ν`; the real-valued form is `abs_sub_le_of_lipschitz`. -/
 def Lipschitz {n d : ℕ}
     (bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E)
     (ν : Measure E) (L : ℝ) : Prop :=
   ∀ s : ℝ, ∀ x : Fin n → ℝ, ∀ y₁ y₂ : ℝ,
     ∀ z₁ z₂ : Fin d → ℝ, ∀ u₁ u₂ : E → ℝ,
+    (‖bsdej.f s x y₁ z₁ u₁ - bsdej.f s x y₂ z₂ u₂‖₊ : ℝ≥0∞)
+      ≤ ENNReal.ofReal L * ((‖y₁ - y₂‖₊ : ℝ≥0∞) + (‖z₁ - z₂‖₊ : ℝ≥0∞)
+          + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν) ^ (1 / 2 : ℝ))
+
+/-- The real-valued form of the Lipschitz inequality, for jump variables at finite `L²(ν)`
+distance. -/
+theorem abs_sub_le_of_lipschitz {n d : ℕ}
+    {bsdej : LevyStochCalc.BSDEJ.Definition.BSDEJData n d E}
+    {ν : Measure E} {L : ℝ} (hL : 0 ≤ L) (h : Lipschitz bsdej ν L)
+    (s : ℝ) (x : Fin n → ℝ) (y₁ y₂ : ℝ) (z₁ z₂ : Fin d → ℝ) (u₁ u₂ : E → ℝ)
+    (hu : ∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν ≠ ⊤) :
     |bsdej.f s x y₁ z₁ u₁ - bsdej.f s x y₂ z₂ u₂|
       ≤ L * (|y₁ - y₂| + ‖z₁ - z₂‖
-        + (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal.sqrt)
+          + Real.sqrt (∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν).toReal) := by
+  set A : ℝ≥0∞ := ∫⁻ e, (‖u₁ e - u₂ e‖₊ : ℝ≥0∞) ^ 2 ∂ν with hA
+  have hroot : A ^ (1 / 2 : ℝ) = ENNReal.ofReal (Real.sqrt A.toReal) := by
+    rw [Real.sqrt_eq_rpow, ← ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg (by norm_num),
+      ENNReal.ofReal_toReal hu]
+  have key := h s x y₁ y₂ z₁ z₂ u₁ u₂
+  rw [hroot] at key
+  have hne : ENNReal.ofReal L * ((‖y₁ - y₂‖₊ : ℝ≥0∞) + (‖z₁ - z₂‖₊ : ℝ≥0∞)
+      + ENNReal.ofReal (Real.sqrt A.toReal)) ≠ ⊤ := by finiteness
+  have hmono := ENNReal.toReal_mono hne key
+  rwa [ENNReal.toReal_mul, ENNReal.toReal_add
+      (ENNReal.add_ne_top.mpr ⟨ENNReal.coe_ne_top, ENNReal.coe_ne_top⟩) ENNReal.ofReal_ne_top,
+    ENNReal.toReal_add ENNReal.coe_ne_top ENNReal.coe_ne_top, ENNReal.coe_toReal,
+    ENNReal.coe_toReal, ENNReal.coe_toReal, ENNReal.toReal_ofReal hL,
+    ENNReal.toReal_ofReal (Real.sqrt_nonneg _), coe_nnnorm, coe_nnnorm, coe_nnnorm,
+    Real.norm_eq_abs, Real.norm_eq_abs] at hmono
 
 end PicardMap
 
