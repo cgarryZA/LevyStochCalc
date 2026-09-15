@@ -347,6 +347,8 @@ import LevyStochCalc.BSDEJ.CadlagLegs
 import LevyStochCalc.BSDEJ.DriftLeg
 import LevyStochCalc.BSDEJ.PicardTerminal
 import LevyStochCalc.BSDEJ.PicardStep
+import LevyStochCalc.BSDEJ.IntegralLocality
+import LevyStochCalc.BSDEJ.PicardItoLevy
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity
