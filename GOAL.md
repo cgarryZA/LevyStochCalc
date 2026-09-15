@@ -78,7 +78,7 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
 ### D. Mathlib-grade form
 - [ ] Every file ≤ ~600 lines, `section … variable … end` structured, **precise
       imports** (no `import Mathlib` umbrella), ≤100 columns.
-- [ ] Docstrings are **math only** — no `Tier 1`, `red-team`, `Agent N`,
+- [x] Docstrings are **math only** — no `Tier 1`, `red-team`, `Agent N`,
       milestone tags, dated change-logs, or `D:/…` paths.
 - [ ] Upstreamable results live in the `ProbabilityTheory` namespace under
       `Mathlib/Probability/<Area>/…` shape and are registered.
@@ -94,7 +94,7 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       PR, each with AI-use disclosure + the `LLM-generated` label.
 
 ### G. Green
-- [ ] CI is green: `lake build` · `tools/lint.sh` at baseline-0 ·
+- [x] CI is green: `lake build` · `tools/lint.sh` at baseline-0 ·
       `tools/verify_import_contract.sh` — on every commit.
 
 ---
