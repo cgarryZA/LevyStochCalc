@@ -646,8 +646,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `Y = e^{1−t} W̃_t`, `Z = e^{1−s} 1_{(0,1]}`, `U = 0` is a `SolvesBSDEJ` (Itô's formula
       `IsVectorItoVersion.itoFormulaTime` at `augJoint D`), the energy of `Z` is `(e² − 1)/2`, and by
       uniqueness every solution's `Z` has that energy: nonzero generator and nonzero `Z` together.
-      Still open: a witness that the realised path of the Itô–Lévy example is not a.e. zero, and the
-      transfer of the A7′ cell-average rate to every solution of the `f = y` equation.
+      `examples/NonvacuityItoLevyPath.lean` (2026-09-15) — every path solving the Itô–Lévy example's
+      equation from `0` has second moment `2` at time `1` (the expectation form of the quadratic Itô
+      formula, with the driver's cross witness carried to the augmented right-continuation of the
+      joint filtration), so it is not a.e. zero there. Still open: the transfer of the A7′
+      cell-average rate to every solution of the `f = y` equation.
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
