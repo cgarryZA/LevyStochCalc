@@ -533,9 +533,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       L13a–d the terminal datum, the càdlàg legs, the drift leg and the assembled Picard step
       (`BSDEJ/PicardStep.lean`: `PicardOutput`, `exists_picardOutput`; `SolvesBSDEJ` gained the `S²`
       field), L14 locality after the horizon and the Itô–Lévy structure of the frozen output
-      (`BSDEJ/PicardItoLevy.lean`). Open: L13e (drift progressive for the right-continuous
-      filtration, needed to iterate), L17 (contraction), L18 (uniqueness), L19–L21 (limit,
-      assembly, bridge).
+      (`BSDEJ/PicardItoLevy.lean`), L13e the step with a drift progressive for the right-continuous
+      filtration, L17 the contraction of factor `1/4` in the weighted norm
+      (`BSDEJ/PicardContraction.lean`). Open: L10c (a modification of the drift progressive for
+      the filtration itself, by Lebesgue differentiation from the left — the contraction needs
+      it), L18 (uniqueness), L19–L21 (iterates, limit, assembly, bridge).
 - [x] **A7-0 / #10 statement audit** — RETIRED 2026-09-06 (refutable: the `C·Δt` rate for
       merely measurable `g`, `X`; `1_{W_T>0}` has rate `Δt^{1/2}`); the axiom, its two
       corollaries, the dissertation forwarder Cu05 and the dissertation's bridge section were
