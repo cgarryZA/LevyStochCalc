@@ -406,7 +406,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       bridge to `stochasticIntegralBrownian`, extended to `d` coordinates and to Itô
       processes; the jump part (Applebaum 4.4.10 + 4.4.7 (II)) in-house on
       `Compensated.stochasticIntegral`.
-- [ ] **A5 route notes 2026-09-08** — an external review of the #16 programme was checked and
+- [x] **A5 route notes 2026-09-08** (B0a and B0b landed 2026-09-09; #16 closed 2026-09-15) —
+      an external review of the #16 programme was checked and
       ticketed in `../Dissertation/WORK_BREAKDOWN.md` Epic B (review notes; new leaves `B0a`,
       the decomposition-based statement `X = X₀ + ∫b + ∫σ dW + ∫γ dÑ` with the SDE form as a
       corollary, and `B0b`, the `X_{s−}` convention justified by the `L²` class argument rather

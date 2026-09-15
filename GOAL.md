@@ -31,9 +31,11 @@ checks true. Each lists how to verify it.
       definition and opaque of the `LevyStochCalc.*` modules — 3847 names, private
       and compiler-generated names excluded — and `_audit.lean` covers all of them;
       `tools/lint.sh` reports the three standard axioms for every one.)
-- [ ] **No trust escapes.** No `native_decide`, `@[implemented_by]`, `@[extern]`,
+- [x] **No trust escapes.** No `native_decide`, `@[implemented_by]`, `@[extern]`,
       `opaque`, `unsafe`, `partial def`, or `set_option … (kernel|debug).*` in
-      load-bearing math. `Float` never appears in a statement.
+      load-bearing math. `Float` never appears in a statement. (Checked 2026-09-15 by
+      `grep` over `LevyStochCalc/`, `examples/` and `_audit.lean`: no occurrence of any of
+      these; re-check on every audit.)
 
 ### B. Non-vacuity — the theorems mean something
 This is the criterion a naive "zero sorry" pass misses. A theorem can be fully
