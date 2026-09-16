@@ -808,8 +808,16 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       arbitrary filtration satisfying the single-strip predicate, where it fails in general) and
       closed F9 by design (atomicity is not a field because it is a theorem of the fields on every
       window of finite intensity under `CountablyGenerated E`, `Poisson.ae_isIntegerValued_restrict`
-      and `ae_exists_eq_sum_dirac`; the structure docstring says so). Open: F10 (pathwise form, in
-      progress), F12 (decision), F15.
+      and `ae_exists_eq_sum_dirac`; the structure docstring says so). **Wave 21 (2026-09-16)**
+      closed F10 (`Ito/ItoLevyFormulaPathwise.lean`: `itoLevyFormula_general_pathwise` states the
+      four-term identity at every horizon `T ≥ 0` off one null set, by right-continuity of both
+      sides along almost every path and density of the rational horizons; the Brownian leg, which
+      the `L²` construction defines one time at a time with no path regularity, enters as a
+      prescribed right-continuous version, and `exists_itoLevyFormula_general_pathwise` supplies
+      one that is adapted to the right-continuous filtration, jointly measurable, càdlàg at every
+      sample point and a martingale; the compensator drift is assumed integrable over every window
+      and the drift and integrated compensator-drift integrands locally integrable along almost
+      every path). Open: F12 (decision), F15.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
@@ -849,11 +857,17 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `Ito/JumpFormulaFiniteActivity.lean` (1202 → 3); **wave 20 (2026-09-16)** split
       `Ito/CompensatedLocality.lean` (1097 → 3), `Brownian/ItoAlgebra.lean` (1078 → 3),
       `Brownian/ItoFourthMoment.lean` (1066 → 3) and `Driver/CellGronwall.lean` (988 → 2), no
-      private helper made public; 26 files over 600 lines remain, the largest
+      private helper made public; **wave 21 (2026-09-16)** split `Brownian/ItoSimple.lean`
+      (1023 → 3, two private lemmas made public, `simpleIntegral_diagonal_bochner` and
+      `cross_sq_integrable`), `Ito/PicardSpace.lean` (946 → 3),
+      `Ito/ItoLevyBoundedDerivsSolution.lean` (913 → 3) and `BSDEJ/PicardContraction.lean`
+      (847 → 3); 22 files over 600 lines remain, the largest
       `Brownian/Continuity.lean` (1412, pinned: `kolmogorovChentsov_modification` must stay in it),
       `Poisson/CompensatedIsometry.lean` (1338, pinned), `Brownian/Martingale.lean` (1039, pinned),
-      `Brownian/ItoSimple.lean` (1023), `Ito/PicardSpace.lean` (946),
-      `Ito/ItoLevyBoundedDerivsSolution.lean` (913), `Ito/ItoLevyBoundedDerivs.lean` (913);
+      `Ito/PicardContraction.lean` (908), `Brownian/CrossOrthogonality.lean` (792); two files
+      are dominated by a single proof and are left whole, `Ito/ItoLevyBoundedDerivs.lean` (913,
+      `itoLevyFormula_jumpResidual_of_boundedDerivs` alone spans 608 lines) and
+      `Ito/FiniteActivityMixed.lean` (834, one theorem of 716 lines);
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
