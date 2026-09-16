@@ -898,7 +898,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       representation), `Driver/AugJointRightCont.lean` (the augmented joint filtration is
       right-continuous at every `t ≥ 0`, `rightCont_augFiltration_eq`, through the σ-algebra
       criterion `le_aug_of_indep_of_le_sup`), and, on the dissertation side, the backward scheme
-      read off a BSDEJ solution with its per-step stochastic-input bundle. Also landed:
+      read off a BSDEJ solution with its per-step stochastic-input bundle.
+      The dissertation side went on, the same day, to close its leaf L13c on this library's cell
+      isometries, `condCellAverage_Z/U` and `CellRegularity` (the Lipschitz bound of its Assumption
+      3 for a cell-constant candidate with an explicit six-term residual, constant `6`) and to land
+      its first end-to-end backward node-error bound on a Lévy driver, in which `CellRegularity`
+      enters only the horizon form of the residual.
+      Also landed:
       `Brownian/MultidimItoCongr.lean`, `BSDEJ/SolvesAe.lean` (F15, path half), `Ito/C12.lean`,
       `Ito/C12Mollify.lean` (F15, `C^{1,2}` groundwork), and the removal of the duplicate
       `stochasticIntegralBrownian_congr_ae` from `Ito/ItoIntegrandAeCongr.lean`.
