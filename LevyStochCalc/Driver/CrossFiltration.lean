@@ -52,17 +52,18 @@ theorem isPoissonFiltration_crossPoisson :
     Poisson.IsPoissonFiltration D.N D.crossPoissonFiltration where
   measurable _ _ hB hBm :=
     ((Poisson.isPoissonFiltration_natural D.N).measurable hB hBm).mono le_sup_right le_rfl
-  indep := by
-    intro s t hs hst A hA hAν
+  indep_future := by
+    intro s hs
+    have hfut : (⨆ B ∈ {B : Set (ℝ × E) | B ⊆ Set.Ioi s ×ˢ Set.univ ∧ MeasurableSet B},
+        MeasurableSpace.comap (fun ω => D.N.N ω B) inferInstance) ≤ sigmaPoisson D.N :=
+      iSup₂_le fun B hB => comap_count_le_sigmaPoisson D.N hB.2
     refine indep_of_indep_of_le_left ?_ (le_of_eq (sup_comm _ _))
     refine Probability.indep_sup_left_of_indep
       ((naturalFiltration_le_sigmaPoisson _ s).trans (sigmaPoisson_le _))
-      (iSup_le fun _ => Brownian.sigmaBrownian_le _)
-      ((comap_count_le_sigmaPoisson D.N (measurableSet_Ioc.prod hA)).trans (sigmaPoisson_le _))
-      ((Poisson.isPoissonFiltration_natural D.N).indep hs hst hA hAν) ?_
+      (iSup_le fun _ => Brownian.sigmaBrownian_le _) (hfut.trans (sigmaPoisson_le _))
+      ((Poisson.isPoissonFiltration_natural D.N).indep_future hs) ?_
     exact indep_of_indep_of_le_right D.indep
-      (sup_le (naturalFiltration_le_sigmaPoisson _ s)
-        (comap_count_le_sigmaPoisson D.N (measurableSet_Ioc.prod hA)))
+      (sup_le (naturalFiltration_le_sigmaPoisson _ s) hfut)
 
 /-- A Brownian increment is measurable at every time of the Poisson enlargement. -/
 theorem measurable_increment_crossPoisson (i : Fin d) (s p q : ℝ) :
@@ -96,9 +97,9 @@ theorem isBrownianFiltration_crossBrownian (j : Fin d) :
   (D.W.isBrownianFiltration_natural j).of_le_sup
     (fun t => ((D.W.isBrownianFiltration_natural j).measurable t).mono le_sup_left le_rfl)
     (m := fun _ => sigmaPoisson D.N) (fun _ => sigmaPoisson_le _) (fun _ => le_rfl)
-    (fun s t _ _ => indep_of_indep_of_le_right D.indep.symm
+    (fun s _ => indep_of_indep_of_le_right D.indep.symm
       (sup_le (D.W.naturalFiltration_le_iSup_sigmaBrownian s)
-        ((Brownian.comap_increment_le_sigmaBrownian (D.W.W j) s t).trans
+        (iSup₂_le fun t _ => (Brownian.comap_increment_le_sigmaBrownian (D.W.W j) s t).trans
           (le_iSup (fun i => Brownian.sigmaBrownian (D.W.W i)) j))))
 
 /-- A compensated mass is measurable at every time of the Brownian enlargement. -/

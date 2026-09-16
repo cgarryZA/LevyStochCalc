@@ -75,12 +75,12 @@ theorem isBrownianFiltration_augFiltration {W : BrownianMotion P}
     {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (h : IsBrownianFiltration W ℱ) :
     IsBrownianFiltration W (augFiltration ℱ P) where
   measurable t := fun A hA => le_augFiltration ℱ P t _ (h.measurable t hA)
-  indep s t hs hst := by
+  indep_future s hs := by
     have hfeq : (augFiltration ℱ P) s = aug (ℱ s) ‹MeasurableSpace Ω› P := by
       change aug (ℱ (max s 0)) ‹MeasurableSpace Ω› P = aug (ℱ s) ‹MeasurableSpace Ω› P
       rw [max_eq_left hs]
     rw [hfeq]
-    exact indep_aug P (h.indep hs hst)
+    exact indep_aug P (h.indep_future hs)
 
 
 /-- Augmenting a right-continuous filtration keeps it right-continuous. -/

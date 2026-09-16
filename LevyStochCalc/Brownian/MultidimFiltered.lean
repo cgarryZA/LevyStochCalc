@@ -111,12 +111,12 @@ theorem isBrownianFiltration_natural (W : MultidimBrownianMotion P d) (j : Fin d
       exact le_sup_left
     · exact le_sup_of_le_right (le_iSup₂ (f := fun i (_ : i ∈ {i : Fin d | i ≠ j}) =>
         Martingale.naturalFiltration (W.W i) s) i hij)
-  · intro s t hs hst
+  · intro s _
     refine indep_of_indep_of_le_right
       (indep_of_indep_of_le_left (indep_iSup_sigmaBrownian_ne W j) ?_) ?_
     · exact iSup₂_le fun i hi => le_iSup₂_of_le i hi (naturalFiltration_le_sigmaBrownian _ s)
     · exact sup_le (naturalFiltration_le_sigmaBrownian _ s)
-        (comap_increment_le_sigmaBrownian (W.W j) s t)
+        (iSup₂_le fun t _ => comap_increment_le_sigmaBrownian (W.W j) s t)
 
 end Multidim.MultidimBrownianMotion
 

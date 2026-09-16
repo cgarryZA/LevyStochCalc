@@ -82,7 +82,10 @@ by `D` over the augmented joint filtration `augJoint D`:
 
 almost surely at each `t ∈ [0, T]`, with the two stochastic integrals the canonical ones for
 `augJoint D`, `Y` càdlàg, adapted to `(augJoint D).rightCont` and of finite `S²` seminorm on the
-horizon, and `Z`, `U` progressive with finite energy on `[0, T]` and vanishing off it. -/
+horizon, and `Z`, `U` progressive with finite energy on `[0, T]` and vanishing off it. The
+path conditions on `Y`, `Z`, `U` are asked at every sample point; `SolvesBSDEJAe` asks them
+almost surely, and `SolvesBSDEJAe.exists_modification` recovers a solution in this sense by
+setting the three processes to `0` on a null set. -/
 structure SolvesBSDEJ (D : LevyStochCalc.Driver.LevyDriver.{u, v, w} P d ν)
     (f : ℝ → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ) (ξ : Ω → ℝ) (T : ℝ)
     (Y : ℝ → Ω → ℝ) (Z : ℝ → Ω → (Fin d → ℝ)) (U : ℝ → Ω → E → ℝ) : Prop where

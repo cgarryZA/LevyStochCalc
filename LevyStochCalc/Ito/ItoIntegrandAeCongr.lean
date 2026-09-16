@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
 import LevyStochCalc.Brownian.ItoLocality
+import LevyStochCalc.Brownian.ItoLocalityStrict
 
 /-!
 # Almost-everywhere dependence of the Itô integral on its integrand
@@ -19,10 +20,10 @@ times and nowhere else.
 
 ## Main statements
 
-* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_ae` — integrands agreeing almost
-  everywhere on a window have the same Itô integral at the end of the window.
-* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_countable` — the same for
-  integrands agreeing off a countable set of times at each sample point.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_congr_of_countable` — integrands
+  agreeing off a countable set of times at each sample point have the same Itô integral at the
+  end of the window (the almost-everywhere form is `stochasticIntegralBrownian_congr_ae` of
+  `Brownian/ItoLocalityStrict.lean`).
 * `LevyStochCalc.Brownian.Ito.stopped_sub_congr_of_lt` — the increment of a cut-off integrand
   between two times depends on the integrand only at the times strictly between them, away from
   the later time.
@@ -65,60 +66,6 @@ section AeCongr
 variable {Ω : Type u} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
   (W : LevyStochCalc.Brownian.BrownianMotion P)
   (ℱ : Filtration ℝ ‹MeasurableSpace Ω›) (hℱ : IsBrownianFiltration W ℱ)
-
-include hℱ in
-/-- **Two integrands agreeing almost everywhere on a window have the same Itô integral at the end
-of that window.** -/
-theorem stochasticIntegralBrownian_congr_ae
-    {H₁ H₂ : Ω → ℝ → ℝ} (hm₁ : Measurable (Function.uncurry H₁))
-    (hp₁ : Probability.ProgressivelyMeasurable ℱ H₁)
-    (hq₁ : ∀ t, 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-      (‖H₁ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    (hm₂ : Measurable (Function.uncurry H₂))
-    (hp₂ : Probability.ProgressivelyMeasurable ℱ H₂)
-    (hq₂ : ∀ t, 0 < t → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) t,
-      (‖H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P < ⊤)
-    {T : ℝ} (hT : 0 < T)
-    (hae : ∀ᵐ ω ∂P, ∀ᵐ s ∂volume.restrict (Set.Icc (0 : ℝ) T), H₁ ω s = H₂ ω s) :
-    stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T
-      =ᵐ[P] stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T := by
-  have hinner : ∀ᵐ ω ∂P, (∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume) = 0 := by
-    filter_upwards [hae] with ω hω
-    have hz : (fun s => (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2)
-        =ᵐ[volume.restrict (Set.Icc (0 : ℝ) T)] fun _ => 0 := by
-      filter_upwards [hω] with s hs
-      simp [hs]
-    rw [MeasureTheory.lintegral_congr_ae hz, MeasureTheory.lintegral_zero]
-  have hR : ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,
-      (‖H₁ ω s - H₂ ω s‖₊ : ℝ≥0∞) ^ 2 ∂volume ∂P = 0 := by
-    have h := MeasureTheory.lintegral_congr_ae (μ := P) hinner
-    simpa using h
-  have hiso := isometry_diff_stochasticIntegralBrownian W ℱ hℱ H₁ H₂ hm₁ hm₂ hp₁ hp₂ hq₁ hq₂ hT
-  have hL : ∫⁻ ω, (‖stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T ω
-      - stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T ω‖₊ : ℝ≥0∞) ^ 2 ∂P = 0 :=
-    hiso.trans hR
-  have h1 : Measurable (stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T) :=
-    ((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H₁ hm₁ hp₁ hq₁ T).mono
-      (ℱ.le T)).measurable
-  have h2 : Measurable (stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T) :=
-    ((stochasticIntegralBrownian_stronglyAdapted W ℱ hℱ H₂ hm₂ hp₂ hq₂ T).mono
-      (ℱ.le T)).measurable
-  have hmeas : Measurable fun ω => (‖stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T ω
-      - stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T ω‖₊ : ℝ≥0∞) ^ 2 :=
-    (((h1.sub h2).nnnorm).coe_nnreal_ennreal).pow_const 2
-  have hzero := (MeasureTheory.lintegral_eq_zero_iff hmeas).mp hL
-  filter_upwards [hzero] with ω hω
-  have h0 : ((‖stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T ω
-      - stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T ω‖₊ : ℝ≥0∞)) = 0 := by
-    simpa [pow_eq_zero_iff] using hω
-  have hnn : ‖stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T ω
-      - stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T ω‖₊ = 0 := by
-    exact_mod_cast h0
-  have hsub : stochasticIntegralBrownian W ℱ hℱ H₁ hm₁ hp₁ hq₁ T ω
-      - stochasticIntegralBrownian W ℱ hℱ H₂ hm₂ hp₂ hq₂ T ω = 0 := by
-    simpa using hnn
-  linarith [hsub]
 
 include hℱ in
 /-- **Two integrands agreeing off a countable set of times at each sample point have the same Itô

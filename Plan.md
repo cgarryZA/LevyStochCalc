@@ -761,7 +761,19 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `∃ F : Filtration, …` while their docstrings name `ℱ.rightCont`; the pinned lemmas
         `martingale_rightCont_*` exist. → docstrings point to the pinned lemmas (wave 15).
       - F8 `IsPoissonFiltration.indep` is single-strip, weaker than "past ⟂ future"; the joint
-        form is recovered only from `LevyDriver.indep`. → recorded; structural (open).
+        form is recovered only from `LevyDriver.indep`. → closed structurally 2026-09-16 (D3):
+        the fields of `IsBrownianFiltration` and `IsPoissonFiltration` are now `indep_future`,
+        independence of `ℱ s` (`s ≥ 0`) from the σ-algebra of all increments `W t − W s`, `t > s`,
+        resp. of all counts on measurable regions of `(s, ∞) × E`; the single-strip statements
+        are the theorems `IsBrownianFiltration.indep` / `IsPoissonFiltration.indep` with the old
+        binders, so no caller changed. Every constructor was re-proved (natural filtrations from
+        `Brownian/FutureIndependence.lean` and `Poisson/PastFutureIndependence.lean`, `of_le`,
+        `rightCont` by finite subfamilies and the limit along `r ↓ s`, augmentation, the
+        multidimensional natural filtration, `combineBM` through
+        `indep_naturalFiltration_iSup_future`, the joint and cross filtrations of a driver);
+        `IsBrownianFiltration.of_le_sup` now asks its side σ-algebra to be independent of the
+        joint future. The pinned `LevyDriver.isBrownianFiltration` / `isPoissonFiltration` keep
+        their names, statements and module.
       - F9 `PoissonRandomMeasure.integer_valued` is `∀ B, ∀ᵐ ω` and atomicity is not a field;
         `Poisson/Atomic.lean` repairs it on finite windows under `CountablyGenerated`. →
         docstring (wave 15); structural (open).
@@ -780,7 +792,21 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `joint_increment_independent` (redundant field). → Phase D structural simplification.
       - F15 over-assumptions: `Y_cadlag`/`Z_vanish`/`U_vanish`/`HorizonIntegrand.vanishing` for
         every `ω`; `hu : ContDiff ℝ 2` jointly (C² in `t`, the literature needs C^{1,2}). →
-        recorded; each is a widening of the hypothesis class, open.
+        recorded; each is a widening of the hypothesis class. The path half closed 2026-09-16
+        by theorem (`BSDEJ/SolvesAe.lean`): `SolvesBSDEJAe` asks the three path conditions
+        almost surely, `SolvesBSDEJ.toAe` embeds, and `SolvesBSDEJAe.exists_modification`
+        (uniform form `exists_modification_indistinguishable`) returns a `SolvesBSDEJ` triple
+        agreeing with the given one off one null set, so uniqueness of `Y` up to
+        indistinguishability transfers; the pinned structure is unchanged. The `C^{1,2}` half
+        is open, with its groundwork landed the same day (`Ito/C12.lean`: the predicate `IsC12`,
+        `IsC12.of_contDiff`, and the strictness witness `(t, x) ↦ t|t| x₀²`, which is `C^{1,2}`
+        and not jointly `C²`; `Ito/C12Mollify.lean`: the time mollification `mollifyTime`, its
+        joint continuity, `C^N` regularity in time at a fixed state, pointwise convergence, and
+        the commutation of `timeDeriv`, `gradient`, `hessian` with it for a `C^{1,2}` function).
+        Still missing for the formula itself: joint `C²` regularity of the mollification (second
+        time derivative through a change of variables, mixed partials), locally uniform
+        convergence of the derivative families, and the limit passage in
+        `itoLevyFormula_general` along `Ito/StochasticIntegralLimit.lean`.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders
@@ -831,6 +857,27 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `(a, b]`, `0 ≤ a < b`), `Driver/CellOrthogonality.lean` (Kunita–Watanabe orthogonality of
       the two cell increments, orthogonality across distinct Brownian coordinates, and
       orthogonality of either increment to every square-integrable weight measurable at `a`).
+      **Wave 27 (2026-09-16)** continued it: `Driver/JointPRPProcess.lean` (the conditional
+      expectation of each `L²` integral at `t ≤ T` for the right-continuous filtration, the
+      process `jointIntegralProcess`, and the process-level form
+      `exists_jointIntegralProcess_augFiltration_of_mean_zero` of the joint predictable
+      representation), `Driver/AugJointRightCont.lean` (the augmented joint filtration is
+      right-continuous at every `t ≥ 0`, `rightCont_augFiltration_eq`, through the σ-algebra
+      criterion `le_aug_of_indep_of_le_sup`), and, on the dissertation side, the backward scheme
+      read off a BSDEJ solution with its per-step stochastic-input bundle. Also landed:
+      `Brownian/MultidimItoCongr.lean`, `BSDEJ/SolvesAe.lean` (F15, path half), `Ito/C12.lean`,
+      `Ito/C12Mollify.lean` (F15, `C^{1,2}` groundwork), and the removal of the duplicate
+      `stochasticIntegralBrownian_congr_ae` from `Ito/ItoIntegrandAeCongr.lean`.
+      **A7 by hypothesis (2026-09-16, `BSDEJ/CellRegularity.lean`):** the `ℱ_{tᵢ}`-conditional
+      cell averages `condCellAverage_Z/U` (distinct from the pathwise `cellTimeAverage_Z/U`,
+      equal to them for deterministic integrands) and the predicate `CellRegularity`, the
+      `L²`-path-regularity rate of Zhang (2004) and Bouchard–Elie (2008) on uniform grids,
+      carried as an explicit named hypothesis because its published proofs need Malliavin
+      calculus or a differentiable PIDE representation (ledger, Retired #10). It is not a
+      theorem of this library. `examples/NonvacuityBSDEJCellRegularity.lean` inhabits it for the
+      `f = y`, `ξ = W₁` equation with `C = e²`; that witness covers only the case where the
+      conditional and the pathwise averages coincide (deterministic `Z`), and its `rate_U` half
+      is degenerate (`U = 0`), so it exercises the statement, not the stochastic content.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned

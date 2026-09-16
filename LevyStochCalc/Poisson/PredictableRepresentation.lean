@@ -108,12 +108,12 @@ theorem isPoissonFiltration_augFiltration {N : PoissonRandomMeasure P ν}
     {ℱ : Filtration ℝ ‹MeasurableSpace Ω›} (h : IsPoissonFiltration N ℱ) :
     IsPoissonFiltration N (Brownian.augFiltration ℱ P) where
   measurable _ _ hB hBm := (h.measurable hB hBm).mono (Brownian.le_augFiltration ℱ P _) le_rfl
-  indep s t hs hst A hA hAν := by
+  indep_future s hs := by
     have hfeq : Brownian.augFiltration ℱ P s = Probability.aug (ℱ s) ‹MeasurableSpace Ω› P := by
       change Probability.aug (ℱ (max s 0)) ‹MeasurableSpace Ω› P = _
       rw [max_eq_left hs]
     rw [hfeq]
-    exact Probability.indep_aug P (h.indep hs hst hA hAν)
+    exact Probability.indep_aug P (h.indep_future hs)
 
 /-- The predictable representation property for the augmented natural filtration. -/
 theorem exists_markedHorizonIntegrand_augFiltration (N : PoissonRandomMeasure P ν) {T : ℝ}

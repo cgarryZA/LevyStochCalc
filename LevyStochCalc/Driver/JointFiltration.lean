@@ -40,10 +40,10 @@ theorem isBrownianFiltration_combineBM {c : Fin d → ℝ} (hc : ∑ i, c i ^ 2 
       (D.naturalFiltration_brownian_le t) le_rfl)
     (m := fun s => Poisson.naturalFiltration D.N s) (fun s => (Poisson.naturalFiltration D.N).le s)
     (fun s => (D.filtration_apply s).le)
-    (fun s t _ _ => indep_of_indep_of_le_right
+    (fun s _ => indep_of_indep_of_le_right
       (indep_of_indep_of_le_left D.indep.symm (naturalFiltration_le_sigmaPoisson _ s))
       (sup_le (D.W.naturalFiltration_le_iSup_sigmaBrownian s)
-        ((MultidimBrownianMotion.comap_combine_sub_le D.W c s t).trans
+        (iSup₂_le fun t _ => (MultidimBrownianMotion.comap_combine_sub_le D.W c s t).trans
           (iSup_le fun i => (Brownian.comap_increment_le_sigmaBrownian (D.W.W i) s t).trans
             (le_iSup (fun j => Brownian.sigmaBrownian (D.W.W j)) i)))))
 

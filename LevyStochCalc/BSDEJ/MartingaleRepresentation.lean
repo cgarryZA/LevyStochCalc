@@ -24,8 +24,10 @@ The theorem contains no predictable representation. Neither `W` nor the compensa
 integral. The representation this library does state is the terminal-time one,
 `LevyDriver.exists_predictable_jointIntegral` in `Driver/PredictableRepresentation.lean`, which
 writes a square-integrable `ℱ_T`-measurable `Z` as `∑ i, ∫₀ᵀ G i dWⁱ + ∫₀ᵀ ∫ K dÑ` for
-predictable integrands `G` and `K`. The process-level identity
-`M_t = M_0 + ∫₀ᵗ G dW + ∫₀ᵗ ∫ K dÑ` for all `t` is stated nowhere in this library.
+predictable integrands `G` and `K`. Its process-level form, the conditional expectation
+`𝔼[Z ∣ 𝔸₊ t] = ∑ i, ∫₀ᵗ G i dWⁱ + ∫₀ᵗ ∫ K dÑ` almost surely at each `t ≤ T` over the augmented
+joint filtration, is `LevyDriver.exists_jointIntegralProcess_augFiltration_of_mean_zero` in
+`Driver/JointPRPProcess.lean`; a pathwise identity along a càdlàg version is not stated.
 
 Jacod 1975 and Jacod–Shiryaev III.4.34 are the literature for that predictable representation,
 not for the theorem below. The formulation `jacodYor_PRP_martingale_axiom`, asking for

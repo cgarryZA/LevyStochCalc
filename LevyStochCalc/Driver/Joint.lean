@@ -87,10 +87,10 @@ theorem isBrownianFiltration (j : Fin d) :
       (D.naturalFiltration_brownian_le t) le_rfl)
     (m := fun s => Poisson.naturalFiltration D.N s) (fun s => (Poisson.naturalFiltration D.N).le s)
     (fun s => (D.filtration_apply s).le)
-    (fun s t _ _ => indep_of_indep_of_le_right
+    (fun s _ => indep_of_indep_of_le_right
       (indep_of_indep_of_le_left D.indep.symm (naturalFiltration_le_sigmaPoisson _ s))
       (sup_le (D.W.naturalFiltration_le_iSup_sigmaBrownian s)
-        ((Brownian.comap_increment_le_sigmaBrownian (D.W.W j) s t).trans
+        (iSup₂_le fun t _ => (Brownian.comap_increment_le_sigmaBrownian (D.W.W j) s t).trans
           (le_iSup (fun i => Brownian.sigmaBrownian (D.W.W i)) j))))
 
 /-- `N` is a Poisson random measure for the joint filtration. -/
@@ -98,18 +98,19 @@ theorem isPoissonFiltration : Poisson.IsPoissonFiltration D.N D.filtration where
   measurable _ _ hB hBm :=
     ((Poisson.isPoissonFiltration_natural D.N).measurable hB hBm).mono
       (D.naturalFiltration_poisson_le _) le_rfl
-  indep := by
-    intro s t hs hst A hA hAν
+  indep_future := by
+    intro s hs
     rw [filtration_apply, sup_comm]
+    have hfut : (⨆ B ∈ {B : Set (ℝ × E) | B ⊆ Set.Ioi s ×ˢ Set.univ ∧ MeasurableSet B},
+        MeasurableSpace.comap (fun ω => D.N.N ω B) inferInstance) ≤ sigmaPoisson D.N :=
+      iSup₂_le fun B hB => comap_count_le_sigmaPoisson D.N hB.2
     refine Probability.indep_sup_left_of_indep
       ((naturalFiltration_le_sigmaPoisson _ s).trans (sigmaPoisson_le _))
-      (D.W.naturalFiltration.le s)
-      ((comap_count_le_sigmaPoisson D.N (measurableSet_Ioc.prod hA)).trans (sigmaPoisson_le _))
-      ((Poisson.isPoissonFiltration_natural D.N).indep hs hst hA hAν) ?_
-    refine indep_of_indep_of_le_right
-      (indep_of_indep_of_le_left D.indep (D.W.naturalFiltration_le_iSup_sigmaBrownian s)) ?_
-    exact sup_le (naturalFiltration_le_sigmaPoisson _ s)
-      (comap_count_le_sigmaPoisson D.N (measurableSet_Ioc.prod hA))
+      (D.W.naturalFiltration.le s) (hfut.trans (sigmaPoisson_le _))
+      ((Poisson.isPoissonFiltration_natural D.N).indep_future hs) ?_
+    exact indep_of_indep_of_le_right
+      (indep_of_indep_of_le_left D.indep (D.W.naturalFiltration_le_iSup_sigmaBrownian s))
+      (sup_le (naturalFiltration_le_sigmaPoisson _ s) hfut)
 
 end LevyDriver
 
