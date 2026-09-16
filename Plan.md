@@ -820,7 +820,15 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `Ito/C12MollifyJoint.lean` (`mollifyJoint` on `ℝ × (Fin n → ℝ)`, joint `C^N` regularity
         by convolution, `isC12_mollifyJoint`, the three commutation identities, the uniform
         derivative bounds in the shapes of `itoLevyFormula_jumpResidual_of_boundedDerivs`, and
-        pointwise convergence along bumps with `rOut → 0`).
+        pointwise convergence along bumps with `rOut → 0`). Step (3) landed too:
+        `Ito/ItoLevyBoundedDerivsC12.lean` (`itoLevyFormula_jumpResidual_of_boundedDerivs_c12`,
+        byte-identical to the bounded-derivative theorem except for `hu : IsC12 u`; the
+        admissibility inputs of each mollification are derived from the uniform bounds, the
+        two stochastic integrals pass to the limit in `L²` and along a subsequence almost
+        surely, the two Lebesgue integrals by dominated convergence;
+        `Ito/ItoLevyBoundedDerivsC12Limits.lean` holds the convergence lemmas). Open: (4) the
+        `_c12` helper layer above the bounded-derivative level and (5) the threading up to
+        `itoLevyFormula_general_c12`.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders

@@ -440,6 +440,8 @@ import LevyStochCalc.Ito.ItoLevyBoundedDerivsSteps
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsStepsIntegrands
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsStepsLimits
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsC12Limits
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsC12
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionRepresentative
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionIntegrands
