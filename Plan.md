@@ -794,7 +794,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       vanishes with probability `exp (-1)`, the compensated integral of `1_{[0,1]}` has second
       moment `1`, and `exists_unique_solvesBSDEJ` holds with `ν = volume` with a non-degenerate
       terminal value; the `Z`-energy transfer of `NonvacuityBSDEJZ` is typed at `δ₁` and is not
-      repeated). Open: F5, F8, F9 (structural), F10, F12 (decision), F15.
+      repeated). **Wave 17 (2026-09-16)** closed F5 as a theorem
+      (`Ito/JumpDiffusionAdapted.lean`: under the usual conditions every jointly measurable
+      `S²`-bounded solution on all horizons is `StronglyMeasurable[ℱ t]` at every `t ≥ 0`, so
+      `JumpDiffusion.exists_unique_adapted` restates existence and uniqueness with adaptedness of
+      the solution and of every competitor; the structure itself still has no adaptedness field,
+      and the compensated integral is adapted only to `ℱ.rightCont`, which the usual conditions
+      absorb). Open: F8, F9 (structural), F10, F12 (decision), F15.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
@@ -819,6 +825,10 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **D0** Inventory (2026-09-15): 340 library files, 38 over 600 lines (largest
       `Poisson/CompensatedDensity.lean` 4471, `Brownian/ItoL2Completion.lean` 4252,
       `Ito/Picard.lean` 2919, `Brownian/ItoDensity.lean` 2550, `Ito/SecondMoment.lean` 2053);
+      **wave 17 (2026-09-16)** split the three largest into thematic parts (10, 8 and 6 modules,
+      each ≤ 598 lines) with the original module kept as the aggregating import, every
+      declaration keeping its name and statement (two formerly private lemmas became public,
+      `master_horizon_pos`, `bounded_locallyIntegrable`); 35 files over 600 lines remain;
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
