@@ -867,7 +867,21 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `Ito/PicardContraction.lean` (908), `Brownian/CrossOrthogonality.lean` (792); two files
       are dominated by a single proof and are left whole, `Ito/ItoLevyBoundedDerivs.lean` (913,
       `itoLevyFormula_jumpResidual_of_boundedDerivs` alone spans 608 lines) and
-      `Ito/FiniteActivityMixed.lean` (834, one theorem of 716 lines);
+      `Ito/FiniteActivityMixed.lean` (834, one theorem of 716 lines); **wave 22 (2026-09-16)**
+      split `Ito/PicardContraction.lean` (908 → 2), `Brownian/CrossOrthogonality.lean`
+      (792 → 2), `Brownian/VectorItoQuadVarRiemann.lean` (771 → 2) and
+      `Ito/JumpFormulaGeneralShift.lean` (762 → 2); **wave 23 (2026-09-16)** took the three
+      pinned modules, each keeping its pinned symbols at the pinned path:
+      `Brownian/Continuity.lean` (1412 → 444, `kolmogorovChentsov_modification` and the Brownian
+      application stay, the dyadic chaining and the Kolmogorov bounds move to two imported
+      modules), `Brownian/Martingale.lean` (1039 → 219, `naturalFiltration` and the moment
+      lemmas stay, the conditional expectations, the martingale and quadratic-variation
+      theorems and the right-continuous versions move to three modules that import it, with
+      `Brownian/Filtered.lean` importing the first of them) and
+      `Poisson/CompensatedIsometry.lean` (1338 → 497, the moment lemmas including the three
+      pinned ones stay, the orthogonality and `L²` material move to two modules that import
+      it, with `Poisson/CompensatedMartingaleAdapted.lean` importing the second); the downstream
+      shape is recorded in `tools/import_contract.md` §3; 15 files over 600 lines remain;
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).

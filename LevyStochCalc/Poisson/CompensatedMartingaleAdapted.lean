@@ -5,6 +5,7 @@ Authors: Christian Garry
 -/
 import LevyStochCalc.Poisson.CompensatedSimple
 import LevyStochCalc.Poisson.CompensatedIsometry
+import LevyStochCalc.Poisson.CompensatedIsometryL2
 import LevyStochCalc.Poisson.NaturalFiltration
 import Mathlib.Probability.Process.Adapted
 import Mathlib.Probability.ConditionalExpectation

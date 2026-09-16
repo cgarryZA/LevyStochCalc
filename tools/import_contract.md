@@ -119,7 +119,13 @@ remain reachable under the listed namespace prefix.
 symbols (§2) in the module of record at their pinned path; move only the
 *non-pinned* content into new sub-modules that the module of record imports.
 The pinned path still resolves natively, so nothing downstream changes. Run
-`tools/verify_import_contract.sh` — it must stay green.
+`tools/verify_import_contract.sh` — it must stay green. When the pinned symbol
+sits at the head of the file and everything else depends on it (as
+`Brownian.Martingale.naturalFiltration` does), the later content may instead
+move to new modules that *import* the module of record; the pinned path then
+provides the pinned symbols but not the moved content, so every in-tree importer
+that used moved content switches its import to the last new module (the
+umbrella imports them all).
 
 **Relocating a pinned symbol (rare — e.g. Phase 4 upstreaming).** If a pinned
 symbol genuinely has to leave its pinned path:
