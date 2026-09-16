@@ -785,7 +785,16 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders
       removed; `poissonRandomMeasure_finite_exists` deleted as a verbatim duplicate) and F11
       (`BSDEJ/UniquenessIndistinguishable.lean`, `Ito/PicardFixedPointIndistinguishable.lean`).
-      Open: F5, F8, F9 (structural), F10, F12 (decision), F14, F15, F16.
+      **Wave 16 (2026-09-16)** closed F14 (`increment_independent` is a theorem derived from
+      the σ-algebra field; the structure has one field fewer) and F16
+      (`examples/NonvacuityInfiniteActivity.lean`: `ν = volume` on `ℝ`, σ-finite with infinite
+      total mass — the library assumes only σ-finiteness, not the truncated second-moment
+      condition of a Lévy measure — the count on `(0, 1] × ℝ` is almost surely infinite by the
+      field `infinite_at_infinite_intensity`, the count on `(0, 1] × [0, 1]` has mean `1` and
+      vanishes with probability `exp (-1)`, the compensated integral of `1_{[0,1]}` has second
+      moment `1`, and `exists_unique_solvesBSDEJ` holds with `ν = volume` with a non-degenerate
+      terminal value; the `Z`-energy transfer of `NonvacuityBSDEJZ` is typed at `δ₁` and is not
+      repeated). Open: F5, F8, F9 (structural), F10, F12 (decision), F15.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
