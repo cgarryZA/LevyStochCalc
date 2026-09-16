@@ -826,8 +826,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         admissibility inputs of each mollification are derived from the uniform bounds, the
         two stochastic integrals pass to the limit in `L²` and along a subsequence almost
         surely, the two Lebesgue integrals by dominated convergence;
-        `Ito/ItoLevyBoundedDerivsC12Limits.lean` holds the convergence lemmas). Open: (4) the
-        `_c12` helper layer above the bounded-derivative level and (5) the threading up to
+        `Ito/ItoLevyBoundedDerivsC12Limits.lean` holds the convergence lemmas). Step (4)
+        landed as well: `Ito/JumpFormulaContinuityC12.lean`,
+        `Ito/ItoLevyBoundedDerivsSolutionIntegrandsC12.lean`, `Ito/CutoffC12.lean` — the
+        `_c12` forms of every helper the two top-level files consume through joint `C²`
+        (Taylor bounds in the state, box bounds, path-integrand admissibility, the cut-off's
+        global bound and jump-side agreement); no helper was blocked, since no second time
+        derivative of the cut-off is ever taken. Open: (5) the threading up to
         `itoLevyFormula_general_c12`.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).

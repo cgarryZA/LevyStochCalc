@@ -408,6 +408,7 @@ import LevyStochCalc.Ito.JumpSplittingRemainderVanishing
 import LevyStochCalc.Ito.CutoffGlobalBounds
 import LevyStochCalc.Ito.JumpSideCompensator
 import LevyStochCalc.Ito.CutoffJumpTransfer
+import LevyStochCalc.Ito.CutoffC12
 import LevyStochCalc.Ito.CadlagExitTime
 import LevyStochCalc.Ito.JumpCoefficientPredictable
 import LevyStochCalc.Ito.JumpCoefficientPredictableCriteria
@@ -421,6 +422,7 @@ import LevyStochCalc.Ito.JumpCoefficientPredictableZeroExt
 import LevyStochCalc.Ito.SubsequenceBookkeeping
 import LevyStochCalc.Ito.ItoFormulaGridShiftClosed
 import LevyStochCalc.Ito.JumpFormulaContinuity
+import LevyStochCalc.Ito.JumpFormulaContinuityC12
 import LevyStochCalc.Ito.C12
 import LevyStochCalc.Ito.C12Mollify
 import LevyStochCalc.Ito.C12MollifyJoint
@@ -445,6 +447,7 @@ import LevyStochCalc.Ito.ItoLevyBoundedDerivsC12
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionRepresentative
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionIntegrands
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionIntegrandsC12
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionMain
 import LevyStochCalc.Ito.ItoLevyFormulaGeneral
 import LevyStochCalc.Ito.ItoLevyFormulaPathwise
