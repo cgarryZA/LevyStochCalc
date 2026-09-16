@@ -814,7 +814,13 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         by the limit `u_ε → u` at the bounded-derivative level through the existing domination
         toolkit; (4) thread `IsC12` up through the continuity/Taylor/cut-off lemmas as `_c12`
         duplicates, keeping every pinned `ContDiff` statement and `Dissertation/Continuous.lean`
-        untouched; (5) `itoLevyFormula_general_c12`.
+        untouched; (5) `itoLevyFormula_general_c12`. Steps (1) and (2) landed the same day:
+        `Ito/C12Product.lean` (`IsC12.mul`, `IsC12.mul_contDiff`, the Leibniz rules for the
+        three derivative families, `IsC12.add/const_mul/neg/sub`, `isC12_cutoffFun₂`) and
+        `Ito/C12MollifyJoint.lean` (`mollifyJoint` on `ℝ × (Fin n → ℝ)`, joint `C^N` regularity
+        by convolution, `isC12_mollifyJoint`, the three commutation identities, the uniform
+        derivative bounds in the shapes of `itoLevyFormula_jumpResidual_of_boundedDerivs`, and
+        pointwise convergence along bumps with `rOut → 0`).
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders

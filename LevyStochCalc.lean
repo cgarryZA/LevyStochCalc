@@ -423,6 +423,8 @@ import LevyStochCalc.Ito.ItoFormulaGridShiftClosed
 import LevyStochCalc.Ito.JumpFormulaContinuity
 import LevyStochCalc.Ito.C12
 import LevyStochCalc.Ito.C12Mollify
+import LevyStochCalc.Ito.C12MollifyJoint
+import LevyStochCalc.Ito.C12Product
 import LevyStochCalc.Ito.LocalDerivBounds
 import LevyStochCalc.Ito.CappedJumpSumMeasurable
 import LevyStochCalc.Ito.SdeDataOfSolvesOn
