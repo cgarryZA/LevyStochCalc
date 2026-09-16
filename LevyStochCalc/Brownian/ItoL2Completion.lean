@@ -3852,8 +3852,13 @@ For predictable square-integrable `H : Ω → ℝ → ℝ`, there exists a proce
   for every `T > 0`
   (L²-isometry).
 
-`F` is the canonical L²-Itô integral `t ↦ ∫_0^t H_s dW_s`. The 3-conjunct strong
-existence consolidates Karatzas–Shreve Thm 3.2.6.
+The statement asserts existence of *some* process `F` with these three
+properties for `Filt = ℱ.rightCont`; it does not name `F` or mention `W`. The
+witness supplied by the proof is `stochasticIntegralBrownian`; the pinned
+forms that name it directly are `isometry_stochasticIntegralBrownian`,
+`martingale_rightCont_stochasticIntegralBrownian` and
+`itoIsometry_diff_brownian`. The 3-conjunct strong existence consolidates
+Karatzas–Shreve Thm 3.2.6.
 
 **Reference**: Karatzas, I. & Shreve, S. *Brownian Motion and Stochastic Calculus*,
 Springer 1991, **Theorem 3.2.6** (unified martingale + quadratic variation +
@@ -4199,8 +4204,10 @@ theorem itoIsometry
 
 /-- **Quadratic variation of the L² Itô integral.**
 
-For predictable square-integrable `H`, the process `t ↦ (M_t)² − ∫_0^t |H_s|² ds`
-is a martingale, where `M_t = ∫_0^t H_s dW_s`.
+For predictable square-integrable `H`, the process `t ↦ (M_t)² − ∫_0^t |H_s|² ds`,
+where `M_t = ∫_0^t H_s dW_s`, is a martingale with respect to some filtration
+(the statement does not name it; the pinned form for `ℱ.rightCont` is
+`martingale_rightCont_quadVar_stochasticIntegralBrownian`).
 
 Extracts conjunct 2 (quadratic variation) of `itoIsometry_brownian_unified_existence`. -/
 theorem quadVar_stochasticIntegral
@@ -4226,10 +4233,9 @@ theorem quadVar_stochasticIntegral
 
 /-- **The L² Itô integral is a martingale.**
 
-The Itô integral `M_t = ∫_0^t H_s dW_s` is a square-integrable martingale with
-respect to some filtration, namely the right-continuous augmentation
-`ℱ.rightCont` of the given filtration `ℱ` for which `W` is a Brownian motion
-and `H` is progressively measurable.
+The Itô integral `M_t = ∫_0^t H_s dW_s` is a martingale with respect to some
+filtration (the statement does not name it; the pinned form for `ℱ.rightCont`
+is `martingale_rightCont_stochasticIntegralBrownian`).
 
 Extracts conjunct 1 (martingale property) of `itoIsometry_brownian_unified_existence`. -/
 theorem martingale_stochasticIntegral

@@ -10,7 +10,7 @@ import LevyStochCalc.Poisson.Transport
 /-!
 # Existence of a Lévy driver
 
-For every `d` and every σ-finite intensity `ν` on a standard Borel space, some probability
+For every `d` and every σ-finite intensity `ν` on a measurable mark space, some probability
 space carries a `d`-dimensional Brownian motion together with a Poisson random measure with
 intensity `ν` generating an independent σ-algebra — a `LevyDriver`.
 
@@ -71,9 +71,9 @@ noncomputable def levyDriverProd (W : Brownian.Multidim.MultidimBrownianMotion P
       (iSup_le fun i => sigmaBrownian_comap_fst_le (W.W i))
 
 /-- **Existence of a Lévy driver.** For every `d` and every σ-finite intensity `ν` on a
-standard Borel space, some probability space carries a `d`-dimensional Brownian motion and a
+measurable mark space, some probability space carries a `d`-dimensional Brownian motion and a
 Poisson random measure with intensity `ν` generating independent σ-algebras. -/
-theorem LevyDriver.exists (d : ℕ) (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
+theorem LevyDriver.exists (d : ℕ) (E : Type v) [MeasurableSpace E]
     (ν : Measure E) [SigmaFinite ν] :
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω) (_ : IsProbabilityMeasure P),
       Nonempty (LevyDriver P d ν) := by
@@ -83,7 +83,7 @@ theorem LevyDriver.exists (d : ℕ) (E : Type v) [MeasurableSpace E] [StandardBo
   exact ⟨Ω₁ × Ω₂, inferInstance, P₁.prod P₂, inferInstance, ⟨levyDriverProd W N⟩⟩
 
 /-- **A filtration carrying both driver properties exists.** For every `d` and every σ-finite
-intensity `ν` on a standard Borel space there are a probability space, a `d`-dimensional
+intensity `ν` on a measurable mark space there are a probability space, a `d`-dimensional
 Brownian motion `W`, a Poisson random measure `N` with intensity `ν`, and one filtration for
 which every coordinate of `W` is a Brownian motion and `N` is a Poisson random measure.
 
@@ -92,7 +92,7 @@ iteration and `IsBSDEJSolution` carry; it is satisfiable, and `ℱ = ⊤` does n
 It does *not* say that those statements have solutions — only that the filtration hypothesis
 common to all of them is not vacuous. -/
 theorem exists_isBrownianFiltration_and_isPoissonFiltration (d : ℕ) (E : Type v)
-    [MeasurableSpace E] [StandardBorelSpace E] (ν : Measure E) [SigmaFinite ν] :
+    [MeasurableSpace E] (ν : Measure E) [SigmaFinite ν] :
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω) (_ : IsProbabilityMeasure P)
       (D : LevyDriver P d ν),
       (∀ j, Brownian.IsBrownianFiltration (D.W.W j) D.filtration) ∧

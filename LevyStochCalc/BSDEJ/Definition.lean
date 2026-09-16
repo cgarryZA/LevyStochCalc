@@ -37,8 +37,9 @@ different existence/uniqueness apparatus and are out of scope.
   to the canonical integrals — `M_W` to the multidim Brownian Itô integral of
   `Z`, `M_N` to the compensated-Poisson L² integral of `U` — rather than to
   arbitrary L²-isometric stand-ins. Both are martingales for the same
-  filtration `Filt`, pinned to the right-continuous augmentation of
-  `σ(W, N) = (⨆ᵢ σ(W_i)) ∨ σ(N)`.
+  filtration `Filt`, pinned to the right-continuous augmentation `ℱ.rightCont`
+  of some filtration `ℱ` for which every `W.W j` is a Brownian motion and `N`
+  is a Poisson random measure.
 
 Adaptedness is essential, not cosmetic: for `f = 0, g = 0` the non-adapted
 process `Y_t = W¹_T − W¹_t` solves the equation (with `Z ≡ 1`, `U = 0`), so
@@ -86,9 +87,11 @@ Bouchard–Elie 2008 SPA 118(1) Thm 2.1; Andersson–Gnoatto–Patacca–Picarel
 2025 arXiv:2211.04349 Thm 2.4). A vector-`Y` generalisation would add a
 dimension `m` and change `g`/`f` to return `Fin m → ℝ`; it is out of scope.
 
-The `f_measurable_slice`/`g_measurable` fields prevent `IsBSDEJSolution` from
-being evaluated on non-measurable drivers, where the Bochner integral would
-default to `0` and make the equation `Y_t = g + 0` trivially solvable:
+`f_measurable_slice`/`g_measurable` record measurability at each fixed jump
+argument `u`; they do not make the composite `s ↦ f s (X s ω) (Y s ω) (Z s ω)
+(U s ω)` measurable, since `u = U s ω` varies with `s`. The existence theorem
+supplies a progressive modification of the generator instead
+(`BSDEJ.GeneratorModification.exists_progressive_generator_modification`):
 - `g : (Fin n → ℝ) → ℝ` is Borel-measurable in `x`;
 - `f : ℝ → (Fin n → ℝ) → ℝ → (Fin d → ℝ) → (E → ℝ) → ℝ` is jointly
   measurable in `(t, x, y, z)` for the product σ-algebra on
@@ -236,12 +239,13 @@ variable {Z : ℝ → Ω → (Fin d → ℝ)}
 variable {U : ℝ → Ω → E → ℝ}
 variable {T : ℝ}
 
-/-- **Regression test #1 (Filt pin)**: The filtration witnessed by an
-`IsBSDEJSolution` is exactly the right-continuous augmentation of the join of
-`W`'s component natural filtrations with `N`'s natural filtration. Pinning by
-equality (rather than allowing any `Filt` containing the natural one, which
-`Filt = ⊤` satisfies vacuously) forces the literature-correct filtration and
-preserves the adaptedness rule-out of the `Y = W_T − W_t` non-solution. -/
+/-- **Regression test #1 (Filt shape)**: every `IsBSDEJSolution` witnesses a
+filtration of the shape `Filt = ℱ.rightCont`, for some filtration `ℱ` for
+which every `W.W j` is a Brownian motion and `N` is a Poisson random measure.
+This is a guard on the existential shape of the predicate — weakening
+`Filt = ℱ.rightCont` to a `≤` constraint would break downstream `obtain`
+patterns — not a statement identifying the filtration carried by any
+particular solution. -/
 theorem filtration_eq_canonical
     (h : IsBSDEJSolution W N bsdej X Y Z U T) :
     ∃ (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›)

@@ -171,8 +171,13 @@ For predictable square-integrable `φ : Ω → ℝ → E → ℝ`, there exists 
   for every `T > 0` with `h_meas + h_sq_int` (L²-isometry),
 * `F` has càdlàg paths.
 
-`F` is the canonical L²-Itô-Lévy integral `t ↦ ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`.
-Consolidates Applebaum 2009 Thm 4.2.3 + Thm 4.2.4.
+The statement asserts existence of *some* process `F` with these four
+properties for `Filt = ℱ.rightCont`; it does not name `F` or mention `N`. The
+witness supplied by the proof is `stochasticIntegral`; the pinned forms that
+name it directly are `isometry_stochasticIntegral`,
+`martingale_stochasticIntegral_rightCont` and
+`martingale_quadVar_stochasticIntegral_rightCont`. Consolidates Applebaum
+2009 Thm 4.2.3 + Thm 4.2.4.
 
 The integrand hypotheses (`h_meas` joint measurability on `Ω×ℝ×E`,
 `h_progMeas` progressive measurability w.r.t. `ℱ t`,
@@ -237,8 +242,11 @@ include hℱ in
 /-- **Quadratic variation of the L² Itô-Lévy integral.**
 
 For predictable square-integrable `φ`, the process
-`t ↦ (M_t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds` is a martingale, where
-`M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` is the L² Itô-Lévy integral. -/
+`t ↦ (M_t)² − ∫_0^t ∫_E |φ(s, e)|² ν(de) ds`, where
+`M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)` is the L² Itô-Lévy integral, is a
+martingale with respect to some filtration (the statement does not name it;
+the pinned form for `ℱ.rightCont` is
+`martingale_quadVar_stochasticIntegral_rightCont`). -/
 theorem quadVar_stochasticIntegral :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale
@@ -253,7 +261,9 @@ include hℱ in
 /-- **The L² Itô-Lévy integral is a martingale.**
 
 The compensated-Poisson stochastic integral `M_t = ∫_0^t ∫_E φ(s, e) Ñ(ds, de)`
-is a square-integrable martingale w.r.t. the right-continuous natural filtration of `N`. -/
+is a martingale with respect to some filtration (the statement does not name
+it; the pinned form for `ℱ.rightCont` is
+`martingale_stochasticIntegral_rightCont`). -/
 theorem martingale_stochasticIntegral :
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale

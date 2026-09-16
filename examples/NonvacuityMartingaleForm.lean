@@ -93,7 +93,7 @@ theorem exists_cadlagMartingale_brownian_one (D : LevyDriver P 1 markIntensity) 
         ∧ ¬ (M 1 =ᵐ[P] M 0)
         ∧ ∫⁻ ω, (‖M 1 ω‖₊ : ℝ≥0∞) ^ 2 ∂P = 1 := by
   obtain ⟨M, hmart, -, hcadlag, hinit, hterm⟩ :=
-    LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form D 1 one_pos
+    LevyStochCalc.BSDEJ.MartingaleRepresentation.condExp_to_PRP_martingale_form D 1
       (fun ω => (D.W.W 0).W 1 ω) (stronglyMeasurable_brownian_one_jointRightCont D)
       (lintegral_sq_brownian_one_lt_top (D.W.W 0))
   have hzero : ∀ᵐ ω ∂P, M 0 ω = 0 := by

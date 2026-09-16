@@ -125,13 +125,9 @@ well-posedness proof works with it as a pseudo-edist on path maps
 directly. -/
 theorem picardFixedPoint
     {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
     {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
-    {n d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (_coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-    (_x₀ : Fin n → ℝ) (T : ℝ) (_hT : 0 < T)
+    {n : ℕ}
+    (T : ℝ)
     {K : NNReal} {Φ : SBoundedProcess (n := n) P ℱ T → SBoundedProcess (n := n) P ℱ T}
     (hΦ : ContractingWith K Φ) :
     ∃! X : SBoundedProcess (n := n) P ℱ T, Φ X = X :=
@@ -151,13 +147,9 @@ The conclusion strips out a witness `Φ` from the existential and
 delivers its unique fixed point. -/
 theorem picardFixedPoint_of_exists
     {P : Measure Ω} [IsProbabilityMeasure P]
-    {ν : Measure E} [SigmaFinite ν]
     {ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›}
-    {n d : ℕ}
-    (_W : LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion P d)
-    (_N : LevyStochCalc.Poisson.PoissonRandomMeasure P ν)
-    (_coeffs : LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs n d E)
-    (_x₀ : Fin n → ℝ) (T : ℝ) (_hT : 0 < T)
+    {n : ℕ}
+    (T : ℝ)
     (h_contraction :
       ∃ (Φ : SBoundedProcess (n := n) P ℱ T → SBoundedProcess (n := n) P ℱ T)
         (K : NNReal) (_hK : K < 1),
@@ -250,8 +242,9 @@ a Poisson random measure, the jump-diffusion SDE
 
   `dX_t = μ(t, X_t) dt + σ(t, X_t) dW_t + ∫_E γ(t, X_{t-}, e) Ñ(dt, de)`,  `X_0 = x_0`
 
-has a strong solution that is càdlàg, adapted and `S²`-bounded on every bounded interval, and
-any solution of the equation relative to the same `ℱ` agrees with it a.s. at every `t ≥ 0`.
+has a solution that is càdlàg and `S²`-bounded on every bounded interval and solves the
+equation relative to the given filtration `ℱ`, and any solution of the equation relative to that
+same `ℱ` agrees with it a.s. at every `t ≥ 0`.
 
 **Reference**: Applebaum, D. *Lévy Processes and Stochastic Calculus*, 2nd ed., Cambridge
 University Press, 2009, **Theorem 6.2.9**; Ikeda, N. & Watanabe, S. *Stochastic Differential

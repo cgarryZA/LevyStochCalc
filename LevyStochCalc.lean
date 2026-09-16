@@ -260,6 +260,7 @@ import LevyStochCalc.Ito.PicardWindow
 import LevyStochCalc.Ito.PicardGlobal
 import LevyStochCalc.Ito.PicardWellPosed
 import LevyStochCalc.Ito.PicardFixedPoint
+import LevyStochCalc.Ito.PicardFixedPointIndistinguishable
 import LevyStochCalc.Ito.JumpFormula
 import LevyStochCalc.Ito.VectorItoProcessDiff
 import LevyStochCalc.Ito.VectorItoVersionSup
@@ -357,6 +358,7 @@ import LevyStochCalc.BSDEJ.PicardIterates
 import LevyStochCalc.BSDEJ.Bridge
 import LevyStochCalc.BSDEJ.PicardLimit
 import LevyStochCalc.BSDEJ.ExistenceUniqueness
+import LevyStochCalc.BSDEJ.UniquenessIndistinguishable
 
 -- Layer 4: BSDEJ path regularity  → Cu05
 import LevyStochCalc.BSDEJ.PathRegularity

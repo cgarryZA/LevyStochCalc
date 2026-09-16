@@ -73,11 +73,18 @@ noncomputable def referenceIntensity {E : Type v} [MeasurableSpace E]
 
 The Applebaum (2009) Definition 2.3.1 properties are: (a) `N(·, A)` is
 Poisson-distributed (captured by `poisson_law`); (b) disjoint-family values
-are independent (captured by `independent_disjoint`); (c) `N` is an
-integer-valued atomic measure (encoded by `integer_valued` below — which
-follows from (a) since Poisson distributions are supported on `ℕ`, but is
-made explicit here as an a.s. claim because Mathlib's `Measure` type
-allows non-integer values in general). -/
+are independent (captured by `independent_disjoint`); (c) `N(ω, ·)` is an
+integer-valued atomic measure.
+
+Of (c) the fields below record only the following. For each fixed region of
+finite intensity, `integer_valued` gives an almost surely integer value, with an
+exceptional null set that depends on that region; there is therefore no single
+null set outside which `N ω` is integer-valued on every region at once.
+Atomicity is not a field. The simultaneous integer-valued statement on a window
+of finite intensity is `Poisson.ae_isIntegerValued_restrict`, and the matching
+atomicity — a finite sum of Dirac masses — is `Poisson.ae_exists_eq_sum_dirac`,
+both in `Poisson/Atomic.lean` and both under additional countable-generation
+hypotheses on the mark space. -/
 structure PoissonRandomMeasure
     (P : Measure Ω) [IsProbabilityMeasure P]
     (ν : Measure E) [SigmaFinite ν] where
@@ -170,12 +177,12 @@ lemma sigmaFinite_decomposition
   · rw [iUnion_disjointed]
     exact MeasureTheory.iUnion_spanningSets ν
 
-/-- For every σ-finite intensity `ν` on a standard Borel space `E`, some probability space
+/-- For every σ-finite intensity `ν` on a measurable mark space `E`, some probability space
 carries a Poisson random measure with intensity `volume.restrict [0,∞) ⊗ ν`
 (Applebaum, *Lévy Processes and Stochastic Calculus*, Theorem 2.3.1; Kallenberg, *Random
 Measures, Theory and Applications*, Proposition 3.6). -/
 theorem PoissonRandomMeasure.exists_of_sigmaFinite
-    (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
+    (E : Type v) [MeasurableSpace E]
     (ν : Measure E) [SigmaFinite ν] :
     ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
       (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) := by
@@ -271,14 +278,5 @@ theorem PoissonRandomMeasure.exists_of_sigmaFinite
         refine indep_of_indep_of_le_left h (iSup₂_le fun C hC => le_iSup₂_of_le C ?_ le_rfl)
         exact ⟨(Set.disjoint_prod.2 (Or.inl (Set.Iic_disjoint_Ioc le_rfl))).mono_left hC.1,
           hC.2⟩ }
-
-/-- A Poisson random measure with finite intensity exists; the finite-intensity case of
-`PoissonRandomMeasure.exists_of_sigmaFinite`. -/
-lemma poissonRandomMeasure_finite_exists
-    (E : Type v) [MeasurableSpace E] [StandardBorelSpace E]
-    (ν : Measure E) [SigmaFinite ν] (_h_finite : ν Set.univ ≠ ⊤) :
-    ∃ (Ω : Type v) (_ : MeasurableSpace Ω) (P : Measure Ω)
-      (_ : IsProbabilityMeasure P), Nonempty (PoissonRandomMeasure P ν) :=
-  PoissonRandomMeasure.exists_of_sigmaFinite E ν
 
 end LevyStochCalc.Poisson

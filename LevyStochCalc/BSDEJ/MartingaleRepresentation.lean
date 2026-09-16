@@ -8,33 +8,46 @@ import LevyStochCalc.Driver.CadlagMartingale
 import LevyStochCalc.Brownian.MultidimIto
 
 /-!
-# Martingale representation for `(W, Ñ)`: the conditional-expectation bridge
+# The càdlàg conditional-expectation martingale of a joint filtration
 
-Every square-integrable random variable `ξ` measurable for the joint right-continuous
-filtration of a Brownian motion `W` and a Poisson random measure `N` is the terminal value of a
-càdlàg square-integrable martingale on that filtration starting from `𝔼 ξ`
-(`condExp_to_PRP_martingale_form`, formerly cited result #13b: Doob's càdlàg regularisation,
-Karatzas–Shreve I.3.13, and Blumenthal's 0-1 law for the joint filtration). The martingale is
+Every square-integrable random variable `ξ` measurable at time `T` for the joint
+right-continuous filtration of a Brownian motion `W` and a Poisson random measure `N` is the
+terminal value of a càdlàg square-integrable martingale on that filtration whose value at time
+`0` is `𝔼 ξ` (`condExp_to_PRP_martingale_form`). The content of that theorem is Doob's `L²`
+càdlàg regularisation of the conditional-expectation martingale `t ↦ 𝔼[ξ ∣ ℱ₊ t]`
+(Karatzas–Shreve I.3.13), together with Blumenthal's 0-1 law for the joint filtration, which is
+what identifies the value at time `0` with `𝔼 ξ`. The martingale is
 `LevyDriver.cadlagCondExp`, built in `Driver/CadlagMartingale.lean`.
 
-The predictable representation property itself (Jacod 1975; Jacod–Shiryaev III.4.34) is not
-stated here. The formulation `jacodYor_PRP_martingale_axiom`, asking for integrands adapted to
-the natural filtration of a single driver — the class the `L²` integrals of this library were
-then built on — while the martingale is one of the joint filtration, is refutable: the
-martingale `W_t · Ñ_t` is not representable in that class (`tools/cited_axioms.md`,
-`Retired #13a`). The integrals now take a common filtration `ℱ` with `IsBrownianFiltration` and
-`IsPoissonFiltration` hypotheses; restating the property over the joint filtration of an
-independent pair `(W, N)` is `Plan.md`'s work package B5, whose single-driver halves are
-`Brownian/PRPMultidimAssembly.lean` and `Poisson/PredictableRepresentation.lean`.
+The theorem contains no predictable representation. Neither `W` nor the compensated measure
+`Ñ` occurs in its conclusion, and nothing in it exhibits the martingale as a stochastic
+integral. The representation this library does state is the terminal-time one,
+`LevyDriver.exists_predictable_jointIntegral` in `Driver/PredictableRepresentation.lean`, which
+writes a square-integrable `ℱ_T`-measurable `Z` as `∑ i, ∫₀ᵀ G i dWⁱ + ∫₀ᵀ ∫ K dÑ` for
+predictable integrands `G` and `K`. The process-level identity
+`M_t = M_0 + ∫₀ᵗ G dW + ∫₀ᵗ ∫ K dÑ` for all `t` is stated nowhere in this library.
+
+Jacod 1975 and Jacod–Shiryaev III.4.34 are the literature for that predictable representation,
+not for the theorem below. The formulation `jacodYor_PRP_martingale_axiom`, asking for
+integrands adapted to the natural filtration of a single driver — the class the `L²` integrals
+of this library were then built on — while the martingale is one of the joint filtration, is
+refutable: the martingale `W_t · Ñ_t` is not representable in that class
+(`tools/cited_axioms.md`, `Retired #13a`). The integrals now take a common filtration `ℱ` with
+`IsBrownianFiltration` and `IsPoissonFiltration` hypotheses; restating the property over the
+joint filtration of an independent pair `(W, N)` is `Plan.md`'s work package B5, whose
+single-driver halves are `Brownian/PRPMultidimAssembly.lean` and
+`Poisson/PredictableRepresentation.lean`.
 
 ## Source
 
+* Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, Theorem I.3.13
+  (the càdlàg regularisation and Blumenthal's 0-1 law behind the theorem below).
 * Jacod, J. "Multivariate point processes: predictable projection,
   Radon-Nikodym derivatives, representation of martingales",
-  Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235–253.
+  Z. Wahrsch. Verw. Gebiete 31(3), 1975, pp 235–253 (the predictable representation, which is
+  `Driver/PredictableRepresentation.lean`, not this file).
 * Jacod–Shiryaev, *Limit Theorems for Stochastic Processes*, 2nd ed.,
-  Springer 2003, Theorem III.4.34.
-* Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, Springer 1991, Theorem I.3.13.
+  Springer 2003, Theorem III.4.34 (likewise).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -69,13 +82,18 @@ variable {E : Type v} [MeasurableSpace E]
 
 /-- Every square-integrable random variable measurable for the joint right-continuous filtration
 of a Lévy driver at time `T` is the terminal value of a càdlàg square-integrable martingale for
-that filtration whose value at time `0` is its mean. -/
+that filtration whose value at time `0` is its mean: Doob's `L²` càdlàg regularisation of the
+conditional-expectation martingale of `ξ`, whose value at time `0` is identified by Blumenthal's
+0-1 law. The conclusion carries no predictable representation; it does not exhibit the
+martingale as a stochastic integral against `W` and `Ñ`. That representation, in its
+terminal-time form, is `LevyDriver.exists_predictable_jointIntegral` in
+`Driver/PredictableRepresentation.lean`. -/
 theorem condExp_to_PRP_martingale_form
     {P : Measure Ω} [IsProbabilityMeasure P]
     {ν : Measure E} [SigmaFinite ν]
     {d : ℕ}
     (D : LevyStochCalc.Driver.LevyDriver P d ν)
-    (T : ℝ) (_hT : 0 < T)
+    (T : ℝ)
     (ξ : Ω → ℝ)
     (h_meas : @MeasureTheory.StronglyMeasurable Ω ℝ _
       ((jointFiltration D).seq T) ξ)

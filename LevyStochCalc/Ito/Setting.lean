@@ -120,8 +120,8 @@ Fields:
 * `measurable_path` — joint measurability.
 * `initial_value` — `X_0 = x_0` a.s.
 * `sup_L2` — `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞` for every `T > 0`.
-* `is_solution` — the SDE integral equation: for almost every `ω` and every
-  `t ≥ 0` and component `i`,
+* `is_solution` — the SDE integral equation: for every `t ≥ 0` and component
+  `i`, almost surely (the exceptional set may depend on `t`),
   `X t ω i` equals `x₀ i` plus the drift integral `∫_0^t μ(s, X_s) ds`
   plus the multidim Brownian Itô integral `∫_0^t σ(s, X_s) · dW_s` (row `i`)
   plus the compensated-Poisson integral `∫_0^t ∫_E γ(s, X_s, e) Ñ(ds, de)` (row `i`).

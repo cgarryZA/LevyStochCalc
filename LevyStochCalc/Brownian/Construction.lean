@@ -15,8 +15,9 @@ A 1-dimensional Brownian motion is a process `W : ℝ → Ω → ℝ` (interpret
 `t ≥ 0`) with the standard Wiener properties (zero start, Gaussian
 independent increments, continuous paths).
 
-The "no Degenne dep" decision (see project plan) means we build this
-in-project from Mathlib only. Strategy outlined as named sub-lemmas below.
+`BrownianMotion` and its basic properties are developed here from Mathlib
+alone; existence of a witness is proved separately in `Brownian/Existence.lean`,
+via the `RemyDegenne/brownian-motion` dependency's canonical Brownian motion.
 
 ## References
 
