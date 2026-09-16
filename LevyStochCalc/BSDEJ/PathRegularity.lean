@@ -9,15 +9,15 @@ import LevyStochCalc.Ito.JumpFormula
 /-!
 # Time averages of BSDEJ integrands
 
-`conditionalTimeAverage_Z` and `conditionalTimeAverage_U` replace the integrands `Z, U` of a
+`cellTimeAverage_Z` and `cellTimeAverage_U` replace the integrands `Z, U` of a
 BSDEJ solution by their pathwise averages over the intervals of a partition: on each cell
 `(t_n, t_{n+1}]` the value is `(1 / (t_{n+1} − t_n)) ∫_{t_n}^{t_{n+1}} Z_u(ω) du`, which is
 measurable at the right end `t_{n+1}` of the cell and is the `L²(dt)`-orthogonal projection of
 the path onto the cell-constant functions. They are not the `ℱ_{t_n}`-conditional projections
-`E[(1/Δ) ∫ Z du | ℱ_{t_n}]` of Bouchard & Elie (2008), despite the name: the conditional
-projection is the orthogonal projection onto the smaller space of adapted cell-constant
-processes, so its projection error dominates the pathwise one, and a rate for it transfers
-to these averages, not conversely.
+`E[(1/Δ) ∫ Z du | ℱ_{t_n}]` of Bouchard & Elie (2008): the conditional projection is the
+orthogonal projection onto the smaller space of adapted cell-constant processes, so its
+projection error dominates the pathwise one, and a rate for it transfers to these averages,
+not conversely.
 
 The path-regularity bound itself is not stated here. The formulation `bsdej_path_regularity`,
 asserting the rate `C · Δt` for every measurable terminal function `g` and every measurable
@@ -49,7 +49,7 @@ variable {E : Type v} [MeasurableSpace E]
 /-- The pathwise cell average of `Z` over the partition intervals: for `s ∈ (t_n, t_{n+1}]`,
 `Z̃_s ω := (1 / (t_{n+1} − t_n)) ∫_{t_n}^{t_{n+1}} Z_u ω du`, constant on each interval and
 measurable at its right end; `0` for `s` outside every `(t_n, t_{n+1}]`. -/
-noncomputable def conditionalTimeAverage_Z
+noncomputable def cellTimeAverage_Z
     {d M : ℕ}
     (partition : Fin (M + 1) → ℝ)
     (Z : ℝ → Ω → (Fin d → ℝ)) : ℝ → Ω → (Fin d → ℝ) :=
@@ -61,8 +61,8 @@ noncomputable def conditionalTimeAverage_Z
       else 0
 
 /-- The pathwise cell average of `U` over the partition intervals, mark by mark (the analogue
-of `conditionalTimeAverage_Z`). -/
-noncomputable def conditionalTimeAverage_U
+of `cellTimeAverage_Z`). -/
+noncomputable def cellTimeAverage_U
     {M : ℕ}
     (partition : Fin (M + 1) → ℝ)
     (U : ℝ → Ω → E → ℝ) : ℝ → Ω → E → ℝ :=

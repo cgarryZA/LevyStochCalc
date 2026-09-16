@@ -17,12 +17,12 @@ For the scalar backward equation
 of `NonvacuityBSDEJExp`, the Brownian integrand of every solution triple agrees `P ⊗ dt`-almost
 everywhere on `Ω × [0, 1]` with the windowed weight `e^{1-s} 1_{(0, 1]}(s)`, hence with the
 globally Lipschitz clamped weight `s ↦ e^{1 - max s 0}`. Transporting the deterministic bound
-`LevyStochCalc.BSDEJ.PathRegularity.energy_sub_conditionalTimeAverage_le_of_lipschitz` along that
+`LevyStochCalc.BSDEJ.PathRegularity.energy_sub_cellTimeAverage_le_of_lipschitz` along that
 agreement gives, for every solution triple and every strictly monotone partition of `[0, 1]` of
 mesh at most `δ`, the energy bound `(e δ) ^ 2` for the difference between the integrand and its
 pathwise cell average.
 
-The average subtracted here is the pathwise cell average `conditionalTimeAverage_Z`, not the
+The average subtracted here is the pathwise cell average `cellTimeAverage_Z`, not the
 `ℱ_{t_n}`-conditional projection; the equation is the single equation with generator
 `f(s, y, z, u) = y`, terminal datum `W_1` and horizon `1`.
 
@@ -169,13 +169,13 @@ omit [IsProbabilityMeasure P] in
 /-- A Brownian integrand agreeing with `expZ` almost everywhere for the product of the sample
 measure with Lebesgue measure on `[0, 1]` has, almost surely, the pathwise cell averages of the
 clamped weight over every strictly monotone partition of `[0, 1]`. -/
-theorem conditionalTimeAverage_eq_of_ae_eq {M : ℕ} {π : Fin (M + 1) → ℝ}
+theorem cellTimeAverage_eq_of_ae_eq {M : ℕ} {π : Fin (M + 1) → ℝ}
     {Z' : ℝ → Ω → (Fin 1 → ℝ)} (hmono : StrictMono π) (h0 : π 0 = 0)
     (hT : π (Fin.last M) = 1)
     (hZ : ∀ᵐ p ∂(P.prod (volume.restrict (Set.Icc (0 : ℝ) 1))),
       Z' p.2 p.1 0 = expZ Ω p.2 p.1 0) :
-    ∀ᵐ ω ∂P, ∀ s : ℝ, conditionalTimeAverage_Z π Z' s ω 0
-      = conditionalTimeAverage_Z π (fun u (_ : Ω) (_ : Fin 1) => expWeightClamp u) s ω 0 := by
+    ∀ᵐ ω ∂P, ∀ s : ℝ, cellTimeAverage_Z π Z' s ω 0
+      = cellTimeAverage_Z π (fun u (_ : Ω) (_ : Fin 1) => expWeightClamp u) s ω 0 := by
   have hsub : ∀ n : Fin M, Set.Icc (π n.castSucc) (π n.succ) ⊆ Set.Icc (0 : ℝ) 1 := by
     intro n
     refine Set.Icc_subset_Icc ?_ ?_
@@ -196,7 +196,7 @@ theorem conditionalTimeAverage_eq_of_ae_eq {M : ℕ} {π : Fin (M + 1) → ℝ}
     have hIoc : u ∈ Set.Ioc (0 : ℝ) 1 := ⟨lt_of_le_of_ne hmem.1 (Ne.symm hne), hmem.2⟩
     rw [hu hmem, expZ_eq_expWeightClamp hIoc ω 0]
   intro s
-  simp only [conditionalTimeAverage_Z]
+  simp only [cellTimeAverage_Z]
   refine Finset.sum_congr rfl fun n _ => ?_
   by_cases hc : π n.castSucc < s ∧ s ≤ π n.succ
   · rw [if_pos hc, if_pos hc, hint n]
@@ -212,15 +212,15 @@ theorem energy_sub_cellAverage_le_of_solvesBSDEJ (D : LevyDriver P 1 (Measure.di
     (h : SolvesBSDEJ D (fun _ y _ _ => y) (fun ω => (D.W.W 0).W 1 ω) 1 Y' Z' U')
     {M : ℕ} {π : Fin (M + 1) → ℝ} {δ : ℝ} (hmono : StrictMono π) (h0 : π 0 = 0)
     (hT : π (Fin.last M) = 1) (hδ : ∀ n : Fin M, π n.succ - π n.castSucc ≤ δ) :
-    Brownian.Ito.energy P 1 (fun ω s => Z' s ω 0 - conditionalTimeAverage_Z π Z' s ω 0)
+    Brownian.Ito.energy P 1 (fun ω s => Z' s ω 0 - cellTimeAverage_Z π Z' s ω 0)
       ≤ ENNReal.ofReal ((Real.exp 1 * δ) ^ 2 * 1) := by
   have hZ := ae_eq_expZ_of_solvesBSDEJ D h
-  have hCA := conditionalTimeAverage_eq_of_ae_eq hmono h0 hT hZ
+  have hCA := cellTimeAverage_eq_of_ae_eq hmono h0 hT hZ
   have hnull : (volume.restrict (Set.Icc (0 : ℝ) 1)) {(0 : ℝ)} = 0 := by simp
   have hkey : Brownian.Ito.energy P 1
-        (fun ω s => Z' s ω 0 - conditionalTimeAverage_Z π Z' s ω 0)
+        (fun ω s => Z' s ω 0 - cellTimeAverage_Z π Z' s ω 0)
       = Brownian.Ito.energy P 1 (fun ω s => expWeightClamp s
-          - conditionalTimeAverage_Z π (fun u (_ : Ω) (_ : Fin 1) => expWeightClamp u)
+          - cellTimeAverage_Z π (fun u (_ : Ω) (_ : Fin 1) => expWeightClamp u)
               s ω 0) := by
     simp only [Brownian.Ito.energy]
     refine lintegral_congr_ae ?_
@@ -232,7 +232,7 @@ theorem energy_sub_cellAverage_le_of_solvesBSDEJ (D : LevyDriver P 1 (Measure.di
     have hIoc : s ∈ Set.Ioc (0 : ℝ) 1 := ⟨lt_of_le_of_ne hsmem.1 (Ne.symm hne), hsmem.2⟩
     rw [hs1, expZ_eq_expWeightClamp hIoc ω 0, h2 s]
   rw [hkey]
-  exact energy_sub_conditionalTimeAverage_le_of_lipschitz P hmono h0 hT hδ
+  exact energy_sub_cellTimeAverage_le_of_lipschitz P hmono h0 hT hδ
     abs_expWeightClamp_sub_le (0 : Fin 1)
 
 /-! ### The witness -/
@@ -253,7 +253,7 @@ theorem exists_solvesBSDEJ_cellAverage_rate :
             ∀ (M : ℕ) (π : Fin (M + 1) → ℝ) (δ : ℝ), StrictMono π → π 0 = 0 →
               π (Fin.last M) = 1 → (∀ n : Fin M, π n.succ - π n.castSucc ≤ δ) →
                 Brownian.Ito.energy P 1
-                    (fun ω s => Z' s ω 0 - conditionalTimeAverage_Z π Z' s ω 0)
+                    (fun ω s => Z' s ω 0 - cellTimeAverage_Z π Z' s ω 0)
                   ≤ ENNReal.ofReal ((Real.exp 1 * δ) ^ 2) := by
   obtain ⟨Ω, _, P, _, ⟨D⟩⟩ :=
     LevyStochCalc.Driver.LevyDriver.exists 1 ℝ (Measure.dirac (1 : ℝ))
@@ -314,7 +314,7 @@ theorem energy_sub_cellAverage_le_of_solvesBSDEJ_uniform
     (h : SolvesBSDEJ D (fun _ y _ _ => y) (fun ω => (D.W.W 0).W 1 ω) 1 Y' Z' U')
     (hM : 0 < M) :
     Brownian.Ito.energy P 1
-        (fun ω s => Z' s ω 0 - conditionalTimeAverage_Z (uniformPartition M) Z' s ω 0)
+        (fun ω s => Z' s ω 0 - cellTimeAverage_Z (uniformPartition M) Z' s ω 0)
       ≤ ENNReal.ofReal ((Real.exp 1 / M) ^ 2) := by
   have hrate := energy_sub_cellAverage_le_of_solvesBSDEJ D h (strictMono_uniformPartition hM)
     uniformPartition_zero (uniformPartition_last hM) (uniformPartition_mesh hM)
@@ -338,7 +338,7 @@ theorem exists_solvesBSDEJ_cellAverage_rate_uniform :
             ∀ M : ℕ, 0 < M →
               Brownian.Ito.energy P 1
                   (fun ω s => Z' s ω 0
-                    - conditionalTimeAverage_Z (uniformPartition M) Z' s ω 0)
+                    - cellTimeAverage_Z (uniformPartition M) Z' s ω 0)
                 ≤ ENNReal.ofReal ((Real.exp 1 / M) ^ 2) := by
   obtain ⟨Ω, _, P, _, ⟨D⟩⟩ :=
     LevyStochCalc.Driver.LevyDriver.exists 1 ℝ (Measure.dirac (1 : ℝ))

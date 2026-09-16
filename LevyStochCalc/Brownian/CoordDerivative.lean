@@ -20,8 +20,8 @@ operator norms of the Fréchet derivatives.
 * `LevyStochCalc.coordDeriv`, `LevyStochCalc.coordDeriv₂` — the partial derivatives.
 * `LevyStochCalc.apply_eq_sum_coordDeriv`, `LevyStochCalc.apply₂_eq_sum_coordDeriv₂` — the
   first- and second-order terms in coordinates.
-* `LevyStochCalc.abs_coordDeriv_sub_le`, `LevyStochCalc.abs_coordDeriv₂_sub_le` — their Lipschitz
-  bounds, from the second derivative's bound and its Lipschitz constant.
+* `LevyStochCalc.abs_coordDeriv_sub_le` — the Lipschitz bound of a partial derivative, from
+  the bound on the second derivative.
 -/
 
 namespace LevyStochCalc
@@ -127,21 +127,6 @@ theorem abs_coordDeriv_sub_le (hf' : ∀ z, HasFDerivAt f' (f'' z) z) {K₂ : �
     _ ≤ ‖f' x - f' y‖ * ‖(Pi.single p 1 : Fin n → ℝ)‖ := (f' x - f' y).le_opNorm _
     _ = ‖f' x - f' y‖ := by rw [hnorm, mul_one]
     _ ≤ K₂ * ‖x - y‖ := norm_fderiv_sub_le hf' h x y
-
-/-- A second partial derivative inherits the second derivative's Lipschitz constant. -/
-theorem abs_coordDeriv₂_sub_le {K : ℝ} (h : ∀ z w, ‖f'' z - f'' w‖ ≤ K * ‖z - w‖) (p q : Fin n)
-    (x y : Fin n → ℝ) : |coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y| ≤ K * ‖x - y‖ := by
-  have hnorm : ‖(Pi.single p 1 : Fin n → ℝ)‖ = 1 := by rw [Pi.norm_single, norm_one]
-  have hnormq : ‖(Pi.single q 1 : Fin n → ℝ)‖ = 1 := by rw [Pi.norm_single, norm_one]
-  have hsub : coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y
-      = (f'' x - f'' y) (Pi.single p 1) (Pi.single q 1) := by simp [coordDeriv₂]
-  calc |coordDeriv₂ f'' p q x - coordDeriv₂ f'' p q y|
-      = ‖(f'' x - f'' y) (Pi.single p 1) (Pi.single q 1)‖ := by
-        rw [hsub]; exact (Real.norm_eq_abs _).symm
-    _ ≤ ‖f'' x - f'' y‖ * ‖(Pi.single p 1 : Fin n → ℝ)‖ * ‖(Pi.single q 1 : Fin n → ℝ)‖ :=
-        (f'' x - f'' y).le_opNorm₂ _ _
-    _ = ‖f'' x - f'' y‖ := by rw [hnorm, hnormq, mul_one, mul_one]
-    _ ≤ K * ‖x - y‖ := h x y
 
 /-- A vector of `Fin n → ℝ` is the sum of its coordinate multiples of the standard basis. -/
 theorem sum_single_eq (x : Fin n → ℝ) : ∑ p, (x p) • (Pi.single p 1 : Fin n → ℝ) = x := by

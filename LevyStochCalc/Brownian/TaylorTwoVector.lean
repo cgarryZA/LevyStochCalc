@@ -12,13 +12,12 @@ import Mathlib.Analysis.Calculus.Deriv.Comp
 
 For a real function on a normed space whose second derivative is Lipschitz, the second-order
 Taylor remainder at a point is cubic in the increment. The bound follows from the scalar case
-along the segment joining the two points, and telescopes along a sequence.
+along the segment joining the two points.
 
 ## Main statements
 
 * `LevyStochCalc.abs_sub_taylor_two_le_normed` — the pointwise cubic bound.
 * `LevyStochCalc.taylorRemainderNormed` — the remainder along a sequence.
-* `LevyStochCalc.abs_taylorRemainderNormed_le` — its bound by the sum of cubed increments.
 -/
 
 namespace LevyStochCalc
@@ -78,25 +77,5 @@ noncomputable def taylorRemainderNormed (f : E → ℝ) (f' : E → E →L[ℝ] 
   f (x m) - f (x 0)
     - ((∑ i ∈ Finset.range m, f' (x i) (x (i + 1) - x i))
       + ∑ i ∈ Finset.range m, f'' (x i) (x (i + 1) - x i) (x (i + 1) - x i) / 2)
-
-/-- **Telescoped second-order Taylor expansion along a sequence in a normed space.** If `f` is
-twice differentiable with a `K`-Lipschitz second derivative, its remainder along a sequence is at
-most `K` times the sum of the cubed increments. -/
-theorem abs_taylorRemainderNormed_le {f : E → ℝ} {f' : E → E →L[ℝ] ℝ}
-    {f'' : E → E →L[ℝ] E →L[ℝ] ℝ} {K : ℝ} (hK0 : 0 ≤ K)
-    (hf : ∀ z, HasFDerivAt f (f' z) z) (hf' : ∀ z, HasFDerivAt f' (f'' z) z)
-    (hf'' : ∀ z w, ‖f'' z - f'' w‖ ≤ K * ‖z - w‖) (x : ℕ → E) (m : ℕ) :
-    |taylorRemainderNormed f f' f'' x m| ≤ K * ∑ i ∈ Finset.range m, ‖x (i + 1) - x i‖ ^ 3 := by
-  unfold taylorRemainderNormed
-  have htel : f (x m) - f (x 0) = ∑ i ∈ Finset.range m, (f (x (i + 1)) - f (x i)) :=
-    (Finset.sum_range_sub (fun i => f (x i)) m).symm
-  rw [htel, ← Finset.sum_add_distrib, ← Finset.sum_sub_distrib, Finset.mul_sum]
-  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
-  have heq : f (x (i + 1)) - f (x i)
-      - (f' (x i) (x (i + 1) - x i) + f'' (x i) (x (i + 1) - x i) (x (i + 1) - x i) / 2)
-      = f (x (i + 1)) - f (x i) - f' (x i) (x (i + 1) - x i)
-        - f'' (x i) (x (i + 1) - x i) (x (i + 1) - x i) / 2 := by ring
-  rw [heq]
-  exact abs_sub_taylor_two_le_normed hK0 hf hf' hf'' (x i) (x (i + 1))
 
 end LevyStochCalc

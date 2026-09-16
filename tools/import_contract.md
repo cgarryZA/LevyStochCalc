@@ -81,8 +81,8 @@ remain reachable under the listed namespace prefix.
 | `Solves.augJoint`                                           | `BSDEJ/Solves.lean` (2026-09-15)          |
 | `Solves.SolvesBSDEJ`                                        | `BSDEJ/Solves.lean` (2026-09-15)          |
 | `Solves.exists_unique_solvesBSDEJ`                          | `BSDEJ/ExistenceUniqueness.lean` (2026-09-15) |
-| `PathRegularity.conditionalTimeAverage_Z`                   | `BSDEJ/PathRegularity.lean`               |
-| `PathRegularity.conditionalTimeAverage_U`                   | `BSDEJ/PathRegularity.lean`               |
+| `PathRegularity.cellTimeAverage_Z`                          | `BSDEJ/PathRegularity.lean`               |
+| `PathRegularity.cellTimeAverage_U`                          | `BSDEJ/PathRegularity.lean`               |
 
 ### `LevyStochCalc.Driver` (added 2026-09-15; the joint predictable representation and the driver increments)
 

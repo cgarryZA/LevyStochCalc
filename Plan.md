@@ -557,7 +557,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       a Malliavin calculus (XL), and the scheme error the dissertation actually consumes (XL).
       Reachable now: A7′ — for a generator not reading `X` and a solution with deterministic
       Lipschitz `Z = h(s)`, the rate `E∫|Z − Z̄^π|² ≤ (K δ)² T`; the deterministic half is
-      `energy_sub_conditionalTimeAverage_le_of_lipschitz` (`BSDEJ/CellAverageRate.lean`,
+      `energy_sub_cellTimeAverage_le_of_lipschitz` (`BSDEJ/CellAverageRate.lean`,
       2026-09-15) and the transfer to every solution of the `f = y` equation is
       `energy_sub_cellAverage_le_of_solvesBSDEJ` (`examples/NonvacuityBSDEJRate.lean`, same day;
       pathwise cell average, no stochastic content beyond uniqueness). Also reachable: the qualitative `E∫|Z − Z̄^π|² → 0` for every solution.
@@ -659,7 +659,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `nonvacuity_inventory.md`): 20 of the 41 pinned symbols are covered, 21 are not or only
       partly (the σ-algebra symbols of `Driver/VectorIncrement.lean` and `Brownian/MultidimFiltered.lean`,
       the compensated-box lemmas, `jointIntegral`, the PRP, `BSDEJData`/`IsBSDEJSolution`,
-      `Existence.Lipschitz`, `conditionalTimeAverage_U`), and 11 of the 14 cited theorems are reached
+      `Existence.Lipschitz`, `cellTimeAverage_U`), and 11 of the 14 cited theorems are reached
       only through wrappers, never applied by name. **The structural gap, closed the same day**: the
       four earlier BSDEJ witnesses all had `U ≡ 0` (no terminal datum or generator read the jump
       mark); `examples/NonvacuityBSDEJJump.lean` takes the terminal datum `ξ = J_1`, the compensated
@@ -682,7 +682,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       the 41 pinned symbols now occur in a concrete-model witness; the five without one are
       `indep_iSup_sigmaBrownian_ne` (needs `d = 2`), `comap_pi_eq_iSup`,
       `indep_iSup_comap_of_disjoint`, `exists_predictable_jointIntegral` and
-      `conditionalTimeAverage_U` — **all five closed by wave 12 (2026-09-15)**:
+      `cellTimeAverage_U` — **all five closed by wave 12 (2026-09-15)**:
       `examples/NonvacuityScattering.lean` applies `indep_iSup_comap_of_disjoint` to the windows
       `(0, 1] × ℝ` and `(1, 2] × ℝ` (both count σ-algebras non-trivial, each count vanishing
       with probability exactly `exp (-1)`, joint vanishing with probability `exp (-1) ^ 2`);
@@ -695,7 +695,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       energy or nonzero marked energy; the quantitative split Itô energy `1`, marked energy `0` is
       not claimed); `BSDEJ/CellAverageRateMarked.lean` (new library file) gives the cell-average
       rate `(K δ)² T ∫ φ² dν` for a separated marked integrand `h s · φ e`, and
-      `examples/NonvacuityBSDEJRateU.lean` instantiates `conditionalTimeAverage_U` on the jump
+      `examples/NonvacuityBSDEJRateU.lean` instantiates `cellTimeAverage_U` on the jump
       model: the cell average of the window indicator is the indicator itself (marked energy `1`,
       averaging error `0`), every solution's jump integrand differs from it by marked energy `0`
       and, at the mark `1` carried by `δ₁`, has the same cell averages almost surely; the separated
@@ -733,7 +733,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [ ] **C′1** Faithfulness audit (report first, fixes second): compare `BrownianMotion`,
       `MultidimBrownianMotion`, `PoissonRandomMeasure`, `LevyDriver`, `IsBrownianFiltration`,
       `IsPoissonFiltration`, the two `L²` integrals, `JumpDiffusion`/`SolvesOn`, `SolvesBSDEJ`
-      and `conditionalTimeAverage_Z/U` against the cited definitions (Karatzas–Shreve,
+      and `cellTimeAverage_Z/U` against the cited definitions (Karatzas–Shreve,
       Applebaum, Jacod–Shiryaev, Delong, Bouchard–Elie); for each of the 14 cited statements
       check quantifier order (`∀∃` vs `∃∀`) and that every hypothesis is used. Record every
       discrepancy as a ledger finding and fix or restate. **Audit done 2026-09-15** (scratch
@@ -769,9 +769,10 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         recorded (docstring is honest); pathwise form open.
       - F11 uniqueness is modification, not indistinguishability; `Y_cadlag` permits the upgrade
         on `[0, T]`. → new theorem (wave 15).
-      - F12 `conditionalTimeAverage_Z/U` are pathwise cell averages (docstring says so); the
-        pinned names suggest conditional projections. → rename requires a contract change in
-        both repositories: open decision, not done unilaterally.
+      - F12 `cellTimeAverage_Z/U` are pathwise cell averages (docstring says so); the former
+        pinned names `conditionalTimeAverage_Z/U` suggested conditional projections. → closed
+        2026-09-16: renamed to `cellTimeAverage_Z/U`, with every derived name, the pinned rows
+        of `tools/import_contract.md` and both repositories updated, and no forwarding stubs.
       - F13 dead binders: `[StandardBorelSpace E]` on #2 and `LevyDriver.exists`, `_h_finite` on
         `poissonRandomMeasure_finite_exists`, `_hT` on #13b, the inert SDE data of the two
         `picardFixedPoint` shims. → removed with callers updated (wave 15).
@@ -899,8 +900,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 - [x] **D0′** Factor the two single-proof files below 600 lines by extracting their inner
       `have` blocks as standalone lemmas. **Wave 25 (2026-09-16):** `Ito/ItoLevyBoundedDerivs.lean`
       913 → 597 (fourteen lemmas and the relocated `tendsto_setIntegral_of_dominated_ae` in
-      `Ito/ItoLevyBoundedDerivsSteps.lean`, 602 lines) and `Ito/FiniteActivityMixed.lean`
-      834 → 570 (nine lemmas in `Ito/FiniteActivityMixedSteps.lean`, 456 lines); the two main
+      `Ito/ItoLevyBoundedDerivsSteps.lean`, since split into two parts) and
+      `Ito/FiniteActivityMixed.lean` 834 → 570 (nine lemmas in `Ito/FiniteActivityMixedSteps.lean`, 456 lines); the two main
       theorems keep byte-identical statements, every extracted lemma takes exactly the local
       facts its block used, and one dead `have` was dropped from each proof. Six files remain
       at 602–625 lines, within the `~600` tolerance of GOAL §D, which is ticked on that basis.

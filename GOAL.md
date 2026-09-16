@@ -94,10 +94,9 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       stubs); a deliberate relocation updates the dissertation's import instead.
 
 ### F. Upstreamed
-- [ ] Every *closed, general* result is either merged into mathlib or has an open
-      PR, each with AI-use disclosure + the `LLM-generated` label.
-
-### G. Green
+- *Dropped (2026-09-16, at the author's direction): no mathlib pull requests are
+      planned. General results are kept in mathlib-ready form and namespace (§D) for
+      possible later use, but merging or opening PRs is not part of the definition of done.*
 - [x] CI is green: `lake build` · `tools/lint.sh` at baseline-0 ·
       `tools/verify_import_contract.sh` — on every commit.
 

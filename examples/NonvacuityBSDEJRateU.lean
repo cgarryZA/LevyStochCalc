@@ -17,29 +17,29 @@ For the scalar backward equation
 
 of `NonvacuityBSDEJJump`, whose jump integrand is the window indicator `1_{(0, 1]}` and whose
 terminal datum is its compensated integral `J_1` over the horizon, the pathwise cell average
-`conditionalTimeAverage_U` over the uniform partition of `[0, 1]` into `M` cells returns the
+`cellTimeAverage_U` over the uniform partition of `[0, 1]` into `M` cells returns the
 window indicator itself, so the averaged integrand carries marked energy `1` for the intensity
 `δ₁` while the averaging error carries marked energy `0`. The jump integrand of an arbitrary
 solution triple differs from the window indicator by marked energy `0`, and at the mark `1`
 carried by `δ₁` its cell averages agree almost surely with those of the window indicator.
 
-The average subtracted here is the pathwise cell average `conditionalTimeAverage_U`, not the
+The average subtracted here is the pathwise cell average `cellTimeAverage_U`, not the
 `ℱ_{t_n}`-conditional projection; the equation is the single equation with vanishing generator,
 terminal datum `J_1` and horizon `1`.
 
 ## Main statements
 
-* `conditionalTimeAverage_U_jumpU` — the cell average of the window indicator over the uniform
+* `cellTimeAverage_U_jumpU` — the cell average of the window indicator over the uniform
   partition of `[0, 1]` into `M ≥ 1` cells is `1` at every time of `(0, 1]`.
-* `conditionalTimeAverage_U_jumpU_eq` — that cell average is the window indicator itself.
-* `markedEnergy_conditionalTimeAverage_U_jumpU` and
-  `markedEnergy_jumpU_sub_conditionalTimeAverage_U` — the averaged integrand has marked energy
+* `cellTimeAverage_U_jumpU_eq` — that cell average is the window indicator itself.
+* `markedEnergy_cellTimeAverage_U_jumpU` and
+  `markedEnergy_jumpU_sub_cellTimeAverage_U` — the averaged integrand has marked energy
   `1` on `[0, 1]` and the averaging error marked energy `0`.
 * `markedEnergy_sub_jumpU_eq_zero_of_solvesBSDEJ` — the jump integrand of a solution triple
   differs from the window indicator by marked energy `0`.
-* `conditionalTimeAverage_U_eq_of_solvesBSDEJ` — almost surely the cell averages at the mark `1`
+* `cellTimeAverage_U_eq_of_solvesBSDEJ` — almost surely the cell averages at the mark `1`
   of the jump integrand of a solution triple are the values of the window indicator.
-* `markedEnergy_conditionalTimeAverage_U_of_solvesBSDEJ` — those cell averages have marked
+* `markedEnergy_cellTimeAverage_U_of_solvesBSDEJ` — those cell averages have marked
   energy `1` on `[0, 1]`.
 * `markedEnergy_sub_cellAverage_U_expWeight_le` — the cell-average error of the separated
   integrand `(s, e) ↦ e^{1 - max s 0} · e` has marked energy at most `(e / M) ^ 2`.
@@ -101,9 +101,9 @@ theorem mem_Ioc_of_mem_uniformPartition_cell (hM : 0 < M) {n : Fin M} {s : ℝ}
 omit [MeasurableSpace Ω] in
 /-- The pathwise cell average of the window indicator over the uniform partition of `[0, 1]`
 into `M ≥ 1` cells is `1` at every time of `(0, 1]`. -/
-theorem conditionalTimeAverage_U_jumpU (hM : 0 < M) {s : ℝ} (hs : s ∈ Set.Ioc (0 : ℝ) 1)
+theorem cellTimeAverage_U_jumpU (hM : 0 < M) {s : ℝ} (hs : s ∈ Set.Ioc (0 : ℝ) 1)
     (ω : Ω) (e : ℝ) :
-    conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e = 1 := by
+    cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e = 1 := by
   classical
   have hmono := strictMono_uniformPartition hM
   obtain ⟨n₀, hn₀, huniq⟩ := existsUnique_mem_cell hmono uniformPartition_zero
@@ -128,7 +128,7 @@ theorem conditionalTimeAverage_U_jumpU (hM : 0 < M) {s : ℝ} (hs : s ∈ Set.Io
       have hIoc : u ∈ Set.Ioc (0 : ℝ) 1 := ⟨lt_of_le_of_ne hmem.1 (Ne.symm hne), hmem.2⟩
       rw [jumpU_apply, Set.indicator_of_mem hIoc]
     rw [hcongr, setIntegral_const, smul_eq_mul, measureReal_def, hvol, mul_one]
-  simp only [conditionalTimeAverage_U]
+  simp only [cellTimeAverage_U]
   rw [Finset.sum_eq_single n₀]
   · rw [if_pos hn₀, hint, one_div, inv_mul_cancel₀ (sub_ne_zero.mpr hab.ne')]
   · intro b _ hb
@@ -139,33 +139,33 @@ theorem conditionalTimeAverage_U_jumpU (hM : 0 < M) {s : ℝ} (hs : s ∈ Set.Io
 omit [MeasurableSpace Ω] in
 /-- The pathwise cell average of the window indicator over the uniform partition of `[0, 1]`
 into `M ≥ 1` cells is the window indicator. -/
-theorem conditionalTimeAverage_U_jumpU_eq (hM : 0 < M) :
-    conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) = jumpU Ω := by
+theorem cellTimeAverage_U_jumpU_eq (hM : 0 < M) :
+    cellTimeAverage_U (uniformPartition M) (jumpU Ω) = jumpU Ω := by
   classical
   funext s ω e
   by_cases hs : s ∈ Set.Ioc (0 : ℝ) 1
-  · rw [conditionalTimeAverage_U_jumpU hM hs ω e, jumpU_apply, Set.indicator_of_mem hs]
+  · rw [cellTimeAverage_U_jumpU hM hs ω e, jumpU_apply, Set.indicator_of_mem hs]
   · rw [jumpU_apply, Set.indicator_of_notMem hs]
-    simp only [conditionalTimeAverage_U]
+    simp only [cellTimeAverage_U]
     refine Finset.sum_eq_zero fun n _ => if_neg ?_
     rintro ⟨h1, h2⟩
     exact hs (mem_Ioc_of_mem_uniformPartition_cell hM h1 h2)
 
 /-- The pathwise cell averages of the window indicator over the uniform partition of `[0, 1]`
 into `M ≥ 1` cells have marked energy `1` on `[0, 1]` for the intensity `δ_1`. -/
-theorem markedEnergy_conditionalTimeAverage_U_jumpU (hM : 0 < M) :
+theorem markedEnergy_cellTimeAverage_U_jumpU (hM : 0 < M) :
     Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
-      (fun ω s e => conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 1 := by
-  rw [conditionalTimeAverage_U_jumpU_eq (Ω := Ω) hM]
+      (fun ω s e => cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 1 := by
+  rw [cellTimeAverage_U_jumpU_eq (Ω := Ω) hM]
   exact markedEnergy_jumpU
 
 /-- The cell-average error of the window indicator over the uniform partition of `[0, 1]` into
 `M ≥ 1` cells has marked energy `0` on `[0, 1]` for the intensity `δ_1`. -/
-theorem markedEnergy_jumpU_sub_conditionalTimeAverage_U (hM : 0 < M) :
+theorem markedEnergy_jumpU_sub_cellTimeAverage_U (hM : 0 < M) :
     Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
       (fun ω s e => jumpU Ω s ω e
-        - conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 0 := by
-  rw [conditionalTimeAverage_U_jumpU_eq (Ω := Ω) hM]
+        - cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 0 := by
+  rw [cellTimeAverage_U_jumpU_eq (Ω := Ω) hM]
   simp [Poisson.Compensated.markedEnergy]
 
 /-! ### The jump integrand of an arbitrary solution -/
@@ -219,10 +219,10 @@ omit [IsProbabilityMeasure P] in
 /-- A jump integrand agreeing at the mark `1` with `1_{(0, 1]}` almost surely and at almost
 every time of `[0, 1]` has, almost surely, the cell averages of `1_{(0, 1]}` at that mark over
 the uniform partition of `[0, 1]` into `M ≥ 1` cells. -/
-theorem conditionalTimeAverage_U_eq_of_ae_eq {U' : ℝ → Ω → ℝ → ℝ} (hM : 0 < M)
+theorem cellTimeAverage_U_eq_of_ae_eq {U' : ℝ → Ω → ℝ → ℝ} (hM : 0 < M)
     (hU : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) 1)), U' s ω 1 = jumpU Ω s ω 1) :
-    ∀ᵐ ω ∂P, ∀ s : ℝ, conditionalTimeAverage_U (uniformPartition M) U' s ω 1
-      = conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω 1 := by
+    ∀ᵐ ω ∂P, ∀ s : ℝ, cellTimeAverage_U (uniformPartition M) U' s ω 1
+      = cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω 1 := by
   classical
   filter_upwards [hU] with ω hω
   have hω' : ∀ᵐ u ∂(volume : Measure ℝ), u ∈ Set.Icc (0 : ℝ) 1 → U' u ω 1 = jumpU Ω u ω 1 :=
@@ -236,7 +236,7 @@ theorem conditionalTimeAverage_U_eq_of_ae_eq {U' : ℝ → Ω → ℝ → ℝ} (
     filter_upwards [hω'] with u hu humem
     exact hu (uniformPartition_cell_subset hM n humem)
   intro s
-  simp only [conditionalTimeAverage_U]
+  simp only [cellTimeAverage_U]
   refine Finset.sum_congr rfl fun n _ => ?_
   by_cases hc : uniformPartition M n.castSucc < s ∧ s ≤ uniformPartition M n.succ
   · rw [if_pos hc, if_pos hc, hint n]
@@ -244,27 +244,27 @@ theorem conditionalTimeAverage_U_eq_of_ae_eq {U' : ℝ → Ω → ℝ → ℝ} (
 
 /-- Almost surely, the cell averages at the mark `1` of the jump integrand of a solution over
 the uniform partition of `[0, 1]` into `M ≥ 1` cells are the values of `1_{(0, 1]}`. -/
-theorem conditionalTimeAverage_U_eq_of_solvesBSDEJ (D : LevyDriver P 1 (Measure.dirac (1 : ℝ)))
+theorem cellTimeAverage_U_eq_of_solvesBSDEJ (D : LevyDriver P 1 (Measure.dirac (1 : ℝ)))
     {Y' : ℝ → Ω → ℝ} {Z' : ℝ → Ω → (Fin 1 → ℝ)} {U' : ℝ → Ω → ℝ → ℝ}
     (h : SolvesBSDEJ D (fun _ _ _ _ => (0 : ℝ)) (jumpLeg D 1) 1 Y' Z' U') (hM : 0 < M) :
     ∀ᵐ ω ∂P, ∀ s : ℝ,
-      conditionalTimeAverage_U (uniformPartition M) U' s ω 1 = jumpU Ω s ω 1 := by
-  filter_upwards [conditionalTimeAverage_U_eq_of_ae_eq hM (ae_eq_jumpU_of_solvesBSDEJ D h)]
+      cellTimeAverage_U (uniformPartition M) U' s ω 1 = jumpU Ω s ω 1 := by
+  filter_upwards [cellTimeAverage_U_eq_of_ae_eq hM (ae_eq_jumpU_of_solvesBSDEJ D h)]
     with ω hω
   intro s
-  rw [hω s, conditionalTimeAverage_U_jumpU_eq (Ω := Ω) hM]
+  rw [hω s, cellTimeAverage_U_jumpU_eq (Ω := Ω) hM]
 
 /-- The cell averages of the jump integrand of a solution over the uniform partition of `[0, 1]`
 into `M ≥ 1` cells have marked energy `1` on `[0, 1]` for the intensity `δ_1`. -/
-theorem markedEnergy_conditionalTimeAverage_U_of_solvesBSDEJ
+theorem markedEnergy_cellTimeAverage_U_of_solvesBSDEJ
     (D : LevyDriver P 1 (Measure.dirac (1 : ℝ)))
     {Y' : ℝ → Ω → ℝ} {Z' : ℝ → Ω → (Fin 1 → ℝ)} {U' : ℝ → Ω → ℝ → ℝ}
     (h : SolvesBSDEJ D (fun _ _ _ _ => (0 : ℝ)) (jumpLeg D 1) 1 Y' Z' U') (hM : 0 < M) :
     Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
-      (fun ω s e => conditionalTimeAverage_U (uniformPartition M) U' s ω e) = 1 := by
-  have hcta := conditionalTimeAverage_U_eq_of_solvesBSDEJ D h hM
+      (fun ω s e => cellTimeAverage_U (uniformPartition M) U' s ω e) = 1 := by
+  have hcta := cellTimeAverage_U_eq_of_solvesBSDEJ D h hM
   have key : Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
-      (fun ω s e => conditionalTimeAverage_U (uniformPartition M) U' s ω e)
+      (fun ω s e => cellTimeAverage_U (uniformPartition M) U' s ω e)
       = Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
         (fun ω s e => jumpU Ω s ω e) := by
     rw [Poisson.Compensated.markedEnergy, Poisson.Compensated.markedEnergy]
@@ -283,10 +283,10 @@ the uniform partition of `[0, 1]` into `M ≥ 1` cells has marked energy at most
 theorem markedEnergy_sub_cellAverage_U_expWeight_le (hM : 0 < M) :
     Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
         (fun ω s e => expWeightClamp s * e
-          - conditionalTimeAverage_U (uniformPartition M)
+          - cellTimeAverage_U (uniformPartition M)
               (fun u (_ : Ω) (e : ℝ) => expWeightClamp u * e) s ω e)
       ≤ ENNReal.ofReal ((Real.exp 1 / M) ^ 2) := by
-  have hbd := markedEnergy_sub_conditionalTimeAverage_U_le_of_lipschitz
+  have hbd := markedEnergy_sub_cellTimeAverage_U_le_of_lipschitz
     (Ω := Ω) (E := ℝ) (φ := fun e : ℝ => e) (h := expWeightClamp) (π := uniformPartition M)
     (δ := 1 / M) (K := Real.exp 1) P (Measure.dirac (1 : ℝ))
     (strictMono_uniformPartition hM) uniformPartition_zero (uniformPartition_last hM)
@@ -316,10 +316,10 @@ theorem exists_solvesBSDEJ_cellAverage_U_nontrivial :
         (∀ M : ℕ, 0 < M →
           Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
               (fun ω s e =>
-                conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 1 ∧
+                cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 1 ∧
             Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
               (fun ω s e => jumpU Ω s ω e
-                - conditionalTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 0) ∧
+                - cellTimeAverage_U (uniformPartition M) (jumpU Ω) s ω e) = 0) ∧
         ∀ (Y' : ℝ → Ω → ℝ) (Z' : ℝ → Ω → (Fin 1 → ℝ)) (U' : ℝ → Ω → ℝ → ℝ),
           SolvesBSDEJ D (fun _ _ _ _ => (0 : ℝ)) (jumpLeg D 1) 1 Y' Z' U' →
             Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
@@ -327,14 +327,14 @@ theorem exists_solvesBSDEJ_cellAverage_U_nontrivial :
               ∀ M : ℕ, 0 < M →
                 Poisson.Compensated.markedEnergy P (Measure.dirac (1 : ℝ)) 1
                   (fun ω s e =>
-                    conditionalTimeAverage_U (uniformPartition M) U' s ω e) = 1 := by
+                    cellTimeAverage_U (uniformPartition M) U' s ω e) = 1 := by
   obtain ⟨Ω, _, P, _, ⟨D⟩⟩ :=
     LevyStochCalc.Driver.LevyDriver.exists 1 ℝ (Measure.dirac (1 : ℝ))
   refine ⟨Ω, inferInstance, P, inferInstance, D, ?_,
-    fun M hM => ⟨markedEnergy_conditionalTimeAverage_U_jumpU hM,
-      markedEnergy_jumpU_sub_conditionalTimeAverage_U hM⟩,
+    fun M hM => ⟨markedEnergy_cellTimeAverage_U_jumpU hM,
+      markedEnergy_jumpU_sub_cellTimeAverage_U hM⟩,
     fun Y' Z' U' h => ⟨markedEnergy_sub_jumpU_eq_zero_of_solvesBSDEJ D h,
-      fun M hM => markedEnergy_conditionalTimeAverage_U_of_solvesBSDEJ D h hM⟩⟩
+      fun M hM => markedEnergy_cellTimeAverage_U_of_solvesBSDEJ D h hM⟩⟩
   obtain ⟨Y, hY, -⟩ := exists_solvesBSDEJ_jump D
   exact ⟨Y, zeroZ Ω, jumpU Ω, hY⟩
 
