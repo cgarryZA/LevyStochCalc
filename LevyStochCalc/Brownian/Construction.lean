@@ -54,11 +54,6 @@ structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
     ∀ {s t : ℝ} (_hs : 0 ≤ s) (hst : s < t),
       P.map (fun ω => W t ω - W s ω)
         = ProbabilityTheory.gaussianReal 0 ⟨t - s, by linarith⟩
-  /-- For any `0 ≤ u ≤ s < t`, the past value `W_u` is independent (under `P`)
-  of the increment `W_t − W_s`. -/
-  increment_independent :
-    ∀ {u s t : ℝ}, 0 ≤ u → u ≤ s → s < t →
-      ProbabilityTheory.IndepFun (W u) (fun ω => W t ω - W s ω) P
   /-- Almost surely, `t ↦ W_t(ω)` is continuous on `[0, ∞)`. -/
   continuous_paths : ∀ᵐ ω ∂P, Continuous (fun t : ℝ => W t ω)
   /-- For `s < 0`, the structure extends `W` trivially: `W_s = 0` almost surely.
@@ -67,10 +62,11 @@ structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
   negative_zero : ∀ s : ℝ, s < 0 → ∀ᵐ ω ∂P, W s ω = 0
   /-- **σ-algebra-level joint independence of past and future increment.** For
   `0 ≤ s < t`, the σ-algebra `⨆ u ≤ s, σ(W_u)` (which is the natural filtration
-  at time `s`) is independent of `σ(W_t − W_s)`. This is strictly stronger
-  than the pairwise `increment_independent` and is needed to apply
-  `MeasureTheory.condExp_indep_eq` to derive the conditional-expectation
-  identities `𝔼[W_t − W_s | ℱ_s] = 0` and `𝔼[(W_t − W_s)² | ℱ_s] = t − s`.
+  at time `s`) is independent of `σ(W_t − W_s)`. This is strictly stronger than
+  the derived pairwise statement `BrownianMotion.increment_independent` and is
+  needed to apply `MeasureTheory.condExp_indep_eq` to derive the
+  conditional-expectation identities `𝔼[W_t − W_s | ℱ_s] = 0` and
+  `𝔼[(W_t − W_s)² | ℱ_s] = t − s`.
   For Brownian motion this follows from joint Gaussianity; we package it as
   a structural hypothesis since the eventual `BrownianMotion.exists` will
   provide it directly via `iIndepFun_pi` on the increment family. -/
@@ -80,5 +76,13 @@ structure BrownianMotion (P : Measure Ω) [IsProbabilityMeasure P] where
         (⨆ j ∈ Set.Iic s, MeasurableSpace.comap (W j) inferInstance)
         (MeasurableSpace.comap (fun ω => W t ω - W s ω) inferInstance)
         P
+
+/-- For any `0 ≤ u ≤ s < t`, the past value `W_u` is independent (under `P`)
+of the increment `W_t − W_s`. -/
+theorem BrownianMotion.increment_independent {P : Measure Ω} [IsProbabilityMeasure P]
+    (W : BrownianMotion P) {u s t : ℝ} (hu : 0 ≤ u) (hus : u ≤ s) (hst : s < t) :
+    ProbabilityTheory.IndepFun (W.W u) (fun ω => W.W t ω - W.W s ω) P :=
+  indep_of_indep_of_le_left (W.joint_increment_independent (hu.trans hus) hst)
+    (le_iSup₂_of_le u (Set.mem_Iic.mpr hus) le_rfl)
 
 end LevyStochCalc.Brownian

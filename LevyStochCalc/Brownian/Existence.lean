@@ -70,16 +70,6 @@ noncomputable def BrownianMotion.ofIsPreBrownianReal {X : ℝ≥0 → Ω → ℝ
     rw [hd] at h
     rw [realTime_sub]
     exact h
-  increment_independent := by
-    intro u s t hu hus hst
-    have hmono : Monotone ![(0 : ℝ≥0), Real.toNNReal u, Real.toNNReal s, Real.toNNReal t] := by
-      refine Fin.monotone_iff_le_succ.mpr fun i => ?_
-      fin_cases i <;> simp [Real.toNNReal_le_toNNReal, hus, hst.le]
-    have h := (hX.hasIndepIncrements 3 _ hmono).indepFun (i := 0) (j := 2) (by decide)
-    rw [realTime_sub]
-    change IndepFun (fun ω => X (Real.toNNReal u) ω - X 0 ω)
-      (fun ω => X (Real.toNNReal t) ω - X (Real.toNNReal s) ω) P
-    simpa using h
   continuous_paths := ae_of_all _ (continuous_realTime hcont)
   negative_zero := fun s hs => ae_of_all _ fun ω => by
     simp [realTime, Real.toNNReal_of_nonpos hs.le]

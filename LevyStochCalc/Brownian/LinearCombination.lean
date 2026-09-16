@@ -169,9 +169,6 @@ noncomputable def combineBM (W : MultidimBrownianMotion P d) {c : Fin d → ℝ}
   increment_gaussian := fun {s t} hs hst => by
     have h := map_combine_sub W hc hs hst
     rwa [Real.toNNReal_of_nonneg (by linarith : (0 : ℝ) ≤ t - s)] at h
-  increment_independent := fun {v s t} hv hvs hst =>
-    indep_of_indep_of_le_left (indep_combine W c (le_trans hv hvs) hst)
-      (le_iSup₂_of_le v (Set.mem_Iic.mpr hvs) le_rfl)
   continuous_paths := by
     filter_upwards [W.joint_continuous_paths] with ω hω
     exact continuous_finsetSum _ fun i _ =>

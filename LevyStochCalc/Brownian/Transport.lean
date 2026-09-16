@@ -43,11 +43,6 @@ noncomputable def BrownianMotion.comap (W : BrownianMotion P) {h : Ω' → Ω}
         = (fun ω => W.W t ω - W.W s ω) ∘ h from rfl,
       ← Measure.map_map hmeas hmp.measurable, hmp.map_eq]
     exact W.increment_gaussian hs hst
-  increment_independent := by
-    intro u s t hu hus hst
-    exact Probability.indepFun_comp_of_measurePreserving (W.measurable_eval u)
-      ((W.measurable_eval t).sub (W.measurable_eval s))
-      (W.increment_independent hu hus hst) hmp
   continuous_paths := hmp.quasiMeasurePreserving.ae W.continuous_paths
   negative_zero s hs := hmp.quasiMeasurePreserving.ae (W.negative_zero s hs)
   joint_increment_independent := by

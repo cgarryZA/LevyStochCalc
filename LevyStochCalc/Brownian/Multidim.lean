@@ -115,15 +115,6 @@ private noncomputable def project_BM
         (measurable_pi_apply i),
       h_eval]
     exact h_inc
-  increment_independent := by
-    intro u s t hu hus hst
-    -- IndepFun on Ω₀ lifts to IndepFun on the product through eval_i,
-    -- via `Probability.indepFun_comp_of_measurePreserving`.
-    exact Probability.indepFun_comp_of_measurePreserving
-      (W₀.measurable_eval u)
-      ((W₀.measurable_eval t).sub (W₀.measurable_eval s))
-      (W₀.increment_independent hu hus hst)
-      (MeasureTheory.measurePreserving_eval (fun _ : Fin d => P₀) i)
   continuous_paths := by
     -- W₀.continuous_paths lifts via measure-preserving eval i.
     have mp : MeasureTheory.MeasurePreserving (Function.eval i)
