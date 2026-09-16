@@ -71,9 +71,12 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       Jacod–Shiryaev as cited) and, where mathlib has the predicate, are tied to
       it (`IsBrownianReal`, `HasIndepIncrements`, `IsGaussianProcess`, …) rather
       than re-asserted weaker.
-- [ ] **No silent over-assumption.** No unused hypotheses (`linter.unusedVariables`
+- [x] **No silent over-assumption.** No unused hypotheses (`linter.unusedVariables`
       clean; a listed-but-unused hypothesis is a red flag that the statement is
       weaker than it reads). Quantifier order is the intended one (`∀∃` vs `∃∀`).
+      *(2026-09-16: the build is unused-variable clean, the dead instance and
+      explicit binders on the cited carriers were removed, and the quantifier
+      order of the 14 cited statements was audited; see `Plan.md` C′1.)*
 
 ### D. Mathlib-grade form
 - [ ] Every file ≤ ~600 lines, `section … variable … end` structured, **precise

@@ -782,6 +782,10 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         recorded; each is a widening of the hypothesis class, open.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
+      **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders
+      removed; `poissonRandomMeasure_finite_exists` deleted as a verbatim duplicate) and F11
+      (`BSDEJ/UniquenessIndistinguishable.lean`, `Ito/PicardFixedPointIndistinguishable.lean`).
+      Open: F5, F8, F9 (structural), F10, F12 (decision), F14, F15, F16.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
