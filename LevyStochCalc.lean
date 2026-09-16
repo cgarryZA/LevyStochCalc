@@ -156,6 +156,7 @@ import LevyStochCalc.Brownian.GaussianFourthMoment
 import LevyStochCalc.Brownian.ContinuityDyadicChaining
 import LevyStochCalc.Brownian.ContinuityKolmogorovBounds
 import LevyStochCalc.Brownian.Martingale
+import LevyStochCalc.Brownian.FutureIndependence
 import LevyStochCalc.Brownian.MartingaleCondExp
 import LevyStochCalc.Brownian.MartingaleQuadVar
 import LevyStochCalc.Brownian.MartingaleRightCont
@@ -188,6 +189,7 @@ import LevyStochCalc.Driver.CrossFiltration
 import LevyStochCalc.Driver.CrossElementary
 import LevyStochCalc.Driver.CrossSimple
 import LevyStochCalc.Driver.CrossOrthogonality
+import LevyStochCalc.Driver.CellOrthogonality
 import LevyStochCalc.Driver.JointRange
 import LevyStochCalc.Driver.JointPRP
 import LevyStochCalc.Driver.JointPRPDegenerate
@@ -247,6 +249,7 @@ import LevyStochCalc.Brownian.ItoFourthMomentLintegral
 import LevyStochCalc.Brownian.ItoIncrementMoment
 import LevyStochCalc.Brownian.ItoIncrementMomentRestrict
 import LevyStochCalc.Brownian.ItoIncrementMomentBounds
+import LevyStochCalc.Brownian.ItoCellIsometry
 import LevyStochCalc.Brownian.ItoQuadVarSum
 import LevyStochCalc.Brownian.DriftIncrement
 import LevyStochCalc.Brownian.ItoFormula
@@ -437,6 +440,7 @@ import LevyStochCalc.Ito.ItoLevyFormulaPathwise
 import LevyStochCalc.Ito.CompensatedLocality
 import LevyStochCalc.Ito.CompensatedLocalityCutoff
 import LevyStochCalc.Ito.CompensatedLocalityWindow
+import LevyStochCalc.Ito.CompensatedCellIsometry
 import LevyStochCalc.Ito.CompensatedLocalityStopping
 import LevyStochCalc.Ito.SecondMoment
 import LevyStochCalc.Ito.SecondMomentToolkit
