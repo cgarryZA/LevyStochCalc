@@ -828,7 +828,15 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       **wave 17 (2026-09-16)** split the three largest into thematic parts (10, 8 and 6 modules,
       each ≤ 598 lines) with the original module kept as the aggregating import, every
       declaration keeping its name and statement (two formerly private lemmas became public,
-      `master_horizon_pos`, `bounded_locallyIntegrable`); 35 files over 600 lines remain;
+      `master_horizon_pos`, `bounded_locallyIntegrable`); **wave 18 (2026-09-16)** split
+      `Brownian/ItoDensity.lean` (2550 → 5 parts, 21 private helpers made public, one part at
+      625 lines to avoid shadowing the ancestor-namespace name
+      `eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero`), `Ito/SecondMoment.lean` (2053 → 4, sections
+      regrouped in dependency order, bodies unchanged), `Ito/PicardOutput.lean` (1963 → 4) and
+      `Poisson/CompensatedMartingale.lean` (1516 → 3); 32 files over 600 lines remain, the largest
+      `Brownian/Continuity.lean` (1412, pinned: `kolmogorovChentsov_modification` must stay in it),
+      `Poisson/MarkStep.lean` (1355), `Brownian/SimplePredictableRefine.lean` (1342),
+      `Poisson/CompensatedIsometry.lean` (1338, pinned);
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
