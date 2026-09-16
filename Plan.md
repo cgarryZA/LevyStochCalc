@@ -803,10 +803,18 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         and not jointly `C²`; `Ito/C12Mollify.lean`: the time mollification `mollifyTime`, its
         joint continuity, `C^N` regularity in time at a fixed state, pointwise convergence, and
         the commutation of `timeDeriv`, `gradient`, `hessian` with it for a `C^{1,2}` function).
-        Still missing for the formula itself: joint `C²` regularity of the mollification (second
-        time derivative through a change of variables, mixed partials), locally uniform
-        convergence of the derivative families, and the limit passage in
-        `itoLevyFormula_general` along `Ito/StochasticIntegralLimit.lean`.
+        Route settled by a read-only trace of the proof chain (same day): joint `C²` of `u` is
+        consumed at exactly one structural site, `Ito/FiniteActivityMixed.lean` (`timeAugFun u`
+        fed to the state-only vector Itô formula, whose cubic Taylor step needs the full Hessian
+        of the augmented function); everything above it uses only the six `IsC12` fields. So:
+        (1) `IsC12.mul_contDiff` for the cut-off products; (2) joint mollification
+        `mollifyJoint` on `ℝ × (Fin n → ℝ)` (joint smoothness from Mathlib's convolution theory,
+        the three derivative identities by differentiation under the integral, uniform derivative
+        bounds, pointwise convergence); (3) `itoLevyFormula_jumpResidual_of_boundedDerivs_c12`
+        by the limit `u_ε → u` at the bounded-derivative level through the existing domination
+        toolkit; (4) thread `IsC12` up through the continuity/Taylor/cut-off lemmas as `_c12`
+        duplicates, keeping every pinned `ContDiff` statement and `Dissertation/Continuous.lean`
+        untouched; (5) `itoLevyFormula_general_c12`.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders
