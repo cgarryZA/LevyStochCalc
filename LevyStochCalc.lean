@@ -449,7 +449,9 @@ import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionRepresentative
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionIntegrands
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionIntegrandsC12
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionMain
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionMainC12
 import LevyStochCalc.Ito.ItoLevyFormulaGeneral
+import LevyStochCalc.Ito.ItoLevyFormulaGeneralC12
 import LevyStochCalc.Ito.ItoLevyFormulaPathwise
 import LevyStochCalc.Ito.CompensatedLocality
 import LevyStochCalc.Ito.CompensatedLocalityCutoff

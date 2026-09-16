@@ -832,8 +832,14 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
         `_c12` forms of every helper the two top-level files consume through joint `C²`
         (Taylor bounds in the state, box bounds, path-integrand admissibility, the cut-off's
         global bound and jump-side agreement); no helper was blocked, since no second time
-        derivative of the cut-off is ever taken. Open: (5) the threading up to
-        `itoLevyFormula_general_c12`.
+        derivative of the cut-off is ever taken. Step (5) closed the item:
+        `Ito/ItoLevyBoundedDerivsSolutionMainC12.lean` and `Ito/ItoLevyFormulaGeneralC12.lean`
+        restate the top-level chain over `IsC12 u` with statements otherwise byte-identical,
+        ending in `itoLevyFormula_general_c12`; `itoLevyFormula_general_of_c12` recovers the
+        pinned `itoLevyFormula_general` from it (`@itoLevyFormula_general_of_c12 =
+        @itoLevyFormula_general` by `rfl`), so the pinned statement is untouched and the
+        `C^{1,2}` statement is strictly more general (the class is strictly larger, `Ito/C12.lean`).
+        F15 is closed: both halves by theorem, the pinned structure and theorem unchanged.
       - F16 every jump-side witness uses `ν = δ₁` (finite activity); no infinite-activity Lévy
         measure is exercised. → wave 16 candidate (`ν = volume` on `ℝ`).
       **Wave 15 (2026-09-16)** closed F1, F2, F3, F4, F6, F7, F9 (docstrings), F13 (binders
@@ -877,7 +883,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       based at `s`, and `indep_naturalFiltration_increments` for the increments over subintervals
       of `[s, ∞)`; from Mathlib's `IsPreBrownianReal.indepFun_shift` through the bridge, with the
       negative times absorbed by the null-or-conull σ-algebra); the structural strengthening of
-      the two filtration predicates is D3 below. Open: F15 (D3 in progress).
+      the two filtration predicates is D3 below (closed the same day). F15 closed the same day
+      by theorem, both halves (see its entry).
       **Wave 26** also opened the cell layer of the a-posteriori bridge (Epic A4′ of the
       dissertation's `WORK_BREAKDOWN.md`): `Brownian/ItoCellIsometry.lean` and
       `Ito/CompensatedCellIsometry.lean` (the two isometries for the increment across a cell
