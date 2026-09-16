@@ -839,7 +839,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 
 ## Phase D — Mathlib-grade form + upstreaming (`GOAL.md` §D, §F)
 
-- [ ] **D0** Inventory (2026-09-15): 340 library files, 38 over 600 lines (largest
+- [x] **D0** Inventory (2026-09-15): 340 library files, 38 over 600 lines (largest
       `Poisson/CompensatedDensity.lean` 4471, `Brownian/ItoL2Completion.lean` 4252,
       `Ito/Picard.lean` 2919, `Brownian/ItoDensity.lean` 2550, `Ito/SecondMoment.lean` 2053);
       **wave 17 (2026-09-16)** split the three largest into thematic parts (10, 8 and 6 modules,
@@ -881,11 +881,27 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `Poisson/CompensatedIsometry.lean` (1338 → 497, the moment lemmas including the three
       pinned ones stay, the orthogonality and `L²` material move to two modules that import
       it, with `Poisson/CompensatedMartingaleAdapted.lean` importing the second); the downstream
-      shape is recorded in `tools/import_contract.md` §3; 15 files over 600 lines remain;
+      shape is recorded in `tools/import_contract.md` §3; **wave 24 (2026-09-16)** split the eight
+      remaining files above 630 lines (`Brownian/ItoIncrementMoment`, `Ito/PicardIntegrand`,
+      `BSDEJ/PicardIterates`, `Ito/JumpFormulaCutoff`, `Ito/ItoFormulaSimpleShift`,
+      `Ito/JumpSplittingPath`, `Ito/JumpSplittingRemainder`, `Ito/JumpCoefficientPredictable`,
+      each into two parts); of the 7 files still over 600 lines, two are the single-proof
+      files above and the other 5 sit within 5 % of the target and are left whole
+      (`Brownian/ItoDensityUnbounded.lean` 625, `Brownian/SimplePredictableRefineCommon.lean` 624,
+      `Brownian/SimplePredictableRefineInvariance.lean` 611, `Brownian/ItoLocality.lean` 604,
+      `Brownian/ItoQuadVarSum.lean` 603); the library has 452 files;
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
       File splits keep every pinned symbol in its module of record (no forwarding stubs).
+      The file-length pass is complete except for the two single-proof files, which are not
+      pure moves and stay open below.
+- [ ] **D0′** Factor the two single-proof files below 600 lines by extracting their inner
+      `have` blocks as standalone lemmas (`Ito/ItoLevyBoundedDerivs.lean`,
+      `itoLevyFormula_jumpResidual_of_boundedDerivs`, 608 lines; `Ito/FiniteActivityMixed.lean`,
+      one theorem of 716 lines). This changes proof structure, so it needs the full gate chain
+      and a statement-by-statement check that no hypothesis is added; GOAL §D's file-length
+      box stays open until then.
 - [x] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
       `HasIndepIncrements`, `IsGaussianProcess`) — see C′2 (`Brownian/MathlibBridge.lean`).
 - [ ] **D2** Per closed, general result, in mathlib-readiness order (smallest
