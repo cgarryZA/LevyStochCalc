@@ -833,10 +833,15 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       625 lines to avoid shadowing the ancestor-namespace name
       `eLpNorm_tendsto_of_eLpNorm_sub_tendsto_zero`), `Ito/SecondMoment.lean` (2053 → 4, sections
       regrouped in dependency order, bodies unchanged), `Ito/PicardOutput.lean` (1963 → 4) and
-      `Poisson/CompensatedMartingale.lean` (1516 → 3); 32 files over 600 lines remain, the largest
+      `Poisson/CompensatedMartingale.lean` (1516 → 3); **wave 19 (2026-09-16)** split
+      `Poisson/MarkStep.lean` (1355 → 3), `Brownian/SimplePredictableRefine.lean` (1342 → 3, one
+      private lemma made public, `strictMono_partition_tiles`; two parts at 611 and 624 lines to
+      keep each theme whole), `Ito/ItoFormulaUnbounded.lean` (1254 → 3) and
+      `Ito/JumpFormulaFiniteActivity.lean` (1202 → 3); 30 files over 600 lines remain, the largest
       `Brownian/Continuity.lean` (1412, pinned: `kolmogorovChentsov_modification` must stay in it),
-      `Poisson/MarkStep.lean` (1355), `Brownian/SimplePredictableRefine.lean` (1342),
-      `Poisson/CompensatedIsometry.lean` (1338, pinned);
+      `Poisson/CompensatedIsometry.lean` (1338, pinned), `Ito/CompensatedLocality.lean` (1097),
+      `Brownian/ItoAlgebra.lean` (1078), `Brownian/ItoFourthMoment.lean` (1066),
+      `Brownian/Martingale.lean` (1039, pinned);
       no `import Mathlib` umbrella; six library docstrings still narrate dated retirements
       (`BSDEJ/MartingaleRepresentation`, `BSDEJ/Existence`, `BSDEJ/PathRegularity`,
       `Ito/JumpFormula`, `Ito/PicardFixedPoint` ×2) — the dates move to the ledger (wave 14).
