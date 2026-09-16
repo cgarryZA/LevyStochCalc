@@ -730,7 +730,7 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
 
 ## Phase C′ — Faithfulness (`GOAL.md` §C)
 
-- [ ] **C′1** Faithfulness audit (report first, fixes second): compare `BrownianMotion`,
+- [x] **C′1** Faithfulness audit (report first, fixes second): compare `BrownianMotion`,
       `MultidimBrownianMotion`, `PoissonRandomMeasure`, `LevyDriver`, `IsBrownianFiltration`,
       `IsPoissonFiltration`, the two `L²` integrals, `JumpDiffusion`/`SolvesOn`, `SolvesBSDEJ`
       and `cellTimeAverage_Z/U` against the cited definitions (Karatzas–Shreve,
@@ -916,7 +916,11 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
       filtration and integrals), #1, #4, #12/#14 (relative to the fixed filtration), #17, #18,
-      the terminal-time PRP.
+      the terminal-time PRP. **Closed 2026-09-16:** every finding F1–F16 is dispositioned
+      above (by theorem: F5, F8, F10, F11, F14, F15, F16; by restatement or rename: F12, F13; by
+      design with the docstring saying so: F9; by docstring: F1, F2, F3, F4, F6, F7), the
+      predicate `CellRegularity` is the one object carried as a hypothesis rather than proved,
+      and no listed definition was found weaker than the cited one.
 - [x] **C′2** Tie the BM layer to the mathlib predicates at the pin
       (`ProbabilityTheory.IsPreBrownianReal`, `IsBrownianReal`, `IsGaussianProcess`,
       `HasIndepIncrements` — all present in Mathlib `81a5d257`): the converse direction
@@ -1005,6 +1009,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       Zulip; then PointProcess → StochasticIntegral → SDE → BSDE): re-home to
       `ProbabilityTheory` + `Mathlib/Probability/<Area>/…`, register, AI-disclosure
       + `LLM-generated` label, update the dissertation import to the mathlib path.
+      **Held by decision (2026-09-16):** no mathlib pull requests are opened for now; the
+      `GOAL.md` §D namespace box stays open on that decision, not on readiness.
 
 ## Definition of done
 

@@ -67,7 +67,7 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       the per-file caveats are listed in `Plan.md` C1.)*
 
 ### C. Faithfulness — it models the right mathematics
-- [ ] **Definitions match the literature** (Karatzas–Shreve / Applebaum /
+- [x] **Definitions match the literature** (Karatzas–Shreve / Applebaum /
       Jacod–Shiryaev as cited) and, where mathlib has the predicate, are tied to
       it (`IsBrownianReal`, `HasIndepIncrements`, `IsGaussianProcess`, …) rather
       than re-asserted weaker.
