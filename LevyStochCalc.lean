@@ -417,7 +417,9 @@ import LevyStochCalc.Ito.ItoFormulaMeasurableShift
 import LevyStochCalc.Ito.TruncatedContinuousPart
 import LevyStochCalc.Ito.ItoLevyMixedBounds
 import LevyStochCalc.Ito.FiniteActivityMixedPrelims
+import LevyStochCalc.Ito.FiniteActivityMixedSteps
 import LevyStochCalc.Ito.FiniteActivityMixed
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsSteps
 import LevyStochCalc.Ito.ItoLevyBoundedDerivs
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolution
 import LevyStochCalc.Ito.ItoLevyBoundedDerivsSolutionRepresentative

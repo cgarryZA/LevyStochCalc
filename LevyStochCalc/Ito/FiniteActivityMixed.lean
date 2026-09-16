@@ -3,6 +3,7 @@ Copyright (c) 2026 Christian Garry. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Garry
 -/
+import LevyStochCalc.Ito.FiniteActivityMixedSteps
 import LevyStochCalc.Ito.FiniteActivityMixedPrelims
 import LevyStochCalc.Ito.ItoLevyMixedBounds
 import LevyStochCalc.Ito.ItoFormulaMeasurableShift
@@ -252,36 +253,12 @@ theorem itoLevy_finiteActivity_mixed
       intro T' hT'
       simp [b', timeAugDrift, Real.volume_Icc]
     | succ q => simpa [b', timeAugDrift] using hbdrq q
-  have hY'm : Measurable (Function.uncurry fun ω s => Y' s ω) := by
-    refine measurable_pi_iff.mpr fun p => ?_
-    induction p using Fin.cases with
-    | zero =>
-      simp only [Function.uncurry, Y', timeAugProcess, Fin.cons_zero]
-      exact measurable_snd
-    | succ q =>
-      simp only [Function.uncurry, Y', timeAugProcess, Fin.cons_succ]
-      exact (measurable_pi_apply q).comp (hy_m.comp (measurable_snd.prodMk measurable_fst))
-  have hY'ad : ∀ t : ℝ, Measurable[S.ℱ t] (Y' t) := by
-    intro t
-    letI : MeasurableSpace Ω := S.ℱ t
-    refine measurable_pi_iff.mpr fun p => ?_
-    induction p using Fin.cases with
-    | zero =>
-      simp only [Y', timeAugProcess, Fin.cons_zero]
-      exact measurable_const
-    | succ q =>
-      simp only [Y', timeAugProcess, Fin.cons_succ]
-      exact (measurable_pi_apply q).comp (hy_ad t)
-  have hY'rc : ∀ (ω : Ω) (t : ℝ), Tendsto (fun s => Y' s ω) (𝓝[>] t) (𝓝 (Y' t ω)) := by
-    intro ω t
-    refine tendsto_pi_nhds.mpr fun p => ?_
-    induction p using Fin.cases with
-    | zero =>
-      simp only [Y', timeAugProcess, Fin.cons_zero]
-      exact tendsto_id.mono_left nhdsWithin_le_nhds
-    | succ q =>
-      simp only [Y', timeAugProcess, Fin.cons_succ]
-      exact ((continuous_apply q).tendsto _).comp (hy_rc ω t)
+  have hY'm : Measurable (Function.uncurry fun ω s => Y' s ω) :=
+    measurable_uncurry_timeAugProcess hy_m
+  have hY'ad : ∀ t : ℝ, Measurable[S.ℱ t] (Y' t) :=
+    measurable_timeAugProcess_adapted S.ℱ hy_ad
+  have hY'rc : ∀ (ω : Ω) (t : ℝ), Tendsto (fun s => Y' s ω) (𝓝[>] t) (𝓝 (Y' t ω)) :=
+    tendsto_timeAugProcess_nhdsWithin_gt hy_rc
   have hY'comp : ∀ {φ : (Fin (n + 1) → ℝ) → ℝ}, Continuous φ →
       Probability.ProgressivelyMeasurable S.ℱ fun ω s => φ (Y' s ω) := fun {φ} hφ =>
     progressivelyMeasurable_of_rightContinuous (X := fun s ω => φ (Y' s ω))
@@ -471,40 +448,9 @@ theorem itoLevy_finiteActivity_mixed
       = (∫ q in Set.Ioc (0 : ℝ) T ×ˢ B, markCut B φm ω q.1 q.2 ∂(N.N ω))
         - ∫ s in Set.Icc (0 : ℝ) T, ∫ e in B,
             mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e ∂ν := by
-    have hK₁'' : ∀ s x i, |gradient u s x i| ≤ max K₁ 0 :=
-      fun s x i => (hK₁ s x i).trans (le_max_left _ _)
-    have hK₁0' : (0 : ℝ) ≤ max K₁ 0 := le_max_right _ _
     -- admissibility of the mixed jump increment read at the left limits
-    have hyLm : Measurable fun q : ℝ × Ω => leftLimPathAt y q.1 q.2 :=
-      measurable_uncurry_leftLimPathAt hy_m hy_left
-    have hXLm : Measurable fun q : ℝ × Ω => leftLimPathAt X.X q.1 q.2 :=
-      measurable_uncurry_leftLimPathAt hXm hXleft
-    have hφmm : Measurable fun p : Ω × ℝ × E => φm p.1 p.2.1 p.2.2 := by
-      have hy : Measurable fun p : Ω × ℝ × E => leftLimPathAt y p.2.1 p.1 :=
-        hyLm.comp (measurable_snd.fst.prodMk measurable_fst)
-      have hγ : Measurable fun p : Ω × ℝ × E =>
-          coeffs.γ p.2.1 (leftLimPathAt X.X p.2.1 p.1) p.2.2 :=
-        measurable_pi_lambda _ fun i => hγmL i
-      exact (hu.continuous.measurable.comp (measurable_snd.fst.prodMk (hy.add hγ))).sub
-        (hu.continuous.measurable.comp (measurable_snd.fst.prodMk hy))
-    have hφmp : Probability.MarkedProgressivelyMeasurable S.ℱ φm := by
-      have hZ := markedProgressivelyMeasurable_time_state_jump (ℱ := S.ℱ) (coeffs := coeffs)
-        (Xp := leftLimPathAt X.X) (Y := leftLimPathAt y)
-        (fun i => progressivelyMeasurable_leftLimPathAt hℱ0 hy_ad hy_left i) hγpL
-      have hg : Continuous fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
-          u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1 :=
-        (hu.continuous.comp (continuous_fst.prodMk
-          (continuous_snd.fst.add continuous_snd.snd))).sub
-          (hu.continuous.comp (continuous_fst.prodMk continuous_snd.fst))
-      have hg0 : (fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
-          u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1) 0 = 0 := by simp
-      exact hg.comp_markedProgressivelyMeasurable hg0 hZ
-    have hφmq : ∀ T' : ℝ, 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
-        (‖φm ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ := fun T' hT' =>
-      lintegral_window_mark_sq_le_of_abs_le
-        (a := fun i ω s e => coeffs.γ s (leftLimPathAt X.X s ω) e i) (c := n * max K₁ 0) hγmL
-        (fun ω s e => abs_mixedJumpIncrement_le hu hK₁'' hK₁0' s _ _ e) T'
-        (fun i => hγqL i T' hT')
+    obtain ⟨hφmm, hφmp, hφmq⟩ := admissible_mixedJumpIncrement_leftLim S hℱ0 hu hK₁ hy_m hy_ad
+      hy_left hγmL hγpL hγqL
     have hCmm : Measurable fun p : Ω × ℝ × E => markCut B φm p.1 p.2.1 p.2.2 :=
       measurable_markCut hφmm hB
     have hCmp' : Probability.MarkedProgressivelyMeasurable S.ℱ (markCut B φm) :=
@@ -513,15 +459,7 @@ theorem itoLevy_finiteActivity_mixed
         (‖markCut B φm ω s e‖₊ : ℝ≥0∞) ^ 2 ∂ν ∂volume ∂P < ⊤ :=
       fun T' hT' => sq_markCut hφmq B T' hT'
     -- the point-evaluated and the left-limit integrands have the same compensated integral
-    have hcount : ∀ᵐ ω ∂P, {s : ℝ | 0 < s ∧
-        ((leftLimPathAt y s ω, leftLimPathAt X.X s ω) : (Fin n → ℝ) × (Fin n → ℝ))
-          ≠ (y s ω, X.X s ω)}.Countable := by
-      filter_upwards [X.cadlag_paths] with ω hcad
-      exact countable_setOf_pos_ne_pair (Y₁ := leftLimPathAt y) (Z₁ := y)
-        (Y₂ := leftLimPathAt X.X) (Z₂ := X.X)
-        (countable_setOf_pos_leftLimPathAt_ne (fun t _ => hy_rc ω t) (fun t _ i => hy_left ω t i))
-        (countable_setOf_pos_leftLimPathAt_ne (fun t ht => (hcad t ht).1)
-          (fun t ht i => (hcad t ht.le).2 i))
+    have hcount := ae_countable_setOf_leftLim_ne_pair (X := X) hy_rc hy_left
     have hcongr : stochasticIntegral N S.ℱ S.isPoisson (markCut B φm) hCmm hCmp' hCmq T
         =ᵐ[P] stochasticIntegral N S.ℱ S.isPoisson
           (markCut B fun ω s e => mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e)
@@ -533,43 +471,15 @@ theorem itoLevy_finiteActivity_mixed
         (fun s v e => B.indicator (fun _ => mixedJumpIncrement u coeffs.γ s v.1 v.2 e) e)
         hcount hCmm hCm hCmp' hCp hCmq hCq hT
     -- the zero extension of the left-limit integrand is predictable
-    have hpred : MarkedPredictable S.ℱ ν (zeroExtPos φm) := by
-      have hY := measurable_predictableSigma_leftLimPathAtPos y S.ℱ hy_ad
-        (fun ω t _ i => hy_left ω t i)
-      have hΓ : MarkedPredictable S.ℱ ν fun (ω : Ω) (s : ℝ) (e : E) =>
-          (if 0 < s then coeffs.γ s (leftLimPathAt X.X s ω) e else 0 : Fin n → ℝ) := by
-        unfold MarkedPredictable
-        letI : MeasurableSpace (Ω × ℝ × E) := markedPredictableSigma S.ℱ ν
-        refine measurable_pi_lambda _ fun i => ?_
-        have h := markedPredictable_zeroExtPos_jumpCoeff_leftLimPathAt (ν := ν) X.X S.ℱ i hXadapt
-          (fun ω t _ j => hXleft ω t j) (hγmeasi i)
-        unfold MarkedPredictable at h
-        convert h using 2 with p
-        by_cases hs : (0 : ℝ) < p.2.1 <;> simp [zeroExtPos, hs]
-      have hF : Measurable fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
-          u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1 :=
-        ((hu.continuous.comp (continuous_fst.prodMk
-          (continuous_snd.fst.add continuous_snd.snd))).sub
-          (hu.continuous.comp (continuous_fst.prodMk continuous_snd.fst))).measurable
-      have h := MarkedPredictable.comp_measurable (ℱ := S.ℱ) (ν := ν) hF
-        (Y := fun ω s => leftLimPathAtPos y s ω) hY hΓ
-      convert h using 1
-      funext ω s e
-      by_cases hs : (0 : ℝ) < s <;> simp [zeroExtPos, hs, φm, mixedJumpIncrement, leftLimPathAtPos]
+    have hpred : MarkedPredictable S.ℱ ν (zeroExtPos φm) :=
+      markedPredictable_zeroExtPos_mixedJumpIncrement_leftLim S hXadapt hXleft hγmeasi hu hy_ad
+        hy_left
     have hpredM : MarkedPredictable S.ℱ ν (zeroExtPos (markCut B φm)) :=
       markedPredictable_zeroExtPos_markCut hpred hB
     have hpath := stochasticIntegral_ae_eq_pathwise_of_zeroExtPos N S.ℱ S.isPoisson (markCut B φm)
       hCmm hCmp' hCmq hB hpredM hBν (fun ω s e he => Set.indicator_of_notMem he _) hT
     -- the left-limit integrand is integrable on the window against the reference intensity
-    have hen : ∫⁻ ω, ∫⁻ q in Set.Ioc (0 : ℝ) T ×ˢ B,
-        ‖φm ω q.1 q.2‖ₑ ^ 2 ∂(LevyStochCalc.Poisson.referenceIntensity ν) ∂P ≠ ⊤ := by
-      refine ne_top_of_le_ne_top (hφmq T hT).ne (lintegral_mono fun ω => ?_)
-      rw [LevyStochCalc.Poisson.lintegral_referenceIntensity_window
-        (f := fun q : ℝ × E => ‖φm ω q.1 q.2‖ₑ ^ 2) ((hφmm.comp
-          (by fun_prop :
-            Measurable fun q : ℝ × E => ((ω, q.1, q.2) : Ω × ℝ × E))).enorm.pow_const 2) B T]
-      refine (lintegral_mono_set Set.Ioc_subset_Icc_self).trans (lintegral_mono fun s => ?_)
-      exact lintegral_mono' Measure.restrict_le_self fun e => le_rfl
+    have hen := lintegral_referenceIntensity_window_ne_top hφmm hφmq B T hT
     have hwin := ae_integrableOn_window_of_zeroExtPos N S.isPoisson hB hBν T hpred hφmm hen
     filter_upwards [hcongr, hpath, hwin, hcount] with ω h1 h2 h3 h4
     rw [← h1, h2]
@@ -588,184 +498,10 @@ theorem itoLevy_finiteActivity_mixed
         + 1 / 2 * ∑ p : Fin (n + 1), ∑ q : Fin (n + 1), ∫ s in Set.Ioc (0 : ℝ) T,
             coordDeriv₂ f'' p q (Y' s ω) * (∑ j : Fin d, H' p j ω s * H' q j ω s) ∂volume
       = ∫ s in Set.Icc (0 : ℝ) T, (mixedDriftIntegrand u coeffs s (y s ω) (X.X s ω)
-          - ∑ i : Fin n, gradient u s (y s ω) i * ∫ e in B, coeffs.γ s (X.X s ω) e i ∂ν) := by
-    have hDint : ∀ᵐ ω ∂P, ∀ p : Fin (n + 1), IntegrableOn
-        (fun s => coordDeriv f' p (Y' s ω) * b' p ω s) (Set.Ioc (0 : ℝ) T) volume :=
-      MeasureTheory.ae_all_iff.mpr fun p => ae_integrableOn_Ioc_of_energy (hmD p) (hqD p T hT)
-    filter_upwards [hDint, hQint, X.cadlag_paths] with ω hDω hQω hcadω
-    set bpt : Fin (n + 1) → ℝ → ℝ := fun p s => timeAugDrift
-      (fun q (_ : Ω) s => coeffs.μ s (X.X s ω) q - ∫ e in B, coeffs.γ s (X.X s ω) e q ∂ν) p ω s
-      with hbptdef
-    have hcount : {s : ℝ | 0 < s ∧ leftLimPathAt X.X s ω ≠ X.X s ω}.Countable :=
-      countable_setOf_pos_leftLimPathAt_ne (fun t ht => (hcadω t ht).1)
-        (fun t ht i => (hcadω t ht.le).2 i)
-    have hae : ∀ᵐ s ∂(volume.restrict (Set.Ioc (0 : ℝ) T)), leftLimPathAt X.X s ω = X.X s ω :=
-      ae_restrict_of_ae_restrict_of_subset Set.Ioc_subset_Icc_self
-        (LevyStochCalc.Ito.ae_restrict_eq_of_countable_ne hcount T)
-    have hbeq : ∀ p : Fin (n + 1), ∀ᵐ s ∂(volume.restrict (Set.Ioc (0 : ℝ) T)),
-        coordDeriv f' p (Y' s ω) * b' p ω s = coordDeriv f' p (Y' s ω) * bpt p s := by
-      intro p
-      induction p using Fin.cases with
-      | zero => exact Filter.Eventually.of_forall fun s => rfl
-      | succ q =>
-        filter_upwards [hae] with s hs
-        simp only [b', bpt, timeAugDrift, Fin.cons_succ, bdr, continuousDriftLeftAt, hs]
-    have hD' : ∀ p : Fin (n + 1), IntegrableOn
-        (fun s => coordDeriv f' p (Y' s ω) * bpt p s) (Set.Ioc (0 : ℝ) T) volume :=
-      fun p => (hDω p).congr_fun_ae (hbeq p)
-    have hdrift_eq : ∀ p : Fin (n + 1), (∫ s in Set.Ioc (0 : ℝ) T,
-          coordDeriv f' p (Y' s ω) * b' p ω s ∂volume)
-        = ∫ s in Set.Ioc (0 : ℝ) T, coordDeriv f' p (Y' s ω) * bpt p s ∂volume :=
-      fun p => integral_congr_ae (hbeq p)
-    rw [Finset.sum_congr rfl fun p _ => hdrift_eq p, setIntegral_Icc_eq_setIntegral_Ioc]
-    exact setIntegral_splitDrift_dictionary_mixed hfu hf hf' coeffs B T (fun s => y s ω)
-      (fun s => X.X s ω) bpt (fun p j s => H' p j ω s) (fun s => rfl) (fun q s => rfl)
-      (fun j s => rfl) (fun p j s => rfl) hD' hQω
-  have hint : ∀ᵐ ω ∂P,
-      (∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∀ i : Fin n,
-        IntegrableOn (fun e => coeffs.γ s (X.X s ω) e i) B ν)
-      ∧ (∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
-        IntegrableOn (fun e => mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e) B ν)
-      ∧ IntegrableOn (fun s => ∫ e in B, mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e ∂ν)
-          (Set.Icc (0 : ℝ) T) volume
-      ∧ IntegrableOn (fun s => ∑ i : Fin n,
-          gradient u s (y s ω) i * ∫ e in B, coeffs.γ s (X.X s ω) e i ∂ν)
-          (Set.Icc (0 : ℝ) T) volume
-      ∧ IntegrableOn (fun s => mixedDriftIntegrand u coeffs s (y s ω) (X.X s ω))
-          (Set.Icc (0 : ℝ) T) volume := by
-    haveI hBfin : IsFiniteMeasure (ν.restrict B) :=
-      ⟨by rw [Measure.restrict_apply_univ]; exact lt_top_iff_ne_top.mpr hBν⟩
-    have hK₁'' : ∀ s x i, |gradient u s x i| ≤ max K₁ 0 :=
-      fun s x i => (hK₁ s x i).trans (le_max_left _ _)
-    have hK₁0' : (0 : ℝ) ≤ max K₁ 0 := le_max_right _ _
-    have hyω : ∀ ω : Ω, Measurable fun s => y s ω :=
-      fun ω => hy_m.comp (measurable_id.prodMk measurable_const)
-    have hγsec : ∀ (ω : Ω) (s : ℝ), Measurable fun e => coeffs.γ s (X.X s ω) e :=
-      fun ω s => hγmeas.comp (measurable_const.prodMk (measurable_const.prodMk measurable_id))
-    -- the jump coefficient at the point values is square integrable in the mark at a.e. time
-    have hγL2 : ∀ i : Fin n, ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
-        ∫⁻ e, (‖coeffs.γ s (X.X s ω) e i‖₊ : ℝ≥0∞) ^ 2 ∂ν < ⊤ := by
-      intro i
-      filter_upwards [MeasureTheory.ae_lt_top (measurable_markEnergy
-        (f := fun ω s e => (‖SmallJump.pathJumpCoeff coeffs X.X i ω s e‖₊ : ℝ≥0∞) ^ 2)
-        (((S.γ_meas i).nnnorm.coe_nnreal_ennreal).pow_const 2) T) (S.γ_sq i T hT).ne] with ω hω
-      exact MeasureTheory.ae_lt_top ((((S.γ_meas i).nnnorm.coe_nnreal_ennreal).pow_const 2).comp
-        (by fun_prop :
-          Measurable fun q : ℝ × E => ((ω, q.1, q.2) : Ω × ℝ × E))).lintegral_prod_right' hω.ne
-    have hγi : ∀ᵐ ω ∂P, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∀ i : Fin n,
-        IntegrableOn (fun e => coeffs.γ s (X.X s ω) e i) B ν := by
-      filter_upwards [MeasureTheory.ae_all_iff.mpr hγL2] with ω hω
-      filter_upwards [MeasureTheory.ae_all_iff.mpr hω] with s hs i
-      exact ((memLp_two_of_lintegral_sq_lt_top
-        ((measurable_pi_apply i).comp (hγsec ω s)).aestronglyMeasurable
-        (hs i)).restrict B).integrable one_le_two
-    -- the mark integrals of the point-evaluated jump coefficient and of its absolute value are
-    -- integrable in time
-    have hmarkInt : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        IntegrableOn (fun s => ∫ e in B, coeffs.γ s (X.X s ω) e i ∂ν) (Set.Icc (0 : ℝ) T)
-          volume := by
-      intro i
-      refine ae_integrableOn_of_energy_lt_top
-        (stronglyMeasurable_setIntegral_mark B (SmallJump.pathJumpCoeff coeffs X.X i)
-          (S.γ_meas i)).measurable ?_
-      exact lt_of_le_of_lt (lintegral_sq_setIntegral_mark_le hBν _ (S.γ_meas i) T)
-        (ENNReal.mul_lt_top (S.γ_sq i T hT) (lt_top_iff_ne_top.mpr hBν))
-    have hmarkAbs : ∀ i : Fin n, ∀ᵐ ω ∂P,
-        IntegrableOn (fun s => ∫ e in B, |coeffs.γ s (X.X s ω) e i| ∂ν) (Set.Icc (0 : ℝ) T)
-          volume := by
-      intro i
-      refine ae_integrableOn_of_energy_lt_top
-        (stronglyMeasurable_setIntegral_mark B
-          (fun ω s e => |SmallJump.pathJumpCoeff coeffs X.X i ω s e|)
-          (S.γ_meas i).abs).measurable ?_
-      refine lt_of_le_of_lt (lintegral_sq_setIntegral_mark_le hBν _ (S.γ_meas i).abs T) ?_
-      refine ENNReal.mul_lt_top ?_ (lt_top_iff_ne_top.mpr hBν)
-      simpa [SmallJump.pathJumpCoeff] using S.γ_sq i T hT
-    have hμint : ∀ᵐ ω ∂P, ∀ p : Fin n,
-        IntegrableOn (fun s => coeffs.μ s (X.X s ω) p) (Set.Icc (0 : ℝ) T) :=
-      MeasureTheory.ae_all_iff.mpr fun p =>
-        ae_integrableOn_of_energy_lt_top (hμm p) (hμq p T hT)
-    have hσsq : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d),
-        IntegrableOn (fun s => coeffs.σ s (X.X s ω) p j ^ 2) (Set.Icc (0 : ℝ) T) := by
-      refine MeasureTheory.ae_all_iff.mpr fun p => MeasureTheory.ae_all_iff.mpr fun j => ?_
-      filter_upwards [MeasureTheory.ae_lt_top (measurable_energyDensity (S.σ_meas p j) T)
-        (S.σ_sq p j T hT).ne] with ω hω
-      exact (LevyStochCalc.Ito.Picard.memLp_two_of_lintegral_sq_lt_top
-        (Measurable.of_uncurry_left (S.σ_meas p j)) hω).integrable_sq
-    have hΔm : Measurable fun p : Ω × ℝ × E =>
-        mixedJumpIncrement u coeffs.γ p.2.1 (y p.2.1 p.1) (X.X p.2.1 p.1) p.2.2 := by
-      have hy : Measurable fun p : Ω × ℝ × E => y p.2.1 p.1 :=
-        hy_m.comp (measurable_snd.fst.prodMk measurable_fst)
-      have hγ : Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 :=
-        measurable_pi_lambda _ fun i => S.γ_meas i
-      exact (hu.continuous.measurable.comp (measurable_snd.fst.prodMk (hy.add hγ))).sub
-        (hu.continuous.measurable.comp (measurable_snd.fst.prodMk hy))
-    filter_upwards [hγi, MeasureTheory.ae_all_iff.mpr hmarkInt,
-      MeasureTheory.ae_all_iff.mpr hmarkAbs, hμint, hσsq] with ω hγω hmiω hmaω hμω hσω
-    have hΔω : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)),
-        IntegrableOn (fun e => mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e) B ν := by
-      filter_upwards [hγω] with s hs
-      refine Integrable.mono'
-        (g := fun e => (n : ℝ) * max K₁ 0 * ∑ i, |coeffs.γ s (X.X s ω) e i|)
-        ((integrable_finsetSum Finset.univ fun i _ => (hs i).abs).const_mul
-          ((n : ℝ) * max K₁ 0)) ?_ ?_
-      · exact ((hu.continuous.measurable.comp (measurable_const.prodMk
-          (measurable_const.add (hγsec ω s)))).sub measurable_const).aestronglyMeasurable
-      · filter_upwards with e
-        rw [Real.norm_eq_abs]
-        exact abs_mixedJumpIncrement_le hu hK₁'' hK₁0' s _ _ e
-    refine ⟨hγω, hΔω, ?_, ?_, ?_⟩
-    · -- the mark integral of the mixed jump increment is integrable in time
-      refine Integrable.mono'
-        (g := fun s => (n : ℝ) * max K₁ 0 * ∑ i, ∫ e in B, |coeffs.γ s (X.X s ω) e i| ∂ν)
-        ((integrable_finsetSum Finset.univ fun i _ => hmaω i).const_mul
-          ((n : ℝ) * max K₁ 0)) ?_ ?_
-      · exact ((stronglyMeasurable_setIntegral_mark B
-          (fun ω s e => mixedJumpIncrement u coeffs.γ s (y s ω) (X.X s ω) e) hΔm).comp_measurable
-          measurable_prodMk_left).aestronglyMeasurable
-      · filter_upwards [hγω] with s hs
-        have hgint : Integrable (fun e => (n : ℝ) * max K₁ 0 * ∑ i, |coeffs.γ s (X.X s ω) e i|)
-            (ν.restrict B) :=
-          (integrable_finsetSum Finset.univ fun i _ => (hs i).abs).const_mul _
-        refine (norm_integral_le_of_norm_le hgint ?_).trans (le_of_eq ?_)
-        · filter_upwards with e
-          rw [Real.norm_eq_abs]
-          exact abs_mixedJumpIncrement_le hu hK₁'' hK₁0' s _ _ e
-        · rw [integral_const_mul, integral_finsetSum _ fun i _ => (hs i).abs]
-    · -- the first-order term is integrable in time
-      refine integrable_finsetSum _ fun i _ => Integrable.bdd_mul (c := K₁) (hmiω i) ?_ ?_
-      · exact ((continuous_gradient_uncurry hu i).measurable.comp
-          (measurable_id.prodMk (hyω ω))).aestronglyMeasurable
-      · exact Filter.Eventually.of_forall fun s => by
-          rw [Real.norm_eq_abs]; exact hK₁ s _ i
-    · -- the mixed drift integrand is integrable in time
-      have hK₀' : ∀ s x, |timeDeriv u s x| ≤ max K₀ 0 :=
-        fun s x => (hK₀ s x).trans (le_max_left _ _)
-      have hK₂'' : ∀ s x i j, |hessian u s x i j| ≤ max K₂ 0 :=
-        fun s x i j => (hK₂ s x i j).trans (le_max_left _ _)
-      have hK₂0 : (0 : ℝ) ≤ max K₂ 0 := le_max_right _ _
-      refine Integrable.mono' (g := fun s => max K₀ 0 + max K₁ 0 * ∑ p, |coeffs.μ s (X.X s ω) p|
-        + (1 / 2) * max K₂ 0 * ∑ p, ∑ q, ∑ j,
-          (coeffs.σ s (X.X s ω) p j ^ 2 + coeffs.σ s (X.X s ω) q j ^ 2) / 2) ?_ ?_ ?_
-      · refine Integrable.add (Integrable.add (integrable_const _) ?_) ?_
-        · exact (integrable_finsetSum _ fun p _ => (hμω p).abs).const_mul _
-        · refine Integrable.const_mul ?_ _
-          refine integrable_finsetSum _ fun p _ => integrable_finsetSum _ fun q _ =>
-            integrable_finsetSum _ fun j _ => ?_
-          exact ((hσω p j).add (hσω q j)).div_const 2
-      · refine Measurable.aestronglyMeasurable ?_
-        refine Measurable.add ((continuous_timeDeriv hu).measurable.comp
-          (measurable_id.prodMk (hyω ω))) (Measurable.add ?_ (measurable_const.mul ?_))
-        · exact Finset.measurable_sum _ fun p _ => (Measurable.of_uncurry_left (hμm p)).mul
-            ((continuous_gradient_uncurry hu p).measurable.comp (measurable_id.prodMk (hyω ω)))
-        · refine Finset.measurable_sum _ fun p _ => Finset.measurable_sum _ fun q _ =>
-            Finset.measurable_sum _ fun j _ => ?_
-          exact ((Measurable.of_uncurry_left (S.σ_meas p j)).mul
-            (Measurable.of_uncurry_left (S.σ_meas q j))).mul
-            ((continuous_hessian hu p q).measurable.comp (measurable_id.prodMk (hyω ω)))
-      · refine Filter.Eventually.of_forall fun s => ?_
-        rw [Real.norm_eq_abs]
-        exact abs_mixedDriftIntegrand_le coeffs hK₂0 hK₀' hK₁'' hK₂'' s _ _
+          - ∑ i : Fin n, gradient u s (y s ω) i * ∫ e in B, coeffs.γ s (X.X s ω) e i ∂ν) :=
+    ae_setIntegral_timeAug_eq_mixedDrift hfu hf hf' B T hT y bdr (fun _ _ _ => rfl) H
+      (fun _ _ _ _ => rfl) hmD hqD hQint
+  have hint := ae_integrableOn_mixed_window S hμm hμq hγmeas u hu hK₀ hK₁ hK₂ T hT hBν y hy_m
   -- ## Assembly
   filter_upwards [MeasureTheory.ae_all_iff.mpr hchain,
     LevyStochCalc.Poisson.ae_exists_atomEnum_integral_eq_sum N B hB hBν T,

@@ -79,8 +79,9 @@ in `tools/cited_axioms.md` and every symbol in `tools/import_contract.md`):
       order of the 14 cited statements was audited; see `Plan.md` C′1.)*
 
 ### D. Mathlib-grade form
-- [ ] Every file ≤ ~600 lines, `section … variable … end` structured, **precise
-      imports** (no `import Mathlib` umbrella), ≤100 columns.
+- [x] Every file ≤ ~600 lines, `section … variable … end` structured, **precise
+      imports** (no `import Mathlib` umbrella), ≤100 columns. (Six files sit at
+      602–625 lines after the split waves of `Plan.md` D0; none is longer.)
 - [x] Docstrings are **math only** — no `Tier 1`, `red-team`, `Agent N`,
       milestone tags, dated change-logs, or `D:/…` paths.
 - [ ] Upstreamable results live in the `ProbabilityTheory` namespace under

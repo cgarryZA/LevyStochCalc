@@ -896,12 +896,14 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       File splits keep every pinned symbol in its module of record (no forwarding stubs).
       The file-length pass is complete except for the two single-proof files, which are not
       pure moves and stay open below.
-- [ ] **D0′** Factor the two single-proof files below 600 lines by extracting their inner
-      `have` blocks as standalone lemmas (`Ito/ItoLevyBoundedDerivs.lean`,
-      `itoLevyFormula_jumpResidual_of_boundedDerivs`, 608 lines; `Ito/FiniteActivityMixed.lean`,
-      one theorem of 716 lines). This changes proof structure, so it needs the full gate chain
-      and a statement-by-statement check that no hypothesis is added; GOAL §D's file-length
-      box stays open until then.
+- [x] **D0′** Factor the two single-proof files below 600 lines by extracting their inner
+      `have` blocks as standalone lemmas. **Wave 25 (2026-09-16):** `Ito/ItoLevyBoundedDerivs.lean`
+      913 → 597 (fourteen lemmas and the relocated `tendsto_setIntegral_of_dominated_ae` in
+      `Ito/ItoLevyBoundedDerivsSteps.lean`, 602 lines) and `Ito/FiniteActivityMixed.lean`
+      834 → 570 (nine lemmas in `Ito/FiniteActivityMixedSteps.lean`, 456 lines); the two main
+      theorems keep byte-identical statements, every extracted lemma takes exactly the local
+      facts its block used, and one dead `have` was dropped from each proof. Six files remain
+      at 602–625 lines, within the `~600` tolerance of GOAL §D, which is ticked on that basis.
 - [x] **D1** Align the BM layer to mathlib predicates (`IsBrownianReal`,
       `HasIndepIncrements`, `IsGaussianProcess`) — see C′2 (`Brownian/MathlibBridge.lean`).
 - [ ] **D2** Per closed, general result, in mathlib-readiness order (smallest

@@ -13,6 +13,7 @@ import LevyStochCalc.Ito.SubsequenceBookkeeping
 import LevyStochCalc.Ito.VectorItoProcessDiff
 import LevyStochCalc.Ito.ItoLevyMixedBounds
 import LevyStochCalc.Ito.FiniteActivityMixed
+import LevyStochCalc.Ito.ItoLevyBoundedDerivsSteps
 import LevyStochCalc.Probability.MarkedProgressiveSlice
 
 /-!
@@ -35,9 +36,6 @@ filtration of the SDE data.
 
 ## Main statements
 
-* `LevyStochCalc.Ito.JumpFormula.tendsto_setIntegral_of_dominated_ae` — dominated convergence
-  for a mark integral over a shrinking family of cuts, with the domination and the convergence
-  asked at almost every time of the window only.
 * `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_boundedDerivs` — the canonical
   residual is the compensated jump integral plus the compensator-drift integral.
 -/
@@ -49,99 +47,6 @@ open LevyStochCalc.Ito.Setting LevyStochCalc.Poisson.Compensated LevyStochCalc.P
 namespace LevyStochCalc.Ito.JumpFormula
 
 universe u v
-
-
-section DominatedAe
-
-variable {E : Type v} [MeasurableSpace E] {ν : Measure E} [SigmaFinite ν]
-
-/-- **Dominated convergence for a mark integral over a shrinking family of cuts, at almost every
-time.** The variant of `tendsto_setIntegral_of_dominated` in which the domination and the
-pointwise convergence are asked at almost every time of the window only. -/
-theorem tendsto_setIntegral_of_dominated_ae
-    {T : ℝ} {A : ℕ → Set E} {fs : ℕ → ℝ → E → ℝ} {f g : ℝ → E → ℝ}
-    (hA : ∀ m, MeasurableSet (A m))
-    (hev : ∀ᵐ e ∂ν, ∀ᶠ m in atTop, e ∉ A m)
-    (hmeas : ∀ m, AEStronglyMeasurable (fun p : ℝ × E => fs m p.1 p.2)
-      ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν))
-    (hg : Integrable (fun p : ℝ × E => g p.1 p.2)
-      ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν))
-    (hdom : ∀ m, ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∀ e, |fs m s e| ≤ g s e)
-    (hconv : ∀ᵐ s ∂(volume.restrict (Set.Icc (0 : ℝ) T)), ∀ e,
-      Tendsto (fun m => fs m s e) atTop (𝓝 (f s e))) :
-    Tendsto (fun m => ∫ s in Set.Icc (0 : ℝ) T, ∫ e in (A m)ᶜ, fs m s e ∂ν) atTop
-      (𝓝 (∫ s in Set.Icc (0 : ℝ) T, ∫ e, f s e ∂ν)) := by
-  classical
-  have hwin : ∀ᵐ p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν),
-      (∀ m, ∀ e, |fs m p.1 e| ≤ g p.1 e) ∧
-        ∀ e, Tendsto (fun m => fs m p.1 e) atTop (𝓝 (f p.1 e)) :=
-    Measure.quasiMeasurePreserving_fst.ae ((MeasureTheory.ae_all_iff.mpr hdom).and hconv)
-  have hevp : ∀ᵐ p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν),
-      ∀ᶠ m in atTop, p.2 ∉ A m :=
-    Measure.quasiMeasurePreserving_snd.ae hev
-  have hSm : ∀ m, MeasurableSet {p : ℝ × E | p.2 ∈ (A m)ᶜ} := fun m =>
-    measurable_snd (hA m).compl
-  set F : ℕ → ℝ × E → ℝ :=
-    fun m => {p : ℝ × E | p.2 ∈ (A m)ᶜ}.indicator (fun q => fs m q.1 q.2) with hF
-  have hFmeas : ∀ m, AEStronglyMeasurable (F m)
-      ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) :=
-    fun m => (hmeas m).indicator (hSm m)
-  have hbound : ∀ m, ∀ᵐ p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν),
-      ‖F m p‖ ≤ g p.1 p.2 := by
-    intro m
-    filter_upwards [hwin] with p hp
-    have hle : |fs m p.1 p.2| ≤ g p.1 p.2 := hp.1 m p.2
-    by_cases hpS : p ∈ {q : ℝ × E | q.2 ∈ (A m)ᶜ}
-    · rw [hF]
-      simp only [Set.indicator_of_mem hpS, Real.norm_eq_abs]
-      exact hle
-    · rw [hF]
-      simp only [Set.indicator_of_notMem hpS, norm_zero]
-      exact le_trans (abs_nonneg _) hle
-  have hlim : ∀ᵐ p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν),
-      Tendsto (fun m => F m p) atTop (𝓝 (f p.1 p.2)) := by
-    filter_upwards [hwin, hevp] with p hp hpe
-    refine Tendsto.congr' ?_ (hp.2 p.2)
-    filter_upwards [hpe] with m hm
-    have hpS : p ∈ {q : ℝ × E | q.2 ∈ (A m)ᶜ} := hm
-    rw [hF]
-    simp only [Set.indicator_of_mem hpS]
-  have hDCT := tendsto_integral_of_dominated_convergence
-    (μ := (volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) (F := F)
-    (f := fun p : ℝ × E => f p.1 p.2) (fun p : ℝ × E => g p.1 p.2)
-    hFmeas hg hbound hlim
-  have hLHS : ∀ m, ∫ p, F m p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)
-      = ∫ s in Set.Icc (0 : ℝ) T, ∫ e in (A m)ᶜ, fs m s e ∂ν := by
-    intro m
-    have hint : Integrable (F m) ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) :=
-      hg.mono' (hFmeas m) (hbound m)
-    rw [integral_prod _ hint]
-    refine integral_congr_ae (Eventually.of_forall fun s => ?_)
-    change ∫ e, F m (s, e) ∂ν = ∫ e in (A m)ᶜ, fs m s e ∂ν
-    have hfun : (fun e => F m (s, e)) = ((A m)ᶜ).indicator (fun e => fs m s e) := by
-      funext e
-      by_cases he : e ∈ (A m)ᶜ
-      · rw [hF]
-        simp only [Set.indicator_of_mem he, Set.indicator_of_mem (show (s, e) ∈
-          {q : ℝ × E | q.2 ∈ (A m)ᶜ} from he)]
-      · rw [hF]
-        simp only [Set.indicator_of_notMem he, Set.indicator_of_notMem (show (s, e) ∉
-          {q : ℝ × E | q.2 ∈ (A m)ᶜ} from he)]
-    rw [hfun, integral_indicator (hA m).compl]
-  have hmlim : AEStronglyMeasurable (fun p : ℝ × E => f p.1 p.2)
-      ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) :=
-    aestronglyMeasurable_of_tendsto_ae atTop hFmeas hlim
-  have hblim : ∀ᵐ p ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν),
-      ‖f p.1 p.2‖ ≤ g p.1 p.2 := by
-    filter_upwards [MeasureTheory.ae_all_iff.mpr hbound, hlim] with p hb hl
-    exact le_of_tendsto hl.norm (Eventually.of_forall hb)
-  have hRHS : ∫ p, f p.1 p.2 ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν)
-      = ∫ s in Set.Icc (0 : ℝ) T, ∫ e, f s e ∂ν :=
-    integral_prod _ (hg.mono' hmlim hblim)
-  simp_rw [hLHS] at hDCT
-  rwa [hRHS] at hDCT
-
-end DominatedAe
 
 section TruncPath
 
@@ -431,61 +336,28 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   -- Step 3: the mixed integrands along the truncated paths, and their admissibility over the
   -- right-continuous filtration.
   have hBm : ∀ m (j : Fin d), Measurable (Function.uncurry
-      fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j) := by
-    intro m j
-    change Measurable fun p : Ω × ℝ =>
-      ∑ i, gradient u p.2 (xs m p.2 p.1) i * coeffs.σ p.2 (X.X p.2 p.1) i j
-    refine Finset.measurable_sum _ fun i _ => Measurable.mul ?_ (S.σ_meas i j)
-    exact (continuous_gradient_uncurry hu i).measurable.comp
-      (measurable_snd.prodMk ((hxs_m m).comp (measurable_snd.prodMk measurable_fst)))
+      fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j) :=
+    fun m j => measurable_uncurry_mixedDiffusionIntegrand S hu (xs m) (hxs_m m) j
   have hBp : ∀ m (j : Fin d), Probability.ProgressivelyMeasurable S.ℱ.rightCont
-      fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j := by
-    intro m j
-    change Probability.ProgressivelyMeasurable S.ℱ.rightCont
-      fun ω s => ∑ i, gradient u s (xs m s ω) i * coeffs.σ s (X.X s ω) i j
-    refine progressivelyMeasurable_finset_sum _ fun i _ =>
-      Probability.ProgressivelyMeasurable.mul ?_ ((S.σ_prog i j).mono hle)
-    exact progressivelyMeasurable_of_rightContinuous (X := fun s ω => gradient u s (xs m s ω) i)
-      (fun t => (continuous_gradient hu t i).measurable.comp (hxs_ad m t))
-      (fun ω t => ((continuous_gradient_uncurry hu i).tendsto (t, xs m t ω)).comp
-        ((tendsto_id'.mpr nhdsWithin_le_nhds).prodMk_nhds (hxs_rc m ω t)))
+      fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j :=
+    fun m j => progressivelyMeasurable_mixedDiffusionIntegrand S hu (xs m) (hxs_ad m)
+      (hxs_rc m) j
   have hBq : ∀ m (j : Fin d) (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T',
       (‖mixedDiffusionIntegrand u coeffs.σ s (xs m s ω) (X.X s ω) j‖₊ : ℝ≥0∞) ^ 2
         ∂volume ∂P < ⊤ :=
-    fun m j T' hT' => lintegral_window_sq_le_of_abs_le
-      (a := fun i ω s => coeffs.σ s (X.X s ω) i j) (c := max K₁ 0) (fun i => S.σ_meas i j)
-      (fun ω s => abs_mixedDiffusionIntegrand_le hK₁' s _ _ j) T' (fun i => S.σ_sq i j T' hT')
+    fun m j T' hT' =>
+      lintegral_window_sq_mixedDiffusionIntegrand_lt_top S hK₁' (xs m) j T' hT'
   have hΦm : ∀ m, Measurable fun p : Ω × ℝ × E =>
-      mixedJumpIncrement u coeffs.γ p.2.1 (xs m p.2.1 p.1) (X.X p.2.1 p.1) p.2.2 := by
-    intro m
-    have hy : Measurable fun p : Ω × ℝ × E => xs m p.2.1 p.1 :=
-      (hxs_m m).comp (measurable_snd.fst.prodMk measurable_fst)
-    have hγ : Measurable fun p : Ω × ℝ × E => coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2 :=
-      measurable_pi_lambda _ fun i => S.γ_meas i
-    change Measurable fun p : Ω × ℝ × E =>
-      u p.2.1 (xs m p.2.1 p.1 + coeffs.γ p.2.1 (X.X p.2.1 p.1) p.2.2) - u p.2.1 (xs m p.2.1 p.1)
-    exact (hu.continuous.measurable.comp (measurable_snd.fst.prodMk (hy.add hγ))).sub
-      (hu.continuous.measurable.comp (measurable_snd.fst.prodMk hy))
+      mixedJumpIncrement u coeffs.γ p.2.1 (xs m p.2.1 p.1) (X.X p.2.1 p.1) p.2.2 :=
+    fun m => measurable_mixedJumpIncrement S hu (xs m) (hxs_m m)
   have hΦp : ∀ m, Probability.MarkedProgressivelyMeasurable S.ℱ.rightCont
-      fun ω s e => mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e := by
-    intro m
-    have hZ := markedProgressivelyMeasurable_time_state_jump (ℱ := S.ℱ.rightCont)
-      (coeffs := coeffs) (Xp := X.X) (Y := xs m) (hxs_prog m)
-      (fun i => (S.γ_prog i).mono hle)
-    have hg : Continuous fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
-        u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1 :=
-      (hu.continuous.comp (continuous_fst.prodMk (continuous_snd.fst.add continuous_snd.snd))).sub
-        (hu.continuous.comp (continuous_fst.prodMk continuous_snd.fst))
-    have hg0 : (fun q : ℝ × (Fin n → ℝ) × (Fin n → ℝ) =>
-        u q.1 (q.2.1 + q.2.2) - u q.1 q.2.1) 0 = 0 := by simp
-    exact hg.comp_markedProgressivelyMeasurable hg0 hZ
+      fun ω s e => mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e :=
+    fun m => markedProgressivelyMeasurable_mixedJumpIncrement S hu (xs m) (hxs_prog m)
   have hΦq : ∀ m (T' : ℝ), 0 < T' → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T', ∫⁻ e,
       (‖mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e‖₊ : ℝ≥0∞) ^ 2
         ∂ν ∂volume ∂P < ⊤ :=
-    fun m T' hT' => lintegral_window_mark_sq_le_of_abs_le
-      (a := fun i ω s e => coeffs.γ s (X.X s ω) e i) (c := n * max K₁ 0) (fun i => S.γ_meas i)
-      (fun ω s e => abs_mixedJumpIncrement_le hu hK₁' hK₁0 s _ _ e) T'
-      (fun i => S.γ_sq i T' hT')
+    fun m T' hT' =>
+      lintegral_window_mark_sq_mixedJumpIncrement_lt_top S hu hK₁' hK₁0 (xs m) T' hT'
   have hCm : ∀ m, Measurable fun p : Ω × ℝ × E => markCut (smallMarks ν m)ᶜ
       (fun ω s e => mixedJumpIncrement u coeffs.γ s (xs m s ω) (X.X s ω) e) p.1 p.2.1 p.2.2 :=
     fun m => measurable_markCut (hΦm m) (hA m).compl
@@ -515,33 +387,12 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   have hCp𝒢 : Probability.MarkedProgressivelyMeasurable S.ℱ.rightCont
       (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω')) :=
     h_jumpInt_progMeas.mono hle
-  have hB_eq : MultidimBrownianMotion.stochasticIntegral W S.ℱ.rightCont h𝒢W
-        (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-        h_sigmaGrad_meas hBp𝒢 h_sigmaGrad_sq T
-      =ᵐ[P] MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
-        (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω))
-        h_sigmaGrad_meas h_sigmaGrad_progMeas h_sigmaGrad_sq T := by
-    have hchan : ∀ j : Fin d,
-        stochasticIntegralBrownian (W.W j) S.ℱ (S.isBrownian j)
-            (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-            (h_sigmaGrad_meas j) (h_sigmaGrad_progMeas j) (h_sigmaGrad_sq j) T
-          =ᵐ[P] stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
-            (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-            (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) T :=
-      fun j => stochasticIntegralBrownian_congr_filtration (W.W j) S.ℱ S.ℱ.rightCont
-        (S.isBrownian j) (h𝒢W j) hle _ (h_sigmaGrad_meas j) (h_sigmaGrad_progMeas j)
-        (hBp𝒢 j) (h_sigmaGrad_sq j) T
-    filter_upwards [MeasureTheory.ae_all_iff.mpr hchan] with ω hω
-    rw [multidimStochasticIntegral_eq_sum, multidimStochasticIntegral_eq_sum]
-    exact Finset.sum_congr rfl fun j _ => (hω j).symm
-  have hC_eq : stochasticIntegral N S.ℱ.rightCont h𝒢N
-        (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-        h_jumpInt_meas hCp𝒢 h_jumpInt_sq T
-      =ᵐ[P] stochasticIntegral N S.ℱ S.isPoisson
-        (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-        h_jumpInt_meas h_jumpInt_progMeas h_jumpInt_sq T :=
-    (stochasticIntegral_congr_filtration N S.ℱ S.ℱ.rightCont S.isPoisson h𝒢N hle _
-      h_jumpInt_meas h_jumpInt_progMeas hCp𝒢 h_jumpInt_sq T).symm
+  have hB_eq := multidimStochasticIntegral_rightCont_ae_eq S h𝒢W
+    (fun s ω => diffusionIntegrand u coeffs.σ s (X.X s ω)) h_sigmaGrad_meas
+    h_sigmaGrad_progMeas hBp𝒢 h_sigmaGrad_sq T
+  have hC_eq := compensatedStochasticIntegral_rightCont_ae_eq S h𝒢N
+    (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
+    h_jumpInt_meas h_jumpInt_progMeas hCp𝒢 h_jumpInt_sq T
   -- Step 4: the path limit at almost every time along `ms`, the `L²` limits of the endpoint and
   -- of the two stochastic terms along `ms`, and one common subsequence `k`.
   obtain ⟨ms, hms, hpath⟩ := SmallJump.exists_seq_ae_ae_tendsto_bigJumpProcess_pi
@@ -560,101 +411,17 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     refine lintegral_congr_ae ?_
     filter_upwards [hGae] with ω hω
     rw [hxs_eq (ms k) ω hω T hT.le]
-  have hbroL2 : ∀ j : Fin d, Tendsto (fun k => ∫⁻ ω,
-      (‖stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
-          (fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs (ms k) s ω) (X.X s ω) j)
-          (hBm (ms k) j) (hBp (ms k) j) (hBq (ms k) j) T ω
-        - stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
-          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-          (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) T ω‖₊ : ℝ≥0∞) ^ 2 ∂P)
-      atTop (𝓝 0) := by
-    intro j
-    refine tendsto_lintegral_sq_stochasticIntegralBrownian_of_dominated
-      (W.W j) S.ℱ.rightCont (h𝒢W j)
-      (fun k ω s => mixedDiffusionIntegrand u coeffs.σ s (xs (ms k) s ω) (X.X s ω) j)
-      (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-      (fun ω s => max K₁ 0 * ∑ i, |coeffs.σ s (X.X s ω) i j|)
-      (fun k => hBm (ms k) j) (fun k => hBp (ms k) j) (fun k => hBq (ms k) j)
-      (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) ?_ hT ?_ ?_ ?_
-    · change Measurable fun p : Ω × ℝ => max K₁ 0 * ∑ i, |coeffs.σ p.2 (X.X p.2 p.1) i j|
-      exact measurable_const.mul (Finset.measurable_sum _ fun i _ => (S.σ_meas i j).abs)
-    · filter_upwards [hpath'] with ω hω
-      filter_upwards [hω] with s hs
-      change Tendsto (fun k => ∑ i, gradient u s (xs (ms k) s ω) i * coeffs.σ s (X.X s ω) i j)
-        atTop (𝓝 (∑ i, gradient u s (X.X s ω) i * coeffs.σ s (X.X s ω) i j))
-      exact tendsto_sum_gradient_mul_of_tendsto hu s (fun i => coeffs.σ s (X.X s ω) i j) hs
-    · intro k
-      refine Eventually.of_forall fun ω => Eventually.of_forall fun s => ?_
-      rw [Real.norm_eq_abs]
-      exact abs_mixedDiffusionIntegrand_le hK₁' s _ _ j
-    · refine lintegral_window_sq_le_of_abs_le (a := fun i ω s => coeffs.σ s (X.X s ω) i j)
-        (c := max K₁ 0) (fun i => S.σ_meas i j) (fun ω s => ?_) T (fun i => S.σ_sq i j T hT)
-      rw [abs_of_nonneg (mul_nonneg hK₁0 (Finset.sum_nonneg fun i _ => abs_nonneg _))]
-  have hcmpL2 : Tendsto (fun k => ∫⁻ ω,
-      (‖Cmp (ms k) ω - stochasticIntegral N S.ℱ.rightCont h𝒢N
-          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-          h_jumpInt_meas hCp𝒢 h_jumpInt_sq T ω‖₊ : ℝ≥0∞) ^ 2 ∂P) atTop (𝓝 0) := by
-    refine tendsto_lintegral_sq_compensatedStochasticIntegral_of_dominated
-      N S.ℱ.rightCont h𝒢N
-      (fun k => markCut (smallMarks ν (ms k))ᶜ
-        fun ω s e => mixedJumpIncrement u coeffs.γ s (xs (ms k) s ω) (X.X s ω) e)
-      (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-      (fun ω s e => (n : ℝ) * max K₁ 0 * ∑ i, |coeffs.γ s (X.X s ω) e i|)
-      (fun k => hCm (ms k)) (fun k => hCp (ms k)) (fun k => hCq (ms k))
-      h_jumpInt_meas hCp𝒢 h_jumpInt_sq ?_ hT ?_ ?_ ?_
-    · exact measurable_const.mul (Finset.measurable_sum _ fun i _ => (S.γ_meas i).abs)
-    · filter_upwards [hpath'] with ω hω
-      filter_upwards [hω] with s hs
-      filter_upwards [ae_eventually_notMem_comp hanti hnull hms] with e he
-      have hlim : Tendsto
-          (fun k => mixedJumpIncrement u coeffs.γ s (xs (ms k) s ω) (X.X s ω) e) atTop
-          (𝓝 (mixedJumpIncrement u coeffs.γ s (X.X s ω) (X.X s ω) e)) :=
-        tendsto_mixedJumpIncrement_of_tendsto hu coeffs.γ s _ e hs
-      refine hlim.congr' ?_
-      filter_upwards [he] with k hk
-      simp [markCut, hk]
-    · intro k
-      refine Eventually.of_forall fun ω => Eventually.of_forall fun s =>
-        Eventually.of_forall fun e => ?_
-      rw [Real.norm_eq_abs]
-      exact (abs_markCut_le _ _ _ _ _).trans (abs_mixedJumpIncrement_le hu hK₁' hK₁0 s _ _ e)
-    · refine lintegral_window_mark_sq_le_of_abs_le
-        (a := fun i ω s e => coeffs.γ s (X.X s ω) e i) (c := n * max K₁ 0)
-        (fun i => S.γ_meas i) (fun ω s e => ?_) T (fun i => S.γ_sq i T hT)
-      rw [abs_of_nonneg (mul_nonneg (mul_nonneg (Nat.cast_nonneg n) hK₁0)
-        (Finset.sum_nonneg fun i _ => abs_nonneg _))]
-  have hUm : ∀ (l : ℕ) (c : Fin n ⊕ Fin d ⊕ Unit), Measurable
-      (Sum.elim (fun i ω => xs (ms l) T ω i) (Sum.elim
-        (fun j ω => stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
-          (fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs (ms l) s ω) (X.X s ω) j)
-          (hBm (ms l) j) (hBp (ms l) j) (hBq (ms l) j) T ω)
-        (fun _ ω => Cmp (ms l) ω)) c) := by
-    rintro l (i | j | _)
-    · exact (measurable_pi_apply i).comp ((hxs_m (ms l)).comp
-        (measurable_const.prodMk measurable_id))
-    · exact ((stochasticIntegralBrownian_stronglyAdapted (W.W j) S.ℱ.rightCont (h𝒢W j)
-        (fun ω s => mixedDiffusionIntegrand u coeffs.σ s (xs (ms l) s ω) (X.X s ω) j)
-        (hBm (ms l) j) (hBp (ms l) j) (hBq (ms l) j) T).mono
-          (S.ℱ.rightCont.le T)).measurable
-    · exact (stochasticIntegral_adapted N S.ℱ.rightCont h𝒢N _ (hCm (ms l)) (hCp (ms l))
-        (hCq (ms l)) T).mono (S.ℱ.rightCont.rightCont.le T) le_rfl
-  have hVm : ∀ c : Fin n ⊕ Fin d ⊕ Unit, Measurable
-      (Sum.elim (fun i ω => X.X T ω i) (Sum.elim
-        (fun j ω => stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
-          (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-          (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) T ω)
-        (fun _ ω => stochasticIntegral N S.ℱ.rightCont h𝒢N
-          (fun ω' s e => u s (X.X s ω' + coeffs.γ s (X.X s ω') e) - u s (X.X s ω'))
-          h_jumpInt_meas hCp𝒢 h_jumpInt_sq T ω)) c) := by
-    rintro (i | j | _)
-    · exact (measurable_pi_apply i).comp (X.measurable_path.comp
-        (measurable_const.prodMk measurable_id))
-    · exact ((stochasticIntegralBrownian_stronglyAdapted (W.W j) S.ℱ.rightCont (h𝒢W j)
-        (fun ω s => diffusionIntegrand u coeffs.σ s (X.X s ω) j)
-        (h_sigmaGrad_meas j) (hBp𝒢 j) (h_sigmaGrad_sq j) T).mono
-          (S.ℱ.rightCont.le T)).measurable
-    · exact (stochasticIntegral_adapted N S.ℱ.rightCont h𝒢N _ h_jumpInt_meas hCp𝒢
-        h_jumpInt_sq T).mono (S.ℱ.rightCont.rightCont.le T) le_rfl
+  have hbroL2 := tendsto_lintegral_sq_mixedDiffusionIntegral_sub S h𝒢W hu hK₁' hK₁0
+    (fun k => xs (ms k)) (fun k => hBm (ms k)) (fun k => hBp (ms k)) (fun k => hBq (ms k))
+    h_sigmaGrad_meas hBp𝒢 h_sigmaGrad_sq T hT hpath'
+  have hcmpL2 := tendsto_lintegral_sq_mixedCompensatedIntegral_sub S h𝒢N hu hK₁' hK₁0
+    (fun k => xs (ms k)) ms hms (fun k => hCm (ms k)) (fun k => hCp (ms k))
+    (fun k => hCq (ms k)) h_jumpInt_meas hCp𝒢 h_jumpInt_sq T hT hpath'
+  have hUm := fun l => measurable_sumElim_mixedTerms S h𝒢W h𝒢N (xs (ms l)) (hxs_m (ms l))
+    ((smallMarks ν (ms l))ᶜ) (hBm (ms l)) (hBp (ms l)) (hBq (ms l)) (hCm (ms l))
+    (hCp (ms l)) (hCq (ms l)) T
+  have hVm := measurable_sumElim_solutionTerms S h𝒢W h𝒢N h_sigmaGrad_meas hBp𝒢
+    h_sigmaGrad_sq h_jumpInt_meas hCp𝒢 h_jumpInt_sq T
   have hL2 : ∀ c : Fin n ⊕ Fin d ⊕ Unit, Tendsto (fun l : ℕ => ∫⁻ ω,
       (‖Sum.elim (fun i ω => xs (ms l) T ω i) (Sum.elim
             (fun j ω => stochasticIntegralBrownian (W.W j) S.ℱ.rightCont (h𝒢W j)
@@ -796,51 +563,9 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
     exact (SmallJump.tendsto_comp_of_tendsto hu T hT').sub_const _
   -- The drift term: dominated convergence on the window.
   have hdrift : ∀ᵐ ω ∂P, Tendsto (fun i => Dr (φ i) ω) atTop
-      (𝓝 (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))) := by
-    have hμint : ∀ᵐ ω ∂P, ∀ p : Fin n,
-        IntegrableOn (fun s => coeffs.μ s (X.X s ω) p) (Set.Icc (0 : ℝ) T) :=
-      MeasureTheory.ae_all_iff.mpr fun p =>
-        ae_integrableOn_of_energy_lt_top (hμm p) (hμq p T hT)
-    have hσsq : ∀ᵐ ω ∂P, ∀ (p : Fin n) (j : Fin d),
-        IntegrableOn (fun s => coeffs.σ s (X.X s ω) p j ^ 2) (Set.Icc (0 : ℝ) T) := by
-      refine MeasureTheory.ae_all_iff.mpr fun p => MeasureTheory.ae_all_iff.mpr fun j => ?_
-      filter_upwards [MeasureTheory.ae_lt_top (measurable_energyDensity (S.σ_meas p j) T)
-        (S.σ_sq p j T hT).ne] with ω hω
-      exact (LevyStochCalc.Ito.Picard.memLp_two_of_lintegral_sq_lt_top
-        (Measurable.of_uncurry_left (S.σ_meas p j)) hω).integrable_sq
-    filter_upwards [hpathφ, hGae, hμint, hσsq] with ω hω hωG hμω hσω
-    refine tendsto_integral_of_dominated_convergence
-      (fun s => max K₀ 0 + max K₁ 0 * ∑ p, |coeffs.μ s (X.X s ω) p|
-        + (1 / 2) * max K₂ 0 * ∑ p, ∑ q, ∑ j,
-          (coeffs.σ s (X.X s ω) p j ^ 2 + coeffs.σ s (X.X s ω) q j ^ 2) / 2) ?_ ?_ ?_ ?_
-    · intro i
-      refine Measurable.aestronglyMeasurable ?_
-      have hy : Measurable fun s => xs (φ i) s ω := (hxs_m (φ i)).of_uncurry_right
-      change Measurable fun s => timeDeriv u s (xs (φ i) s ω)
-        + ((∑ p, coeffs.μ s (X.X s ω) p * gradient u s (xs (φ i) s ω) p)
-          + (1 / 2) * ∑ p, ∑ q, ∑ j, coeffs.σ s (X.X s ω) p j * coeffs.σ s (X.X s ω) q j
-            * hessian u s (xs (φ i) s ω) p q)
-      refine Measurable.add ((continuous_timeDeriv hu).measurable.comp
-        (measurable_id.prodMk hy)) (Measurable.add ?_ (measurable_const.mul ?_))
-      · exact Finset.measurable_sum _ fun p _ => (Measurable.of_uncurry_left (hμm p)).mul
-          ((continuous_gradient_uncurry hu p).measurable.comp (measurable_id.prodMk hy))
-      · refine Finset.measurable_sum _ fun p _ => Finset.measurable_sum _ fun q _ =>
-          Finset.measurable_sum _ fun j _ => ?_
-        exact ((Measurable.of_uncurry_left (S.σ_meas p j)).mul
-          (Measurable.of_uncurry_left (S.σ_meas q j))).mul
-          ((continuous_hessian hu p q).measurable.comp (measurable_id.prodMk hy))
-    · refine Integrable.add (Integrable.add (integrable_const _) ?_) ?_
-      · exact (integrable_finsetSum _ fun p _ => (hμω p).abs).const_mul _
-      · refine Integrable.const_mul ?_ _
-        refine integrable_finsetSum _ fun p _ => integrable_finsetSum _ fun q _ =>
-          integrable_finsetSum _ fun j _ => ?_
-        exact ((hσω p j).add (hσω q j)).div_const 2
-    · intro i
-      refine Eventually.of_forall fun s => ?_
-      rw [Real.norm_eq_abs]
-      exact abs_mixedDriftIntegrand_le coeffs hK₂0 hK₀' hK₁' hK₂' s _ _
-    · filter_upwards [hω] with s hs
-      exact tendsto_mixedDriftIntegrand_of_tendsto hu coeffs s _ hs
+      (𝓝 (∫ s in Set.Icc (0 : ℝ) T, driftIntegrand u coeffs s (X.X s ω))) :=
+    tendsto_mixedDriftIntegral_of_tendsto S hu hK₀' hK₁' hK₂' hK₂0 hμm hμq T hT
+      (fun i => xs (φ i)) (fun i => hxs_m (φ i)) hpathφ
   -- The two stochastic terms, by the choice of `k`, transported back to the filtration of `S`.
   have hbro : ∀ᵐ ω ∂P, Tendsto (fun i => Bro (φ i) ω) atTop
       (𝓝 (MultidimBrownianMotion.stochasticIntegral W S.ℱ S.isBrownian
@@ -859,50 +584,9 @@ theorem itoLevyFormula_jumpResidual_of_boundedDerivs
   -- The compensator-drift term: dominated convergence on the window and the mark space.
   have hcdrift : ∀ᵐ ω ∂P, Tendsto (fun i => Cd (φ i) ω) atTop
       (𝓝 (∫ s in Set.Icc (0 : ℝ) T, ∫ e,
-        compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν)) := by
-    have hγint : ∀ᵐ ω ∂P, ∀ i : Fin n, Integrable
-        (fun p : ℝ × E => coeffs.γ p.1 (X.X p.1 ω) p.2 i ^ 2)
-        ((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) := by
-      refine MeasureTheory.ae_all_iff.mpr fun i => ?_
-      filter_upwards [MeasureTheory.ae_lt_top (measurable_markEnergy
-        (f := fun ω s e => (‖SmallJump.pathJumpCoeff coeffs X.X i ω s e‖₊ : ℝ≥0∞) ^ 2)
-        (((S.γ_meas i).nnnorm.coe_nnreal_ennreal).pow_const 2) T) (S.γ_sq i T hT).ne]
-        with ω hω
-      have hm : Measurable fun p : ℝ × E => coeffs.γ p.1 (X.X p.1 ω) p.2 i :=
-        (S.γ_meas i).comp (measurable_const.prodMk (measurable_fst.prodMk measurable_snd))
-      have hfin : ∫⁻ p, (‖coeffs.γ p.1 (X.X p.1 ω) p.2 i‖₊ : ℝ≥0∞) ^ 2
-          ∂((volume.restrict (Set.Icc (0 : ℝ) T)).prod ν) < ⊤ := by
-        rw [lintegral_prod _ ((hm.nnnorm.coe_nnreal_ennreal.pow_const 2).aemeasurable)]
-        exact hω
-      exact (memLp_two_of_lintegral_sq_lt_top hm.aestronglyMeasurable hfin).integrable_sq
-    filter_upwards [hpathφ, hGae, hγint] with ω hω hωG hγω
-    have hγm : Measurable fun p : ℝ × E => coeffs.γ p.1 (X.X p.1 ω) p.2 :=
-      measurable_pi_lambda _ fun i =>
-        (S.γ_meas i).comp (measurable_const.prodMk (measurable_fst.prodMk measurable_snd))
-    refine tendsto_setIntegral_of_dominated_ae (ν := ν) (T := T)
-      (A := fun i => smallMarks ν (φ i))
-      (fs := fun i s e => mixedCompensatorDriftIntegrand u coeffs.γ s (xs (φ i) s ω) (X.X s ω) e)
-      (f := fun s e => compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e)
-      (g := fun s e => (n : ℝ) ^ 2 * max K₂ 0 * ((n : ℝ) * ∑ i, coeffs.γ s (X.X s ω) e i ^ 2))
-      (fun i => hA (φ i)) (ae_eventually_notMem_comp hanti hnull hφ) ?_ ?_ ?_ ?_
-    · intro i
-      refine Measurable.aestronglyMeasurable ?_
-      have hy : Measurable fun p : ℝ × E => xs (φ i) p.1 ω :=
-        ((hxs_m (φ i)).of_uncurry_right).comp measurable_fst
-      change Measurable fun p : ℝ × E =>
-        u p.1 (xs (φ i) p.1 ω + coeffs.γ p.1 (X.X p.1 ω) p.2) - u p.1 (xs (φ i) p.1 ω)
-          - ∑ l, coeffs.γ p.1 (X.X p.1 ω) p.2 l * gradient u p.1 (xs (φ i) p.1 ω) l
-      refine Measurable.sub (Measurable.sub ?_ ?_) ?_
-      · exact hu.continuous.measurable.comp (measurable_fst.prodMk (hy.add hγm))
-      · exact hu.continuous.measurable.comp (measurable_fst.prodMk hy)
-      · exact Finset.measurable_sum _ fun l _ => ((measurable_pi_apply l).comp hγm).mul
-          ((continuous_gradient_uncurry hu l).measurable.comp (measurable_fst.prodMk hy))
-    · exact ((integrable_finsetSum _ fun l _ => hγω l).const_mul _).const_mul _
-    · intro i
-      exact Eventually.of_forall fun s e =>
-        abs_mixedCompensatorDriftIntegrand_le hu hK₂' hK₂0 s _ _ e
-    · filter_upwards [hω] with s hs e
-      exact tendsto_mixedCompensatorDriftIntegrand_of_tendsto hu coeffs.γ s _ e hs
+        compensatorDriftIntegrand u coeffs.γ s (X.X s ω) e ∂ν)) :=
+    tendsto_mixedCompensatorDriftIntegral_of_tendsto S hu hK₂' hK₂0 T hT
+      (fun i => xs (φ i)) (fun i => hxs_m (φ i)) φ hφ hpathφ
   -- Step 5: the five-term limit identity along `φ`.
   exact ae_itoLevy_of_ae_tendsto_terms coeffs u T (fun i => xs (φ i)) X.X
     (fun i => Dr (φ i)) (fun i => Bro (φ i)) _ (fun i => Cmp (φ i)) _ (fun i => Cd (φ i))
