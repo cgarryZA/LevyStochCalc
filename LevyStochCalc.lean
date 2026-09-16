@@ -347,6 +347,7 @@ import LevyStochCalc.Ito.PicardWellPosed
 import LevyStochCalc.Ito.PicardFixedPoint
 import LevyStochCalc.Ito.PicardFixedPointIndistinguishable
 import LevyStochCalc.Ito.JumpDiffusionAdapted
+import LevyStochCalc.Ito.JumpDiffusionItoLevyPinned
 import LevyStochCalc.Ito.JumpFormula
 import LevyStochCalc.Ito.VectorItoProcessDiff
 import LevyStochCalc.Ito.VectorItoVersionSup

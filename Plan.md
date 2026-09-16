@@ -904,6 +904,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       3 for a cell-constant candidate with an explicit six-term residual, constant `6`) and to land
       its first end-to-end backward node-error bound on a Lévy driver, in which `CellRegularity`
       enters only the horizon form of the residual.
+      Its forward leg (route A of the dissertation's Epic A4″) takes an `IsItoLevyProcess` over the
+      augmented joint filtration as a hypothesis; `Ito/JumpDiffusionItoLevyPinned.lean` (2026-09-16)
+      supplies it from Lipschitz and regular coefficients,
+      `LevyDriver.exists_isItoLevyProcess_augJoint` (through `JumpDiffusion.exists_unique_adapted`
+      at that filtration), with adaptedness and square integrability at every nonnegative time, the
+      latter from the `S²` bound `JumpDiffusion.sup_L2`.
       Also landed:
       `Brownian/MultidimItoCongr.lean`, `BSDEJ/SolvesAe.lean` (F15, path half), `Ito/C12.lean`,
       `Ito/C12Mollify.lean` (F15, `C^{1,2}` groundwork), and the removal of the duplicate
