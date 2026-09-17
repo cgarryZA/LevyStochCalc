@@ -150,6 +150,8 @@ import LevyStochCalc.Poisson.ChaosStep
 import LevyStochCalc.Poisson.SimpleChaos
 import LevyStochCalc.Poisson.SecondChaos
 import LevyStochCalc.Poisson.ChaosExpansion
+import LevyStochCalc.Poisson.SimpleChaosDegree
+import LevyStochCalc.Poisson.SimpleChaosDegreeComplex
 import LevyStochCalc.Poisson.PredictableIntegrand
 import LevyStochCalc.Poisson.PerpBridge
 
