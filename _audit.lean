@@ -4963,3 +4963,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_sq
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_eq_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.condExp_jointChaosStep_mul
+-- ===== The Hermite and Charlier generating functions (E3a-gf) =====
+#print axioms LevyStochCalc.Probability.hermiteScaled_two_mul_zero
+#print axioms LevyStochCalc.Probability.hermiteScaled_two_mul_add_one_zero
+#print axioms LevyStochCalc.Probability.sum_antidiagonal_hermiteScaled
+#print axioms LevyStochCalc.Probability.hasSum_hermiteScaled_zero
+#print axioms LevyStochCalc.Probability.hasSum_hermiteScaled
+#print axioms LevyStochCalc.Probability.hasSum_hermiteScaled_real
+#print axioms LevyStochCalc.Probability.hasSum_hermiteScaled_I
+#print axioms LevyStochCalc.Probability.sum_antidiagonal_div_factorial
+#print axioms LevyStochCalc.Probability.charlierScaled_zero_arg
+#print axioms LevyStochCalc.Probability.hasSum_charlierScaled

@@ -48,6 +48,8 @@ import LevyStochCalc.Probability.HermiteVariance
 import LevyStochCalc.Probability.WienerChaosStep
 import LevyStochCalc.Probability.PoissonMoments
 import LevyStochCalc.Probability.Charlier
+import LevyStochCalc.Probability.HermiteGenerating
+import LevyStochCalc.Probability.CharlierGenerating
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
