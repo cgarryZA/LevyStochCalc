@@ -348,23 +348,24 @@ theorem hasSum_hermiteScaled_I (τ x a : ℝ) :
   rw [he] at h
   exact h
 
-/-- The binomial identity behind the degree-`d` energy `∑_(r+s=d) A^r B^s / (r! s!) = R^d / d!`. -/
-theorem sum_antidiagonal_div_factorial (A B : ℝ) (d : ℕ) :
-    ∑ p ∈ antidiagonal d, A ^ p.1 * B ^ p.2 / ((p.1.factorial : ℝ) * (p.2.factorial : ℝ))
-      = (A + B) ^ d / (d.factorial : ℝ) := by
+/-- The binomial identity `∑_(r+s=d) A^r B^s / (r! s!) = (A + B)^d / d!`. -/
+theorem sum_antidiagonal_div_factorial {K : Type*} [Field K] [CharZero K] (A B : K) (d : ℕ) :
+    ∑ p ∈ antidiagonal d, A ^ p.1 * B ^ p.2 / ((p.1.factorial : K) * (p.2.factorial : K))
+      = (A + B) ^ d / (d.factorial : K) := by
   rw [(Commute.all A B).add_pow' d, Finset.sum_div]
   refine Finset.sum_congr rfl fun p hp => ?_
   have hd : p.1 + p.2 = d := Finset.mem_antidiagonal.mp hp
-  have h1 : (p.1.factorial : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr p.1.factorial_ne_zero
-  have h2 : (p.2.factorial : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr p.2.factorial_ne_zero
-  have hc : ((d.choose p.1 : ℕ) : ℝ) * ((p.1.factorial : ℝ) * (p.2.factorial : ℝ))
-      = (d.factorial : ℝ) := by
+  have h1 : (p.1.factorial : K) ≠ 0 := Nat.cast_ne_zero.mpr p.1.factorial_ne_zero
+  have h2 : (p.2.factorial : K) ≠ 0 := Nat.cast_ne_zero.mpr p.2.factorial_ne_zero
+  have h3 : (d.factorial : K) ≠ 0 := Nat.cast_ne_zero.mpr d.factorial_ne_zero
+  have hc : ((d.choose p.1 : ℕ) : K) * ((p.1.factorial : K) * (p.2.factorial : K))
+      = (d.factorial : K) := by
     rw [← hd]
     have h := Nat.add_choose_mul_factorial_mul_factorial p.2 p.1
     rw [add_comm p.2 p.1] at h
     have h' : ((p.1 + p.2).choose p.1 * (p.1.factorial * p.2.factorial) : ℕ)
         = (p.1 + p.2).factorial := by rw [← h]; ring
-    exact_mod_cast congrArg (fun m : ℕ => (m : ℝ)) h'
+    exact_mod_cast congrArg (fun m : ℕ => (m : K)) h'
   rw [nsmul_eq_mul]
   field_simp
   linear_combination (-(A ^ p.1 * B ^ p.2)) * hc
