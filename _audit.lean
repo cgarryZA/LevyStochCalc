@@ -4991,3 +4991,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.comap_count_sub_le_sigmaPoisson
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_increment_iSup_count
 #print axioms LevyStochCalc.Driver.LevyDriver.iIndepFun_increment_count
+-- ===== The complex-scaled blocks of a step of the driver and their moments (E3f-i) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosBlockC
+#print axioms LevyStochCalc.Driver.LevyDriver.conj_jointChaosBlockC
+#print axioms LevyStochCalc.Driver.LevyDriver.memLp_two_jointChaosBlockC
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosBlockC_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosBlockC_mul_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosBlockC_sq
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_norm_sq_jointChaosBlockC
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_coeffC_mul_jointChaosStep_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_coeffC_mul_jointChaosBlockC_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_sq_im_coeffC_mul_jointChaosBlockC

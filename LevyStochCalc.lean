@@ -213,6 +213,7 @@ import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.JointChaosStep
 import LevyStochCalc.Driver.JointChaosBlock
 import LevyStochCalc.Driver.CellIndependence
+import LevyStochCalc.Driver.JointChaosComplex
 import LevyStochCalc.Driver.ValueSigma
 import LevyStochCalc.Driver.GermIndep
 import LevyStochCalc.Driver.AugJointUsualConditions
