@@ -42,6 +42,8 @@ import LevyStochCalc.Probability.CharCylinder
 import LevyStochCalc.Probability.PairingFubini
 import LevyStochCalc.Probability.IndepBlocks
 import LevyStochCalc.Probability.GaussianSum
+import LevyStochCalc.Probability.GaussianMoments
+import LevyStochCalc.Probability.Hermite
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation

@@ -4859,3 +4859,27 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_isItoLevyProcess_augJoint
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.isItoLevyProcess_coord_of_solvesOn
 #print axioms LevyStochCalc.Ito.Setting.memLp_two_coord_of_supL2
+
+-- ===== Hermite polynomials of variance v and Gaussian moments (E3a) =====
+#print axioms LevyStochCalc.Probability.integral_pow_even_gaussianReal
+#print axioms LevyStochCalc.Probability.integral_pow_odd_gaussianReal
+#print axioms LevyStochCalc.Probability.integral_pow_add_two_gaussianReal
+#print axioms LevyStochCalc.Probability.integrable_pow_gaussianReal_zero
+#print axioms LevyStochCalc.Probability.integrable_eval_gaussianReal
+#print axioms LevyStochCalc.Probability.integral_mul_eval_gaussianReal
+#print axioms Polynomial.derivative_hermite
+#print axioms Polynomial.hermite_succ_succ
+#print axioms LevyStochCalc.Probability.hermitePoly
+#print axioms LevyStochCalc.Probability.hermitePoly_zero
+#print axioms LevyStochCalc.Probability.hermitePoly_succ
+#print axioms LevyStochCalc.Probability.hermitePoly_one
+#print axioms LevyStochCalc.Probability.derivative_hermitePoly
+#print axioms LevyStochCalc.Probability.hermitePoly_succ_succ
+#print axioms LevyStochCalc.Probability.hermiteScaled
+#print axioms LevyStochCalc.Probability.hermiteScaled_zero
+#print axioms LevyStochCalc.Probability.hermiteScaled_one
+#print axioms LevyStochCalc.Probability.hermiteScaled_succ_succ
+#print axioms LevyStochCalc.Probability.hermiteScaled_two
+#print axioms LevyStochCalc.Probability.hermiteScaled_eq
+#print axioms LevyStochCalc.Probability.integral_hermite_step
+#print axioms LevyStochCalc.Probability.integral_hermitePoly_mul
