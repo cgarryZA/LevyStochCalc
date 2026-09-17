@@ -6,11 +6,26 @@ Authors: Christian Garry
 import Mathlib.Probability.Independence.Basic
 
 /-!
-# Grouping an independent family along the fibres of a product index
+# Grouping and concatenating independent families
 
 An independent family of σ-algebras (or random variables) indexed by pairs `(i, j)` stays
 independent after grouping along the second coordinate: the σ-algebras `⨆ i, m (i, j)` are
 independent in `j`, and the random vectors `(Y (i, j))ᵢ` are independent in `j`.
+
+Two independent families also concatenate. If each of two families of σ-algebras is independent
+and their suprema are independent of each other, the family indexed by the sum of the two index
+types is independent; for two families of real random variables indexed by `Fin d` and `Fin p`
+this gives the family indexed by `Fin (d + p)` obtained by concatenation.
+
+## Main statements
+
+* `LevyStochCalc.Probability.iIndep_iSup_fiber` — grouping an independent family indexed by
+  pairs along the second coordinate.
+* `LevyStochCalc.Probability.iIndepFun_fiber` — the same for random variables.
+* `LevyStochCalc.Probability.iIndep_sumElim` — concatenating two independent families of
+  σ-algebras.
+* `LevyStochCalc.Probability.iIndepFun_addCases` — concatenating two independent families of
+  real random variables.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -59,5 +74,56 @@ theorem iIndepFun_fiber {𝓧 : ι × κ → Type*} [∀ q, MeasurableSpace (�
   funext i
   rw [MeasurableSpace.comap_comp]
   rfl
+
+/-! ### Concatenating two independent families -/
+
+section Concatenation
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+
+/-- Two independent families of σ-algebras whose suprema are independent form an independent
+family indexed by the sum of the two index types. -/
+theorem iIndep_sumElim {ι κ : Type*} {m₁ : ι → MeasurableSpace Ω}
+    {m₂ : κ → MeasurableSpace Ω} (h₁ : iIndep m₁ P) (h₂ : iIndep m₂ P)
+    (h : Indep (⨆ i, m₁ i) (⨆ j, m₂ j) P) : iIndep (Sum.elim m₁ m₂) P := by
+  rw [iIndep_iff]
+  intro s f hf
+  have hl : ∀ i ∈ s.toLeft, MeasurableSet[m₁ i] (f (Sum.inl i)) := fun i hi =>
+    hf _ (Finset.mem_toLeft.mp hi)
+  have hr : ∀ j ∈ s.toRight, MeasurableSet[m₂ j] (f (Sum.inr j)) := fun j hj =>
+    hf _ (Finset.mem_toRight.mp hj)
+  have hsplit : (⋂ x ∈ s, f x)
+      = (⋂ i ∈ s.toLeft, f (Sum.inl i)) ∩ ⋂ j ∈ s.toRight, f (Sum.inr j) := by
+    ext ω
+    simp only [Set.mem_iInter, Set.mem_inter_iff, Finset.mem_toLeft, Finset.mem_toRight]
+    refine ⟨fun hx => ⟨fun i hi => hx _ hi, fun j hj => hx _ hj⟩, ?_⟩
+    rintro ⟨ha, hb⟩ (i | j) hx
+    · exact ha i hx
+    · exact hb j hx
+  have hA : MeasurableSet[⨆ i, m₁ i] (⋂ i ∈ s.toLeft, f (Sum.inl i)) :=
+    Finset.measurableSet_biInter _ fun i hi => (le_iSup m₁ i) _ (hl i hi)
+  have hB : MeasurableSet[⨆ j, m₂ j] (⋂ j ∈ s.toRight, f (Sum.inr j)) :=
+    Finset.measurableSet_biInter _ fun j hj => (le_iSup m₂ j) _ (hr j hj)
+  rw [hsplit, (Indep_iff _ _ _).mp h _ _ hA hB, h₁.meas_biInter hl, h₂.meas_biInter hr,
+    Finset.prod_sum_eq_prod_toLeft_mul_prod_toRight]
+
+/-- Two independent families of real random variables indexed by `Fin d` and `Fin p`, whose
+generated σ-algebras are independent, form an independent family indexed by `Fin (d + p)`. -/
+theorem iIndepFun_addCases {d p : ℕ} {X : Fin d → Ω → ℝ} {Y : Fin p → Ω → ℝ}
+    (hX : iIndepFun X P) (hY : iIndepFun Y P)
+    (h : Indep (⨆ j, MeasurableSpace.comap (X j) inferInstance)
+      (⨆ k, MeasurableSpace.comap (Y k) inferInstance) P) :
+    iIndepFun (Fin.addCases (motive := fun _ => Ω → ℝ) X Y) P := by
+  rw [iIndepFun_iff_iIndep] at hX hY ⊢
+  have h2 := (iIndep_sumElim hX hY h).precomp
+    (finSumFinEquiv (m := d) (n := p)).symm.injective
+  refine (?_ : (fun x => MeasurableSpace.comap
+      (Fin.addCases (motive := fun _ => Ω → ℝ) X Y x) inferInstance)
+    = Sum.elim (fun j => MeasurableSpace.comap (X j) inferInstance)
+      (fun k => MeasurableSpace.comap (Y k) inferInstance) ∘ finSumFinEquiv.symm) ▸ h2
+  funext x
+  refine Fin.addCases (fun j => ?_) (fun k => ?_) x <;> simp
+
+end Concatenation
 
 end LevyStochCalc.Probability

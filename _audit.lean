@@ -4983,3 +4983,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_coeff_mul_jointChaosStep_mul_eq_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.jointChaosBlock
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosBlock_mul_eq_zero
+-- ===== Joint independence of the coordinates of a step (E3e-T1) =====
+#print axioms LevyStochCalc.Probability.iIndep_sumElim
+#print axioms LevyStochCalc.Probability.iIndepFun_addCases
+#print axioms LevyStochCalc.Driver.LevyDriver.iIndepFun_increment
+#print axioms LevyStochCalc.Driver.LevyDriver.iIndepFun_count
+#print axioms LevyStochCalc.Driver.LevyDriver.comap_count_sub_le_sigmaPoisson
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_iSup_increment_iSup_count
+#print axioms LevyStochCalc.Driver.LevyDriver.iIndepFun_increment_count
