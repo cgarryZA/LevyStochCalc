@@ -4941,6 +4941,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_sq
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_strip_mul
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_strip_eq_zero
+#print axioms LevyStochCalc.Poisson.integral_poissonChaosStepC_mul
+#print axioms LevyStochCalc.Poisson.integral_norm_sq_poissonChaosStepC
+#print axioms LevyStochCalc.Poisson.integral_poissonChaosStepC_sq
+#print axioms LevyStochCalc.Poisson.integral_poissonChaosStepC_strip_mul
 -- ===== The joint chaos element of a step of the driver (E3d) =====
 #print axioms LevyStochCalc.Poisson.integrable_comp_count
 #print axioms LevyStochCalc.Poisson.integrable_poissonChaosStep_mul
@@ -4974,3 +4978,8 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.sum_antidiagonal_div_factorial
 #print axioms LevyStochCalc.Probability.charlierScaled_zero_arg
 #print axioms LevyStochCalc.Probability.hasSum_charlierScaled
+-- ===== Total-degree blocks of a step of the driver with node-measurable coefficients (E3e, Tier 2) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_coeff_mul_jointChaosStep_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_coeff_mul_jointChaosStep_mul_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosBlock
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosBlock_mul_eq_zero

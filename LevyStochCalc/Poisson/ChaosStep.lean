@@ -35,6 +35,14 @@ profile beyond the indicator of `A`, so the rate enters only through `ν̂(B)`.
 * `LevyStochCalc.Poisson.referenceIntensity_strip_ne_top`,
   `LevyStochCalc.Poisson.referenceIntensity_strip_toReal` — the intensity of such a strip is
   finite and equals `(b - a) ν(A)`.
+* `LevyStochCalc.Poisson.integral_poissonChaosStepC_mul` — the same orthogonality at a complex
+  scalar: `E[(c^n C_n) (c'^m C_m)] = δ_(n m) c^n c'^n n! λ ^ n`.
+* `LevyStochCalc.Poisson.integral_norm_sq_poissonChaosStepC` —
+  `E[‖c^n C_n‖ ^ 2] = ‖c‖ ^ (2n) n! λ ^ n`.
+* `LevyStochCalc.Poisson.integral_poissonChaosStepC_sq` —
+  `E[(c^n C_n) ^ 2] = c ^ (2n) n! λ ^ n`.
+* `LevyStochCalc.Poisson.integral_poissonChaosStepC_strip_mul` — the complex-scaled bilinear
+  moment on a strip `(a, b] ×ˢ A`, with rate `(b - a) ν(A)`.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -202,5 +210,73 @@ theorem integral_poissonChaosStep_strip_eq_zero (N : PoissonRandomMeasure P ν) 
     ∫ ω, poissonChaosStep N n (Set.Ioc a b ×ˢ A) ω ∂P = 0 :=
   integral_poissonChaosStep_eq_zero N (measurableSet_Ioc.prod hA)
     (referenceIntensity_strip_ne_top ha hAν) hn
+
+/-! ### Complex scalars -/
+
+/-- The bilinear second moment of two complex-scaled Poisson chaos elements of a region of
+finite intensity. -/
+theorem integral_poissonChaosStepC_mul (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (c c' : ℂ) (n m : ℕ) :
+    ∫ ω, (c ^ n * (poissonChaosStep N n B ω : ℂ)) * (c' ^ m * (poissonChaosStep N m B ω : ℂ)) ∂P
+      = if n = m then c ^ n * c' ^ n * (n.factorial : ℂ)
+          * ((referenceIntensity ν B).toReal : ℂ) ^ n else 0 := by
+  have hpoint : ∀ ω : Ω,
+      (c ^ n * (poissonChaosStep N n B ω : ℂ)) * (c' ^ m * (poissonChaosStep N m B ω : ℂ))
+        = (c ^ n * c' ^ m) * ((poissonChaosStep N n B ω * poissonChaosStep N m B ω : ℝ) : ℂ) := by
+    intro ω; push_cast; ring
+  rw [show (fun ω => (c ^ n * (poissonChaosStep N n B ω : ℂ))
+        * (c' ^ m * (poissonChaosStep N m B ω : ℂ)))
+      = fun ω => (c ^ n * c' ^ m)
+        * ((poissonChaosStep N n B ω * poissonChaosStep N m B ω : ℝ) : ℂ) from
+    funext hpoint]
+  rw [integral_const_mul, integral_complex_ofReal, integral_poissonChaosStep_mul N hB hfin n m]
+  by_cases h : n = m
+  · subst h
+    simp only [if_true]
+    push_cast
+    ring
+  · simp [h]
+
+/-- The second moment of the modulus of a complex-scaled Poisson chaos element of a region of
+finite intensity. -/
+theorem integral_norm_sq_poissonChaosStepC (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (c : ℂ) (n : ℕ) :
+    ∫ ω, ‖c ^ n * (poissonChaosStep N n B ω : ℂ)‖ ^ 2 ∂P
+      = ‖c‖ ^ (2 * n) * ((n.factorial : ℝ) * (referenceIntensity ν B).toReal ^ n) := by
+  have hpoint : ∀ ω : Ω, ‖c ^ n * (poissonChaosStep N n B ω : ℂ)‖ ^ 2
+      = ‖c‖ ^ (2 * n) * poissonChaosStep N n B ω ^ 2 := by
+    intro ω
+    rw [norm_mul, norm_pow, Complex.norm_real, mul_pow, ← pow_mul, Real.norm_eq_abs,
+      sq_abs, mul_comm n 2]
+  rw [show (fun ω => ‖c ^ n * (poissonChaosStep N n B ω : ℂ)‖ ^ 2)
+      = fun ω => ‖c‖ ^ (2 * n) * poissonChaosStep N n B ω ^ 2 from funext hpoint,
+    integral_const_mul, integral_poissonChaosStep_sq N hB hfin n]
+
+/-- The bilinear second moment of a complex-scaled Poisson chaos element of a region of finite
+intensity. -/
+theorem integral_poissonChaosStepC_sq (N : PoissonRandomMeasure P ν) {B : Set (ℝ × E)}
+    (hB : MeasurableSet B) (hfin : referenceIntensity ν B ≠ ⊤) (c : ℂ) (n : ℕ) :
+    ∫ ω, (c ^ n * (poissonChaosStep N n B ω : ℂ)) ^ 2 ∂P
+      = c ^ (2 * n) * (n.factorial : ℂ) * ((referenceIntensity ν B).toReal : ℂ) ^ n := by
+  have h := integral_poissonChaosStepC_mul N hB hfin c c n n
+  simp only [if_true] at h
+  rw [show (fun ω => (c ^ n * (poissonChaosStep N n B ω : ℂ)) ^ 2)
+      = fun ω => (c ^ n * (poissonChaosStep N n B ω : ℂ))
+        * (c ^ n * (poissonChaosStep N n B ω : ℂ)) from funext fun ω => sq _]
+  rw [h, ← pow_add]
+  ring_nf
+
+/-- The bilinear second moment of two complex-scaled Poisson chaos elements of a strip
+`(a, b] ×ˢ A` over a mark set of finite intensity, with rate `(b - a) ν(A)`. -/
+theorem integral_poissonChaosStepC_strip_mul (N : PoissonRandomMeasure P ν) {a b : ℝ}
+    (ha : 0 ≤ a) (hab : a ≤ b) {A : Set E} (hA : MeasurableSet A) (hAν : ν A ≠ ⊤)
+    (c c' : ℂ) (n m : ℕ) :
+    ∫ ω, (c ^ n * (poissonChaosStep N n (Set.Ioc a b ×ˢ A) ω : ℂ))
+        * (c' ^ m * (poissonChaosStep N m (Set.Ioc a b ×ˢ A) ω : ℂ)) ∂P
+      = if n = m then c ^ n * c' ^ n * (n.factorial : ℂ)
+          * (((b - a) * (ν A).toReal : ℝ) : ℂ) ^ n else 0 := by
+  rw [integral_poissonChaosStepC_mul N (measurableSet_Ioc.prod hA)
+      (referenceIntensity_strip_ne_top ha hAν) c c' n m,
+    referenceIntensity_strip_toReal ha hab A]
 
 end LevyStochCalc.Poisson
