@@ -4941,3 +4941,25 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_sq
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_strip_mul
 #print axioms LevyStochCalc.Poisson.integral_poissonChaosStep_strip_eq_zero
+-- ===== The joint chaos element of a step of the driver (E3d) =====
+#print axioms LevyStochCalc.Poisson.integrable_comp_count
+#print axioms LevyStochCalc.Poisson.integrable_poissonChaosStep_mul
+#print axioms LevyStochCalc.Poisson.memLp_two_poissonChaosStep
+#print axioms LevyStochCalc.Poisson.referenceIntensity_strip_ne_top
+#print axioms LevyStochCalc.Poisson.referenceIntensity_strip_toReal
+#print axioms LevyStochCalc.Driver.LevyDriver.indepFun_of_measurable
+#print axioms LevyStochCalc.Driver.LevyDriver.indepFun_increment_count
+#print axioms LevyStochCalc.Driver.LevyDriver.indepFun_vectorIncrement_count
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_increment_count_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_vectorIncrement_count_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStep
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStep_zero_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStep_one_one
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_jointChaosStep
+#print axioms LevyStochCalc.Driver.LevyDriver.memLp_two_jointChaosStep
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_mul_eq_zero_of_add_ne
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_mul_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_sq
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStep_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.condExp_jointChaosStep_mul
