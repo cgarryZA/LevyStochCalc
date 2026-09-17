@@ -48,8 +48,10 @@ import LevyStochCalc.Probability.HermiteVariance
 import LevyStochCalc.Probability.WienerChaosStep
 import LevyStochCalc.Probability.PoissonMoments
 import LevyStochCalc.Probability.Charlier
+import LevyStochCalc.Probability.L2Series
 import LevyStochCalc.Probability.HermiteGenerating
 import LevyStochCalc.Probability.CharlierGenerating
+import LevyStochCalc.Probability.WienerChaosExpansion
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
@@ -135,6 +137,7 @@ import LevyStochCalc.Poisson.CompensatedDensityLimit
 import LevyStochCalc.Poisson.MarkStep
 import LevyStochCalc.Poisson.MarkStepIsometry
 import LevyStochCalc.Poisson.MarkStepWeight
+import LevyStochCalc.Poisson.MarkStepPolarised
 import LevyStochCalc.Poisson.MarkStepIncrement
 import LevyStochCalc.Poisson.CompensatedApprox
 import LevyStochCalc.Poisson.CompensatedProcess
@@ -144,6 +147,9 @@ import LevyStochCalc.Poisson.CompensatedDiff
 import LevyStochCalc.Poisson.Compensated
 import LevyStochCalc.Poisson.CompensatedCongr
 import LevyStochCalc.Poisson.ChaosStep
+import LevyStochCalc.Poisson.SimpleChaos
+import LevyStochCalc.Poisson.SecondChaos
+import LevyStochCalc.Poisson.ChaosExpansion
 import LevyStochCalc.Poisson.PredictableIntegrand
 import LevyStochCalc.Poisson.PerpBridge
 
