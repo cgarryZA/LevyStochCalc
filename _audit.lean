@@ -5156,3 +5156,17 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.integrable_levyCharIntegrand
 #print axioms LevyStochCalc.Poisson.tendsto_integral_levyCharIntegrand
 #print axioms LevyStochCalc.Poisson.integral_exp_I_mul_of_tendsto_stepIntegral
+
+-- ===== The compensated integral of a deterministic mark profile over a step =====
+#print axioms LevyStochCalc.Poisson.ae_eq_of_tendsto_stepIntegral
+#print axioms LevyStochCalc.Poisson.IsCompensatedProfile
+#print axioms LevyStochCalc.Poisson.compensatedProfile
+#print axioms LevyStochCalc.Poisson.stronglyMeasurable_compensatedProfile
+#print axioms LevyStochCalc.Poisson.measurable_compensatedProfile
+#print axioms LevyStochCalc.Poisson.memLp_compensatedProfile
+#print axioms LevyStochCalc.Poisson.isCompensatedProfile_compensatedProfile
+#print axioms LevyStochCalc.Poisson.tendsto_stepIntegral_compensatedProfile
+#print axioms LevyStochCalc.Poisson.isCompensatedProfile_compensatedProfile_of_bounded
+#print axioms LevyStochCalc.Poisson.compensatedProfile_toFun
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_of_bounded
