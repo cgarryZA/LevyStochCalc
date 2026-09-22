@@ -5104,3 +5104,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.exists_pairIndex_of_mem_piAntidiag_two
 #print axioms LevyStochCalc.Poisson.markedChaosDegree_two_eq_sum
 #print axioms LevyStochCalc.Poisson.markedChaosDegree_two
+
+-- ===== The joint chaos element of a step of a Levy driver at a simple mark profile (E3c-iii-4b) =====
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_markedChaosDegree_sigmaPoisson
+#print axioms LevyStochCalc.Driver.LevyDriver.indepFun_increment_markedChaosDegree
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStepProfile
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStepProfile_zero_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.jointChaosStepProfile_fin_one
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_jointChaosStepProfile
+#print axioms LevyStochCalc.Driver.LevyDriver.memLp_two_jointChaosStepProfile
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_mul
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_mul_eq_zero_of_add_ne
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_mul_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_sq
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_eq_zero
+#print axioms LevyStochCalc.Driver.LevyDriver.condExp_jointChaosStepProfile_mul
