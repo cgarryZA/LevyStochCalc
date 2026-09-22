@@ -5119,3 +5119,22 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_sq
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_jointChaosStepProfile_eq_zero
 #print axioms LevyStochCalc.Driver.LevyDriver.condExp_jointChaosStepProfile_mul
+
+-- ===== Simple mark profiles, their compensated step integrals and the L2 approximation =====
+#print axioms LevyStochCalc.Poisson.referenceIntensity_Ioc_prod'
+#print axioms LevyStochCalc.Poisson.SimpleProfile
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.measurable_toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.memLp_toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_toFun_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.stepIntegral
+#print axioms LevyStochCalc.Poisson.SimpleProfile.memLp_compensated_step
+#print axioms LevyStochCalc.Poisson.SimpleProfile.memLp_stepIntegral
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral_sub_sq
+#print axioms LevyStochCalc.Poisson.SimpleProfile.eLpNorm_stepIntegral_sub
+#print axioms LevyStochCalc.Poisson.SimpleProfile.ofSimpleFunc
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_ofSimpleFunc
+#print axioms LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2
+#print axioms LevyStochCalc.Poisson.exists_memLp_tendsto_stepIntegral
