@@ -135,6 +135,7 @@ import LevyStochCalc.Poisson.CompensatedDensityMarkSum
 import LevyStochCalc.Poisson.CompensatedDensityRefinement
 import LevyStochCalc.Poisson.CompensatedDensityLimit
 import LevyStochCalc.Poisson.SimpleProfile
+import LevyStochCalc.Poisson.ProfileCharacter
 import LevyStochCalc.Poisson.MarkStep
 import LevyStochCalc.Poisson.MarkStepIsometry
 import LevyStochCalc.Poisson.MarkStepWeight

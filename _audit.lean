@@ -5138,3 +5138,21 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_ofSimpleFunc
 #print axioms LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2
 #print axioms LevyStochCalc.Poisson.exists_memLp_tendsto_stepIntegral
+
+-- ===== The character of the compensated step integral of a mark profile =====
+#print axioms LevyStochCalc.Poisson.levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.levyCharIntegrand_zero
+#print axioms LevyStochCalc.Poisson.continuous_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.measurable_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.norm_levyCharIntegrand_le
+#print axioms LevyStochCalc.Poisson.norm_levyCharIntegrand_sub_le
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_count
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensated
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_of_mem
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_of_notMem
+#print axioms LevyStochCalc.Poisson.SimpleProfile.levyCharIntegrand_toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_levyCharIntegrand_toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_exp_I_mul_stepIntegral
+#print axioms LevyStochCalc.Poisson.integrable_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.tendsto_integral_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_of_tendsto_stepIntegral
