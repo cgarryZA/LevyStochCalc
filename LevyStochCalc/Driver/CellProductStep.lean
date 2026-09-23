@@ -16,17 +16,18 @@ of the compensated integrals over the cell `(s, t]` that the cell increment
   `Q(f, g) = J(f) J(g) − J(f g) − (t − s) ∫ f g dν`.
 
 It agrees almost everywhere with `Poisson.compensatedProduct`, so at bounded square-integrable
-profiles it is square integrable and centred, its Gram is
+profiles `f, g` it is square integrable and centred, its Gram is
 `E[Q(f, g) Q(f', g')] = (t − s)² (⟨f, f'⟩ ⟨g, g'⟩ + ⟨f, g'⟩ ⟨g, f'⟩)` with `⟨u, v⟩ = ∫ u v dν`,
-and it is orthogonal in `L²(P)` to every jump coordinate of the cell increment. When `f`, `g` and
-`f g` are among the profiles of the cell increment, the compensated product is measurable for the
-σ-algebra the cell increment generates.
+and it is orthogonal in `L²(P)` to every jump coordinate of the cell increment, whose profile need
+only be square integrable. When `f`, `g` and `f g` are among the profiles of the cell increment,
+the compensated product is measurable for the σ-algebra the cell increment generates.
 
-The compensated integral of a bounded square-integrable profile is an `L²(P)` limit of
-compensated step integrals, each measurable for the counts of the Poisson random measure, so it
-is almost everywhere equal to a function measurable for the σ-algebra of the Poisson random
-measure; so is the compensated product. That σ-algebra is independent of the Brownian motion, so
-the compensated product is independent of every Brownian increment of the cell, and a centred
+The compensated integral of a square-integrable profile is an `L²(P)` limit of compensated step
+integrals, each measurable for the counts of the Poisson random measure, so it is almost
+everywhere equal to a function measurable for the σ-algebra of the Poisson random measure; so is
+the compensated product of a square-integrable profile and a bounded square-integrable one, whose
+product is square integrable. That σ-algebra is independent of the Brownian motion, so the
+compensated product is independent of every Brownian increment of the cell, and a centred
 Brownian increment is orthogonal to it.
 
 ## Main definitions
@@ -150,14 +151,13 @@ theorem integral_levyCellProduct_mul (D : LevyDriver.{u, v, w} P d ν) {f g f' g
 
 /-- **Orthogonality to the jump coordinates.** The compensated product over the cell `(s, t]` of
 two bounded square-integrable mark profiles is orthogonal in `L²(P)` to the jump coordinate of
-the cell increment along a bounded square-integrable mark profile. -/
+the cell increment along a square-integrable mark profile. -/
 theorem integral_levyCellProfileStep_natAdd_mul_levyCellProduct (D : LevyDriver.{u, v, w} P d ν)
-    {η : Fin q → E → ℝ} (r : Fin q) (hη : MemLp (η r) 2 ν) {Cη : ℝ} (hbη : ∀ e, |η r e| ≤ Cη)
-    {f g : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf)
-    (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    {η : Fin q → E → ℝ} (r : Fin q) (hη : MemLp (η r) 2 ν) {f g : E → ℝ} (hf : MemLp f 2 ν)
+    (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf) (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ}
+    (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellProfileStep D s t η ω (Fin.natAdd d r) * levyCellProduct D s t f g ω ∂P = 0 := by
-  rw [← Poisson.integral_compensatedProduct_mul_compensatedProfile D.N hf hg hη hbf hbg hbη hs
-    hst]
+  rw [← Poisson.integral_compensatedProduct_mul_compensatedProfile D.N hf hg hη hbf hbg hs hst]
   refine integral_congr_ae ?_
   filter_upwards [levyCellProduct_ae_eq D s t f g,
     Poisson.compensatedProfileRepr_ae_eq (D.filtration t) D.N (η r) s t] with ω h1 h2
@@ -165,29 +165,29 @@ theorem integral_levyCellProfileStep_natAdd_mul_levyCellProduct (D : LevyDriver.
 
 /-! ### Orthogonality to the Brownian coordinates -/
 
-/-- The compensated integral over `(s, t]` of a bounded square-integrable mark profile is almost
+/-- The compensated integral over `(s, t]` of a square-integrable mark profile is almost
 everywhere equal to a function measurable for the σ-algebra of the Poisson random measure. -/
 theorem aestronglyMeasurable_sigmaPoisson_compensatedProfile
-    (D : LevyDriver.{u, v, w} P d ν) {h : E → ℝ} (hh : MemLp h 2 ν) {C : ℝ}
-    (hb : ∀ e, |h e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (D : LevyDriver.{u, v, w} P d ν) {h : E → ℝ} (hh : MemLp h 2 ν) {s t : ℝ} (hs : 0 ≤ s)
+    (hst : s ≤ t) :
     AEStronglyMeasurable[sigmaPoisson D.N] (Poisson.compensatedProfile D.N h s t) P := by
-  obtain ⟨G, -, hG⟩ := Poisson.exists_simpleProfile_tendsto_L2 hh hb
+  obtain ⟨G, hG⟩ := Poisson.exists_simpleProfile_tendsto_L2_of_memLp hh
   refine Poisson.aestronglyMeasurable_compensatedProfile (sigmaPoisson D.N) (sigmaPoisson_le D.N)
     D.N hh hs hst G hG fun n => ?_
   exact ((Poisson.SimpleProfile.stronglyMeasurable_stepIntegral_regionSigma D.N (G n) s t).mono
     (iSup_le fun k => D.regionSigma_le
       (measurableSet_Ioc.prod ((G n).B_measurable k)))).aestronglyMeasurable
 
-/-- The jump coordinate of the cell increment along a bounded square-integrable mark profile, the
+/-- The jump coordinate of the cell increment along a square-integrable mark profile, the
 representative for the joint filtration at `t` of its compensated integral over `(s, t]`, is
 almost everywhere equal to a function measurable for the σ-algebra of the Poisson random
 measure. -/
 theorem aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr
-    (D : LevyDriver.{u, v, w} P d ν) {h : E → ℝ} (hh : MemLp h 2 ν) {C : ℝ}
-    (hb : ∀ e, |h e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (D : LevyDriver.{u, v, w} P d ν) {h : E → ℝ} (hh : MemLp h 2 ν) {s t : ℝ} (hs : 0 ≤ s)
+    (hst : s ≤ t) :
     AEStronglyMeasurable[sigmaPoisson D.N]
       (Poisson.compensatedProfileRepr (D.filtration t) D.N h s t) P :=
-  (aestronglyMeasurable_sigmaPoisson_compensatedProfile D hh hb hs hst).congr
+  (aestronglyMeasurable_sigmaPoisson_compensatedProfile D hh hs hst).congr
     (Poisson.compensatedProfileRepr_ae_eq (D.filtration t) D.N h s t).symm
 
 omit [SigmaFinite ν] in
@@ -199,21 +199,17 @@ private theorem memLp_mul_of_bound {f g : E → ℝ} (hf : MemLp f 2 ν) (hg : M
     rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, mul_comm Cg]
     exact mul_le_mul_of_nonneg_left (hbg e) (abs_nonneg _))
 
-/-- The compensated product over `(s, t]` of two bounded square-integrable mark profiles is
-almost everywhere equal to a function measurable for the σ-algebra of the Poisson random
-measure. -/
+/-- The compensated product over `(s, t]` of a square-integrable mark profile and a bounded
+square-integrable one is almost everywhere equal to a function measurable for the σ-algebra of
+the Poisson random measure. -/
 theorem aestronglyMeasurable_sigmaPoisson_compensatedProduct
     (D : LevyDriver.{u, v, w} P d ν) {f g : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν)
-    {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf) (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s)
-    (hst : s ≤ t) :
+    {Cg : ℝ} (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     AEStronglyMeasurable[sigmaPoisson D.N] (Poisson.compensatedProduct D.N f g s t) P := by
-  have hfg : ∀ e, |f e * g e| ≤ Cf * Cg := fun e => by
-    rw [abs_mul]
-    exact mul_le_mul (hbf e) (hbg e) (abs_nonneg _) ((abs_nonneg _).trans (hbf e))
-  have h1 := aestronglyMeasurable_sigmaPoisson_compensatedProfile D hf hbf hs hst
-  have h2 := aestronglyMeasurable_sigmaPoisson_compensatedProfile D hg hbg hs hst
+  have h1 := aestronglyMeasurable_sigmaPoisson_compensatedProfile D hf hs hst
+  have h2 := aestronglyMeasurable_sigmaPoisson_compensatedProfile D hg hs hst
   have h3 := aestronglyMeasurable_sigmaPoisson_compensatedProfile D
-    (memLp_mul_of_bound hf hg hbg) hfg hs hst
+    (memLp_mul_of_bound hf hg hbg) hs hst
   exact ((h1.mul h2).sub h3).sub aestronglyMeasurable_const
 
 /-- The increment over `(s, t]` of a Brownian coordinate of a Lévy driver is measurable for the
@@ -262,18 +258,18 @@ theorem LevyDriver.integral_mul_eq_mul_integral_of_sigmaPoisson
     integral_congr_ae hY.ae_eq_mk.symm]
 
 /-- **Orthogonality to the Brownian coordinates.** The compensated product over the cell
-`(s, t]` of two bounded square-integrable mark profiles is orthogonal in `L²(P)` to every
-Brownian coordinate of the cell increment. -/
+`(s, t]` of a square-integrable mark profile and a bounded square-integrable one is orthogonal in
+`L²(P)` to every Brownian coordinate of the cell increment. -/
 theorem integral_levyCellProfileStep_castAdd_mul_levyCellProduct
     (D : LevyDriver.{u, v, w} P d ν) {η : Fin q → E → ℝ} (j : Fin d) {f g : E → ℝ}
-    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf)
-    (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cg : ℝ} (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ}
+    (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellProfileStep D s t η ω (Fin.castAdd q j) * levyCellProduct D s t f g ω ∂P
       = 0 := by
   simp only [levyCellProfileStep_castAdd]
   rw [D.integral_mul_eq_mul_integral_of_sigmaPoisson
       (D.measurable_increment_iSup_sigmaBrownian j s t)
-      ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hf hg hbf hbg hs hst).congr
+      ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hf hg hbg hs hst).congr
         (levyCellProduct_ae_eq D s t f g).symm),
     D.integral_increment j hs hst, zero_mul]
 

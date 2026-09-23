@@ -16,10 +16,11 @@ cell increment `levyCellProfileStep` along `f`. The mixed element of degree two 
 
   `M_a(f) = ΔWᵃ J(f)`.
 
-At bounded square-integrable profiles it is square integrable and centred, its Gram is
+At square-integrable profiles it is square integrable and centred, its Gram is
 `E[M_a(f) M_b(g)] = (t − s)² δ_ab ∫ f g dν`, and it is orthogonal in `L²(P)` to every coordinate
-of the cell increment and to the compensated products `levyCellProduct`. When `f` is a profile of
-the cell increment it is measurable for the σ-algebra the cell increment generates.
+of the cell increment and to the compensated products `levyCellProduct` of a square-integrable
+profile and a bounded square-integrable one. When `f` is a profile of the cell increment it is
+measurable for the σ-algebra the cell increment generates.
 
 A function of the Brownian coordinates is independent of a function measurable for the
 σ-algebra of the Poisson random measure, and `J(f)` is almost everywhere equal to such a
@@ -138,18 +139,17 @@ theorem LevyDriver.integral_increment_mul_increment (D : LevyDriver.{u, v, w} P 
 /-! ### The jump coordinates -/
 
 private theorem integral_repr (D : LevyDriver.{u, v, w} P d ν) {f : E → ℝ} (hf : MemLp f 2 ν)
-    {C : ℝ} (hb : ∀ e, |f e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, Poisson.compensatedProfileRepr (D.filtration t) D.N f s t ω ∂P = 0 := by
   rw [integral_congr_ae (Poisson.compensatedProfileRepr_ae_eq (D.filtration t) D.N f s t)]
-  exact Poisson.integral_compensatedProfile D.N hf hb hs hst
+  exact Poisson.integral_compensatedProfile D.N hf hs hst
 
 private theorem integral_repr_mul (D : LevyDriver.{u, v, w} P d ν) {f g : E → ℝ}
-    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf)
-    (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, Poisson.compensatedProfileRepr (D.filtration t) D.N f s t ω
         * Poisson.compensatedProfileRepr (D.filtration t) D.N g s t ω ∂P
       = (t - s) * ∫ e, f e * g e ∂ν := by
-  rw [← Poisson.integral_compensatedProfile_mul D.N hf hg hbf hbg hs hst]
+  rw [← Poisson.integral_compensatedProfile_mul D.N hf hg hs hst]
   refine integral_congr_ae ?_
   filter_upwards [Poisson.compensatedProfileRepr_ae_eq (D.filtration t) D.N f s t,
     Poisson.compensatedProfileRepr_ae_eq (D.filtration t) D.N g s t] with ω h1 h2
@@ -184,12 +184,12 @@ theorem measurable_levyCellMixed_comap (D : LevyDriver.{u, v, w} P d ν) (s t : 
     at hB hJ
   exact hB.mul hJ
 
-/-- **Square integrability.** The mixed element over the cell `(s, t]` along a bounded
-square-integrable mark profile is square integrable. -/
+/-- **Square integrability.** The mixed element over the cell `(s, t]` along a square-integrable
+mark profile is square integrable. -/
 theorem memLp_levyCellMixed (D : LevyDriver.{u, v, w} P d ν) (a : Fin d) {f : E → ℝ}
-    (hf : MemLp f 2 ν) {C : ℝ} (hb : ∀ e, |f e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (hf : MemLp f 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     MemLp (levyCellMixed D s t a f) 2 P := by
-  have hJ := aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hb hs hst
+  have hJ := aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst
   have hYm : StronglyMeasurable[sigmaPoisson D.N] (hJ.mk _) := hJ.stronglyMeasurable_mk
   have hind : IndepFun (fun ω => ((D.W.W a).W t ω - (D.W.W a).W s ω) ^ 2)
       (fun ω => hJ.mk _ ω ^ 2) P := by
@@ -208,84 +208,81 @@ theorem memLp_levyCellMixed (D : LevyDriver.{u, v, w} P d ν) (a : Fin d) {f : E
   filter_upwards [hJ.ae_eq_mk] with ω hω
   simp only [Pi.mul_apply, levyCellMixed, hω, mul_pow]
 
-/-- **The mean.** The mixed element over the cell `(s, t]` along a bounded square-integrable mark
+/-- **The mean.** The mixed element over the cell `(s, t]` along a square-integrable mark
 profile is centred. -/
 theorem integral_levyCellMixed (D : LevyDriver.{u, v, w} P d ν) (a : Fin d) {f : E → ℝ}
-    (hf : MemLp f 2 ν) {C : ℝ} (hb : ∀ e, |f e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (hf : MemLp f 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellMixed D s t a f ω ∂P = 0 := by
   simp only [levyCellMixed]
   rw [D.integral_mul_eq_mul_integral_of_sigmaPoisson
       (D.measurable_increment_iSup_sigmaBrownian a s t)
-      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hb hs hst),
+      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst),
     D.integral_increment a hs hst, zero_mul]
 
-/-- **The Gram.** The `L²(P)` pairing of the mixed elements over the cell `(s, t]` along bounded
+/-- **The Gram.** The `L²(P)` pairing of the mixed elements over the cell `(s, t]` along
 square-integrable mark profiles: `E[ΔWᵃ J(f) ΔWᵇ J(g)] = (t − s)² δ_ab ∫ f g dν`. -/
 theorem integral_levyCellMixed_mul (D : LevyDriver.{u, v, w} P d ν) (a b : Fin d)
-    {f g : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf)
-    (hbg : ∀ e, |g e| ≤ Cg) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    {f g : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellMixed D s t a f ω * levyCellMixed D s t b g ω ∂P
       = (t - s) ^ 2 * (if a = b then 1 else 0) * ∫ e, f e * g e ∂ν := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson
       ((D.measurable_increment_iSup_sigmaBrownian a s t).mul
         (D.measurable_increment_iSup_sigmaBrownian b s t))
-      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hbf hs hst).mul
-        (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hg hbg hs hst)))).trans ?_
+      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst).mul
+        (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hg hs hst)))).trans ?_
   · simp only [levyCellMixed, Pi.mul_apply]
     ring
   · simp only [Pi.mul_apply]
-    rw [D.integral_increment_mul_increment a b hs hst, integral_repr_mul D hf hg hbf hbg hs hst]
+    rw [D.integral_increment_mul_increment a b hs hst, integral_repr_mul D hf hg hs hst]
     split_ifs <;> ring
 
 /-- **Orthogonality to the Brownian coordinates.** The mixed element over the cell `(s, t]` along
-a bounded square-integrable mark profile is orthogonal in `L²(P)` to every Brownian coordinate of
-the cell increment. -/
+a square-integrable mark profile is orthogonal in `L²(P)` to every Brownian coordinate of the
+cell increment. -/
 theorem integral_levyCellProfileStep_castAdd_mul_levyCellMixed (D : LevyDriver.{u, v, w} P d ν)
-    {η : Fin q → E → ℝ} (j a : Fin d) {f : E → ℝ} (hf : MemLp f 2 ν) {C : ℝ}
-    (hb : ∀ e, |f e| ≤ C) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    {η : Fin q → E → ℝ} (j a : Fin d) {f : E → ℝ} (hf : MemLp f 2 ν) {s t : ℝ} (hs : 0 ≤ s)
+    (hst : s ≤ t) :
     ∫ ω, levyCellProfileStep D s t η ω (Fin.castAdd q j) * levyCellMixed D s t a f ω ∂P
       = 0 := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson
       ((D.measurable_increment_iSup_sigmaBrownian j s t).mul
         (D.measurable_increment_iSup_sigmaBrownian a s t))
-      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hb hs hst))).trans ?_
+      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst))).trans ?_
   · simp only [levyCellProfileStep_castAdd, levyCellMixed, Pi.mul_apply]
     ring
-  · rw [integral_repr D hf hb hs hst, mul_zero]
+  · rw [integral_repr D hf hs hst, mul_zero]
 
 /-- **Orthogonality to the jump coordinates.** The mixed element over the cell `(s, t]` along a
-bounded square-integrable mark profile is orthogonal in `L²(P)` to the jump coordinate of the
-cell increment along a bounded square-integrable mark profile. -/
+square-integrable mark profile is orthogonal in `L²(P)` to the jump coordinate of the cell
+increment along a square-integrable mark profile. -/
 theorem integral_levyCellProfileStep_natAdd_mul_levyCellMixed (D : LevyDriver.{u, v, w} P d ν)
-    {η : Fin q → E → ℝ} (r : Fin q) (hη : MemLp (η r) 2 ν) {Cη : ℝ} (hbη : ∀ e, |η r e| ≤ Cη)
-    (a : Fin d) {f : E → ℝ} (hf : MemLp f 2 ν) {C : ℝ} (hb : ∀ e, |f e| ≤ C) {s t : ℝ}
-    (hs : 0 ≤ s) (hst : s ≤ t) :
+    {η : Fin q → E → ℝ} (r : Fin q) (hη : MemLp (η r) 2 ν) (a : Fin d) {f : E → ℝ}
+    (hf : MemLp f 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellProfileStep D s t η ω (Fin.natAdd d r) * levyCellMixed D s t a f ω ∂P
       = 0 := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson
       (D.measurable_increment_iSup_sigmaBrownian a s t)
-      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hη hbη hs hst).mul
-        (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hb hs hst)))).trans ?_
+      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hη hs hst).mul
+        (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst)))).trans ?_
   · simp only [levyCellProfileStep_natAdd, levyCellMixed, Pi.mul_apply]
     ring
   · rw [D.integral_increment a hs hst, zero_mul]
 
 /-- **The mixed element and the compensated product are orthogonal.** Over the cell `(s, t]`, the
-mixed element along a bounded square-integrable mark profile is orthogonal in `L²(P)` to the
-compensated product of two bounded square-integrable mark profiles. -/
+mixed element along a square-integrable mark profile is orthogonal in `L²(P)` to the compensated
+product of a square-integrable mark profile and a bounded square-integrable one. -/
 theorem integral_levyCellMixed_mul_levyCellProduct (D : LevyDriver.{u, v, w} P d ν) (a : Fin d)
-    {f g h : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) (hh : MemLp h 2 ν) {Cf Cg Ch : ℝ}
-    (hbf : ∀ e, |f e| ≤ Cf) (hbg : ∀ e, |g e| ≤ Cg) (hbh : ∀ e, |h e| ≤ Ch) {s t : ℝ}
-    (hs : 0 ≤ s) (hst : s ≤ t) :
+    {f g h : E → ℝ} (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) (hh : MemLp h 2 ν) {Ch : ℝ}
+    (hbh : ∀ e, |h e| ≤ Ch) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellMixed D s t a f ω * levyCellProduct D s t g h ω ∂P = 0 := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson
       (D.measurable_increment_iSup_sigmaBrownian a s t)
-      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hbf hs hst).mul
-        ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hg hh hbg hbh hs hst).congr
+      ((aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst).mul
+        ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hg hh hbh hs hst).congr
           (levyCellProduct_ae_eq D s t g h).symm)))).trans ?_
   · simp only [levyCellMixed, Pi.mul_apply]
     ring

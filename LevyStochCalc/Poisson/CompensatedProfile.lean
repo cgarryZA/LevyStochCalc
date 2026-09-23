@@ -210,14 +210,13 @@ theorem tendsto_stepIntegral_compensatedProfile (N : PoissonRandomMeasure P ν) 
       - compensatedProfile N f a b ω) 2 P) atTop (nhds 0) :=
   (isCompensatedProfile_compensatedProfile N hf ha hab G hG).2.2 G hG
 
-/-- The compensated integral of a bounded square-integrable mark profile over a step is an
-`L²(P)` limit of the compensated step integrals of any sequence of simple mark profiles
-converging to the profile in `L²(ν)`. -/
-theorem isCompensatedProfile_compensatedProfile_of_bounded (N : PoissonRandomMeasure P ν)
-    {f : E → ℝ} (hf : MemLp f 2 ν) {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a)
-    (hab : a ≤ b) :
+/-- The compensated integral of a square-integrable mark profile over a step is an `L²(P)`
+limit of the compensated step integrals of any sequence of simple mark profiles converging to the
+profile in `L²(ν)`. -/
+theorem isCompensatedProfile_compensatedProfile_of_memLp (N : PoissonRandomMeasure P ν)
+    {f : E → ℝ} (hf : MemLp f 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     IsCompensatedProfile N f a b (compensatedProfile N f a b) := by
-  obtain ⟨G, -, hG⟩ := exists_simpleProfile_tendsto_L2 hf hb
+  obtain ⟨G, hG⟩ := exists_simpleProfile_tendsto_L2_of_memLp hf
   exact isCompensatedProfile_compensatedProfile N hf ha hab G hG
 
 /-! ### Agreement at a simple mark profile -/
@@ -256,14 +255,13 @@ theorem integral_exp_I_mul_compensatedProfile (N : PoissonRandomMeasure P ν) {f
     (memLp_compensatedProfile N f a b) hG
     (tendsto_stepIntegral_compensatedProfile N hf ha hab G hG) u
 
-/-- The character of the compensated integral of a bounded square-integrable mark profile over
-a step. -/
-theorem integral_exp_I_mul_compensatedProfile_of_bounded (N : PoissonRandomMeasure P ν)
-    {f : E → ℝ} (hf : MemLp f 2 ν) {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a)
-    (hab : a ≤ b) (u : ℝ) :
+/-- The character of the compensated integral of a square-integrable mark profile over a
+step. -/
+theorem integral_exp_I_mul_compensatedProfile_of_memLp (N : PoissonRandomMeasure P ν)
+    {f : E → ℝ} (hf : MemLp f 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) (u : ℝ) :
     ∫ ω, Complex.exp (Complex.I * ((u * compensatedProfile N f a b ω : ℝ) : ℂ)) ∂P
       = Complex.exp (((b - a : ℝ) : ℂ) * ∫ e, levyCharIntegrand u (f e) ∂ν) := by
-  obtain ⟨G, -, hG⟩ := exists_simpleProfile_tendsto_L2 hf hb
+  obtain ⟨G, hG⟩ := exists_simpleProfile_tendsto_L2_of_memLp hf
   exact integral_exp_I_mul_compensatedProfile N hf ha hab G hG u
 
 end LevyStochCalc.Poisson

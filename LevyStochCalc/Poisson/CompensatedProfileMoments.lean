@@ -21,11 +21,11 @@ mark profile: over the step `(a, b]` the mean of `J(f)` vanishes and
 * `LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral` — the mean of the compensated
   step integral of a simple mark profile.
 * `LevyStochCalc.Poisson.integral_compensatedProfile` — the mean of the compensated integral of
-  a bounded square-integrable mark profile over a step.
+  a square-integrable mark profile over a step.
 * `LevyStochCalc.Poisson.integral_compensatedProfile_mul` — the `L²(P)` pairing of the
-  compensated integrals of two bounded square-integrable mark profiles over a common step.
+  compensated integrals of two square-integrable mark profiles over a common step.
 * `LevyStochCalc.Poisson.integral_compensatedProfile_sq` — the second moment of the compensated
-  integral of a bounded square-integrable mark profile over a step.
+  integral of a square-integrable mark profile over a step.
 -/
 
 open MeasureTheory ProbabilityTheory Filter
@@ -184,12 +184,11 @@ theorem SimpleProfile.integral_stepIntegral (N : PoissonRandomMeasure P ν)
   rw [integral_const_mul, Compensated.compensated_mean_zero N
     (measurableSet_Ioc.prod (G.B_measurable k)) (hfin k), mul_zero]
 
-/-- The compensated integral of a bounded square-integrable mark profile over a step has mean
-zero. -/
+/-- The compensated integral of a square-integrable mark profile over a step has mean zero. -/
 theorem integral_compensatedProfile (N : PoissonRandomMeasure P ν) {f : E → ℝ}
-    (hf : MemLp f 2 ν) {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hf : MemLp f 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     ∫ ω, compensatedProfile N f a b ω ∂P = 0 := by
-  obtain ⟨G, -, hG⟩ := exists_simpleProfile_tendsto_L2 hf hb
+  obtain ⟨G, hG⟩ := exists_simpleProfile_tendsto_L2_of_memLp hf
   have h := tendsto_integral_of_tendsto_L2 (fun n => (G n).memLp_stepIntegral N ha b)
     (memLp_compensatedProfile N f a b)
     (tendsto_stepIntegral_compensatedProfile N hf ha hab G hG)
@@ -199,15 +198,14 @@ theorem integral_compensatedProfile (N : PoissonRandomMeasure P ν) {f : E → �
 /-! ### The second moments -/
 
 /-- **The `L²(P)` pairing of two compensated profile integrals.** The compensated integrals of
-two bounded square-integrable mark profiles over a common step `(a, b]` pair in `L²(P)` to the
-step length times the `L²(ν)` pairing of the profiles. -/
+two square-integrable mark profiles over a common step `(a, b]` pair in `L²(P)` to the step
+length times the `L²(ν)` pairing of the profiles. -/
 theorem integral_compensatedProfile_mul (N : PoissonRandomMeasure P ν) {f g : E → ℝ}
-    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {Cf Cg : ℝ} (hbf : ∀ e, |f e| ≤ Cf)
-    (hbg : ∀ e, |g e| ≤ Cg) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     ∫ ω, compensatedProfile N f a b ω * compensatedProfile N g a b ω ∂P
       = (b - a) * ∫ e, f e * g e ∂ν := by
-  obtain ⟨G, -, hG⟩ := exists_simpleProfile_tendsto_L2 hf hbf
-  obtain ⟨G', -, hG'⟩ := exists_simpleProfile_tendsto_L2 hg hbg
+  obtain ⟨G, hG⟩ := exists_simpleProfile_tendsto_L2_of_memLp hf
+  obtain ⟨G', hG'⟩ := exists_simpleProfile_tendsto_L2_of_memLp hg
   have hP := tendsto_integral_mul_of_tendsto_L2
     (fun n => (G n).memLp_stepIntegral N ha b) (fun n => (G' n).memLp_stepIntegral N ha b)
     (memLp_compensatedProfile N f a b) (memLp_compensatedProfile N g a b)
@@ -220,12 +218,12 @@ theorem integral_compensatedProfile_mul (N : PoissonRandomMeasure P ν) {f g : E
   exact hν.const_mul (b - a)
 
 /-- **The second moment of a compensated profile integral.** The compensated integral of a
-bounded square-integrable mark profile over the step `(a, b]` has second moment the step length
-times the squared `L²(ν)` norm of the profile. -/
+square-integrable mark profile over the step `(a, b]` has second moment the step length times the
+squared `L²(ν)` norm of the profile. -/
 theorem integral_compensatedProfile_sq (N : PoissonRandomMeasure P ν) {f : E → ℝ}
-    (hf : MemLp f 2 ν) {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hf : MemLp f 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     ∫ ω, compensatedProfile N f a b ω ^ 2 ∂P = (b - a) * ∫ e, f e ^ 2 ∂ν := by
   simp_rw [sq]
-  exact integral_compensatedProfile_mul N hf hf hb hb ha hab
+  exact integral_compensatedProfile_mul N hf hf ha hab
 
 end LevyStochCalc.Poisson

@@ -16,8 +16,8 @@ Brownian coordinate `a`. The Brownian element of degree two of the cell is
 It is square integrable and centred, its Gram is
 `E[B_ab B_a'b'] = (t − s)² (δ_aa' δ_bb' + δ_ab' δ_ba')`, and it is orthogonal in `L²(P)` to every
 coordinate of the cell increment `levyCellProfileStep`, to the mixed elements `levyCellMixed` and
-to the compensated products `levyCellProduct` of bounded square-integrable mark profiles. It is
-measurable for the σ-algebra the cell increment generates.
+to the compensated products `levyCellProduct` of a square-integrable mark profile and a bounded
+square-integrable one. It is measurable for the σ-algebra the cell increment generates.
 
 The Brownian increments of distinct coordinates are independent centred Gaussians, so a moment
 of them of order at most four in which one coordinate occurs exactly once vanishes, and every
@@ -309,45 +309,44 @@ theorem integral_levyCellProfileStep_castAdd_mul_levyCellBrownian
   exact integral_increment_mul_levyCellBrownian D j a b hs hst
 
 /-- **Orthogonality to the jump coordinates.** The Brownian element over the cell `(s, t]` is
-orthogonal in `L²(P)` to the jump coordinate of the cell increment along a bounded
-square-integrable mark profile. -/
+orthogonal in `L²(P)` to the jump coordinate of the cell increment along a square-integrable mark
+profile. -/
 theorem integral_levyCellProfileStep_natAdd_mul_levyCellBrownian
     (D : LevyDriver.{u, v, w} P d ν) {η : Fin q → E → ℝ} (r : Fin q) (hη : MemLp (η r) 2 ν)
-    {Cη : ℝ} (hbη : ∀ e, |η r e| ≤ Cη) (a b : Fin d) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (a b : Fin d) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellProfileStep D s t η ω (Fin.natAdd d r) * levyCellBrownian D s t a b ω ∂P
       = 0 := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson (measurable_levyCellBrownian_iSup D s t a b)
-      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hη hbη hs hst))).trans ?_
+      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hη hs hst))).trans ?_
   · rw [levyCellProfileStep_natAdd, mul_comm]
   · rw [integral_levyCellBrownian D a b hs hst, zero_mul]
 
 /-- **The mixed and the Brownian elements are orthogonal.** Over the cell `(s, t]`, the mixed
-element along a bounded square-integrable mark profile is orthogonal in `L²(P)` to every
-Brownian element. -/
+element along a square-integrable mark profile is orthogonal in `L²(P)` to every Brownian
+element. -/
 theorem integral_levyCellMixed_mul_levyCellBrownian (D : LevyDriver.{u, v, w} P d ν)
-    (a b c : Fin d) {f : E → ℝ} (hf : MemLp f 2 ν) {C : ℝ} (hb : ∀ e, |f e| ≤ C) {s t : ℝ}
-    (hs : 0 ≤ s) (hst : s ≤ t) :
+    (a b c : Fin d) {f : E → ℝ} (hf : MemLp f 2 ν) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellMixed D s t a f ω * levyCellBrownian D s t b c ω ∂P = 0 := by
   refine ((integral_congr_ae (Eventually.of_forall fun ω => ?_)).trans
     (D.integral_mul_eq_mul_integral_of_sigmaPoisson
       ((D.measurable_increment_iSup_sigmaBrownian a s t).mul
         (measurable_levyCellBrownian_iSup D s t b c))
-      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hb hs hst))).trans ?_
+      (aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr D hf hs hst))).trans ?_
   · simp only [levyCellMixed, Pi.mul_apply]
     ring
   · simp only [Pi.mul_apply]
     rw [integral_increment_mul_levyCellBrownian D a b c hs hst, zero_mul]
 
 /-- **The Brownian element and the compensated product are orthogonal.** Over the cell `(s, t]`,
-every Brownian element is orthogonal in `L²(P)` to the compensated product of two bounded
-square-integrable mark profiles. -/
+every Brownian element is orthogonal in `L²(P)` to the compensated product of a square-integrable
+mark profile and a bounded square-integrable one. -/
 theorem integral_levyCellBrownian_mul_levyCellProduct (D : LevyDriver.{u, v, w} P d ν)
-    (a b : Fin d) {g h : E → ℝ} (hg : MemLp g 2 ν) (hh : MemLp h 2 ν) {Cg Ch : ℝ}
-    (hbg : ∀ e, |g e| ≤ Cg) (hbh : ∀ e, |h e| ≤ Ch) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
+    (a b : Fin d) {g h : E → ℝ} (hg : MemLp g 2 ν) (hh : MemLp h 2 ν) {Ch : ℝ}
+    (hbh : ∀ e, |h e| ≤ Ch) {s t : ℝ} (hs : 0 ≤ s) (hst : s ≤ t) :
     ∫ ω, levyCellBrownian D s t a b ω * levyCellProduct D s t g h ω ∂P = 0 := by
   rw [D.integral_mul_eq_mul_integral_of_sigmaPoisson (measurable_levyCellBrownian_iSup D s t a b)
-      ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hg hh hbg hbh hs hst).congr
+      ((aestronglyMeasurable_sigmaPoisson_compensatedProduct D hg hh hbh hs hst).congr
         (levyCellProduct_ae_eq D s t g h).symm),
     integral_levyCellBrownian D a b hs hst, zero_mul]
 

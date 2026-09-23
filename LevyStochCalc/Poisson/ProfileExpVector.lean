@@ -19,8 +19,8 @@ The first factor has modulus one, so at every sample point the modulus of `𝓔_
 deterministic constant `exp (−(b − a) ℜ ∫ ψ_u(f) dν)`. The exponential vector is therefore
 bounded and lies in every `Lᵖ(P)`, and its second moment is `exp (−2 (b − a) ℜ ∫ ψ_u(f) dν)`.
 The real part of the exponent is `∫ (cos (u f) − 1) dν ≤ 0`, so the modulus is at least one.
-For a bounded square-integrable profile the Lévy character of `J(f)` gives `E[𝓔_u(f)] = 1`,
-and the variance is `exp (−2 (b − a) ℜ ∫ ψ_u(f) dν) − 1`.
+For a square-integrable profile the Lévy character of `J(f)` gives `E[𝓔_u(f)] = 1`, and the
+variance is `exp (−2 (b − a) ℜ ∫ ψ_u(f) dν) − 1`.
 
 ## Main definitions
 
@@ -119,13 +119,13 @@ theorem memLp_profileExpVector (N : PoissonRandomMeasure P ν) (f : E → ℝ) (
   MemLp.of_bound (measurable_profileExpVector N f a b u).aestronglyMeasurable _
     (Eventually.of_forall fun ω => (norm_profileExpVector N f a b u ω).le)
 
-/-- **The mean of the exponential vector.** The exponential vector of a step at a bounded
+/-- **The mean of the exponential vector.** The exponential vector of a step at a
 square-integrable mark profile has mean one. -/
 theorem integral_profileExpVector (N : PoissonRandomMeasure P ν) {f : E → ℝ} (hf : MemLp f 2 ν)
-    {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) (u : ℝ) :
+    {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) (u : ℝ) :
     ∫ ω, profileExpVector N f a b u ω ∂P = 1 := by
   simp only [profileExpVector]
-  rw [integral_mul_const, integral_exp_I_mul_compensatedProfile_of_bounded N hf hb ha hab u,
+  rw [integral_mul_const, integral_exp_I_mul_compensatedProfile_of_memLp N hf ha hab u,
     ← Complex.exp_add, add_neg_cancel, Complex.exp_zero]
 
 /-- **The second moment of the exponential vector.** The exponential vector of a step at a mark
@@ -140,11 +140,10 @@ theorem integral_norm_sq_profileExpVector (N : PoissonRandomMeasure P ν) (f : E
   push_cast
   ring
 
-/-- **The variance of the exponential vector.** The exponential vector of a step at a bounded
+/-- **The variance of the exponential vector.** The exponential vector of a step at a
 square-integrable mark profile has variance `exp (−2 (b − a) ℜ ∫ ψ_u(f) dν) − 1`. -/
 theorem integral_norm_sub_one_sq_profileExpVector (N : PoissonRandomMeasure P ν) {f : E → ℝ}
-    (hf : MemLp f 2 ν) {Cb : ℝ} (hb : ∀ e, |f e| ≤ Cb) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b)
-    (u : ℝ) :
+    (hf : MemLp f 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) (u : ℝ) :
     ∫ ω, ‖profileExpVector N f a b u ω - 1‖ ^ 2 ∂P
       = Real.exp (-(2 * (b - a) * (∫ e, levyCharIntegrand u (f e) ∂ν).re)) - 1 := by
   have hpt : ∀ z : ℂ, ‖z - 1‖ ^ 2 = ‖z‖ ^ 2 - 2 * z.re + 1 := by
@@ -160,7 +159,7 @@ theorem integral_norm_sub_one_sq_profileExpVector (N : PoissonRandomMeasure P ν
   have hre : ∫ ω, (profileExpVector N f a b u ω).re ∂P = 1 := by
     have h := integral_re hV
     simp only [RCLike.re_to_complex] at h
-    rw [h, integral_profileExpVector N hf hb ha hab u, Complex.one_re]
+    rw [h, integral_profileExpVector N hf ha hab u, Complex.one_re]
   have hre2 : Integrable (fun ω => 2 * (profileExpVector N f a b u ω).re) P :=
     hV.re.const_mul 2
   have hdiff : Integrable (fun ω => ‖profileExpVector N f a b u ω‖ ^ 2

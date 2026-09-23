@@ -10,9 +10,10 @@ import LevyStochCalc.Poisson.CompensatedDensityStepIntegral
 # Simple mark profiles and their compensated step integrals
 
 A *simple mark profile* for an intensity `ν` on the mark space is a finite family of pairwise
-disjoint mark sets of finite intensity carrying constant coefficients, `∑ₖ cₖ 𝟙_{Bₖ}`. For a
-σ-finite `ν` every bounded square-integrable mark profile is the `L²(ν)` limit of simple
-profiles obeying the same bound, obtained from the nonzero level sets of the simple functions
+disjoint mark sets of finite intensity carrying constant coefficients, `∑ₖ cₖ 𝟙_{Bₖ}`. Every
+square-integrable mark profile is the `L²(ν)` limit of simple profiles, obtained from the nonzero
+level sets of square-integrable simple functions approximating it in `L²(ν)`; a bounded one is
+the limit of simple profiles obeying the same bound, obtained from the simple functions
 approximating it inside the interval the bound cuts out.
 
 The compensated integral of a simple profile over the step `(a, b]` is
@@ -28,6 +29,8 @@ The compensated integral of a simple profile over the step `(a, b]` is
 
 ## Main statements
 
+* `LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2_of_memLp` — approximation of a
+  square-integrable mark profile by simple profiles.
 * `LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2` — approximation of a bounded
   square-integrable mark profile by simple profiles obeying the same bound.
 * `LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral_mul` — the `L²(P)` pairing of two
@@ -304,7 +307,29 @@ omit [SigmaFinite ν] in
 
 end SimpleProfile
 
-/-! ### Approximation of a bounded square-integrable mark profile -/
+/-! ### Approximation of a square-integrable mark profile -/
+
+omit [SigmaFinite ν] in
+/-- **Simple-profile approximation.** A square-integrable mark profile is the `L²(ν)` limit of
+simple mark profiles. -/
+theorem exists_simpleProfile_tendsto_L2_of_memLp {f : E → ℝ} (hf : MemLp f 2 ν) :
+    ∃ G : ℕ → SimpleProfile E ν,
+      Filter.Tendsto (fun n => eLpNorm (fun e => (G n).toFun e - f e) 2 ν)
+        Filter.atTop (nhds 0) := by
+  have hε : ∀ n : ℕ, (n : ℝ≥0∞)⁻¹ ≠ 0 := fun n =>
+    ENNReal.inv_ne_zero.2 (ENNReal.natCast_ne_top n)
+  choose g hg hgm using fun n : ℕ =>
+    hf.exists_simpleFunc_eLpNorm_sub_lt (by norm_num : (2 : ℝ≥0∞) ≠ ⊤) (hε n)
+  refine ⟨fun n => SimpleProfile.ofSimpleFunc (hgm n), ?_⟩
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    ENNReal.tendsto_inv_nat_nhds_zero (fun _ => zero_le) fun n => ?_
+  calc eLpNorm (fun e => (SimpleProfile.ofSimpleFunc (hgm n)).toFun e - f e) 2 ν
+      = eLpNorm (f - ⇑(g n)) 2 ν := by
+        rw [← eLpNorm_neg]
+        congr 1
+        funext e
+        simp
+    _ ≤ (n : ℝ≥0∞)⁻¹ := (hg n).le
 
 omit [SigmaFinite ν] in
 /-- **Simple-profile approximation.** A bounded square-integrable mark profile is the `L²(ν)`

@@ -5136,6 +5136,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.SimpleProfile.eLpNorm_stepIntegral_sub
 #print axioms LevyStochCalc.Poisson.SimpleProfile.ofSimpleFunc
 #print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_ofSimpleFunc
+#print axioms LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2_of_memLp
 #print axioms LevyStochCalc.Poisson.exists_simpleProfile_tendsto_L2
 #print axioms LevyStochCalc.Poisson.exists_memLp_tendsto_stepIntegral
 
@@ -5166,10 +5167,10 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.memLp_compensatedProfile
 #print axioms LevyStochCalc.Poisson.isCompensatedProfile_compensatedProfile
 #print axioms LevyStochCalc.Poisson.tendsto_stepIntegral_compensatedProfile
-#print axioms LevyStochCalc.Poisson.isCompensatedProfile_compensatedProfile_of_bounded
+#print axioms LevyStochCalc.Poisson.isCompensatedProfile_compensatedProfile_of_memLp
 #print axioms LevyStochCalc.Poisson.compensatedProfile_toFun
 #print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile
-#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_of_bounded
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_of_memLp
 
 -- ===== First and second moments of the compensated integral of a mark profile =====
 #print axioms LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral
