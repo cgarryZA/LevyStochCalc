@@ -32,6 +32,9 @@ measurable representative whenever the approximating compensated step integrals 
   everywhere with the compensated integral.
 * `LevyStochCalc.Poisson.stronglyMeasurable_compensatedProfileRepr` — strong measurability of
   the representative for the σ-algebra it is taken over.
+* `LevyStochCalc.Poisson.measurable_compensatedProfileRepr`,
+  `LevyStochCalc.Poisson.memLp_compensatedProfileRepr` — ambient measurability and square
+  integrability of the representative.
 -/
 
 open MeasureTheory ProbabilityTheory Filter
@@ -138,5 +141,22 @@ theorem stronglyMeasurable_compensatedProfileRepr (hm : m ≤ mΩ) (N : PoissonR
     ⟨J, hJm, hJae.symm⟩
   rw [show compensatedProfileRepr m N f a b = h.choose from dif_pos h]
   exact h.choose_spec.1
+
+/-- The representative of the compensated integral of a mark profile over a step is measurable
+for a σ-algebra below the ambient one. -/
+theorem measurable_compensatedProfileRepr (hm : m ≤ mΩ) (N : PoissonRandomMeasure P ν)
+    (f : E → ℝ) (a b : ℝ) : Measurable (compensatedProfileRepr m N f a b) := by
+  classical
+  by_cases h : ∃ J : Ω → ℝ, StronglyMeasurable[m] J ∧ J =ᵐ[P] compensatedProfile N f a b
+  · rw [show compensatedProfileRepr m N f a b = h.choose from dif_pos h]
+    exact (h.choose_spec.1.mono hm).measurable
+  · rw [show compensatedProfileRepr m N f a b = compensatedProfile N f a b from dif_neg h]
+    exact measurable_compensatedProfile N f a b
+
+/-- The representative of the compensated integral of a mark profile over a step is square
+integrable. -/
+theorem memLp_compensatedProfileRepr (N : PoissonRandomMeasure P ν) (f : E → ℝ) (a b : ℝ) :
+    MemLp (compensatedProfileRepr m N f a b) 2 P :=
+  MemLp.ae_eq (compensatedProfileRepr_ae_eq m N f a b).symm (memLp_compensatedProfile N f a b)
 
 end LevyStochCalc.Poisson

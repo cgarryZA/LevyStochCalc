@@ -5183,3 +5183,18 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.compensatedProfileRepr
 #print axioms LevyStochCalc.Poisson.compensatedProfileRepr_ae_eq
 #print axioms LevyStochCalc.Poisson.stronglyMeasurable_compensatedProfileRepr
+#print axioms LevyStochCalc.Poisson.measurable_compensatedProfileRepr
+#print axioms LevyStochCalc.Poisson.memLp_compensatedProfileRepr
+
+-- ===== The cell increment of a Lévy driver along deterministic mark modes =====
+#print axioms LevyStochCalc.Driver.LevyDriver.comap_stepIntegral_le
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_stepIntegral
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_stepIntegral
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_compensatedProfile
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_sigmaBrownian_comap_compensatedProfile
+#print axioms LevyStochCalc.Driver.levyCellProfileStep
+#print axioms LevyStochCalc.Driver.levyCellProfileStep_castAdd
+#print axioms LevyStochCalc.Driver.levyCellProfileStep_natAdd
+#print axioms LevyStochCalc.Driver.measurable_levyCellProfileStep
+#print axioms LevyStochCalc.Driver.measurable_levyCellProfileStep_filtration
+#print axioms LevyStochCalc.Driver.indep_comap_levyCellProfileStep
