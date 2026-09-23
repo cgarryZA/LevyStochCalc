@@ -5186,6 +5186,19 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.measurable_compensatedProfileRepr
 #print axioms LevyStochCalc.Poisson.memLp_compensatedProfileRepr
 
+-- ===== The exponential vector of a step at a mark profile =====
+#print axioms LevyStochCalc.Poisson.re_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.re_integral_levyCharIntegrand
+#print axioms LevyStochCalc.Poisson.re_integral_levyCharIntegrand_nonpos
+#print axioms LevyStochCalc.Poisson.profileExpVector
+#print axioms LevyStochCalc.Poisson.measurable_profileExpVector
+#print axioms LevyStochCalc.Poisson.norm_profileExpVector
+#print axioms LevyStochCalc.Poisson.one_le_norm_profileExpVector
+#print axioms LevyStochCalc.Poisson.memLp_profileExpVector
+#print axioms LevyStochCalc.Poisson.integral_profileExpVector
+#print axioms LevyStochCalc.Poisson.integral_norm_sq_profileExpVector
+#print axioms LevyStochCalc.Poisson.integral_norm_sub_one_sq_profileExpVector
+
 -- ===== The cell increment of a Lévy driver along deterministic mark modes =====
 #print axioms LevyStochCalc.Driver.LevyDriver.comap_stepIntegral_le
 #print axioms LevyStochCalc.Driver.LevyDriver.measurable_stepIntegral
