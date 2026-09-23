@@ -5170,3 +5170,16 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.compensatedProfile_toFun
 #print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile
 #print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_of_bounded
+
+-- ===== First and second moments of the compensated integral of a mark profile =====
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_stepIntegral
+#print axioms LevyStochCalc.Poisson.integral_compensatedProfile
+#print axioms LevyStochCalc.Poisson.integral_compensatedProfile_mul
+#print axioms LevyStochCalc.Poisson.integral_compensatedProfile_sq
+
+-- ===== A representative of the compensated integral of a mark profile for a sub-σ-algebra =====
+#print axioms LevyStochCalc.Poisson.SimpleProfile.stronglyMeasurable_stepIntegral_regionSigma
+#print axioms LevyStochCalc.Poisson.aestronglyMeasurable_compensatedProfile
+#print axioms LevyStochCalc.Poisson.compensatedProfileRepr
+#print axioms LevyStochCalc.Poisson.compensatedProfileRepr_ae_eq
+#print axioms LevyStochCalc.Poisson.stronglyMeasurable_compensatedProfileRepr
