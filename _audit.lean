@@ -5186,6 +5186,33 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.measurable_compensatedProfileRepr
 #print axioms LevyStochCalc.Poisson.memLp_compensatedProfileRepr
 
+-- ===== The compensated product of two mark profiles over a step =====
+#print axioms LevyStochCalc.Poisson.compensatedProduct
+#print axioms LevyStochCalc.Poisson.SimpleProfile.withCoeff
+#print axioms LevyStochCalc.Poisson.SimpleProfile.exists_refinement
+#print axioms LevyStochCalc.Poisson.SimpleProfile.toFun_withCoeff_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_toFun
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_toFun_withCoeff
+#print axioms LevyStochCalc.Poisson.SimpleProfile.stepIntegral_withCoeff
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_toFun_withCoeff_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.compensatedProduct_withCoeff_ae_eq
+#print axioms LevyStochCalc.Poisson.SimpleProfile.memLp_compensatedProduct_withCoeff
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_withCoeff
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_withCoeff_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_withCoeff_mul_compensatedProfile
+#print axioms LevyStochCalc.Poisson.SimpleProfile.memLp_compensatedProduct
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_mul_compensatedProfile
+
+-- ===== Moments of the compensated product of two bounded mark profiles =====
+#print axioms LevyStochCalc.Poisson.integral_compensatedProfile_sub_sq
+#print axioms LevyStochCalc.Poisson.eLpNorm_compensatedProfile_sub
+#print axioms LevyStochCalc.Poisson.memLp_compensatedProduct
+#print axioms LevyStochCalc.Poisson.integral_compensatedProduct
+#print axioms LevyStochCalc.Poisson.integral_compensatedProduct_mul
+#print axioms LevyStochCalc.Poisson.integral_compensatedProduct_mul_compensatedProfile
+
 -- ===== The exponential vector of a step at a mark profile =====
 #print axioms LevyStochCalc.Poisson.re_levyCharIntegrand
 #print axioms LevyStochCalc.Poisson.re_integral_levyCharIntegrand

@@ -139,6 +139,8 @@ import LevyStochCalc.Poisson.ProfileCharacter
 import LevyStochCalc.Poisson.CompensatedProfile
 import LevyStochCalc.Poisson.CompensatedProfileMoments
 import LevyStochCalc.Poisson.CompensatedProfileRepr
+import LevyStochCalc.Poisson.CompensatedProduct
+import LevyStochCalc.Poisson.CompensatedProductMoments
 import LevyStochCalc.Poisson.ProfileExpVector
 import LevyStochCalc.Poisson.MarkStep
 import LevyStochCalc.Poisson.MarkStepIsometry
