@@ -5281,3 +5281,52 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_natAdd_mul_levyCellBrownian
 #print axioms LevyStochCalc.Driver.integral_levyCellMixed_mul_levyCellBrownian
 #print axioms LevyStochCalc.Driver.integral_levyCellBrownian_mul_levyCellProduct
+
+-- ===== Linearity of the compensated integral of a mark profile =====
+#print axioms LevyStochCalc.Poisson.compensatedProfile_congr_ae
+#print axioms LevyStochCalc.Poisson.compensatedProfile_ae_eq_of_ae_eq
+#print axioms LevyStochCalc.Poisson.compensatedProfile_finsetSum_smul
+#print axioms LevyStochCalc.Poisson.compensatedProfile_finsetSum
+#print axioms LevyStochCalc.Poisson.compensatedProfile_add
+#print axioms LevyStochCalc.Poisson.compensatedProfile_smul
+#print axioms LevyStochCalc.Poisson.compensatedProfile_neg
+#print axioms LevyStochCalc.Poisson.compensatedProfile_sub
+
+-- ===== Characters of real variables in L² =====
+#print axioms LevyStochCalc.Probability.norm_exp_I_mul_sub_one_le_two
+#print axioms LevyStochCalc.Probability.integrable_exp_I_mul_mul
+#print axioms LevyStochCalc.Probability.memLp_exp_I_mul
+#print axioms LevyStochCalc.Probability.memLp_exp_I_mul_sub_one
+#print axioms LevyStochCalc.Probability.memLp_mul_of_norm_le
+#print axioms LevyStochCalc.Probability.tendsto_integral_mul_of_tendsto_eLpNorm
+#print axioms LevyStochCalc.Probability.tendsto_eLpNorm_ofReal_sub
+#print axioms LevyStochCalc.Probability.tendsto_eLpNorm_exp_I_mul_sub
+#print axioms LevyStochCalc.Probability.tendsto_eLpNorm_mul_sub_mul
+
+-- ===== The pairing of a compensated Poisson count with its character =====
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensated_mul_compensated
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensated_mul_compensated_sq
+
+-- ===== The character of a compensated step integral against first- and second-order elements =====
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_exp_I_mul_stepIntegral_mul_stepIntegral
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_exp_I_mul_stepIntegral_mul_stepIntegral_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_exp_I_mul_compensatedProfile_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.integral_exp_I_mul_compensatedProfile_mul_mul
+#print axioms LevyStochCalc.Poisson.SimpleProfile.abs_toFun_le
+
+-- ===== The character of a compensated profile integral against first- and second-order elements =====
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_mul
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_mul_mul
+
+-- ===== The character of a compensated profile integral against a compensated product =====
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_mul_compensatedProduct
+#print axioms LevyStochCalc.Poisson.integral_exp_I_mul_compensatedProfile_mul_compensatedProduct_of_bound
+
+-- ===== The character of a cell increment against the cell elements of order one and two =====
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_castAdd
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_natAdd
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellMixed
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellProduct
+#print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellProduct_of_bound

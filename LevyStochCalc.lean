@@ -52,6 +52,7 @@ import LevyStochCalc.Probability.L2Series
 import LevyStochCalc.Probability.HermiteGenerating
 import LevyStochCalc.Probability.CharlierGenerating
 import LevyStochCalc.Probability.WienerChaosExpansion
+import LevyStochCalc.Probability.CharacterL2
 import LevyStochCalc.Probability.DoobContinuous
 import LevyStochCalc.Probability.Transport
 import LevyStochCalc.Probability.Augmentation
@@ -142,6 +143,11 @@ import LevyStochCalc.Poisson.CompensatedProfileRepr
 import LevyStochCalc.Poisson.CompensatedProduct
 import LevyStochCalc.Poisson.CompensatedProductMoments
 import LevyStochCalc.Poisson.ProfileExpVector
+import LevyStochCalc.Poisson.CompensatedProfileLinear
+import LevyStochCalc.Poisson.CompensatedCountCharacter
+import LevyStochCalc.Poisson.ProfileExpPairingSimple
+import LevyStochCalc.Poisson.ProfileExpPairing
+import LevyStochCalc.Poisson.ProfileExpProduct
 import LevyStochCalc.Poisson.MarkStep
 import LevyStochCalc.Poisson.MarkStepIsometry
 import LevyStochCalc.Poisson.MarkStepWeight
@@ -230,6 +236,7 @@ import LevyStochCalc.Driver.CellProfileStep
 import LevyStochCalc.Driver.CellProductStep
 import LevyStochCalc.Driver.CellMixedStep
 import LevyStochCalc.Driver.CellBrownianStep
+import LevyStochCalc.Driver.CellExpPairing
 import LevyStochCalc.Driver.JointChaosStep
 import LevyStochCalc.Driver.JointChaosBlock
 import LevyStochCalc.Driver.CellIndependence
