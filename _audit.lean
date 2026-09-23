@@ -5330,3 +5330,23 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellMixed
 #print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellProduct
 #print axioms LevyStochCalc.Driver.integral_exp_I_mul_levyCellProfileStep_mul_levyCellProduct_of_bound
+
+-- ===== A Lévy driver with an independent Gaussian initial value (Driver/GaussianInitial) =====
+-- The pullback of a Lévy driver along a measure-preserving map, and its joint filtration.
+#print axioms LevyStochCalc.Brownian.sigmaBrownian_comap
+#print axioms LevyStochCalc.Brownian.Martingale.naturalFiltration_comap
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.naturalFiltration_comap
+#print axioms LevyStochCalc.Driver.sigmaPoisson_comap
+#print axioms LevyStochCalc.Poisson.naturalFiltration_comap
+#print axioms LevyStochCalc.Driver.LevyDriver.comap
+#print axioms LevyStochCalc.Driver.LevyDriver.comap_W
+#print axioms LevyStochCalc.Driver.LevyDriver.comap_N
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_comap
+#print axioms LevyStochCalc.Driver.LevyDriver.iSup_filtration_comap
+-- The driver on `Ω × ℝ` under `P ⊗ 𝒩(m₀, v)`: the second coordinate is an initial value of law
+-- `𝒩(m₀, v)` independent of `⨆ t, ℱ_t`, so the grid drivers' `hind₀` hypothesis is satisfiable.
+#print axioms LevyStochCalc.Driver.hasLaw_snd_prod_gaussianReal
+#print axioms LevyStochCalc.Driver.LevyDriver.prodGaussian
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_prodGaussian
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_snd_iSup_filtration_prodGaussian
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_gaussianInitial

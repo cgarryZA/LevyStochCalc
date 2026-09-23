@@ -230,6 +230,7 @@ import LevyStochCalc.Driver.JointPRPProcess
 import LevyStochCalc.Driver.PredictableRepresentation
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
+import LevyStochCalc.Driver.GaussianInitial
 import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.CellProfileStep
