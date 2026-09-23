@@ -228,6 +228,8 @@ import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.CellProfileStep
 import LevyStochCalc.Driver.CellProductStep
+import LevyStochCalc.Driver.CellMixedStep
+import LevyStochCalc.Driver.CellBrownianStep
 import LevyStochCalc.Driver.JointChaosStep
 import LevyStochCalc.Driver.JointChaosBlock
 import LevyStochCalc.Driver.CellIndependence

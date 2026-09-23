@@ -5248,3 +5248,35 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.integral_levyCellProduct_mul
 #print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_natAdd_mul_levyCellProduct
 #print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_castAdd_mul_levyCellProduct
+#print axioms LevyStochCalc.Driver.aestronglyMeasurable_sigmaPoisson_compensatedProfile
+#print axioms LevyStochCalc.Driver.aestronglyMeasurable_sigmaPoisson_compensatedProfileRepr
+#print axioms LevyStochCalc.Driver.aestronglyMeasurable_sigmaPoisson_compensatedProduct
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_increment_iSup_sigmaBrownian
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_increment
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_mul_eq_mul_integral_of_sigmaPoisson
+
+-- ===== The mixed element of degree two over a cell of a Lévy driver =====
+#print axioms LevyStochCalc.Driver.LevyDriver.hasLaw_increment
+#print axioms LevyStochCalc.Driver.LevyDriver.measurable_increment_restSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_mul_eq_mul_integral_of_restSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_increment_mul_eq_zero_of_restSigma
+#print axioms LevyStochCalc.Driver.LevyDriver.integral_increment_mul_increment
+#print axioms LevyStochCalc.Driver.levyCellMixed
+#print axioms LevyStochCalc.Driver.measurable_levyCellMixed_comap
+#print axioms LevyStochCalc.Driver.memLp_levyCellMixed
+#print axioms LevyStochCalc.Driver.integral_levyCellMixed
+#print axioms LevyStochCalc.Driver.integral_levyCellMixed_mul
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_castAdd_mul_levyCellMixed
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_natAdd_mul_levyCellMixed
+#print axioms LevyStochCalc.Driver.integral_levyCellMixed_mul_levyCellProduct
+
+-- ===== The Brownian element of degree two over a cell of a Lévy driver =====
+#print axioms LevyStochCalc.Driver.levyCellBrownian
+#print axioms LevyStochCalc.Driver.measurable_levyCellBrownian_comap
+#print axioms LevyStochCalc.Driver.memLp_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_levyCellBrownian_mul
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_castAdd_mul_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_natAdd_mul_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_levyCellMixed_mul_levyCellBrownian
+#print axioms LevyStochCalc.Driver.integral_levyCellBrownian_mul_levyCellProduct
