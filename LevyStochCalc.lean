@@ -227,6 +227,7 @@ import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
 import LevyStochCalc.Driver.CellProfileStep
+import LevyStochCalc.Driver.CellProductStep
 import LevyStochCalc.Driver.JointChaosStep
 import LevyStochCalc.Driver.JointChaosBlock
 import LevyStochCalc.Driver.CellIndependence

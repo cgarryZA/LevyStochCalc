@@ -5238,3 +5238,13 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.measurable_levyCellProfileStep
 #print axioms LevyStochCalc.Driver.measurable_levyCellProfileStep_filtration
 #print axioms LevyStochCalc.Driver.indep_comap_levyCellProfileStep
+
+-- ===== The compensated product of two mark profiles over a cell of a Lévy driver =====
+#print axioms LevyStochCalc.Driver.levyCellProduct
+#print axioms LevyStochCalc.Driver.levyCellProduct_ae_eq
+#print axioms LevyStochCalc.Driver.measurable_levyCellProduct_comap
+#print axioms LevyStochCalc.Driver.memLp_levyCellProduct
+#print axioms LevyStochCalc.Driver.integral_levyCellProduct
+#print axioms LevyStochCalc.Driver.integral_levyCellProduct_mul
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_natAdd_mul_levyCellProduct
+#print axioms LevyStochCalc.Driver.integral_levyCellProfileStep_castAdd_mul_levyCellProduct
