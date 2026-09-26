@@ -51,6 +51,7 @@ import LevyStochCalc.Probability.Charlier
 import LevyStochCalc.Probability.L2Series
 import LevyStochCalc.Probability.HermiteGenerating
 import LevyStochCalc.Probability.CharlierGenerating
+import LevyStochCalc.Probability.CharlierAdd
 import LevyStochCalc.Probability.WienerChaosExpansion
 import LevyStochCalc.Probability.CharacterL2
 import LevyStochCalc.Probability.DoobContinuous
@@ -167,6 +168,9 @@ import LevyStochCalc.Poisson.SecondChaos
 import LevyStochCalc.Poisson.ChaosExpansion
 import LevyStochCalc.Poisson.SimpleChaosDegree
 import LevyStochCalc.Poisson.SimpleChaosDegreeComplex
+import LevyStochCalc.Poisson.SimpleChaosRefine
+import LevyStochCalc.Poisson.ProfileChaosExpansion
+import LevyStochCalc.Poisson.ProfileExpVectorCont
 import LevyStochCalc.Poisson.PredictableIntegrand
 import LevyStochCalc.Poisson.PerpBridge
 
@@ -246,6 +250,8 @@ import LevyStochCalc.Driver.JointChaosBlock
 import LevyStochCalc.Driver.CellIndependence
 import LevyStochCalc.Driver.JointChaosComplex
 import LevyStochCalc.Driver.JointChaosProfile
+import LevyStochCalc.Driver.JointChaosProfileComplex
+import LevyStochCalc.Driver.JointChaosProfileExpansion
 import LevyStochCalc.Driver.ValueSigma
 import LevyStochCalc.Driver.GermIndep
 import LevyStochCalc.Driver.AugJointUsualConditions
