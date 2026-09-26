@@ -71,7 +71,7 @@ private theorem exists_seq_tendsto_ae_stepIntegral (N : Poisson.PoissonRandomMea
 /-- Simple mark profiles for a finite family of square-integrable mark profiles, and a common
 subsequence along which all their compensated step integrals converge almost everywhere to the
 compensated integrals of the family. -/
-private theorem exists_seq_tendsto_ae_stepIntegral_family
+theorem exists_seq_tendsto_ae_stepIntegral_family
     (N : Poisson.PoissonRandomMeasure P ν) {ζ : Fin q → E → ℝ} (hζm : ∀ r, MemLp (ζ r) 2 ν)
     {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     ∃ (G : Fin q → ℕ → Poisson.SimpleProfile E ν) (ns : ℕ → ℕ), ∀ᵐ ω ∂P,

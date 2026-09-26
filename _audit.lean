@@ -5207,8 +5207,14 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.SimpleProfile.integral_compensatedProduct_mul_compensatedProfile
 
 -- ===== Moments of the compensated product of two bounded mark profiles =====
+#print axioms LevyStochCalc.Probability.eLpNorm_two_eq_ofReal_sqrt_integral_sq
+#print axioms LevyStochCalc.Probability.integral_sub_sq_of_memLp
+#print axioms LevyStochCalc.Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real
+#print axioms LevyStochCalc.Probability.exists_strictMono_ae_tendsto_of_tendsto_eLpNorm
+#print axioms LevyStochCalc.Probability.ae_eq_of_tendsto_eLpNorm_mul_sub
 #print axioms LevyStochCalc.Poisson.integral_compensatedProfile_sub_sq
 #print axioms LevyStochCalc.Poisson.eLpNorm_compensatedProfile_sub
+#print axioms LevyStochCalc.Poisson.tendsto_compensatedProfile_of_tendsto
 #print axioms LevyStochCalc.Poisson.memLp_compensatedProduct
 #print axioms LevyStochCalc.Poisson.integral_compensatedProduct
 #print axioms LevyStochCalc.Poisson.integral_compensatedProduct_mul
@@ -5228,6 +5234,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Poisson.integral_norm_sub_one_sq_profileExpVector
 
 -- ===== The cell increment of a Lévy driver along deterministic mark modes =====
+#print axioms LevyStochCalc.Driver.exists_seq_tendsto_ae_stepIntegral_family
 #print axioms LevyStochCalc.Driver.LevyDriver.comap_stepIntegral_le
 #print axioms LevyStochCalc.Driver.LevyDriver.measurable_stepIntegral
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_stepIntegral

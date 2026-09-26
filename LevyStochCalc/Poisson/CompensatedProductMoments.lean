@@ -44,18 +44,13 @@ fourth moment of the compensated integral of a general profile is needed.
 open MeasureTheory ProbabilityTheory Filter
 open scoped NNReal ENNReal Topology
 
-namespace LevyStochCalc.Poisson
-
-universe u v
-
-variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
-  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+namespace LevyStochCalc.Probability
 
 /-! ### `L²` facts -/
 
 /-- The `L²` seminorm of a square-integrable real function through its second moment. -/
-private theorem eLpNorm_two_eq_ofReal_sqrt {α : Type*} [MeasurableSpace α] {m : Measure α}
-    {F : α → ℝ} (hF : MemLp F 2 m) :
+theorem eLpNorm_two_eq_ofReal_sqrt_integral_sq {α : Type*} [MeasurableSpace α]
+    {m : Measure α} {F : α → ℝ} (hF : MemLp F 2 m) :
     eLpNorm F 2 m = ENNReal.ofReal (Real.sqrt (∫ x, F x ^ 2 ∂m)) := by
   rw [hF.eLpNorm_eq_integral_rpow_norm (by norm_num) (by norm_num),
     show (2 : ℝ≥0∞).toReal = 2 from by norm_num, Real.sqrt_eq_rpow, one_div]
@@ -65,8 +60,8 @@ private theorem eLpNorm_two_eq_ofReal_sqrt {α : Type*} [MeasurableSpace α] {m 
   rw [Real.rpow_two, sq_abs]
 
 /-- The second moment of a difference of square-integrable real functions, expanded. -/
-private theorem integral_sub_sq {α : Type*} [MeasurableSpace α] {m : Measure α} {F G : α → ℝ}
-    (hF : MemLp F 2 m) (hG : MemLp G 2 m) :
+theorem integral_sub_sq_of_memLp {α : Type*} [MeasurableSpace α] {m : Measure α}
+    {F G : α → ℝ} (hF : MemLp F 2 m) (hG : MemLp G 2 m) :
     ∫ x, (F x - G x) ^ 2 ∂m
       = ∫ x, F x * F x ∂m - ∫ x, F x * G x ∂m - ∫ x, G x * F x ∂m + ∫ x, G x * G x ∂m := by
   have h11 : Integrable (fun x => F x * F x) m := hF.integrable_mul hF
@@ -79,9 +74,9 @@ private theorem integral_sub_sq {α : Type*} [MeasurableSpace α] {m : Measure �
       = fun x => F x * F x - F x * G x - G x * F x + G x * G x from by funext x; ring,
     integral_add h2 h22, integral_sub h1 h21, integral_sub h11 h12]
 
-/-- **The `L²` pairing is continuous along `L²` convergence in each argument.** -/
-private theorem tendsto_integral_mul {α ι : Type*} [MeasurableSpace α] {m : Measure α}
-    {l : Filter ι} {X Y : ι → α → ℝ} {X' Y' : α → ℝ} (hX : ∀ i, MemLp (X i) 2 m)
+/-- **The real `L²` pairing is continuous along `L²` convergence in each argument.** -/
+theorem tendsto_integral_mul_of_tendsto_eLpNorm_real {α ι : Type*} [MeasurableSpace α]
+    {m : Measure α} {l : Filter ι} {X Y : ι → α → ℝ} {X' Y' : α → ℝ} (hX : ∀ i, MemLp (X i) 2 m)
     (hY : ∀ i, MemLp (Y i) 2 m) (hX' : MemLp X' 2 m) (hY' : MemLp Y' 2 m)
     (hXc : Tendsto (fun i => eLpNorm (fun x => X i x - X' x) 2 m) l (𝓝 0))
     (hYc : Tendsto (fun i => eLpNorm (fun x => Y i x - Y' x) 2 m) l (𝓝 0)) :
@@ -143,19 +138,20 @@ private theorem tendsto_eLpNorm_mul_sub {α : Type*} [MeasurableSpace α] {m : M
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlim (fun _ => by simp)
     hbound
 
-omit [IsProbabilityMeasure P] in
-/-- Along a subsequence, convergence in `L²(P)` becomes almost sure convergence. -/
-private theorem exists_strictMono_ae_tendsto {X : ℕ → Ω → ℝ} {X' : Ω → ℝ}
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
+
+/-- Along a strictly increasing subsequence, convergence in `L²(P)` becomes almost everywhere
+convergence. -/
+theorem exists_strictMono_ae_tendsto_of_tendsto_eLpNorm {X : ℕ → Ω → ℝ} {X' : Ω → ℝ}
     (hX : ∀ n, AEStronglyMeasurable (X n) P) (hX' : AEStronglyMeasurable X' P)
     (hc : Tendsto (fun n => eLpNorm (fun ω => X n ω - X' ω) 2 P) atTop (𝓝 0)) :
     ∃ φ : ℕ → ℕ, StrictMono φ ∧ ∀ᵐ ω ∂P, Tendsto (fun n => X (φ n) ω) atTop (𝓝 (X' ω)) :=
   (tendstoInMeasure_of_tendsto_eLpNorm (by norm_num) hX hX' hc).exists_seq_tendsto_ae
 
-omit [IsProbabilityMeasure P] in
 /-- **Identification of an `L²` limit.** If `A n → A'`, `B n → B'` and `C n → C'` in `L²(P)`,
 `c n → c'`, and `A n B n − C n − c n → L` in `L²(P)`, then `L = A' B' − C' − c'` almost
-surely. -/
-private theorem ae_eq_of_tendsto_mul_sub {A B C : ℕ → Ω → ℝ} {c : ℕ → ℝ}
+everywhere. -/
+theorem ae_eq_of_tendsto_eLpNorm_mul_sub {A B C : ℕ → Ω → ℝ} {c : ℕ → ℝ}
     {A' B' C' L : Ω → ℝ} {c' : ℝ} (hA : ∀ n, AEStronglyMeasurable (A n) P)
     (hB : ∀ n, AEStronglyMeasurable (B n) P) (hC : ∀ n, AEStronglyMeasurable (C n) P)
     (hA' : AEStronglyMeasurable A' P) (hB' : AEStronglyMeasurable B' P)
@@ -167,12 +163,12 @@ private theorem ae_eq_of_tendsto_mul_sub {A B C : ℕ → Ω → ℝ} {c : ℕ �
     (hLc : Tendsto (fun n => eLpNorm (fun ω => (A n ω * B n ω - C n ω - c n) - L ω) 2 P)
       atTop (𝓝 0)) :
     L =ᵐ[P] fun ω => A' ω * B' ω - C' ω - c' := by
-  obtain ⟨φ₁, hφ₁, h₁⟩ := exists_strictMono_ae_tendsto hA hA' hAc
-  obtain ⟨φ₂, hφ₂, h₂⟩ := exists_strictMono_ae_tendsto (fun n => hB (φ₁ n)) hB'
-    (hBc.comp hφ₁.tendsto_atTop)
-  obtain ⟨φ₃, hφ₃, h₃⟩ := exists_strictMono_ae_tendsto (fun n => hC (φ₁ (φ₂ n))) hC'
-    (hCc.comp (hφ₁.comp hφ₂).tendsto_atTop)
-  obtain ⟨φ₄, hφ₄, h₄⟩ := exists_strictMono_ae_tendsto
+  obtain ⟨φ₁, hφ₁, h₁⟩ := exists_strictMono_ae_tendsto_of_tendsto_eLpNorm hA hA' hAc
+  obtain ⟨φ₂, hφ₂, h₂⟩ := exists_strictMono_ae_tendsto_of_tendsto_eLpNorm (fun n => hB (φ₁ n))
+    hB' (hBc.comp hφ₁.tendsto_atTop)
+  obtain ⟨φ₃, hφ₃, h₃⟩ := exists_strictMono_ae_tendsto_of_tendsto_eLpNorm
+    (fun n => hC (φ₁ (φ₂ n))) hC' (hCc.comp (hφ₁.comp hφ₂).tendsto_atTop)
+  obtain ⟨φ₄, hφ₄, h₄⟩ := exists_strictMono_ae_tendsto_of_tendsto_eLpNorm
     (X := fun n ω => A (φ₁ (φ₂ (φ₃ n))) ω * B (φ₁ (φ₂ (φ₃ n))) ω - C (φ₁ (φ₂ (φ₃ n))) ω
       - c (φ₁ (φ₂ (φ₃ n))))
     (fun n => (((hA _).mul (hB _)).sub (hC _)).sub aestronglyMeasurable_const) hL
@@ -184,6 +180,15 @@ private theorem ae_eq_of_tendsto_mul_sub {A B C : ℕ → Ω → ℝ} {c : ℕ �
   have e4 := hcc.comp (((hφ₁.comp hφ₂).comp hφ₃).comp hφ₄).tendsto_atTop
   exact tendsto_nhds_unique h4 (((e1.mul e2).sub e3).sub e4)
 
+end LevyStochCalc.Probability
+
+namespace LevyStochCalc.Poisson
+
+universe u v
+
+variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
+  {P : Measure Ω} [IsProbabilityMeasure P] {ν : Measure E} [SigmaFinite ν]
+
 /-! ### The isometry -/
 
 /-- **The isometry, in second-moment form.** The second moment of the difference of the
@@ -193,8 +198,9 @@ theorem integral_compensatedProfile_sub_sq (N : PoissonRandomMeasure P ν) {f g 
     (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     ∫ ω, (compensatedProfile N f a b ω - compensatedProfile N g a b ω) ^ 2 ∂P
       = (b - a) * ∫ e, (f e - g e) ^ 2 ∂ν := by
-  rw [integral_sub_sq (memLp_compensatedProfile N f a b) (memLp_compensatedProfile N g a b),
-    integral_sub_sq hf hg, integral_compensatedProfile_mul N hf hf ha hab,
+  rw [Probability.integral_sub_sq_of_memLp (memLp_compensatedProfile N f a b)
+      (memLp_compensatedProfile N g a b),
+    Probability.integral_sub_sq_of_memLp hf hg, integral_compensatedProfile_mul N hf hf ha hab,
     integral_compensatedProfile_mul N hf hg ha hab,
     integral_compensatedProfile_mul N hg hf ha hab,
     integral_compensatedProfile_mul N hg hg ha hab]
@@ -210,13 +216,14 @@ theorem eLpNorm_compensatedProfile_sub (N : PoissonRandomMeasure P ν) {f g : E 
   have hP : MemLp (fun ω => compensatedProfile N f a b ω - compensatedProfile N g a b ω) 2 P :=
     (memLp_compensatedProfile N f a b).sub (memLp_compensatedProfile N g a b)
   have hν : MemLp (fun e => f e - g e) 2 ν := hf.sub hg
-  rw [eLpNorm_two_eq_ofReal_sqrt hP, eLpNorm_two_eq_ofReal_sqrt hν,
+  rw [Probability.eLpNorm_two_eq_ofReal_sqrt_integral_sq hP,
+    Probability.eLpNorm_two_eq_ofReal_sqrt_integral_sq hν,
     integral_compensatedProfile_sub_sq N hf hg ha hab,
     Real.sqrt_mul (by linarith), ENNReal.ofReal_mul (Real.sqrt_nonneg _)]
 
-/-- The compensated integrals of square-integrable mark profiles converging in `L²(ν)` converge
-in `L²(P)`. -/
-private theorem tendsto_compensatedProfile_of_tendsto (N : PoissonRandomMeasure P ν)
+/-- The compensated integrals over the step `(a, b]` of square-integrable mark profiles
+converging in `L²(ν)` converge in `L²(P)`. -/
+theorem tendsto_compensatedProfile_of_tendsto (N : PoissonRandomMeasure P ν)
     {u : ℕ → E → ℝ} {f : E → ℝ} (hu : ∀ n, MemLp (u n) 2 ν) (hf : MemLp f 2 ν) {a b : ℝ}
     (ha : 0 ≤ a) (hab : a ≤ b)
     (hc : Tendsto (fun n => eLpNorm (fun e => u n e - f e) 2 ν) atTop (𝓝 0)) :
@@ -261,7 +268,8 @@ private theorem memLp_tendsto_compensatedProduct (N : PoissonRandomMeasure P ν)
       ∀ {s t : ℕ × ℕ → ℕ}, Tendsto s atTop atTop → Tendsto t atTop atTop →
       Tendsto (fun nm => ∫ e, X (s nm) e * Y (t nm) e ∂ν) atTop (𝓝 (∫ e, x e * y e ∂ν)) :=
     fun hX hY hx hy hXc hYc _ _ hs ht =>
-      tendsto_integral_mul (fun _ => hX _) (fun _ => hY _) hx hy (hXc.comp hs) (hYc.comp ht)
+      Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real (fun _ => hX _) (fun _ => hY _) hx
+        hy (hXc.comp hs) (hYc.comp ht)
   have hΓ : ∀ {s t : ℕ × ℕ → ℕ}, Tendsto s atTop atTop → Tendsto t atTop atTop →
       Tendsto (fun nm => ∫ ω, Q (s nm) ω * Q (t nm) ω ∂P) atTop
         (𝓝 ((b - a) ^ 2 * ((∫ e, f e * f e ∂ν) * (∫ e, g e * g e ∂ν)
@@ -271,7 +279,7 @@ private theorem memLp_tendsto_compensatedProduct (N : PoissonRandomMeasure P ν)
     exact (((hpair hFm hFm hf hf hF hF hs ht).mul (hpair hGm hGm hg hg hG hG hs ht)).add
       ((hpair hFm hGm hf hg hF hG hs ht).mul (hpair hGm hFm hg hf hG hF hs ht))).const_mul _
   have hsq : Tendsto (fun nm : ℕ × ℕ => ∫ ω, (Q nm.1 ω - Q nm.2 ω) ^ 2 ∂P) atTop (𝓝 0) := by
-    simp_rw [integral_sub_sq (hQ _) (hQ _)]
+    simp_rw [Probability.integral_sub_sq_of_memLp (hQ _) (hQ _)]
     simpa using (((hΓ hfst hfst).sub (hΓ hfst hsnd)).sub (hΓ hsnd hfst)).add (hΓ hsnd hsnd)
   -- the approximants form a Cauchy sequence in `L²(P)`
   set q : ℕ → Lp ℝ 2 P := fun n => (hQ n).toLp (Q n) with hqdef
@@ -281,7 +289,7 @@ private theorem memLp_tendsto_compensatedProduct (N : PoissonRandomMeasure P ν)
         = ENNReal.ofReal (Real.sqrt (∫ ω, (Q nm.1 ω - Q nm.2 ω) ^ 2 ∂P)) := by
       intro nm
       have hsub : MemLp (fun ω => Q nm.1 ω - Q nm.2 ω) 2 P := (hQ nm.1).sub (hQ nm.2)
-      rw [← eLpNorm_two_eq_ofReal_sqrt hsub]
+      rw [← Probability.eLpNorm_two_eq_ofReal_sqrt_integral_sq hsub]
       refine eLpNorm_congr_ae ?_
       filter_upwards [(hQ nm.1).coeFn_toLp, (hQ nm.2).coeFn_toLp] with ω h1 h2
       simp [hqdef, h1, h2]
@@ -297,17 +305,18 @@ private theorem memLp_tendsto_compensatedProduct (N : PoissonRandomMeasure P ν)
     simp [hqdef, h]
   -- the limit is the compensated product of the limit profiles
   have hFG : ∀ n, MemLp (fun e => (F n).toFun e * (G n).toFun e) 2 ν :=
-    fun n => memLp_mul_of_bound (hFm n) (hGm n).1 (hGb n)
-  have hfg : MemLp (fun e => f e * g e) 2 ν := memLp_mul_of_bound hf hg.1 hbg
+    fun n => Probability.memLp_mul_of_bound (hFm n) (hGm n).1 (hGb n)
+  have hfg : MemLp (fun e => f e * g e) 2 ν := Probability.memLp_mul_of_bound hf hg.1 hbg
   have hA := tendsto_compensatedProfile_of_tendsto N hFm hf ha hab hF
   have hB := tendsto_compensatedProfile_of_tendsto N hGm hg ha hab hG
   have hC := tendsto_compensatedProfile_of_tendsto N hFG hfg ha hab
-    (tendsto_eLpNorm_mul_sub (fun n => (hFm n).1) (fun n => (hGm n).1) hf.1 hg.1 hGb hbf hF hG)
+    (Probability.tendsto_eLpNorm_mul_sub (fun n => (hFm n).1) (fun n => (hGm n).1) hf.1 hg.1 hGb
+      hbf hF hG)
   have hc : Tendsto (fun n => (b - a) * ∫ e, (F n).toFun e * (G n).toFun e ∂ν) atTop
       (𝓝 ((b - a) * ∫ e, f e * g e ∂ν)) :=
-    (tendsto_integral_mul hFm hGm hf hg hF hG).const_mul _
+    (Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real hFm hGm hf hg hF hG).const_mul _
   have hae : (L : Ω → ℝ) =ᵐ[P] compensatedProduct N f g a b :=
-    ae_eq_of_tendsto_mul_sub (fun n => (memLp_compensatedProfile N _ a b).1)
+    Probability.ae_eq_of_tendsto_eLpNorm_mul_sub (fun n => (memLp_compensatedProfile N _ a b).1)
       (fun n => (memLp_compensatedProfile N _ a b).1)
       (fun n => (memLp_compensatedProfile N _ a b).1)
       (memLp_compensatedProfile N f a b).1 (memLp_compensatedProfile N g a b).1
@@ -337,7 +346,7 @@ theorem integral_compensatedProduct (N : PoissonRandomMeasure P ν) {f g : E →
   obtain ⟨F, hF⟩ := exists_simpleProfile_tendsto_L2_of_memLp hf
   obtain ⟨G, hGb, hG⟩ := exists_simpleProfile_tendsto_L2 hg hbg
   obtain ⟨hQ, hc⟩ := memLp_tendsto_compensatedProduct N hf hg hbf hbg ha hab hGb hF hG
-  have h := tendsto_integral_mul (Y := fun _ _ => (1 : ℝ))
+  have h := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real (Y := fun _ _ => (1 : ℝ))
     (fun n => SimpleProfile.memLp_compensatedProduct N (F n) (G n) ha hab)
     (fun _ => memLp_const 1) hQ (memLp_const 1) hc (by simp)
   simp only [mul_one] at h
@@ -367,13 +376,14 @@ theorem integral_compensatedProduct_mul (N : PoissonRandomMeasure P ν) {f g f' 
   have hGm : ∀ n, MemLp (G n).toFun 2 ν := fun n => (G n).memLp_toFun
   have hF'm : ∀ n, MemLp (F' n).toFun 2 ν := fun n => (F' n).memLp_toFun
   have hG'm : ∀ n, MemLp (G' n).toFun 2 ν := fun n => (G' n).memLp_toFun
-  have hP := tendsto_integral_mul
+  have hP := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real
     (fun n => SimpleProfile.memLp_compensatedProduct N (F n) (G n) ha hab)
     (fun n => SimpleProfile.memLp_compensatedProduct N (F' n) (G' n) ha hab) hQ hQ' hc hc'
-  have hν := (((tendsto_integral_mul hFm hF'm hf hf' hF hF').mul
-    (tendsto_integral_mul hGm hG'm hg hg' hG hG')).add
-      ((tendsto_integral_mul hFm hG'm hf hg' hF hG').mul
-        (tendsto_integral_mul hGm hF'm hg hf' hG hF'))).const_mul ((b - a) ^ 2)
+  have h1 := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real hFm hF'm hf hf' hF hF'
+  have h2 := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real hGm hG'm hg hg' hG hG'
+  have h3 := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real hFm hG'm hf hg' hF hG'
+  have h4 := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real hGm hF'm hg hf' hG hF'
+  have hν := ((h1.mul h2).add (h3.mul h4)).const_mul ((b - a) ^ 2)
   exact tendsto_nhds_unique (hP.congr fun n =>
     SimpleProfile.integral_compensatedProduct_mul N (F n) (G n) (F' n) (G' n) ha hab) hν
 
@@ -389,7 +399,7 @@ theorem integral_compensatedProduct_mul_compensatedProfile (N : PoissonRandomMea
   obtain ⟨H, hH⟩ := exists_simpleProfile_tendsto_L2_of_memLp hh
   obtain ⟨hQ, hc⟩ := memLp_tendsto_compensatedProduct N hf hg hbf hbg ha hab hGb hF hG
   have hJ := tendsto_compensatedProfile_of_tendsto N (fun n => (H n).memLp_toFun) hh ha hab hH
-  have hP := tendsto_integral_mul
+  have hP := Probability.tendsto_integral_mul_of_tendsto_eLpNorm_real
     (fun n => SimpleProfile.memLp_compensatedProduct N (F n) (G n) ha hab)
     (fun n => memLp_compensatedProfile N (H n).toFun a b) hQ (memLp_compensatedProfile N h a b)
     hc hJ
