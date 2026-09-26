@@ -5357,3 +5357,29 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.filtration_prodGaussian
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_snd_iSup_filtration_prodGaussian
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_gaussianInitial
+
+-- ===== Lévy drivers on a standard Borel space (Brownian/, Poisson/, Driver/StandardBorel) =====
+-- Brownian motion on Wiener space `C(ℝ≥0, ℝ)` and its `d`-dimensional product.
+#print axioms StandardBorelSpace.ulift
+#print axioms LevyStochCalc.Brownian.isProbabilityMeasure_wienerMeasure
+#print axioms LevyStochCalc.Brownian.measurable_coe_continuousMap
+#print axioms LevyStochCalc.Brownian.hasLaw_coe_wienerMeasure
+#print axioms LevyStochCalc.Brownian.isPreBrownianReal_wienerMeasure
+#print axioms LevyStochCalc.Brownian.BrownianMotion.wiener
+#print axioms LevyStochCalc.Brownian.BrownianMotion.wiener_apply
+#print axioms LevyStochCalc.Brownian.BrownianMotion.exists_standardBorel
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.pi
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.pi_apply
+#print axioms LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_standardBorel
+-- The Poisson random measure as a superposition on `ι → PieceSpace (ℝ × E)`.
+#print axioms LevyStochCalc.Poisson.exists_superIntensity_eq
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.ofSuperposition
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.ofSuperposition_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.exists_standardBorel
+-- The Lévy driver on a standard Borel space, with an independent initial value of any law.
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_standardBorel
+#print axioms LevyStochCalc.Driver.LevyDriver.prodInitial
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_prodInitial
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_snd_iSup_filtration_prodInitial
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_standardBorel_initial
+#print axioms LevyStochCalc.Driver.LevyDriver.exists_standardBorel_initial_memLp
