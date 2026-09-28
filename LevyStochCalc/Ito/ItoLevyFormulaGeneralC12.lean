@@ -63,8 +63,8 @@ variable {Ω : Type u} [MeasurableSpace Ω] {E : Type v} [MeasurableSpace E]
 
 /-- **The Itô–Lévy formula, residual form, along a solution with càdlàg paths at every sample
 point.** For a jump diffusion carrying SDE data at a filtration satisfying the usual conditions,
-with jointly measurable coefficients and a drift of finite energy along the path, and a jointly
-`C²` state function whose derived integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the path have
+with jointly measurable coefficients and a drift of finite energy along the path, and a
+`C^{1,2}` state function whose derived integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the path have
 finite energy and whose compensator drift is integrable, the increment `u(T, X_T) − u(0, X_0)`
 minus the drift integral and the Brownian integral is the compensated integral plus the
 compensator-drift integral, almost surely. No bound on the derivatives of `u` is assumed. -/
@@ -320,7 +320,7 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_general_of_leftLim_c12 (x₀ : Fi
 
 /-- **The Itô–Lévy formula, residual form, along a jump diffusion.** For a jump diffusion
 carrying SDE data at a filtration satisfying the usual conditions, with jointly measurable
-coefficients and a drift of finite energy along the path, and a jointly `C²` state function
+coefficients and a drift of finite energy along the path, and a `C^{1,2}` state function
 whose derived integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the path have finite energy and
 whose compensator drift is integrable, the increment `u(T, X_T) − u(0, X_0)` minus the drift
 integral and the Brownian integral is the compensated integral plus the compensator-drift
@@ -472,7 +472,7 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_general_c12 (x₀ : Fin n → ℝ
 
 /-- **The Itô–Lévy formula for a jump diffusion.** For a jump diffusion carrying SDE data at a
 filtration satisfying the usual conditions, with jointly measurable coefficients and a drift of
-finite energy along the path, and a jointly `C²` state function whose derived integrands
+finite energy along the path, and a `C^{1,2}` state function whose derived integrands
 `(∇u)ᵀσ` and `u(x + γ) − u(x)` along the path have finite energy and whose compensator drift is
 integrable, `u(T, X_T) − u(0, X_0)` is the drift integral of `∂ₜu + 𝓛u`, plus the Brownian
 integral of `(∇u)ᵀσ`, plus the compensated-Poisson integral of `u(x + γ) − u(x)`, plus the

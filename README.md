@@ -6,7 +6,10 @@ emphasis on:
 * L² Itô integrals against Brownian motion and compensated Poisson random
   measures (the Itô-Lévy isometry).
 * The Itô-Lévy formula for `C^{1,2}` functions of jump diffusions
-  (Applebaum 2009 Thm 4.4.7).
+  (Applebaum 2009 Thm 4.4.7), in an L² form: `itoLevyFormula_general_c12` assumes the derived
+  integrands `(∇u)ᵀσ` and `u(x + γ) − u(x)` have finite energy along the path and the
+  compensator drift is integrable, so every stochastic integral in it is an L² integral; the
+  local-martingale formulation without these conditions is not formalised.
 * Strong existence and uniqueness for the jump-diffusion SDE (Applebaum 2009
   Thm 6.2.9), and the solution predicate for backward SDEs with jumps.
 
@@ -27,8 +30,11 @@ proves; nothing in this README overrides it. Its current state:
   no bound on the derivatives — is the theorem `Ito.JumpFormula.itoLevyFormula_general`
   (`Ito/ItoLevyFormulaGeneral.lean`, the same day), on the three standard axioms, stated at the
   solution's own filtration with the hypotheses ledger entry `Resolved #16` records; the
-  dissertation forwards that theorem. Its bounded-derivative case
-  `itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`) is the milestone
+  dissertation forwards that theorem. `itoLevyFormula_general_c12`
+  (`Ito/ItoLevyFormulaGeneralC12.lean`) proves the same statement for `u` of class `C^{1,2}`
+  (`Ito/C12.lean`), a strictly larger class, and `itoLevyFormula_general_of_c12` recovers the
+  jointly `C²` form from it. The bounded-derivative case of `itoLevyFormula_general`,
+  `itoLevyFormula_of_boundedDerivs` (`Ito/ItoLevyBoundedDerivsSolution.lean`), is the milestone
   the proof is built on.
 * **No `sorry`-carrying declaration.** `tools/sorry_baseline.txt` is empty since 2026-09-15
   (its last entry, the canonical assembly `itoLevyFormula_jumpResidual_canonical`, was deleted

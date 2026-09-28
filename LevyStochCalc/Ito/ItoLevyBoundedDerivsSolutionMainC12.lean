@@ -351,7 +351,7 @@ theorem itoLevyFormula_jumpResidual_of_sdeData_c12 (x₀ : Fin n → ℝ)
   rw [← hdr, ← hbro, ← hcmp, ← hcd, ← hag T hT.le, ← hag 0 le_rfl]
   exact hω
 
-/-- The Itô–Lévy formula for a jump diffusion and a jointly `C²` state function with bounded
+/-- The Itô–Lévy formula for a jump diffusion and a `C^{1,2}` state function with bounded
 first and second derivatives, relative to the filtration of the solution's SDE data:
 `u(T, X_T) − u(0, X_0)` is the drift integral of `∂ₜu + 𝓛u`, plus the Brownian integral of
 `(∇u)ᵀσ`, plus the compensated-Poisson integral of `u(x + γ) − u(x)`, plus the compensator-drift
