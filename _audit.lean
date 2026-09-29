@@ -5484,3 +5484,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.hasSum_toLp_jointProfileBlockC_simpleProfile
 #print axioms LevyStochCalc.Driver.LevyDriver.tendsto_eLpNorm_wienerExpVector_mul_profileExpVector_sub
 #print axioms LevyStochCalc.Driver.LevyDriver.integral_coeff_mul_jointProfileBlockC_mul_conj
+-- ===== Variance and Chebyshev concentration of an empirical mean =====
+#print axioms LevyStochCalc.Probability.variance_empiricalMean_le
+#print axioms LevyStochCalc.Probability.empiricalMean_concentration
+-- ===== Suprema of Lipschitz functions =====
+#print axioms LevyStochCalc.Analysis.lipschitzWith_ciSup
+#print axioms LevyStochCalc.Analysis.abs_ciSup_sub_mul_sub_ciSup_sub_mul_le
+-- ===== Probability measures concentrated on a compact set =====
+#print axioms LevyStochCalc.Probability.isCompact_setOf_measure_compl_eq_zero
+#print axioms LevyStochCalc.Probability.completeSpace_levyProkhorov_measure_compl_eq_zero
+-- ===== Completeness of the Lévy–Prokhorov metric on a proper metric space =====
+#print axioms LevyStochCalc.Probability.isTightMeasureSet_of_totallyBounded
+#print axioms LevyStochCalc.Probability.isCompact_closure_of_isTightMeasureSet_levyProkhorov
+#print axioms LevyStochCalc.Probability.instCompleteSpaceLevyProkhorovProbabilityMeasure
+-- ===== Integrals of Lipschitz functions under the Lévy–Prokhorov metric =====
+#print axioms LevyStochCalc.Probability.thickening_setOf_le_subset
+#print axioms LevyStochCalc.Probability.integral_le_integral_add_of_levyProkhorovEDist_lt
+#print axioms LevyStochCalc.Probability.abs_integral_sub_integral_le_levyProkhorovDist

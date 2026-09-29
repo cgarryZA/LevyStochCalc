@@ -19,6 +19,7 @@ import LevyStochCalc.Analysis.DyadicGrid
 import LevyStochCalc.Analysis.FiniteJumpSum
 import LevyStochCalc.Analysis.ScaledTrig
 import LevyStochCalc.Analysis.SortedGrid
+import LevyStochCalc.Analysis.SupLipschitz
 import LevyStochCalc.Probability.AbsMoment
 import LevyStochCalc.Probability.IndepGrouping
 import LevyStochCalc.Probability.IndepLimit
@@ -67,6 +68,10 @@ import LevyStochCalc.Probability.CondExpRightContinuous
 import LevyStochCalc.Probability.Quasimartingale
 import LevyStochCalc.Probability.FiltrationNNReal
 import LevyStochCalc.Probability.CondExpModification
+import LevyStochCalc.Probability.EmpiricalMean
+import LevyStochCalc.Probability.BoundedSupportCompact
+import LevyStochCalc.Probability.LevyProkhorovComplete
+import LevyStochCalc.Probability.LevyProkhorovLipschitz
 import LevyStochCalc.Poisson.RegionPartition
 import LevyStochCalc.Poisson.ZeroIntensity
 import LevyStochCalc.Poisson.PoissonSplitting
