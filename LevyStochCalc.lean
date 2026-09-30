@@ -151,6 +151,7 @@ import LevyStochCalc.Poisson.CompensatedProduct
 import LevyStochCalc.Poisson.CompensatedProductMoments
 import LevyStochCalc.Poisson.ProfileExpVector
 import LevyStochCalc.Poisson.CompensatedProfileLinear
+import LevyStochCalc.Poisson.CompensatedProfileRaw
 import LevyStochCalc.Poisson.CompensatedCountCharacter
 import LevyStochCalc.Poisson.ProfileExpPairingSimple
 import LevyStochCalc.Poisson.ProfileExpPairing

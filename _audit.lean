@@ -5501,3 +5501,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.thickening_setOf_le_subset
 #print axioms LevyStochCalc.Probability.integral_le_integral_add_of_levyProkhorovEDist_lt
 #print axioms LevyStochCalc.Probability.abs_integral_sub_integral_le_levyProkhorovDist
+-- ===== The compensated integral of an integrable mark profile is pathwise =====
+#print axioms LevyStochCalc.Poisson.referenceIntensity_restrict_Ioc_prod_univ
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.measurable_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.lintegral_N_apply
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.bind_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.lintegral_lintegral_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.measurable_setLIntegral_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.lintegral_setLIntegral_N
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.lintegral_setLIntegral_N_cell
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.ae_ae_eq_comp_snd
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.ae_integrableOn_cell_of_measurable
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.ae_integrableOn_cell
+#print axioms LevyStochCalc.Poisson.PoissonRandomMeasure.aestronglyMeasurable_setIntegral_cell
+#print axioms LevyStochCalc.Poisson.SimpleProfile.stepIntegral_ae_eq_integral_sub
+#print axioms LevyStochCalc.Poisson.compensatedProfile_ae_eq_integral_sub_of_measurable
+#print axioms LevyStochCalc.Poisson.compensatedProfile_ae_eq_integral_sub
+#print axioms LevyStochCalc.Poisson.compensatedProfileRepr_ae_eq_integral_sub
