@@ -4430,6 +4430,11 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.Generator.leftAverageLimit
 #print axioms LevyStochCalc.BSDEJ.Generator.leftAverageLimit_of_notMem
 #print axioms LevyStochCalc.BSDEJ.Generator.measurable_uncurry_leftAverage
+-- A progressive modification of a drift whose primitive is adapted to `ℱ₊`.
+#print axioms LevyStochCalc.BSDEJ.Generator.stronglyMeasurable_driftLeg_of_aestronglyMeasurable
+#print axioms LevyStochCalc.BSDEJ.Generator.leftAverage_indicator_eq
+#print axioms LevyStochCalc.BSDEJ.Generator.progressivelyMeasurable_leftAverage_indicator
+#print axioms LevyStochCalc.BSDEJ.Generator.exists_progressive_modification_of_adapted_integral
 #print axioms LevyStochCalc.BSDEJ.Generator.measurable_uncurry_leftAverageLimit
 #print axioms LevyStochCalc.BSDEJ.Generator.progressivelyMeasurable_leftAverage
 #print axioms LevyStochCalc.BSDEJ.Generator.progressivelyMeasurable_leftAverageLimit
@@ -4917,6 +4922,12 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Probability.integral_id_poissonMeasure
 #print axioms LevyStochCalc.Probability.integral_id_sq_poissonMeasure
 #print axioms LevyStochCalc.Probability.integral_sub_sq_poissonMeasure
+#print axioms LevyStochCalc.Probability.integral_descPochhammer_eval_poissonMeasure
+#print axioms LevyStochCalc.Probability.integral_id_pow_three_poissonMeasure
+#print axioms LevyStochCalc.Probability.integral_id_pow_four_poissonMeasure
+#print axioms LevyStochCalc.Probability.integral_sub_pow_three_poissonMeasure
+#print axioms LevyStochCalc.Probability.integral_sub_pow_four_poissonMeasure
+#print axioms LevyStochCalc.Probability.memLp_natCast_poissonMeasure
 #print axioms LevyStochCalc.Probability.charlierPoly
 #print axioms LevyStochCalc.Probability.charlierPoly_zero
 #print axioms LevyStochCalc.Probability.charlierPoly_succ
@@ -5357,6 +5368,20 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Driver.LevyDriver.filtration_prodGaussian
 #print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_snd_iSup_filtration_prodGaussian
 #print axioms LevyStochCalc.Driver.LevyDriver.exists_gaussianInitial
+-- The driver on `Ω × S` under `P ⊗ μ₀` for any initial law `μ₀`.
+#print axioms LevyStochCalc.Driver.LevyDriver.prodRight
+#print axioms LevyStochCalc.Driver.LevyDriver.filtration_prodRight
+#print axioms LevyStochCalc.Driver.LevyDriver.prodRight_gaussianReal
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_comap_snd_iSup_filtration_prodRight
+#print axioms LevyStochCalc.Driver.memLp_snd_prod_gaussianReal
+#print axioms LevyStochCalc.Driver.not_ae_const_snd_prod_gaussianReal
+-- Bounded mark profiles orthonormal in `L²(ν)` from disjoint mark sets.
+#print axioms LevyStochCalc.Poisson.normalisedIndicator
+#print axioms LevyStochCalc.Poisson.memLp_normalisedIndicator
+#print axioms LevyStochCalc.Poisson.abs_normalisedIndicator_le
+#print axioms LevyStochCalc.Poisson.integral_normalisedIndicator_mul
+#print axioms LevyStochCalc.Poisson.exists_orthonormal_profile_of_disjoint
+#print axioms LevyStochCalc.Poisson.exists_orthonormal_profile_volume
 
 -- ===== Lévy drivers on a standard Borel space (Brownian/, Poisson/, Driver/StandardBorel) =====
 -- Brownian motion on Wiener space `C(ℝ≥0, ℝ)` and its `d`-dimensional product.

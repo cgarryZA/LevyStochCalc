@@ -157,6 +157,7 @@ import LevyStochCalc.Poisson.ProfileExpPairingSimple
 import LevyStochCalc.Poisson.ProfileExpPairing
 import LevyStochCalc.Poisson.ProfileExpProduct
 import LevyStochCalc.Poisson.MarkStep
+import LevyStochCalc.Poisson.OrthonormalMarkProfile
 import LevyStochCalc.Poisson.MarkStepIsometry
 import LevyStochCalc.Poisson.MarkStepWeight
 import LevyStochCalc.Poisson.MarkStepPolarised
@@ -243,6 +244,7 @@ import LevyStochCalc.Driver.PredictableRepresentation
 import LevyStochCalc.Driver.RightContIncrement
 import LevyStochCalc.Driver.Existence
 import LevyStochCalc.Driver.GaussianInitial
+import LevyStochCalc.Driver.ProductInitial
 import LevyStochCalc.Driver.StandardBorel
 import LevyStochCalc.Driver.VectorIncrement
 import LevyStochCalc.Driver.GridIncrement
@@ -538,6 +540,7 @@ import LevyStochCalc.BSDEJ.GeneratorEnergy
 import LevyStochCalc.BSDEJ.GeneratorAlongMarkStep
 import LevyStochCalc.BSDEJ.GeneratorModification
 import LevyStochCalc.BSDEJ.DriftModification
+import LevyStochCalc.BSDEJ.ProgressiveDrift
 import LevyStochCalc.BSDEJ.YoungLipschitz
 import LevyStochCalc.BSDEJ.CadlagLegs
 import LevyStochCalc.BSDEJ.DriftLeg
