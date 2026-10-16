@@ -92,3 +92,13 @@ collaborative Lean platform Anthropic's FLT formalization was assembled on. The
   #13a, #15) are *not* upload candidates until they are restated (`Plan.md` A6, A7, B5).
 - **A badge is not non-vacuity.** `GOAL.md` §1.B is unaffected by any platform verdict;
   the platform type-checks, it does not audit meaning.
+
+## MachineChecked feedback
+
+While using [MachineChecked](https://github.com/cgarryZA/MachineChecked) (audits, `lean_cache.py`
+build caches, review markers, exports), raise every bug, problem, missed opportunity or feature you
+would have wanted as an issue on its repository: one issue per item, saying what, why, and when it
+is done, with a label for its kind (`bug`, `enhancement`, `cleanup`, `docs`). Search its open
+issues first and add to an existing one rather than duplicating it. That repository is public:
+write each issue generically, with nothing of a private project (no names, declarations,
+statements, counts, review text or manuscript lines); show the problem on a synthetic example.
