@@ -13,9 +13,10 @@ emphasis on:
 * Strong existence and uniqueness for the jump-diffusion SDE (Applebaum 2009
   Thm 6.2.9), and the solution predicate for backward SDEs with jumps.
 
-This library is the substrate the main dissertation
-(`D:/Dissertation`) forwards into for its continuous-time stochastic
-foundations.
+It is the continuous-time stochastic-calculus substrate of the author's Lean formalisations of
+fully coupled McKean–Vlasov FBSDEs with jumps, such as
+[mvfbsdej-well-posedness-lean](https://github.com/cgarryZA/mvfbsdej-well-posedness-lean),
+which depend on it by pinned commit.
 
 ## What is and is not established
 
@@ -30,7 +31,7 @@ proves; nothing in this README overrides it. Its current state:
   no bound on the derivatives — is the theorem `Ito.JumpFormula.itoLevyFormula_general`
   (`Ito/ItoLevyFormulaGeneral.lean`, the same day), on the three standard axioms, stated at the
   solution's own filtration with the hypotheses ledger entry `Resolved #16` records; the
-  dissertation forwards that theorem. `itoLevyFormula_general_c12`
+  downstream formalisations use that theorem. `itoLevyFormula_general_c12`
   (`Ito/ItoLevyFormulaGeneralC12.lean`) proves the same statement for `u` of class `C^{1,2}`
   (`Ito/C12.lean`), a strictly larger class, and `itoLevyFormula_general_of_c12` recovers the
   jointly `C²` form from it. The bounded-derivative case of `itoLevyFormula_general`,
@@ -66,7 +67,7 @@ thing.
 ```
 lake build
 bash tools/lint.sh                    # build + `#print axioms` audit
-bash tools/verify_import_contract.sh  # checks dissertation-import contract
+bash tools/verify_import_contract.sh  # checks the downstream import contract
                                       # (paths from tools/import_contract.md)
 ```
 
@@ -98,8 +99,8 @@ LevyStochCalc/
                          bridge to the PRP
 ```
 
-Module-level detail is in each file's docstring; `tools/import_contract.md` lists the 13
-modules and 19 symbols the dissertation pins.
+Module-level detail is in each file's docstring; `tools/import_contract.md` lists the 17
+modules and 41 symbols downstream formalisations pin.
 
 ## Scope (deliberate omissions)
 
@@ -125,9 +126,8 @@ library doesn't claim.
   per Applebaum 2.3.1). Specific Lévy processes (α-stable, variance-
   gamma, CGMY, etc.) are not constructed — they are downstream
   applications of the PRM + compensated-integral toolkit.
-* **No deep-learning code.** The dissertation that motivates this
-  formalization includes deep-BSDE training code; that code lives in
-  `D:/DeepBSDE/` and is OUT of `LevyStochCalc`'s scope.
+* **No numerical code.** Solvers for these equations, including deep-BSDE training code,
+  live outside this library and are out of its scope.
 * **`Classical.choose` in one integral.** The Brownian `stochasticIntegral` is a genuine
   construction (`stochasticIntegralBrownian`, the L² limit of the simple integrals). The
   compensated-Poisson `stochasticIntegral` is `Classical.choose` of `exists_cadlag_modification`
@@ -149,10 +149,10 @@ library doesn't claim.
 
 `tools/lint.sh` runs `lake build`, then `_audit.lean` (`#print axioms` over every load-bearing
 declaration, written to `audit_output.txt`), and fails on any `sorryAx`-tainted theorem beyond
-`tools/sorry_baseline.txt` (empty). The script is authoritative for what it enforces;
-its hardening — failing on a failed audit run, an axiom allowlist, coverage of every audit
-target, and a documentation-consistency check — is tracked as `X1b`–`X1g` and `X3i` in
-`../Dissertation/RELEASE_READINESS.md`. Wire into pre-commit via:
+`tools/sorry_baseline.txt` (empty). The script is authoritative for what it enforces:
+it fails on a failed audit run, an axiom outside `tools/axiom_allowlist.txt`, an audit target
+with no report, and prose whose quoted pins or counts disagree with the tree
+(`tools/check_docs.sh`). Wire into pre-commit via:
 
 ```
 cp tools/lint.sh .git/hooks/pre-commit
