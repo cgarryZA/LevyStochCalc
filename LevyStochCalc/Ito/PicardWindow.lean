@@ -10,9 +10,10 @@ import LevyStochCalc.Ito.PicardLocality
 
 `SolvesOn` records that a path map satisfies the jump-diffusion integral equation at every time
 of `[0, T]`, in the `picardStep` form; the integrand hypotheses that make the two stochastic
-integrals well-typed are bundled existentially, as in `JumpDiffusion.is_solution`, so that a
-solution can be re-read with any proof of them. Two solutions on a common window and a common
-filtration agree, by the Bielecki contraction.
+integrals well-typed are bundled existentially, as in
+`LevyStochCalc.Ito.Setting.JumpDiffusion.is_solution`, so that a solution can be re-read with any
+proof of them. Two solutions on a common window and a common filtration agree, by the Bielecki
+contraction.
 -/
 
 open MeasureTheory ProbabilityTheory LevyStochCalc.Probability

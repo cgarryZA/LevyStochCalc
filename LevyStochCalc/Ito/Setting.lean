@@ -23,17 +23,18 @@ Reference: Applebaum 2009 Ch 6; Ikeda-Watanabe IV.
 
 ## Well-posedness
 
-`JumpDiffusion.exists_unique` (Applebaum 6.2.9 / Ikeda-Watanabe IV) is stated
-in `Ito/PicardFixedPoint.lean` and forwards to
-`Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`),
-proved by Picard iteration in the Bielecki-weighted process space on each
-window and by gluing the windows. It asks for
-`JumpDiffusionCoeffs.IsRegular` alongside `IsLipschitz`: the Lipschitz
+`LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (Applebaum 6.2.9 /
+Ikeda-Watanabe IV) is stated in `Ito/PicardFixedPoint.lean` and forwards to
+`LevyStochCalc.Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`
+(`Ito/PicardWellPosed.lean`), proved by Picard iteration in the
+Bielecki-weighted process space on each window and by gluing the windows. It
+asks for `JumpDiffusionCoeffs.IsRegular` alongside `IsLipschitz`: the Lipschitz
 clauses constrain the coefficients only in the state variable, and without
 regularity in `s` (and in `e` for `γ`) no `JumpDiffusion` exists at all —
 `σ s x = 1 / s` and `σ s x = 1_A s` for non-measurable `A` are Lipschitz
 with `L = 0` and defeat the `is_solution` existential for every path map.
-See `Ito/PicardSpace.lean`, "The `IsRegular` hypothesis and the `S²` norm".
+See the section note "The `IsRegular` hypothesis and the `S²` norm" of
+`LevyStochCalc.Ito.PicardSpaceBieleckiQuotient`.
 
 The `is_solution` field of the `JumpDiffusion` structure is the actual SDE
 integral equation (bundled with the hypotheses on `σ(s, X_s)` needed for the
@@ -44,7 +45,7 @@ not satisfy the structure for generic non-zero coefficients.
 is a Brownian motion and `N` a Poisson random measure, and asks both coefficient
 bundles to be progressive for that one `ℱ`; coupled `(σ, γ)` are therefore in
 scope. Such a filtration exists — `LevyStochCalc/Driver/Existence.lean`,
-`exists_isBrownianFiltration_and_isPoissonFiltration`.
+`LevyStochCalc.Driver.exists_isBrownianFiltration_and_isPoissonFiltration`.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -235,7 +236,7 @@ structure JumpDiffusion
             (fun ω' s e => coeffs.γ s (X s ω') e i)
             (h_γ_meas i) (h_γ_progMeas i) (h_γ_sq i) t ω
 
-/-! **Theorem `JumpDiffusion.exists_unique` is stated in
+/-! **Theorem `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` is stated in
 `LevyStochCalc/Ito/PicardFixedPoint.lean`.**
 
 The literature theorem (Applebaum 6.2.9 / Ikeda-Watanabe IV) is the
@@ -245,15 +246,15 @@ limit of its iterates live in `Ito/Picard.lean`, `Ito/PicardLimit.lean`
 and `Ito/PicardContraction.lean`; existence and uniqueness on a window in
 `Ito/PicardWindow.lean`; the gluing of the windows in
 `Ito/PicardGlobal.lean`; and `Ito/PicardWellPosed.lean` packages the
-result as `Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`. The
+result as `LevyStochCalc.Ito.Picard.exists_jumpDiffusion_unique_of_solvesOn`. The
 theorem in `Ito/PicardFixedPoint.lean` forwards to it through
-`picardFixedPoint_jumpDiffusion_exists_unique`. All of these files import
-this one for the `JumpDiffusion` structure.
+`LevyStochCalc.Ito.Picard.picardFixedPoint_jumpDiffusion_exists_unique`. All of these files
+import this one for the `JumpDiffusion` structure.
 
 Placing the theorem there avoids an import cycle (Setting → Picard →
 PicardFixedPoint → Setting would be a cycle). The qualified name remains
 `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique` (the theorem
-re-opens the namespace explicitly in `PicardFixedPoint.lean`), which is
+re-opens the namespace explicitly in `LevyStochCalc.Ito.PicardFixedPoint`), which is
 the name `tools/cited_axioms.md` (entry #12) and `_audit.lean` refer to. -/
 
 end Solution

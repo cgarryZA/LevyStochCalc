@@ -15,10 +15,10 @@ space carries a `d`-dimensional Brownian motion together with a Poisson random m
 intensity `ν` generating an independent σ-algebra — a `LevyDriver`.
 
 The space is the product of a space carrying the Brownian motion
-(`MultidimBrownianMotion.exists`) and one carrying the Poisson random measure
-(`PoissonRandomMeasure.exists_of_sigmaFinite`); both projections are measure preserving, so
-each driver transports to the product, and there the two σ-algebras factor through the two
-coordinates, which are independent under a product measure.
+(`LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists`) and one carrying the Poisson
+random measure (`LevyStochCalc.Poisson.PoissonRandomMeasure.exists_of_sigmaFinite`); both
+projections are measure preserving, so each driver transports to the product, and there the two
+σ-algebras factor through the two coordinates, which are independent under a product measure.
 
 Consequently the hypothesis carried by the SDE/BSDEJ layer — one filtration `ℱ` for which
 every coordinate of `W` is a Brownian motion and `N` a Poisson random measure — is

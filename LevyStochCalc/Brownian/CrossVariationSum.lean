@@ -22,8 +22,8 @@ those is bounded through the fourth moments of the two increments.
   with second moment at most half the sum of the fourth moments.
 * `LevyStochCalc.Brownian.Ito.crossIncrement` — the product of the increments of the Itô
   integrals against two coordinates across a cell.
-* `LevyStochCalc.Brownian.Ito.integral_sq_crossIncrement_le` — its second moment is at most
-  `(6 + c)·(C_H⁴ + C_K⁴)/2·(b − a)²`.
+* `LevyStochCalc.Brownian.Ito.integrable_sq_crossIncrement_and_le` — its square is integrable,
+  with second moment at most `(6 + c)·(C_H⁴ + C_K⁴)/2·(b − a)²`.
 * `LevyStochCalc.Brownian.Ito.integral_sq_weighted_crossSum_le` — the second moment of a weighted
   sum over a grid is at most `D²·(6 + c)·(C_H⁴ + C_K⁴)/2·∑ᵢ (tᵢ₊₁ − tᵢ)²`.
 -/

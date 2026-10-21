@@ -133,7 +133,7 @@ theorem picardFixedPoint
     ∃! X : SBoundedProcess (n := n) P ℱ T, Φ X = X :=
   picardFixedPoint_generic hΦ
 
-/-- **Convenience corollary — Picard fixed point in the user's
+/-- **Convenience corollary — Picard fixed point in
 existential-bundle form.** Same content as `picardFixedPoint`, but
 expressed with the contraction packaged as an existential
 `∃ (Φ : ...) (K : ℝ≥0) (_hK : K < 1), LipschitzWith K Φ`.
@@ -220,15 +220,10 @@ the level of qualified names.
 **Why the theorem lives here, not in `Ito/Setting.lean`**: the proof
 forwards through `picardFixedPoint_jumpDiffusion_exists_unique` (above),
 which forwards to `exists_jumpDiffusion_unique_of_solvesOn` in
-`Ito/PicardWellPosed.lean`. Putting the
-theorem in `Ito/Setting.lean` would require `Setting.lean` to import
-`Picard.lean` and `PicardFixedPoint.lean`, creating a cycle (both already
-import `Setting.lean` for the `JumpDiffusion` structure definition).
-Forwarding through the Banach intermediate is the canonical pattern
-(mirrors the `itoIsometry_brownian_unified_existence` → `itoIsometry`
-derived-theorem forwarding used in `Brownian/ItoL2Completion.lean`, and the
-`itoIsometry_compensated_unified_existence` → `Compensated.itoLevyIsometry`
-forwarding in `Poisson/Compensated.lean`). -/
+`Ito/PicardWellPosed.lean`. Putting the theorem in `LevyStochCalc.Ito.Setting`
+would require that module to import `LevyStochCalc.Ito.PicardWellPosed`,
+which already imports `LevyStochCalc.Ito.Setting` for the `JumpDiffusion`
+structure definition, creating a cycle. -/
 
 namespace LevyStochCalc.Ito.Setting
 namespace JumpDiffusion

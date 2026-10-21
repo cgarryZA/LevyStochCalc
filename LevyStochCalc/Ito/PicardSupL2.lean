@@ -9,12 +9,13 @@ import LevyStochCalc.Probability.DoobContinuous
 /-!
 # The `S²` bound for the Picard step
 
-`JumpDiffusion.sup_L2` asks for `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞`, the `S²` norm, which is stronger
-than the weighted supremum of `L²` norms the Picard space carries. The Picard step splits into a
-drift, `d` Brownian integrals and a compensated-Poisson integral; the drift is bounded pathwise
-by its own total variation over the window, and each stochastic component is a martingale, so
-Doob's `L²` inequality over the dyadic points applies. Only the dyadic form of Doob is available
-here, because the stochastic integrals are càdlàg only up to modification.
+`LevyStochCalc.Ito.Setting.JumpDiffusion.sup_L2` asks for `𝔼[sup_{t ≤ T} ‖X_t‖²] < ∞`, the `S²`
+norm, which is stronger than the weighted supremum of `L²` norms the Picard space carries. The
+Picard step splits into a drift, `d` Brownian integrals and a compensated-Poisson integral; the
+drift is bounded pathwise by its own total variation over the window, and each stochastic
+component is a martingale, so Doob's `L²` inequality over the dyadic points applies. Only the
+dyadic form of Doob is available here, because the stochastic integrals are càdlàg only up to
+modification.
 -/
 
 open MeasureTheory ProbabilityTheory LevyStochCalc.Probability

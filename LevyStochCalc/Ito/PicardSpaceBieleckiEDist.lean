@@ -30,8 +30,8 @@ variable {Ω : Type u} [MeasurableSpace Ω]
 /-! ### Pointwise Euclidean Minkowski on `Fin n → ℝ`
 
 The Bielecki β-norm has the inner part `(∑ i, ‖X t ω i‖₊²)^(1/2)` which
-is the **Euclidean** norm of `X t ω : Fin n → ℝ` (NOT the sup-norm that
-Mathlib's default `Pi.instNorm` provides). The triangle inequality
+is the **Euclidean** norm of `X t ω : Fin n → ℝ` (NOT the sup-norm `Pi.norm_def`
+of Mathlib's default `Pi.seminormedAddGroup`). The triangle inequality
 requires `(∑ i, (a_i + b_i)²)^(1/2) ≤ (∑ i, a_i²)^(1/2) + (∑ i, b_i²)^(1/2)`,
 which is `NNReal.Lp_add_le` at `p = 2`. -/
 

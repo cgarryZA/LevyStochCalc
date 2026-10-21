@@ -454,10 +454,11 @@ theorem simpleIntegral_L2_isometry_compensatedPoisson_sumForm
   simp_rw [h_eq]
   exact simpleIntegral_sq_bochner_eq N ℱ hℱ φ h_adapt
 
-/-! ## C0b-Compensated mirror chain
+/-! ## Square integrability of the simple compensated integral
 
-The `simpleIntegral N φ T` lifted into `Lp ℝ 2 P` framework, mirroring
-`Brownian.SimplePredictableRefine.simpleIntegralLp_brownian` etc. -/
+The simple integral `simpleIntegral N φ T` of an adapted simple integrand has finite second
+moment and lies in `L²(P)`; the Brownian counterpart is the lift
+`LevyStochCalc.Brownian.Ito.simpleIntegralLp_brownian` to `Lp ℝ 2 P`. -/
 
 /-- **Finite L²-norm of `simpleIntegral N φ T`.** Combines `simpleIntegral_isometry`
 (which gives `∫⁻ ‖simpleIntegral‖² = ∑_i ν̂(rect_i) · ∫⁻ ξ_i²`) with the

@@ -230,7 +230,7 @@ structure SdeData (X : JumpDiffusion W N coeffs x₀) where
 /-! `SdeData` is **not** derivable from `JumpDiffusion` alone: the structure's `is_solution`
 field bundles the equation and the integrand admissibility but no adaptedness of the path, and
 `X_prog` does not follow from them. It is supplied where a solution is built, by
-`SdeData.ofSolvesOn` (`Ito/SdeDataOfSolvesOn.lean`). -/
+`LevyStochCalc.Ito.BigJump.SdeData.ofSolvesOn` (`Ito/SdeDataOfSolvesOn.lean`). -/
 
 /-- The jump-integrand data underlying the SDE data. -/
 def SdeData.toJumpIntegrand {X : JumpDiffusion W N coeffs x₀} (S : SdeData X) :

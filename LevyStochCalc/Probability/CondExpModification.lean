@@ -14,10 +14,12 @@ import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
 
 For a right-continuous filtration on `ℝ` and `ξ ∈ L²`, the process `t ↦ 𝔼[ξ | ℱ t]` converges in
 measure from the right at every time, because it converges in `L²`
-(`CondExpRightContinuous.lean`). Reindexing by `ℝ≥0` (`FiltrationNNReal.lean`) puts it in range of
-`ProbabilityTheory.rightContModif`, whose hypotheses are supplied by `Quasimartingale.lean`. The
-resulting process is a martingale for the same filtration, agrees with `𝔼[ξ | ℱ t]` at every fixed
-time, is right-continuous along every path and has left limits almost surely.
+(`LevyStochCalc.Probability.CondExpRightContinuous`). Reindexing by `ℝ≥0`
+(`LevyStochCalc.Probability.FiltrationNNReal`) puts it in range of
+`ProbabilityTheory.rightContModif`, whose hypotheses are supplied by
+`LevyStochCalc.Probability.Quasimartingale`. The resulting process is a martingale for the same
+filtration, agrees with `𝔼[ξ | ℱ t]` at every fixed time, is right-continuous along every path
+and has left limits almost surely.
 
 ## Main statements
 

@@ -12,9 +12,10 @@ import LevyStochCalc.Poisson.StandardBorel
 
 For every `d` and every σ-finite intensity `ν` on a standard Borel mark space `E`, the product of
 a standard Borel space carrying a `d`-dimensional Brownian motion
-(`MultidimBrownianMotion.exists_standardBorel`) and one carrying a Poisson random measure with
-intensity `ν` (`PoissonRandomMeasure.exists_standardBorel`) is standard Borel and carries a Lévy
-driver (`levyDriverProd`).
+(`LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_standardBorel`) and one carrying a
+Poisson random measure with intensity `ν`
+(`LevyStochCalc.Poisson.PoissonRandomMeasure.exists_standardBorel`) is standard Borel and carries
+a Lévy driver (`levyDriverProd`).
 
 On `Ω × X` under `P ⊗ μ₀`, the pullback of a Lévy driver `D` along the first projection is a Lévy
 driver whose joint filtration factors through the first coordinate, so the second coordinate is an

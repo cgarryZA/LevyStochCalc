@@ -8,10 +8,11 @@ import LevyStochCalc
 /-!
 # Example: how to consume `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry`
 
-This file demonstrates how a downstream client (e.g. the main
-`Dissertation/Continuous.lean` axiom site, or a finance library
-implementing Föllmer-Schweizer quadratic hedging in a Lévy market)
-calls the project's headline I02 result and its sister Cu03 (both theorems now).
+This file demonstrates how a downstream client (e.g. a finance library
+implementing Föllmer-Schweizer quadratic hedging in a Lévy market) calls
+the Itô-Lévy `L²` isometry `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry`
+and states the BSDEJ solution predicate
+`LevyStochCalc.BSDEJ.Definition.IsBSDEJSolution`.
 
 P10 F4 fix (red-team 2nd audit, 2026-05-23): closes the
 "library ships ZERO examples or tests" gap by providing minimal
@@ -39,11 +40,9 @@ variable {E : Type v} [MeasurableSpace E]
 variable {P : Measure Ω} [IsProbabilityMeasure P]
 variable {ν : Measure E} [SigmaFinite ν]
 
-/-- **I02 Itô-Lévy isometry — caller-side typechecking example.**
+/-- **Itô-Lévy isometry — caller-side typechecking example.**
 
-Demonstrates that the I02 wrapper has the exact shape needed to
-replace the main dissertation's
-`Dissertation.Continuous.itoLevyIsometry` axiom. Given:
+Demonstrates the call-site shape of the Itô-Lévy `L²` isometry. Given:
 - a Poisson random measure `N` with σ-finite intensity `ν`,
 - a `Ω → ℝ → E → ℝ` integrand `φ` with joint Ω×ℝ×E measurability,
 - marked progressive measurability with respect to `N`'s natural filtration,

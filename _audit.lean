@@ -10,8 +10,6 @@ Run via:  lake env lean _audit.lean 2>&1 | tee audit_output.txt
 
 Generates ground-truth axiom info that bypasses the LSP cache. Used by
 `tools/lint.sh` and the project's sorry-baseline tracking.
-
-Mirrors `D:/Dissertation/_audit.lean`.
 -/
 
 import LevyStochCalc
@@ -196,7 +194,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Martingale.exists_adapted_ae_cadlag_of_eLpNorm
 #print axioms LevyStochCalc.Martingale.martingale_sq_sub_of_setIntegral
 
--- ===== Layer 1: Itô-Lévy isometry (→ deaxiomatises I02) =====
+-- ===== Layer 1: Itô-Lévy isometry =====
 #print axioms LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry
 
 -- ===== Layer 1.5: Brownian motion sub-tree =====
@@ -353,7 +351,7 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Brownian.isBrownianFiltration_augFiltration
 #print axioms LevyStochCalc.Brownian.Ito.exists_isItoVersion_aug
 
--- ===== Layer 2: Itô-Lévy formula (→ deaxiomatises Cu03) =====
+-- ===== Layer 2: Itô-Lévy formula =====
 #print axioms LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique
 -- Picard framework lemmas (active construction toward JumpDiffusion proof):
 -- C0c-i (2026-09-07): the deterministic-time freeze.
@@ -492,9 +490,9 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.Picard.picardStep_diff_lintegral_sum_sq_le
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction
 #print axioms LevyStochCalc.Ito.Picard.picardStep_bielecki_contraction_rate_lt_one
--- Itô–Lévy formula (tools/cited_axioms.md entry 16, resolved 2026-09-15): the general theorem
--- the dissertation forwards, its two residual forms, and the bounded-derivative milestone it is
--- built on. The cited axiom #16 and its two derived forms were deleted the same day.
+-- Itô–Lévy formula (tools/cited_axioms.md entry 16, resolved 2026-09-15): the general theorem,
+-- its two residual forms, and the bounded-derivative milestone it is built on. The cited
+-- axiom #16 and its two derived forms were deleted the same day.
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_general
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_sdeData_general
 #print axioms LevyStochCalc.Ito.JumpFormula.itoLevyFormula_jumpResidual_of_sdeData_general_of_leftLim

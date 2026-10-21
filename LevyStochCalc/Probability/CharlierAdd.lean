@@ -9,16 +9,17 @@ import Mathlib.RingTheory.PowerSeries.Basic
 /-!
 # The addition formula of the Charlier polynomials
 
-The Charlier polynomials of rate `lam` are of binomial type jointly in the argument and the
-rate: `C_n(x + y; lam + mu) = ∑_(i + j = n) (n choose i) C_i(x; lam) C_j(y; mu)`. The induction
+The Charlier polynomials with parameter `lam`, the mean of the Poisson law that makes them
+orthogonal, are of binomial type jointly in the argument and the parameter:
+`C_n(x + y; lam + mu) = ∑_(i + j = n) (n choose i) C_i(x; lam) C_j(y; mu)`. The induction
 on `n` runs the recursion `C_(n+1)(x) = x C_n(x - 1) - lam C_n(x)` on both sides and uses Pascal's
 rule for the binomial coefficients.
 
 In terms of the exponential generating series `S(lam, x; c) = ∑_n (c ^ n / n!) C_n(x; lam) X ^ n`
 over `ℂ`, a formal power series in `X` at a complex scalar `c`, the formula says that
-`S(lam, x; c) S(mu, y; c) = S(lam + mu, x + y; c)`. The series of rate and argument zero is `1`,
-and so is every series at `c = 0`, so over a finite family carrying one common scalar the product
-of the series is the series of the summed rates at the summed arguments.
+`S(lam, x; c) S(mu, y; c) = S(lam + mu, x + y; c)`. The series of parameter and argument zero is
+`1`, and so is every series at `c = 0`, so over a finite family carrying one common scalar the
+product of the series is the series of the summed parameters at the summed arguments.
 
 ## Main definitions
 
@@ -32,8 +33,8 @@ of the series is the series of the summed rates at the summed arguments.
 * `LevyStochCalc.Probability.charlierSeries_mul` —
   `S(lam, x; c) S(mu, y; c) = S(lam + mu, x + y; c)`.
 * `LevyStochCalc.Probability.charlierSeries_zero_zero`,
-  `LevyStochCalc.Probability.charlierSeries_zero_scalar` — the series of rate and argument zero,
-  and every series at the scalar zero, is `1`.
+  `LevyStochCalc.Probability.charlierSeries_zero_scalar` — the series of parameter and argument
+  zero, and every series at the scalar zero, is `1`.
 * `LevyStochCalc.Probability.prod_charlierSeries` — over a finite family at a common scalar,
   `∏_i S(lam_i, x_i; c) = S(∑_i lam_i, ∑_i x_i; c)`.
 -/
@@ -72,7 +73,7 @@ theorem charlierScaled_add (n : ℕ) (lam mu : ℝ) :
     ring
 
 /-- The exponential generating series `∑_n (c ^ n / n!) C_n(x; lam) X ^ n` of the Charlier
-polynomials of rate `lam` at the argument `x` and the complex scalar `c`. -/
+polynomials with parameter `lam` at the argument `x` and the complex scalar `c`. -/
 noncomputable def charlierSeries (lam x : ℝ) (c : ℂ) : PowerSeries ℂ :=
   PowerSeries.mk fun n => c ^ n / (n.factorial : ℂ) * (charlierScaled n lam x : ℂ)
 
@@ -106,7 +107,7 @@ theorem charlierSeries_mul (lam mu x y : ℝ) (c : ℂ) :
   rw [← hn] at h4
   field_simp
 
-/-- The generating series of rate and argument zero is `1`. -/
+/-- The generating series of parameter and argument zero is `1`. -/
 @[simp] theorem charlierSeries_zero_zero (c : ℂ) : charlierSeries 0 0 c = 1 := by
   ext n
   rw [coeff_charlierSeries, charlierScaled_zero_arg, coeff_one]
@@ -123,7 +124,7 @@ theorem charlierSeries_mul (lam mu x y : ℝ) (c : ℂ) :
   · simp [hn]
 
 /-- Over a finite family carrying a common scalar, the product of the generating series is the
-series of the summed rates at the summed arguments. -/
+series of the summed parameters at the summed arguments. -/
 theorem prod_charlierSeries {ι : Type*} (s : Finset ι) (lam x : ι → ℝ) (c : ℂ) :
     ∏ i ∈ s, charlierSeries (lam i) (x i) c
       = charlierSeries (∑ i ∈ s, lam i) (∑ i ∈ s, x i) c := by

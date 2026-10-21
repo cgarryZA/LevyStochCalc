@@ -11,17 +11,18 @@ import LevyStochCalc.Ito.PicardFixedPoint
 The jump-diffusion integral equation of `LevyStochCalc.Ito.Picard.SolvesOn` expresses the path
 map at time `t` as the sum of a drift integral over `[0, t]`, a Brownian Itô integral and a
 compensated Poisson integral. The Brownian integral is strongly adapted to `ℱ`
-(`stochasticIntegralBrownian_stronglyAdapted`), the compensated integral is adapted to
-`ℱ.rightCont` (`Compensated.stochasticIntegral_adapted`), and the drift integral of a
+(`LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_stronglyAdapted`), the compensated
+integral is adapted to the right-continuation `ℱ₊` of `ℱ`
+(`LevyStochCalc.Poisson.Compensated.stochasticIntegral_adapted`), and the drift integral of a
 progressively measurable integrand is `ℱ t`-measurable
 (`ProgressivelyMeasurable.measurable_setIntegral_Icc`), so the right-hand side is
-`ℱ.rightCont t`-measurable and the equation transfers that measurability to the path map up to
-a null set.
+`ℱ₊ t`-measurable and the equation transfers that measurability to the path map up to a null
+set.
 
 ## Main statements
 
 * `SolvesOn.aeStronglyMeasurable_rightCont` — the path map at time `t` is
-  `ℱ.rightCont t`-a.e.-strongly measurable, given progressive measurability of the drift
+  `ℱ₊ t`-a.e.-strongly measurable, given progressive measurability of the drift
   integrand along the path.
 * `SolvesOn.stronglyMeasurable_rightCont` — the same with the null set absorbed, when `ℱ 0`
   contains the `P`-null sets and the path map is jointly measurable.

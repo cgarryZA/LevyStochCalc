@@ -548,7 +548,7 @@ lemma markSumProcess_diff_isometry_L2
 /-- **`L²`-limit of a Cauchy sequence of integrands/integrals.** If `Mₙ ∈ L²(P)` and the
 `Lp` lifts form a Cauchy sequence, there is an `M ∈ L²(P)` with `eLpNorm(Mₙ − M) → 0`.
 Lp completeness + `tendsto_Lp_iff_tendsto_eLpNorm''`. The "define the integral as the
-`L²`-limit" half of the masterApprox construction (→ dissertation #2(B)). -/
+`L²`-limit" half of the masterApprox construction. -/
 lemma exists_L2_limit_of_memLp_cauchySeq
     {P : Measure Ω} [IsProbabilityMeasure P]
     {Mₙ : ℕ → Ω → ℝ} (hmem : ∀ n, MeasureTheory.MemLp (Mₙ n) 2 P)

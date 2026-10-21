@@ -539,6 +539,6 @@ argument is:
    `exists_jumpDiffusion_unique_of_solvesOn` (`Ito/PicardWellPosed.lean`)
    — the fixed point solves the SDE on each window, is unique there, and
    the windows glue to a strong solution on `[0, ∞)`; `Ito/PicardFixedPoint.lean`
-   restates the result as `JumpDiffusion.exists_unique`. -/
+   restates the result as `LevyStochCalc.Ito.Setting.JumpDiffusion.exists_unique`. -/
 
 end LevyStochCalc.Ito.Picard

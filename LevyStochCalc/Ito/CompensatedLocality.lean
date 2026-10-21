@@ -19,8 +19,9 @@ squeezes the integrals.
 
 ## Parts
 
-* `LevyStochCalc.Ito.CompensatedLocalityCutoff` — the cut-off integrand `markedStopped τ φ` and
-  the transport of admissibility along equalities of marked integrands.
+* `LevyStochCalc.Ito.CompensatedLocalityCutoff` — the cut-off integrand
+  `LevyStochCalc.Poisson.Compensated.markedStopped` and the transport of admissibility along
+  equalities of marked integrands.
 * `LevyStochCalc.Ito.CompensatedLocalityWindow` — the integral over a time window and the
   additivity of the integral in its integrand.
 * `LevyStochCalc.Ito.CompensatedLocalityStopping` — optional stopping at a stopping time of
@@ -28,19 +29,21 @@ squeezes the integrals.
 
 ## Main definitions
 
-* `markedStopped τ φ` — the marked process `φ` cut off at the stopping time `τ`.
+* `LevyStochCalc.Poisson.Compensated.markedStopped` — `markedStopped τ φ` is the marked process
+  `φ` cut off at the stopping time `τ`.
 
 ## Main statements
 
-* `stochasticIntegral_ae_eq_of_vanishing_gt` — the integral of an integrand vanishing after a
-  time `c` does not move after `c`.
-* `stochasticIntegral_indicator_Ioc` — restricting the integrand to `(c, t]` gives the increment
-  of the integral over `(c, t]`.
-* `stochasticIntegral_markedStopped_finiteRange` — optional stopping at a stopping time of
-  finite range.
-* `stochasticIntegral_markedStopped_eq_of_le` — at a time the stopping time has not reached,
-  cutting the integrand off at it changes nothing.
-* `stochasticIntegral_congr_of_le`, `stochasticIntegral_congr_of_lt` — integrands agreeing up
-  to (respectively, strictly before) a stopping time have the same integral at every time the
+* `LevyStochCalc.Poisson.Compensated.stochasticIntegral_ae_eq_of_vanishing_gt` — the integral of
+  an integrand vanishing after a time `c` does not move after `c`.
+* `LevyStochCalc.Poisson.Compensated.stochasticIntegral_indicator_Ioc` — restricting the
+  integrand to `(c, t]` gives the increment of the integral over `(c, t]`.
+* `LevyStochCalc.Poisson.Compensated.stochasticIntegral_markedStopped_finiteRange` — optional
+  stopping at a stopping time of finite range.
+* `LevyStochCalc.Poisson.Compensated.stochasticIntegral_markedStopped_eq_of_le` — at a time the
+  stopping time has not reached, cutting the integrand off at it changes nothing.
+* `LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_le`,
+  `LevyStochCalc.Poisson.Compensated.stochasticIntegral_congr_of_lt` — integrands agreeing up to
+  (respectively, strictly before) a stopping time have the same integral at every time the
   stopping time has not reached.
 -/

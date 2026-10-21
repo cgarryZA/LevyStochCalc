@@ -17,26 +17,30 @@ simple integrand is its elementary integral.
 
 ## Main statements
 
-* `SimplePredictable.progressivelyMeasurable_eval` — a simple integrand with adapted
-  coefficients is progressively measurable.
-* `simpleIntegral_diff_isometry_of_adapted` — the difference isometry for two adapted simple
-  integrands at an intermediate time, with no constraint relating their horizons.
-* `stochasticIntegralBrownian_eval_simple` — the `L²` Itô integral of a simple integrand agrees
-  almost everywhere with its elementary integral.
-* `SimplePredictable.mul_on_common` — the product of two simple integrands, carried on their
-  common refinement, together with its evaluation and its adaptedness.
-* `SimplePredictable.integralAgainst` — the elementary integral of a simple integrand against an
-  arbitrary process.
-* `SimplePredictable.sum_xi_mul_simpleIntegral_sub` — the elementary integral of `G` against the
-  elementary integral of `K` is the elementary integral of the product `G · K`.
-* `isometry_simple_sub_stochasticIntegralBrownian` — the difference isometry between an
-  elementary integral and an `L²` integral.
-* `stochasticIntegralBrownian_integralAgainst` — summing the increments of the `L²` Itô integral
-  of `H` against the coefficients of a simple integrand `G` gives the `L²` Itô integral of the
-  product `G · H`.
-* `stepIoc`, `stepIoc₀` — the simple integrand `1_{(a, b]}`.
-* `stochasticIntegralBrownian_indicator_Ioc` — restricting the integrand to `(a, b]` gives the
-  increment of the integral across `(a, b]`.
+* `LevyStochCalc.Brownian.Ito.SimplePredictable.progressivelyMeasurable_eval` — a simple
+  integrand with adapted coefficients is progressively measurable.
+* `LevyStochCalc.Brownian.Ito.simpleIntegral_diff_isometry_of_adapted` — the difference isometry
+  for two adapted simple integrands at an intermediate time, with no constraint relating their
+  horizons.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_eval_simple` — the `L²` Itô integral of
+  a simple integrand agrees almost everywhere with its elementary integral.
+* `LevyStochCalc.Brownian.Ito.SimplePredictable.mul_on_common` — the product of two simple
+  integrands, carried on their common refinement, together with its evaluation and its
+  adaptedness.
+* `LevyStochCalc.Brownian.Ito.SimplePredictable.integralAgainst` — the elementary integral of a
+  simple integrand against an arbitrary process.
+* `LevyStochCalc.Brownian.Ito.SimplePredictable.sum_xi_mul_simpleIntegral_sub` — the elementary
+  integral of `G` against the elementary integral of `K` is the elementary integral of the
+  product `G · K`.
+* `LevyStochCalc.Brownian.Ito.isometry_simple_sub_stochasticIntegralBrownian` — the difference
+  isometry between an elementary integral and an `L²` integral.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_integralAgainst` — summing the increments
+  of the `L²` Itô integral of `H` against the coefficients of a simple integrand `G` gives the
+  `L²` Itô integral of the product `G · H`.
+* `LevyStochCalc.Brownian.Ito.stepIoc`, `LevyStochCalc.Brownian.Ito.stepIoc₀` — the simple
+  integrand `1_{(a, b]}`.
+* `LevyStochCalc.Brownian.Ito.stochasticIntegralBrownian_indicator_Ioc` — restricting the
+  integrand to `(a, b]` gives the increment of the integral across `(a, b]`.
 
 ## Parts
 

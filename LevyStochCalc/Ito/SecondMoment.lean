@@ -46,41 +46,51 @@ the form in which the a-priori estimates for BSDEs with jumps read the quadratic
 
 ## Main statements
 
-* `integral_mul_self_eq_of_isItoLevyProcess` — the second moment of a scalar Itô–Lévy process
-  over a Lévy driver whose Brownian and compensated integrals are orthogonal
-  (`LevyDriver.CrossWitness`, supplied by `LevyDriver.crossWitness` for the joint natural
-  filtration and by `CrossWitness.aug` for its augmentation).
-* `integral_sum_mul_self_eq_of_isItoLevyProcess` — the vector form, coordinate by coordinate.
-* `integral_mul_self_eq_of_isItoLevyProcess_aug` — the scalar form over the augmented joint
-  natural filtration of the driver, with the witness supplied by the driver.
-* `integral_mul_eq_of_isItoLevyProcess` — the bilinear form: the expected product at the
-  horizon of two scalar Itô–Lévy processes over the same driver.
-* `integral_exp_mul_self_eq_of_isItoLevyProcess` — the exponentially weighted form
-  `e^{βT} 𝔼[X_T²]`, from `integral_mul_self_eq_add_setIntegral` (the second moment as the
-  initial value plus the time integral of its rate) and `exp_mul_eq_add_setIntegral` (the
-  weighting of an absolutely continuous function, by `setIntegral_exp_mul_setIntegral`); its
-  vector form `integral_exp_mul_sum_mul_self_eq_of_isItoLevyProcess`.
-* `integral_mul_eq_of_isItoLevyProcess_aug`, `integral_exp_mul_self_eq_of_isItoLevyProcess_aug`
-  — the bilinear and weighted forms over the augmented joint natural filtration of the driver.
-* `memLp_two_of_isItoLevyProcess` — such a process is square integrable at every nonnegative
-  time.
-* `integral_mul_martingale_eq` — pairing a square-integrable martingale at a later time against
-  a square-integrable variable measurable at an earlier time reads the martingale at the earlier
-  time.
-* `integral_setIntegral_mul` — the pairing of a time integral against a square-integrable
-  variable is the time integral of the pairings.
-* `mul_self_setIntegral_eq` — the square of the integral of an integrable function over `[0, T]`
-  is twice the integral of its running integral against the function.
-* `mul_setIntegral_eq` — its polarised form for two integrable functions.
-* `integral_mul_stochasticIntegralBrownian`, `integral_mul_stochasticIntegral` — the polarised
-  isometries: the expected product of two Brownian, or two compensated, integrals at a time is
-  the expected time integral of the product of the integrands.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_of_isItoLevyProcess` — the second moment
+  of a scalar Itô–Lévy process over a Lévy driver whose Brownian and compensated integrals are
+  orthogonal (`LevyStochCalc.Driver.LevyDriver.CrossWitness`, supplied by
+  `LevyStochCalc.Driver.LevyDriver.crossWitness` for the joint natural filtration and by
+  `LevyStochCalc.Driver.LevyDriver.CrossWitness.aug` for its augmentation).
+* `LevyStochCalc.Ito.SecondMoment.integral_sum_mul_self_eq_of_isItoLevyProcess` — the vector
+  form, coordinate by coordinate.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_of_isItoLevyProcess_aug` — the scalar form
+  over the augmented joint natural filtration of the driver, with the witness supplied by the
+  driver.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_eq_of_isItoLevyProcess` — the bilinear form: the
+  expected product at the horizon of two scalar Itô–Lévy processes over the same driver.
+* `LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess` — the
+  exponentially weighted form `e^{βT} 𝔼[X_T²]`, from
+  `LevyStochCalc.Ito.SecondMoment.integral_mul_self_eq_add_setIntegral` (the second moment as the
+  initial value plus the time integral of its rate) and
+  `LevyStochCalc.Ito.SecondMoment.exp_mul_eq_add_setIntegral` (the weighting of an absolutely
+  continuous function, by `LevyStochCalc.Ito.SecondMoment.setIntegral_exp_mul_setIntegral`); its
+  vector form `LevyStochCalc.Ito.SecondMoment.integral_exp_mul_sum_mul_self_eq_of_isItoLevyProcess`.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_eq_of_isItoLevyProcess_aug`,
+  `LevyStochCalc.Ito.SecondMoment.integral_exp_mul_self_eq_of_isItoLevyProcess_aug` — the
+  bilinear and weighted forms over the augmented joint natural filtration of the driver.
+* `LevyStochCalc.Ito.SecondMoment.memLp_two_of_isItoLevyProcess` — such a process is square
+  integrable at every nonnegative time.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_martingale_eq` — pairing a square-integrable
+  martingale at a later time against a square-integrable variable measurable at an earlier time
+  reads the martingale at the earlier time.
+* `LevyStochCalc.Ito.SecondMoment.integral_setIntegral_mul` — the pairing of a time integral
+  against a square-integrable variable is the time integral of the pairings.
+* `LevyStochCalc.Ito.SecondMoment.mul_self_setIntegral_eq` — the square of the integral of an
+  integrable function over `[0, T]` is twice the integral of its running integral against the
+  function.
+* `LevyStochCalc.Ito.SecondMoment.mul_setIntegral_eq` — its polarised form for two integrable
+  functions.
+* `LevyStochCalc.Ito.SecondMoment.integral_mul_stochasticIntegralBrownian`,
+  `LevyStochCalc.Ito.SecondMoment.integral_mul_stochasticIntegral` — the polarised isometries:
+  the expected product of two Brownian, or two compensated, integrals at a time is the expected
+  time integral of the product of the integrands.
 
 ## Implementation notes
 
-The development is split into `SecondMomentToolkit` (the `L²` and pathwise auxiliary lemmas, the
-running integral of the drift and the polarised Brownian isometry), `SecondMomentQuadratic` (the
-polarised compensated isometry and the quadratic identity in scalar, vector and augmented form),
-`SecondMomentBilinear` (the bilinear identity) and `SecondMomentWeighted` (the exponentially
-weighted forms); this module is their union.
+The development is split into `LevyStochCalc.Ito.SecondMomentToolkit` (the `L²` and pathwise
+auxiliary lemmas, the running integral of the drift and the polarised Brownian isometry),
+`LevyStochCalc.Ito.SecondMomentQuadratic` (the polarised compensated isometry and the quadratic
+identity in scalar, vector and augmented form), `LevyStochCalc.Ito.SecondMomentBilinear` (the
+bilinear identity) and `LevyStochCalc.Ito.SecondMomentWeighted` (the exponentially weighted
+forms); this module is their union.
 -/

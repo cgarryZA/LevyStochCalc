@@ -10,11 +10,11 @@ import BrownianMotion.Gaussian.BrownianMotion
 # Brownian motion from a pre-Brownian process
 
 A process `X : ℝ≥0 → Ω → ℝ` with the finite-dimensional laws of Brownian motion
-(`IsPreBrownianReal`), measurable marginals and continuous paths yields a `BrownianMotion P` in
-the sense of `LevyStochCalc.Brownian.Construction`: extend to real time by `t ↦ X (t⁺) − X 0`,
-which vanishes at non-positive times and is re-centred at the origin. The weak Markov property
-`IsPreBrownianReal.indepFun_shift` supplies the σ-algebra independence of the past from a future
-increment.
+(`ProbabilityTheory.IsPreBrownianReal`), measurable marginals and continuous paths yields a
+`BrownianMotion P` in the sense of `LevyStochCalc.Brownian.Construction`: extend to real time by
+`t ↦ X (t⁺) − X 0`, which vanishes at non-positive times and is re-centred at the origin. The weak
+Markov property `ProbabilityTheory.IsPreBrownianReal.indepFun_shift` supplies the σ-algebra
+independence of the past from a future increment.
 
 ## Main statements
 

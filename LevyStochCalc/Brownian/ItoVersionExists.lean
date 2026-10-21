@@ -11,9 +11,9 @@ import LevyStochCalc.Brownian.AugmentedFiltration
 # Existence of a continuous adapted version of an Itô process
 
 The Itô integral has an a.e.-continuous modification by Kolmogorov–Chentsov. Zeroing its paths
-on a null set makes them continuous everywhere, and the resulting process stays adapted exactly
-when the filtration contains the null sets — the usual conditions. Adding a measurable initial
-value and the drift's (Lipschitz, hence continuous) window integral gives an `IsItoVersion`.
+on a null set makes them continuous everywhere, and the resulting process stays adapted when the
+filtration contains the null sets. Adding a measurable initial value and the drift's
+(Lipschitz, hence continuous) window integral gives an `IsItoVersion`.
 
 ## Main statements
 
@@ -233,7 +233,8 @@ theorem exists_isItoVersion
 include hC0 hCH in
 /-- **A continuous adapted version exists over the augmented filtration**, with no side
 conditions on the filtration: freezing `ℱ` before time `0` and augmenting by the null sets
-gives a Brownian filtration satisfying the usual conditions. -/
+gives a Brownian filtration that is constant before time `0` and whose time-`0` σ-algebra
+contains every measurable null set. -/
 theorem exists_isItoVersion_aug
     (Hp : Probability.ProgressivelyMeasurable (augFiltration ℱ P) H)
     (Hq : ∀ T, 0 < T → ∫⁻ ω, ∫⁻ s in Set.Icc (0 : ℝ) T,

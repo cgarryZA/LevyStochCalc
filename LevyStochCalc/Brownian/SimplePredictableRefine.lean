@@ -10,12 +10,16 @@ import LevyStochCalc.Brownian.SimplePredictableRefineAppend
 /-!
 # SimplePredictable refinement and the diff-isometry on simple integrals
 
-Refining a `SimplePredictable` integrand onto a finer partition
-(`SimplePredictable.refine`), the common refinement of two simple predictables
-(`commonRefinement`), and the resulting difference-isometry on simple integrals
-(`diff_isometry_simple`) plus the Cauchy property for an L²-dense approximating
-sequence (`cauchy_of_L2_dense_simple`). These feed the L²-completion of the
-Brownian Itô integral in `Brownian/ItoL2Completion.lean`.
+Refining a `LevyStochCalc.Brownian.Ito.SimplePredictable` integrand onto a finer
+partition (`LevyStochCalc.Brownian.Ito.SimplePredictable.refine`), the common
+refinement of two simple predictables
+(`LevyStochCalc.Brownian.Ito.SimplePredictable.commonRefinement_left` and
+`LevyStochCalc.Brownian.Ito.SimplePredictable.commonRefinement_right`), and the
+resulting difference-isometry on simple integrals
+(`LevyStochCalc.Brownian.Ito.SimplePredictable.diff_isometry_simple`) plus the
+Cauchy property for an L²-dense approximating sequence
+(`LevyStochCalc.Brownian.Ito.cauchy_of_L2_dense_simple`). These feed the
+L²-completion of the Brownian Itô integral in `Brownian/ItoL2Completion.lean`.
 
 The material is organised in three modules, all re-exported here:
 `Brownian/SimplePredictableRefineInvariance.lean` (refinement onto a finer

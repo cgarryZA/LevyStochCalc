@@ -7,12 +7,12 @@ import Mathlib.Probability.Martingale.Basic
 import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
 
 /-!
-# Martingales on the right-continuous augmentation of a filtration
+# Martingales on the right-continuation of a filtration
 
 An `ℱ`-martingale on `ℝ` whose time slices are right-continuous in `L¹` is a martingale on
-the right-continuous augmentation `ℱ₊`: an `ℱ₊ s`-measurable set lies in every `ℱ r` with
-`r > s`, so the martingale identity holds on it from every later time, and
-right-`L¹`-continuity carries it down to `s`.
+the right-continuation `ℱ₊` of `ℱ`, `ℱ₊ s = ⨅ r > s, ℱ r` (no null sets are added): an
+`ℱ₊ s`-measurable set lies in every `ℱ r` with `r > s`, so the martingale identity holds on it
+from every later time, and right-`L¹`-continuity carries it down to `s`.
 -/
 
 open MeasureTheory Filter Topology
@@ -23,7 +23,7 @@ variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbability
   {ℱ : Filtration ℝ mΩ} {F : ℝ → Ω → ℝ}
 
 /-- An `ℱ`-martingale on `ℝ` whose time slices are right-continuous in `L¹` is a martingale
-on the right-continuous augmentation of `ℱ`. -/
+on the right-continuation `ℱ₊` of `ℱ`. -/
 lemma martingale_rightCont_of_tendsto_eLpNorm_one (hmart : Martingale F ℱ P)
     (hrc : ∀ s : ℝ, Tendsto (fun r => eLpNorm (F r - F s) 1 P) (𝓝[>] s) (𝓝 0)) :
     Martingale F ℱ.rightCont P := by

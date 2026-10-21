@@ -12,16 +12,17 @@ import LevyStochCalc.Probability.ProjectionLimit
 
 For an antitone sequence of sub-σ-algebras the subspaces `lpMeas (m n)` of `L²` are antitone with
 intersection `lpMeas (⨅ n, m n)` (`lpMeas_iInf_of_antitone`, over the `limsup` construction of
-`AEMeasurableInf.lean`), and `condExpL2` is the orthogonal projection onto them. Projections along
-an antitone chain of closed subspaces converge to the projection onto the intersection
-(`ProjectionLimit.lean`), so
+`LevyStochCalc.Probability.AEMeasurableInf`), and `condExpL2` is the orthogonal projection onto
+them. Projections along an antitone chain of closed subspaces converge to the projection onto the
+intersection (`LevyStochCalc.Probability.ProjectionLimit`), so
 
   `𝔼[f | m n] → 𝔼[f | ⨅ n, m n]` in `L²`.
 
-This is the downward counterpart of Mathlib's `Integrable.tendsto_eLpNorm_condExp`, which goes
-upward along an increasing filtration. Applied at `m n := ℱ (t + 1/(n+1))` for a right-continuous
-filtration it gives the right-`L²`-continuity of `t ↦ 𝔼[ξ | ℱ t]` that the càdlàg regularisation
-of cited result #13b needs.
+This is a downward, `L²` counterpart of Lévy's upward theorem
+`MeasureTheory.tendsto_eLpNorm_condExp`, the `L¹` convergence along an increasing filtration.
+Applied at `m n := ℱ (t + 1/(n+1))` for a right-continuous filtration it gives the
+right-`L²`-continuity of `t ↦ 𝔼[ξ | ℱ t]` that the càdlàg regularisation of cited result #13b
+needs.
 
 ## Main statements
 

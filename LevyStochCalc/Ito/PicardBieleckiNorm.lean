@@ -45,9 +45,9 @@ noncomputable def bieleckiNorm
 processes on `[0, T]` with values in `Fin n → ℝ` and finite Bielecki norm at weight `0`.
 
 One difference from the literature's `S²([0, T]; ℝⁿ)`, recorded in the section note "The
-`IsRegular` hypothesis and the `S²` norm" of `Ito/PicardSpace.lean`: the norm here is
-`bieleckiNorm`, the weighted supremum over `t` of the `L²` norms, rather than the `L²` norm of
-the supremum. -/
+`IsRegular` hypothesis and the `S²` norm" of `Ito/PicardSpaceBieleckiQuotient.lean`: the norm
+here is `bieleckiNorm`, the weighted supremum over `t` of the `L²` norms, rather than the `L²`
+norm of the supremum. -/
 structure SBoundedProcess
     {n : ℕ} (P : Measure Ω) [IsProbabilityMeasure P]
     (ℱ : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›) (T : ℝ) where

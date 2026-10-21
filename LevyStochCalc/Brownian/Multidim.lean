@@ -11,21 +11,20 @@ import LevyStochCalc.Probability.Transport
 # d-dimensional Brownian motion
 
 A `d`-dimensional Brownian motion is a `Fin d`-tuple of independent 1-D
-Brownian motions on the same probability space. Constructed via
-`Probability.Independence.InfinitePi`.
+Brownian motions on the same probability space. Constructed on the finite
+product `MeasureTheory.Measure.pi` of copies of a space carrying one, whose
+coordinates are independent by `ProbabilityTheory.iIndepFun_pi`.
 
 ## References
 
 * Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, 1991, §2.1.
-* User's dissertation, ch02 §"Probability-space prerequisites", line 13
-  (defines `d`-dim standard Brownian motion).
 
 ## Contents
 
 * `MultidimBrownianMotion` — the structure; `components_independent` is
   stated with `iIndepFun`, and `joint_continuous_paths` makes the almost-sure
   continuity of the vector-valued path explicit.
-* `MultidimBrownianMotion.exists` — existence, via `Measure.pi` (finite
+* `MultidimBrownianMotion.exists` — existence, via `MeasureTheory.Measure.pi` (finite
   product of probability spaces) and the independence of coordinate
   evaluations on a product measure; each coordinate is a 1-D Brownian motion
   lifted along the corresponding projection.

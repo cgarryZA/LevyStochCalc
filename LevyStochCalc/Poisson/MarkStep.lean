@@ -15,15 +15,17 @@ time grid `0 = p₀ < ⋯ < p_{N₀}` and finitely many mark sets `Bₖ` of fini
 bounded coefficients `ξᵢₖ`. Its compensated integral up to time `t` is
 `∑ᵢ ∑ₖ ξᵢₖ Ñ((pᵢ ∧ t, pᵢ₊₁ ∧ t] × Bₖ)`.
 
-The grid is a separate object (`TimeGrid`) so that integrands on a common grid can be
-added; a grid can be clamped at a time `t` (`TimeGrid.clamp`), which expresses the
-integral up to `t` as the integral over the whole clamped horizon and thereby gives the
-`L²` isometry at every time from the horizon isometry.
+The grid is a separate object (`LevyStochCalc.Poisson.Compensated.TimeGrid`) so that
+integrands on a common grid can be added; a grid can be clamped at a time `t`
+(`LevyStochCalc.Poisson.Compensated.TimeGrid.clamp`), which expresses the integral up to `t` as
+the integral over the whole clamped horizon and thereby gives the `L²` isometry at every time
+from the horizon isometry.
 
 The material is split over three files:
 
-* `LevyStochCalc.Poisson.MarkStepIsometry` — `TimeGrid`, `MarkStep`, the compensated
-  integral, clamping and the `L²` isometry at every time;
+* `LevyStochCalc.Poisson.MarkStepIsometry` — `LevyStochCalc.Poisson.Compensated.TimeGrid`,
+  `LevyStochCalc.Poisson.Compensated.MarkStep`, the compensated integral, clamping and the `L²`
+  isometry at every time;
 * `LevyStochCalc.Poisson.MarkStepWeight` — sums, negations and weightings of mark-step
   integrands;
 * `LevyStochCalc.Poisson.MarkStepIncrement` — dyadic grids, refinement and restriction, and

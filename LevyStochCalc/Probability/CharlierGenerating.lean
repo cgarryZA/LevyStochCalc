@@ -7,9 +7,10 @@ import LevyStochCalc.Probability.Charlier
 import Mathlib.Analysis.SpecialFunctions.Exponential
 
 /-!
-# The generating function of the Charlier polynomials of rate `lam`
+# The generating function of the Charlier polynomials
 
-At a natural argument `n` the Charlier polynomials of rate `lam` are generated over `ℂ` by
+At a natural argument `n` the Charlier polynomials with parameter `lam` (the mean of the Poisson
+law that makes them orthogonal) are generated over `ℂ` by
 `e^(-lam t) (1 + t) ^ n = ∑_s (t ^ s / s!) C_s(n; lam)`, obtained by induction on `n`: the value
 `C_s(0; lam) = (-lam) ^ s` matches the exponential series at `n = 0`, and the forward difference
 `C_(s+1)(x + 1) - C_(s+1)(x) = (s + 1) C_s(x)` turns the step into an index shift, which on the

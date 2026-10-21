@@ -9,17 +9,23 @@ import LevyStochCalc.Probability.Augmentation
 /-!
 # The augmented Brownian filtration
 
-Augmenting each `ℱ t` by the null sets — and freezing the filtration before time `0` — keeps
-`W` a Brownian motion for it: adaptedness only grows, and independence survives because an
-augmented set differs from a set of the original σ-algebra by a null set. The result is a
-filtration satisfying the usual conditions, which is what a continuous adapted version of an
-Itô process needs.
+`augFiltration ℱ μ` freezes `ℱ` before time `0` and adds to each `ℱ t` the measurable sets that
+differ from a set of `ℱ t` by a `μ`-null set. A Brownian motion `W` for `ℱ` stays one for
+`augFiltration ℱ P`: adaptedness only grows, and independence survives because an augmented set
+differs from a set of the original σ-algebra by a null set. The result is constant before time
+`0` and its time-`0` σ-algebra contains every measurable null set, which is what a continuous
+adapted version of an Itô process needs. Augmentation adds null sets only and does not make a
+filtration right-continuous; the augmentation of the right-continuation `ℱ₊` is right-continuous,
+and so, by a separate argument, is the augmentation of the joint filtration of a Lévy driver
+(`LevyStochCalc.Driver.LevyDriver.isRightContinuous_augFiltration`).
 
 ## Main statements
 
 * `LevyStochCalc.Probability.indep_aug` — independence survives augmentation.
 * `LevyStochCalc.Brownian.augFiltration` — the `0`-clamped augmented filtration.
 * `LevyStochCalc.Brownian.isBrownianFiltration_augFiltration` — it is a Brownian filtration.
+* `LevyStochCalc.Brownian.isRightContinuous_augFiltration` — the augmentation of `ℱ₊` is
+  right-continuous.
 -/
 
 open MeasureTheory ProbabilityTheory

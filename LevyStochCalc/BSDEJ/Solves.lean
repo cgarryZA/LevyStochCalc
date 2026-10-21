@@ -26,8 +26,10 @@ martingale legs, so a pair of solutions may be stated over different filtrations
 filtration to `augJoint D` is what makes a uniqueness statement expressible. The intended
 bridge `isBSDEJSolution_of_solvesBSDEJ` takes a `SolvesBSDEJ D f ξ T Y Z U` to
 `IsBSDEJSolution D.W D.N (bsdejDataOfGenerator f hf) X Y Z U T` for a forward process `X` with
-`X T = ξ`, witnessing the existential by `ℱ := augJoint D`, `D.isBrownianFiltration_aug`,
-`D.isPoissonFiltration_aug` and `Filt := (augJoint D).rightCont`, and the martingale legs by
+`X T = ξ`, witnessing the existential by `ℱ := augJoint D`, the filtration facts
+`LevyStochCalc.Driver.LevyDriver.isBrownianFiltration_aug` and
+`LevyStochCalc.Driver.LevyDriver.isPoissonFiltration_aug` at `D`, and
+`Filt := (augJoint D).rightCont`, and the martingale legs by
 the two canonical integrals; it needs the `S²` bound on `Y`, the martingale property of the
 legs and the progressive measurability of the mark slices of `U`, and is not stated here.
 -/

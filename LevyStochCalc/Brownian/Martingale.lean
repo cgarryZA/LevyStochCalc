@@ -26,12 +26,11 @@ not produce the `½ σ² f''` correction.
 ## References
 
 * Karatzas–Shreve, *Brownian Motion and Stochastic Calculus*, 1991, §1.5 + §3.1.
-* User's dissertation, ch02 §"Probability-space prerequisites", lines 22-23.
 
 ## Proof structure
 
 1. Construct `naturalFiltration W` via `MeasureTheory.Filtration.natural`.
-2. Adaptedness is automatic via `Filtration.stronglyAdapted_natural`.
+2. Adaptedness is automatic via `MeasureTheory.Filtration.stronglyAdapted_natural`.
 3. Conditional-expectation identity: `𝔼[W_t | ℱ_s] = W_s` reduces to
    `𝔼[W_t − W_s | ℱ_s] = 0`. This requires:
    * **σ-algebra independence**: `σ(W_t − W_s) ⊥⊥ ℱ_s` under `P`. This is the
@@ -48,8 +47,7 @@ not produce the `½ σ² f''` correction.
 The conditional-expectation identities for Brownian increments live in
 `LevyStochCalc.Brownian.MartingaleCondExp`, the martingale property and the quadratic variation
 `⟨W⟩_t = t` in `LevyStochCalc.Brownian.MartingaleQuadVar`, and their counterparts for the
-right-continuous augmentation of the natural filtration in
-`LevyStochCalc.Brownian.MartingaleRightCont`.
+right-continuation of the natural filtration in `LevyStochCalc.Brownian.MartingaleRightCont`.
 -/
 
 open MeasureTheory ProbabilityTheory

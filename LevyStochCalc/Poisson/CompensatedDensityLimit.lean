@@ -399,7 +399,7 @@ lemma eLpNorm_two_rpow_eq_lintegral_sq {P : Measure Ω} (g : Ω → ℝ) :
   rw [h]; refine lintegral_congr (fun ω => ?_)
   rw [show (2 : ℝ) = ((2 : ℕ) : ℝ) from by norm_num, ENNReal.rpow_natCast]; rfl
 
-/-- **Dissertation #2(B): the compensated Euler sums converge in `L²(P)`.** For a
+/-- **The compensated Euler sums converge in `L²(P)`.** For a
 bounded, progressively measurable `φ` with finite mark support, there is an
 `L²(P)` random variable `F` (the L²-Itô-Lévy integral) such that the adapted Euler
 step integrals `∑ᵢ∑ₖ ciₖⁿ·Ñ((pᵢⁿ,pᵢ₊₁ⁿ]×Biₖⁿ)` converge to `F` in `L²(P)`.

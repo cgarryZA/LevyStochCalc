@@ -9,11 +9,12 @@ import LevyStochCalc.Poisson.CompensatedQuadVar
 # The quadratic-variation martingale of the compensated integral process
 
 The compensated square `t ↦ F_t² − ∫_0^t ∫_E φ(u, e)² ν(de) du` of the `L²` integral process
-`F` is a martingale on the natural filtration and on its right-continuous augmentation. The
-stage compensated squares are martingales (`MarkStep.martingale_sq_sub_compensator`) and
-converge in `L¹` to the compensated square of the process: the stage integrands converge to
-`φ` in `L²` of the product measure on `Ω × [0, t] × E`, so their squares converge in `L¹`, and
-the `L¹(P)`-distance of the compensators is dominated by the joint `L¹`-distance.
+`F` is a martingale on the filtration `ℱ` of the integral and on its right-continuation `ℱ₊`,
+`ℱ₊ t = ⨅ s > t, ℱ s` (no null sets are added). The stage compensated squares are martingales
+(`MarkStep.martingale_sq_sub_compensator`) and converge in `L¹` to the compensated square of the
+process: the stage integrands converge to `φ` in `L²` of the product measure on
+`Ω × [0, t] × E`, so their squares converge in `L¹`, and the `L¹(P)`-distance of the compensators
+is dominated by the joint `L¹`-distance.
 -/
 
 open MeasureTheory ProbabilityTheory Filter Topology
@@ -245,7 +246,7 @@ lemma stage_compensator_tendsto_L1 (t : ℝ) :
       (Eventually.of_forall fun n => bot_le) (Eventually.of_forall hmarg)
 
 include hℱ in
-/-- The compensated square of the process is a martingale on the natural filtration. -/
+/-- The compensated square of the process is a martingale on the filtration `ℱ`. -/
 theorem martingale_quadVar_process :
     Martingale (fun t ω => (process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
       - compensator ν φ t ω) ℱ P := by
@@ -351,8 +352,8 @@ lemma compensator_right_tendsto_L1 (s : ℝ) :
     exact eLpNorm_zero
 
 include hℱ in
-/-- The compensated square of the process is a martingale on the right-continuous natural
-filtration. -/
+/-- The compensated square of the process is a martingale on the right-continuation `ℱ₊` of
+the filtration `ℱ`. -/
 theorem martingale_rightCont_quadVar_process :
     Martingale (fun t ω => (process N ℱ hℱ φ h_meas h_progMeas h_sq_int_global t ω) ^ 2
       - compensator ν φ t ω) ℱ.rightCont P := by

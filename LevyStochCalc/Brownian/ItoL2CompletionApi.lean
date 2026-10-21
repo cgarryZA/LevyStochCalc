@@ -8,9 +8,9 @@ import LevyStochCalc.Brownian.ItoL2CompletionQuadVar
 /-!
 # Brownian Itô integral: the `stochasticIntegral` API
 
-The `ℱ.rightCont`-martingale property of the compensated square, the unified
-existence theorem `itoIsometry_brownian_unified_existence` combining the martingale,
-quadratic-variation and isometry conclusions, the isometry for differences of
+The martingale property of the compensated square for the right-continuation `ℱ₊` of `ℱ`,
+the unified existence theorem `itoIsometry_brownian_unified_existence` combining the
+martingale, quadratic-variation and isometry conclusions, the isometry for differences of
 integrands, and the `stochasticIntegral` interface with `itoIsometry`,
 `quadVar_stochasticIntegral` and `martingale_stochasticIntegral`.
 -/

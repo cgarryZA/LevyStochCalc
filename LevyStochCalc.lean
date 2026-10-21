@@ -187,7 +187,7 @@ import LevyStochCalc.Martingale.BDGTwo
 import LevyStochCalc.Martingale.CadlagModification
 import LevyStochCalc.Martingale.SquareCompensator
 
--- Layer 1: Itô-Lévy isometry  → I02
+-- Layer 1: Itô-Lévy isometry
 import LevyStochCalc.Poisson.L2Isometry
 
 -- Layer 1.5: Brownian motion (existence via RemyDegenne/brownian-motion)
@@ -371,7 +371,7 @@ import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
 
--- Layer 2: Itô-Lévy formula  → Cu03
+-- Layer 2: Itô-Lévy formula
 import LevyStochCalc.Ito.Setting
 import LevyStochCalc.Ito.ItoLevyProcess
 import LevyStochCalc.Ito.Picard
@@ -527,7 +527,7 @@ import LevyStochCalc.Ito.SecondMomentWeighted
 import LevyStochCalc.Ito.SecondMomentBackward
 import LevyStochCalc.Ito.StabilityEstimate
 
--- Layer 3 (+ 3a): BSDEJ existence  → Cu01
+-- Layer 3 (+ 3a): BSDEJ existence
 import LevyStochCalc.BSDEJ.Definition
 import LevyStochCalc.BSDEJ.MartingaleRepresentation
 import LevyStochCalc.BSDEJ.Existence
@@ -561,7 +561,7 @@ import LevyStochCalc.BSDEJ.PicardLimit
 import LevyStochCalc.BSDEJ.ExistenceUniqueness
 import LevyStochCalc.BSDEJ.UniquenessIndistinguishable
 
--- Layer 4: BSDEJ path regularity  → Cu05
+-- Layer 4: BSDEJ path regularity
 import LevyStochCalc.BSDEJ.PathRegularity
 import LevyStochCalc.BSDEJ.CellAverageRate
 import LevyStochCalc.BSDEJ.CellAverageRateMarked
@@ -570,19 +570,20 @@ import LevyStochCalc.BSDEJ.CellRegularity
 /-!
 # LevyStochCalc — root aggregator
 
-Bottom-up continuous-time Lévy / jump stochastic calculus formalisation, written
-to discharge the four cited continuous-time axioms of the main dissertation
-(`D:/Dissertation/Dissertation/Continuous.lean`):
+Bottom-up continuous-time Lévy / jump stochastic calculus formalisation, leading to four
+results:
 
-* `I02`  — Itô-Lévy L² isometry (Applebaum 2009 Thm 4.2.3)
-* `Cu01` — Continuous BSDEJ existence/uniqueness (Tang-Li 1994)
-* `Cu03` — Itô-Lévy formula for jump diffusions (Applebaum 2009 Thm 4.4.7)
-* `Cu05` — BSDEJ path regularity (Bouchard-Elie 2008 SPA 118(1) pp 53-75 Thm 2.1;
-  correcting the previous fabricated "Bouchard-Elie-Touzi 2009 SPA 119(11)"
-  citation flagged by red-team 1st audit P11 + 2nd audit P10)
+* the Itô-Lévy L² isometry (Applebaum 2009 Thm 4.2.3),
+  `LevyStochCalc.Poisson.L2Isometry.itoLevyIsometry`;
+* existence and uniqueness for BSDEs with jumps (Tang-Li 1994), over the augmented joint
+  filtration of a Lévy driver, `LevyStochCalc.BSDEJ.Solves.exists_unique_solvesBSDEJ`;
+* the Itô-Lévy formula for jump diffusions (Applebaum 2009 Thm 4.4.7),
+  `LevyStochCalc.Ito.JumpFormula.itoLevyFormula_general`;
+* the `L²` path-regularity rate of BSDEs with jumps (Bouchard-Elie 2008 SPA 118(1) pp 53-75
+  Thm 2.1), carried as the hypothesis `LevyStochCalc.BSDEJ.PathRegularity.CellRegularity`
+  rather than proved.
 
-Each layer below targets one cited result (or builds machinery used by the next layer).
+Each layer below targets one of these results (or builds machinery used by the next layer).
 The repository declares no `axiom`, and no declaration carries `sorry` (since 2026-09-15;
-the ledger is `tools/cited_axioms.md`). The Itô–Lévy formula the dissertation forwards (Cu03) is
-`itoLevyFormula_general` (`Ito/ItoLevyFormulaGeneral.lean`).
+the ledger is `tools/cited_axioms.md`).
 -/

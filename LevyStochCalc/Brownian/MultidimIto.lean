@@ -11,7 +11,7 @@ import LevyStochCalc.Brownian.ItoL2Completion
 
 The multidim L² Itô integral `∫_0^T Z_s · dW_s := ∑_i ∫_0^T Z_s^i dW_s^i`,
 defined as the sum (over components `i : Fin d`) of the 1D Brownian Itô
-integrals `LevyStochCalc.Brownian.SimplePredictableRefine.stochasticIntegral`
+integrals `LevyStochCalc.Brownian.Ito.stochasticIntegral`
 against the component Brownian motions `W.W i`.
 
 The integral is taken with respect to a filtration `ℱ` for which every coordinate
@@ -24,10 +24,10 @@ The integral is taken with respect to a filtration `ℱ` for which every coordin
 These per-component hypotheses are exactly the ones the 1D primitive
 requires; the multidim version just threads them through.
 
-This file is in its own module (not in `Multidim.lean`) because the 1D
-stochastic integral primitive lives in `SimplePredictableRefine.lean`,
-which transitively imports `Multidim.lean` via `Brownian/Ito.lean`. Putting
-the multidim integral here breaks the cycle.
+The integral is in its own module rather than in
+`LevyStochCalc.Brownian.Multidim` because the 1D integral it sums is declared
+in `LevyStochCalc.Brownian.ItoL2CompletionApi`, which imports
+`LevyStochCalc.Brownian.Multidim`.
 
 ## Reference
 

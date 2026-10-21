@@ -7,14 +7,16 @@ import LevyStochCalc.Probability.PoissonMoments
 import Mathlib.Topology.Algebra.Polynomial
 
 /-!
-# Charlier polynomials of rate `lam` and their Poisson orthogonality
+# Charlier polynomials and their Poisson orthogonality
 
-The Charlier polynomials of rate `lam` are given by the Appell-type recursion
+The Charlier polynomials with parameter `lam` are given by the recursion
 `C_(s+1)(x) = x C_s(x - 1) - lam C_s(x)` from `C_0 = 1`, the backward-difference analogue of the
-Hermite recursion `H_(n+1) = (x - v d/dx) H_n`. The forward difference plays the role the
-derivative plays there, `C_(s+1)(x + 1) - C_(s+1)(x) = (s + 1) C_s(x)`, and the degree-two member
-is `C_2(x; lam) = (x - lam) ^ 2 - x`. Under the Poisson law of mean `r` the family of rate `r` is
-orthogonal, with `E[C_s C_t] = δ_(s t) s! r ^ s`.
+Hermite recursion `H_(n+1) = (x - v d/dx) H_n`; their exponential generating function is
+`e^(-lam t) (1 + t) ^ x`. The forward difference plays the role the derivative plays there,
+`C_(s+1)(x + 1) - C_(s+1)(x) = (s + 1) C_s(x)`, and the degree-two member is
+`C_2(x; lam) = (x - lam) ^ 2 - x`. The parameter is the mean of the Poisson law that makes the
+family orthogonal: under the Poisson law of mean `r` the family with parameter `r` satisfies
+`E[C_s C_t] = δ_(s t) s! r ^ s`.
 
 ## Main statements
 
@@ -32,8 +34,10 @@ namespace LevyStochCalc.Probability
 open MeasureTheory ProbabilityTheory Polynomial
 open scoped NNReal ENNReal Nat
 
-/-- The Charlier polynomial of rate `lam` and degree `s`, given by the recursion
-`C_(s+1)(x) = x C_s(x - 1) - lam C_s(x)`. -/
+/-- The Charlier polynomial `C_s(x; lam)` of degree `s` with parameter `lam`, the mean of the
+Poisson law under which the family is orthogonal: `C_0 = 1` and
+`C_(s+1)(x) = x C_s(x - 1) - lam C_s(x)`, so that `∑_s C_s(x; lam) t ^ s / s!` is
+`e^(-lam t) (1 + t) ^ x`. -/
 noncomputable def charlierPoly (lam : ℝ) : ℕ → ℝ[X]
   | 0 => 1
   | (s + 1) => X * (charlierPoly lam s).comp (X - C 1) - C lam * charlierPoly lam s
@@ -44,7 +48,7 @@ theorem charlierPoly_succ (lam : ℝ) (s : ℕ) :
     charlierPoly lam (s + 1)
       = X * (charlierPoly lam s).comp (X - C 1) - C lam * charlierPoly lam s := rfl
 
-/-- The value `C_s(x; lam)` of the Charlier polynomial of rate `lam` and degree `s`. -/
+/-- The value `C_s(x; lam)` of the Charlier polynomial of degree `s` with parameter `lam`. -/
 noncomputable def charlierScaled (s : ℕ) (lam x : ℝ) : ℝ := (charlierPoly lam s).eval x
 
 @[simp] theorem charlierScaled_zero (lam x : ℝ) : charlierScaled 0 lam x = 1 := by
@@ -88,8 +92,9 @@ theorem charlierScaled_forward_diff (s : ℕ) (lam x : ℝ) :
     push_cast
     linear_combination (-lam) * ih1 + x * ih2 - ((s : ℝ) + 1) * e3
 
-/-- One step of the Charlier recursion under a Poisson law: the backward difference against the
-rate moves to the forward difference of the second factor. -/
+/-- One step of the Charlier recursion under the Poisson law of mean `r`: the recursion term
+`n p(n - 1) - r p(n)` of the first factor becomes `r` times the forward difference of the second
+factor. -/
 theorem integral_charlier_step (r : ℝ≥0) (p q : ℝ[X]) :
     ∫ n : ℕ, ((n : ℝ) * p.eval ((n : ℝ) - 1) - (r : ℝ) * p.eval (n : ℝ)) * q.eval (n : ℝ)
         ∂poissonMeasure r
@@ -128,8 +133,8 @@ theorem integral_charlier_step (r : ℝ≥0) (p q : ℝ[X]) :
   simp_rw [e4]
   ring
 
-/-- The Charlier polynomials of rate `r` are orthogonal under the Poisson law of mean `r`, with
-`E[C_s C_t] = δ_(s t) s! r ^ s`. -/
+/-- The Charlier polynomials with parameter `r` are orthogonal under the Poisson law of mean `r`,
+with `E[C_s C_t] = δ_(s t) s! r ^ s`. -/
 theorem integral_charlierPoly_mul (r : ℝ≥0) (s t : ℕ) :
     ∫ n : ℕ, (charlierPoly (r : ℝ) s).eval (n : ℝ) * (charlierPoly (r : ℝ) t).eval (n : ℝ)
         ∂poissonMeasure r
@@ -174,14 +179,15 @@ theorem integral_charlierPoly_mul (r : ℝ≥0) (s t : ℕ) :
       · rw [if_neg hsu, if_neg (by omega)]
         ring
 
-/-- The `L²` norm of a Charlier polynomial under the Poisson law of its own rate,
+/-- The `L²` norm of a Charlier polynomial under the Poisson law whose mean is its parameter,
 `E[C_s ^ 2] = s! r ^ s`. -/
 theorem integral_charlierPoly_sq (r : ℝ≥0) (s : ℕ) :
     ∫ n : ℕ, (charlierPoly (r : ℝ) s).eval (n : ℝ) ^ 2 ∂poissonMeasure r
       = (s.factorial : ℝ) * (r : ℝ) ^ s := by
   simpa [pow_two] using integral_charlierPoly_mul r s s
 
-/-- A Charlier polynomial of positive degree is centred under the Poisson law of its own rate. -/
+/-- A Charlier polynomial of positive degree is centred under the Poisson law whose mean is its
+parameter. -/
 theorem integral_charlierPoly_eq_zero (r : ℝ≥0) {s : ℕ} (hs : s ≠ 0) :
     ∫ n : ℕ, (charlierPoly (r : ℝ) s).eval (n : ℝ) ∂poissonMeasure r = 0 := by
   simpa [hs] using integral_charlierPoly_mul r s 0

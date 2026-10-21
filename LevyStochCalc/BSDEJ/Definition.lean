@@ -32,14 +32,14 @@ different existence/uniqueness apparatus and are out of scope.
   paths are what make the L²-supremum `⨆_{t ∈ [0,T]} ‖Y_t‖²` an honest
   measurable function of `ω`.
 * `Z ∈ H²` and each mark-slice `s ↦ U_s(e) ∈ H²_N`: L²-integrable and
-  progressively measurable (`IsStronglyProgressive`).
+  progressively measurable (`MeasureTheory.IsStronglyProgressive`).
 * The equation is expressed through two martingale legs `M_W, M_N` *pinned*
   to the canonical integrals — `M_W` to the multidim Brownian Itô integral of
   `Z`, `M_N` to the compensated-Poisson L² integral of `U` — rather than to
   arbitrary L²-isometric stand-ins. Both are martingales for the same
-  filtration `Filt`, pinned to the right-continuous augmentation `ℱ.rightCont`
-  of some filtration `ℱ` for which every `W.W j` is a Brownian motion and `N`
-  is a Poisson random measure.
+  filtration `Filt`, pinned to the right-continuation `ℱ₊`
+  (`MeasureTheory.Filtration.rightCont`) of some filtration `ℱ` for which every
+  `W.W j` is a Brownian motion and `N` is a Poisson random measure.
 
 Adaptedness is essential, not cosmetic: for `f = 0, g = 0` the non-adapted
 process `Y_t = W¹_T − W¹_t` solves the equation (with `Z ≡ 1`, `U = 0`), so
@@ -49,7 +49,7 @@ requiring `Y` adapted excludes it, since `W¹_T` is not `Filt_t`-measurable for
 `t < T`; then `Y_t = 𝔼[Y_t | Filt_t] = 0` from the martingale property of
 `M_W, M_N`.
 
-`IsStronglyProgressive` is the closest Mathlib analogue of the literature's
+`MeasureTheory.IsStronglyProgressive` is the closest Mathlib analogue of the literature's
 "predictable": progressive ⊇ predictable in general, but the L² Itô and
 Itô–Lévy integrals are defined on progressively-measurable integrands and are
 insensitive to a.e. modifications, and every progressive L² process is
@@ -64,8 +64,8 @@ The extractor theorems below (`filtration_eq_canonical`, `Y_cadlag`,
 `U_isStronglyProgressive_canonical`, `M_W_eq_canonical_brownianIto`,
 `M_N_eq_canonical_compensatedPoisson`, `eqn_canonical`) each extract one strengthening
 of the predicate as a public lemma. They double as a compile-time guard: weakening
-the predicate (relaxing the `Filt` pin, demoting `IsStronglyProgressive` to
-`Adapted`, dropping the canonical-integral pins, or removing `Y`'s càdlàg
+the predicate (relaxing the `Filt` pin, demoting `MeasureTheory.IsStronglyProgressive` to
+`MeasureTheory.Adapted`, dropping the canonical-integral pins, or removing `Y`'s càdlàg
 paths) makes them fail to elaborate, breaking the build. -/
 
 open MeasureTheory ProbabilityTheory
@@ -215,7 +215,7 @@ def IsBSDEJSolution
 
 These extractor theorems guard the predicate's literature-strength conjuncts.
 Weakening the predicate (relaxing the `Filt` pin to a `≤ Filt` constraint,
-demoting `IsStronglyProgressive` back to `Adapted`, removing the
+demoting `MeasureTheory.IsStronglyProgressive` back to `MeasureTheory.Adapted`, removing the
 canonical-integral pins on `M_W`/`M_N`, or dropping the càdlàg paths on `Y`)
 makes them fail to elaborate, breaking the build — catching exactly the
 non-uniqueness an adaptedness-free predicate admits (`Y₁ = 0` and

@@ -12,8 +12,8 @@ import Mathlib.Data.Real.Basic
 # The increasing enumeration of a finite family of times
 
 `sortedGrid S` lists the elements of a finite set `S ⊆ ℝ` in increasing order at the indices
-`1, …, S.card`, and takes the value `0` at index `0` and beyond `S.card`. When every element of
-`S` is positive it is strictly increasing on `{0, …, S.card}`.
+`1, …, #S`, and takes the value `0` at index `0` and beyond `#S`. When every element of `S` is
+positive it is strictly increasing on `{0, …, #S}`.
 
 A finite family of (coordinate, time) pairs carrying real weights is thereby rewritten as a sum
 over such a grid: `posTimes` collects the strictly positive times of the family and `weightAt`

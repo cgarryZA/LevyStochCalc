@@ -12,9 +12,9 @@ import LevyStochCalc.Probability.CondExpInf
 For a filtration `ℱ` indexed by `ℝ` the σ-algebras `ℱ (t + 1/(n+1))` form an antitone sequence
 whose infimum is `⨅ r > t, ℱ r`, which is `ℱ t` when `ℱ` is right-continuous. The `L²`
 conditional expectations therefore converge to `𝔼[f | ℱ t]` along that sequence
-(`CondExpInf.lean`), and `r ↦ ‖𝔼[f | ℱ r] − 𝔼[f | ℱ t]‖` is monotone on `[t, ∞)` because the
-subspaces `lpMeas (ℱ r)` grow, so the convergence upgrades from the sequence to the filter
-`𝓝[>] t`.
+(`LevyStochCalc.Probability.CondExpInf`), and `r ↦ ‖𝔼[f | ℱ r] − 𝔼[f | ℱ t]‖` is monotone on
+`[t, ∞)` because the subspaces `lpMeas (ℱ r)` grow, so the convergence upgrades from the sequence
+to the filter `𝓝[>] t`.
 
 ## Main statements
 

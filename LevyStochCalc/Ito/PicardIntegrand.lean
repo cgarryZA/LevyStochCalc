@@ -11,9 +11,11 @@ import LevyStochCalc.Ito.PicardIntegrandFrozen
 
 `picardStep` asks for its integrands to be square integrable at **every** horizon, while a
 member of the process space is `L²`-controlled only on `[0, T]`. Running the step on the frozen
-process `X.stop` closes that gap: off `[0, T]` the frozen path repeats `X_T`, so the linear
-growth supplied by `IsLipschitz` turns `IsRegular`'s bounds at a single state into bounds along
-the path at every horizon.
+process (`LevyStochCalc.Ito.Picard.SBoundedProcess.stop`) closes that gap: off `[0, T]` the frozen
+path repeats `X_T`, so the linear growth supplied by
+`LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsLipschitz` turns the bounds at a single state
+of `LevyStochCalc.Ito.Setting.JumpDiffusionCoeffs.IsRegular` into bounds along the path at every
+horizon.
 
 ## Parts
 

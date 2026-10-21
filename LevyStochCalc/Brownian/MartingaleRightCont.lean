@@ -8,9 +8,10 @@ import LevyStochCalc.Brownian.MartingaleQuadVar
 /-!
 # Brownian motion under the right-continuous natural filtration
 
-The martingale property of Brownian motion passes to the right-continuous augmentation `ℱ₊` of
-its natural filtration, and `ℱ₊` is itself right-continuous; the passage uses the right
-`L²`-continuity `𝔼|W_r − W_s|² = r − s → 0` of the time slices.
+The martingale property of Brownian motion passes to the right-continuation `ℱ₊` of its natural
+filtration `ℱ`, `ℱ₊ t = ⨅ s > t, ℱ s` (no null sets are added), and `ℱ₊` is itself
+right-continuous; the passage uses the right `L²`-continuity `𝔼|W_r − W_s|² = r − s → 0` of the
+time slices.
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -23,7 +24,7 @@ universe u
 section RightContinuous
 variable {Ω : Type u} [MeasurableSpace Ω]
 
-/-- Brownian motion is a martingale with respect to the right-continuous augmentation of
+/-- Brownian motion is a martingale with respect to the right-continuation `ℱ₊` of
 its natural filtration: the natural-filtration martingale property lifts along the
 right-`L²`-continuity `𝔼|W_r − W_s|² = r − s → 0` of the time slices
 (Karatzas–Shreve, Theorem 2.7.9, reaches the same conclusion through Blumenthal's 0-1
@@ -106,7 +107,7 @@ theorem brownian_filtration_rightContinuous
     ∃ F : MeasureTheory.Filtration ℝ ‹MeasurableSpace Ω›,
       MeasureTheory.Martingale (fun t : ℝ => W.W t) F P
         ∧ ∀ t : ℝ, F t = ⨅ s : {s : ℝ // t < s}, F s.1 := by
-  -- Take the right-continuous augmentation of the natural filtration of W.
+  -- Take the right-continuation of the natural filtration of W.
   refine ⟨(naturalFiltration W).rightCont, ?_, ?_⟩
   · -- Martingale wrt rightCont: `brownian_martingale_rightCont` (cited result #4).
     exact LevyStochCalc.Brownian.Martingale.brownian_martingale_rightCont W

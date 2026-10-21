@@ -9,11 +9,11 @@ import LevyStochCalc.BSDEJ.Existence
 # Generators measurable for the product σ-algebra on the jump variable
 
 A function on `E → ℝ` that is measurable for the product σ-algebra depends on countably many
-coordinates (`MeasurableSet.eq_preimage_restrict_countable`). If the mark measure `ν` gives
-every singleton measure zero, a countable set of coordinates is `ν`-null, so two jump variables
-can be made to agree on it while staying at `L²(ν)` distance zero from each other. A generator
-that is both product-measurable and Lipschitz in the `L²(ν)` distance of the jump variable is
-therefore constant in that variable: `f_const_of_measurable_of_lipschitz`.
+coordinates (`MeasureTheory.MeasurableSet.eq_preimage_restrict_countable`). If the mark measure
+`ν` gives every singleton measure zero, a countable set of coordinates is `ν`-null, so two jump
+variables can be made to agree on it while staying at `L²(ν)` distance zero from each other. A
+generator that is both product-measurable and Lipschitz in the `L²(ν)` distance of the jump
+variable is therefore constant in that variable: `f_const_of_measurable_of_lipschitz`.
 
 This is why `BSDEJ.Definition.BSDEJData` carries measurability of the `(t, x, y, z)`-slices of
 the generator at each fixed jump variable rather than joint measurability for the product

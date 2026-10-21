@@ -19,10 +19,10 @@ rational horizons is again null and the identity holds at every horizon `T ≥ 0
 off a single null set.
 
 The compensated-Poisson leg is càdlàg at every sample point by construction. The Brownian leg
-`MultidimBrownianMotion.stochasticIntegral` is defined one time at a time, as an equivalence
-class for each horizon, and so carries no path regularity; the first statement below therefore
-takes a process `M` that is a version of it and is right-continuous along every path, and the
-second supplies such a version from
+`LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.stochasticIntegral` is defined one time
+at a time, as an equivalence class for each horizon, and so carries no path regularity; the first
+statement below therefore takes a process `M` that is a version of it and is right-continuous
+along every path, and the second supplies such a version from
 `LevyStochCalc.Brownian.Multidim.MultidimBrownianMotion.exists_everywhere_cadlag_vectorIntegral`.
 
 ## Main statements

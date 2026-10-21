@@ -22,7 +22,8 @@ not exited by `T`; neither fact needs any path regularity.
 
 * `openExitTime_lt_coe_iff` — for a right-continuous path, the exit time is below `t` exactly
   when some rational time of `[0, t)` sees the norm exceed `R`.
-* `isStoppingTime_openExitTime` — the exit time is a stopping time for `ℱ.rightCont`.
+* `isStoppingTime_openExitTime` — the exit time is a stopping time for the right-continuation
+  `ℱ₊` of `ℱ`.
 * `norm_le_of_lt_openExitTime` — strictly below the exit time the path has norm at most `R`.
 * `le_openExitTime_of_forall_norm_le` — a path bounded by `R` on `[0, T]` has not exited by `T`.
 -/

@@ -10,9 +10,9 @@ import LevyStochCalc.Brownian.ItoL2CompletionMaster
 
 The `L²`-isometry `∫⁻ ‖stochasticIntegralBrownian T‖₊² = ∫⁻ ∫⁻_{[0, T]} ‖H‖₊²`,
 membership of the process in `L²(P)`, right `L²`-continuity of its time slices and
-the resulting martingale property with respect to `ℱ.rightCont`, and the compensator
-`∫_{[0, t]} (H ω u)² du` with the `ℱ`-martingale property of the compensated
-square.
+the resulting martingale property with respect to the right-continuation `ℱ₊` of
+`ℱ`, and the compensator `∫_{[0, t]} (H ω u)² du` with the `ℱ`-martingale property
+of the compensated square.
 -/
 
 namespace LevyStochCalc.Brownian.Ito

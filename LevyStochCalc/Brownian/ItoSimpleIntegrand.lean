@@ -25,9 +25,10 @@ universe u
 
 variable {Ω : Type u} [MeasurableSpace Ω]
 
-/-- A *simple predictable* integrand: a finite linear combination
-`∑_i ξ_i · 1_{(t_i, t_{i+1}]}` where `ξ_i : Ω → ℝ` is `ℱ_{t_i}`-measurable
-and bounded. We package the partition + the per-piece coefficient. -/
+/-- A simple integrand on `[0, T]`: the step process `∑_i ξ_i · 1_{(t_i, t_{i+1}]}` over a strictly
+increasing partition `0 = t_0 < ⋯ < t_N ≤ T`, with bounded measurable coefficients `ξ_i : Ω → ℝ`.
+The structure carries no filtration: adaptedness of `H` to a filtration `ℱ` is the separate
+hypothesis `∀ i, StronglyMeasurable[ℱ (H.partition i.castSucc)] (H.ξ i)`. -/
 structure SimplePredictable (Ω : Type u) [MeasurableSpace Ω] (T : ℝ) where
   /-- Number of partition pieces. -/
   N : ℕ
