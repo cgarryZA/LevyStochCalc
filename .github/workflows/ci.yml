@@ -27,9 +27,15 @@ jobs:
     # cache is now restored with `lake exe cache get` before the build, the
     # limit is raised, and the build/audit transcripts are kept as artifacts.
     timeout-minutes: 240
+    # `contents: write` lets a push to master publish its build to the `build-cache` release.
+    permissions:
+      contents: write
 
     steps:
+      # The full history: a cached build is used only for an ancestor of the checked-out commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # P2 MEDIUM-1 fix (red-team 2nd audit 2026-05-23): cache `~/.elan`
       # in addition to `.lake`. Without this, the Lean toolchain (~200 MB)
@@ -67,11 +73,26 @@ jobs:
       - name: Restore the Mathlib olean cache
         run: lake exe cache get || true
 
+      # The build cache: archives of the Lean build output attached to the `build-cache` release
+      # of this repository by `machinechecked cache`. They hold the build of this library and of
+      # the two dependencies built from source, which Mathlib's cache does not supply. Restore
+      # takes the nearest archive of an ancestor commit with the same toolchain, manifest and
+      # platform and checks its SHA-256; `lake build --rehash` then rebuilds only what changed.
+      # Unlike the `.lake` cache above, the release is also what a fresh checkout outside CI
+      # restores from (`machinechecked cache restore cgarryZA/LevyStochCalc`).
+      - name: Restore the build
+        env:
+          MACHINECHECKED_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pipx install machinechecked==0.1.25
+          machinechecked cache restore "${{ github.repository }}" \
+            || echo "no compatible cached build; building from source"
+
       - name: lake build
         shell: bash
         run: |
           set -o pipefail
-          lake build 2>&1 | tee build_output.txt
+          lake build --rehash 2>&1 | tee build_output.txt
 
       - name: tools/lint.sh
         shell: bash
@@ -107,3 +128,13 @@ jobs:
       # exhibiting a non-degenerate conclusion) are a CI-checked artifact, not a promise.
       - name: lake build LevyStochCalcExamples
         run: lake build LevyStochCalcExamples
+
+      # Last, so that the archive holds the examples' build as well.
+      - name: Save and publish the build
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        env:
+          MACHINECHECKED_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          machinechecked cache save --out "$RUNNER_TEMP/lean-cache"
+          machinechecked cache publish --out "$RUNNER_TEMP/lean-cache" "${{ github.repository }}"
+          machinechecked cache prune --keep 3 "${{ github.repository }}"
