@@ -89,7 +89,7 @@ theorem indep_naturalFiltration_future (W : BrownianMotion P) {s : ℝ} (hs : 0 
           = (fun p : Set.Iic (Real.toNNReal s) → ℝ => p ⟨Real.toNNReal j, hjs⟩)
             ∘ (fun ω (r : Set.Iic (Real.toNNReal s)) => W.W ((r : ℝ≥0) : ℝ) ω) := by
         funext ω
-        show W.W j ω = W.W ((Real.toNNReal j : ℝ≥0) : ℝ) ω
+        change W.W j ω = W.W ((Real.toNNReal j : ℝ≥0) : ℝ) ω
         rw [Real.coe_toNNReal j hj0]
       rw [hfun]
       exact Measurable.comap_le ((measurable_pi_apply _).comp (Measurable.of_comap_le le_rfl))
