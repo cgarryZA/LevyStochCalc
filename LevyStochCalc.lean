@@ -526,6 +526,14 @@ import LevyStochCalc.Ito.SecondMomentBilinear
 import LevyStochCalc.Ito.SecondMomentWeighted
 import LevyStochCalc.Ito.SecondMomentBackward
 import LevyStochCalc.Ito.StabilityEstimate
+import LevyStochCalc.Ito.FiniteHorizonIncrements
+import LevyStochCalc.Ito.FiniteHorizonDrift
+import LevyStochCalc.Ito.FiniteHorizonInnerIntegral
+import LevyStochCalc.Ito.FiniteHorizonProcess
+import LevyStochCalc.Ito.FiniteHorizonEnergy
+import LevyStochCalc.Ito.FiniteHorizonBracket
+import LevyStochCalc.Ito.FiniteHorizonWeighted
+import LevyStochCalc.Ito.FiniteHorizonBrownian
 
 -- Layer 3 (+ 3a): BSDEJ existence
 import LevyStochCalc.BSDEJ.Definition

@@ -48,4 +48,5 @@ roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy", "Nonv
   "NonvacuityBSDEJJump", "NonvacuityBSDEJData", "NonvacuityContract",
   "NonvacuityScattering", "NonvacuityTwoCoordinates", "NonvacuityPRP",
   "NonvacuityBSDEJRateU", "NonvacuityMartingaleForm", "NonvacuityJumpDiffusionCited",
-  "NonvacuityBrownianCited", "NonvacuityInfiniteActivity", "NonvacuityBSDEJCellRegularity"]
+  "NonvacuityBrownianCited", "NonvacuityInfiniteActivity", "NonvacuityBSDEJCellRegularity",
+  "NonvacuityFiniteHorizonEnergy"]
