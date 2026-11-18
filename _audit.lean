@@ -5675,6 +5675,32 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_cell_sq_le_of_gaussianTerminal
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal
+
+-- ===== The cell-projection rates under hypotheses on the horizon only =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.horizonTrunc_of_mem
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.horizonTrunc_of_notMem
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.horizonTrunc_eq_of_mem
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.horizonTrunc_apply_apply
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lipschitzWith_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.setIntegral_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_horizonTrunc_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.sq_int_global_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.sq_int_global_horizonTrunc_pi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_horizonTrunc_pi_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.measurable_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.measurable_horizonTrunc_pi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.progressivelyMeasurable_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.progressivelyMeasurable_horizonTrunc_pi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.stochasticIntegral_horizonTrunc_ae_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_congr
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_horizonTrunc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_horizonTrunc_iff
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_martingale_add_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_lipschitz_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_gaussianTerminal_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal_horizon
 -- ===== Brownian martingale representation with independent initial information =====
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_setIntegral_inter_eq_zero
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_setIntegral_inter_eq_zero_aug

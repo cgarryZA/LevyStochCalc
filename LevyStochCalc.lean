@@ -590,6 +590,7 @@ import LevyStochCalc.BSDEJ.CellMomentBound
 import LevyStochCalc.BSDEJ.CellRateMartingale
 import LevyStochCalc.BSDEJ.CellRateGaussianAverage
 import LevyStochCalc.BSDEJ.CellRateGaussian
+import LevyStochCalc.BSDEJ.CellRateHorizon
 
 /-!
 # LevyStochCalc — root aggregator

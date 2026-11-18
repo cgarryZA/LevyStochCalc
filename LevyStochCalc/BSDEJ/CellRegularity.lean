@@ -24,9 +24,19 @@ an integrand constant in the sample point the two coincide.
 `CellRegularity D T Z U A C` is the `L²` path-regularity rate: the sum over the cells of the
 uniform grid of mesh `T / N` of the squared conditional projection errors of `Z`, and of the
 marked integrals of `U` along `A`, is at most `C · T / N`. It is a property of the pair
-`(Z, U)` alone, carried as a hypothesis: the proofs of the rate in the sources below run
-through Malliavin calculus or through a differentiable representation of the solution by a
-partial integro-differential equation, and neither is available in this library.
+`(Z, U)` alone.
+
+A first-order bound on the `Z` part is derived in two cases: for a control that is a
+square-integrable martingale plus a mean-square Lipschitz process
+(`cellProjError_le_of_martingale_add`), and for the control of a backward equation with one
+Brownian coordinate, a deterministic driver and a terminal value that is a Lipschitz function
+of a Gaussian terminal value (`cellRegularity_of_gaussianTerminal`, which assumes the marked
+part). Under a Lipschitz decoupling field the control has a uniform second-moment bound
+(`ae_lintegral_sq_le_of_lipschitz`). For general coupled or state-dependent equations, for
+several Brownian coordinates in the Gaussian case and for the marked part, `CellRegularity` is
+assumed where it is used: the proofs of the rate in the sources below run through Malliavin
+calculus or through a differentiable representation of the solution by a partial
+integro-differential equation, and neither is available in this library.
 
 ## Main statements
 

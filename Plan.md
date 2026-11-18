@@ -919,11 +919,22 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       equal to them for deterministic integrands) and the predicate `CellRegularity`, the
       `L²`-path-regularity rate of Zhang (2004) and Bouchard–Elie (2008) on uniform grids,
       carried as an explicit named hypothesis because its published proofs need Malliavin
-      calculus or a differentiable PIDE representation (ledger, Retired #10). It is not a
-      theorem of this library. `examples/NonvacuityBSDEJCellRegularity.lean` inhabits it for the
-      `f = y`, `ξ = W₁` equation with `C = e²`; that witness covers only the case where the
+      calculus or a differentiable PIDE representation (ledger, Retired #10). In general it is
+      not a theorem of this library. `examples/NonvacuityBSDEJCellRegularity.lean` inhabits it for
+      the `f = y`, `ξ = W₁` equation with `C = e²`; that witness covers only the case where the
       conditional and the pathwise averages coincide (deterministic `Z`), and its `rate_U` half
       is degenerate (`U = 0`), so it exercises the statement, not the stochastic content.
+      **Two cases derived (recorded 2026-11-18; ledger, Retired #10):** a first-order rate for
+      the conditional projection is proved for a control that is a square-integrable martingale
+      plus a mean-square Lipschitz process (`cellProjError_le_of_martingale_add`) and for the
+      control of a backward equation with one Brownian coordinate, a deterministic driver and a
+      terminal value that is a Lipschitz function of `ξ₀ + W_T σ`
+      (`cellRegularity_of_gaussianTerminal`, `rate_U` assumed); a uniform second-moment bound is
+      proved under a Lipschitz decoupling field (`ae_lintegral_sq_le_of_lipschitz`);
+      `BSDEJ/CellRateHorizon.lean` restates them with hypotheses on `[0, T]` only, and
+      `examples/NonvacuityCellRegularityGaussian.lean` instantiates the Gaussian case for
+      `ξ = |W₁|`. The rate for general coupled or state-dependent equations, for several
+      Brownian coordinates in the Gaussian case and for the jump part stays a hypothesis.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
@@ -931,7 +942,8 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       the terminal-time PRP. **Closed 2026-09-16:** every finding F1–F16 is dispositioned
       above (by theorem: F5, F8, F10, F11, F14, F15, F16; by restatement or rename: F12, F13; by
       design with the docstring saying so: F9; by docstring: F1, F2, F3, F4, F6, F7), the
-      predicate `CellRegularity` is the one object carried as a hypothesis rather than proved,
+      predicate `CellRegularity` is the one object carried as a hypothesis rather than proved
+      (outside the two cases derived above),
       and no listed definition was found weaker than the cited one.
 - [x] **C′2** Tie the BM layer to the mathlib predicates at the pin
       (`ProbabilityTheory.IsPreBrownianReal`, `IsBrownianReal`, `IsGaussianProcess`,
