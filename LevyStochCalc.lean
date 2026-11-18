@@ -39,6 +39,7 @@ import LevyStochCalc.Probability.PredictableModification
 import LevyStochCalc.Probability.MarkedPredictableModification
 import LevyStochCalc.Probability.CharTotal
 import LevyStochCalc.Probability.SetIntegralPiSystem
+import LevyStochCalc.Probability.SupDensity
 import LevyStochCalc.Probability.CharCylinder
 import LevyStochCalc.Probability.PairingFubini
 import LevyStochCalc.Probability.IndepBlocks
@@ -371,6 +372,14 @@ import LevyStochCalc.Brownian.VectorItoTimeFormula
 import LevyStochCalc.Brownian.PRPMultidimRange
 import LevyStochCalc.Brownian.PRPPerpBridge
 import LevyStochCalc.Brownian.PRPMultidimAssembly
+import LevyStochCalc.Brownian.InitialFiltration
+import LevyStochCalc.Brownian.HorizonFiltrationChange
+import LevyStochCalc.Brownian.HorizonPullOut
+import LevyStochCalc.Brownian.HorizonSimpleApprox
+import LevyStochCalc.Brownian.RepresentationInitialSeparation
+import LevyStochCalc.Brownian.RepresentationInitial
+import LevyStochCalc.Brownian.RepresentationInitialVector
+import LevyStochCalc.Brownian.RepresentationInitialSimple
 
 -- Layer 2: Itô-Lévy formula
 import LevyStochCalc.Ito.Setting
