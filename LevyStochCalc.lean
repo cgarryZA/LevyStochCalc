@@ -307,6 +307,7 @@ import LevyStochCalc.Brownian.PRPCell
 import LevyStochCalc.Brownian.PRPGrid
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoFourthMomentIncrements
+import LevyStochCalc.Brownian.GaussianRegression
 import LevyStochCalc.Brownian.ItoFourthMomentPartialSums
 import LevyStochCalc.Brownian.ItoFourthMomentLintegral
 import LevyStochCalc.Brownian.ItoIncrementMoment
@@ -574,6 +575,12 @@ import LevyStochCalc.BSDEJ.PathRegularity
 import LevyStochCalc.BSDEJ.CellAverageRate
 import LevyStochCalc.BSDEJ.CellAverageRateMarked
 import LevyStochCalc.BSDEJ.CellRegularity
+import LevyStochCalc.BSDEJ.CondCellProjection
+import LevyStochCalc.BSDEJ.CondCellConvergence
+import LevyStochCalc.BSDEJ.CellMomentBound
+import LevyStochCalc.BSDEJ.CellRateMartingale
+import LevyStochCalc.BSDEJ.CellRateGaussianAverage
+import LevyStochCalc.BSDEJ.CellRateGaussian
 
 /-!
 # LevyStochCalc — root aggregator

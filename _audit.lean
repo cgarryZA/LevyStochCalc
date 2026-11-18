@@ -5598,3 +5598,80 @@ import LevyStochCalc
 #print axioms LevyStochCalc.Ito.FiniteHorizon.runningIntegral
 #print axioms LevyStochCalc.Ito.FiniteHorizon.runningIntegral_eq
 #print axioms LevyStochCalc.Ito.FiniteHorizon.stronglyMeasurable_runningIntegral
+
+-- ===== Conditional cell projections for a general filtration =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.nnnorm_sq_eq_ofReal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_nnnorm_sub_sq_eq_ofReal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_interval_sq_sub_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_nnnorm_sq_eq_ofReal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_memLp_interval
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.measurable_integral_interval
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integrable_integral_interval_sq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.sq_integral_interval_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_integral_interval
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_interval_sq_sub_eq_ofReal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_mul_integral_interval_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_condIntervalAvg
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_interval_sq_sub_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_interval_sq_sub_condAvg_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_interval_sq_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_sum_cells
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_sum_cells_lintegral
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cell_subset_Icc
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_setLIntegral_finsetSum
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condCellAvg
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condCellAverage_Z_eq_condCellAvg
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_iff
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.stronglyMeasurable_condCellAvg
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_condCellAvg
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_cell_sq_sub_condCellAvg_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_cell_sq_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ofReal_mul_lintegral_condCellAvg_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le
+
+-- ===== Convergence of the conditional cell projections =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.tendsto_cellProjError_zero
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_condCellAvg_le
+
+-- ===== A second-moment bound for the control process from a Lipschitz decoupling field =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_sq_le_of_eq_condExp_mul_increment
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condExp_increment_mul_increment
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_comp_of_lipschitzWith
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_condIntervalAvg_sq_le_of_lipschitz
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_condCellAvg_sq_le_of_lipschitz
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_lipschitz
+
+-- ===== The cell-projection rate of a martingale plus a mean-square Lipschitz process =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_sq_sub_eq_of_condExp_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_martingale_add
+
+-- ===== Gaussian regression of a Brownian increment on a longer one =====
+#print axioms LevyStochCalc.Brownian.indep_sup_comap_residual
+#print axioms LevyStochCalc.Brownian.integral_mul_increment_eq_regression
+
+-- ===== Conditional averages of the control process for a Gaussian terminal datum =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_brownian_eval
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_smul_const
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_mul_condExp_eq
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condAvgToHorizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.stronglyMeasurable_condAvgToHorizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_condAvgToHorizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.stochasticIntegral_fin_one
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_stochasticIntegral_fin_one
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_increment_mul_eq_zero
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.increment_ae_eq_terminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_terminal_and_solution
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.setIntegral_increment_mul_regression
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condAvg_eq_condAvg_terminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_condAvgToHorizon_sq_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condAvgToHorizon_eq_condExp
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_condAvgToHorizon_sq_mono
+
+-- ===== The first-order cell-projection rate for a Gaussian terminal datum =====
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_sum_cells_from
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_condCellAvg_sq_eq_of_gaussianTerminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_gaussianTerminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_cell_sq_le_of_gaussianTerminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal
