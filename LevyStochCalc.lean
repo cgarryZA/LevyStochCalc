@@ -219,6 +219,7 @@ import LevyStochCalc.Driver.Joint
 import LevyStochCalc.Driver.TrivialAtNegative
 import LevyStochCalc.Driver.JointCharacters
 import LevyStochCalc.Driver.JointFiltration
+import LevyStochCalc.Driver.JointFuture
 import LevyStochCalc.Driver.ProductRule
 import LevyStochCalc.Driver.CellPairing
 import LevyStochCalc.Driver.CellIdentity
@@ -309,6 +310,7 @@ import LevyStochCalc.Brownian.PRPGrid
 import LevyStochCalc.Brownian.ItoFourthMoment
 import LevyStochCalc.Brownian.ItoFourthMomentIncrements
 import LevyStochCalc.Brownian.GaussianRegression
+import LevyStochCalc.Brownian.GaussianRegressionMulti
 import LevyStochCalc.Brownian.ItoFourthMomentPartialSums
 import LevyStochCalc.Brownian.ItoFourthMomentLintegral
 import LevyStochCalc.Brownian.ItoIncrementMoment
@@ -591,6 +593,8 @@ import LevyStochCalc.BSDEJ.CellRateMartingale
 import LevyStochCalc.BSDEJ.CellRateGaussianAverage
 import LevyStochCalc.BSDEJ.CellRateGaussian
 import LevyStochCalc.BSDEJ.CellRateHorizon
+import LevyStochCalc.BSDEJ.CellRateGaussianMultiAverage
+import LevyStochCalc.BSDEJ.CellRateGaussianMulti
 
 /-!
 # LevyStochCalc — root aggregator

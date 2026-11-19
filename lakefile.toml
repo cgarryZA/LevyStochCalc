@@ -50,4 +50,4 @@ roots = ["ItoLevyIsometryUsage", "NonvacuityDrivers", "NonvacuityItoLevy", "Nonv
   "NonvacuityBSDEJRateU", "NonvacuityMartingaleForm", "NonvacuityJumpDiffusionCited",
   "NonvacuityBrownianCited", "NonvacuityInfiniteActivity", "NonvacuityBSDEJCellRegularity",
   "NonvacuityFiniteHorizonEnergy", "NonvacuityCellRegularityGaussian",
-  "NonvacuityRepresentationInitial"]
+  "NonvacuityRepresentationInitial", "NonvacuityCellRegularityGaussianMulti"]

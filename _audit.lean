@@ -5701,6 +5701,38 @@ import LevyStochCalc
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal_horizon
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_gaussianTerminal_horizon
 #print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal_horizon
+
+-- ===== The cell-projection rate for a Gaussian terminal datum in several coordinates =====
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_filtration_iSup_future
+#print axioms LevyStochCalc.Driver.LevyDriver.indep_augFiltration_iSup_future
+#print axioms LevyStochCalc.Brownian.supOthers
+#print axioms LevyStochCalc.Brownian.supOthers_apply
+#print axioms LevyStochCalc.Brownian.le_supOthers
+#print axioms LevyStochCalc.Brownian.measurable_supOthers
+#print axioms LevyStochCalc.Brownian.isBrownianFiltration_supOthers
+#print axioms LevyStochCalc.Brownian.integral_mul_increment_eq_regression_coord
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_sq_le_of_eq_condExp_mul_increment_of_le
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_sum_smul_brownian
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_sum_smul_brownian_frozen
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.sum_smul_sub_frozen
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.stochasticIntegral_eq_sum
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_stochasticIntegral_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_increment_mul_eq_zero_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.increment_ae_eq_terminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.memLp_terminal_and_solution_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.setIntegral_increment_mul_regression_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condAvg_eq_condAvg_terminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_condAvgToHorizon_sq_le_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.condAvgToHorizon_eq_condExp_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.integral_condAvgToHorizon_sq_mono_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_condCellAvg_sq_eq_of_gaussianTerminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_gaussianTerminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.lintegral_cell_sq_le_of_gaussianTerminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal_multi
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellProjError_le_of_gaussianTerminal_multi_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.ae_lintegral_sq_le_of_gaussianTerminal_multi_horizon
+#print axioms LevyStochCalc.BSDEJ.PathRegularity.cellRegularity_of_gaussianTerminal_multi_horizon
 -- ===== Brownian martingale representation with independent initial information =====
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_setIntegral_inter_eq_zero
 #print axioms LevyStochCalc.Probability.ae_eq_zero_of_setIntegral_inter_eq_zero_aug

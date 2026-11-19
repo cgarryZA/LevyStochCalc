@@ -933,8 +933,12 @@ Bottom-up; each is a real `theorem` replacing its `axiom`, then drop from
       proved under a Lipschitz decoupling field (`ae_lintegral_sq_le_of_lipschitz`);
       `BSDEJ/CellRateHorizon.lean` restates them with hypotheses on `[0, T]` only, and
       `examples/NonvacuityCellRegularityGaussian.lean` instantiates the Gaussian case for
-      `ξ = |W₁|`. The rate for general coupled or state-dependent equations, for several
-      Brownian coordinates in the Gaussian case and for the jump part stays a hypothesis.
+      `ξ = |W₁|`. **Several Brownian coordinates (recorded 2026-11-19; ledger, Retired #10):**
+      the Gaussian case holds for a terminal value `g(ξ₀ + Σ_j Wʲ_T σ_j)`, constant
+      `L² Σ_j ‖σ_j‖²` (`cellRegularity_of_gaussianTerminal_multi` and its `_horizon` form,
+      `BSDEJ/CellRateGaussianMulti.lean`), instantiated for `ξ = |W¹₁ + W²₁|` with constant `2`
+      by `examples/NonvacuityCellRegularityGaussianMulti.lean`. The rate for general coupled or
+      state-dependent equations and for the jump part stays a hypothesis.
       Also FAITHFUL with no action: `BrownianMotion` (tied to Mathlib both ways),
       `MultidimBrownianMotion`, `LevyDriver`, `IsBrownianFiltration`, both integrands and
       integrals (`ProgressivelyMeasurable ↔ IsStronglyProgressive`), `SolvesBSDEJ` (pinned
